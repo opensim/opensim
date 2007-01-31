@@ -1,0 +1,17 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# SharpDevelop 2.1.0.2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Second-server", "Second-server.csproj", "{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+EndGlobal
