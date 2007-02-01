@@ -192,7 +192,7 @@ namespace Second_server
 		{
 			
 			//shouldn't really have to read all this in from disk for every new client?
-				 string data_path=System.Windows.Forms.Application.StartupPath + @"\layer_data\";
+				 string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\layer_data\";
 			
 				//send layerdata
 				LayerDataPacket layerpack=new LayerDataPacket();

@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) <year>, <copyright holder>
+ * Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without

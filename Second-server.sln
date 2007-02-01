@@ -1,17 +1,34 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
-# SharpDevelop 2.1.0.2017
+# Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Second-server", "Second-server.csproj", "{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libsecondlife", "..\..\libsecondlife\libsecondlife-cs\libsecondlife.csproj", "{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|.NET 1.1 = Debug|.NET 1.1
 		Debug|Any CPU = Debug|Any CPU
+		Release|.NET 1.1 = Release|.NET 1.1
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|.NET 1.1.ActiveCfg = Debug|Any CPU
 		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|.NET 1.1.ActiveCfg = Release|Any CPU
 		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Debug|.NET 1.1.ActiveCfg = Debug|.NET 1.1
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Debug|.NET 1.1.Build.0 = Debug|.NET 1.1
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|.NET 1.1.ActiveCfg = Release|.NET 1.1
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|.NET 1.1.Build.0 = Release|.NET 1.1
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

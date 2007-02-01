@@ -258,7 +258,7 @@ namespace Second_server
 				objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[num];
 				
 			 //	int count=0;
-			 string data_path=System.Windows.Forms.Application.StartupPath + @"\data\";
+                string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\data\";
 			 for(int cc=0; cc<num; cc++)
 			 {
 			 	string filenam=data_path+@"prim_updates"+start+".dat";

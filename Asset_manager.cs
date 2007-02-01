@@ -118,7 +118,7 @@ namespace Second_server
 		}
 		private void load_asset(Asset_info info)
 		{
-			 string data_path=System.Windows.Forms.Application.StartupPath + @"\assets\";
+            string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\assets\";
 			string filename=data_path+@info.filename;
 			FileInfo fInfo = new FileInfo(filename);
 

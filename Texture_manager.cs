@@ -169,7 +169,7 @@ namespace Second_server
 		}
 		private void load_image(Texture_image im)
 		{
-			 string data_path=System.Windows.Forms.Application.StartupPath + @"\textures\";
+			 string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\textures\";
 			string filename=data_path+@im.filename;
 			FileInfo fInfo = new FileInfo(filename);
 

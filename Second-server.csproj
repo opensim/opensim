@@ -1,7 +1,7 @@
 ﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Second_server</RootNamespace>
+    <RootNamespace>Controller</RootNamespace>
     <AssemblyName>Second-server</AssemblyName>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -24,32 +24,22 @@
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Axiom.MathLib, Version=0.7.0.25497, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\Axiom.MathLib.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Axiom.MathLib">
-      <HintPath>bin\Release\Axiom.MathLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="libsecondlife">
-      <HintPath>bin\Release\libsecondlife.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="Main-sever.Designer.cs">
-      <DependentUpon>Main-sever.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Main-sever.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <EmbeddedResource Include="Main-sever.resx">
-      <DependentUpon>Main-sever.cs</DependentUpon>
-    </EmbeddedResource>
     <Compile Include="Agent_Manager.cs" />
+    <Compile Include="Controller.cs" />
     <Compile Include="Prim_manager.cs" />
     <Compile Include="Texture_manager.cs" />
     <Compile Include="Login_manager.cs" />
@@ -57,6 +47,12 @@
     <Compile Include="Asset_manager.cs" />
     <Compile Include="Script_manager.cs" />
     <Compile Include="Server.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libsecondlife\libsecondlife-cs\libsecondlife.csproj">
+      <Project>{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}</Project>
+      <Name>libsecondlife</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>
