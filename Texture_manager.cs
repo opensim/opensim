@@ -161,14 +161,15 @@ namespace OpenSim
 		
 		private void initialise()
 		{
-			//for now read in our test image 
+			
 			TextureImage im=new TextureImage();
 			im.filename="testpic2.jp2";
 			im.Full_ID=new LLUUID("00000000-0000-0000-5005-000000000005");
 			this.LoadImage(im);
 			this.textures.Add(im.Full_ID,im);
 			
-			 im=new TextureImage();
+			//Change these filenames to images you want to use. 
+			im=new TextureImage();
 			im.filename="map_base.jp2";
 			im.Full_ID=new LLUUID("00000000-0000-0000-7007-000000000006");
 			this.LoadImage(im);
