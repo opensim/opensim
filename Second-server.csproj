@@ -1,8 +1,8 @@
 ﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Controller</RootNamespace>
-    <AssemblyName>Second-server</AssemblyName>
+    <RootNamespace>OpenSim</RootNamespace>
+    <AssemblyName>OpenSim</AssemblyName>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}</ProjectGuid>
@@ -35,6 +35,10 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="libsecondlife">
+      <HintPath>bin\Release\libsecondlife.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
@@ -47,12 +51,9 @@
     <Compile Include="Asset_manager.cs" />
     <Compile Include="Script_manager.cs" />
     <Compile Include="Server.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\libsecondlife\libsecondlife-cs\libsecondlife.csproj">
-      <Project>{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}</Project>
-      <Name>libsecondlife</Name>
-    </ProjectReference>
+    <Compile Include="StorageManager.cs" />
+    <Compile Include="GridManager.cs" />
+    <Compile Include="Globals.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>

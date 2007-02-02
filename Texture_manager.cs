@@ -36,26 +36,26 @@ using libsecondlife.AssetSystem;
 using System.IO;
 
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Texture_manager.
 	/// </summary>
-	public class Texture_manager
+	public class TextureManager
 	{
-		public Dictionary<libsecondlife.LLUUID,Texture_image> textures;
+		public Dictionary<libsecondlife.LLUUID,TextureImage> textures;
 		public ArrayList requests=new ArrayList();  //should change to a generic
 		public ArrayList uploads=new ArrayList();
 		private Server server;
 		
-		public Texture_manager(Server serve)
+		public TextureManager(Server serve)
 		{
 			server=serve;
-			textures=new Dictionary<libsecondlife.LLUUID,Texture_image> ();
+			textures=new Dictionary<libsecondlife.LLUUID,TextureImage> ();
 			this.initialise();
 		}
 		
-		public void add_request(User_Agent_info user, LLUUID image_id)
+		public void AddRequest(User_Agent_info user, LLUUID image_id)
 		{
 			
 			if(!this.textures.ContainsKey(image_id))
@@ -66,10 +66,10 @@ namespace Second_server
 				server.SendPacket(im_not,true,user);
 				return;
 			}
-			Texture_image imag=this.textures[image_id];
-			Texture_request req=new Texture_request();
-			req.req_user=user;
-			req.req_image=image_id;
+			TextureImage imag=this.textures[image_id];
+			TextureRequest req=new TextureRequest();
+			req.RequestUser=user;
+			req.RequestImage=image_id;
 			req.image_info=imag;
 			
 			if(imag.data.LongLength>1000)  //should be bigger or smaller?
@@ -87,11 +87,11 @@ namespace Second_server
 			
 		}
 		
-		public void add_texture(LLUUID image_id, string name, byte[] data)
+		public void AddTexture(LLUUID image_id, string name, byte[] data)
 		{
 			
 		}
-		public void Do_work(ulong time)
+		public void DoWork(ulong time)
 		{
 			if(this.requests.Count==0)
 			{
@@ -109,10 +109,10 @@ namespace Second_server
 			{
 				num=5;
 			}
-			Texture_request req;
+			TextureRequest req;
 			for(int i=0; i<num; i++)
 			{
-				req=(Texture_request)this.requests[i];
+				req=(TextureRequest)this.requests[i];
 				
 				if(req.packet_counter==0)
 				{
@@ -126,9 +126,10 @@ namespace Second_server
 						im.ImageID.Size=(uint)req.image_info.data.Length;
 						im.ImageData.Data=req.image_info.data;
 						im.ImageID.Codec=2;		
-						server.SendPacket(im,true,req.req_user);
+						server.SendPacket(im,true,req.RequestUser);
 						req.packet_counter++;
 						req.image_info.last_used=time;
+						System.Console.WriteLine("sent texture: "+req.image_info.Full_ID);
 					}
 					else
 					{
@@ -145,7 +146,7 @@ namespace Second_server
 			//remove requests that have been completed
 			for(int i=0; i<num; i++)
 			{
-				req=(Texture_request)this.requests[i];
+				req=(TextureRequest)this.requests[i];
 				if(req.packet_counter==req.num_packets)
 				{
 					this.requests.Remove(req);
@@ -153,7 +154,7 @@ namespace Second_server
 			}
 		}
 		
-		public void recieve_texture(Packet pack)
+		public void RecieveTexture(Packet pack)
 		{
 			
 		}
@@ -161,15 +162,31 @@ namespace Second_server
 		private void initialise()
 		{
 			//for now read in our test image 
-			Texture_image im=new Texture_image();
+			TextureImage im=new TextureImage();
 			im.filename="testpic2.jp2";
 			im.Full_ID=new LLUUID("00000000-0000-0000-5005-000000000005");
-			this.load_image(im);
+			this.LoadImage(im);
 			this.textures.Add(im.Full_ID,im);
+			
+			 im=new TextureImage();
+			im.filename="map_base.jp2";
+			im.Full_ID=new LLUUID("00000000-0000-0000-7007-000000000006");
+			this.LoadImage(im);
+			this.textures.Add(im.Full_ID,im);
+			
+			im=new TextureImage();
+			im.filename="map1.jp2";
+			im.Full_ID=new LLUUID("00000000-0000-0000-7009-000000000008");
+			this.LoadImage(im);
+			this.textures.Add(im.Full_ID,im);
+			
 		}
-		private void load_image(Texture_image im)
+		private void LoadImage(TextureImage im)
 		{
-			 string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\textures\";
+			//should request Image from StorageManager
+			//but for now read from file
+			
+			string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\textures\";
 			string filename=data_path+@im.filename;
 			FileInfo fInfo = new FileInfo(filename);
 
@@ -187,21 +204,21 @@ namespace Second_server
 		
 	}
 	
-	public class Texture_request
+	public class TextureRequest
 	{
-		public User_Agent_info req_user;
-		public LLUUID req_image;
-		public Texture_image image_info;
+		public User_Agent_info RequestUser;
+		public LLUUID RequestImage;
+		public TextureImage image_info;
 		public long data_pointer=0;
 		public int num_packets=0;
 		public int packet_counter=0;
 		
-		public Texture_request()
+		public TextureRequest()
 		{
 			
 		}
 	}
-	public class Texture_image
+	public class TextureImage
 	{
 		public byte[] data;
 		public LLUUID Full_ID;
@@ -211,7 +228,7 @@ namespace Second_server
 		public ulong last_used;  //need to add a tick/time counter and keep record
 								// of how often images are requested to unload unused ones.
 		
-		public Texture_image()
+		public TextureImage()
 		{
 			
 		}

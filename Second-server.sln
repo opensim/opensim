@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+# SharpDevelop 2.1.0.2017
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Second-server", "Second-server.csproj", "{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libsecondlife", "..\..\libsecondlife\libsecondlife-cs\libsecondlife.csproj", "{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}"
@@ -27,6 +27,8 @@ Global
 		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|.NET 1.1.Build.0 = Release|.NET 1.1
 		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Debug|.NET 1.1.Build.0 = Debug|.NET 1.1
+		{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}.Release|.NET 1.1.Build.0 = Release|.NET 1.1
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

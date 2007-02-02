@@ -34,26 +34,26 @@ using libsecondlife.Packets;
 using libsecondlife.AssetSystem;
 using System.IO;
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Asset_manager.
 	/// </summary>
-	public class Asset_manager
+	public class AssetManager
 	{
-		public Dictionary<libsecondlife.LLUUID,Asset_info> Assets;
+		public Dictionary<libsecondlife.LLUUID,AssetInfo> Assets;
 		public ArrayList requests=new ArrayList();  //should change to a generic
 	//	public ArrayList uploads=new ArrayList();
 		private Server server;
 		
-		public Asset_manager(Server serve)
+		public AssetManager(Server serve)
 		{
 			server=serve;
-			Assets=new Dictionary<libsecondlife.LLUUID,Asset_info> ();
+			Assets=new Dictionary<libsecondlife.LLUUID,AssetInfo> ();
 			this.initialise();
 		}
 		
-		public void add_request(User_Agent_info user, LLUUID asset_id, TransferRequestPacket tran_req)
+		public void AddRequest(User_Agent_info user, LLUUID asset_id, TransferRequestPacket tran_req)
 		{
 			
 			if(!this.Assets.ContainsKey(asset_id))
@@ -61,18 +61,18 @@ namespace Second_server
 				//not found asset	
 				return;
 			}
-			Asset_info info=this.Assets[asset_id];
+			AssetInfo info=this.Assets[asset_id];
 			System.Console.WriteLine("send asset : "+asset_id);
 			//for now as it will be only skin or shape request just send back the asset
-			TransferInfoPacket tran_i=new TransferInfoPacket();
-			tran_i.TransferInfo.ChannelType=2;
-			tran_i.TransferInfo.Status=0;
-			tran_i.TransferInfo.TargetType=0;
-			tran_i.TransferInfo.Params=tran_req.TransferInfo.Params;
-			tran_i.TransferInfo.Size=info.data.Length;
-			tran_i.TransferInfo.TransferID=tran_req.TransferInfo.TransferID;
+			TransferInfoPacket Transfer=new TransferInfoPacket();
+			Transfer.TransferInfo.ChannelType=2;
+			Transfer.TransferInfo.Status=0;
+			Transfer.TransferInfo.TargetType=0;
+			Transfer.TransferInfo.Params=tran_req.TransferInfo.Params;
+			Transfer.TransferInfo.Size=info.data.Length;
+			Transfer.TransferInfo.TransferID=tran_req.TransferInfo.TransferID;
 			
-			server.SendPacket(tran_i,true,user);
+			server.SendPacket(Transfer,true,user);
 			
 			TransferPacketPacket tran_p=new TransferPacketPacket();
 			tran_p.TransferData.Packet=0;
@@ -110,14 +110,17 @@ namespace Second_server
 		private void initialise()
 		{
 			//for now read in our test image 
-			Asset_info im=new Asset_info();
+			AssetInfo im=new AssetInfo();
 			im.filename="base_shape.dat";
 			im.Full_ID=new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");		
-			this.load_asset(im);
+			this.loadAsset(im);
 			this.Assets.Add(im.Full_ID,im);
 		}
-		private void load_asset(Asset_info info)
+		private void loadAsset(AssetInfo info)
 		{
+			//should request Asset from storage manager
+			//but for now read from file
+			
             string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\assets\";
 			string filename=data_path+@info.filename;
 			FileInfo fInfo = new FileInfo(filename);
@@ -135,21 +138,21 @@ namespace Second_server
 		}
 	}
 	
-	public class Asset_request
+	public class AssetRequest
 	{
-		public User_Agent_info req_user;
-		public LLUUID req_image;
-		public Asset_info asset_inf;
+		public User_Agent_info RequestUser;
+		public LLUUID RequestImage;
+		public AssetInfo asset_inf;
 		public long data_pointer=0;
 		public int num_packets=0;
 		public int packet_counter=0;
 		
-		public Asset_request()
+		public AssetRequest()
 		{
 			
 		}
 	}
-	public class Asset_info
+	public class AssetInfo
 	{
 		public byte[] data;
 		public LLUUID Full_ID;
@@ -159,7 +162,7 @@ namespace Second_server
 		public ulong last_used;  //need to add a tick/time counter and keep record
 								// of how often images are requested to unload unused ones.
 		
-		public Asset_info()
+		public AssetInfo()
 		{
 			
 		}

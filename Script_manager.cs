@@ -33,18 +33,18 @@ using System.Collections;
 //using LuaInterface;
 using libsecondlife;
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Script_manager.
 	/// </summary>
-	public class Script_manager
+	public class ScriptManager
 	{
 		//public LuaInterface.Lua Lu;
 		//private ArrayList scripts;
 		//private prim_info current_prim;
 		
-		public Script_manager()
+		public ScriptManager()
 		{
 		}
 		
@@ -54,36 +54,52 @@ namespace Second_server
 			//register any lua routines , like check finish script one
 			Lu.OpenMathLib();
 		}*/
-		public void script_register( script_object_interface script)
+		
+		private void RegisterFunctions()
 		{
-			//called by scripts to register themselves
+			//lu.RegisterFunction( "RegisterScript",this,this.GetType().GetMethod("ScriptRegister"));
+			//lu.RegisterFunction( "MoveObject",this,this.GetType().GetMethod("MoveObject"));
+			//lu.RegisterFunction( "Say",this,this.GetType().GetMethod("Say"));
+		
 		}
 		
-		public void Call_tick(prim_info prim)
+		public void Call_tick(PrimInfo prim)
 		{
 			//set current prim and then call tick function in linked script
 		}
-		public void Call_click(prim_info prim)
+		public void Call_touch(PrimInfo prim)
 		{
 			//set current prim and then call clicked function in linked script
 	
 		}
-		private void Register_functions()
+		public void Call_on_rex(PrimInfo prim)
 		{
-			//lu.RegisterFunction( "register_script",this,this.GetType().GetMethod("script_register"));
-			//lu.RegisterFunction( "Move_object",this,this.GetType().GetMethod("Move_object"));
-			
+			//set current prim and then call clicked function in linked script
+	
 		}
-		//Lua registered functions
-		public void Move_object(float x ,float y, float z)
+		
+		#region Lua Functions
+		
+		public void ScriptRegister( script_object_interface script)
+		{
+			//called by scripts to register themselves
+		}
+		public void MoveObject(float x ,float y, float z)
 		{
 		
 		}
+		public void Say(string message)
+		{
+			
+		}
+		#endregion
+		
 	}
 	
 	public interface script_object_interface
 	{
-		void Frame_tick();
-		void clicked();
+		void frame_tick();
+		void touch(int num);
+		void on_rex(int num);
 	}
 }

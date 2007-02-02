@@ -36,11 +36,11 @@ using System.Runtime.InteropServices;
 // change them to the information which is associated with the assembly
 // you compile.
 
-[assembly: AssemblyTitle("Second-server")]
+[assembly: AssemblyTitle("OpenSim")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Second-server")]
+[assembly: AssemblyProduct("OpenSim")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -56,4 +56,4 @@ using System.Runtime.InteropServices;
 // You can specify all values by your own or you can build default build and revision
 // numbers with the '*' character (the default):
 
-[assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("0.1.*")]

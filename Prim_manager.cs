@@ -35,53 +35,63 @@ using libsecondlife.AssetSystem;
 using System.IO;
 using Axiom.MathLib;
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Prim_manager.
 	/// </summary>
-	public class Prim_manager
+	public class PrimManager
 	{
 		private Server server;
-		public Agent_Manager agent_man;
+		public AgentManager Agent_Manager;
 		
 		private uint prim_count;
 		
-		public libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock object_template;
-		public Dictionary<libsecondlife.LLUUID,prim_info> Prim_list;
-		public Prim_manager(Server serve)
+		public libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock PrimTemplate;
+		public Dictionary<libsecondlife.LLUUID,PrimInfo> PrimList;
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="serve"></param>
+		public PrimManager(Server serve)
 		{
 			server=serve;
-			Prim_list=new Dictionary<libsecondlife.LLUUID,prim_info> ();
-			this.setuptemplates("objectupate164.dat");
+			PrimList=new Dictionary<libsecondlife.LLUUID,PrimInfo> ();
+			this.SetupTemplates("objectupate164.dat");
+			
 		}
-		
-		
-		//*********************************************************************
-		public void create_prim(User_Agent_info User_info, libsecondlife.LLVector3 p1, ObjectAddPacket add_pack)
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		/// <param name="p1"></param>
+		/// <param name="add_pack"></param>
+		public void CreatePrim(User_Agent_info User_info, libsecondlife.LLVector3 p1, ObjectAddPacket add_pack)
 		{
 			ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-			objupdate.RegionData.RegionHandle=1096213093147648;
+			objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
 			objupdate.RegionData.TimeDilation=64096;
 			objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
-			
-			objupdate.ObjectData[0]=this.object_template;
-			objupdate.ObjectData[0].OwnerID=User_info.AgentID;
-			objupdate.ObjectData[0].PCode=add_pack.ObjectData.PCode;
-			objupdate.ObjectData[0].PathBegin=add_pack.ObjectData.PathBegin;
-			objupdate.ObjectData[0].PathEnd=add_pack.ObjectData.PathEnd;
-			objupdate.ObjectData[0].PathScaleX=add_pack.ObjectData.PathScaleX;
-			objupdate.ObjectData[0].PathScaleY=add_pack.ObjectData.PathScaleY;
-			objupdate.ObjectData[0].PathShearX=add_pack.ObjectData.PathShearX;
-			objupdate.ObjectData[0].PathShearY=add_pack.ObjectData.PathShearY;
-			objupdate.ObjectData[0].PathSkew=add_pack.ObjectData.PathSkew;
-			objupdate.ObjectData[0].ProfileBegin=add_pack.ObjectData.ProfileBegin;
-			objupdate.ObjectData[0].ProfileEnd=add_pack.ObjectData.ProfileEnd;
-			objupdate.ObjectData[0].Scale=add_pack.ObjectData.Scale;//new LLVector3(1,1,1);
-			objupdate.ObjectData[0].PathCurve=add_pack.ObjectData.PathCurve;
-			objupdate.ObjectData[0].ProfileCurve=add_pack.ObjectData.ProfileCurve;
-			objupdate.ObjectData[0].ParentID=0;
-			objupdate.ObjectData[0].ProfileHollow=add_pack.ObjectData.ProfileHollow;
+			PrimData PData=new PrimData();
+			objupdate.ObjectData[0]=this.PrimTemplate;
+			PData.OwnerID=objupdate.ObjectData[0].OwnerID=User_info.AgentID;
+			PData.PCode=objupdate.ObjectData[0].PCode=add_pack.ObjectData.PCode;
+			PData.PathBegin=objupdate.ObjectData[0].PathBegin=add_pack.ObjectData.PathBegin;
+			PData.PathEnd=objupdate.ObjectData[0].PathEnd=add_pack.ObjectData.PathEnd;
+			PData.PathScaleX=objupdate.ObjectData[0].PathScaleX=add_pack.ObjectData.PathScaleX;
+			PData.PathScaleY=objupdate.ObjectData[0].PathScaleY=add_pack.ObjectData.PathScaleY;
+			PData.PathShearX=objupdate.ObjectData[0].PathShearX=add_pack.ObjectData.PathShearX;
+			PData.PathShearY=objupdate.ObjectData[0].PathShearY=add_pack.ObjectData.PathShearY;
+			PData.PathSkew=objupdate.ObjectData[0].PathSkew=add_pack.ObjectData.PathSkew;
+			PData.ProfileBegin=objupdate.ObjectData[0].ProfileBegin=add_pack.ObjectData.ProfileBegin;
+			PData.ProfileEnd=objupdate.ObjectData[0].ProfileEnd=add_pack.ObjectData.ProfileEnd;
+			PData.Scale=objupdate.ObjectData[0].Scale=add_pack.ObjectData.Scale;//new LLVector3(1,1,1);
+			PData.PathCurve=objupdate.ObjectData[0].PathCurve=add_pack.ObjectData.PathCurve;
+			PData.ProfileCurve=objupdate.ObjectData[0].ProfileCurve=add_pack.ObjectData.ProfileCurve;
+			PData.ParentID=objupdate.ObjectData[0].ParentID=0;
+			PData.ProfileHollow=objupdate.ObjectData[0].ProfileHollow=add_pack.ObjectData.ProfileHollow;
 			//finish off copying rest of shape data
 			
 			objupdate.ObjectData[0].ID=(uint)(702000+prim_count);
@@ -95,30 +105,40 @@ namespace Second_server
 			server.SendPacket(objupdate,true,User_info);
 			
 			//should send to all users
-			foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in agent_man.Agent_list)
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in Agent_Manager.AgentList)
 			{
-				if(kp.Value.Net_info.AgentID!=User_info.AgentID)
+				if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
 				{
-					server.SendPacket(objupdate,true,kp.Value.Net_info);
+					server.SendPacket(objupdate,true,kp.Value.NetInfo);
 				}
             }
 			//should store this infomation 
-			prim_info n_prim=new prim_info();
-			n_prim.full_ID=objupdate.ObjectData[0].FullID;
-			n_prim.local_ID=objupdate.ObjectData[0].ID;
-			n_prim.pos=p1;
+			PrimInfo NewPrim=new PrimInfo();
+			NewPrim.FullID=objupdate.ObjectData[0].FullID;
+			NewPrim.LocalID=objupdate.ObjectData[0].ID;
+			NewPrim.Position=p1;
+			NewPrim.data=PData;
 			
-			this.Prim_list.Add(n_prim.full_ID,n_prim);
+			this.PrimList.Add(NewPrim.FullID,NewPrim);
 			
 			//store rest of data
 			
 		}
-		public void update_prim_position(User_Agent_info user,float x, float y, float z,uint l_id)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User"></param>
+		/// <param name="position"></param>
+		/// <param name="LocalID"></param>
+		/// <param name="setRotation"></param>
+		/// <param name="rotation"></param>
+		public void UpdatePrimPosition(User_Agent_info User,LLVector3 position,uint LocalID,bool setRotation, LLQuaternion rotation)
 		{
-						prim_info pri=null;
-						foreach (KeyValuePair<libsecondlife.LLUUID,prim_info> kp in this.Prim_list)
+						PrimInfo pri=null;
+						foreach (KeyValuePair<libsecondlife.LLUUID,PrimInfo> kp in this.PrimList)
 						{
-							if(kp.Value.local_ID==l_id)
+							if(kp.Value.LocalID==LocalID)
 							{
 								pri=kp.Value;
 							}
@@ -127,18 +147,37 @@ namespace Second_server
 						{
 							return;
 						}
-						uint ID=pri.local_ID;
+						uint ID=pri.LocalID;
+						libsecondlife.LLVector3 pos2=new LLVector3(position.X,position.Y,position.Z);
+						libsecondlife.LLQuaternion rotation2;
+						if(!setRotation)
+						{
+							pri.Position=pos2;
+							 rotation2=new LLQuaternion(pri.Rotation.X,pri.Rotation.Y,pri.Rotation.Z,pri.Rotation.W);
+						}
+						else
+						{
+							rotation2=new LLQuaternion(rotation.X,rotation.Y,rotation.Z,rotation.W);
+						
+							pos2=pri.Position;
+							pri.Rotation=rotation;
+						}
+						rotation2.W+=1;
+                		rotation2.X+=1;
+                		rotation2.Y+=1;
+                		rotation2.Z+=1;
+                		
               			byte[] bytes=new byte[60];
 						
               			ImprovedTerseObjectUpdatePacket im=new ImprovedTerseObjectUpdatePacket();
-              			im.RegionData.RegionHandle=1096213093147648;
+              			im.RegionData.RegionHandle=Globals.Instance.RegionHandle;
 						im.RegionData.TimeDilation=64096;
               			im.ObjectData=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
               			int i=0;
               			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
               			im.ObjectData[0]=dat;
-              			dat.TextureEntry=object_template.TextureEntry;
-              			libsecondlife.LLVector3 pos2=new LLVector3(x,y,z);
+              			dat.TextureEntry=PrimTemplate.TextureEntry;
+              			//System.Console.WriteLine("new position is :"+position);
               			
               			bytes[i++] = (byte)(ID % 256);
                 		bytes[i++] = (byte)((ID >> 8) % 256);
@@ -151,7 +190,7 @@ namespace Second_server
                 	//	bytes[i++]=128;
                 	//	bytes[i++]=63;
                 		byte[] pb=pos2.GetBytes();
-                		pri.pos=pos2;
+                		pri.Position=pos2;
 						Array.Copy(pb,0,bytes,i,pb.Length);
 						i+=12;
 						ushort ac=32767;
@@ -172,16 +211,36 @@ namespace Second_server
                 		bytes[i++] = (byte)(ac % 256);
                 		bytes[i++] = (byte)((ac >> 8) % 256);
                 		
-                		//rot
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
+                		//if(setRotation)
+                		//{
                 		
+                		ushort rw, rx,ry,rz;
+						rw=(ushort)(32768*rotation2.W);
+                		rx=(ushort)(32768*rotation2.X);
+						ry=(ushort)(32768*rotation2.Y);
+						rz=(ushort)(32768*rotation2.Z);
+						
+                		//rot
+                		bytes[i++] = (byte)(rx % 256);
+                		bytes[i++] = (byte)((rx >> 8) % 256);
+                		bytes[i++] = (byte)(ry % 256);
+                		bytes[i++] = (byte)((ry >> 8) % 256);
+                		bytes[i++] = (byte)(rz % 256);
+                		bytes[i++] = (byte)((rz >> 8) % 256);
+                		bytes[i++] = (byte)(rw % 256);
+                		bytes[i++] = (byte)((rw >> 8) % 256);
+                		//}
+                		/*else
+                		{
+                		bytes[i++] = (byte)(ac % 256);
+                		bytes[i++] = (byte)((ac >> 8) % 256);
+                		bytes[i++] = (byte)(ac % 256);
+                		bytes[i++] = (byte)((ac >> 8) % 256);
+                		bytes[i++] = (byte)(ac % 256);
+                		bytes[i++] = (byte)((ac >> 8) % 256);
+                		bytes[i++] = (byte)(ac % 256);
+                		bytes[i++] = (byte)((ac >> 8) % 256);
+                		}*/
                 		//rotation vel
                 		bytes[i++] = (byte)(ac % 256);
                 		bytes[i++] = (byte)((ac >> 8) % 256);
@@ -193,23 +252,32 @@ namespace Second_server
                 		dat.Data=bytes;	
                 		//server.SendPacket(im,true,user);
                 		//should send to all users.
-                		foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in agent_man.Agent_list)
+                		foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in Agent_Manager.AgentList)
 						{
-							if(kp.Value.Net_info.AgentID!=user.AgentID)
+							if(kp.Value.NetInfo.AgentID!=User.AgentID)
 							{
-								server.SendPacket(im,true,kp.Value.Net_info);
+								server.SendPacket(im,true,kp.Value.NetInfo);
 							}
                 		}
 		}
-		public void send_existing_prims(User_Agent_info user)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="user"></param>
+		public void SendExistingPrims(User_Agent_info user)
 		{
 			//send data for already created prims to a new joining user
 		}
-		//**************************************************************
-		public void setuptemplates(string name)
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		public void SetupTemplates(string name)
 		{
 			ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-			objupdate.RegionData.RegionHandle=1096213093147648;
+			objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
 			objupdate.RegionData.TimeDilation=64096;
 			objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
 				
@@ -224,7 +292,7 @@ namespace Second_server
 			
 			libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1,ref i);
 			objupdate.ObjectData[0]=objdata;
-			this.object_template=objdata;
+			this.PrimTemplate=objdata;
 			objdata.UpdateFlags=objdata.UpdateFlags+12-16+32+256;
 			objdata.OwnerID=new LLUUID("00000000-0000-0000-0000-000000000000");
 			//test adding a new texture to object , to test image downloading
@@ -235,8 +303,13 @@ namespace Second_server
 			
 			objdata.TextureEntry=ntex.ToBytes();
 		}
-		//********************************************************************
-		public void Read_Prim_database(string name,User_Agent_info user)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="user"></param>
+		public void ReadPrimDatabase(string name,User_Agent_info user)
 	    {
 			StreamReader SR;
     		string line;
@@ -253,7 +326,7 @@ namespace Second_server
               	int num=Convert.ToInt32(comp[2]);
               	int start=Convert.ToInt32(comp[1]);
 				ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-				objupdate.RegionData.RegionHandle=1096213093147648;
+				objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
 				objupdate.RegionData.TimeDilation=64096;
 				objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[num];
 				
@@ -285,24 +358,44 @@ namespace Second_server
 	    }
 	}
 	
-	public class prim_info
+	public class PrimInfo
 	{
-		public LLVector3 pos;
-		public LLVector3 vel;
-		public uint local_ID;
-		public LLUUID full_ID;
-		public prim_data data;
+		public LLVector3 Position;
+		public LLVector3 Velocity;
+		public LLQuaternion Rotation=LLQuaternion.Identity;
+		public uint LocalID;
+		public LLUUID FullID;
+		public PrimData data;
 		
-		public prim_info()
+		public PrimInfo()
 		{
-			pos=new LLVector3(0,0,0);
-			vel=new LLVector3(0,0,0);
-			data=new prim_data();
+			Position=new LLVector3(0,0,0);
+			Velocity=new LLVector3(0,0,0);
+			//data=new PrimData();
 		}
 	}
-	public class prim_data
+	public class PrimData
 	{
-		public prim_data()
+		public LLUUID OwnerID;
+		public byte PCode;
+		public byte PathBegin;
+		public byte PathEnd;
+		public byte PathScaleX;
+		public byte PathScaleY;
+		public byte PathShearX;
+		public byte PathShearY;
+		public sbyte PathSkew;
+		public byte ProfileBegin;
+		public byte ProfileEnd;
+		public LLVector3 Scale;
+		public byte PathCurve;
+		public byte ProfileCurve;
+		public uint ParentID=0;
+		public byte ProfileHollow;
+		
+		public bool DataBaseStorage=false;
+		
+		public PrimData()
 		{
 			
 		}

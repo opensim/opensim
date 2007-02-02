@@ -25,7 +25,7 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
+using Nwc.XmlRpc;
 using System;
 using System.IO;
 using System.Net;
@@ -33,24 +33,27 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Collections;
+using libsecondlife;
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Login_manager.
 	/// </summary>
-	public class Login_manager
+	public class LoginManager
 	{
-		public Login_manager()
+		public LoginManager(Logon login)
 		{
-			
+			Login=login;
 		}
-		
+		public Logon Login;
 		public ushort loginPort = 8080;
 		public IPAddress clientAddress = IPAddress.Loopback;
 		public IPAddress remoteAddress = IPAddress.Any;
 		private Socket loginServer;
 		private Random RandomClass = new Random();
+		private int NumClients;
 
 		// InitializeLoginProxy: initialize the login proxy
 		private void InitializeLoginProxy() {
@@ -59,7 +62,7 @@ namespace Second_server
 			loginServer.Listen(1);
 		}
 		
-		public void startup()
+		public void Startup()
 		{
 			this.InitializeLoginProxy();
 			Thread runLoginProxy = new Thread(new ThreadStart(RunLoginProxy));
@@ -67,7 +70,7 @@ namespace Second_server
 			runLoginProxy.Start();
 		}
 		
-			private void RunLoginProxy() {
+		private void RunLoginProxy() {
 		    try {
 			for (;;) {
 				Socket client = loginServer.Accept();
@@ -121,11 +124,52 @@ namespace Second_server
 				if (match.Success)
 					contentLength = Convert.ToInt32(match.Groups[1].Captures[0].ToString());
 			} while (line != "");
-			System.Console.WriteLine(line);
+			
 			// read the HTTP body into a buffer
 			char[] content = new char[contentLength];
 			reader.Read(content, 0, contentLength);
-
+			// System.Text.Encoding enc = System.Text.Encoding.ASCII;
+			XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(new String(content));
+			Hashtable requestData = (Hashtable)request.Params[0];
+			
+			string first;
+			string last;
+			LLUUID Agent;
+			LLUUID Session;
+			
+			//get login name
+			if(requestData.Contains("first"))
+			{
+				first=(string)requestData["first"];
+			}
+			else
+			{
+				first="test";
+			}
+			if(requestData.Contains("last"))
+			{
+				last=(string)requestData["last"];
+			}
+			else
+			{
+				last="User"+NumClients.ToString();
+			}
+			NumClients++;
+			
+			//create a agent and session LLUUID
+			int AgentRand=this.RandomClass.Next(1,9999);
+			Agent=new LLUUID("99998888-"+AgentRand.ToString("0000")+"-4f52-8ec1-0b1d5cd6aead");
+			int SessionRand=this.RandomClass.Next(1,999);
+			Session=new LLUUID("aaaabbbb-8932-"+SessionRand.ToString("0000")+"-8664-58f53e442797");
+			
+			//copy data to login object
+			lock(Login)
+			{
+				Login.first=first;
+				Login.last=last;
+				Login.Agent=Agent;
+				Login.Session=Session;
+			}
 
 			// forward the XML-RPC response to the client
             writer.WriteLine("HTTP/1.0 200 OK");
@@ -138,16 +182,16 @@ namespace Second_server
     		SR=File.OpenText("login.dat");
     		lines=SR.ReadLine();
     		writer.WriteLine(lines);
-    		lines=SR.ReadLine();
-    		int ran=this.RandomClass.Next(1,9999);
     		
-    		lines="<member><name>session_id</name><value><string>99998888-"+ran.ToString("0000")+"-4f52-8ec1-0b1d5cd6aead</string></value></member>";
+    		lines=SR.ReadLine();  		
+    		//lines="<member><name>session_id</name><value><string>"+Agent.ToString()+"</string></value></member>";
+    		lines="<member><name>session_id</name><value><string>99998888-"+AgentRand.ToString("0000")+"-4f52-8ec1-0b1d5cd6aead</string></value></member>";
     		writer.WriteLine(lines);
     		lines=SR.ReadLine();
     		writer.WriteLine(lines);
     		lines=SR.ReadLine();
-    		 ran=this.RandomClass.Next(1,9999);
-    		lines="<member><name>agent_id</name><value><string>aaaabbbb-8932-"+ran.ToString("0000")+"-8664-58f53e442797</string></value></member>";
+    		//lines="<member><name>agent_id</name><value><string>"+Session.ToString()+"</string></value></member>";
+    		lines="<member><name>agent_id</name><value><string>aaaabbbb-8932-"+SessionRand.ToString("0000")+"-8664-58f53e442797</string></value></member>";
     		writer.WriteLine(lines);
     		lines=SR.ReadLine();
     		

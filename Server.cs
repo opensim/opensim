@@ -37,16 +37,17 @@ using System.Timers;
 
 //really hacked , messy code
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Server.
 	/// </summary>
-	 public interface Server_callback
+	 public interface ServerCallback
     {
-    	void main_callback(Packet pack, User_Agent_info User_info);
-    	void new_user(User_Agent_info User_info);
-    	void error(string text);
+	 	//should replace with delegates
+    	void MainCallback(Packet pack, User_Agent_info User_info);
+    	void NewUserCallback(User_Agent_info User_info);
+    	void ErrorCallback(string text);
     }
 	  public class Server
     {
@@ -91,7 +92,7 @@ namespace Second_server
             get { return connected; }
         }
 		
-        private Server_callback callback_object;
+        private ServerCallback CallbackObject;
         //private NetworkManager Network;
        // private Dictionary<PacketType, List<NetworkManager.PacketCallback>> Callbacks;
         private uint Sequence = 0;
@@ -125,10 +126,10 @@ namespace Second_server
         /// <param name="circuit"></param>
         /// <param name="ip"></param>
         /// <param name="port"></param>
-        public Server(Server_callback s_callback)
+        public Server(ServerCallback s_callback)
         {
         	
-        	this.callback_object=s_callback;
+        	this.CallbackObject=s_callback;
           //  Client = client;
            // Network = client.Network;
            // Callbacks = callbacks;
@@ -148,7 +149,7 @@ namespace Second_server
                 // Create an endpoint that we will be communicating with (need it in two 
                 // types due to .NET weirdness)
                // ipEndPoint = new IPEndPoint(ip, port);
-               ipEndPoint = new IPEndPoint(IPAddress.Any, 1000);
+               ipEndPoint = new IPEndPoint(IPAddress.Any, Globals.Instance.IpPort);
 
         		
                 endPoint = (EndPoint)ipEndPoint;
@@ -486,7 +487,7 @@ namespace Second_server
                     	new_user.endpoint=epSender;
                     	new_user.Inbox = new Queue<uint>(Settings.INBOX_SIZE);
                     	
-                    	this.callback_object.new_user(new_user);
+                    	this.CallbackObject.NewUserCallback(new_user);
                     	this.User_agents.Add(new_user);
                     	
                     }
@@ -526,14 +527,14 @@ namespace Second_server
             {
             	
             	//error finding agent
-            	this.callback_object.error("no user found");
+            	this.CallbackObject.ErrorCallback("no user found");
             	return;
             }
 
             // Fail-safe check
             if (packet == null)
             {
-            	this.callback_object.error("couldn't build packet");
+            	this.CallbackObject.ErrorCallback("couldn't build packet");
                // Client.Log("Couldn't build a message from the incoming data", Helpers.LogLevel.Warning);
                 return;
             }
@@ -615,7 +616,7 @@ namespace Second_server
             }
 			
           //  this.callback_object.error("calling callback");
-            this.callback_object.main_callback(packet,User_info);
+            this.CallbackObject.MainCallback(packet,User_info);
            // this.callback_object.error("finished");
             // Fire the registered packet events
             #region FireCallbacks

@@ -32,122 +32,173 @@ using libsecondlife.AssetSystem;
 using System.IO;
 using Axiom.MathLib;
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Agent_Manager.
 	/// </summary>
-	public class Agent_Manager
+	public class AgentManager
 	{
-		public Dictionary<libsecondlife.LLUUID,Avatar_data> Agent_list;
-		//public uint number_agents=0;
+		public Dictionary<libsecondlife.LLUUID,AvatarData> AgentList;
+		
 		private uint local_numer=0;
 		private Server server;
-		public  Prim_manager prim_man;
-		private byte [] data1;
+		public  PrimManager Prim_Manager;
 		
-		private libsecondlife.Packets.RegionHandshakePacket reg;
+		private libsecondlife.Packets.RegionHandshakePacket RegionPacket;
 		private  System.Text.Encoding enc = System.Text.Encoding.ASCII;
-		public libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock avatar_template;
-		//private int appc=0;
-		
-		public Agent_Manager(Server serve)
+		public libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="serve"></param>
+		public AgentManager(Server serve)
 		{
-			Agent_list=new Dictionary<libsecondlife.LLUUID,Avatar_data>();
+			AgentList=new Dictionary<libsecondlife.LLUUID,AvatarData>();
 			server=serve;
 			this.initialise();
 		}
-		//***************************************************
-		public Avatar_data Get_Agent(LLUUID id)
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public AvatarData GetAgent(LLUUID id)
 		{
-			
-			
-			if(!this.Agent_list.ContainsKey(id))
+			if(!this.AgentList.ContainsKey(id))
 			{
 				return null;
 			}
 			else
 			{
-				Avatar_data ad=this.Agent_list[id];
+				AvatarData ad=this.AgentList[id];
 				return ad;
 			}
 		}
-		
-		public void Add_Agent(Avatar_data agent)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="agent"></param>
+		public void AddAgent(AvatarData agent)
 		{
-			this.Agent_list.Add(agent.Full_ID,agent);
+			this.AgentList.Add(agent.FullID,agent);
 		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		/// <param name="first"></param>
+		/// <param name="last"></param>
+		/// <returns></returns>
+		/// 
 		
-		public bool New_Agent(User_Agent_info User_info)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		/// <param name="first"></param>
+		/// <param name="last"></param>
+		/// <returns></returns>
+		public bool NewAgent(User_Agent_info User_info, string first, string last)
 		{
-			Avatar_data ad=new Avatar_data();
-			ad.Full_ID=User_info.AgentID;
-			ad.Net_info=User_info;
-			ad.pos=new LLVector3(100,100,22);
-			this.Agent_list.Add(ad.Full_ID,ad);
+			AvatarData agent=new AvatarData();
+			agent.FullID=User_info.AgentID;
+			agent.NetInfo=User_info;
+			agent.NetInfo.first_name=first;
+			agent.NetInfo.last_name=last;
+			agent.Position=new LLVector3(100,100,22);
+			this.AgentList.Add(agent.FullID,agent);
 			return(true);
 		}
 		
-		public void Agent_join(User_Agent_info User_info)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="UserInfo"></param>
+		public void RemoveAgent(User_Agent_info UserInfo)
+		{
+			this.AgentList.Remove(UserInfo.AgentID);
+			
+			//tell other clients to delete this avatar
+		}
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		public void AgentJoin(User_Agent_info User_info)
 		{
 			//send region data 
-			server.SendPacket(reg,true,User_info);
+			server.SendPacket(RegionPacket,true,User_info);
 			
 			//inform client of join comlete
 			libsecondlife.Packets.AgentMovementCompletePacket mov=new AgentMovementCompletePacket();
 			mov.AgentData.SessionID=User_info.SessionID;
 			mov.AgentData.AgentID=User_info.AgentID;
-			mov.Data.RegionHandle=1096213093147648;
+			mov.Data.RegionHandle=Globals.Instance.RegionHandle;
 			mov.Data.Timestamp=1169838966;
 			mov.Data.Position=new LLVector3(100f,100f,22f);
 			mov.Data.LookAt=new LLVector3(0.99f,0.042f,0);
 			server.SendPacket(mov,true,User_info);
 		}
-		public void tick()
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public void UpdatePositions()
 		{
 			//update positions
-			foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in this.Agent_list)
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
 			{
 				
-				kp.Value.pos.X+=(kp.Value.vel.X*0.2f);
-				kp.Value.pos.Y+=(kp.Value.vel.Y*0.2f);
-				kp.Value.pos.Z+=(kp.Value.vel.Z*0.2f);
+				kp.Value.Position.X+=(kp.Value.Velocity.X*0.2f);
+				kp.Value.Position.Y+=(kp.Value.Velocity.Y*0.2f);
+				kp.Value.Position.Z+=(kp.Value.Velocity.Z*0.2f);
 			}
 		}
-		//**************************************************************
+		
+		/// <summary>
+		/// 
+		/// </summary>
 		private void initialise()
 		{
 				//Region data
-				reg=new RegionHandshakePacket();
-				reg.RegionInfo.BillableFactor=0;
-				reg.RegionInfo.IsEstateManager=false;
-				reg.RegionInfo.TerrainHeightRange00=60;
-				reg.RegionInfo.TerrainHeightRange01=60;
-				reg.RegionInfo.TerrainHeightRange10=60;
-				reg.RegionInfo.TerrainHeightRange11=60;
-				reg.RegionInfo.TerrainStartHeight00=20;
-				reg.RegionInfo.TerrainStartHeight01=20;
-				reg.RegionInfo.TerrainStartHeight10=20;
-				reg.RegionInfo.TerrainStartHeight11=20;
-				reg.RegionInfo.SimAccess=13;
-				reg.RegionInfo.WaterHeight=5;
-				reg.RegionInfo.RegionFlags=72458694;
-				reg.RegionInfo.SimName=enc.GetBytes( "Test Sandbox\0");
-				reg.RegionInfo.SimOwner=new LLUUID("00000000-0000-0000-0000-000000000000");
-				reg.RegionInfo.TerrainBase0=new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
-				reg.RegionInfo.TerrainBase1=new LLUUID("abb783e6-3e93-26c0-248a-247666855da3");
-				reg.RegionInfo.TerrainBase2=new LLUUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
-				reg.RegionInfo.TerrainBase3=new LLUUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
-				reg.RegionInfo.TerrainDetail0=new LLUUID("00000000-0000-0000-0000-000000000000");
-				reg.RegionInfo.TerrainDetail1=new LLUUID("00000000-0000-0000-0000-000000000000");
-				reg.RegionInfo.TerrainDetail2=new LLUUID("00000000-0000-0000-0000-000000000000");
-				reg.RegionInfo.TerrainDetail3=new LLUUID("00000000-0000-0000-0000-000000000000");
-				reg.RegionInfo.CacheID=new LLUUID("545ec0a5-5751-1026-8a0b-216e38a7ab33");
-		
-				this.setuptemplate("objectupate168.dat");
+				RegionPacket=new RegionHandshakePacket();
+				RegionPacket.RegionInfo.BillableFactor=0;
+				RegionPacket.RegionInfo.IsEstateManager=false;
+				RegionPacket.RegionInfo.TerrainHeightRange00=60;
+				RegionPacket.RegionInfo.TerrainHeightRange01=60;
+				RegionPacket.RegionInfo.TerrainHeightRange10=60;
+				RegionPacket.RegionInfo.TerrainHeightRange11=60;
+				RegionPacket.RegionInfo.TerrainStartHeight00=20;
+				RegionPacket.RegionInfo.TerrainStartHeight01=20;
+				RegionPacket.RegionInfo.TerrainStartHeight10=20;
+				RegionPacket.RegionInfo.TerrainStartHeight11=20;
+				RegionPacket.RegionInfo.SimAccess=13;
+				RegionPacket.RegionInfo.WaterHeight=5;
+				RegionPacket.RegionInfo.RegionFlags=72458694;
+				RegionPacket.RegionInfo.SimName=enc.GetBytes( Globals.Instance.RegionName);
+				RegionPacket.RegionInfo.SimOwner=new LLUUID("00000000-0000-0000-0000-000000000000");
+				RegionPacket.RegionInfo.TerrainBase0=new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+				RegionPacket.RegionInfo.TerrainBase1=new LLUUID("abb783e6-3e93-26c0-248a-247666855da3");
+				RegionPacket.RegionInfo.TerrainBase2=new LLUUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
+				RegionPacket.RegionInfo.TerrainBase3=new LLUUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
+				RegionPacket.RegionInfo.TerrainDetail0=new LLUUID("00000000-0000-0000-0000-000000000000");
+				RegionPacket.RegionInfo.TerrainDetail1=new LLUUID("00000000-0000-0000-0000-000000000000");
+				RegionPacket.RegionInfo.TerrainDetail2=new LLUUID("00000000-0000-0000-0000-000000000000");
+				RegionPacket.RegionInfo.TerrainDetail3=new LLUUID("00000000-0000-0000-0000-000000000000");
+				RegionPacket.RegionInfo.CacheID=new LLUUID("545ec0a5-5751-1026-8a0b-216e38a7ab37");
+				
+				this.SetupTemplate("objectupate168.dat");
 		}
 		
-		public void setuptemplate(string name)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		private void SetupTemplate(string name)
 		{
 			/*ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
 			objupdate.RegionData.RegionHandle=1096213093147648;
@@ -184,95 +235,87 @@ namespace Second_server
 						
 			Array.Copy(pb,0,objdata.ObjectData,16,pb.Length);
 			
-			avatar_template=objdata;
+			AvatarTemplate=objdata;
 				
 		}
-		//**********************************************************
-		public void send_intial_data(User_Agent_info User_info)
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		public void SendInitialData(User_Agent_info User_info)
 		{
 			
-			//shouldn't really have to read all this in from disk for every new client?
+			//shouldn't have to read all this in from disk for every new client
 				 string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\layer_data\";
 			
 				//send layerdata
 				LayerDataPacket layerpack=new LayerDataPacket();
 				layerpack.LayerID.Type=76;
-				//layerpack.LayerData.ReadfromFile(data_path+@"layerdata0.dat");
-				this.read_layerdata(User_info,ref layerpack,data_path+@"layerdata0.dat");
-				
-				//server.SendPacket(layerpack,true,User_info);
-				
+				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata0.dat");
+	
 				LayerDataPacket layerpack1=new LayerDataPacket();
 				layerpack1.LayerID.Type=76;
-				//layerpack1.LayerData.ReadfromFile(data_path+@"layerdata1.dat");
-				this.read_layerdata(User_info,ref layerpack,data_path+@"layerdata1.dat");
-				//server.SendPacket(layerpack1,true,User_info);
+				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata1.dat");
 				
 				LayerDataPacket layerpack2=new LayerDataPacket();
 				layerpack2.LayerID.Type=56;
-				//layerpack2.LayerData.ReadfromFile(data_path+@"layerdata2.dat");
-				this.read_layerdata(User_info,ref layerpack,data_path+@"layerdata2.dat");
-				//server.SendPacket(layerpack2,true,User_info);
+				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata2.dat");
 				
 				LayerDataPacket layerpack3=new LayerDataPacket();
 				layerpack3.LayerID.Type=55;
-				//layerpack3.LayerData.ReadfromFile(data_path+@"layerdata3.dat");
-				this.read_layerdata(User_info,ref layerpack,data_path+@"layerdata3.dat");
-				//server.SendPacket(layerpack3,true,User_info);
+				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata3.dat");
 				
 				LayerDataPacket layerpack4=new LayerDataPacket();
 				layerpack4.LayerID.Type=56;
-				//layerpack4.LayerData.ReadfromFile(data_path+@"layerdata4.dat");
-				this.read_layerdata(User_info,ref layerpack,data_path+@"layerdata4.dat");
-				//server.SendPacket(layerpack4,true,User_info);
+				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata4.dat");
 				
 				LayerDataPacket layerpack5=new LayerDataPacket();
 				layerpack5.LayerID.Type=55;
-				//layerpack5.LayerData.ReadfromFile(data_path+@"layerdata5.dat");
-				this.read_layerdata(User_info,ref layerpack,data_path+@"layerdata5.dat");
-				//server.SendPacket(layerpack5,true,User_info);
-				
+				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata5.dat");
 				
 				//send intial set of captured prims data?
-				this.prim_man.Read_Prim_database( "objectdatabase.ini",User_info);			
+				this.Prim_Manager.ReadPrimDatabase( "objectdatabase.ini",User_info);			
 				
 				//send prims that have been created by users
 				//prim_man.send_existing_prims(User_info);
 				
 				//send update about clients avatar
-				this.send_intial_avatar_position(User_info);
+				this.SendInitialAvatarPosition(User_info);
 				
 				//send updates about all other users
-				//this.send_test_avatar_position(User_info);
-				foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in this.Agent_list)
+				foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
 				{
-					if(kp.Value.Net_info.AgentID!=User_info.AgentID)
+					if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
 					{
-						this.send_other_avatar_position(User_info,kp.Value);
+						this.SendOtherAvatarPosition(User_info,kp.Value);
 					}
-				}
-				
-				
+				}	
 		}
-		public void send_intial_avatar_position(User_Agent_info User_info)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		public void SendInitialAvatarPosition(User_Agent_info User_info)
 		{
 			//send a objectupdate packet with information about the clients avatar
 			ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-			objupdate.RegionData.RegionHandle=1096213093147648;
+			objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
 			objupdate.RegionData.TimeDilation=64096;
 			objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
 			
-			objupdate.ObjectData[0]=avatar_template;
+			objupdate.ObjectData[0]=AvatarTemplate;
 			//give this avatar object a local id and assign the user a name
 			objupdate.ObjectData[0].ID=8880000+this.local_numer;
 			User_info.localID=objupdate.ObjectData[0].ID;
 			//User_info.name="Test"+this.local_numer+" User";
-			this.Get_Agent(User_info.AgentID).started=true;
+			this.GetAgent(User_info.AgentID).Started=true;
 			objupdate.ObjectData[0].FullID=User_info.AgentID;
-			objupdate.ObjectData[0].NameValue=enc.GetBytes("FirstName STRING RW SV Test"+ this.local_numer+"\nLastName STRING RW SV User \0");
-			User_info.name="FirstName STRING RW SV Test"+ this.local_numer+"\nLastName STRING RW SV User \0";
-			User_info.last_name="User";
-			User_info.first_name="Test"+this.local_numer;
+			objupdate.ObjectData[0].NameValue=enc.GetBytes("FirstName STRING RW SV "+User_info.first_name+"\nLastName STRING RW SV "+User_info.last_name+" \0");
+			User_info.name="FirstName STRING RW SV "+User_info.first_name+"\nLastName STRING RW SV "+User_info.last_name+" \0";
+			//User_info.last_name="User";
+			//User_info.first_name="Test"+this.local_numer;
 			libsecondlife.LLVector3 pos2=new LLVector3(100f,100.0f,22.0f);
 			
 			byte[] pb=pos2.GetBytes();
@@ -283,36 +326,23 @@ namespace Second_server
 			server.SendPacket(objupdate,true,User_info);
 			
 			//send this info to other existing clients
-			foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in this.Agent_list)
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
 			{
-					if(kp.Value.Net_info.AgentID!=User_info.AgentID)
+					if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
 					{
-						server.SendPacket(objupdate,true,kp.Value.Net_info);
-						this.send_other_apper(kp.Value.Net_info,objupdate.ObjectData[0].FullID);
+						server.SendPacket(objupdate,true,kp.Value.NetInfo);
+						this.SendOtherAppearance(kp.Value.NetInfo,objupdate.ObjectData[0].FullID);
 					}
 			}
 		
 		}
-		public void send_intial_avatar_apper(User_Agent_info user)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="user"></param>
+		public void SendIntialAvatarAppearance(User_Agent_info user)
 		{
-			
-			//seems that we don't send a avatarapperance for ourself.
-			/*AvatarAppearancePacket avp=new AvatarAppearancePacket();
-			
-			avp.VisualParam=new AvatarAppearancePacket.VisualParamBlock[218];
-			avp.ObjectData.TextureEntry=this.avatar_template.TextureEntry;// br.ReadBytes((int)numBytes);
-			
-			AvatarAppearancePacket.VisualParamBlock avblock=null;
-			for(int i=0; i<218; i++)
-			{
-				avblock=new AvatarAppearancePacket.VisualParamBlock();
-				avblock.ParamValue=(byte)100;
-				avp.VisualParam[i]=avblock;
-			}
-			
-			avp.Sender.IsTrial=false;
-			avp.Sender.ID=user.AgentID;
-			*/
 	
 			AgentWearablesUpdatePacket aw=new AgentWearablesUpdatePacket();
 			aw.AgentData.AgentID=user.AgentID;
@@ -323,22 +353,18 @@ namespace Second_server
 			aw.WearableData= new AgentWearablesUpdatePacket.WearableDataBlock[13];
 			AgentWearablesUpdatePacket.WearableDataBlock awb=null;
 			awb=new AgentWearablesUpdatePacket.WearableDataBlock();
-				awb.WearableType=(byte)0;
-				awb.AssetID=new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-				//awb.ItemID=new LLUUID("b7878000-0000-0000-0000-000000000000");
-				awb.ItemID=new LLUUID("b7878441893b094917f791174bc8401c");
-				//awb.ItemID=new LLUUID("00000000-0000-0000-0000-000000000000");
-				aw.WearableData[0]=awb;
-				
-				
-				/*awb=new AgentWearablesUpdatePacket.WearableDataBlock();
-				awb.WearableType=(byte)1;
-				awb.AssetID=new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");
-				awb.ItemID=new LLUUID("193f0876fc11d143797454352f9c9c26");
-				//awb.ItemID=new LLUUID("00000000-0000-0000-0000-000000000000");
-				aw.WearableData[1]=awb;*/
-				
-				
+			awb.WearableType=(byte)0;
+			awb.AssetID=new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+			awb.ItemID=new LLUUID("b7878441893b094917f791174bc8401c");
+			aw.WearableData[0]=awb;
+	
+			/*awb=new AgentWearablesUpdatePacket.WearableDataBlock();
+			awb.WearableType=(byte)1;
+			awb.AssetID=new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");
+			awb.ItemID=new LLUUID("193f0876fc11d143797454352f9c9c26");
+			//awb.ItemID=new LLUUID("00000000-0000-0000-0000-000000000000");
+			aw.WearableData[1]=awb;*/
+	
 			for(int i=1; i<13; i++)
 			{
 				awb=new AgentWearablesUpdatePacket.WearableDataBlock();
@@ -348,13 +374,15 @@ namespace Second_server
 				aw.WearableData[i]=awb;
 			}
 			
-			//server.SendPacket(avp,true,user); 
 			server.SendPacket(aw,true,user);
-			//System.Console.WriteLine(avp);
-			
-			
 		}
-		public void send_other_apper(User_Agent_info user,LLUUID id)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="id"></param>
+		public void SendOtherAppearance(User_Agent_info user,LLUUID id)
 		{
 			AvatarAppearancePacket avp=new AvatarAppearancePacket();
 		
@@ -384,21 +412,25 @@ namespace Second_server
 			server.SendPacket(avp,true,user);
 			
 		}
-		
-		public void send_test_avatar_position(User_Agent_info User_info)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		/// <param name="avd"></param>
+		public void SendOtherAvatarPosition(User_Agent_info User_info, AvatarData avd)
 		{
 			//send a objectupdate packet with information about the clients avatar
 			ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-			objupdate.RegionData.RegionHandle=1096213093147648;
+			objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
 			objupdate.RegionData.TimeDilation=64500;
 			objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
 			
-			objupdate.ObjectData[0]=avatar_template;
+			objupdate.ObjectData[0]=AvatarTemplate;
 			//give this avatar object a local id and assign the user a name
-			objupdate.ObjectData[0].ID=8880000+this.local_numer;
-			objupdate.ObjectData[0].FullID=new LLUUID("00000000-0000-0000-5665-000000000034");
-			objupdate.ObjectData[0].NameValue=enc.GetBytes("FirstName STRING RW SV Test"+ this.local_numer+"\nLastName STRING RW SV User \0");
-			libsecondlife.LLVector3 pos2=new LLVector3(120f,120.0f,22.0f);
+			objupdate.ObjectData[0].ID=avd.NetInfo.localID;
+			objupdate.ObjectData[0].FullID=avd.NetInfo.AgentID;//new LLUUID("00000000-0000-0000-5665-000000000034");
+			objupdate.ObjectData[0].NameValue=enc.GetBytes(avd.NetInfo.name);//enc.GetBytes("FirstName STRING RW SV Test"+ this.local_numer+"\nLastName STRING RW SV User \0");
+			libsecondlife.LLVector3 pos2=new LLVector3(avd.Position.X,avd.Position.Y,avd.Position.Z);
 			
 			byte[] pb=pos2.GetBytes();
 						
@@ -407,37 +439,16 @@ namespace Second_server
 			
 			server.SendPacket(objupdate,true,User_info);
 			
-			this.send_other_apper(User_info,new LLUUID("00000000-0000-0000-5665-000000000034"));
+			this.SendOtherAppearance(User_info,avd.NetInfo.AgentID);//new LLUUID("00000000-0000-0000-5665-000000000034"));
 			
 		}
-		
-		public void send_other_avatar_position(User_Agent_info User_info, Avatar_data avd)
-		{
-			//send a objectupdate packet with information about the clients avatar
-			ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-			objupdate.RegionData.RegionHandle=1096213093147648;
-			objupdate.RegionData.TimeDilation=64500;
-			objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
-			
-			objupdate.ObjectData[0]=avatar_template;
-			//give this avatar object a local id and assign the user a name
-			objupdate.ObjectData[0].ID=avd.Net_info.localID;
-			objupdate.ObjectData[0].FullID=avd.Net_info.AgentID;//new LLUUID("00000000-0000-0000-5665-000000000034");
-			objupdate.ObjectData[0].NameValue=enc.GetBytes(avd.Net_info.name);//enc.GetBytes("FirstName STRING RW SV Test"+ this.local_numer+"\nLastName STRING RW SV User \0");
-			libsecondlife.LLVector3 pos2=new LLVector3(avd.pos.X,avd.pos.Y,avd.pos.Z);
-			
-			byte[] pb=pos2.GetBytes();
-						
-			Array.Copy(pb,0,objupdate.ObjectData[0].ObjectData,16,pb.Length);
-			this.local_numer++;
-			
-			server.SendPacket(objupdate,true,User_info);
-			
-			this.send_other_apper(User_info,avd.Net_info.AgentID);//new LLUUID("00000000-0000-0000-5665-000000000034"));
-			
-		}
-		//*************************************************************
-		public void send_chat_message(User_Agent_info User_info, string line)
+	
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		/// <param name="line"></param>
+		public void SendChatMessage(User_Agent_info User_info, string line)
 		{
 						libsecondlife.Packets.ChatFromSimulatorPacket reply=new ChatFromSimulatorPacket();
               			reply.ChatData.Audible=1;
@@ -452,23 +463,33 @@ namespace Second_server
               			server.SendPacket(reply,true,User_info);  
               			
               			//send to all users
-              			foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in this.Agent_list)
+              			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
 						{
-								if(kp.Value.Net_info.AgentID!=User_info.AgentID)
+								if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
 								{
-									server.SendPacket(reply,true,kp.Value.Net_info);
+									server.SendPacket(reply,true,kp.Value.NetInfo);
 								}
               			}
 		}
-		//*************************************************************
-		public void send_move_command(User_Agent_info user, bool stop,float x, float y, float z, uint av_id, libsecondlife.LLQuaternion body)
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="stop"></param>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="z"></param>
+		/// <param name="av_id"></param>
+		/// <param name="body"></param>
+		public void SendMoveCommand(User_Agent_info user, bool stop,float x, float y, float z, uint av_id, libsecondlife.LLQuaternion body)
 		{
 						uint ID=user.localID;
 						//ID=av_id;
               			byte[] bytes=new byte[60];
 						
               			ImprovedTerseObjectUpdatePacket im=new ImprovedTerseObjectUpdatePacket();
-              			im.RegionData.RegionHandle=1096213093147648;
+              			im.RegionData.RegionHandle=Globals.Instance.RegionHandle;;
 						im.RegionData.TimeDilation=64096;
               			
               			im.ObjectData=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
@@ -477,7 +498,7 @@ namespace Second_server
               			
               			im.ObjectData[0]=dat;
               			
-              			dat.TextureEntry=avatar_template.TextureEntry;
+              			dat.TextureEntry=AvatarTemplate.TextureEntry;
               			libsecondlife.LLVector3 pos2=new LLVector3(x,y,z);
               			
               			bytes[i++] = (byte)(ID % 256);
@@ -571,16 +592,22 @@ namespace Second_server
                 		server.SendPacket(im,true,user);
                 		
                 		//should send to all users.
-                		foreach (KeyValuePair<libsecondlife.LLUUID,Avatar_data> kp in this.Agent_list)
+                		foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
 						{
-							if(kp.Value.Net_info.AgentID!=user.AgentID)
+							if(kp.Value.NetInfo.AgentID!=user.AgentID)
 							{
-								server.SendPacket(im,true,kp.Value.Net_info);
+								server.SendPacket(im,true,kp.Value.NetInfo);
 							}
                 		}
 		}
-		//*************************************************************
-		public void read_layerdata(User_Agent_info User_info,ref LayerDataPacket lay,string name)
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="User_info"></param>
+		/// <param name="lay"></param>
+		/// <param name="name"></param>
+		public void SendLayerData(User_Agent_info User_info,ref LayerDataPacket lay,string name)
 		{
 			FileInfo fInfo = new FileInfo(name);
 
@@ -590,7 +617,7 @@ namespace Second_server
 			
 			BinaryReader br = new BinaryReader(fStream);
 
-			 data1 = br.ReadBytes((int)numBytes);
+			byte [] data1 = br.ReadBytes((int)numBytes);
 
 			br.Close();
 			
@@ -601,18 +628,32 @@ namespace Second_server
 		}
 	}
 	
-	public class Avatar_data
+	public class AvatarData
 	{
-		public User_Agent_info Net_info;
-		public LLUUID Full_ID;
-		public LLVector3 pos;
-		public LLVector3 vel=new LLVector3(0,0,0);
-		public bool walk=false;
-		public bool started=false;
+		public User_Agent_info NetInfo;
+		public LLUUID FullID;
+		public LLVector3 Position;
+		public LLVector3 Velocity=new LLVector3(0,0,0);
+		//public LLQuaternion Rotation;
+		public bool Walk=false;
+		public bool Started=false;
+		//public TextureEntry TextureEntry;
 		
-		public Avatar_data()
+		public AvatarData()
 		{
 			
 		}
 	}
+	/*
+	public class AvatarParams
+	{
+		public byte[] Params;
+		
+		public AvatarParams()
+		{
+		
+		}
+		
+	}
+	*/
 }

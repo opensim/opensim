@@ -38,11 +38,12 @@ using System.IO;
 using Axiom.MathLib;
 using log4net;
 
-namespace Second_server {
+namespace OpenSim
+{
     /// <summary>
     /// Description of MainForm.
     /// </summary>
-    public partial class Controller : Server_callback {
+    public partial class Controller : ServerCallback {
 
 
 
@@ -54,51 +55,79 @@ namespace Second_server {
 
         }
         public Server server;
-
-        private Agent_Manager agent_man;
-        private Prim_manager prim_man;
-        private Texture_manager texture_man;
-        private Asset_manager asset_man;
-        private Login_manager login_man;  //built in login server
+		public Logon _login;
+        private AgentManager Agent_Manager;
+        private PrimManager Prim_Manager;
+        private TextureManager Texture_Manager;
+        private AssetManager Asset_Manager;
+        private GridManager Grid_Manager;
+        private LoginManager Login_Manager;  //built in login server
         private ulong time;  //ticks 
         private Timer timer1 = new Timer();
         
 
         public Controller() {
+        	_login=new Logon();  // should create a list for these.
             server = new Server( this );
-            agent_man = new Agent_Manager( this.server );
-            prim_man = new Prim_manager( this.server );
-            texture_man = new Texture_manager( this.server );
-            asset_man = new Asset_manager( this.server );
-            prim_man.agent_man = agent_man;
-            agent_man.prim_man = prim_man;
-            login_man = new Login_manager();  // startup 
-            login_man.startup();  			// login server
-            timer1.Enabled = true;
+            Agent_Manager = new AgentManager( this.server );
+            Prim_Manager = new PrimManager( this.server );
+            Texture_Manager = new TextureManager( this.server );
+            Asset_Manager = new AssetManager( this.server );
+            Prim_Manager.Agent_Manager = Agent_Manager;
+            Agent_Manager.Prim_Manager = Prim_Manager;
+            Grid_Manager=new GridManager(this.server,Agent_Manager);
+            if(Globals.Instance.LoginSever)
+            {
+            	Console.WriteLine("Starting login Server");
+           		Login_Manager = new LoginManager(_login);  // startup 
+           		Login_Manager.Startup();  			// login server
+            }
+           	timer1.Enabled = true;
             timer1.Interval = 200;
             timer1.Elapsed +=new ElapsedEventHandler( this.Timer1Tick );
              
 
         }
-        public void main_callback( Packet pack, User_Agent_info User_info ) {
-            if( ( pack.Type != PacketType.StartPingCheck ) && ( pack.Type != PacketType.AgentUpdate ) ) {
-                System.Console.WriteLine(pack.Type);
+        public void MainCallback( Packet pack, User_Agent_info User_info ) {
+        	//System.Console.WriteLine(pack.Type);
+        	if( ( pack.Type != PacketType.StartPingCheck ) && ( pack.Type != PacketType.AgentUpdate ) ) {
+               // System.Console.WriteLine(pack.Type);
                 //this.richTextBox1.Text=this.richTextBox1.Text+"\n  "+pack.Type;
             }
             if( pack.Type == PacketType.AgentSetAppearance ) {
-                System.Console.WriteLine(pack);
+              //  System.Console.WriteLine(pack);
                 //this.richTextBox1.Text=this.richTextBox1.Text+"\n  "+pack.Type;
 
             }
+        	if(pack.Type== PacketType.MapBlockRequest)
+        	{
+        		//int MinX, MinY, MaxX, MaxY;
+        		MapBlockRequestPacket MapRequest=(MapBlockRequestPacket)pack;
+        		this.Grid_Manager.RequestMapBlock(User_info,MapRequest.PositionData.MinX,MapRequest.PositionData.MinY,MapRequest.PositionData.MaxX,MapRequest.PositionData.MaxY);
+        	
+        	}
+        	if(pack.Type== PacketType.CloseCircuit)
+        	{
+        		this.Agent_Manager.RemoveAgent(User_info);
+        	}
+        	if(pack.Type== PacketType.MapLayerRequest)
+        	{
+        		this.Grid_Manager.RequestMapLayer(User_info);
+        		
+        	}
+        	if((pack.Type== PacketType.TeleportRequest ) ||(pack.Type== PacketType.TeleportLocationRequest))
+        	{
+        		TeleportLocationRequestPacket Request=(TeleportLocationRequestPacket)pack;
+        		
+        		this.Grid_Manager.RequestTeleport(User_info,Request);
+        		
+        	}
             if( pack.Type == PacketType.TransferRequest ) {
                 TransferRequestPacket tran = (TransferRequestPacket)pack;
                 LLUUID id = new LLUUID( tran.TransferInfo.Params, 0 );
 
                 if( ( id == new LLUUID( "66c41e39-38f9-f75a-024e-585989bfab73" ) ) || ( id == new LLUUID( "e0ee49b5a4184df8d3c9a65361fe7f49" ) ) ) {
-                    //System.Console.WriteLine(pack);
-                    //System.Console.WriteLine(tran.TransferInfo.TransferID);
-                    asset_man.add_request( User_info, id, tran );
-                    //this.richTextBox1.Text=this.richTextBox1.Text+"\n  "+pack.Type;
+                    Asset_Manager.AddRequest( User_info, id, tran );
                 }
 
             }
@@ -111,23 +140,23 @@ namespace Second_server {
             }
             if( pack.Type == PacketType.CompleteAgentMovement ) {
                 // new client	
-                agent_man.Agent_join( User_info );
+                Agent_Manager.AgentJoin( User_info );
             }
             if( pack.Type == PacketType.RequestImage ) {
                 RequestImagePacket image_req = (RequestImagePacket)pack;
                 for( int i = 0; i < image_req.RequestImage.Length; i++ ) {
-                    this.texture_man.add_request( User_info, image_req.RequestImage[ i ].Image );
+                    this.Texture_Manager.AddRequest( User_info, image_req.RequestImage[ i ].Image );
 
                 }
             }
             if( pack.Type == PacketType.RegionHandshakeReply ) {
                 //recieved regionhandshake so can now start sending info
-                agent_man.send_intial_data( User_info );
+                Agent_Manager.SendInitialData( User_info );
                 //this.setuptemplates("objectupate164.dat",User_info,false);
             }
             if( pack.Type == PacketType.ObjectAdd ) {
                 ObjectAddPacket ad = (ObjectAddPacket)pack;
-                prim_man.create_prim( User_info, ad.ObjectData.RayEnd, ad );
+                Prim_Manager.CreatePrim( User_info, ad.ObjectData.RayEnd, ad );
                 //this.send_prim(User_info,ad.ObjectData.RayEnd, ad);
             }
             if( pack.Type == PacketType.ObjectPosition ) {
@@ -141,46 +170,55 @@ namespace Second_server {
                     if( mupd.ObjectData[ i ].Type == 9 ) //change position
 					{
                         libsecondlife.LLVector3 pos = new LLVector3( mupd.ObjectData[ i ].Data, 0 );
-
-                        prim_man.update_prim_position( User_info, pos.X, pos.Y, pos.Z, mupd.ObjectData[ i ].ObjectLocalID );
+                       // libsecondlife.LLQuaternion rot=new LLQuaternion(mupd.ObjectData[i].Data,12,true);
+                        Prim_Manager.UpdatePrimPosition( User_info, pos, mupd.ObjectData[ i ].ObjectLocalID ,false ,libsecondlife.LLQuaternion.Identity);
                         //should update stored position of the prim
+                    }
+                    else if( mupd.ObjectData[ i ].Type == 10 )
+                    {
+                    	//System.Console.WriteLine(mupd.ObjectData[ i ].Type);
+                    	//System.Console.WriteLine(mupd);
+                    	libsecondlife.LLVector3 pos = new LLVector3(100,100,22);
+                    	 libsecondlife.LLQuaternion rot=new LLQuaternion(mupd.ObjectData[i].Data,0,true);
+                        Prim_Manager.UpdatePrimPosition( User_info, pos, mupd.ObjectData[ i ].ObjectLocalID ,true ,rot);
+                       
                     }
                 }
             }
             if( pack.Type == PacketType.AgentWearablesRequest ) {
-                agent_man.send_intial_avatar_apper( User_info );
+                Agent_Manager.SendIntialAvatarAppearance( User_info );
             }
 
             if( pack.Type == PacketType.AgentUpdate ) {
                 AgentUpdatePacket ag = (AgentUpdatePacket)pack;
                 uint mask = ag.AgentData.ControlFlags & ( 1 );
-                Avatar_data m_av = agent_man.Get_Agent( User_info.AgentID );
+                AvatarData m_av = Agent_Manager.GetAgent( User_info.AgentID );
                 if( m_av != null ) {
-                    if( m_av.started ) {
+                    if( m_av.Started ) {
                         if( mask == ( 1 ) ) {
-                            if( !m_av.walk ) {
+                            if( !m_av.Walk ) {
                                 //start walking
-                                agent_man.send_move_command( User_info, false, m_av.pos.X, m_av.pos.Y, m_av.pos.Z, 0, ag.AgentData.BodyRotation );
+                                Agent_Manager.SendMoveCommand( User_info, false, m_av.Position.X, m_av.Position.Y, m_av.Position.Z, 0, ag.AgentData.BodyRotation );
                                 Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3( 1, 0, 0 );
                                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion( ag.AgentData.BodyRotation.W, ag.AgentData.BodyRotation.X, ag.AgentData.BodyRotation.Y, ag.AgentData.BodyRotation.Z );
                                 Axiom.MathLib.Vector3 direc = q * v3;
                                 direc.Normalize();
                                 direc = direc * ( ( 0.03f ) * 128f );
 
-                                m_av.vel.X = direc.x;
-                                m_av.vel.Y = direc.y;
-                                m_av.vel.Z = direc.z;
-                                m_av.walk = true;
+                                m_av.Velocity.X = direc.x;
+                                m_av.Velocity.Y = direc.y;
+                                m_av.Velocity.Z = direc.z;
+                                m_av.Walk = true;
                             }
                         }
                         else {
-                            if( m_av.walk ) {
+                            if( m_av.Walk ) {
                                 //walking but key not pressed so need to stop
-                                agent_man.send_move_command( User_info, true, m_av.pos.X, m_av.pos.Y, m_av.pos.Z, 0, ag.AgentData.BodyRotation );
-                                m_av.walk = false;
-                                m_av.vel.X = 0;
-                                m_av.vel.Y = 0;
-                                m_av.vel.Z = 0;
+                                Agent_Manager.SendMoveCommand( User_info, true, m_av.Position.X, m_av.Position.Y, m_av.Position.Z, 0, ag.AgentData.BodyRotation );
+                                m_av.Walk = false;
+                                m_av.Velocity.X = 0;
+                                m_av.Velocity.Y = 0;
+                                m_av.Velocity.Z = 0;
                             }
                         }
                     }
@@ -205,25 +243,52 @@ namespace Second_server {
                     else if( comp[ 0 ] == "veloc" ) {
                     }
                     else {
-                        agent_man.send_chat_message( User_info, line );
+                        Agent_Manager.SendChatMessage( User_info, line );
 
                     }
                 }
             }
         }
-        public void new_user( User_Agent_info User_info ) {
-            Console.WriteLine( "new user - {0} - has joined [session {1}]", User_info.AgentID.ToString(), User_info.SessionID.ToString() );
-            agent_man.New_Agent( User_info );
+        public void NewUserCallback( User_Agent_info UserInfo ) {
+            Console.WriteLine( "new user - {0} - has joined [session {1}]", UserInfo.AgentID.ToString(), UserInfo.SessionID.ToString() +"curcuit used"+UserInfo.circuitCode);
+             string first,last;
+            lock(_login)
+             {
+                first=_login.first;
+                last=_login.last;
+                
+                //should get agentid and sessionid so they can be checked.
+             }
+            Agent_Manager.NewAgent( UserInfo ,first,last);
+            //now because of the lack of Global account management (User server etc)
+            //we need to reset the names back to default incase a teleport happens 
+            //which will not have a Login name set, so they will use default names
+            lock(_login)
+            {
+                _login.first="Test";
+                _login.last="User";
+            }
         }
 
-        public void error( string text ) {
+        public void ErrorCallback( string text ) {
             Console.WriteLine( "error report: {0}", text );
         }
 
         void Timer1Tick( object sender, System.EventArgs e ) {
             this.time++;
-            agent_man.tick();
-            texture_man.Do_work( time );
+            Agent_Manager.UpdatePositions();
+            Texture_Manager.DoWork( time );
         }
+    }
+    public class Logon
+    {
+    	public string first="Test";
+    	public string last="User";
+    	public LLUUID Agent;
+    	public LLUUID Session;
+    	public Logon()
+    	{
+    		
+    	}
     }
 }
