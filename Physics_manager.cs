@@ -29,14 +29,14 @@ Copyright (c) 2007 Michael Wright
 
 using System;
 
-namespace Second_server
+namespace OpenSim
 {
 	/// <summary>
 	/// Description of Physics_manager.
 	/// </summary>
-	public class Physics_manager
+	public class PhysicsManager
 	{
-		public Physics_manager()
+		public PhysicsManager()
 		{
 		}
 	}
