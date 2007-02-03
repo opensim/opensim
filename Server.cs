@@ -42,14 +42,14 @@ namespace OpenSim
 	/// <summary>
 	/// Description of Server.
 	/// </summary>
-	 public interface ServerCallback
+	public interface ServerCallback
     {
 	 	//should replace with delegates
     	void MainCallback(Packet pack, User_Agent_info User_info);
     	void NewUserCallback(User_Agent_info User_info);
     	void ErrorCallback(string text);
     }
-	  public class Server
+	public class Server
     {
         /// <summary>A public reference to the client that this Simulator object
         /// is attached to</summary>
@@ -93,8 +93,6 @@ namespace OpenSim
         }
 		
         private ServerCallback CallbackObject;
-        //private NetworkManager Network;
-       // private Dictionary<PacketType, List<NetworkManager.PacketCallback>> Callbacks;
         private uint Sequence = 0;
         private object SequenceLock = new object();
         private byte[] RecvBuffer = new byte[4096];
@@ -102,12 +100,6 @@ namespace OpenSim
         private byte[] ZeroOutBuffer = new byte[4096];
         private Socket Connection = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         private AsyncCallback ReceivedData;
-        // Packets we sent out that need ACKs from the simulator
-       // private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
-        // Sequence numbers of packets we've received from the simulator
-       // private Queue<uint> Inbox;
-        // ACKs that are queued up to be sent to the simulator
-        //private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         private bool connected = false;
         private uint circuitCode;
         private IPEndPoint ipEndPoint;
@@ -129,62 +121,38 @@ namespace OpenSim
         public Server(ServerCallback s_callback)
         {
         	
-        	this.CallbackObject=s_callback;
-          //  Client = client;
-           // Network = client.Network;
-           // Callbacks = callbacks;
-           // Region = new Region(client);
-          //  circuitCode = circuit;
-           // Inbox = new Queue<uint>(Settings.INBOX_SIZE);
-            AckTimer = new System.Timers.Timer(Settings.NETWORK_TICK_LENGTH);
-            AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
+        	this.CallbackObject=s_callback;  //should be using delegate
+        	AckTimer = new System.Timers.Timer(Settings.NETWORK_TICK_LENGTH);
+        	AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
 
-            // Initialize the callback for receiving a new packet
-            ReceivedData = new AsyncCallback(this.OnReceivedData);
+        	// Initialize the callback for receiving a new packet
+        	ReceivedData = new AsyncCallback(this.OnReceivedData);
 
-           // Client.Log("Connecting to " + ip.ToString() + ":" + port, Helpers.LogLevel.Info);
+        	// Client.Log("Connecting to " + ip.ToString() + ":" + port, Helpers.LogLevel.Info);
 
-            try
-            {
-                // Create an endpoint that we will be communicating with (need it in two 
-                // types due to .NET weirdness)
-               // ipEndPoint = new IPEndPoint(ip, port);
-               ipEndPoint = new IPEndPoint(IPAddress.Any, Globals.Instance.IpPort);
+        	try
+        	{
+        		// Create an endpoint that we will be communicating with (need it in two
+        		// types due to .NET weirdness)
+        		// ipEndPoint = new IPEndPoint(ip, port);
+        		ipEndPoint = new IPEndPoint(IPAddress.Any, Globals.Instance.IpPort);
+        		endPoint = (EndPoint)ipEndPoint;
 
-        		
-                endPoint = (EndPoint)ipEndPoint;
-
-                // Associate this simulator's socket with the given ip/port and start listening
-                Connection.Bind(endPoint);
-                
-                 ipeSender = new IPEndPoint(IPAddress.Any, 0);
+        		// Associate this simulator's socket with the given ip/port and start listening
+        		Connection.Bind(endPoint);
+        		ipeSender = new IPEndPoint(IPAddress.Any, 0);
         		//The epSender identifies the incoming clients
-        		 epSender = (EndPoint) ipeSender;
-                Connection.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+        		epSender = (EndPoint) ipeSender;
+        		Connection.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-               
-                // Start the ACK timer
-                AckTimer.Start();
-
-               
-
-                // Track the current time for timeout purposes
-                //int start = Environment.TickCount;
-
-               /* while (true)
-                {
-                    if (connected || Environment.TickCount - start > Settings.SIMULATOR_TIMEOUT)
-                    {
-                        return;
-                    }
-                    System.Threading.Thread.Sleep(10);
-                }*/
-            }
-            catch (Exception e)
-            {
-              //  Client.Log(e.ToString(), Helpers.LogLevel.Error);
-              System.Console.WriteLine(e.Message);
-            }
+        		// Start the ACK timer
+        		AckTimer.Start();       		
+        	}
+        	catch (Exception e)
+        	{
+        		
+        		System.Console.WriteLine(e.Message);
+        	}
         }
 
         /// <summary>
@@ -292,9 +260,8 @@ namespace OpenSim
                                 packet.Type != PacketType.LogoutRequest)
                             {
                                 packet.Header.AckList = new uint[User_info.PendingAcks.Count];
-
                                 int i = 0;
-
+                                
                                 foreach (uint ack in User_info.PendingAcks.Values)
                                 {
                                     packet.Header.AckList[i] = ack;
@@ -345,37 +312,6 @@ namespace OpenSim
         /// <param name="payload">The packet payload</param>
         /// <param name="setSequence">Whether the second, third, and fourth bytes
         /// should be modified to the current stream sequence number</param>
-      /*  public void SendPacket(byte[] payload, bool setSequence)
-        {
-            if (connected)
-            {
-                try
-                {
-                    if (setSequence && payload.Length > 3)
-                    {
-                        lock (SequenceLock)
-                        {
-                            payload[1] = (byte)(Sequence >> 16);
-                            payload[2] = (byte)(Sequence >> 8);
-                            payload[3] = (byte)(Sequence % 256);
-                            Sequence++;
-                        }
-                    }
-					
-                    Connection.Send(payload, payload.Length, SocketFlags.None);
-                }
-                catch (SocketException e)
-                {
-                   // Client.Log(e.ToString(), Helpers.LogLevel.Error);
-                }
-            }
-            else
-            {
-               // Client.Log("Attempted to send a " + payload.Length + " byte payload when " +
-                //    "we are disconnected", Helpers.LogLevel.Warning);
-            }
-        }
-		*/
         /// <summary>
         /// Returns Simulator Name as a String
         /// </summary>
@@ -615,56 +551,8 @@ namespace OpenSim
                 }
             }
 			
-          //  this.callback_object.error("calling callback");
             this.CallbackObject.MainCallback(packet,User_info);
-           // this.callback_object.error("finished");
-            // Fire the registered packet events
-            #region FireCallbacks
-           /* if (Callbacks.ContainsKey(packet.Type))
-            {
-                List<NetworkManager.PacketCallback> callbackArray = Callbacks[packet.Type];
-
-                // Fire any registered callbacks
-                foreach (NetworkManager.PacketCallback callback in callbackArray)
-                {
-                    if (callback != null)
-                    {
-                        try
-                        {
-                            callback(packet, this);
-                        }
-                        catch (Exception e)
-                        {
-                            Client.Log("Caught an exception in a packet callback: " + e.ToString(),
-                                Helpers.LogLevel.Error);
-                        }
-                    }
-                }
-            }
-
-            if (Callbacks.ContainsKey(PacketType.Default))
-            {
-                List<NetworkManager.PacketCallback> callbackArray = Callbacks[PacketType.Default];
-
-                // Fire any registered callbacks
-                foreach (NetworkManager.PacketCallback callback in callbackArray)
-                {
-                    if (callback != null)
-                    {
-                        try
-                        {
-                            callback(packet, this);
-                        }
-                        catch (Exception e)
-                        {
-                            Client.Log("Caught an exception in a packet callback: " + e.ToString(),
-                                Helpers.LogLevel.Error);
-                        }
-                    }
-                }
-            }
-            */
-            #endregion FireCallbacks
+           
         }
 
         private void AckTimer_Elapsed(object sender, ElapsedEventArgs ea)
@@ -677,8 +565,8 @@ namespace OpenSim
             	{
             		User_Agent_info user=(User_Agent_info)this.User_agents[i];
             	
-                SendAcks(user);
-                ResendUnacked(user);
+                	SendAcks(user);
+                	ResendUnacked(user);
             	}
             }
         }
@@ -731,7 +619,7 @@ namespace OpenSim
         }
     }
 	   
-	    public class User_Agent_info
+	public class User_Agent_info
     {
     	public EndPoint endpoint;
     	public LLUUID AgentID;

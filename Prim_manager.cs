@@ -133,130 +133,110 @@ namespace OpenSim
 		/// <param name="rotation"></param>
 		public void UpdatePrimPosition(User_Agent_info User,LLVector3 position,uint LocalID,bool setRotation, LLQuaternion rotation)
 		{
-						PrimInfo pri=null;
-						foreach (KeyValuePair<libsecondlife.LLUUID,PrimInfo> kp in this.PrimList)
-						{
-							if(kp.Value.LocalID==LocalID)
-							{
-								pri=kp.Value;
-							}
-						}
-						if(pri==null)
-						{
-							return;
-						}
-						uint ID=pri.LocalID;
-						libsecondlife.LLVector3 pos2=new LLVector3(position.X,position.Y,position.Z);
-						libsecondlife.LLQuaternion rotation2;
-						if(!setRotation)
-						{
-							pri.Position=pos2;
-							 rotation2=new LLQuaternion(pri.Rotation.X,pri.Rotation.Y,pri.Rotation.Z,pri.Rotation.W);
-						}
-						else
-						{
-							rotation2=new LLQuaternion(rotation.X,rotation.Y,rotation.Z,rotation.W);
-						
-							pos2=pri.Position;
-							pri.Rotation=rotation;
-						}
-						rotation2.W+=1;
-                		rotation2.X+=1;
-                		rotation2.Y+=1;
-                		rotation2.Z+=1;
-                		
-              			byte[] bytes=new byte[60];
-						
-              			ImprovedTerseObjectUpdatePacket im=new ImprovedTerseObjectUpdatePacket();
-              			im.RegionData.RegionHandle=Globals.Instance.RegionHandle;
-						im.RegionData.TimeDilation=64096;
-              			im.ObjectData=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-              			int i=0;
-              			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
-              			im.ObjectData[0]=dat;
-              			dat.TextureEntry=PrimTemplate.TextureEntry;
-              			//System.Console.WriteLine("new position is :"+position);
-              			
-              			bytes[i++] = (byte)(ID % 256);
-                		bytes[i++] = (byte)((ID >> 8) % 256);
-               			bytes[i++] = (byte)((ID >> 16) % 256);
-                		bytes[i++] = (byte)((ID >> 24) % 256);
-                		bytes[i++]=0;
-                		bytes[i++]=0;//1;
+			PrimInfo pri=null;
+			foreach (KeyValuePair<libsecondlife.LLUUID,PrimInfo> kp in this.PrimList)
+			{
+				if(kp.Value.LocalID==LocalID)
+				{
+					pri=kp.Value;
+				}
+			}
+			if(pri==null)
+			{
+				return;
+			}
+			uint ID=pri.LocalID;
+			libsecondlife.LLVector3 pos2=new LLVector3(position.X,position.Y,position.Z);
+			libsecondlife.LLQuaternion rotation2;
+			if(!setRotation)
+			{
+				pri.Position=pos2;
+				rotation2=new LLQuaternion(pri.Rotation.X,pri.Rotation.Y,pri.Rotation.Z,pri.Rotation.W);
+			}
+			else
+			{
+				rotation2=new LLQuaternion(rotation.X,rotation.Y,rotation.Z,rotation.W);
+				pos2=pri.Position;
+				pri.Rotation=rotation;
+			}
+			rotation2.W+=1;
+			rotation2.X+=1;
+			rotation2.Y+=1;
+			rotation2.Z+=1;
+			
+			byte[] bytes=new byte[60];
+			
+			ImprovedTerseObjectUpdatePacket im=new ImprovedTerseObjectUpdatePacket();
+			im.RegionData.RegionHandle=Globals.Instance.RegionHandle;
+			im.RegionData.TimeDilation=64096;
+			im.ObjectData=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+			int i=0;
+			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+			im.ObjectData[0]=dat;
+			dat.TextureEntry=PrimTemplate.TextureEntry;
+			
+			bytes[i++] = (byte)(ID % 256);
+			bytes[i++] = (byte)((ID >> 8) % 256);
+			bytes[i++] = (byte)((ID >> 16) % 256);
+			bytes[i++] = (byte)((ID >> 24) % 256);
+			bytes[i++]=0;
+			bytes[i++]=0;//1;
 
-                	//	i+=14;
-                	//	bytes[i++]=128;
-                	//	bytes[i++]=63;
-                		byte[] pb=pos2.GetBytes();
-                		pri.Position=pos2;
-						Array.Copy(pb,0,bytes,i,pb.Length);
-						i+=12;
-						ushort ac=32767;
+			byte[] pb=pos2.GetBytes();
+			pri.Position=pos2;
+			Array.Copy(pb,0,bytes,i,pb.Length);
+			i+=12;
+			ushort ac=32767;
 
-						//vel
-						bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-						
-                		//accel
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		//if(setRotation)
-                		//{
-                		
-                		ushort rw, rx,ry,rz;
-						rw=(ushort)(32768*rotation2.W);
-                		rx=(ushort)(32768*rotation2.X);
-						ry=(ushort)(32768*rotation2.Y);
-						rz=(ushort)(32768*rotation2.Z);
-						
-                		//rot
-                		bytes[i++] = (byte)(rx % 256);
-                		bytes[i++] = (byte)((rx >> 8) % 256);
-                		bytes[i++] = (byte)(ry % 256);
-                		bytes[i++] = (byte)((ry >> 8) % 256);
-                		bytes[i++] = (byte)(rz % 256);
-                		bytes[i++] = (byte)((rz >> 8) % 256);
-                		bytes[i++] = (byte)(rw % 256);
-                		bytes[i++] = (byte)((rw >> 8) % 256);
-                		//}
-                		/*else
-                		{
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		}*/
-                		//rotation vel
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		dat.Data=bytes;	
-                		//server.SendPacket(im,true,user);
-                		//should send to all users.
-                		foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in Agent_Manager.AgentList)
-						{
-							if(kp.Value.NetInfo.AgentID!=User.AgentID)
-							{
-								server.SendPacket(im,true,kp.Value.NetInfo);
-							}
-                		}
+			//vel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//accel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			ushort rw, rx,ry,rz;
+			rw=(ushort)(32768*rotation2.W);
+			rx=(ushort)(32768*rotation2.X);
+			ry=(ushort)(32768*rotation2.Y);
+			rz=(ushort)(32768*rotation2.Z);
+			
+			//rot
+			bytes[i++] = (byte)(rx % 256);
+			bytes[i++] = (byte)((rx >> 8) % 256);
+			bytes[i++] = (byte)(ry % 256);
+			bytes[i++] = (byte)((ry >> 8) % 256);
+			bytes[i++] = (byte)(rz % 256);
+			bytes[i++] = (byte)((rz >> 8) % 256);
+			bytes[i++] = (byte)(rw % 256);
+			bytes[i++] = (byte)((rw >> 8) % 256);
+			
+			//rotation vel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			dat.Data=bytes;
+			
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in Agent_Manager.AgentList)
+			{
+				if(kp.Value.NetInfo.AgentID!=User.AgentID)
+				{
+					server.SendPacket(im,true,kp.Value.NetInfo);
+				}
+            }
 		}
 		
 		/// <summary>
@@ -310,49 +290,50 @@ namespace OpenSim
 		public void ReadPrimDatabase(string name,User_Agent_info user)
 	    {
 			StreamReader SR;
-    		string line;
-    		SR=File.OpenText(name);
+			string line;
+			SR=File.OpenText(name);
 			string [] comp= new string[10];
-			string delimStr = " ,	";		
-            char [] delimiter = delimStr.ToCharArray();
-            
-            line=SR.ReadLine();
-            while(line!="end")
-            {
-              comp=line.Split(delimiter);  
-              if(comp[0]=="ObjPack"){
-              	int num=Convert.ToInt32(comp[2]);
-              	int start=Convert.ToInt32(comp[1]);
-				ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-				objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
-				objupdate.RegionData.TimeDilation=64096;
-				objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[num];
-				
-			 //	int count=0;
-                string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\data\";
-			 for(int cc=0; cc<num; cc++)
-			 {
-			 	string filenam=data_path+@"prim_updates"+start+".dat";
-				int i=0;
-				//FileInfo fInfo = new FileInfo("objectupate"+start+".dat");
-				FileInfo fInfo = new FileInfo(filenam);
-				long numBytes = fInfo.Length;
-				//FileStream fStream = new FileStream("objectupate"+start+".dat", FileMode.Open, FileAccess.Read);
-				FileStream fStream = new FileStream(filenam, FileMode.Open, FileAccess.Read);
-				BinaryReader br = new BinaryReader(fStream);
-				byte [] data1 = br.ReadBytes((int)numBytes);
-				br.Close();
-				fStream.Close();
+			string delimStr = " ,	";
+			char [] delimiter = delimStr.ToCharArray();
 			
-				libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1,ref i);
-				objupdate.ObjectData[cc]=objdata;
-				start++;		
-			 }
-			server.SendPacket(objupdate,true,user);
 			line=SR.ReadLine();
-            }
-            }
-            SR.Close();
+			while(line!="end")
+			{
+				comp=line.Split(delimiter);
+				if(comp[0]=="ObjPack")
+				{
+					int num=Convert.ToInt32(comp[2]);
+					int start=Convert.ToInt32(comp[1]);
+					ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
+					objupdate.RegionData.RegionHandle=Globals.Instance.RegionHandle;
+					objupdate.RegionData.TimeDilation=64096;
+					objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[num];
+					
+					//	int count=0;
+					string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\data\";
+					for(int cc=0; cc<num; cc++)
+					{
+						string filenam=data_path+@"prim_updates"+start+".dat";
+						int i=0;
+						//FileInfo fInfo = new FileInfo("objectupate"+start+".dat");
+						FileInfo fInfo = new FileInfo(filenam);
+						long numBytes = fInfo.Length;
+						//FileStream fStream = new FileStream("objectupate"+start+".dat", FileMode.Open, FileAccess.Read);
+						FileStream fStream = new FileStream(filenam, FileMode.Open, FileAccess.Read);
+						BinaryReader br = new BinaryReader(fStream);
+						byte [] data1 = br.ReadBytes((int)numBytes);
+						br.Close();
+						fStream.Close();
+						
+						libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1,ref i);
+						objupdate.ObjectData[cc]=objdata;
+						start++;
+					}
+					server.SendPacket(objupdate,true,user);
+					line=SR.ReadLine();
+				}
+			}
+			SR.Close();
 	    }
 	}
 	

@@ -58,7 +58,6 @@ namespace OpenSim
 		public Logon _login;
         private AgentManager Agent_Manager;
         private PrimManager Prim_Manager;
-       // private TextureManager Texture_Manager;
         private AssetManagement Asset_Manager;
         private GridManager Grid_Manager;
         private InventoryManager Inventory_Manager;
@@ -72,21 +71,21 @@ namespace OpenSim
             server = new Server( this );
             Agent_Manager = new AgentManager( this.server );
             Prim_Manager = new PrimManager( this.server );
-           // Texture_Manager = new TextureManager( this.server );
             Asset_Manager = new AssetManagement( this.server );
             Prim_Manager.Agent_Manager = Agent_Manager;
             Agent_Manager.Prim_Manager = Prim_Manager;
             Agent_Manager.Asset_Manager=Asset_Manager;
             Inventory_Manager=new InventoryManager(this.server);
             Asset_Manager.InventoryManager=Inventory_Manager;
-           // Asset_Manager.TextureMan=Texture_Manager;
             Grid_Manager=new GridManager(this.server,Agent_Manager);
+            
             if(Globals.Instance.LoginSever)
             {
             	Console.WriteLine("Starting login Server");
            		Login_Manager = new LoginManager(_login);  // startup 
            		Login_Manager.Startup();  			// login server
             }
+            
            	timer1.Enabled = true;
             timer1.Interval = 200;
             timer1.Elapsed +=new ElapsedEventHandler( this.Timer1Tick );
@@ -103,7 +102,7 @@ namespace OpenSim
         	
         	//should replace with a switch
             if( pack.Type == PacketType.AgentSetAppearance ) {
-            	 //  System.Console.WriteLine(pack);
+            	//System.Console.WriteLine(pack);
                 //this.richTextBox1.Text=this.richTextBox1.Text+"\n  "+pack.Type;
 
             }
@@ -142,11 +141,8 @@ namespace OpenSim
         	}
             else if( pack.Type == PacketType.TransferRequest ) {
                 TransferRequestPacket tran = (TransferRequestPacket)pack;
-                LLUUID id = new LLUUID( tran.TransferInfo.Params, 0 );
-
-               // if( ( id == new LLUUID( "66c41e39-38f9-f75a-024e-585989bfab73" ) ) || ( id == new LLUUID( "e0ee49b5a4184df8d3c9a65361fe7f49" ) ) ) {
-                    Asset_Manager.AddAssetRequest( User_info, id, tran );
-               // }
+                LLUUID id = new LLUUID( tran.TransferInfo.Params, 0 );   
+                Asset_Manager.AddAssetRequest( User_info, id, tran );
 
             }
             else if( ( pack.Type == PacketType.StartPingCheck ) ) {
@@ -156,23 +152,26 @@ namespace OpenSim
                 endping.PingID.PingID = startp.PingID.PingID;
                 server.SendPacket( endping, true, User_info );
             }
-            else if( pack.Type == PacketType.CompleteAgentMovement ) {
+           	else if( pack.Type == PacketType.CompleteAgentMovement ) 
+           	{
                 // new client	
                 Agent_Manager.AgentJoin( User_info );
-            }
-           else if( pack.Type == PacketType.RequestImage ) {
+           	}
+           	else if( pack.Type == PacketType.RequestImage ) 
+           	{
                 RequestImagePacket image_req = (RequestImagePacket)pack;
-                for( int i = 0; i < image_req.RequestImage.Length; i++ ) {
+                for( int i = 0; i < image_req.RequestImage.Length; i++ ) 
+                {
                     this.Asset_Manager.AddTextureRequest( User_info, image_req.RequestImage[ i ].Image );
-
                 }
             }
-           else if( pack.Type == PacketType.RegionHandshakeReply ) {
+           	else if( pack.Type == PacketType.RegionHandshakeReply ) {
                 //recieved regionhandshake so can now start sending info
                 Agent_Manager.SendInitialData( User_info );
                 //this.setuptemplates("objectupate164.dat",User_info,false);
             }
-           else if( pack.Type == PacketType.ObjectAdd ) {
+           	else if( pack.Type == PacketType.ObjectAdd ) 
+           	{
                 ObjectAddPacket ad = (ObjectAddPacket)pack;
                 Prim_Manager.CreatePrim( User_info, ad.ObjectData.RayEnd, ad );
                 //this.send_prim(User_info,ad.ObjectData.RayEnd, ad);
@@ -184,7 +183,8 @@ namespace OpenSim
                 //System.Console.WriteLine(pack.ToString());
                 MultipleObjectUpdatePacket mupd = (MultipleObjectUpdatePacket)pack;
 
-                for( int i = 0; i < mupd.ObjectData.Length; i++ ) {
+                for( int i = 0; i < mupd.ObjectData.Length; i++ ) 
+                {
                     if( mupd.ObjectData[ i ].Type == 9 ) //change position
 					{
                         libsecondlife.LLVector3 pos = new LLVector3( mupd.ObjectData[ i ].Data, 0 );
@@ -203,19 +203,23 @@ namespace OpenSim
                     }
                 }
             }
-            else if( pack.Type == PacketType.AgentWearablesRequest ) {
+            else if( pack.Type == PacketType.AgentWearablesRequest ) 
+            {
                 Agent_Manager.SendIntialAvatarAppearance( User_info );
             }
-
             else if( pack.Type == PacketType.AgentUpdate ) 
             {
                 AgentUpdatePacket ag = (AgentUpdatePacket)pack;
                 uint mask = ag.AgentData.ControlFlags & ( 1 );
                 AvatarData m_av = Agent_Manager.GetAgent( User_info.AgentID );
-                if( m_av != null ) {
-                    if( m_av.Started ) {
-                        if( mask == ( 1 ) ) {
-                            if( !m_av.Walk ) {
+                if( m_av != null ) 
+                {
+                    if( m_av.Started ) 
+                    {
+                        if( mask == ( 1 ) ) 
+                        {
+                            if( !m_av.Walk ) 
+                            {
                                 //start walking
                                 Agent_Manager.SendMoveCommand( User_info, false, m_av.Position.X, m_av.Position.Y, m_av.Position.Z, 0, ag.AgentData.BodyRotation );
                                 Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3( 1, 0, 0 );
@@ -230,8 +234,10 @@ namespace OpenSim
                                 m_av.Walk = true;
                             }
                         }
-                        else {
-                            if( m_av.Walk ) {
+                        else 
+                        {
+                            if( m_av.Walk ) 
+                            {
                                 //walking but key not pressed so need to stop
                                 Agent_Manager.SendMoveCommand( User_info, true, m_av.Position.X, m_av.Position.Y, m_av.Position.Z, 0, ag.AgentData.BodyRotation );
                                 m_av.Walk = false;
@@ -243,7 +249,8 @@ namespace OpenSim
                     }
                 }
             }
-            else if( pack.Type == PacketType.ChatFromViewer ) {
+            else if( pack.Type == PacketType.ChatFromViewer ) 
+            {
                 ChatFromViewerPacket chat = (ChatFromViewerPacket)pack;
                 System.Text.Encoding enc = System.Text.Encoding.ASCII;
 
@@ -256,21 +263,25 @@ namespace OpenSim
 
                     line = myString;
                     comp = line.Split( delimiter );
-                    if( comp[ 0 ] == "pos" ) {
+                    if( comp[ 0 ] == "pos" )
+                    {
                     }
-                    else if( comp[ 0 ] == "veloc" ) {
+                    else if( comp[ 0 ] == "veloc" ) 
+                    {
                     }
-                    else {
+                    else 
+                    {
                         Agent_Manager.SendChatMessage( User_info, line );
 
                     }
                 }
             }
         }
-        public void NewUserCallback( User_Agent_info UserInfo ) {
+        public void NewUserCallback( User_Agent_info UserInfo ) 
+        {
             Console.WriteLine( "new user - {0} - has joined [session {1}]", UserInfo.AgentID.ToString(), UserInfo.SessionID.ToString() +"curcuit used"+UserInfo.circuitCode);
-             string first,last;
-             LLUUID Base,Inventory;
+            string first,last;
+            LLUUID Base,Inventory;
             lock(_login)
              {
                 first=_login.first;

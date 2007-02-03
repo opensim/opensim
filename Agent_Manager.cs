@@ -207,29 +207,17 @@ namespace OpenSim
 		/// <param name="name"></param>
 		private void SetupTemplate(string name)
 		{
-			/*ObjectUpdatePacket objupdate=new ObjectUpdatePacket();
-			objupdate.RegionData.RegionHandle=1096213093147648;
-			objupdate.RegionData.TimeDilation=64096;
-			objupdate.ObjectData=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
-			*/	
+			
 			int i=0;
 			FileInfo fInfo = new FileInfo(name);
-
 			long numBytes = fInfo.Length;
-
 			FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
-			
 			BinaryReader br = new BinaryReader(fStream);
-
 			byte [] data1 = br.ReadBytes((int)numBytes);
-
 			br.Close();
-
 			fStream.Close();
 			
 			libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata=new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1,ref i);
-			
-			//objupdate.ObjectData[0]=objdata;
 			
 			System.Text.Encoding enc = System.Text.Encoding.ASCII;
 			libsecondlife.LLVector3 pos=new LLVector3(objdata.ObjectData, 16);
@@ -238,8 +226,7 @@ namespace OpenSim
 			objdata.NameValue=enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
 			libsecondlife.LLVector3 pos2=new LLVector3(13.981f,100.0f,20.0f);
 			//objdata.FullID=user.AgentID;
-			byte[] pb=pos.GetBytes();
-						
+			byte[] pb=pos.GetBytes();			
 			Array.Copy(pb,0,objdata.ObjectData,16,pb.Length);
 			
 			AvatarTemplate=objdata;
@@ -254,50 +241,50 @@ namespace OpenSim
 		{
 			
 			//shouldn't have to read all this in from disk for every new client
-				 string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\layer_data\";
+			string data_path=System.AppDomain.CurrentDomain.BaseDirectory + @"\layer_data\";
 			
-				//send layerdata
-				LayerDataPacket layerpack=new LayerDataPacket();
-				layerpack.LayerID.Type=76;
-				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata0.dat");
-	
-				LayerDataPacket layerpack1=new LayerDataPacket();
-				layerpack1.LayerID.Type=76;
-				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata1.dat");
-				
-				LayerDataPacket layerpack2=new LayerDataPacket();
-				layerpack2.LayerID.Type=56;
-				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata2.dat");
-				
-				LayerDataPacket layerpack3=new LayerDataPacket();
-				layerpack3.LayerID.Type=55;
-				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata3.dat");
-				
-				LayerDataPacket layerpack4=new LayerDataPacket();
-				layerpack4.LayerID.Type=56;
-				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata4.dat");
-				
-				LayerDataPacket layerpack5=new LayerDataPacket();
-				layerpack5.LayerID.Type=55;
-				this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata5.dat");
-				
-				//send intial set of captured prims data?
-				this.Prim_Manager.ReadPrimDatabase( "objectdatabase.ini",User_info);			
-				
-				//send prims that have been created by users
-				//prim_man.send_existing_prims(User_info);
-				
-				//send update about clients avatar
-				this.SendInitialAvatarPosition(User_info);
-				
-				//send updates about all other users
-				foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
+			//send layerdata
+			LayerDataPacket layerpack=new LayerDataPacket();
+			layerpack.LayerID.Type=76;
+			this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata0.dat");
+			
+			LayerDataPacket layerpack1=new LayerDataPacket();
+			layerpack1.LayerID.Type=76;
+			this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata1.dat");
+			
+			LayerDataPacket layerpack2=new LayerDataPacket();
+			layerpack2.LayerID.Type=56;
+			this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata2.dat");
+			
+			LayerDataPacket layerpack3=new LayerDataPacket();
+			layerpack3.LayerID.Type=55;
+			this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata3.dat");
+			
+			LayerDataPacket layerpack4=new LayerDataPacket();
+			layerpack4.LayerID.Type=56;
+			this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata4.dat");
+			
+			LayerDataPacket layerpack5=new LayerDataPacket();
+			layerpack5.LayerID.Type=55;
+			this.SendLayerData(User_info,ref layerpack,data_path+@"layerdata5.dat");
+			
+			//send intial set of captured prims data?
+			this.Prim_Manager.ReadPrimDatabase( "objectdatabase.ini",User_info);
+			
+			//send prims that have been created by users
+			//prim_man.send_existing_prims(User_info);
+			
+			//send update about clients avatar
+			this.SendInitialAvatarPosition(User_info);
+			
+			//send updates about all other users
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
+			{
+				if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
 				{
-					if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
-					{
-						this.SendOtherAvatarPosition(User_info,kp.Value);
-					}
-				}	
+					this.SendOtherAvatarPosition(User_info,kp.Value);
+				}
+			}
 		}
 		
 		/// <summary>
@@ -456,26 +443,26 @@ namespace OpenSim
 		/// <param name="line"></param>
 		public void SendChatMessage(User_Agent_info User_info, string line)
 		{
-						libsecondlife.Packets.ChatFromSimulatorPacket reply=new ChatFromSimulatorPacket();
-              			reply.ChatData.Audible=1;
-              			reply.ChatData.Message=enc.GetBytes(line);
-              			reply.ChatData.ChatType=1;
-              			reply.ChatData.SourceType=1;
-              			reply.ChatData.Position=new LLVector3(120,100,21); //should set to actual position
-              			reply.ChatData.FromName=enc.GetBytes(User_info.first_name +" "+User_info.last_name +"\0");  //enc.GetBytes("Echo: \0"); //and actual name
-              			reply.ChatData.OwnerID=User_info.AgentID;
-              			reply.ChatData.SourceID=User_info.AgentID;
-              			//echo to sender
-              			server.SendPacket(reply,true,User_info);  
-              			
-              			//send to all users
-              			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
-						{
-								if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
-								{
-									server.SendPacket(reply,true,kp.Value.NetInfo);
-								}
-              			}
+			libsecondlife.Packets.ChatFromSimulatorPacket reply=new ChatFromSimulatorPacket();
+			reply.ChatData.Audible=1;
+			reply.ChatData.Message=enc.GetBytes(line);
+			reply.ChatData.ChatType=1;
+			reply.ChatData.SourceType=1;
+			reply.ChatData.Position=new LLVector3(120,100,21); //should set to actual position
+			reply.ChatData.FromName=enc.GetBytes(User_info.first_name +" "+User_info.last_name +"\0");  //enc.GetBytes("Echo: \0"); //and actual name
+			reply.ChatData.OwnerID=User_info.AgentID;
+			reply.ChatData.SourceID=User_info.AgentID;
+			//echo to sender
+			server.SendPacket(reply,true,User_info);
+			
+			//send to all users
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
+			{
+				if(kp.Value.NetInfo.AgentID!=User_info.AgentID)
+				{
+					server.SendPacket(reply,true,kp.Value.NetInfo);
+				}
+			}
 		}
 
 		/// <summary>
@@ -490,121 +477,121 @@ namespace OpenSim
 		/// <param name="body"></param>
 		public void SendMoveCommand(User_Agent_info user, bool stop,float x, float y, float z, uint av_id, libsecondlife.LLQuaternion body)
 		{
-						uint ID=user.localID;
-						//ID=av_id;
-              			byte[] bytes=new byte[60];
-						
-              			ImprovedTerseObjectUpdatePacket im=new ImprovedTerseObjectUpdatePacket();
-              			im.RegionData.RegionHandle=Globals.Instance.RegionHandle;;
-						im.RegionData.TimeDilation=64096;
-              			
-              			im.ObjectData=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-              			int i=0;
-              			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
-              			
-              			im.ObjectData[0]=dat;
-              			
-              			dat.TextureEntry=AvatarTemplate.TextureEntry;
-              			libsecondlife.LLVector3 pos2=new LLVector3(x,y,z);
-              			
-              			bytes[i++] = (byte)(ID % 256);
-                		bytes[i++] = (byte)((ID >> 8) % 256);
-               			bytes[i++] = (byte)((ID >> 16) % 256);
-                		bytes[i++] = (byte)((ID >> 24) % 256);
-                		
-                		bytes[i++]=0;
-                		bytes[i++]=1;
+			uint ID=user.localID;
+			//ID=av_id;
+			byte[] bytes=new byte[60];
+			
+			ImprovedTerseObjectUpdatePacket im=new ImprovedTerseObjectUpdatePacket();
+			im.RegionData.RegionHandle=Globals.Instance.RegionHandle;;
+			im.RegionData.TimeDilation=64096;
+			
+			im.ObjectData=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+			int i=0;
+			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat=new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+			
+			im.ObjectData[0]=dat;
+			
+			dat.TextureEntry=AvatarTemplate.TextureEntry;
+			libsecondlife.LLVector3 pos2=new LLVector3(x,y,z);
+			
+			bytes[i++] = (byte)(ID % 256);
+			bytes[i++] = (byte)((ID >> 8) % 256);
+			bytes[i++] = (byte)((ID >> 16) % 256);
+			bytes[i++] = (byte)((ID >> 24) % 256);
+			
+			bytes[i++]=0;
+			bytes[i++]=1;
 
-                		i+=14;
-                		bytes[i++]=128;
-                		bytes[i++]=63;
-                		byte[] pb=pos2.GetBytes();
-							
-						Array.Copy(pb,0,bytes,i,pb.Length);
-						i+=12;
-						ushort ac=32767;
-						Axiom.MathLib.Vector3 v3=new Axiom.MathLib.Vector3(1,0,0);
-						Axiom.MathLib.Quaternion q=new Axiom.MathLib.Quaternion(body.W,body.X,body.Y,body.Z);
-						Axiom.MathLib.Vector3 direc=q*v3;
-						direc.Normalize();
-						
-						direc=direc*(0.03f);
-						direc.x+=1;
-						direc.y+=1;
-						direc.z+=1;
-						ushort dx,dy,dz;
-						dx=(ushort)(32768*direc.x);
-						dy=(ushort)(32768*direc.y);
-						dz=(ushort)(32768*direc.z);
+			i+=14;
+			bytes[i++]=128;
+			bytes[i++]=63;
+			byte[] pb=pos2.GetBytes();
+			
+			Array.Copy(pb,0,bytes,i,pb.Length);
+			i+=12;
+			ushort ac=32767;
+			Axiom.MathLib.Vector3 v3=new Axiom.MathLib.Vector3(1,0,0);
+			Axiom.MathLib.Quaternion q=new Axiom.MathLib.Quaternion(body.W,body.X,body.Y,body.Z);
+			Axiom.MathLib.Vector3 direc=q*v3;
+			direc.Normalize();
+			
+			direc=direc*(0.03f);
+			direc.x+=1;
+			direc.y+=1;
+			direc.z+=1;
+			ushort dx,dy,dz;
+			dx=(ushort)(32768*direc.x);
+			dy=(ushort)(32768*direc.y);
+			dz=(ushort)(32768*direc.z);
 
-						//vel
-						if(!stop)
-						{
-						bytes[i++] = (byte)(dx % 256);
-                		bytes[i++] = (byte)((dx >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(dy % 256);
-                		bytes[i++] = (byte)((dy >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(dz % 256);
-                		bytes[i++] = (byte)((dz >> 8) % 256);
-						}
-						else
-						{
-						bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-						
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-						}
-                		//accel
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		//rot
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		//rotation vel
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		bytes[i++] = (byte)(ac % 256);
-                		bytes[i++] = (byte)((ac >> 8) % 256);
-                		
-                		dat.Data=bytes;
-                		
-                		server.SendPacket(im,true,user);
-                		
-                		//should send to all users.
-                		foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
-						{
-							if(kp.Value.NetInfo.AgentID!=user.AgentID)
-							{
-								server.SendPacket(im,true,kp.Value.NetInfo);
-							}
-                		}
+			//vel
+			if(!stop)
+			{
+				bytes[i++] = (byte)(dx % 256);
+				bytes[i++] = (byte)((dx >> 8) % 256);
+				
+				bytes[i++] = (byte)(dy % 256);
+				bytes[i++] = (byte)((dy >> 8) % 256);
+				
+				bytes[i++] = (byte)(dz % 256);
+				bytes[i++] = (byte)((dz >> 8) % 256);
+			}
+			else
+			{
+				bytes[i++] = (byte)(ac % 256);
+				bytes[i++] = (byte)((ac >> 8) % 256);
+				
+				bytes[i++] = (byte)(ac % 256);
+				bytes[i++] = (byte)((ac >> 8) % 256);
+				
+				bytes[i++] = (byte)(ac % 256);
+				bytes[i++] = (byte)((ac >> 8) % 256);
+			}
+			//accel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//rot
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//rotation vel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			dat.Data=bytes;
+			
+			server.SendPacket(im,true,user);
+			
+			//should send to all users.
+			foreach (KeyValuePair<libsecondlife.LLUUID,AvatarData> kp in this.AgentList)
+			{
+				if(kp.Value.NetInfo.AgentID!=user.AgentID)
+				{
+					server.SendPacket(im,true,kp.Value.NetInfo);
+				}
+			}
 		}
 		
 		/// <summary>

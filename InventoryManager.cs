@@ -43,6 +43,8 @@ namespace OpenSim
 		public Dictionary<LLUUID, InventoryItem> Items;
 		private Server server;
 		
+		private const uint FULL_MASK_PERMISSIONS = 2147483647;
+		 
 		/// <summary>
 		/// 
 		/// </summary>
@@ -118,8 +120,8 @@ namespace OpenSim
 					InventoryFolder Folder=this.Folders[FetchDescend.InventoryData.FolderID];
 					InventoryDescendentsPacket Descend=new InventoryDescendentsPacket();
 					Descend.AgentData.AgentID=User_info.AgentID;
-					Descend.AgentData.OwnerID=Folder.OwnerID;//User_info.AgentID;
-					Descend.AgentData.FolderID=FetchDescend.InventoryData.FolderID;//Folder.FolderID;//new LLUUID("4fb2dab6-a987-da66-05ee-96ca82bccbf1");
+					Descend.AgentData.OwnerID=Folder.OwnerID;
+					Descend.AgentData.FolderID=FetchDescend.InventoryData.FolderID;
 					Descend.AgentData.Descendents=Folder.Items.Count;
 					Descend.AgentData.Version=Folder.Items.Count;
 					
@@ -129,26 +131,26 @@ namespace OpenSim
 						
 						InventoryItem Item=Folder.Items[i];
 						Descend.ItemData[i]=new InventoryDescendentsPacket.ItemDataBlock();
-						Descend.ItemData[i].ItemID=Item.ItemID;//new LLUUID("b7878441893b094917f791174bc8401c");
-						Descend.ItemData[i].AssetID=Item.AssetID;//new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-						Descend.ItemData[i].CreatorID=Item.CreatorID;//User_info.AgentID;
-						Descend.ItemData[i].BaseMask=2147483647;
+						Descend.ItemData[i].ItemID=Item.ItemID;
+						Descend.ItemData[i].AssetID=Item.AssetID;
+						Descend.ItemData[i].CreatorID=Item.CreatorID;
+						Descend.ItemData[i].BaseMask=FULL_MASK_PERMISSIONS;
 						Descend.ItemData[i].CreationDate=1000;
 						Descend.ItemData[i].Description=enc.GetBytes(Item.Description+"\0");
-						Descend.ItemData[i].EveryoneMask=2147483647;;
+						Descend.ItemData[i].EveryoneMask=FULL_MASK_PERMISSIONS;
 						Descend.ItemData[i].Flags=1;
-						Descend.ItemData[i].FolderID=Item.FolderID;//new LLUUID("4fb2dab6-a987-da66-05ee-96ca82bccbf1");
+						Descend.ItemData[i].FolderID=Item.FolderID;
 						Descend.ItemData[i].GroupID=new LLUUID("00000000-0000-0000-0000-000000000000");
-						Descend.ItemData[i].GroupMask=2147483647;
+						Descend.ItemData[i].GroupMask=FULL_MASK_PERMISSIONS;
 						Descend.ItemData[i].InvType=Item.InvType;
 						Descend.ItemData[i].Name=enc.GetBytes(Item.Name+"\0");
-						Descend.ItemData[i].NextOwnerMask=2147483647;
-						Descend.ItemData[i].OwnerID=Item.OwnerID;//User_info.AgentID;
-						Descend.ItemData[i].OwnerMask=2147483647;;
+						Descend.ItemData[i].NextOwnerMask=FULL_MASK_PERMISSIONS;
+						Descend.ItemData[i].OwnerID=Item.OwnerID;
+						Descend.ItemData[i].OwnerMask=FULL_MASK_PERMISSIONS;
 						Descend.ItemData[i].SalePrice=100;
 						Descend.ItemData[i].SaleType=0;
-						Descend.ItemData[i].Type=Item.Type;//libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
-						Descend.ItemData[i].CRC=libsecondlife.Helpers.InventoryCRC(1000,0,Descend.ItemData[i].InvType,Descend.ItemData[i].Type,Descend.ItemData[i].AssetID ,Descend.ItemData[i].GroupID,100,Descend.ItemData[i].OwnerID,Descend.ItemData[i].CreatorID,Descend.ItemData[i].ItemID,Descend.ItemData[i].FolderID,2147483647,1,2147483647,2147483647,2147483647);
+						Descend.ItemData[i].Type=Item.Type;
+						Descend.ItemData[i].CRC=libsecondlife.Helpers.InventoryCRC(1000,0,Descend.ItemData[i].InvType,Descend.ItemData[i].Type,Descend.ItemData[i].AssetID ,Descend.ItemData[i].GroupID,100,Descend.ItemData[i].OwnerID,Descend.ItemData[i].CreatorID,Descend.ItemData[i].ItemID,Descend.ItemData[i].FolderID,FULL_MASK_PERMISSIONS,1,FULL_MASK_PERMISSIONS,FULL_MASK_PERMISSIONS,FULL_MASK_PERMISSIONS);
 					}
 					server.SendPacket(Descend,true,User_info);
 					
@@ -177,26 +179,26 @@ namespace OpenSim
 					InventoryReply.AgentData.AgentID=User_info.AgentID;
 					InventoryReply.InventoryData=new FetchInventoryReplyPacket.InventoryDataBlock[1];
 					InventoryReply.InventoryData[0]=new FetchInventoryReplyPacket.InventoryDataBlock();
-					InventoryReply.InventoryData[0].ItemID=Item.ItemID;//new LLUUID("b7878441893b094917f791174bc8401c");
-					InventoryReply.InventoryData[0].AssetID=Item.AssetID;//new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-					InventoryReply.InventoryData[0].CreatorID=Item.CreatorID;//User_info.AgentID;
-					InventoryReply.InventoryData[0].BaseMask=2147483647;
+					InventoryReply.InventoryData[0].ItemID=Item.ItemID;
+					InventoryReply.InventoryData[0].AssetID=Item.AssetID;
+					InventoryReply.InventoryData[0].CreatorID=Item.CreatorID;
+					InventoryReply.InventoryData[0].BaseMask=FULL_MASK_PERMISSIONS;
 					InventoryReply.InventoryData[0].CreationDate=1000;
 					InventoryReply.InventoryData[0].Description=enc.GetBytes(  Item.Description+"\0");
-					InventoryReply.InventoryData[0].EveryoneMask=2147483647;;
+					InventoryReply.InventoryData[0].EveryoneMask=FULL_MASK_PERMISSIONS;
 					InventoryReply.InventoryData[0].Flags=1;
-					InventoryReply.InventoryData[0].FolderID=Item.FolderID;//new LLUUID("4fb2dab6-a987-da66-05ee-96ca82bccbf1");
+					InventoryReply.InventoryData[0].FolderID=Item.FolderID;
 					InventoryReply.InventoryData[0].GroupID=new LLUUID("00000000-0000-0000-0000-000000000000");
-					InventoryReply.InventoryData[0].GroupMask=2147483647;
+					InventoryReply.InventoryData[0].GroupMask=FULL_MASK_PERMISSIONS;
 					InventoryReply.InventoryData[0].InvType=Item.InvType;
 					InventoryReply.InventoryData[0].Name=enc.GetBytes(Item.Name+"\0");
-					InventoryReply.InventoryData[0].NextOwnerMask=2147483647;
-					InventoryReply.InventoryData[0].OwnerID=Item.OwnerID;//User_info.AgentID;
-					InventoryReply.InventoryData[0].OwnerMask=2147483647;;
+					InventoryReply.InventoryData[0].NextOwnerMask=FULL_MASK_PERMISSIONS;
+					InventoryReply.InventoryData[0].OwnerID=Item.OwnerID;
+					InventoryReply.InventoryData[0].OwnerMask=FULL_MASK_PERMISSIONS;
 					InventoryReply.InventoryData[0].SalePrice=100;
 					InventoryReply.InventoryData[0].SaleType=0;
-					InventoryReply.InventoryData[0].Type=Item.Type;//libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
-					InventoryReply.InventoryData[0].CRC=libsecondlife.Helpers.InventoryCRC(1000,0,InventoryReply.InventoryData[0].InvType,InventoryReply.InventoryData[0].Type,InventoryReply.InventoryData[0].AssetID ,InventoryReply.InventoryData[0].GroupID,100,InventoryReply.InventoryData[0].OwnerID,InventoryReply.InventoryData[0].CreatorID,InventoryReply.InventoryData[0].ItemID,InventoryReply.InventoryData[0].FolderID,2147483647,1,2147483647,2147483647,2147483647);
+					InventoryReply.InventoryData[0].Type=Item.Type;
+					InventoryReply.InventoryData[0].CRC=libsecondlife.Helpers.InventoryCRC(1000,0,InventoryReply.InventoryData[0].InvType,InventoryReply.InventoryData[0].Type,InventoryReply.InventoryData[0].AssetID ,InventoryReply.InventoryData[0].GroupID,100,InventoryReply.InventoryData[0].OwnerID,InventoryReply.InventoryData[0].CreatorID,InventoryReply.InventoryData[0].ItemID,InventoryReply.InventoryData[0].FolderID,FULL_MASK_PERMISSIONS,1,FULL_MASK_PERMISSIONS,FULL_MASK_PERMISSIONS,FULL_MASK_PERMISSIONS);
 					server.SendPacket(InventoryReply,true,User_info);
 				}
 			}
@@ -226,7 +228,7 @@ namespace OpenSim
 		public LLUUID OwnerID;
 		public LLUUID ItemID;
 		public LLUUID AssetID;
-		public LLUUID CreatorID=LLUUID.Zero;//new LLUUID("3d924400-038e-6ad9-920b-cfbb9b40585c");
+		public LLUUID CreatorID=LLUUID.Zero;
 		public sbyte InvType;
 		public sbyte Type;
 		public string Name;

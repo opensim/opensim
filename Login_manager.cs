@@ -70,38 +70,43 @@ namespace OpenSim
 			runLoginProxy.Start();
 		}
 		
-		private void RunLoginProxy() {
-		    try {
-			for (;;) {
-				Socket client = loginServer.Accept();
-				IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
+		private void RunLoginProxy() 
+		{
+		    try 
+		    {
+		    	for (;;) 
+		    	{
+		    		Socket client = loginServer.Accept();
+		    		IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
 
-				
-				NetworkStream networkStream = new NetworkStream(client);
-				StreamReader networkReader = new StreamReader(networkStream);
-				StreamWriter networkWriter = new StreamWriter(networkStream);
+		    		
+		    		NetworkStream networkStream = new NetworkStream(client);
+		    		StreamReader networkReader = new StreamReader(networkStream);
+		    		StreamWriter networkWriter = new StreamWriter(networkStream);
 
-				try 
-				{
-					ProxyLogin(networkReader, networkWriter);
-				} 
-				catch (Exception e) 
-				{
-					Console.WriteLine(e.Message);
+		    		try
+		    		{
+		    			ProxyLogin(networkReader, networkWriter);
+		    		}
+		    		catch (Exception e)
+		    		{
+		    			Console.WriteLine(e.Message);
+		    		}
+
+		    		networkWriter.Close();
+		    		networkReader.Close();
+		    		networkStream.Close();
+
+		    		client.Close();
+
+		    		// send any packets queued for injection
+		    		
 				}
-
-				networkWriter.Close();
-				networkReader.Close();
-				networkStream.Close();
-
-				client.Close();
-
-				// send any packets queued for injection
-				
-			}
-		    } catch (Exception e) {
-			Console.WriteLine(e.Message);
-			Console.WriteLine(e.StackTrace);
+		    } 
+		    catch (Exception e)
+		    {
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 		    }
 		}
 
