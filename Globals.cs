@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007 Michael Wright
+Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 
 * Copyright (c) <year>, <copyright holder>
 * All rights reserved.
@@ -53,6 +53,7 @@ namespace OpenSim
 		public int IpPort=1000;
 		
 		public bool LoginSever=true;
+		public ushort LoginServerPort=8080;
 		
 		//public string  RegionName= "The Other\0";
 		//public ulong RegionHandle= 1095113581519872;

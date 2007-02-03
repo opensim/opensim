@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007 Michael Wright
+Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -44,6 +44,7 @@ namespace OpenSim
 		private uint local_numer=0;
 		private Server server;
 		public  PrimManager Prim_Manager;
+		public AssetManagement Asset_Manager;
 		
 		private libsecondlife.Packets.RegionHandshakePacket RegionPacket;
 		private  System.Text.Encoding enc = System.Text.Encoding.ASCII;
@@ -101,7 +102,7 @@ namespace OpenSim
 		/// <param name="first"></param>
 		/// <param name="last"></param>
 		/// <returns></returns>
-		public bool NewAgent(User_Agent_info User_info, string first, string last)
+		public bool NewAgent(User_Agent_info User_info, string first, string last ,LLUUID BaseFolder,LLUUID InventoryFolder)
 		{
 			AvatarData agent=new AvatarData();
 			agent.FullID=User_info.AgentID;
@@ -109,7 +110,13 @@ namespace OpenSim
 			agent.NetInfo.first_name=first;
 			agent.NetInfo.last_name=last;
 			agent.Position=new LLVector3(100,100,22);
+			agent.BaseFolder=BaseFolder;
+			agent.InventoryFolder=InventoryFolder;
 			this.AgentList.Add(agent.FullID,agent);
+			
+			//Create new Wearable Assets and place in Inventory
+			this.Asset_Manager.CreateNewInventorySet(ref agent,User_info);
+			
 			return(true);
 		}
 		
@@ -343,29 +350,27 @@ namespace OpenSim
 		/// <param name="user"></param>
 		public void SendIntialAvatarAppearance(User_Agent_info user)
 		{
-	
+			AvatarData Agent=this.AgentList[user.AgentID];
 			AgentWearablesUpdatePacket aw=new AgentWearablesUpdatePacket();
 			aw.AgentData.AgentID=user.AgentID;
-			aw.AgentData.SerialNum=0;//(uint)appc;
-			//appc++;
-			aw.AgentData.SessionID=user.SessionID;//new LLUUID("00000000-0000-0000-0000-000000000000");//user.SessionID;
+			aw.AgentData.SerialNum=0;
+			aw.AgentData.SessionID=user.SessionID;
 			
 			aw.WearableData= new AgentWearablesUpdatePacket.WearableDataBlock[13];
 			AgentWearablesUpdatePacket.WearableDataBlock awb=null;
 			awb=new AgentWearablesUpdatePacket.WearableDataBlock();
 			awb.WearableType=(byte)0;
-			awb.AssetID=new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-			awb.ItemID=new LLUUID("b7878441893b094917f791174bc8401c");
+			awb.AssetID=Agent.Wearables[0].AssetID;//new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+			awb.ItemID=Agent.Wearables[0].ItemID;//new LLUUID("b7878441893b094917f791174bc8401c");
 			aw.WearableData[0]=awb;
 	
-			/*awb=new AgentWearablesUpdatePacket.WearableDataBlock();
+			awb=new AgentWearablesUpdatePacket.WearableDataBlock();
 			awb.WearableType=(byte)1;
-			awb.AssetID=new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");
-			awb.ItemID=new LLUUID("193f0876fc11d143797454352f9c9c26");
-			//awb.ItemID=new LLUUID("00000000-0000-0000-0000-000000000000");
-			aw.WearableData[1]=awb;*/
+			awb.AssetID=Agent.Wearables[1].AssetID;//new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");
+			awb.ItemID=Agent.Wearables[1].ItemID;//new LLUUID("193f0876fc11d143797454352f9c9c26");
+			aw.WearableData[1]=awb;
 	
-			for(int i=1; i<13; i++)
+			for(int i=2; i<13; i++)
 			{
 				awb=new AgentWearablesUpdatePacket.WearableDataBlock();
 				awb.WearableType=(byte)i;
@@ -412,6 +417,7 @@ namespace OpenSim
 			server.SendPacket(avp,true,user);
 			
 		}
+		
 		/// <summary>
 		/// 
 		/// </summary>
@@ -638,8 +644,26 @@ namespace OpenSim
 		public bool Walk=false;
 		public bool Started=false;
 		//public TextureEntry TextureEntry;
+		public AvatarWearable[] Wearables; 
+		public LLUUID InventoryFolder;
+    	public LLUUID BaseFolder;
 		
 		public AvatarData()
+		{
+			Wearables=new AvatarWearable[2]; //should be 13
+			for(int i=0; i<2; i++)
+			{
+				Wearables[i]=new AvatarWearable();
+			}
+		}
+	}
+	
+	public class AvatarWearable
+	{
+		public LLUUID AssetID;
+		public LLUUID ItemID;
+		
+		public AvatarWearable()
 		{
 			
 		}

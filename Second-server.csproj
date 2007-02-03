@@ -45,15 +45,16 @@
     <Compile Include="Agent_Manager.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="Prim_manager.cs" />
-    <Compile Include="Texture_manager.cs" />
     <Compile Include="Login_manager.cs" />
     <Compile Include="Physics_manager.cs" />
-    <Compile Include="Asset_manager.cs" />
     <Compile Include="Script_manager.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="StorageManager.cs" />
     <Compile Include="GridManager.cs" />
     <Compile Include="Globals.cs" />
+    <Compile Include="InventoryManager.cs" />
+    <Compile Include="SceneGraphManager.cs" />
+    <Compile Include="AssetManagement.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>

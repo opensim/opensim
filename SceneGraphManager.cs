@@ -1,6 +1,5 @@
 /*
 Copyright (c) OpenSim project, http://sim.opensecondlife.org/
-* All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -30,11 +29,11 @@ using System;
 namespace OpenSim
 {
 	/// <summary>
-	/// Description of Physics_manager.
+	/// Description of SceneGraphManager.
 	/// </summary>
-	public class PhysicsManager
+	public class SceneGraphManager
 	{
-		public PhysicsManager()
+		public SceneGraphManager()
 		{
 		}
 	}

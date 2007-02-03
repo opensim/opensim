@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007 Michael Wright
+Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 
 * Copyright (c) <year>, <copyright holder>
 * All rights reserved.
@@ -45,6 +45,9 @@ namespace OpenSim
 		public ArrayList requests=new ArrayList();  //should change to a generic
 	//	public ArrayList uploads=new ArrayList();
 		private Server server;
+		public TextureManager TextureMan;
+		public InventoryManager InventoryManager;
+		private  System.Text.Encoding enc = System.Text.Encoding.ASCII;
 		
 		public AssetManager(Server serve)
 		{
@@ -55,7 +58,7 @@ namespace OpenSim
 		
 		public void AddRequest(User_Agent_info user, LLUUID asset_id, TransferRequestPacket tran_req)
 		{
-			
+			Console.WriteLine("Asset Request "+ asset_id);
 			if(!this.Assets.ContainsKey(asset_id))
 			{
 				//not found asset	
@@ -103,7 +106,44 @@ namespace OpenSim
 				server.SendPacket(tran_p,true,user);
 			}
 			
+		}
+		public void CreateNewBaseSet(ref AvatarData Avata,User_Agent_info UserInfo)
+		{
+			//LLUUID BaseFolder=new LLUUID("4f5f559e-77a0-a4b9-84f9-8c74c07f7cfc");//*/"4fb2dab6-a987-da66-05ee-96ca82bccbf1");
+			//LLUUID BaseFolder=new LLUUID("480e2d92-61f6-9f16-f4f5-0f77cfa4f8f9");
+			LLUUID BaseFolder=Avata.BaseFolder;
+			InventoryManager.CreateNewFolder(UserInfo,Avata.InventoryFolder);
+			InventoryManager.CreateNewFolder(UserInfo, BaseFolder);
 			
+			AssetInfo Base=this.Assets[new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73")];
+			AssetInfo Shape=new AssetInfo();
+			
+			Shape.filename="";
+			Shape.data=new byte[Base.data.Length];
+			Array.Copy(Base.data,Shape.data,Base.data.Length);
+			Shape.Full_ID=LLUUID.Random();
+			Shape.Name="Default Skin";
+			Shape.Description="Default";
+			Shape.InvType=18;
+			
+			Shape.Type=libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
+			byte[] Agentid=enc.GetBytes(UserInfo.AgentID.ToStringHyphenated());
+			Array.Copy(Agentid,0,Shape.data,294,Agentid.Length);
+			this.Assets.Add(Shape.Full_ID,Shape);
+			/*FileStream fStream = new FileStream("Assetshape.dat", FileMode.CreateNew);
+			BinaryWriter bw = new BinaryWriter(fStream);
+			bw.Write(Shape.data);
+			bw.Close();
+			fStream.Close();*/
+			
+			Avata.Wearables[0].ItemID=InventoryManager.AddToInventory(UserInfo,BaseFolder,Shape);
+			Avata.Wearables[0].AssetID=Shape.Full_ID;
+			//Avata.RootFolder=BaseFolder;
+			
+			//give test texture
+			
+			TextureImage Texture=TextureMan.textures[new LLUUID("00000000-0000-0000-5005-000000000005")];
+			InventoryManager.AddToInventory(UserInfo,BaseFolder,Texture);
 			
 		}
 		
@@ -113,6 +153,13 @@ namespace OpenSim
 			AssetInfo im=new AssetInfo();
 			im.filename="base_shape.dat";
 			im.Full_ID=new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");		
+			this.loadAsset(im);
+			this.Assets.Add(im.Full_ID,im);
+			
+			
+			im=new AssetInfo();
+			im.filename="base_skin.dat";
+			im.Full_ID=new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");		
 			this.loadAsset(im);
 			this.Assets.Add(im.Full_ID,im);
 		}
@@ -152,17 +199,31 @@ namespace OpenSim
 			
 		}
 	}
-	public class AssetInfo
+	public class AssetInfo:AssetBase
 	{
-		public byte[] data;
-		public LLUUID Full_ID;
-		public string name;
+		//public byte[] data;
+		//public LLUUID Full_ID;
 		public string filename;
 		public bool loaded;
 		public ulong last_used;  //need to add a tick/time counter and keep record
 								// of how often images are requested to unload unused ones.
 		
 		public AssetInfo()
+		{
+			
+		}
+	}
+	
+	public class AssetBase
+	{
+		public byte[] data;
+		public LLUUID Full_ID;
+		public sbyte Type;
+		public sbyte InvType;
+		public string Name;
+		public string Description;
+		
+		public AssetBase()
 		{
 			
 		}

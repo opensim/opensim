@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007 Michael Wright
+Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 
 * Copyright (c) <year>, <copyright holder>
 * All rights reserved.

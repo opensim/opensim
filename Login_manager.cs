@@ -1,6 +1,5 @@
-/*Copyright (c) 2007 Michael Wright
-
-* Copyright (c) <year>, <copyright holder>
+/*
+* Copyright (c) OpenSim project, http://sim.opensecondlife.org/>
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -34,6 +33,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Collections;
+using System.Xml;
 using libsecondlife;
 
 namespace OpenSim
@@ -48,7 +48,7 @@ namespace OpenSim
 			Login=login;
 		}
 		public Logon Login;
-		public ushort loginPort = 8080;
+		public ushort loginPort = Globals.Instance.LoginServerPort;
 		public IPAddress clientAddress = IPAddress.Loopback;
 		public IPAddress remoteAddress = IPAddress.Any;
 		private Socket loginServer;
@@ -128,7 +128,7 @@ namespace OpenSim
 			// read the HTTP body into a buffer
 			char[] content = new char[contentLength];
 			reader.Read(content, 0, contentLength);
-			// System.Text.Encoding enc = System.Text.Encoding.ASCII;
+			 //System.Text.Encoding enc = System.Text.Encoding.ASCII;
 			XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(new String(content));
 			Hashtable requestData = (Hashtable)request.Params[0];
 			
@@ -162,6 +162,41 @@ namespace OpenSim
 			int SessionRand=this.RandomClass.Next(1,999);
 			Session=new LLUUID("aaaabbbb-8932-"+SessionRand.ToString("0000")+"-8664-58f53e442797");
 			
+	
+			StreamReader SR;
+			string ResponseString="";
+    		string lines;
+    		SR=File.OpenText("new-login.dat");
+    		
+    		lines=SR.ReadLine();
+    		
+    		while(lines!="end-mfile")
+    		{
+    		
+    		ResponseString+=lines;
+    		lines=SR.ReadLine();
+    		}
+    		SR.Close();
+			
+			XmlRpcResponse response =(XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(ResponseString);
+			Hashtable responseData = (Hashtable)response.Value;
+			
+			responseData["agent_id"]=Agent.ToStringHyphenated();
+			responseData["session_id"]=Session.ToStringHyphenated();
+			ArrayList InventoryList=(ArrayList) responseData["inventory-skeleton"];
+			Hashtable Inventory1=(Hashtable)InventoryList[0];
+			Hashtable Inventory2=(Hashtable)InventoryList[1];
+			LLUUID BaseFolderID=LLUUID.Random();
+			LLUUID InventoryFolderID=LLUUID.Random();
+			Inventory2["name"]="Base";
+			Inventory2["folder_id"]=BaseFolderID.ToStringHyphenated();
+			Inventory1["folder_id"]=InventoryFolderID.ToStringHyphenated();
+			
+			ArrayList InventoryRoot=(ArrayList) responseData["inventory-root"];
+			Hashtable Inventoryroot=(Hashtable)InventoryRoot[0];
+			Inventoryroot["folder_id"]=InventoryFolderID.ToStringHyphenated();
+			
+				
 			//copy data to login object
 			lock(Login)
 			{
@@ -169,38 +204,18 @@ namespace OpenSim
 				Login.last=last;
 				Login.Agent=Agent;
 				Login.Session=Session;
+				Login.BaseFolder=BaseFolderID;
+				Login.InventoryFolder=InventoryFolderID;
 			}
-
+			
 			// forward the XML-RPC response to the client
             writer.WriteLine("HTTP/1.0 200 OK");
             writer.WriteLine("Content-type: text/xml");
             writer.WriteLine();
 			
-			
-			StreamReader SR;
-    		string lines;
-    		SR=File.OpenText("login.dat");
-    		lines=SR.ReadLine();
-    		writer.WriteLine(lines);
-    		
-    		lines=SR.ReadLine();  		
-    		//lines="<member><name>session_id</name><value><string>"+Agent.ToString()+"</string></value></member>";
-    		lines="<member><name>session_id</name><value><string>99998888-"+AgentRand.ToString("0000")+"-4f52-8ec1-0b1d5cd6aead</string></value></member>";
-    		writer.WriteLine(lines);
-    		lines=SR.ReadLine();
-    		writer.WriteLine(lines);
-    		lines=SR.ReadLine();
-    		//lines="<member><name>agent_id</name><value><string>"+Session.ToString()+"</string></value></member>";
-    		lines="<member><name>agent_id</name><value><string>aaaabbbb-8932-"+SessionRand.ToString("0000")+"-8664-58f53e442797</string></value></member>";
-    		writer.WriteLine(lines);
-    		lines=SR.ReadLine();
-    		
-    		while(lines!="end-mfile")
-    		{
-    		writer.WriteLine(lines);
-    		lines=SR.ReadLine();
-    		}
-    		SR.Close();
+			XmlTextWriter responseWriter = new XmlTextWriter(writer);
+			XmlRpcResponseSerializer.Singleton.Serialize(responseWriter, response);
+			responseWriter.Close();
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007 Michael Wright
+Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 
 * Copyright (c) <year>, <copyright holder>
 * All rights reserved.
@@ -165,6 +165,7 @@ namespace OpenSim
 			TextureImage im=new TextureImage();
 			im.filename="testpic2.jp2";
 			im.Full_ID=new LLUUID("00000000-0000-0000-5005-000000000005");
+			im.Name="test Texture";
 			this.LoadImage(im);
 			this.textures.Add(im.Full_ID,im);
 			
@@ -219,11 +220,11 @@ namespace OpenSim
 			
 		}
 	}
-	public class TextureImage
+	public class TextureImage: AssetBase
 	{
-		public byte[] data;
-		public LLUUID Full_ID;
-		public string name;
+		//public byte[] data;
+		//public LLUUID Full_ID;
+		//public string name;
 		public string filename;
 		public bool loaded;
 		public ulong last_used;  //need to add a tick/time counter and keep record

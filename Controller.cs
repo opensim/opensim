@@ -1,7 +1,7 @@
 /*
-Copyright (c) 2007 Michael Wright
+Copyright (c) OpenSim project, http://sim.opensecondlife.org/
 
-* Copyright (c) <year>, <copyright holder>
+
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -58,9 +58,10 @@ namespace OpenSim
 		public Logon _login;
         private AgentManager Agent_Manager;
         private PrimManager Prim_Manager;
-        private TextureManager Texture_Manager;
-        private AssetManager Asset_Manager;
+       // private TextureManager Texture_Manager;
+        private AssetManagement Asset_Manager;
         private GridManager Grid_Manager;
+        private InventoryManager Inventory_Manager;
         private LoginManager Login_Manager;  //built in login server
         private ulong time;  //ticks 
         private Timer timer1 = new Timer();
@@ -71,10 +72,14 @@ namespace OpenSim
             server = new Server( this );
             Agent_Manager = new AgentManager( this.server );
             Prim_Manager = new PrimManager( this.server );
-            Texture_Manager = new TextureManager( this.server );
-            Asset_Manager = new AssetManager( this.server );
+           // Texture_Manager = new TextureManager( this.server );
+            Asset_Manager = new AssetManagement( this.server );
             Prim_Manager.Agent_Manager = Agent_Manager;
             Agent_Manager.Prim_Manager = Prim_Manager;
+            Agent_Manager.Asset_Manager=Asset_Manager;
+            Inventory_Manager=new InventoryManager(this.server);
+            Asset_Manager.InventoryManager=Inventory_Manager;
+           // Asset_Manager.TextureMan=Texture_Manager;
             Grid_Manager=new GridManager(this.server,Agent_Manager);
             if(Globals.Instance.LoginSever)
             {
@@ -89,80 +94,93 @@ namespace OpenSim
 
         }
         public void MainCallback( Packet pack, User_Agent_info User_info ) {
-        	//System.Console.WriteLine(pack.Type);
-        	if( ( pack.Type != PacketType.StartPingCheck ) && ( pack.Type != PacketType.AgentUpdate ) ) {
-               // System.Console.WriteLine(pack.Type);
+        	
+        	/*if( ( pack.Type != PacketType.StartPingCheck ) && ( pack.Type != PacketType.AgentUpdate ) ) {
+             	//Log packet?
+        		// System.Console.WriteLine(pack.Type);
                 //this.richTextBox1.Text=this.richTextBox1.Text+"\n  "+pack.Type;
-            }
+            }*/
+        	
+        	//should replace with a switch
             if( pack.Type == PacketType.AgentSetAppearance ) {
-              //  System.Console.WriteLine(pack);
+            	 //  System.Console.WriteLine(pack);
                 //this.richTextBox1.Text=this.richTextBox1.Text+"\n  "+pack.Type;
 
             }
-        	if(pack.Type== PacketType.MapBlockRequest)
+        	else if( pack.Type == PacketType.FetchInventory)
+        	{
+        		FetchInventoryPacket FetchInventory=(FetchInventoryPacket)pack;
+        		Inventory_Manager.FetchInventory(User_info,FetchInventory);
+        	}
+        	else if( pack.Type == PacketType.FetchInventoryDescendents)
+        	{
+        		FetchInventoryDescendentsPacket Fetch=(FetchInventoryDescendentsPacket)pack;
+        		Inventory_Manager.FetchInventoryDescendents(User_info,Fetch);
+        	}
+        	else if(pack.Type== PacketType.MapBlockRequest)
         	{
         		//int MinX, MinY, MaxX, MaxY;
         		MapBlockRequestPacket MapRequest=(MapBlockRequestPacket)pack;
         		this.Grid_Manager.RequestMapBlock(User_info,MapRequest.PositionData.MinX,MapRequest.PositionData.MinY,MapRequest.PositionData.MaxX,MapRequest.PositionData.MaxY);
         	
         	}
-        	if(pack.Type== PacketType.CloseCircuit)
+        	else if(pack.Type== PacketType.CloseCircuit)
         	{
         		this.Agent_Manager.RemoveAgent(User_info);
         	}
-        	if(pack.Type== PacketType.MapLayerRequest)
+        	else if(pack.Type== PacketType.MapLayerRequest)
         	{
         		this.Grid_Manager.RequestMapLayer(User_info);
         		
         	}
-        	if((pack.Type== PacketType.TeleportRequest ) ||(pack.Type== PacketType.TeleportLocationRequest))
+        	else if((pack.Type== PacketType.TeleportRequest ) ||(pack.Type== PacketType.TeleportLocationRequest))
         	{
         		TeleportLocationRequestPacket Request=(TeleportLocationRequestPacket)pack;
         		
         		this.Grid_Manager.RequestTeleport(User_info,Request);
         		
         	}
-            if( pack.Type == PacketType.TransferRequest ) {
+            else if( pack.Type == PacketType.TransferRequest ) {
                 TransferRequestPacket tran = (TransferRequestPacket)pack;
                 LLUUID id = new LLUUID( tran.TransferInfo.Params, 0 );
 
-                if( ( id == new LLUUID( "66c41e39-38f9-f75a-024e-585989bfab73" ) ) || ( id == new LLUUID( "e0ee49b5a4184df8d3c9a65361fe7f49" ) ) ) {
-                    Asset_Manager.AddRequest( User_info, id, tran );
-                }
+               // if( ( id == new LLUUID( "66c41e39-38f9-f75a-024e-585989bfab73" ) ) || ( id == new LLUUID( "e0ee49b5a4184df8d3c9a65361fe7f49" ) ) ) {
+                    Asset_Manager.AddAssetRequest( User_info, id, tran );
+               // }
 
             }
-            if( ( pack.Type == PacketType.StartPingCheck ) ) {
+            else if( ( pack.Type == PacketType.StartPingCheck ) ) {
                 //reply to pingcheck
                 libsecondlife.Packets.StartPingCheckPacket startp = (libsecondlife.Packets.StartPingCheckPacket)pack;
                 libsecondlife.Packets.CompletePingCheckPacket endping = new CompletePingCheckPacket();
                 endping.PingID.PingID = startp.PingID.PingID;
                 server.SendPacket( endping, true, User_info );
             }
-            if( pack.Type == PacketType.CompleteAgentMovement ) {
+            else if( pack.Type == PacketType.CompleteAgentMovement ) {
                 // new client	
                 Agent_Manager.AgentJoin( User_info );
             }
-            if( pack.Type == PacketType.RequestImage ) {
+           else if( pack.Type == PacketType.RequestImage ) {
                 RequestImagePacket image_req = (RequestImagePacket)pack;
                 for( int i = 0; i < image_req.RequestImage.Length; i++ ) {
-                    this.Texture_Manager.AddRequest( User_info, image_req.RequestImage[ i ].Image );
+                    this.Asset_Manager.AddTextureRequest( User_info, image_req.RequestImage[ i ].Image );
 
                 }
             }
-            if( pack.Type == PacketType.RegionHandshakeReply ) {
+           else if( pack.Type == PacketType.RegionHandshakeReply ) {
                 //recieved regionhandshake so can now start sending info
                 Agent_Manager.SendInitialData( User_info );
                 //this.setuptemplates("objectupate164.dat",User_info,false);
             }
-            if( pack.Type == PacketType.ObjectAdd ) {
+           else if( pack.Type == PacketType.ObjectAdd ) {
                 ObjectAddPacket ad = (ObjectAddPacket)pack;
                 Prim_Manager.CreatePrim( User_info, ad.ObjectData.RayEnd, ad );
                 //this.send_prim(User_info,ad.ObjectData.RayEnd, ad);
             }
-            if( pack.Type == PacketType.ObjectPosition ) {
+            else if( pack.Type == PacketType.ObjectPosition ) {
                 //System.Console.WriteLine(pack.ToString());
             }
-            if( pack.Type == PacketType.MultipleObjectUpdate ) {
+            else if( pack.Type == PacketType.MultipleObjectUpdate ) {
                 //System.Console.WriteLine(pack.ToString());
                 MultipleObjectUpdatePacket mupd = (MultipleObjectUpdatePacket)pack;
 
@@ -185,11 +203,12 @@ namespace OpenSim
                     }
                 }
             }
-            if( pack.Type == PacketType.AgentWearablesRequest ) {
+            else if( pack.Type == PacketType.AgentWearablesRequest ) {
                 Agent_Manager.SendIntialAvatarAppearance( User_info );
             }
 
-            if( pack.Type == PacketType.AgentUpdate ) {
+            else if( pack.Type == PacketType.AgentUpdate ) 
+            {
                 AgentUpdatePacket ag = (AgentUpdatePacket)pack;
                 uint mask = ag.AgentData.ControlFlags & ( 1 );
                 AvatarData m_av = Agent_Manager.GetAgent( User_info.AgentID );
@@ -224,8 +243,7 @@ namespace OpenSim
                     }
                 }
             }
-
-            if( pack.Type == PacketType.ChatFromViewer ) {
+            else if( pack.Type == PacketType.ChatFromViewer ) {
                 ChatFromViewerPacket chat = (ChatFromViewerPacket)pack;
                 System.Text.Encoding enc = System.Text.Encoding.ASCII;
 
@@ -252,14 +270,17 @@ namespace OpenSim
         public void NewUserCallback( User_Agent_info UserInfo ) {
             Console.WriteLine( "new user - {0} - has joined [session {1}]", UserInfo.AgentID.ToString(), UserInfo.SessionID.ToString() +"curcuit used"+UserInfo.circuitCode);
              string first,last;
+             LLUUID Base,Inventory;
             lock(_login)
              {
                 first=_login.first;
                 last=_login.last;
+                Base=_login.BaseFolder;
+                Inventory=_login.InventoryFolder;
                 
                 //should get agentid and sessionid so they can be checked.
              }
-            Agent_Manager.NewAgent( UserInfo ,first,last);
+            Agent_Manager.NewAgent( UserInfo ,first,last,Base,Inventory);
             //now because of the lack of Global account management (User server etc)
             //we need to reset the names back to default incase a teleport happens 
             //which will not have a Login name set, so they will use default names
@@ -277,7 +298,7 @@ namespace OpenSim
         void Timer1Tick( object sender, System.EventArgs e ) {
             this.time++;
             Agent_Manager.UpdatePositions();
-            Texture_Manager.DoWork( time );
+            this.Asset_Manager.DoWork( time );
         }
     }
     public class Logon
@@ -286,6 +307,8 @@ namespace OpenSim
     	public string last="User";
     	public LLUUID Agent;
     	public LLUUID Session;
+    	public LLUUID InventoryFolder;
+    	public LLUUID BaseFolder;
     	public Logon()
     	{
     		
