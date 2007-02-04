@@ -38,8 +38,10 @@ namespace OpenSim
 	{
 		private static Globals instance = new Globals();
 		
-		public static Globals Instance {
-			get {
+		public static Globals Instance 
+		{
+			get 
+			{
 				return instance;
 			}
 		}
@@ -48,17 +50,13 @@ namespace OpenSim
 		{
 		}
 		
-		public string RegionName="Test Sandbox\0";
-		public ulong RegionHandle= 1096213093147648;
-		public int IpPort=1000;
+		public string RegionName = "Test Sandbox\0";
+		public ulong RegionHandle = 1096213093147648;
+		public int IpPort = 1000;
 		
-		public bool LoginSever=true;
-		public ushort LoginServerPort=8080;
+		public bool LoginSever = true;
+		public ushort LoginServerPort = 8080;
 		
-		//public string  RegionName= "The Other\0";
-		//public ulong RegionHandle= 1095113581519872;
-		//public int IpPort=1020;
-		//public bool LoginSever=false;
 		
 	}
 }

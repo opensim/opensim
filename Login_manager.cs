@@ -116,7 +116,8 @@ namespace OpenSim
 			int contentLength = 0;
 
 			// read HTTP header
-			do {
+			do 
+			{
 				// read one line of the header
 				line = reader.ReadLine();
 
@@ -145,72 +146,72 @@ namespace OpenSim
 			//get login name
 			if(requestData.Contains("first"))
 			{
-				first=(string)requestData["first"];
+				first = (string)requestData["first"];
 			}
 			else
 			{
-				first="test";
+				first = "test";
 			}
 			if(requestData.Contains("last"))
 			{
-				last=(string)requestData["last"];
+				last = (string)requestData["last"];
 			}
 			else
 			{
-				last="User"+NumClients.ToString();
+				last = "User"+NumClients.ToString();
 			}
 			NumClients++;
 			
 			//create a agent and session LLUUID
-			int AgentRand=this.RandomClass.Next(1,9999);
-			Agent=new LLUUID("99998888-"+AgentRand.ToString("0000")+"-4f52-8ec1-0b1d5cd6aead");
-			int SessionRand=this.RandomClass.Next(1,999);
-			Session=new LLUUID("aaaabbbb-8932-"+SessionRand.ToString("0000")+"-8664-58f53e442797");
+			int AgentRand = this.RandomClass.Next(1,9999);
+			Agent = new LLUUID("99998888-"+AgentRand.ToString("0000")+"-4f52-8ec1-0b1d5cd6aead");
+			int SessionRand = this.RandomClass.Next(1,999);
+			Session = new LLUUID("aaaabbbb-8932-"+SessionRand.ToString("0000")+"-8664-58f53e442797");
 			
 	
 			StreamReader SR;
-			string ResponseString="";
+			string ResponseString = "";
     		string lines;
     		SR=File.OpenText("new-login.dat");
     		
     		lines=SR.ReadLine();
     		
-    		while(lines!="end-mfile")
+    		while(lines != "end-mfile")
     		{
     		
-    		ResponseString+=lines;
-    		lines=SR.ReadLine();
+    		ResponseString += lines;
+    		lines = SR.ReadLine();
     		}
     		SR.Close();
 			
 			XmlRpcResponse response =(XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(ResponseString);
 			Hashtable responseData = (Hashtable)response.Value;
 			
-			responseData["agent_id"]=Agent.ToStringHyphenated();
-			responseData["session_id"]=Session.ToStringHyphenated();
-			ArrayList InventoryList=(ArrayList) responseData["inventory-skeleton"];
-			Hashtable Inventory1=(Hashtable)InventoryList[0];
-			Hashtable Inventory2=(Hashtable)InventoryList[1];
-			LLUUID BaseFolderID=LLUUID.Random();
-			LLUUID InventoryFolderID=LLUUID.Random();
-			Inventory2["name"]="Base";
-			Inventory2["folder_id"]=BaseFolderID.ToStringHyphenated();
-			Inventory1["folder_id"]=InventoryFolderID.ToStringHyphenated();
+			responseData["agent_id"] = Agent.ToStringHyphenated();
+			responseData["session_id"] = Session.ToStringHyphenated();
+			ArrayList InventoryList = (ArrayList) responseData["inventory-skeleton"];
+			Hashtable Inventory1 = (Hashtable)InventoryList[0];
+			Hashtable Inventory2 = (Hashtable)InventoryList[1];
+			LLUUID BaseFolderID = LLUUID.Random();
+			LLUUID InventoryFolderID = LLUUID.Random();
+			Inventory2["name"] = "Base";
+			Inventory2["folder_id"] = BaseFolderID.ToStringHyphenated();
+			Inventory1["folder_id"] = InventoryFolderID.ToStringHyphenated();
 			
-			ArrayList InventoryRoot=(ArrayList) responseData["inventory-root"];
-			Hashtable Inventoryroot=(Hashtable)InventoryRoot[0];
-			Inventoryroot["folder_id"]=InventoryFolderID.ToStringHyphenated();
+			ArrayList InventoryRoot = (ArrayList) responseData["inventory-root"];
+			Hashtable Inventoryroot = (Hashtable)InventoryRoot[0];
+			Inventoryroot["folder_id"] = InventoryFolderID.ToStringHyphenated();
 			
 				
 			//copy data to login object
 			lock(Login)
 			{
-				Login.first=first;
-				Login.last=last;
-				Login.Agent=Agent;
-				Login.Session=Session;
-				Login.BaseFolder=BaseFolderID;
-				Login.InventoryFolder=InventoryFolderID;
+				Login.First = first;
+				Login.Last = last;
+				Login.Agent = Agent;
+				Login.Session = Session;
+				Login.BaseFolder = BaseFolderID;
+				Login.InventoryFolder = InventoryFolderID;
 			}
 			
 			// forward the XML-RPC response to the client

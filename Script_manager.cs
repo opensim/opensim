@@ -78,11 +78,11 @@ namespace OpenSim
 		
 		#region Lua Functions
 		
-		public void ScriptRegister( script_object_interface script)
+		public void ScriptRegister(script_object_interface script)
 		{
 			//called by scripts to register themselves
 		}
-		public void MoveObject(float x ,float y, float z)
+		public void MoveObject(float x , float y, float z)
 		{
 		
 		}

@@ -44,22 +44,23 @@ namespace OpenSim
 		public Dictionary<libsecondlife.LLUUID,AssetInfo> Assets;
 		public Dictionary<libsecondlife.LLUUID,TextureImage> Textures;
 		
-		public ArrayList AssetRequests=new ArrayList();  //should change to a generic
-		public ArrayList TextureRequests=new ArrayList(); 	
-		//	public ArrayList uploads=new ArrayList();
-		private Server server;
-		public InventoryManager InventoryManager;
-		private  System.Text.Encoding enc = System.Text.Encoding.ASCII;
+		public ArrayList AssetRequests = new ArrayList();  //should change to a generic
+		public ArrayList TextureRequests = new ArrayList(); 	
+		//public ArrayList uploads=new ArrayList();
+		private Server _server;
+		private InventoryManager _inventoryManager;
+		private System.Text.Encoding _enc = System.Text.Encoding.ASCII;
 		
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="server"></param>
-		public AssetManagement(Server server)
+		/// <param name="_server"></param>
+		public AssetManagement(Server server, InventoryManager inventoryManager)
 		{
-			this.server=server;
-			Textures=new Dictionary<libsecondlife.LLUUID,TextureImage> ();
-			Assets=new Dictionary<libsecondlife.LLUUID,AssetInfo> ();
+			this._server = server;
+			this._inventoryManager = inventoryManager;
+			Textures = new Dictionary<libsecondlife.LLUUID,TextureImage> ();
+			Assets = new Dictionary<libsecondlife.LLUUID,AssetInfo> ();
 			this.initialise();
 		}
 		
@@ -69,38 +70,38 @@ namespace OpenSim
 		private void initialise()
 		{
 			//Shape and skin base assets
-			AssetInfo Asset=new AssetInfo();
-			Asset.filename="base_shape.dat";
-			Asset.Full_ID=new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");		
+			AssetInfo Asset = new AssetInfo();
+			Asset.filename = "base_shape.dat";
+			Asset.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");		
 			this.LoadAsset(Asset, false);
-			this.Assets.Add(Asset.Full_ID, Asset);
+			this.Assets.Add(Asset.FullID, Asset);
 			
-			Asset=new AssetInfo();
-			Asset.filename="base_skin.dat";
-			Asset.Full_ID=new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");		
+			Asset = new AssetInfo();
+			Asset.filename = "base_skin.dat";
+			Asset.FullID = new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49");		
 			this.LoadAsset(Asset, false);
-			this.Assets.Add(Asset.Full_ID, Asset);
+			this.Assets.Add(Asset.FullID, Asset);
 			
 			//our test images
 			//Change these filenames to images you want to use. 
-			TextureImage Image=new TextureImage();
-			Image.filename="testpic2.jp2";
-			Image.Full_ID=new LLUUID("00000000-0000-0000-5005-000000000005");
-			Image.Name="test Texture";
+			TextureImage Image = new TextureImage();
+			Image.filename = "testpic2.jp2";
+			Image.FullID = new LLUUID("00000000-0000-0000-5005-000000000005");
+			Image.Name = "test Texture";
 			this.LoadAsset(Image, true);
-			this.Textures.Add(Image.Full_ID, Image);
+			this.Textures.Add(Image.FullID, Image);
 			
-			Image=new TextureImage();
-			Image.filename="map_base.jp2";
-			Image.Full_ID=new LLUUID("00000000-0000-0000-7007-000000000006");
+			Image = new TextureImage();
+			Image.filename = "map_base.jp2";
+			Image.FullID = new LLUUID("00000000-0000-0000-7007-000000000006");
 			this.LoadAsset(Image, true);
-			this.Textures.Add(Image.Full_ID, Image);
+			this.Textures.Add(Image.FullID, Image);
 			
-			Image=new TextureImage();
-			Image.filename="map1.jp2";
-			Image.Full_ID=new LLUUID("00000000-0000-0000-7009-000000000008");
+			Image = new TextureImage();
+			Image.filename = "map1.jp2";
+			Image.FullID = new LLUUID("00000000-0000-0000-7009-000000000008");
 			this.LoadAsset(Image, true);
-			this.Textures.Add(Image.Full_ID, Image);
+			this.Textures.Add(Image.FullID, Image);
 		}
 		
 		/// <summary>
@@ -111,101 +112,101 @@ namespace OpenSim
 		/// <param name="TransferRequest"></param>
 		#region AssetRegion
 		
-		public void AddAssetRequest(User_Agent_info UserInfo, LLUUID AssetID, TransferRequestPacket TransferRequest)
+		public void AddAssetRequest(UserAgentInfo userInfo, LLUUID assetID, TransferRequestPacket transferRequest)
 		{
 			
-			if(!this.Assets.ContainsKey(AssetID))
+			if(!this.Assets.ContainsKey(assetID))
 			{
 				//not found asset	
 				return;
 			}
-			AssetInfo info=this.Assets[AssetID];
+			AssetInfo info = this.Assets[assetID];
 			//for now as it will be only skin or shape request just send back the asset
-			TransferInfoPacket Transfer=new TransferInfoPacket();
-			Transfer.TransferInfo.ChannelType=2;
-			Transfer.TransferInfo.Status=0;
-			Transfer.TransferInfo.TargetType=0;
-			Transfer.TransferInfo.Params=TransferRequest.TransferInfo.Params;
-			Transfer.TransferInfo.Size=info.data.Length;
-			Transfer.TransferInfo.TransferID=TransferRequest.TransferInfo.TransferID;
+			TransferInfoPacket Transfer = new TransferInfoPacket();
+			Transfer.TransferInfo.ChannelType = 2;
+			Transfer.TransferInfo.Status = 0;
+			Transfer.TransferInfo.TargetType = 0;
+			Transfer.TransferInfo.Params = transferRequest.TransferInfo.Params;
+			Transfer.TransferInfo.Size = info.data.Length;
+			Transfer.TransferInfo.TransferID = transferRequest.TransferInfo.TransferID;
 			
-			server.SendPacket(Transfer, true, UserInfo);
+			_server.SendPacket(Transfer, true, userInfo);
 			
-			TransferPacketPacket TransferPacket=new TransferPacketPacket();
-			TransferPacket.TransferData.Packet=0;
-			TransferPacket.TransferData.ChannelType=2;
-			TransferPacket.TransferData.TransferID=TransferRequest.TransferInfo.TransferID;
+			TransferPacketPacket TransferPacket = new TransferPacketPacket();
+			TransferPacket.TransferData.Packet = 0;
+			TransferPacket.TransferData.ChannelType = 2;
+			TransferPacket.TransferData.TransferID=transferRequest.TransferInfo.TransferID;
 			if(info.data.Length>1000)  //but needs to be less than 2000 at the moment
 			{
-				byte[] chunk=new byte[1000];
+				byte[] chunk = new byte[1000];
 				Array.Copy(info.data,chunk,1000);
-				TransferPacket.TransferData.Data=chunk;
-				TransferPacket.TransferData.Status=0;
-				server.SendPacket(TransferPacket,true,UserInfo);
+				TransferPacket.TransferData.Data = chunk;
+				TransferPacket.TransferData.Status = 0;
+				_server.SendPacket(TransferPacket,true,userInfo);
 				
-				TransferPacket=new TransferPacketPacket();
-				TransferPacket.TransferData.Packet=1;
-				TransferPacket.TransferData.ChannelType=2;
-				TransferPacket.TransferData.TransferID=TransferRequest.TransferInfo.TransferID;
-				byte[] chunk1=new byte[(info.data.Length-1000)];
+				TransferPacket = new TransferPacketPacket();
+				TransferPacket.TransferData.Packet = 1;
+				TransferPacket.TransferData.ChannelType = 2;
+				TransferPacket.TransferData.TransferID = transferRequest.TransferInfo.TransferID;
+				byte[] chunk1 = new byte[(info.data.Length-1000)];
 				Array.Copy(info.data, 1000, chunk1, 0, chunk1.Length);
-				TransferPacket.TransferData.Data=chunk1;
-				TransferPacket.TransferData.Status=1;
-				server.SendPacket(TransferPacket, true, UserInfo);
+				TransferPacket.TransferData.Data = chunk1;
+				TransferPacket.TransferData.Status = 1;
+				_server.SendPacket(TransferPacket, true, userInfo);
 			}
 			else
 			{
-				TransferPacket.TransferData.Status=1;  //last packet? so set to 1
-				TransferPacket.TransferData.Data=info.data;
-				server.SendPacket(TransferPacket, true, UserInfo);
+				TransferPacket.TransferData.Status = 1;  //last packet? so set to 1
+				TransferPacket.TransferData.Data = info.data;
+				_server.SendPacket(TransferPacket, true, userInfo);
 			}
 			
 		}
 		
-		public void CreateNewInventorySet(ref AvatarData Avata,User_Agent_info UserInfo)
+		public void CreateNewInventorySet(ref AvatarData Avata,UserAgentInfo UserInfo)
 		{
 			//Create Folders
-			LLUUID BaseFolder=Avata.BaseFolder;
-			InventoryManager.CreateNewFolder(UserInfo, Avata.InventoryFolder);
-			InventoryManager.CreateNewFolder(UserInfo, BaseFolder);
+			LLUUID BaseFolder = Avata.BaseFolder;
+			_inventoryManager.CreateNewFolder(UserInfo, Avata.InventoryFolder);
+			_inventoryManager.CreateNewFolder(UserInfo, BaseFolder);
 			
 			//Give a copy of default shape
-			AssetInfo Base=this.Assets[new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73")];
-			AssetInfo Shape=this.CloneAsset(UserInfo.AgentID, Base);
+			AssetInfo Base = this.Assets[new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73")];
+			AssetInfo Shape = this.CloneAsset(UserInfo.AgentID, Base);
 			
-			Shape.filename="";
-			Shape.Name="Default Shape";
-			Shape.Description="Default Shape";
-			Shape.InvType=18;
-			Shape.Type=libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
+			Shape.filename = "";
+			Shape.Name = "Default Shape";
+			Shape.Description = "Default Shape";
+			Shape.InvType = 18;
+			Shape.Type = libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
 			
-			byte[] Agentid=enc.GetBytes(UserInfo.AgentID.ToStringHyphenated());
+			byte[] Agentid = _enc.GetBytes(UserInfo.AgentID.ToStringHyphenated());
 			Array.Copy(Agentid, 0, Shape.data, 294, Agentid.Length);
-			this.Assets.Add(Shape.Full_ID, Shape);
+			this.Assets.Add(Shape.FullID, Shape);
 
-			Avata.Wearables[0].ItemID=InventoryManager.AddToInventory(UserInfo, BaseFolder, Shape);
-			Avata.Wearables[0].AssetID=Shape.Full_ID;
+			Avata.Wearables[0].ItemID = _inventoryManager.AddToInventory(UserInfo, BaseFolder, Shape);
+			Avata.Wearables[0].AssetID = Shape.FullID;
 			
 			//Give copy of default skin
-			Base=this.Assets[new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49")];
+			Base = this.Assets[new LLUUID("e0ee49b5a4184df8d3c9a65361fe7f49")];
 			AssetInfo Skin=this.CloneAsset(UserInfo.AgentID, Base);
 			
-			Skin.filename="";
-			Skin.Name="Default Skin";
-			Skin.Description="Default Skin";
-			Skin.InvType=18;
-			Skin.Type=libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
+			Skin.filename = "";
+			Skin.Name = "Default Skin";
+			Skin.Description = "Default Skin";
+			Skin.InvType = 18;
+			Skin.Type = libsecondlife.AssetSystem.Asset.ASSET_TYPE_WEARABLE_BODY;
 			
 			Array.Copy(Agentid,0,Skin.data,238,Agentid.Length);
-			this.Assets.Add(Skin.Full_ID, Skin);
+			this.Assets.Add(Skin.FullID, Skin);
 			
-			Avata.Wearables[1].ItemID=InventoryManager.AddToInventory(UserInfo, BaseFolder, Skin);
-			Avata.Wearables[1].AssetID=Skin.Full_ID;
+			Avata.Wearables[1].ItemID = _inventoryManager.AddToInventory(UserInfo, BaseFolder, Skin);
+			Avata.Wearables[1].AssetID = Skin.FullID;
 			
 			//give a copy of test texture
-			TextureImage Texture=this.CloneImage(UserInfo.AgentID,Textures[new LLUUID("00000000-0000-0000-5005-000000000005")]);
-			this.Textures.Add(Texture.Full_ID, Texture);
-			InventoryManager.AddToInventory(UserInfo, BaseFolder, Texture);
+			TextureImage Texture = this.CloneImage(UserInfo.AgentID, Textures[new LLUUID("00000000-0000-0000-5005-000000000005")]);
+			this.Textures.Add(Texture.FullID, Texture);
+			_inventoryManager.AddToInventory(UserInfo, BaseFolder, Texture);
 			
 		}
 		
@@ -217,116 +218,116 @@ namespace OpenSim
 			string folder;
 			if(Image)
 			{
-				folder=@"\textures\";
+				folder = @"\textures\";
 			}
 			else
 			{
-				folder=@"\assets\";
+				folder = @"\assets\";
 			}
             string data_path = System.AppDomain.CurrentDomain.BaseDirectory + folder;
-			string filename=data_path+@info.filename;
+			string filename = data_path+@info.filename;
 			FileInfo fInfo = new FileInfo(filename);
 
 			long numBytes = fInfo.Length;
 
 			FileStream fStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
-			byte[] idata=new byte[numBytes];
+			byte[] idata = new byte[numBytes];
 			BinaryReader br = new BinaryReader(fStream);
 			idata= br.ReadBytes((int)numBytes);
 			br.Close();
 			fStream.Close();
-			info.data=idata;
+			info.data = idata;
 			//info.loaded=true;
 		}
 		
 		public AssetInfo CloneAsset(LLUUID NewOwner, AssetInfo SourceAsset)
 		{
-			AssetInfo NewAsset=new AssetInfo();
-			NewAsset.data=new byte[SourceAsset.data.Length];
-			Array.Copy(SourceAsset.data,NewAsset.data,SourceAsset.data.Length);
-			NewAsset.Full_ID=LLUUID.Random();
-			NewAsset.Type=SourceAsset.Type;
-			NewAsset.InvType=SourceAsset.InvType;
+			AssetInfo NewAsset = new AssetInfo();
+			NewAsset.data = new byte[SourceAsset.data.Length];
+			Array.Copy(SourceAsset.data, NewAsset.data, SourceAsset.data.Length);
+			NewAsset.FullID = LLUUID.Random();
+			NewAsset.Type = SourceAsset.Type;
+			NewAsset.InvType = SourceAsset.InvType;
 			return(NewAsset);
 		}
 		#endregion
 		
 		#region TextureRegion
-		public void AddTextureRequest(User_Agent_info user, LLUUID image_id)
+		public void AddTextureRequest(UserAgentInfo userInfo, LLUUID imageID)
 		{
 			
-			if(!this.Textures.ContainsKey(image_id))
+			if(!this.Textures.ContainsKey(imageID))
 			{
 				//not found image so send back image not in data base message
-				ImageNotInDatabasePacket im_not=new ImageNotInDatabasePacket();
-				im_not.ImageID.ID=image_id;
-				server.SendPacket(im_not, true, user);
+				ImageNotInDatabasePacket im_not = new ImageNotInDatabasePacket();
+				im_not.ImageID.ID=imageID;
+				_server.SendPacket(im_not, true, userInfo);
 				return;
 			}
-			TextureImage imag=this.Textures[image_id];
-			TextureRequest req=new TextureRequest();
-			req.RequestUser=user;
-			req.RequestImage=image_id;
-			req.image_info=imag;
+			TextureImage imag = this.Textures[imageID];
+			TextureRequest req = new TextureRequest();
+			req.RequestUser = userInfo;
+			req.RequestImage = imageID;
+			req.image_info = imag;
 			
 			if(imag.data.LongLength>1000)  //should be bigger or smaller?
 			{
 				//over 1000 bytes so split up file
-				req.num_packets=(int)imag.data.LongLength/1000;
+				req.num_packets = (int)imag.data.LongLength/1000;
 				req.num_packets++;
 			}
 			else
 			{
-				req.num_packets=1;
+				req.num_packets = 1;
 			}
 			
 			this.TextureRequests.Add(req);
 			
 		}
 		
-		public void AddTexture(LLUUID image_id, string name, byte[] data)
+		public void AddTexture(LLUUID imageID, string name, byte[] data)
 		{
 			
 		}
 		public void DoWork(ulong time)
 		{
-			if(this.TextureRequests.Count==0)
+			if(this.TextureRequests.Count == 0)
 			{
 				//no requests waiting
 				return;
 			}
 			int num;
 			//should be running in its own thread but for now is called by timer
-			if(this.TextureRequests.Count<5)
+			if(this.TextureRequests.Count < 5)
 			{
 				//lower than 5 so do all of them
-				num=this.TextureRequests.Count;
+				num = this.TextureRequests.Count;
 			}
 			else
 			{
 				num=5;
 			}
 			TextureRequest req;
-			for(int i=0; i<num; i++)
+			for(int i = 0; i < num; i++)
 			{
 				req=(TextureRequest)this.TextureRequests[i];
 				
-				if(req.packet_counter==0)
+				if(req.packet_counter == 0)
 				{
 					//first time for this request so send imagedata packet
-					if(req.num_packets==1)
+					if(req.num_packets == 1)
 					{		
 						//only one packet so send whole file
-						ImageDataPacket im=new ImageDataPacket();
-						im.ImageID.Packets=1;
-						im.ImageID.ID=req.image_info.Full_ID;
-						im.ImageID.Size=(uint)req.image_info.data.Length;
-						im.ImageData.Data=req.image_info.data;
-						im.ImageID.Codec=2;		
-						server.SendPacket(im,true,req.RequestUser);
+						ImageDataPacket im = new ImageDataPacket();
+						im.ImageID.Packets = 1;
+						im.ImageID.ID = req.image_info.FullID;
+						im.ImageID.Size = (uint)req.image_info.data.Length;
+						im.ImageData.Data = req.image_info.data;
+						im.ImageID.Codec = 2;		
+						_server.SendPacket(im, true, req.RequestUser);
 						req.packet_counter++;
-						req.image_info.last_used=time;
-						System.Console.WriteLine("sent texture: "+req.image_info.Full_ID);
+						req.image_info.last_used = time;
+						System.Console.WriteLine("sent texture: "+req.image_info.FullID);
 					}
 					else
 					{
@@ -341,10 +342,10 @@ namespace OpenSim
 			}
 			
 			//remove requests that have been completed
-			for(int i=0; i<num; i++)
+			for(int i = 0; i < num; i++)
 			{
 				req=(TextureRequest)this.TextureRequests[i];
-				if(req.packet_counter==req.num_packets)
+				if(req.packet_counter == req.num_packets)
 				{
 					this.TextureRequests.Remove(req);
 				}
@@ -356,15 +357,15 @@ namespace OpenSim
 			
 		}
 		
-		public TextureImage CloneImage(LLUUID NewOwner,TextureImage Source)
+		public TextureImage CloneImage(LLUUID newOwner, TextureImage source)
 		{
-			TextureImage NewImage=new TextureImage();
-			NewImage.data=new byte[Source.data.Length];
-			Array.Copy(Source.data,NewImage.data,Source.data.Length);
-			NewImage.filename=Source.filename;
-			NewImage.Full_ID=LLUUID.Random();
-			NewImage.Name=Source.Name;
-			return(NewImage);
+			TextureImage newImage = new TextureImage();
+			newImage.data = new byte[source.data.Length];
+			Array.Copy(source.data,newImage.data,source.data.Length);
+			newImage.filename = source.filename;
+			newImage.FullID = LLUUID.Random();
+			newImage.Name = source.Name;
+			return(newImage);
 		}
 		
 		#endregion
@@ -372,12 +373,12 @@ namespace OpenSim
 	
 	public class AssetRequest
 	{
-		public User_Agent_info RequestUser;
+		public UserAgentInfo RequestUser;
 		public LLUUID RequestImage;
 		public AssetInfo asset_inf;
-		public long data_pointer=0;
-		public int num_packets=0;
-		public int packet_counter=0;
+		public long data_pointer = 0;
+		public int num_packets = 0;
+		public int packet_counter = 0;
 		
 		public AssetRequest()
 		{
@@ -401,7 +402,7 @@ namespace OpenSim
 	public class AssetBase
 	{
 		public byte[] data;
-		public LLUUID Full_ID;
+		public LLUUID FullID;
 		public sbyte Type;
 		public sbyte InvType;
 		public string Name;
@@ -413,14 +414,14 @@ namespace OpenSim
 			
 		}
 	}
-	public class TextureRequest
+	 public class TextureRequest
 	{
-		public User_Agent_info RequestUser;
+		public UserAgentInfo RequestUser;
 		public LLUUID RequestImage;
 		public TextureImage image_info;
-		public long data_pointer=0;
-		public int num_packets=0;
-		public int packet_counter=0;
+		public long data_pointer = 0;
+		public int num_packets = 0;
+		public int packet_counter = 0;
 		
 		public TextureRequest()
 		{
@@ -435,7 +436,7 @@ namespace OpenSim
 		//public string name;
 		public bool loaded;
 		public ulong last_used;  //need to add a tick/time counter and keep record
-					 // of how often images are requested to unload unused ones.
+								// of how often images are requested to unload unused ones.
 		
 		public TextureImage()
 		{

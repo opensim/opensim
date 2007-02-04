@@ -44,21 +44,21 @@ namespace OpenSim
 	/// </summary>
 	public class GridManager
 	{
-		private Server server;
-		private System.Text.Encoding enc = System.Text.Encoding.ASCII;
-		private AgentManager AgentManager;
-		private Dictionary<ulong,RegionInfo> Grid;
+		private Server _server;
+		private System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+		private AgentManager _agentManager;
+		public Dictionary<ulong,RegionInfo> Grid;
 		
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="serve"></param>
 		/// <param name="agentManager"></param>
-		public GridManager(Server serve, AgentManager agentManager)
+		public GridManager(Server server, AgentManager agentManager)
 		{
-			Grid=new Dictionary<ulong, RegionInfo>();
-			server=serve;
-			AgentManager=agentManager;
+			Grid = new Dictionary<ulong, RegionInfo>();
+			_server = server;
+			_agentManager = agentManager;
 			LoadGrid();
 		}
 		
@@ -66,20 +66,20 @@ namespace OpenSim
 		/// 
 		/// </summary>
 		/// <param name="UserInfo"></param>
-		public void RequestMapLayer(User_Agent_info UserInfo)
+		public void RequestMapLayer(UserAgentInfo userInfo)
 		{
 			//send a layer covering the 800,800 - 1200,1200 area
-				MapLayerReplyPacket MapReply=new MapLayerReplyPacket();
-        		MapReply.AgentData.AgentID=UserInfo.AgentID;
-        		MapReply.AgentData.Flags=0;
-        		MapReply.LayerData=new MapLayerReplyPacket.LayerDataBlock[1];
-        		MapReply.LayerData[0]=new MapLayerReplyPacket.LayerDataBlock();
-        		MapReply.LayerData[0].Bottom=800;
-        		MapReply.LayerData[0].Left=800;
-        		MapReply.LayerData[0].Top=1200;
-        		MapReply.LayerData[0].Right=1200;
-        		MapReply.LayerData[0].ImageID=new LLUUID("00000000-0000-0000-7007-000000000006");
-        		server.SendPacket(MapReply,true,UserInfo);
+				MapLayerReplyPacket MapReply = new MapLayerReplyPacket();
+        		MapReply.AgentData.AgentID = userInfo.AgentID;
+        		MapReply.AgentData.Flags = 0;
+        		MapReply.LayerData = new MapLayerReplyPacket.LayerDataBlock[1];
+        		MapReply.LayerData[0] = new MapLayerReplyPacket.LayerDataBlock();
+        		MapReply.LayerData[0].Bottom = 800;
+        		MapReply.LayerData[0].Left = 800;
+        		MapReply.LayerData[0].Top = 1200;
+        		MapReply.LayerData[0].Right = 1200;
+        		MapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-7007-000000000006");
+        		_server.SendPacket(MapReply, true, userInfo);
 		}
 		
 		/// <summary>
@@ -90,28 +90,28 @@ namespace OpenSim
 		/// <param name="MinY"></param>
 		/// <param name="MaxX"></param>
 		/// <param name="MaxY"></param>
-		public void RequestMapBlock(User_Agent_info UserInfo, int MinX, int MinY,int MaxX,int MaxY)
+		public void RequestMapBlock(UserAgentInfo userInfo, int minX, int minY,int maxX,int maxY)
 		{		
-        		foreach (KeyValuePair<ulong,RegionInfo> RegionPair in this.Grid)
+        		foreach (KeyValuePair<ulong, RegionInfo> RegionPair in this.Grid)
 				{
 					//check Region is inside the requested area		
-					RegionInfo Region=RegionPair.Value;
-					if(((Region.X>MinX) && (Region.X<MaxX)) && ((Region.Y>MinY) && (Region.Y<MaxY)))
+					RegionInfo Region = RegionPair.Value;
+					if(((Region.X > minX) && (Region.X < maxX)) && ((Region.Y > minY) && (Region.Y < maxY)))
 					{
-						MapBlockReplyPacket MapReply=new MapBlockReplyPacket();
-		        		MapReply.AgentData.AgentID=UserInfo.AgentID;
-		        		MapReply.AgentData.Flags=0;
-		        		MapReply.Data=new MapBlockReplyPacket.DataBlock[1];
-		        		MapReply.Data[0]=new MapBlockReplyPacket.DataBlock();
-		        		MapReply.Data[0].MapImageID=Region.ImageID;
-		        		MapReply.Data[0].X=Region.X;
-		        		MapReply.Data[0].Y=Region.Y;
-		        		MapReply.Data[0].WaterHeight=Region.WaterHeight;
-		        		MapReply.Data[0].Name=enc.GetBytes( Region.Name);
-		        		MapReply.Data[0].RegionFlags=72458694;
-		        		MapReply.Data[0].Access=13;
-		        		MapReply.Data[0].Agents=1;
-		        		server.SendPacket(MapReply,true,UserInfo);
+						MapBlockReplyPacket MapReply = new MapBlockReplyPacket();
+		        		MapReply.AgentData.AgentID = userInfo.AgentID;
+		        		MapReply.AgentData.Flags = 0;
+		        		MapReply.Data = new MapBlockReplyPacket.DataBlock[1];
+		        		MapReply.Data[0] = new MapBlockReplyPacket.DataBlock();
+		        		MapReply.Data[0].MapImageID = Region.ImageID;
+		        		MapReply.Data[0].X = Region.X;
+		        		MapReply.Data[0].Y = Region.Y;
+		        		MapReply.Data[0].WaterHeight = Region.WaterHeight;
+		        		MapReply.Data[0].Name = _enc.GetBytes( Region.Name);
+		        		MapReply.Data[0].RegionFlags = 72458694;
+		        		MapReply.Data[0].Access = 13;
+		        		MapReply.Data[0].Agents = 1;
+		        		_server.SendPacket(MapReply, true, userInfo);
 					}
         		}
         	
@@ -122,35 +122,35 @@ namespace OpenSim
 		/// </summary>
 		/// <param name="UserInfo"></param>
 		/// <param name="Request"></param>
-		public void RequestTeleport(User_Agent_info UserInfo, TeleportLocationRequestPacket Request)
+		public void RequestTeleport(UserAgentInfo userInfo, TeleportLocationRequestPacket request)
 		{
-			if(Grid.ContainsKey(Request.Info.RegionHandle))
+			if(Grid.ContainsKey(request.Info.RegionHandle))
 			{
-				RegionInfo Region=Grid[Request.Info.RegionHandle];
-				libsecondlife.Packets.TeleportStartPacket TeleportStart=new TeleportStartPacket();
-        		TeleportStart.Info.TeleportFlags=16;
-        		server.SendPacket(TeleportStart,true,UserInfo);
+				RegionInfo Region = Grid[request.Info.RegionHandle];
+				libsecondlife.Packets.TeleportStartPacket TeleportStart = new TeleportStartPacket();
+        		TeleportStart.Info.TeleportFlags = 16;
+        		_server.SendPacket(TeleportStart, true, userInfo);
         		
-        		libsecondlife.Packets.TeleportFinishPacket Teleport=new TeleportFinishPacket();
-        		Teleport.Info.AgentID=UserInfo.AgentID;
-        		Teleport.Info.RegionHandle=Request.Info.RegionHandle;
-        		Teleport.Info.SimAccess=13;
-        		Teleport.Info.SeedCapability=new byte[0];
+        		libsecondlife.Packets.TeleportFinishPacket Teleport = new TeleportFinishPacket();
+        		Teleport.Info.AgentID = userInfo.AgentID;
+        		Teleport.Info.RegionHandle = request.Info.RegionHandle;
+        		Teleport.Info.SimAccess = 13;
+        		Teleport.Info.SeedCapability = new byte[0];
         		
-        		System.Net.IPAddress oIP=System.Net.IPAddress.Parse(Region.IPAddress.Address);
-         		byte[] byteIP=oIP.GetAddressBytes();
+        		System.Net.IPAddress oIP = System.Net.IPAddress.Parse(Region.IPAddress.Address);
+         		byte[] byteIP = oIP.GetAddressBytes();
          		uint ip=(uint)byteIP[3]<<24;
          		ip+=(uint)byteIP[2]<<16;
          		ip+=(uint)byteIP[1]<<8;
          		ip+=(uint)byteIP[0];
          		
-        		Teleport.Info.SimIP=ip;
-        		Teleport.Info.SimPort=Region.IPAddress.Port;
-        		Teleport.Info.LocationID=4;
-        		Teleport.Info.TeleportFlags= 1 << 4;;
-        		server.SendPacket(Teleport,true,UserInfo);
+        		Teleport.Info.SimIP = ip;
+        		Teleport.Info.SimPort = Region.IPAddress.Port;
+        		Teleport.Info.LocationID = 4;
+        		Teleport.Info.TeleportFlags = 1 << 4;;
+        		_server.SendPacket(Teleport, true, userInfo);
         		
-        		this.AgentManager.RemoveAgent(UserInfo);
+        		this._agentManager.RemoveAgent(userInfo);
 			}
         	
 		}
@@ -162,13 +162,13 @@ namespace OpenSim
 		{
 			 //should connect to a space server to see what grids there are 
 			 //but for now we read static xml files
-			 ulong CurrentHandle=0;
-			 bool Login=true;
+			 ulong CurrentHandle = 0;
+			 bool Login = true;
 			 
 			 XmlDocument doc = new XmlDocument();
          
 	         try {
-	           	doc.Load(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory,"Grid.ini" ));
+	           	doc.Load(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Grid.ini" ));
 	         }
 	         catch ( Exception e)
 	         {
@@ -189,102 +189,102 @@ namespace OpenSim
 		            if (nodes.HasChildNodes)   {
 			        	foreach( XmlNode xmlnc in nodes.ChildNodes)   
 			            {	
-			            	if(xmlnc.Name=="Region")
+			            	if(xmlnc.Name == "Region")
 			            	{
 			            		string xmlAttri;
-			            		RegionInfo Region=new RegionInfo();
-			            		if(xmlnc.Attributes["Name"]!=null)
+			            		RegionInfo Region = new RegionInfo();
+			            		if(xmlnc.Attributes["Name"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("Name")).Value;
-			            			Region.Name=xmlAttri+" \0";
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("Name")).Value;
+			            			Region.Name = xmlAttri+" \0";
 			            		}
-			            		if(xmlnc.Attributes["ImageID"]!=null)
+			            		if(xmlnc.Attributes["ImageID"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("ImageID")).Value;
-									Region.ImageID=new LLUUID(xmlAttri);
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("ImageID")).Value;
+									Region.ImageID = new LLUUID(xmlAttri);
 			            		}
-			            		if(xmlnc.Attributes["IP_Address"]!=null)
+			            		if(xmlnc.Attributes["IP_Address"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("IP_Address")).Value;
-			            			Region.IPAddress.Address=xmlAttri;
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("IP_Address")).Value;
+			            			Region.IPAddress.Address = xmlAttri;
 			            		}
-			            		if(xmlnc.Attributes["IP_Port"]!=null)
+			            		if(xmlnc.Attributes["IP_Port"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("IP_Port")).Value;
-									Region.IPAddress.Port=Convert.ToUInt16(xmlAttri);
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("IP_Port")).Value;
+									Region.IPAddress.Port = Convert.ToUInt16(xmlAttri);
 			            		}
-			            		if(xmlnc.Attributes["Location_X"]!=null)
+			            		if(xmlnc.Attributes["Location_X"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("Location_X")).Value;
-									Region.X=Convert.ToUInt16(xmlAttri);
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("Location_X")).Value;
+									Region.X = Convert.ToUInt16(xmlAttri);
 			            		}
-			            		if(xmlnc.Attributes["Location_Y"]!=null)
+			            		if(xmlnc.Attributes["Location_Y"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("Location_Y")).Value;
-									Region.Y=Convert.ToUInt16(xmlAttri);
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("Location_Y")).Value;
+									Region.Y = Convert.ToUInt16(xmlAttri);
 			            		}
 			            		
-			            		this.Grid.Add(Region.Handle,Region);
+			            		this.Grid.Add(Region.Handle, Region);
 			            		
 			            	}
-			            	if(xmlnc.Name=="CurrentRegion")
+			            	if(xmlnc.Name == "CurrentRegion")
 			            	{
 			            		
 			            		string xmlAttri;
-			            		uint Rx=0,Ry=0;
-			            		if(xmlnc.Attributes["RegionHandle"]!=null)
+			            		uint Rx = 0, Ry = 0;
+			            		if(xmlnc.Attributes["RegionHandle"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("RegionHandle")).Value;
-									CurrentHandle=Convert.ToUInt64(xmlAttri);
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("RegionHandle")).Value;
+									CurrentHandle = Convert.ToUInt64(xmlAttri);
 									
 			            		}
 			            		else
 			            		{
-			            			if(xmlnc.Attributes["Region_X"]!=null)
+			            			if(xmlnc.Attributes["Region_X"] != null)
 									{
-										xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("Region_X")).Value;
-										Rx=Convert.ToUInt32(xmlAttri);
+										xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("Region_X")).Value;
+										Rx = Convert.ToUInt32(xmlAttri);
 			            			}
-			            			if(xmlnc.Attributes["Region_Y"]!=null)
+			            			if(xmlnc.Attributes["Region_Y"] != null)
 									{
-										xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("Region_Y")).Value;
-										Ry=Convert.ToUInt32(xmlAttri);
+										xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("Region_Y")).Value;
+										Ry = Convert.ToUInt32(xmlAttri);
 			            			}
 			            		}
-			            		if(xmlnc.Attributes["LoginServer"]!=null)
+			            		if(xmlnc.Attributes["LoginServer"] != null)
 								{
-									xmlAttri=((XmlAttribute)xmlnc.Attributes.GetNamedItem("LoginServer")).Value;
-									Login=Convert.ToBoolean(xmlAttri);
+									xmlAttri = ((XmlAttribute)xmlnc.Attributes.GetNamedItem("LoginServer")).Value;
+									Login = Convert.ToBoolean(xmlAttri);
 									
 			            		}
-			            		if(CurrentHandle==0)
+			            		if(CurrentHandle == 0)
 			            		{
 			            			//no RegionHandle set
 			            			//so check for Region X and Y
-			            			if((Rx >0) && (Ry>0))
+			            			if((Rx > 0) && (Ry > 0))
 			            			{
-			            				CurrentHandle=Helpers.UIntsToLong((Rx*256),(Ry*256));
+			            				CurrentHandle = Helpers.UIntsToLong((Rx*256), (Ry*256));
 			            			}
 			            			else
 			            			{
 			            				//seems to be no Region location set
 			            				// so set default
-			            				CurrentHandle=1096213093147648;
+			            				CurrentHandle = 1096213093147648;
 			            			}
 			            		}
 			            	}
 			            }
 			        	
 			            //finished loading grid, now set Globals to current region
-			            if(CurrentHandle!=0)
+			            if(CurrentHandle != 0)
 			            {
 			            	if(Grid.ContainsKey(CurrentHandle))
 			            	{
-			            		RegionInfo Region=Grid[CurrentHandle];
-			            		Globals.Instance.RegionHandle=Region.Handle;
-			            		Globals.Instance.RegionName=Region.Name;
-			            		Globals.Instance.IpPort=Region.IPAddress.Port;
-			            		Globals.Instance.LoginSever=Login;
+			            		RegionInfo Region = Grid[CurrentHandle];
+			            		Globals.Instance.RegionHandle = Region.Handle;
+			            		Globals.Instance.RegionName = Region.Name;
+			            		Globals.Instance.IpPort = Region.IPAddress.Port;
+			            		Globals.Instance.LoginSever = Login;
 			            	}
 			            }
 			            	
@@ -317,8 +317,8 @@ namespace OpenSim
 			}
 			set
 			{
-				x=value;
-				Handle=Helpers.UIntsToLong((((uint)x)*256),(((uint)y)*256));
+				x = value;
+				Handle = Helpers.UIntsToLong((((uint)x)*256), (((uint)y)*256));
 			}
 		}
 		public ushort Y
@@ -329,33 +329,33 @@ namespace OpenSim
 			}
 			set
 			{
-				y=value;
-				Handle=Helpers.UIntsToLong((((uint)x)*256),(((uint)y)*256));
+				y = value;
+				Handle = Helpers.UIntsToLong((((uint)x)*256), (((uint)y)*256));
 			}
 		}
 		public ulong Handle
 		{
 			get
 			{
-					if(handle>0)
+					if(handle > 0)
 					{
 						return(handle);
 					}
 					else
 					{
-						return(Helpers.UIntsToLong((((uint)x)*256),(((uint)y)*256)));
+						return(Helpers.UIntsToLong((((uint)x)*256), (((uint)y)*256)));
 					}
 			}
 			set
 			{
-				handle=value;
+				handle = value;
 			}
 				
 		}
 		
 		public RegionInfo()
 		{
-			this.IPAddress=new RegionIP();
+			this.IPAddress = new RegionIP();
 		}
 	}
 	public class RegionIP

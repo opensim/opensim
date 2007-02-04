@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 9.00
 # SharpDevelop 2.1.0.2017
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Second-server", "Second-server.csproj", "{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libsecondlife", "..\..\libsecondlife\libsecondlife-cs\libsecondlife.csproj", "{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|.NET 1.1 = Debug|.NET 1.1

@@ -45,8 +45,8 @@ namespace OpenSim
 	public interface ServerCallback
     {
 	 	//should replace with delegates
-    	void MainCallback(Packet pack, User_Agent_info User_info);
-    	void NewUserCallback(User_Agent_info User_info);
+    	void MainCallback(Packet pack, UserAgentInfo User_info);
+    	void NewUserCallback(UserAgentInfo User_info);
     	void ErrorCallback(string text);
     }
 	public class Server
@@ -197,7 +197,7 @@ namespace OpenSim
         /// </summary>
         /// <param name="packet">Packet to be sent</param>
         /// <param name="incrementSequence">Increment sequence number?</param>
-        public void SendPacket(Packet packet, bool incrementSequence, User_Agent_info User_info)
+        public void SendPacket(Packet packet, bool incrementSequence, UserAgentInfo User_info)
         {
             byte[] buffer;
             int bytes;
@@ -324,7 +324,7 @@ namespace OpenSim
         /// <summary>
         /// Sends out pending acknowledgements
         /// </summary>
-        private void SendAcks(User_Agent_info User_info)
+        private void SendAcks(UserAgentInfo User_info)
         {
             lock (User_info.PendingAcks)
             {
@@ -358,7 +358,7 @@ namespace OpenSim
         /// <summary>
         /// Resend unacknowledged packets
         /// </summary>
-        private void ResendUnacked(User_Agent_info User_info)
+        private void ResendUnacked(UserAgentInfo User_info)
         {
             if (connected)
             {
@@ -397,7 +397,7 @@ namespace OpenSim
 
             // Update the disconnect flag so this sim doesn't time out
             DisconnectCandidate = false;
-            User_Agent_info User_info=null;
+            UserAgentInfo User_info=null;
 
             lock (RecvBuffer)
             {
@@ -416,7 +416,7 @@ namespace OpenSim
                     if (packet.Type == PacketType.UseCircuitCode)
            			{
                     	UseCircuitCodePacket cir_pack=(UseCircuitCodePacket)packet;
-                    	User_Agent_info new_user=new User_Agent_info();
+                    	UserAgentInfo new_user=new UserAgentInfo();
                     	new_user.circuitCode=cir_pack.CircuitCode.Code;
                     	new_user.AgentID=cir_pack.CircuitCode.ID;
                     	new_user.SessionID=cir_pack.CircuitCode.SessionID;
@@ -429,13 +429,13 @@ namespace OpenSim
                     }
                     
                     
-                    User_Agent_info temp_agent=null;
+                    UserAgentInfo temp_agent=null;
                     	IPEndPoint send_ip=(IPEndPoint)epSender;
                     //	this.callback_object.error("incoming: address is "+send_ip.Address +"port number is: "+send_ip.Port.ToString());
                     	
                     for(int ii=0; ii<this.User_agents.Count ; ii++)
                     {
-                    	temp_agent=(User_Agent_info)this.User_agents[ii];
+                    	temp_agent=(UserAgentInfo)this.User_agents[ii];
                     	IPEndPoint ag_ip=(IPEndPoint)temp_agent.endpoint;
                     	//this.callback_object.error("searching: address is "+ag_ip.Address +"port number is: "+ag_ip.Port.ToString());
                     	
@@ -563,7 +563,7 @@ namespace OpenSim
             	//TODO for each user_agent_info
             	for(int i=0; i<this.User_agents.Count; i++)
             	{
-            		User_Agent_info user=(User_Agent_info)this.User_agents[i];
+            		UserAgentInfo user=(UserAgentInfo)this.User_agents[i];
             	
                 	SendAcks(user);
                 	ResendUnacked(user);
@@ -619,7 +619,7 @@ namespace OpenSim
         }
     }
 	   
-	public class User_Agent_info
+	public class UserAgentInfo
     {
     	public EndPoint endpoint;
     	public LLUUID AgentID;
@@ -636,7 +636,7 @@ namespace OpenSim
         // ACKs that are queued up to be sent to the simulator
         public Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
       
-    	public User_Agent_info()
+    	public UserAgentInfo()
     	{
     		
     	}
