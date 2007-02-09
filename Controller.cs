@@ -64,8 +64,8 @@ namespace OpenSim
         private LoginManager _loginManager;  //built in login server
         private ulong time;  //ticks 
         private Timer timer1 = new Timer();
-        
-
+        private System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+      
         public Controller() {
         	_login = new Logon();  // should create a list for these.
             _server = new Server( this );
@@ -119,6 +119,22 @@ namespace OpenSim
         		MapBlockRequestPacket MapRequest=(MapBlockRequestPacket)pack;
         		this._gridManager.RequestMapBlock(userInfo, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
         	
+        	}
+        	else if( pack.Type == PacketType.UUIDNameRequest)
+        	{
+        		UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket) pack;
+        		UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
+        		nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+        	
+        		for(int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
+        		{
+        		nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
+        		nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
+        		nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("harry \0");  //for now send any name
+        		nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("tom \0");	   //in future need to look it up		
+        		}
+        		
+        		_server.SendPacket(nameReply, true, userInfo);
         	}
         	else if(pack.Type == PacketType.CloseCircuit)
         	{

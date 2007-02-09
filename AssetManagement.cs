@@ -268,17 +268,16 @@ namespace OpenSim
 			TextureRequest req = new TextureRequest();
 			req.RequestUser = userInfo;
 			req.RequestImage = imageID;
-			req.image_info = imag;
+			req.ImageInfo = imag;
 			
-			if(imag.data.LongLength>1000)  //should be bigger or smaller?
+			if(imag.data.LongLength>600)  //should be bigger or smaller?
 			{
-				//over 1000 bytes so split up file
-				req.num_packets = (int)imag.data.LongLength/1000;
-				req.num_packets++;
+				//over 600 bytes so split up file
+				req.NumPackets = 1 + (int)(imag.data.Length-600+999)/1000;
 			}
 			else
 			{
-				req.num_packets = 1;
+				req.NumPackets = 1;
 			}
 			
 			this.TextureRequests.Add(req);
@@ -312,32 +311,54 @@ namespace OpenSim
 			{
 				req=(TextureRequest)this.TextureRequests[i];
 				
-				if(req.packet_counter == 0)
+				if(req.PacketCounter == 0)
 				{
 					//first time for this request so send imagedata packet
-					if(req.num_packets == 1)
+					if(req.NumPackets == 1)
 					{		
 						//only one packet so send whole file
 						ImageDataPacket im = new ImageDataPacket();
 						im.ImageID.Packets = 1;
-						im.ImageID.ID = req.image_info.FullID;
-						im.ImageID.Size = (uint)req.image_info.data.Length;
-						im.ImageData.Data = req.image_info.data;
+						im.ImageID.ID = req.ImageInfo.FullID;
+						im.ImageID.Size = (uint)req.ImageInfo.data.Length;
+						im.ImageData.Data = req.ImageInfo.data;
 						im.ImageID.Codec = 2;		
 						_server.SendPacket(im, true, req.RequestUser);
-						req.packet_counter++;
-						req.image_info.last_used = time;
-						System.Console.WriteLine("sent texture: "+req.image_info.FullID);
+						req.PacketCounter++;
+						req.ImageInfo.last_used = time;
+						//System.Console.WriteLine("sent texture: "+req.image_info.FullID);
 					}
 					else
 					{
 						//more than one packet so split file up
+						ImageDataPacket im = new ImageDataPacket();
+						im.ImageID.Packets = (ushort)req.NumPackets;
+						im.ImageID.ID = req.ImageInfo.FullID;
+						im.ImageID.Size = (uint)req.ImageInfo.data.Length;
+						im.ImageData.Data = new byte[600];
+						Array.Copy(req.ImageInfo.data, 0, im.ImageData.Data, 0, 600);
+						im.ImageID.Codec = 2;
+						_server.SendPacket(im, true, req.RequestUser);
+						req.PacketCounter++;
+						req.ImageInfo.last_used = time;
+						//System.Console.WriteLine("sent first packet of texture:
 					}
 				}
 				else
 				{
-					//send imagepacket 
-					
+					//send imagepacket
+					//more than one packet so split file up
+					ImagePacketPacket im = new ImagePacketPacket();
+					im.ImageID.Packet = (ushort)req.PacketCounter;
+					im.ImageID.ID = req.ImageInfo.FullID;
+					int size = req.ImageInfo.data.Length - 600 - 1000*(req.PacketCounter - 1);
+					if(size > 1000) size = 1000;
+					im.ImageData.Data = new byte[size];
+					Array.Copy(req.ImageInfo.data, 600 + 1000*(req.PacketCounter - 1), im.ImageData.Data, 0, size);
+					_server.SendPacket(im, true, req.RequestUser);
+					req.PacketCounter++;
+					req.ImageInfo.last_used = time;
+					//System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);	
 				}
 			}
 			
@@ -345,7 +366,7 @@ namespace OpenSim
 			for(int i = 0; i < num; i++)
 			{
 				req=(TextureRequest)this.TextureRequests[i];
-				if(req.packet_counter == req.num_packets)
+				if(req.PacketCounter == req.NumPackets)
 				{
 					this.TextureRequests.Remove(req);
 				}
@@ -418,10 +439,10 @@ namespace OpenSim
 	{
 		public UserAgentInfo RequestUser;
 		public LLUUID RequestImage;
-		public TextureImage image_info;
-		public long data_pointer = 0;
-		public int num_packets = 0;
-		public int packet_counter = 0;
+		public TextureImage ImageInfo;
+		public long DataPointer = 0;
+		public int NumPackets = 0;
+		public int PacketCounter = 0;
 		
 		public TextureRequest()
 		{
