@@ -104,133 +104,146 @@ namespace OpenSim
             if( pack.Type == PacketType.AgentSetAppearance ) {
             	
             }
-        	else if( pack.Type == PacketType.FetchInventory)
-        	{
-        		FetchInventoryPacket FetchInventory = (FetchInventoryPacket)pack;
-        		_inventoryManager.FetchInventory(userInfo, FetchInventory);
-        	}
-        	else if( pack.Type == PacketType.FetchInventoryDescendents)
-        	{
-        		FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)pack;
-        		_inventoryManager.FetchInventoryDescendents(userInfo, Fetch);
-        	}
-        	else if(pack.Type == PacketType.MapBlockRequest)
-        	{
-        		MapBlockRequestPacket MapRequest=(MapBlockRequestPacket)pack;
-        		this._gridManager.RequestMapBlock(userInfo, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
-        	
-        	}
-        	else if( pack.Type == PacketType.UUIDNameRequest)
-        	{
-        		UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket) pack;
-        		UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
-        		nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
-        	
-        		for(int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
-        		{
-        		nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
-        		nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
-        		nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("harry \0");  //for now send any name
-        		nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("tom \0");	   //in future need to look it up		
-        		}
-        		
-        		_server.SendPacket(nameReply, true, userInfo);
-        	}
-        	else if(pack.Type == PacketType.CloseCircuit)
-        	{
-        		this._agentManager.RemoveAgent(userInfo);
-        	}
-        	else if(pack.Type == PacketType.MapLayerRequest)
-        	{
-        		this._gridManager.RequestMapLayer(userInfo);	
-        	}
-        	else if((pack.Type == PacketType.TeleportRequest ) || (pack.Type == PacketType.TeleportLocationRequest))
-        	{
-        		TeleportLocationRequestPacket Request = (TeleportLocationRequestPacket)pack;	
-        		this._gridManager.RequestTeleport(userInfo,Request);
-        		
-        	}
-            else if( pack.Type == PacketType.TransferRequest ) {
-                TransferRequestPacket transfer = (TransferRequestPacket)pack;
-                LLUUID id = new LLUUID( transfer.TransferInfo.Params, 0 );   
-                _assetManager.AddAssetRequest( userInfo, id, transfer );
+            else if (pack.Type == PacketType.AgentAnimation) 
+            {
+                AgentAnimationPacket AgentAni = (AgentAnimationPacket)pack;
+                if (AgentAni.AgentData.AgentID == userInfo.AgentID)
+                {
+                    _agentManager.UpdateAnim(userInfo, AgentAni.AnimationList[0].AnimID, 1);
+                }
             }
-            else if( ( pack.Type == PacketType.StartPingCheck ) ) {
+            else if (pack.Type == PacketType.FetchInventory)
+            {
+                FetchInventoryPacket FetchInventory = (FetchInventoryPacket)pack;
+                _inventoryManager.FetchInventory(userInfo, FetchInventory);
+            }
+            else if (pack.Type == PacketType.FetchInventoryDescendents)
+            {
+                FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)pack;
+                _inventoryManager.FetchInventoryDescendents(userInfo, Fetch);
+            }
+            else if (pack.Type == PacketType.MapBlockRequest)
+            {
+                MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)pack;
+                this._gridManager.RequestMapBlock(userInfo, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+
+            }
+            else if (pack.Type == PacketType.UUIDNameRequest)
+            {
+                UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)pack;
+                UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
+                nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+
+                for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
+                {
+                    nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
+                    nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
+                    nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("harry \0");  //for now send any name
+                    nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("tom \0");	   //in future need to look it up		
+                }
+
+                _server.SendPacket(nameReply, true, userInfo);
+            }
+            else if (pack.Type == PacketType.CloseCircuit)
+            {
+                this._agentManager.RemoveAgent(userInfo);
+            }
+            else if (pack.Type == PacketType.MapLayerRequest)
+            {
+                this._gridManager.RequestMapLayer(userInfo);
+            }
+            else if ((pack.Type == PacketType.TeleportRequest) || (pack.Type == PacketType.TeleportLocationRequest))
+            {
+                TeleportLocationRequestPacket Request = (TeleportLocationRequestPacket)pack;
+                this._gridManager.RequestTeleport(userInfo, Request);
+
+            }
+            else if (pack.Type == PacketType.TransferRequest)
+            {
+                TransferRequestPacket transfer = (TransferRequestPacket)pack;
+                LLUUID id = new LLUUID(transfer.TransferInfo.Params, 0);
+                _assetManager.AddAssetRequest(userInfo, id, transfer);
+            }
+            else if ((pack.Type == PacketType.StartPingCheck))
+            {
                 //reply to pingcheck
                 libsecondlife.Packets.StartPingCheckPacket startping = (libsecondlife.Packets.StartPingCheckPacket)pack;
                 libsecondlife.Packets.CompletePingCheckPacket endping = new CompletePingCheckPacket();
                 endping.PingID.PingID = startping.PingID.PingID;
-                _server.SendPacket(endping, true, userInfo );
+                _server.SendPacket(endping, true, userInfo);
             }
-           	else if( pack.Type == PacketType.CompleteAgentMovement ) 
-           	{	
-                _agentManager.AgentJoin(userInfo );
-           	}
-           	else if( pack.Type == PacketType.RequestImage ) 
-           	{
+            else if (pack.Type == PacketType.CompleteAgentMovement)
+            {
+                _agentManager.AgentJoin(userInfo);
+            }
+            else if (pack.Type == PacketType.RequestImage)
+            {
                 RequestImagePacket imageRequest = (RequestImagePacket)pack;
-                for( int i = 0; i < imageRequest.RequestImage.Length; i++ ) 
+                for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                 {
                     this._assetManager.AddTextureRequest(userInfo, imageRequest.RequestImage[i].Image);
                 }
             }
-           	else if( pack.Type == PacketType.RegionHandshakeReply ) {
+            else if (pack.Type == PacketType.RegionHandshakeReply)
+            {
                 //recieved regionhandshake so can now start sending info
-                _agentManager.SendInitialData(userInfo );
-			}
-           	else if( pack.Type == PacketType.ObjectAdd ) 
-           	{
-                ObjectAddPacket ad = (ObjectAddPacket)pack;
-                _primManager.CreatePrim(userInfo, ad.ObjectData.RayEnd, ad );
+                _agentManager.SendInitialData(userInfo);
             }
-            else if( pack.Type == PacketType.ObjectPosition ) {
+            else if (pack.Type == PacketType.ObjectAdd)
+            {
+                ObjectAddPacket ad = (ObjectAddPacket)pack;
+                _primManager.CreatePrim(userInfo, ad.ObjectData.RayEnd, ad);
+            }
+            else if (pack.Type == PacketType.ObjectPosition)
+            {
                 //System.Console.WriteLine(pack.ToString());
             }
-            else if( pack.Type == PacketType.MultipleObjectUpdate ) 
+            else if (pack.Type == PacketType.MultipleObjectUpdate)
             {
                 MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)pack;
 
-                for( int i = 0; i < multipleupdate.ObjectData.Length; i++ ) 
+                for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
                 {
-                    if( multipleupdate.ObjectData[ i ].Type == 9 ) //change position
-					{
-                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[ i ].Data, 0 );
-                        _primManager.UpdatePrimPosition(userInfo, pos, multipleupdate.ObjectData[ i ].ObjectLocalID ,false ,libsecondlife.LLQuaternion.Identity);
+                    if (multipleupdate.ObjectData[i].Type == 9) //change position
+                    {
+                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        _primManager.UpdatePrimPosition(userInfo, pos, multipleupdate.ObjectData[i].ObjectLocalID, false, libsecondlife.LLQuaternion.Identity);
                         //should update stored position of the prim
                     }
-                    else if(multipleupdate.ObjectData[i].Type == 10 )//rotation
+                    else if (multipleupdate.ObjectData[i].Type == 10)//rotation
                     {
-                    	libsecondlife.LLVector3 pos = new LLVector3(100,100,22);
-                    	libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                        _primManager.UpdatePrimPosition(userInfo, pos, multipleupdate.ObjectData[ i ].ObjectLocalID, true ,rot); 
+                        libsecondlife.LLVector3 pos = new LLVector3(100, 100, 22);
+                        libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                        _primManager.UpdatePrimPosition(userInfo, pos, multipleupdate.ObjectData[i].ObjectLocalID, true, rot);
                     }
                 }
             }
-            else if( pack.Type == PacketType.AgentWearablesRequest ) 
+            else if (pack.Type == PacketType.AgentWearablesRequest)
             {
-                _agentManager.SendIntialAvatarAppearance(userInfo );
+                _agentManager.SendIntialAvatarAppearance(userInfo);
             }
-            else if(pack.Type == PacketType.AgentUpdate) 
+            else if (pack.Type == PacketType.AgentUpdate)
             {
-            //	System.Console.WriteLine("agent update");
+                //	System.Console.WriteLine("agent update");
                 AgentUpdatePacket agent = (AgentUpdatePacket)pack;
-                uint mask = agent.AgentData.ControlFlags & ( 1 );
-                AvatarData avatar = _agentManager.GetAgent(userInfo.AgentID );
-                if(avatar != null ) 
-                { 
-                    if(avatar.Started ) 
+                uint mask = agent.AgentData.ControlFlags & (1);
+                AvatarData avatar = _agentManager.GetAgent(userInfo.AgentID);
+                if (avatar != null)
+                {
+                    if (avatar.Started)
                     {
-                    	if( mask == ( 1 ) ) 
+                        if (mask == (1))
                         {
-                         	if(!avatar.Walk) 
+                            if (!avatar.Walk)
                             {
                                 //start walking
-                                _agentManager.SendMoveCommand(userInfo, false, avatar.Position.X, avatar.Position.Y, avatar.Position.Z, 0, agent.AgentData.BodyRotation );
-                                Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3( 1, 0, 0 );
-                                Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion( agent.AgentData.BodyRotation.W, agent.AgentData.BodyRotation.X, agent.AgentData.BodyRotation.Y, agent.AgentData.BodyRotation.Z );
+                                _agentManager.SendMoveCommand(userInfo, false, avatar.Position.X, avatar.Position.Y, avatar.Position.Z, 0, agent.AgentData.BodyRotation);
+                                _agentManager.UpdateAnim(avatar.NetInfo, Globals.Instance.ANIM_AGENT_WALK, 1);
+                                Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
+                                Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(agent.AgentData.BodyRotation.W, agent.AgentData.BodyRotation.X, agent.AgentData.BodyRotation.Y, agent.AgentData.BodyRotation.Z);
                                 Axiom.MathLib.Vector3 direc = q * v3;
                                 direc.Normalize();
-                                direc = direc * ( ( 0.03f ) * 128f );
+                                direc = direc * ((0.03f) * 128f);
 
                                 avatar.Velocity.X = direc.x;
                                 avatar.Velocity.Y = direc.y;
@@ -238,12 +251,13 @@ namespace OpenSim
                                 avatar.Walk = true;
                             }
                         }
-                        else 
+                        else
                         {
-                            if(avatar.Walk) 
+                            if (avatar.Walk)
                             {
                                 //walking but key not pressed so need to stop
-                                _agentManager.SendMoveCommand(userInfo, true, avatar.Position.X, avatar.Position.Y, avatar.Position.Z, 0, agent.AgentData.BodyRotation );
+                                _agentManager.SendMoveCommand(userInfo, true, avatar.Position.X, avatar.Position.Y, avatar.Position.Z, 0, agent.AgentData.BodyRotation);
+                                _agentManager.UpdateAnim(avatar.NetInfo, Globals.Instance.ANIM_AGENT_STAND, 1);
                                 avatar.Walk = false;
                                 avatar.Velocity.X = 0;
                                 avatar.Velocity.Y = 0;
@@ -254,32 +268,33 @@ namespace OpenSim
                 }
                 else
                 {
-                	
+
                 }
             }
-            else if( pack.Type == PacketType.ChatFromViewer ) 
+            else if (pack.Type == PacketType.ChatFromViewer)
             {
                 ChatFromViewerPacket chat = (ChatFromViewerPacket)pack;
                 System.Text.Encoding enc = System.Text.Encoding.ASCII;
 
-                string myString = enc.GetString(chat.ChatData.Message );
-                if( myString != "" ) {
-                    string[] comp = new string[ 10 ];
+                string myString = enc.GetString(chat.ChatData.Message);
+                if (myString != "")
+                {
+                    string[] comp = new string[10];
                     string delimStr = " ,	";
                     char[] delimiter = delimStr.ToCharArray();
                     string line;
 
                     line = myString;
-                    comp = line.Split( delimiter );
-                    if( comp[ 0 ] == "pos" )
+                    comp = line.Split(delimiter);
+                    if (comp[0] == "pos")
                     {
                     }
-                    else if( comp[ 0 ] == "veloc" ) 
+                    else if (comp[0] == "veloc")
                     {
                     }
-                    else 
+                    else
                     {
-                        _agentManager.SendChatMessage(userInfo, line );
+                        _agentManager.SendChatMessage(userInfo, line);
                     }
                 }
             }

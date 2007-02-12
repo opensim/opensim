@@ -112,7 +112,10 @@ namespace OpenSim
 			agent.Position = new LLVector3(100, 100, 22);
 			agent.BaseFolder = baseFolder;
 			agent.InventoryFolder = inventoryFolder;
-			this.AgentList.Add(agent.FullID, agent);
+            agent.AnimID = OpenSim.Globals.Instance.ANIM_AGENT_STAND;
+            agent.AnimSequenceID = 1;
+
+            this.AgentList.Add(agent.FullID, agent);
 			
 			//Create new Wearable Assets and place in Inventory
 			this.assetManager.CreateNewInventorySet(ref agent, userInfo);
@@ -149,6 +152,7 @@ namespace OpenSim
 			mov.Data.Position = new LLVector3(100f, 100f, 22f);
 			mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 			_server.SendPacket(mov, true, userInfo);
+                 
 		}
 		
 		/// <summary>
@@ -164,8 +168,30 @@ namespace OpenSim
 				kp.Value.Position.Y += (kp.Value.Velocity.Y * 0.2f);
 				kp.Value.Position.Z += (kp.Value.Velocity.Z * 0.2f);
 			}
+           
 		}
-		
+
+        public void UpdateAnim(UserAgentInfo userInfo, LLUUID AnimID, int AnimSeq)
+        {
+            AgentList[userInfo.AgentID].AnimID = AnimID;
+            AgentList[userInfo.AgentID].AnimSequenceID = AnimSeq;
+            UpdateAnim(userInfo);
+        }
+
+        public void UpdateAnim(UserAgentInfo userInfo)
+        {
+                AvatarAnimationPacket ani = new AvatarAnimationPacket(); 
+                ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
+                ani.AnimationSourceList[0] = new AvatarAnimationPacket.AnimationSourceListBlock();
+                ani.AnimationSourceList[0].ObjectID = new LLUUID("00000000000000000000000000000000");
+                ani.Sender = new AvatarAnimationPacket.SenderBlock();
+                ani.Sender.ID = userInfo.AgentID;
+                ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
+                ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
+                ani.AnimationList[0].AnimID = AgentList[userInfo.AgentID].AnimID;
+                ani.AnimationList[0].AnimSequenceID = AgentList[userInfo.AgentID].AnimSequenceID;
+                _server.SendPacket(ani, true, userInfo);
+        }
 		/// <summary>
 		/// 
 		/// </summary>
@@ -271,7 +297,7 @@ namespace OpenSim
 			//send intial set of captured prims data?
 			this.Prim_Manager.ReadPrimDatabase( "objectdatabase.ini", userInfo);
 			
-			//send prims that have been created by users
+            //send prims that have been created by users
 			//prim_man.send_existing_prims(User_info);
 			
 			//send update about clients avatar
@@ -624,7 +650,9 @@ namespace OpenSim
 		public AvatarWearable[] Wearables; 
 		public LLUUID InventoryFolder;
     	public LLUUID BaseFolder;
-		
+        public LLUUID AnimID;
+        public int AnimSequenceID;
+
 		public AvatarData()
 		{
 			Wearables=new AvatarWearable[2]; //should be 13
