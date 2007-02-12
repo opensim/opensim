@@ -310,10 +310,10 @@ namespace OpenSim
 					objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[num];
 					
 					//	int count=0;
-					string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\data\";
+					string data_path = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, @"data");
 					for(int cc = 0; cc < num; cc++)
 					{
-						string filenam = data_path+@"prim_updates"+start+".dat";
+						string filenam = System.IO.Path.Combine(data_path, @"prim_updates"+start+".dat");
 						int i = 0;
 						//FileInfo fInfo = new FileInfo("objectupate"+start+".dat");
 						FileInfo fInfo = new FileInfo(filenam);

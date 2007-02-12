@@ -267,32 +267,32 @@ namespace OpenSim
 		{
 			
 			//shouldn't have to read all this in from disk for every new client
-			string data_path = System.AppDomain.CurrentDomain.BaseDirectory + @"\layer_data\";
+			string data_path = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, @"layer_data");
 			
 			//send layerdata
 			LayerDataPacket layerpack = new LayerDataPacket();
 			layerpack.LayerID.Type = 76;
-			this.SendLayerData(userInfo,ref layerpack, data_path+@"layerdata0.dat");
+			this.SendLayerData(userInfo,ref layerpack, System.IO.Path.Combine(data_path, @"layerdata0.dat"));
 			
 			LayerDataPacket layerpack1 = new LayerDataPacket();
 			layerpack1.LayerID.Type = 76;
-			this.SendLayerData(userInfo, ref layerpack, data_path+@"layerdata1.dat");
+			this.SendLayerData(userInfo, ref layerpack, System.IO.Path.Combine(data_path, @"layerdata1.dat"));
 			
 			LayerDataPacket layerpack2 = new LayerDataPacket();
 			layerpack2.LayerID.Type = 56;
-			this.SendLayerData(userInfo, ref layerpack, data_path+@"layerdata2.dat");
+			this.SendLayerData(userInfo, ref layerpack, System.IO.Path.Combine(data_path, @"layerdata2.dat"));
 			
 			LayerDataPacket layerpack3 = new LayerDataPacket();
 			layerpack3.LayerID.Type = 55;
-			this.SendLayerData(userInfo, ref layerpack, data_path+@"layerdata3.dat");
+			this.SendLayerData(userInfo, ref layerpack, System.IO.Path.Combine(data_path, @"layerdata3.dat"));
 			
 			LayerDataPacket layerpack4 = new LayerDataPacket();
 			layerpack4.LayerID.Type = 56;
-			this.SendLayerData(userInfo, ref layerpack, data_path+@"layerdata4.dat");
+			this.SendLayerData(userInfo, ref layerpack, System.IO.Path.Combine(data_path, @"layerdata4.dat"));
 			
 			LayerDataPacket layerpack5 = new LayerDataPacket();
 			layerpack5.LayerID.Type = 55;
-			this.SendLayerData(userInfo, ref layerpack, data_path+@"layerdata5.dat");
+			this.SendLayerData(userInfo, ref layerpack, System.IO.Path.Combine(data_path, @"layerdata5.dat"));
 			
 			//send intial set of captured prims data?
 			this.Prim_Manager.ReadPrimDatabase( "objectdatabase.ini", userInfo);

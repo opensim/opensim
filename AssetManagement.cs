@@ -218,14 +218,14 @@ namespace OpenSim
 			string folder;
 			if(Image)
 			{
-				folder = @"\textures\";
+				folder = @"textures";
 			}
 			else
 			{
-				folder = @"\assets\";
+				folder = @"assets";
 			}
-            string data_path = System.AppDomain.CurrentDomain.BaseDirectory + folder;
-			string filename = data_path+@info.filename;
+            string data_path =  System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, folder);
+			string filename = System.IO.Path.Combine(data_path, @info.filename);
 			FileInfo fInfo = new FileInfo(filename);
 
 			long numBytes = fInfo.Length;
