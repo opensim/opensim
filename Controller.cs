@@ -107,10 +107,14 @@ namespace OpenSim
             else if (pack.Type == PacketType.AgentAnimation) 
             {
                 AgentAnimationPacket AgentAni = (AgentAnimationPacket)pack;
-                if (AgentAni.AgentData.AgentID == userInfo.AgentID)
+                for (int i = 0; i < AgentAni.AnimationList.Length; i++)
                 {
-                    _agentManager.UpdateAnim(userInfo, AgentAni.AnimationList[0].AnimID, 1);
+                    if (AgentAni.AnimationList[i].StartAnim)
+                    {
+                        _agentManager.UpdateAnim(userInfo, AgentAni.AnimationList[0].AnimID, 1);
+                    }
                 }
+                
             }
             else if (pack.Type == PacketType.FetchInventory)
             {
@@ -238,7 +242,7 @@ namespace OpenSim
                             {
                                 //start walking
                                 _agentManager.SendMoveCommand(userInfo, false, avatar.Position.X, avatar.Position.Y, avatar.Position.Z, 0, agent.AgentData.BodyRotation);
-                                _agentManager.UpdateAnim(avatar.NetInfo, Globals.Instance.ANIM_AGENT_WALK, 1);
+                                _agentManager.UpdateAnim(avatar.NetInfo, AgentManager.AnimsLLUUID["ANIM_AGENT_WALK"], 1);
                                 Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
                                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(agent.AgentData.BodyRotation.W, agent.AgentData.BodyRotation.X, agent.AgentData.BodyRotation.Y, agent.AgentData.BodyRotation.Z);
                                 Axiom.MathLib.Vector3 direc = q * v3;
@@ -257,7 +261,7 @@ namespace OpenSim
                             {
                                 //walking but key not pressed so need to stop
                                 _agentManager.SendMoveCommand(userInfo, true, avatar.Position.X, avatar.Position.Y, avatar.Position.Z, 0, agent.AgentData.BodyRotation);
-                                _agentManager.UpdateAnim(avatar.NetInfo, Globals.Instance.ANIM_AGENT_STAND, 1);
+                                _agentManager.UpdateAnim(avatar.NetInfo, AgentManager.AnimsLLUUID["ANIM_AGENT_STAND"], 1);
                                 avatar.Walk = false;
                                 avatar.Velocity.X = 0;
                                 avatar.Velocity.Y = 0;
