@@ -195,6 +195,28 @@ namespace OpenSim
                 ani.AnimationList[0].AnimSequenceID = AgentList[userInfo.AgentID].AnimSequenceID;
                 Console.WriteLine("Agenct_Manager.cs: UpdateAnim(UserAgentInfo userInfo): Sent Animation to client - " + AgentManager.AnimsNames[ani.AnimationList[0].AnimID]);
                 _server.SendPacket(ani, true, userInfo);
+
+                // update other agents as appropiate
+                Axiom.MathLib.Sphere BoundingSphere;
+                foreach (KeyValuePair<libsecondlife.LLUUID, AvatarData> kp in this.AgentList)
+			    {
+				    if(kp.Key!=userInfo.AgentID) {
+                        // Make a bounding sphere for the other avatar
+                        BoundingSphere = new Sphere(new Vector3(kp.Value.Position.X,kp.Value.Position.Y,kp.Value.Position.Z), kp.Value.far);
+                        
+                        // If it intersects with our position, send an update packet
+                        if(BoundingSphere.Intersects(new Vector3(this.AgentList[userInfo.AgentID].Position.X,this.AgentList[userInfo.AgentID].Position.Y,this.AgentList[userInfo.AgentID].Position.Z))) {
+                            ani.AnimationSourceList[0].ObjectID = userInfo.AgentID;
+                            ani.Sender = new AvatarAnimationPacket.SenderBlock();
+                            ani.Sender.ID = userInfo.AgentID;
+                            ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
+                            ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
+                            ani.AnimationList[0].AnimID = AgentList[userInfo.AgentID].AnimID;
+                            ani.AnimationList[0].AnimSequenceID = AgentList[userInfo.AgentID].AnimSequenceID;
+                            _server.SendPacket(ani, true, kp.Value.NetInfo);
+                        }
+                    }
+                }   
         }
 		/// <summary>
 		/// 
@@ -816,6 +838,11 @@ namespace OpenSim
     	public LLUUID BaseFolder;
         public LLUUID AnimID;
         public int AnimSequenceID;
+        public float far;
+        public libsecondlife.LLVector3 CameraAtAxis;
+        public libsecondlife.LLVector3 CameraCenter;
+        public libsecondlife.LLVector3 CameraLeftAxis;
+        public libsecondlife.LLVector3 CameraUpAxis;
 
 		public AvatarData()
 		{

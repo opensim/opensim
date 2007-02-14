@@ -232,6 +232,11 @@ namespace OpenSim
                 AgentUpdatePacket agent = (AgentUpdatePacket)pack;
                 uint mask = agent.AgentData.ControlFlags & (1);
                 AvatarData avatar = _agentManager.GetAgent(userInfo.AgentID);
+                avatar.CameraAtAxis = agent.AgentData.CameraAtAxis;
+                avatar.CameraUpAxis = agent.AgentData.CameraUpAxis;
+                avatar.CameraCenter = agent.AgentData.CameraCenter;
+                avatar.far = agent.AgentData.Far;
+
                 if (avatar != null)
                 {
                     if (avatar.Started)
