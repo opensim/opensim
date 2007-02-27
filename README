@@ -1,0 +1,22 @@
+Some basic instructions on how to use OpenSim/OGS for hackers and geeks
+-------------------------------------------------
+
+1.First, either get in touch with a grid owner or install the OGS server components on your own server.
+2.Ask the grid owner to send you keys over a secure channel (encrypted email, paper mail, phone, encrypted IM/IRC). If you and the grid owner are not concerned about security (YOU SHOULD BE!!!) then this exchange can be done over any communications channel.
+3.Edit src/Config.cs to reflect your changes or if the grid owner has provided you with a template/custom database, drop opensim.yap into bin/
+4.If you edited src/Config.cs then run "nant build" at the root directory
+5.With mono on Linux/BSD cd into bin/ and run "mono OpenSim.exe", On win32 just run OpenSim.exe
+5.Login to the grid with a standard viewer and find your sim (note that at certain times the SVN version does not allow logins)
+
+Some basic instructions on how to use OpenSim/OGS for the laymen
+-------------------------------------------------
+
+1.Ensure you either have mono or the .NET framework runtime installed
+2.Find a grid owner
+3.Ask the grid owner to send you connection instructions
+4.Either install the grid owner's opensim.yap by placing it into the same directory as OpenSim.exe or follow their instructions
+5.On Linux/BSD, go to a command prompt and type:
+cd /path/to/where/you/downloaded/
+cd bin/
+mono OpenSim.exe
+6.Login to the grid in the normal way
