@@ -1,0 +1,5 @@
+Options +FollowSymlinks
+
+RewriteEngine on
+RewriteOptions MaxRedirects=1
+RewriteRule .* index.php  [L]
