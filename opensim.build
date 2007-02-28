@@ -37,7 +37,7 @@
 			<attribute type="AssemblyCopyrightAttribute" value="Copyright © OGS development team 2007"/>
 		</attributes>
 	</asminfo>
-	<csc target="exe" output="bin/OpenSim.exe" debug="${debug}" verbose="true">
+	<csc target="exe" output="bin/OpenSim.exe" debug="${debug}" verbose="true" warninglevel="4">
 			<references basedir="bin/" failonempty="true">
 				<include name="System" />
 				<include name="System.Data" />

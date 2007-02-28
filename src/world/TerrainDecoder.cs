@@ -410,7 +410,7 @@ namespace OpenSim
          	return output;
         }
 
-		public Packet CreateLayerPacket(float[] heightmap, int minX, int maxX, int minY, int maxY)
+		public Packet CreateLayerPacket(float[] heightmap, int minX, int minY, int maxX, int maxY)
         {
         	//int minX = 0, maxX = 2, minY = 0, maxY = 1; //these should be passed to this function
         	LayerDataPacket layer = new LayerDataPacket();

@@ -25,7 +25,7 @@ namespace OpenSim.world
 		mov.Data.RegionHandle = OpenSim_Main.cfg.RegionHandle;
 		// TODO - dynamicalise this stuff
 		mov.Data.Timestamp = 1169838966;
-		mov.Data.Position = new LLVector3(100f, 100f, 22f);
+		mov.Data.Position = new LLVector3(100f, 100f, 35f);
 		mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 		
 		Console.WriteLine("Sending AgentMovementComplete packet");
@@ -49,7 +49,7 @@ namespace OpenSim.world
                 handshake.RegionInfo.TerrainStartHeight10 = 20;
                 handshake.RegionInfo.TerrainStartHeight11 = 20;
                 handshake.RegionInfo.SimAccess = 13;
-                handshake.RegionInfo.WaterHeight = 5;
+                handshake.RegionInfo.WaterHeight = 10;
                 handshake.RegionInfo.RegionFlags = 72458694;
                 handshake.RegionInfo.SimName = _enc.GetBytes(OpenSim_Main.cfg.RegionName + "\0");
                 handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");

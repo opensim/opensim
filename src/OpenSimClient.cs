@@ -83,6 +83,9 @@ namespace OpenSim
 			case PacketType.CompleteAgentMovement:
 				ClientAvatar.CompleteMovement(OpenSim_Main.local_world);
 			break;
+			case PacketType.RegionHandshakeReply:
+				OpenSim_Main.local_world.SendLayerData(this);	
+			break;
 		    }
 		}
 
@@ -285,7 +288,7 @@ namespace OpenSim
 	 		AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
 			AckTimer.Start();
 
-			Thread ClientThread = new Thread(new ThreadStart(AuthUser));
+			ClientThread = new Thread(new ThreadStart(AuthUser));
         	        ClientThread.IsBackground = true;
 			ClientThread.Start();
 		}

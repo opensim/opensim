@@ -1,5 +1,6 @@
 using System;
 using libsecondlife;
+using libsecondlife.Packets;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,8 +9,10 @@ namespace OpenSim.world
     public class World
     {
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
-        public SurfacePatch[] LandMap;
+        public float[] LandMap;
         public ScriptEngine Scripts;
+	public TerrainDecode terrainengine = new TerrainDecode();
+
 	
         public World()
         {
@@ -18,13 +21,13 @@ namespace OpenSim.world
 
 		// We need a 16x16 array of 16m2 surface patches for a 256m2 sim
 		Console.WriteLine("World.cs - creating LandMap");
-		LandMap = new SurfacePatch[16*16];
-		int xinc;
-		int yinc;
-		for(xinc=0; xinc<16; xinc++) for(yinc=0; yinc<16; yinc++) {
-			LandMap[xinc+(yinc*16)]=new SurfacePatch();
-		}
-   
+		terrainengine = new TerrainDecode();
+                LandMap = new float[65536];
+                for(int i =0; i < 65536; i++) {
+                       LandMap[i] =  30.4989f;
+                }
+  
+ 
 		Console.WriteLine("World.cs - Creating script engine instance");
 		// Initialise this only after the world has loaded
 		Scripts = new ScriptEngine(this);
@@ -37,6 +40,13 @@ namespace OpenSim.world
                 Entities[UUID].update();
             }
         }
+
+	public void SendLayerData(OpenSimClient RemoteClient) {
+		for(int i=1; i<16; i++) {
+			Packet layerpack=this.terrainengine.CreateLayerPacket(LandMap, i,1,1,16);
+			RemoteClient.OutPacket(layerpack);
+		}
+	}
 
 	public void AddViewerAgent(OpenSimClient AgentClient) {
 		Console.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
