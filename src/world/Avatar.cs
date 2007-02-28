@@ -55,6 +55,8 @@ namespace OpenSim.world
   			awb.ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
   			aw.WearableData[i] = awb;
 		}
+	
+		ControllingClient.OutPacket(aw);
 	}
 
 	public void SendRegionHandshake(World RegionInfo) {
