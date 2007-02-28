@@ -32,6 +32,31 @@ namespace OpenSim.world
 		ControllingClient.OutPacket(mov);
 	}
 
+	public void SendInitialPosition() {
+	}
+	
+	public void SendInitialAppearance() {
+		AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
+		aw.AgentData.AgentID = this.ControllingClient.AgentID;
+		aw.AgentData.SerialNum = 0;
+		aw.AgentData.SessionID = ControllingClient.SessionID;
+ 
+		aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
+		AgentWearablesUpdatePacket.WearableDataBlock awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+		awb.WearableType = (byte)0;
+		awb.AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+		awb.ItemID = LLUUID.Random();
+		aw.WearableData[0] = awb;
+ 
+		for(int i=1; i<13; i++) {
+  			awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+  			awb.WearableType = (byte)i;
+  			awb.AssetID = new LLUUID("00000000-0000-0000-0000-000000000000");
+  			awb.ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
+  			aw.WearableData[i] = awb;
+		}
+	}
+
 	public void SendRegionHandshake(World RegionInfo) {
 		Console.WriteLine("Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
 		System.Text.Encoding _enc = System.Text.Encoding.ASCII;

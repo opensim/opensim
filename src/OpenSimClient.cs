@@ -98,6 +98,35 @@ namespace OpenSim
 			Transfer.TransferInfo.Params = reqPacket.TransferInfo.Params;
 			Transfer.TransferInfo.Size = (int)AssetResponse.ContentLength;
 			Transfer.TransferInfo.TransferID = reqPacket.TransferInfo.TransferID;
+				
+			OutPacket(Transfer);
+			
+			TransferPacketPacket TransferPacket = new TransferPacketPacket();
+			TransferPacket.TransferData.Packet = 0;
+			TransferPacket.TransferData.ChannelType = 2;
+			TransferPacket.TransferData.TransferID=reqPacket.TransferInfo.TransferID;
+		
+			if(AssetResponse.ContentLength>1000) {
+				byte[] chunk = new byte[1000];
+				Array.Copy(idata,chunk,1000);
+				TransferPacket.TransferData.Data = chunk;
+				TransferPacket.TransferData.Status = 0;
+				OutPacket(TransferPacket);
+ 
+				TransferPacket = new TransferPacketPacket();
+				TransferPacket.TransferData.Packet = 1;
+				TransferPacket.TransferData.ChannelType = 2;
+				TransferPacket.TransferData.TransferID = reqPacket.TransferInfo.TransferID;
+				byte[] chunk1 = new byte[(idata.Length-1000)];
+				Array.Copy(idata, 1000, chunk1, 0, chunk1.Length);
+				TransferPacket.TransferData.Data = chunk1;
+				TransferPacket.TransferData.Status = 1;
+				OutPacket(TransferPacket);
+			} else {
+				TransferPacket.TransferData.Status = 1;
+				TransferPacket.TransferData.Data = idata;
+				OutPacket(TransferPacket);
+			}
 		}
 		
 		public void ProcessInPacket(Packet Pack) {
@@ -109,7 +138,11 @@ namespace OpenSim
 			case PacketType.RegionHandshakeReply:
 				OpenSim_Main.local_world.SendLayerData(this);	
 			break;
+			case PacketType.AgentWearablesRequest:
+				ClientAvatar.SendInitialAppearance();
+			break;
 			case PacketType.TransferRequest:
+				Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
 				// We put transfer requests into a big queue and then spawn a thread for each new one
 				TransferRequestPacket transfer = (TransferRequestPacket)Pack;
 		    		AssetRequests.Enqueue(transfer);
