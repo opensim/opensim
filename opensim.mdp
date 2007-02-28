@@ -1,0 +1,44 @@
+<Project name="opensim" fileversion="2.0" language="C#" clr-version="Net_2_0" ctype="DotNetProject">
+  <Configurations active="Debug">
+    <Configuration name="Debug" ctype="DotNetProjectConfiguration">
+      <Output directory="./bin/Debug" assembly="opensim" />
+      <Build debugmode="True" target="Exe" />
+      <Execution runwithwarnings="True" consolepause="True" runtime="MsNet" clr-version="Net_2_0" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" generatexmldocumentation="False" ctype="CSharpCompilerParameters" />
+    </Configuration>
+    <Configuration name="Release" ctype="DotNetProjectConfiguration">
+      <Output directory="./bin/Release" assembly="opensim" />
+      <Build debugmode="False" target="Exe" />
+      <Execution runwithwarnings="True" consolepause="True" runtime="MsNet" clr-version="Net_2_0" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" generatexmldocumentation="False" ctype="CSharpCompilerParameters" />
+    </Configuration>
+  </Configurations>
+  <Contents>
+    <File name="./src/Config.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/Main.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/OpenSimClient.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/Util.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/VersionInfo.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/types/BitPack.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/types/Mesh.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/types/Triangle.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/Avatar.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/Entity.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/Primitive.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/ScriptEngine.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/SurfacePatch.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/TerrainDecoder.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/World.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/world/scripting/IScript.cs" subtype="Code" buildaction="Compile" />
+    <File name="./src/AssemblyInfo.cs" subtype="Code" buildaction="Compile" />
+  </Contents>
+  <References>
+    <ProjectReference type="Gac" localcopy="True" refto="System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Gac" localcopy="True" refto="System.Xml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Assembly" localcopy="True" refto="./bin/Axiom.MathLib.dll" />
+    <ProjectReference type="Assembly" localcopy="True" refto="./bin/Db4objects.Db4o.dll" />
+    <ProjectReference type="Assembly" localcopy="True" refto="./bin/libsecondlife.dll" />
+    <ProjectReference type="Assembly" localcopy="True" refto="./bin/log4net.dll" />
+  </References>
+</Project>
