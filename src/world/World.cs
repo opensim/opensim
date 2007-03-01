@@ -14,19 +14,19 @@ namespace OpenSim.world
 	public TerrainDecode terrainengine = new TerrainDecode();
 	public uint _localNumber=0;
 	
+        private Random Rand = new Random();
+
         public World()
         {
 		Console.WriteLine("World.cs - creating new entitities instance");				
 		Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
 
-		// We need a 16x16 array of 16m2 surface patches for a 256m2 sim
 		Console.WriteLine("World.cs - creating LandMap");
 		terrainengine = new TerrainDecode();
                 LandMap = new float[65536];
-                for(int i =0; i < 65536; i++) {
-                       LandMap[i] =  40f;
-                }
-  
+		for(int i =0; i < 65536; i++) {
+			LandMap[i] =  21.4989f;
+		}
  
 		Console.WriteLine("World.cs - Creating script engine instance");
 		// Initialise this only after the world has loaded
@@ -42,8 +42,8 @@ namespace OpenSim.world
         }
 
 	public void SendLayerData(OpenSimClient RemoteClient) {
-		for(int i=1; i<16; i++) {
-			Packet layerpack=this.terrainengine.CreateLayerPacket(LandMap, i,1,1,16);
+		for(int x=0; x<16; x=x+4) for(int y=0; y<16; y++){
+			Packet layerpack=this.terrainengine.CreateLayerPacket(LandMap, x,y,x+4,y+1);
 			RemoteClient.OutPacket(layerpack);
 		}
 	}

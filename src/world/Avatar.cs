@@ -39,7 +39,7 @@ namespace OpenSim.world
 			pos.X = 100f;
 			objdata.ID = 8880000;
 			objdata.NameValue = enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
-			libsecondlife.LLVector3 pos2 = new LLVector3(13.981f,100.0f,20.0f);
+			libsecondlife.LLVector3 pos2 = new LLVector3(100f,100f,23f);
 			//objdata.FullID=user.AgentID;
 			byte[] pb = pos.GetBytes();			
 			Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);
@@ -55,8 +55,8 @@ namespace OpenSim.world
 		mov.AgentData.AgentID = this.ControllingClient.AgentID;
 		mov.Data.RegionHandle = OpenSim_Main.cfg.RegionHandle;
 		// TODO - dynamicalise this stuff
-		mov.Data.Timestamp = 1169838966;
-		mov.Data.Position = new LLVector3(100f, 100f, 35f);
+		mov.Data.Timestamp = 1172750370;
+		mov.Data.Position = new LLVector3(100f, 100f, 23f);
 		mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 		
 		Console.WriteLine("Sending AgentMovementComplete packet");
@@ -80,7 +80,7 @@ namespace OpenSim.world
 		objupdate.ObjectData[0].FullID = ControllingClient.AgentID;
 		objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstname + "\nLastName STRING RW SV " + lastname + " \0");
 			
-		libsecondlife.LLVector3 pos2 = new LLVector3(100f, 100.0f, 22.0f);
+		libsecondlife.LLVector3 pos2 = new LLVector3(100f, 100.0f, 23.0f);
 		
 		byte[] pb = pos2.GetBytes();
 						
