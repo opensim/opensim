@@ -137,6 +137,7 @@ namespace OpenSim
 			break;
 			case PacketType.RegionHandshakeReply:
 				OpenSim_Main.local_world.SendLayerData(this);	
+				ClientAvatar.SendInitialPosition();
 			break;
 			case PacketType.AgentWearablesRequest:
 				ClientAvatar.SendInitialAppearance();
@@ -147,7 +148,6 @@ namespace OpenSim
 				TransferRequestPacket transfer = (TransferRequestPacket)Pack;
 		    		AssetRequests.Enqueue(transfer);
 				Thread AssetLoaderThread = new Thread(new ThreadStart(AssetLoader));
-                        	AssetLoaderThread.IsBackground = true;
                         	AssetLoaderThread.Start();
 			break;
 		    }
@@ -210,7 +210,8 @@ namespace OpenSim
 
 	 	private void AckTimer_Elapsed(object sender, ElapsedEventArgs ea)
 	 	{
-			SendAcks(); ResendUnacked();
+			SendAcks();
+			ResendUnacked();
 		}
 
 		public void ProcessOutPacket(Packet Pack) {
@@ -230,7 +231,7 @@ namespace OpenSim
 	 					Pack.Header.Sequence = Sequence;
 	 				}
 
-	 				if (Pack.Header.Reliable)
+					if (Pack.Header.Reliable)  //DIRTY HACK
 	 				{
 	 					lock (NeedAck)
 	 					{

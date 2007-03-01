@@ -12,7 +12,7 @@ namespace OpenSim.world
         public float[] LandMap;
         public ScriptEngine Scripts;
 	public TerrainDecode terrainengine = new TerrainDecode();
-
+	public uint _localNumber=0;
 	
         public World()
         {
