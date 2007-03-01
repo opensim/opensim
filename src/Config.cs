@@ -68,9 +68,9 @@ namespace OpenSim
 			this.RegionHandle = Helpers.UIntsToLong((RegionLocX*256), (RegionLocY*256));
 			this.IPListenPort = 9000;
 			this.IPListenAddr = "4.78.190.75";
-			this.AssetURL = "http://osgrid.org/ogs/assetserver/";
+			this.AssetURL = "http://www.osgrid.org/ogs/assetserver/";
 			this.AssetSendKey = "1234";
-			this.GridURL = "http://osgrid.org/ogs/gridserver/";
+			this.GridURL = "http://www.osgrid.org/ogs/gridserver/";
 			this.GridSendKey = "1234";
 		}
 

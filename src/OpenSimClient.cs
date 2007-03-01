@@ -89,7 +89,6 @@ namespace OpenSim
 			BinaryReader br = new BinaryReader(AssetResponse.GetResponseStream());
 			idata = br.ReadBytes((int)AssetResponse.ContentLength);
 			br.Close();
-			AssetResponse.Close();
 		
 			TransferInfoPacket Transfer = new TransferInfoPacket();
 			Transfer.TransferInfo.ChannelType = 2;
@@ -127,6 +126,7 @@ namespace OpenSim
 				TransferPacket.TransferData.Data = idata;
 				OutPacket(TransferPacket);
 			}
+			AssetResponse.Close();
 		}
 		
 		public void ProcessInPacket(Packet Pack) {
@@ -134,10 +134,10 @@ namespace OpenSim
 		    switch(Pack.Type) {
 			case PacketType.CompleteAgentMovement:
 				ClientAvatar.CompleteMovement(OpenSim_Main.local_world);
+                                ClientAvatar.SendInitialPosition();
 			break;
 			case PacketType.RegionHandshakeReply:
 				OpenSim_Main.local_world.SendLayerData(this);	
-				ClientAvatar.SendInitialPosition();
 			break;
 			case PacketType.AgentWearablesRequest:
 				ClientAvatar.SendInitialAppearance();
