@@ -443,7 +443,7 @@ namespace OpenSim
         	this.EncodePatchHeader(newpack, headers);
         	
         	int lastused=0;
-        	for(int i = 0; i < 1024 ; i++)
+        	for(int i = 0; i < 2048 ; i++)
         	{
         		if(Encoded[i] !=0)
         			lastused = i;
