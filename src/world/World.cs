@@ -24,7 +24,7 @@ namespace OpenSim.world
 		terrainengine = new TerrainDecode();
                 LandMap = new float[65536];
                 for(int i =0; i < 65536; i++) {
-                       LandMap[i] =  30.4989f;
+                       LandMap[i] =  40f;
                 }
   
  

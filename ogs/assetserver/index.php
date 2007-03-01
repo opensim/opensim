@@ -5,6 +5,7 @@ include("assetserver_config.inc.php");
 
 // Parse out the parameters from the URL
 $params = str_replace($asset_home,'', $_SERVER['REQUEST_URI']);
+$params = str_replace("index.php/","",$params);
 $params = split('/',$params);
 
 // Die if the key doesn't match
