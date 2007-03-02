@@ -118,7 +118,7 @@ namespace OpenSim
 		Console.WriteLine("Main.cs:MainServerListener() - New thread started");
 		Console.WriteLine("Main.cs:MainServerListener() - Opening UDP socket on " + cfg.IPListenAddr + ":" + cfg.IPListenPort);
 
-		ServerIncoming = new IPEndPoint(IPAddress.Parse(cfg.IPListenAddr),cfg.IPListenPort);
+        ServerIncoming = new IPEndPoint(IPAddress.Any, cfg.IPListenPort);
 		Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 		Server.Bind(ServerIncoming);
 		

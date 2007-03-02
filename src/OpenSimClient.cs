@@ -391,7 +391,7 @@ namespace OpenSim
 			String grTest = sr.ReadLine();
 			sr.Close();
 			GridResponse.Close();
-			if(grTest.Equals("1")) { 	// YAY! Valid login
+			if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) { 	// YAY! Valid login
 				Console.WriteLine("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
 				this.AgentID=cirpack.CircuitCode.ID;
 				this.SessionID=cirpack.CircuitCode.SessionID;

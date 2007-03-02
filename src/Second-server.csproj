@@ -6,10 +6,10 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}</ProjectGuid>
-    <StartupObject>OpenSim.Controller</StartupObject>
+    <StartupObject>OpenSim.OpenSim_Main</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <Optimize>False</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugSymbols>True</DebugSymbols>
@@ -17,7 +17,7 @@
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <Optimize>True</Optimize>
     <DefineConstants>TRACE</DefineConstants>
     <DebugSymbols>False</DebugSymbols>
@@ -29,6 +29,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\Axiom.MathLib.dll</HintPath>
     </Reference>
+    <Reference Include="Db4objects.Db4o, Version=6.0.1.0, Culture=neutral, PublicKeyToken=6199cd4f203aa8eb, processorArchitecture=MSIL" />
     <Reference Include="libsecondlife, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\libsecondlife.dll</HintPath>
@@ -42,19 +43,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Agent_Manager.cs" />
-    <Compile Include="Controller.cs" />
-    <Compile Include="Prim_manager.cs" />
-    <Compile Include="Login_manager.cs" />
-    <Compile Include="Physics_manager.cs" />
-    <Compile Include="Script_manager.cs" />
-    <Compile Include="Server.cs" />
-    <Compile Include="StorageManager.cs" />
-    <Compile Include="GridManager.cs" />
-    <Compile Include="Globals.cs" />
-    <Compile Include="InventoryManager.cs" />
-    <Compile Include="SceneGraphManager.cs" />
-    <Compile Include="AssetManagement.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="OpenSimClient.cs" />
+    <Compile Include="types\BitPack.cs" />
+    <Compile Include="types\Mesh.cs" />
+    <Compile Include="types\Triangle.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="VersionInfo.cs" />
+    <Compile Include="world\Avatar.cs" />
+    <Compile Include="world\Entity.cs" />
+    <Compile Include="world\Primitive.cs" />
+    <Compile Include="world\ScriptEngine.cs" />
+    <Compile Include="world\scripting\IScript.cs" />
+    <Compile Include="world\SurfacePatch.cs" />
+    <Compile Include="world\TerrainDecoder.cs" />
+    <Compile Include="world\World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>
