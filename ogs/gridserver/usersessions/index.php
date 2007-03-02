@@ -77,5 +77,9 @@ switch($cmd) {
 	case 'exists':
 		echo $exists;
 	break;
+        case 'delete':
+                $query = "UPDATE sessions SET session_active=0, session_end=NOW() WHERE agent_id='$agent_id' LIMIT 1";
+                $deleteresult = mysql_query($query);
+	break;
 }
 ?>
