@@ -9,9 +9,9 @@ namespace OpenSim.world
     public class Entity
     {
         protected libsecondlife.LLUUID uuid;
-        public Vector3 position;
-        public Vector3 velocity;
-        public Quaternion rotation;
+        protected Vector3 position;
+        protected Vector3 velocity;
+        protected Quaternion rotation;
         protected string name;
         protected List<Entity> children;
 
@@ -24,13 +24,7 @@ namespace OpenSim.world
             name = "(basic entity)";
             children = new List<Entity>();
         }
-        public virtual void addFroces()
-        {
-        	foreach (Entity child in children)
-            {
-                child.addFroces();
-            }
-        }
+
         public virtual void update() {
             // Do any per-frame updates needed that are applicable to every type of entity
             foreach (Entity child in children)

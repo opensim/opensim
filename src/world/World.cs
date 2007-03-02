@@ -3,7 +3,6 @@ using libsecondlife;
 using libsecondlife.Packets;
 using System.Collections.Generic;
 using System.Text;
-using PhysicsManager;
 
 namespace OpenSim.world
 {
@@ -14,8 +13,6 @@ namespace OpenSim.world
         public ScriptEngine Scripts;
 	public TerrainDecode terrainengine = new TerrainDecode();
 	public uint _localNumber=0;
-		private PhysicsScene phyScene;
-		private float timeStep= 0.1f;
 	
         private Random Rand = new Random();
 
@@ -35,30 +32,9 @@ namespace OpenSim.world
 		// Initialise this only after the world has loaded
 		Scripts = new ScriptEngine(this);
         }
-        
-		public PhysicsScene PhysScene
-		{
-			set
-			{
-				this.phyScene = value;
-			}
-		}
-		
+
         public void Update()
         {
-        	if(this.phyScene.IsThreaded)
-        	{
-        		this.phyScene.GetResults();
-        	
-        	}
-        		
-        	foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].addFroces();
-            }
-   
-        	this.phyScene.Simulate(timeStep);
-        	
             foreach (libsecondlife.LLUUID UUID in Entities.Keys)
             {
                 Entities[UUID].update();
@@ -79,9 +55,7 @@ namespace OpenSim.world
 		this.Entities.Add(AgentClient.AgentID, NewAvatar);
 		Console.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
 		NewAvatar.SendRegionHandshake(this);
-		
-		NewAvatar.PhysActor = this.phyScene.AddAvatar(new PhysicsVector(NewAvatar.position.x, NewAvatar.position.y, NewAvatar.position.z));
-		//this.Update();		// will work for now, but needs to be optimised so we don't update everything in the sim for each new user
+		this.Update();		// will work for now, but needs to be optimised so we don't update everything in the sim for each new user
 	}
 
         public bool Backup() {
