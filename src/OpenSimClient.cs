@@ -150,6 +150,18 @@ namespace OpenSim
 				Thread AssetLoaderThread = new Thread(new ThreadStart(AssetLoader));
                         	AssetLoaderThread.Start();
 			break;
+			case PacketType.LogoutRequest:
+				Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+				OpenSim_Main.local_world.Entities.Remove(this.AgentID);
+	                        WebRequest DeleteSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + this.AgentID.ToString() + this.CircuitCode.ToString() + "/delete");
+                        	WebResponse GridResponse = DeleteSession.GetResponse();
+                        	StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
+                        	String grTest = sr.ReadLine();
+                        	sr.Close();
+	                        GridResponse.Close();
+				
+				this.ClientThread.Abort();
+			break;
 		    }
 		}
 
