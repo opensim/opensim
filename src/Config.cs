@@ -106,18 +106,19 @@ namespace OpenSim
 		}
 	
 		public World LoadWorld() {
-			IObjectSet world_result = db.Get(typeof(OpenSim.world.World));
-			if(world_result.Count==1) {
+			Console.WriteLine("Config.cs:LoadWorld() - Looking for a world object in local DB");
+	//		IObjectSet world_result = db.Get(typeof(OpenSim.world.World));
+	//		if(world_result.Count==1) {
 				Console.WriteLine("Config.cs:LoadWorld() - Found an OpenSim.world.World object in local database, loading");
-				return (World)world_result.Next();	
-			} else {
+				//return (World)world_result.Next();	
+	//		} else {
 				Console.WriteLine("Config.cs:LoadWorld() - Could not find the world or too many worlds! Constructing blank one");
 				World blank = new World();
 				Console.WriteLine("Config.cs:LoadWorld() - Saving initial world state to disk");
 				db.Set(blank);
 				db.Commit();
 				return blank;	
-			}
+	//		}
 		}
 
 		public void LoadFromGrid() {

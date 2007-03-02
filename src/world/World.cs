@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace OpenSim.world
         public ScriptEngine Scripts;
 	public TerrainDecode terrainengine = new TerrainDecode();
 	public uint _localNumber=0;
+	public PhysicsEngine physics;
 	
         private Random Rand = new Random();
 
@@ -28,13 +30,19 @@ namespace OpenSim.world
 			LandMap[i] =  21.4989f;
 		}
  
-		Console.WriteLine("World.cs - Creating script engine instance");
-		// Initialise this only after the world has loaded
-		Scripts = new ScriptEngine(this);
         }
 
-        public void Update()
-        {
+	public void InitLoop() {
+		Console.WriteLine("World.cs:StartLoop() - Initialising physics");
+		this.physics = new PhysicsEngine();
+		physics.Startup();
+	}
+	
+	public void DoStuff() {
+		Thread.Sleep(1000);
+	}
+
+	public void Update() {
             foreach (libsecondlife.LLUUID UUID in Entities.Keys)
             {
                 Entities[UUID].update();

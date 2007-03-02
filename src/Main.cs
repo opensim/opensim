@@ -50,7 +50,6 @@ namespace OpenSim
 	public static SimConfig cfg;
 	public static World local_world;
 	private static Thread MainListener;
-	private static Thread PingRespponder;
 	public static Socket Server;
 	private static IPEndPoint ServerIncoming;
 	private static byte[] RecvBuffer = new byte[4096];
@@ -68,7 +67,7 @@ namespace OpenSim
 		sim = new OpenSim_Main();		
 		sim.Startup();
 		while(true) {
-			Thread.Sleep(1000);
+			local_world.DoStuff();
 		}
 	}
 
@@ -91,6 +90,8 @@ namespace OpenSim
 		MainListener = new Thread(new ThreadStart(MainServerListener));	
 		MainListener.Start();
 
+		Console.WriteLine("Main.cs:Startup() - Starting up main world loop");
+		local_world.InitLoop();
 	}
 
 	private void OnReceivedData(IAsyncResult result) {
