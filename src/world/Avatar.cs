@@ -20,6 +20,10 @@ namespace OpenSim.world
 		SetupTemplate("avatar-template.dat");
 	}
 
+	public void update() {
+		base.update();
+	}
+
 	private void SetupTemplate(string name)
 		{
 			

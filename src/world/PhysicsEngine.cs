@@ -17,5 +17,7 @@ namespace OpenSim.world
 		Console.WriteLine("PhysicsEngine.cs:Startup() - DOING NOTHING, DUMMY FUNCTION!");
 	}
  
+	public void DoStuff(World simworld) {
+	}
     }
 }

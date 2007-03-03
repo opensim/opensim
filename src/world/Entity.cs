@@ -14,6 +14,7 @@ namespace OpenSim.world
         protected Quaternion rotation;
         protected string name;
         protected List<Entity> children;
+	public bool needupdate;
 
         public Entity()
         {
@@ -29,7 +30,8 @@ namespace OpenSim.world
             // Do any per-frame updates needed that are applicable to every type of entity
             foreach (Entity child in children)
             {
-                child.update();
+            	if(child.needupdate) 
+			child.update();
             }
         }
 

@@ -39,13 +39,17 @@ namespace OpenSim.world
 	}
 	
 	public void DoStuff() {
-		Thread.Sleep(1000);
+		physics.DoStuff(this);
+		this.Update();
 	}
 
 	public void Update() {
             foreach (libsecondlife.LLUUID UUID in Entities.Keys)
             {
-                Entities[UUID].update();
+		if(Entities[UUID].needupdate) {
+			Entities[UUID].update();
+		}
+		
             }
         }
 
