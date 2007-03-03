@@ -39,8 +39,10 @@ namespace OpenSim.world
 	}
 	
 	public void DoStuff() {
-		physics.DoStuff(this);
-		this.Update();
+		lock(this) {
+			physics.DoStuff(this);
+			this.Update();
+		}
 	}
 
 	public void Update() {
