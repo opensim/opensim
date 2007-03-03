@@ -18,13 +18,6 @@ namespace OpenSim.world
 	}
  
 	public void DoStuff(World simworld) {
-         foreach (libsecondlife.LLUUID UUID in simworld.Entities.Keys)
-            {
-                if(simworld.Entities[UUID].needupdate) {
-                        simworld.Entities[UUID].position += simworld.Entities[UUID].velocity;
-                }
-
-            }
 	}
     }
 }

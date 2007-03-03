@@ -12,8 +12,6 @@ namespace OpenSim.world
 	public string firstname;
         public string lastname;
 	public OpenSimClient ControllingClient;
-	public uint CurrentKeyMask;
-
 	private libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
 
         public Avatar(OpenSimClient TheClient) {
@@ -23,21 +21,7 @@ namespace OpenSim.world
 	}
 
 	public void update() {
-		lock(this) {
-			base.update();
-		
-			if((this.CurrentKeyMask & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) != 0) {
-				if((this.velocity.X>230) & (this.velocity.Y>230)) {
-					this.velocity.X=230;
-					this.velocity.Y=230;
-					this.velocity.Z=0;
-				}
-			} else {
-				this.velocity.X=0;
-				this.velocity.Y=0;
-				this.velocity.Z=0;
-			}
-		}
+		base.update();
 	}
 
 	private void SetupTemplate(string name)

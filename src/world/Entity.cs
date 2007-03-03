@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Axiom.MathLib;
-using libsecondlife;
 using OpenSim.types;
 
 namespace OpenSim.world
@@ -10,8 +9,8 @@ namespace OpenSim.world
     public class Entity
     {
         protected libsecondlife.LLUUID uuid;
-	public LLVector3 position;
-	public LLVector3 velocity;
+        protected Vector3 position;
+        protected Vector3 velocity;
         protected Quaternion rotation;
         protected string name;
         protected List<Entity> children;
@@ -20,8 +19,8 @@ namespace OpenSim.world
         public Entity()
         {
             uuid = new libsecondlife.LLUUID();
-            position = new LLVector3();
-            velocity = new LLVector3();
+            position = new Vector3();
+            velocity = new Vector3();
             rotation = new Quaternion();
             name = "(basic entity)";
             children = new List<Entity>();
@@ -34,7 +33,6 @@ namespace OpenSim.world
             	if(child.needupdate) 
 			child.update();
             }
-	    this.needupdate=false;
         }
 
         public virtual string getName()
