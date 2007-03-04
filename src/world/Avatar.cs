@@ -145,13 +145,17 @@ namespace OpenSim.world
 			Array.Copy(pb, 0, bytes, i, pb.Length);
 			i += 12;
 			
+
 			ushort ac = 32767;
-			bytes[i++] = (byte)(ac % 256); // avatar.InternVelocityX
-			bytes[i++] = (byte)((ac>> 8) % 256);
-			bytes[i++] = (byte)(ac % 256); // avatar.InternVelocityY
-			bytes[i++] = (byte)((ac >> 8) % 256);
-			bytes[i++] = (byte)(ac % 256); // avatar.InternVelocityZ
-			bytes[i++] = (byte)((ac >> 8) % 256);
+                        bytes[i++] = (byte)((ushort)(((this.velocity.X/128f)+1)*32767) % 256 );
+                        bytes[i++] = (byte)(((ushort)(((this.velocity.X/128f)+1)*32767) >> 8) % 256);
+                        bytes[i++] = (byte)((ushort)(((this.velocity.Y/128f)+1)*32767) % 256);
+                        bytes[i++] = (byte)(((ushort)(((this.velocity.Y/128f)+1)*32767) >> 8) % 256);
+                        bytes[i++] = (byte)((ushort)(((this.velocity.Z/128f)+1)*32767) % 256);
+                        bytes[i++] = (byte)(((ushort)(((this.velocity.Z/128f)+1)*32767) >> 8) % 256);
+
+
+
 			
 			//accel
 			bytes[i++] = (byte)(ac % 256);
