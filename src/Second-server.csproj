@@ -53,6 +53,7 @@
     <Compile Include="VersionInfo.cs" />
     <Compile Include="world\Avatar.cs" />
     <Compile Include="world\Entity.cs" />
+    <Compile Include="world\PhysicsEngine.cs" />
     <Compile Include="world\Primitive.cs" />
     <Compile Include="world\ScriptEngine.cs" />
     <Compile Include="world\scripting\IScript.cs" />
