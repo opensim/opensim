@@ -169,7 +169,28 @@ namespace OpenSim
 			case PacketType.AgentUpdate:
 				ClientAvatar.HandleAgentUpdate((AgentUpdatePacket)Pack);
 			break;
-		    }
+			case PacketType.ChatFromViewer:
+				ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
+				if(Helpers.FieldToString(inchatpack.ChatData.Message)=="") break;
+
+				System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+				libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
+				reply.ChatData.Audible = 1;
+				reply.ChatData.Message = inchatpack.ChatData.Message;
+				reply.ChatData.ChatType = 1;
+				reply.ChatData.SourceType = 1;
+				reply.ChatData.Position = this.ClientAvatar.position;
+				reply.ChatData.FromName = _enc.GetBytes(this.ClientAvatar.firstname + " " + this.ClientAvatar.lastname + "\0");
+				reply.ChatData.OwnerID = this.AgentID;
+				reply.ChatData.SourceID = this.AgentID;
+ 
+
+
+				foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+					client.OutPacket(reply);
+				}	
+			break;
+		   }
 		}
 
 	 	private void ResendUnacked()
