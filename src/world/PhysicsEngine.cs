@@ -18,6 +18,14 @@ namespace OpenSim.world
 	}
  
 	public void DoStuff(World simworld) {
+         foreach (libsecondlife.LLUUID UUID in simworld.Entities.Keys)
+            {
+                if( true /* simworld.Entities[UUID].needupdate */) { // FIXME!
+                        simworld.Entities[UUID].position += simworld.Entities[UUID].velocity;
+			Console.WriteLine("Moving "+UUID.ToString()+ " to "+ simworld.Entities[UUID].position.ToString());
+                }
+
+            }
 	}
     }
 }

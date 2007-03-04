@@ -46,7 +46,7 @@ namespace OpenSim
     /// </summary>
     public class OpenSim_Main 
     {
-	private static OpenSim_Main sim;
+	public static OpenSim_Main sim;
 	public static SimConfig cfg;
 	public static World local_world;
 	private static Thread MainListener;
@@ -68,6 +68,7 @@ namespace OpenSim
 		sim.Startup();
 		while(true) {
 			local_world.DoStuff();
+			Thread.Sleep(100);
 		}
 	}
 

@@ -60,6 +60,7 @@ namespace OpenSim
 		private const int MAX_APPENDED_ACKS = 10;
 		private const int RESEND_TIMEOUT = 4000;
 		private const int MAX_SEQUENCE = 0xFFFFFF;
+		private Queue<uint> Inbox;
 	
 		public void ack_pack(Packet Pack) {
                     //libsecondlife.Packets.PacketAckPacket ack_it = new PacketAckPacket();
@@ -152,15 +153,21 @@ namespace OpenSim
 			break;
 			case PacketType.LogoutRequest:
 				Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
-				OpenSim_Main.local_world.Entities.Remove(this.AgentID);
+				lock(OpenSim_Main.local_world.Entities) {
+					OpenSim_Main.local_world.Entities.Remove(this.AgentID);	
+				}
 	                        WebRequest DeleteSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + this.AgentID.ToString() + this.CircuitCode.ToString() + "/delete");
                         	WebResponse GridResponse = DeleteSession.GetResponse();
                         	StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
                         	String grTest = sr.ReadLine();
                         	sr.Close();
 	                        GridResponse.Close();
+				Console.WriteLine("DEBUG: " + grTest);
 				
 				this.ClientThread.Abort();
+			break;
+			case PacketType.AgentUpdate:
+				ClientAvatar.HandleAgentUpdate((AgentUpdatePacket)Pack);
 			break;
 		    }
 		}
@@ -315,6 +322,7 @@ namespace OpenSim
 	 			{
 	 				foreach (uint ack in NewPack.Header.AckList)
 	 				{
+						Console.WriteLine("Got appended ack: "+ack);
 	 					NeedAck.Remove(ack);
 	 				}
 	 			}
@@ -329,6 +337,7 @@ namespace OpenSim
 	 			{
 	 				foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
 	 				{
+						Console.WriteLine("Got PacketAck: "+block.ID);
 	 					NeedAck.Remove(block.ID);
 	 				}
 	 			}
@@ -398,6 +407,7 @@ namespace OpenSim
 		private void AuthUser() {
 			Console.WriteLine("OpenSimClient.cs:AuthUser() - Authenticating new user request with grid");
 			WebRequest CheckSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + cirpack.CircuitCode.ID.ToString() + "/" + cirpack.CircuitCode.Code.ToString() + "/exists");
+			Console.WriteLine(OpenSim_Main.cfg.GridURL);
 			WebResponse GridResponse = CheckSession.GetResponse();
 			StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
 			String grTest = sr.ReadLine();

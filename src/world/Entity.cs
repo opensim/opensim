@@ -2,15 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Axiom.MathLib;
+using libsecondlife;
 using OpenSim.types;
+using libsecondlife.Packets;
 
 namespace OpenSim.world
 {
     public class Entity
     {
         protected libsecondlife.LLUUID uuid;
-        protected Vector3 position;
-        protected Vector3 velocity;
+	protected uint localid;
+	public LLVector3 position;
+	public LLVector3 velocity;
         protected Quaternion rotation;
         protected string name;
         protected List<Entity> children;
@@ -19,8 +22,9 @@ namespace OpenSim.world
         public Entity()
         {
             uuid = new libsecondlife.LLUUID();
-            position = new Vector3();
-            velocity = new Vector3();
+	    localid = 8880000 + (OpenSim_Main.local_world._localNumber++); // FIXME - race condition!
+            position = new LLVector3();
+            velocity = new LLVector3();
             rotation = new Quaternion();
             name = "(basic entity)";
             children = new List<Entity>();
@@ -33,7 +37,13 @@ namespace OpenSim.world
             	if(child.needupdate) 
 			child.update();
             }
+	    this.needupdate=false;
         }
+
+	public virtual ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateTerseBlock() {
+		return null;
+	}
+
 
         public virtual string getName()
         {

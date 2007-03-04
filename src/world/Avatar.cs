@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
+using Axiom.MathLib;
 
 namespace OpenSim.world
 {
@@ -12,16 +13,37 @@ namespace OpenSim.world
 	public string firstname;
         public string lastname;
 	public OpenSimClient ControllingClient;
+	public uint CurrentKeyMask;
+
 	private libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
 
         public Avatar(OpenSimClient TheClient) {
         	Console.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
 		ControllingClient=TheClient;
 		SetupTemplate("avatar-template.dat");
+
+		position = new LLVector3(100.0f,100.0f,60.0f);
 	}
 
-	public void update() {
-		base.update();
+	public override void update() {
+		lock(this) {
+			base.update();
+
+			Console.WriteLine("KeyMask: " + this.CurrentKeyMask);
+		
+			if((this.CurrentKeyMask & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) != 0) {
+				Vector3 tmpVelocity = this.rotation * new Vector3(1.0f,0.0f,0.0f);
+				tmpVelocity.Normalize(); tmpVelocity = tmpVelocity * 0.3f;
+				this.velocity.X = tmpVelocity.x;
+				this.velocity.Y = tmpVelocity.y;
+				this.velocity.Z = tmpVelocity.z;
+				Console.WriteLine("Walking at "+ this.velocity.ToString());
+			} else {
+				this.velocity.X=0;
+				this.velocity.Y=0;
+				this.velocity.Z=0;
+			}
+		}
 	}
 
 	private void SetupTemplate(string name)
@@ -41,7 +63,7 @@ namespace OpenSim.world
 			System.Text.Encoding enc = System.Text.Encoding.ASCII;
 			libsecondlife.LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
 			pos.X = 100f;
-			objdata.ID = 8880000;
+			objdata.ID = this.localid;
 			objdata.NameValue = enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
 			libsecondlife.LLVector3 pos2 = new LLVector3(100f,100f,23f);
 			//objdata.FullID=user.AgentID;
@@ -60,7 +82,7 @@ namespace OpenSim.world
 		mov.Data.RegionHandle = OpenSim_Main.cfg.RegionHandle;
 		// TODO - dynamicalise this stuff
 		mov.Data.Timestamp = 1172750370;
-		mov.Data.Position = new LLVector3(100f, 100f, 23f);
+		mov.Data.Position = new LLVector3((float)this.position.X, (float)this.position.Y, (float)this.position.Z);
 		mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 		
 		Console.WriteLine("Sending AgentMovementComplete packet");
@@ -79,18 +101,80 @@ namespace OpenSim.world
 			
 		objupdate.ObjectData[0] = AvatarTemplate;
 		//give this avatar object a local id and assign the user a name
-		objupdate.ObjectData[0].ID = 8880000 + OpenSim_Main.local_world._localNumber;
+		objupdate.ObjectData[0].ID = this.localid; 
 		//User_info.name="Test"+this.local_numer+" User";
 		objupdate.ObjectData[0].FullID = ControllingClient.AgentID;
 		objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstname + "\nLastName STRING RW SV " + lastname + " \0");
 			
-		libsecondlife.LLVector3 pos2 = new LLVector3(100f, 100.0f, 23.0f);
+		libsecondlife.LLVector3 pos2 = new LLVector3((float)this.position.X, (float)this.position.Y, (float)this.position.Z);
 		
 		byte[] pb = pos2.GetBytes();
 						
 		Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
 		OpenSim_Main.local_world._localNumber++;
 		this.ControllingClient.OutPacket(objupdate);
+	}
+
+	public override ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateTerseBlock() {
+			byte[] bytes = new byte[60];
+			int i=0;
+			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+			
+			dat.TextureEntry = AvatarTemplate.TextureEntry;
+			libsecondlife.LLVector3 pos2 = new LLVector3(this.position.X, this.position.Y, this.position.Z);
+			
+			uint ID = this.localid; 
+			bytes[i++] = (byte)(ID % 256);
+			bytes[i++] = (byte)((ID >> 8) % 256);
+			bytes[i++] = (byte)((ID >> 16) % 256);
+			bytes[i++] = (byte)((ID >> 24) % 256);
+			bytes[i++] = 0;
+			bytes[i++] = 1;
+			i += 14;
+			bytes[i++] = 128;
+			bytes[i++] = 63;
+			
+			byte[] pb = pos2.GetBytes();
+			Array.Copy(pb, 0, bytes, i, pb.Length);
+			i += 12;
+			
+			ushort ac = 32767;
+			bytes[i++] = (byte)(ac % 256); // avatar.InternVelocityX
+			bytes[i++] = (byte)((ac>> 8) % 256);
+			bytes[i++] = (byte)(ac % 256); // avatar.InternVelocityY
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256); // avatar.InternVelocityZ
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//accel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//rot
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);	
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//rotation vel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);			
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);	
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			dat.Data=bytes;
+			return(dat);
+		
 	}
 	
 	public void SendInitialAppearance() {
@@ -151,5 +235,16 @@ namespace OpenSim.world
 		Console.WriteLine("Avatar.cs:SendRegionHandshake() - Sending RegionHandshake packet");
 		this.ControllingClient.OutPacket(handshake);
 	}
+
+	public void HandleAgentUpdate(AgentUpdatePacket update) {
+ 	    lock(this) {
+		// FIXME: shouldn't update these direction
+		this.rotation = new Quaternion(update.AgentData.BodyRotation.W, update.AgentData.BodyRotation.X, update.AgentData.BodyRotation.Y, update.AgentData.BodyRotation.Z);
+		
+		this.CurrentKeyMask = update.AgentData.ControlFlags;
+		this.needupdate = true;
+	    }
+    	}
+
     }
 }
