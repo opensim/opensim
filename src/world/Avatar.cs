@@ -13,7 +13,10 @@ namespace OpenSim.world
 	public string firstname;
         public string lastname;
 	public OpenSimClient ControllingClient;
+	public LLVector3 oldvel;
+	public LLVector3 oldpos;
 	public uint CurrentKeyMask;
+	public bool walking;
 
 	private libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
 
@@ -30,18 +33,22 @@ namespace OpenSim.world
 			base.update();
 
 			Console.WriteLine("KeyMask: " + this.CurrentKeyMask);
-		
+	
+			oldvel=this.velocity;
+			oldpos=this.position;
 			if((this.CurrentKeyMask & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) != 0) {
 				Vector3 tmpVelocity = this.rotation * new Vector3(1.0f,0.0f,0.0f);
-				tmpVelocity.Normalize(); tmpVelocity = tmpVelocity * 0.3f;
+				tmpVelocity.Normalize(); tmpVelocity = tmpVelocity * 0.5f;
 				this.velocity.X = tmpVelocity.x;
 				this.velocity.Y = tmpVelocity.y;
 				this.velocity.Z = tmpVelocity.z;
 				Console.WriteLine("Walking at "+ this.velocity.ToString());
+				this.walking=true;
 			} else {
 				this.velocity.X=0;
 				this.velocity.Y=0;
 				this.velocity.Z=0;
+				this.walking=false;
 			}
 		}
 	}
@@ -238,10 +245,8 @@ namespace OpenSim.world
 
 	public void HandleAgentUpdate(AgentUpdatePacket update) {
  	    lock(this) {
-		// FIXME: shouldn't update these direction
-		this.rotation = new Quaternion(update.AgentData.BodyRotation.W, update.AgentData.BodyRotation.X, update.AgentData.BodyRotation.Y, update.AgentData.BodyRotation.Z);
-		
 		this.CurrentKeyMask = update.AgentData.ControlFlags;
+		this.rotation = new Quaternion(update.AgentData.BodyRotation.W, update.AgentData.BodyRotation.X, update.AgentData.BodyRotation.Y, update.AgentData.BodyRotation.Z);
 		this.needupdate = true;
 	    }
     	}

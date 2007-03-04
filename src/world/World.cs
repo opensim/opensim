@@ -50,17 +50,20 @@ namespace OpenSim.world
             {
 		if(Entities[UUID].needupdate) {
 			Entities[UUID].update();
-		}
-		if(Entities[UUID] is Avatar) { // FIXME: only send updates when avatar moves.
-			ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = Entities[UUID].CreateTerseBlock();
-			foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
-				ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-				terse.RegionData.RegionHandle = OpenSim_Main.cfg.RegionHandle; // FIXME
-				terse.RegionData.TimeDilation = 0;
-				terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-				terse.ObjectData[0] = terseBlock;
-				client.OutPacket(terse);
-			}
+		
+			if(Entities[UUID] is Avatar) {
+			Avatar avatar=(Avatar)Entities[UUID];
+			if((avatar.oldpos!=avatar.position) || (avatar.oldvel!=avatar.velocity) || avatar.walking) {
+				ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = Entities[UUID].CreateTerseBlock();
+				foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+					ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+					terse.RegionData.RegionHandle = OpenSim_Main.cfg.RegionHandle; // FIXME
+					terse.RegionData.TimeDilation = 0;
+					terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+					terse.ObjectData[0] = terseBlock;
+					client.OutPacket(terse);
+				}
+			}}
 		}
             }
         }
