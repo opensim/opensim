@@ -53,25 +53,81 @@ namespace OpenSim
 		public int IPListenPort;
 		public string IPListenAddr;
 		
-        	public string AssetURL;
-	        public string AssetSendKey;
+		public bool sandbox;
+        	public string AssetURL="";
+	        public string AssetSendKey="";
 		
-	        public string GridURL;
-	        public string GridSendKey;
+	        public string GridURL="";
+	        public string GridSendKey="";
 
 		private IObjectContainer db;
 		
 		public void LoadDefaults() {
-			this.RegionName = "OpenSim test\0";
-			this.RegionLocX = 997;
-			this.RegionLocY = 996;
+			string tempstring;
+			Console.WriteLine("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+			Console.Write("Name [OpenSim test]:");
+			tempstring=Console.ReadLine();
+			if(tempstring=="") {
+				this.RegionName = "OpenSim test";
+			} else {
+				this.RegionName = tempstring;
+			}
+
+			Console.Write("Grid location X [997]:");
+			tempstring=Console.ReadLine();
+			if(tempstring=="") {
+				this.RegionLocX = 997;
+			} else {
+				this.RegionLocX = (uint)Convert.ToInt32(tempstring);
+			}
+		
+			Console.Write("Grid location Y [996]:");
+			tempstring=Console.ReadLine();
+			if(tempstring=="") {
+				this.RegionLocY = 996;
+			} else {
+				this.RegionLocY = (uint)Convert.ToInt32(tempstring);
+			}
+
+			Console.Write("Listen on UDP port for client connections [9000]:");
+			tempstring=Console.ReadLine();
+                        if(tempstring=="") {
+                                this.IPListenPort = 9000;
+                        } else {
+                                this.IPListenPort = Convert.ToInt32(tempstring);
+                        }
+
+			Console.Write("Listen on IP address for client connections [127.0.0.1]:");
+			tempstring=Console.ReadLine();
+			if(tempstring=="") {
+                                this.IPListenAddr = "127.0.0.1";
+                        } else {
+                                this.IPListenAddr = tempstring;
+                        }
+	
+	
+			Console.Write("Run in sandbox or grid mode? [sandbox]:");
+			tempstring=Console.ReadLine();
+			if(tempstring=="") {
+                                this.sandbox = true;
+                        } else if(tempstring=="grid"){
+                                this.sandbox = false;
+                        } else if(tempstring=="sandbox"){
+				this.sandbox=true;
+			}
+
+			if(!this.sandbox) {
+				Console.Write("Asset server URL:");
+				this.AssetURL=Console.ReadLine();
+				Console.Write("Key to send to asset server:");
+				this.AssetSendKey=Console.ReadLine();
+				Console.Write("Grid server URL:");
+				this.GridURL=Console.ReadLine();
+				Console.Write("Key to send to gridserver:");
+				this.GridSendKey=Console.ReadLine();
+				
+			}
 			this.RegionHandle = Helpers.UIntsToLong((RegionLocX*256), (RegionLocY*256));
-			this.IPListenPort = 9000;
-			this.IPListenAddr = "4.78.190.75";
-			this.AssetURL = "http://www.osgrid.org/ogs/assetserver/";
-			this.AssetSendKey = "1234";
-			this.GridURL = "http://www.osgrid.org/ogs/gridserver/";
-			this.GridSendKey = "1234";
 		}
 
 		public void InitConfig() {
@@ -103,20 +159,30 @@ namespace OpenSim
 				Console.WriteLine("Config.cs:InitConfig() - Exception occured");
 				Console.WriteLine(e.ToString());
 			}
+			Console.WriteLine("Sim settings loaded:");
+			Console.WriteLine("Name: " + this.RegionName);
+			Console.WriteLine("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
+			Console.WriteLine("Region Handle: " + this.RegionHandle.ToString());
+			Console.WriteLine("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
+			Console.WriteLine("Sandbox Mode? " + this.sandbox.ToString());
+			Console.WriteLine("Asset URL: " + this.AssetURL);
+			Console.WriteLine("Asset key: " + this.AssetSendKey);
+			Console.WriteLine("Grid URL: " + this.GridURL);
+			Console.WriteLine("Grid key: " + this.GridSendKey);
 		}
 	
 		public World LoadWorld() {
 			Console.WriteLine("Config.cs:LoadWorld() - Looking for a world object in local DB");
 	//		IObjectSet world_result = db.Get(typeof(OpenSim.world.World));
 	//		if(world_result.Count==1) {
-				Console.WriteLine("Config.cs:LoadWorld() - Found an OpenSim.world.World object in local database, loading");
+	//			Console.WriteLine("Config.cs:LoadWorld() - Found an OpenSim.world.World object in local database, loading");
 				//return (World)world_result.Next();	
 	//		} else {
 				Console.WriteLine("Config.cs:LoadWorld() - Could not find the world or too many worlds! Constructing blank one");
 				World blank = new World();
 				Console.WriteLine("Config.cs:LoadWorld() - Saving initial world state to disk");
-				db.Set(blank);
-				db.Commit();
+				//db.Set(blank);
+				//db.Commit();
 				return blank;	
 	//		}
 		}
@@ -124,14 +190,6 @@ namespace OpenSim
 		public void LoadFromGrid() {
 			Console.WriteLine("Config.cs:LoadFromGrid() - dummy function, DOING ABSOLUTELY NOTHING AT ALL!!!");
 			// TODO: Make this crap work
-			/* WebRequest GridLogin = WebRequest.Create(this.GridURL + "regions/" + this.RegionHandle.ToString() + "/login");
-			WebResponse GridResponse = GridLogin.GetResponse();
-	                byte[] idata = new byte[(int)GridResponse.ContentLength];
-			BinaryReader br = new BinaryReader(GridResponse.GetResponseStream());
-			
-			br.Close();
-			GridResponse.Close();
-		 	*/										    
 		}
 
 		public void Shutdown() {

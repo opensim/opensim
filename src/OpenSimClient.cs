@@ -80,6 +80,7 @@ namespace OpenSim
 		}
 		
 		public void AssetLoader() {
+			if(OpenSim_Main.cfg.sandbox==false) {
 			Console.WriteLine("OpenSimClient.cs:AssetLoader() - Starting new thread");
 			TransferRequestPacket reqPacket = AssetRequests.Dequeue();
 			Console.WriteLine("OpenSimClient.cs:AssetLoader() - Got a request, processing it");
@@ -128,6 +129,7 @@ namespace OpenSim
 				OutPacket(TransferPacket);
 			}
 			AssetResponse.Close();
+			}
 		}
 		
 		public void ProcessInPacket(Packet Pack) {
@@ -156,14 +158,16 @@ namespace OpenSim
 				lock(OpenSim_Main.local_world.Entities) {
 					OpenSim_Main.local_world.Entities.Remove(this.AgentID);	
 				}
-	                        WebRequest DeleteSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + this.AgentID.ToString() + this.CircuitCode.ToString() + "/delete");
+	                        
+				if(OpenSim_Main.cfg.sandbox==false) {
+				WebRequest DeleteSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + this.AgentID.ToString() + this.CircuitCode.ToString() + "/delete");
                         	WebResponse GridResponse = DeleteSession.GetResponse();
                         	StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
                         	String grTest = sr.ReadLine();
                         	sr.Close();
 	                        GridResponse.Close();
 				Console.WriteLine("DEBUG: " + grTest);
-				
+				}
 				this.ClientThread.Abort();
 			break;
 			case PacketType.AgentUpdate:
@@ -426,24 +430,32 @@ namespace OpenSim
 		}
 		
 		private void AuthUser() {
-			Console.WriteLine("OpenSimClient.cs:AuthUser() - Authenticating new user request with grid");
-			WebRequest CheckSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + cirpack.CircuitCode.ID.ToString() + "/" + cirpack.CircuitCode.Code.ToString() + "/exists");
-			Console.WriteLine(OpenSim_Main.cfg.GridURL);
-			WebResponse GridResponse = CheckSession.GetResponse();
-			StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
-			String grTest = sr.ReadLine();
-			sr.Close();
-			GridResponse.Close();
-			if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) { 	// YAY! Valid login
-				Console.WriteLine("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+			if(OpenSim_Main.cfg.sandbox==false) {
+				Console.WriteLine("OpenSimClient.cs:AuthUser() - Authenticating new user request with grid");
+				WebRequest CheckSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + cirpack.CircuitCode.ID.ToString() + "/" + cirpack.CircuitCode.Code.ToString() + "/exists");
+				Console.WriteLine(OpenSim_Main.cfg.GridURL);
+				WebResponse GridResponse = CheckSession.GetResponse();
+				StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
+				String grTest = sr.ReadLine();
+				sr.Close();
+				GridResponse.Close();
+				if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) { 	// YAY! Valid login
+					Console.WriteLine("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+					this.AgentID=cirpack.CircuitCode.ID;
+					this.SessionID=cirpack.CircuitCode.SessionID;
+					this.CircuitCode=cirpack.CircuitCode.Code;
+					InitNewClient();
+					ClientLoop();	
+				} else {			// Invalid
+					Console.WriteLine("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+					ClientThread.Abort();	
+				}
+			} else {
 				this.AgentID=cirpack.CircuitCode.ID;
-				this.SessionID=cirpack.CircuitCode.SessionID;
-				this.CircuitCode=cirpack.CircuitCode.Code;
-				InitNewClient();
-				ClientLoop();	
-			} else {			// Invalid
-				Console.WriteLine("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
-				ClientThread.Abort();	
+                                this.SessionID=cirpack.CircuitCode.SessionID;
+                                this.CircuitCode=cirpack.CircuitCode.Code;
+                                InitNewClient();
+                                ClientLoop();
 			}
 		}
 	}
