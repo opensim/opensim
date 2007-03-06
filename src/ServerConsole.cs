@@ -144,6 +144,11 @@ namespace OpenSim
 		// Runs a command with a number of parameters
 		public Object RunCmd(string Cmd, string[] cmdparams) {
 			switch(Cmd) {
+				case "help":
+				this.WriteLine("show users - show info about connected users");
+				this.WriteLine("shutdown - disconnect all clients and shutdown");
+				break;
+				
 				case "show":
 				ShowCommands(cmdparams[0]);
 				break;
