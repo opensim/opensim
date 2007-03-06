@@ -46,9 +46,11 @@ namespace OpenSim
     /// </summary>
     public class OpenSim_Main 
     {
+	public static DateTime startuptime;
 	public static OpenSim_Main sim;
 	public static SimConfig cfg;
 	public static World local_world;
+	public static ServerConsole localcons;
 	private static Thread MainListener;
 	public static Socket Server;
 	private static IPEndPoint ServerIncoming;
@@ -67,32 +69,49 @@ namespace OpenSim
 		sim = new OpenSim_Main();		
 		sim.Startup();
 		while(true) {
-			local_world.DoStuff();
-			Thread.Sleep(100);
+			localcons.MainConsolePrompt();
 		}
 	}
 
 	private OpenSim_Main() {
 	}
 	
+	public static void Shutdown() {
+		localcons.WriteLine("Main.cs:Shutdown() - Closing all threads");
+		localcons.WriteLine("Main.cs:Shutdown() - Killing listener thread");
+		MainListener.Abort();
+		localcons.WriteLine("Main.cs:Shutdown() - Killing clients");
+		// IMPLEMENT THIS
+		localcons.WriteLine("Main.cs:Shutdown() - Closing console and terminating");
+		localcons.Close();
+		Environment.Exit(0);
+	}
+
 	private void Startup() {
+		startuptime=DateTime.Now;
+		localcons=new ServerConsole(ServerConsole.ConsoleType.Local,"",0);
 		// We check our local database first, then the grid for config options
-		Console.WriteLine("Main.cs:Startup() - Loading configuration");
+		localcons.WriteLine("Main.cs:Startup() - Loading configuration");
 		cfg = new SimConfig();
 		cfg.InitConfig();
-		Console.WriteLine("Main.cs:Startup() - Contacting gridserver");
+		localcons.WriteLine("Main.cs:Startup() - Contacting gridserver");
 		cfg.LoadFromGrid();
 
-		Console.WriteLine("Main.cs:Startup() - We are " + cfg.RegionName + " at " + cfg.RegionLocX.ToString() + "," + cfg.RegionLocY.ToString());
-		Console.WriteLine("Initialising world");
+		localcons.WriteLine("Main.cs:Startup() - We are " + cfg.RegionName + " at " + cfg.RegionLocX.ToString() + "," + cfg.RegionLocY.ToString());
+		localcons.WriteLine("Initialising world");
 		local_world = cfg.LoadWorld();
 
-		Console.WriteLine("Main.cs:Startup() - Starting up messaging system");
+		localcons.WriteLine("Main.cs:Startup() - Starting up main world loop");
+                local_world.InitLoop();
+
+		localcons.WriteLine("Main.cs:Startup() - Starting up messaging system");
 		MainListener = new Thread(new ThreadStart(MainServerListener));	
 		MainListener.Start();
 
-		Console.WriteLine("Main.cs:Startup() - Starting up main world loop");
-		local_world.InitLoop();
+		Thread.Sleep(500); // give other threads a chance to catch up
+		string[] noparams = new string[1];
+		noparams[0]="";
+		localcons.WriteLine("\nOpenSim ready\nType help for list of commands");
 	}
 
 	private void OnReceivedData(IAsyncResult result) {
@@ -102,7 +121,6 @@ namespace OpenSim
 		int numBytes = Server.EndReceiveFrom(result, ref epSender);
 		int packetEnd = numBytes - 1;
 		packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-		Console.Error.WriteLine(packet.ToString());
 
 		// This is either a new client or a packet to send to an old one
 		if(ClientThreads.ContainsKey(epSender)) {
@@ -117,23 +135,24 @@ namespace OpenSim
 	}
 
 	private void MainServerListener() {
-		Console.WriteLine("Main.cs:MainServerListener() - New thread started");
-		Console.WriteLine("Main.cs:MainServerListener() - Opening UDP socket on " + cfg.IPListenAddr + ":" + cfg.IPListenPort);
+		localcons.WriteLine("Main.cs:MainServerListener() - New thread started");
+		localcons.WriteLine("Main.cs:MainServerListener() - Opening UDP socket on " + cfg.IPListenAddr + ":" + cfg.IPListenPort);
 
         ServerIncoming = new IPEndPoint(IPAddress.Any, cfg.IPListenPort);
 		Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 		Server.Bind(ServerIncoming);
 		
-		Console.WriteLine("Main.cs:MainServerListener() - UDP socket bound, getting ready to listen");
+		localcons.WriteLine("Main.cs:MainServerListener() - UDP socket bound, getting ready to listen");
 
 		ipeSender = new IPEndPoint(IPAddress.Any, 0);
 		epSender = (EndPoint) ipeSender;
 		ReceivedData = new AsyncCallback(this.OnReceivedData);
 		Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 		
-		Console.WriteLine("Main.cs:MainServerListener() - Listening...");
+		localcons.WriteLine("Main.cs:MainServerListener() - Listening...");
 		while(true) {
-			Thread.Sleep(1000);	
+			Thread.Sleep(100);
+			local_world.DoStuff();
 		}
 	}
     }

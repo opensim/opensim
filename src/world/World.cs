@@ -20,10 +20,10 @@ namespace OpenSim.world
 
         public World()
         {
-		Console.WriteLine("World.cs - creating new entitities instance");				
+		OpenSim_Main.localcons.WriteLine("World.cs - creating new entitities instance");				
 		Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
 
-		Console.WriteLine("World.cs - creating LandMap");
+		OpenSim_Main.localcons.WriteLine("World.cs - creating LandMap");
 		terrainengine = new TerrainDecode();
                 LandMap = new float[65536];
 		for(int i =0; i < 65536; i++) {
@@ -33,7 +33,7 @@ namespace OpenSim.world
         }
 
 	public void InitLoop() {
-		Console.WriteLine("World.cs:StartLoop() - Initialising physics");
+		OpenSim_Main.localcons.WriteLine("World.cs:StartLoop() - Initialising physics");
 		this.physics = new PhysicsEngine();
 		physics.Startup();
 	}
@@ -76,11 +76,11 @@ namespace OpenSim.world
 	}
 
 	public void AddViewerAgent(OpenSimClient AgentClient) {
-		Console.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
+		OpenSim_Main.localcons.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
 		Avatar NewAvatar = new Avatar(AgentClient);
-		Console.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
+		OpenSim_Main.localcons.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
 		this.Entities.Add(AgentClient.AgentID, NewAvatar);
-		Console.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
+		OpenSim_Main.localcons.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
 		NewAvatar.SendRegionHandshake(this);
 		this.Update();		// will work for now, but needs to be optimised so we don't update everything in the sim for each new user
 	}

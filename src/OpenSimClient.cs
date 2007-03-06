@@ -49,7 +49,7 @@ namespace OpenSim
 		public world.Avatar ClientAvatar;
 		private UseCircuitCodePacket cirpack;
 		private Thread ClientThread;
-		private EndPoint userEP;
+		public EndPoint userEP;
 		private  BlockingQueue<QueItem> PacketQueue;
 		private BlockingQueue<TransferRequestPacket> AssetRequests;
 		private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
@@ -81,9 +81,9 @@ namespace OpenSim
 		
 		public void AssetLoader() {
 			if(OpenSim_Main.cfg.sandbox==false) {
-			Console.WriteLine("OpenSimClient.cs:AssetLoader() - Starting new thread");
+			OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:AssetLoader() - Starting new thread");
 			TransferRequestPacket reqPacket = AssetRequests.Dequeue();
-			Console.WriteLine("OpenSimClient.cs:AssetLoader() - Got a request, processing it");
+			OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:AssetLoader() - Got a request, processing it");
 			LLUUID AssetID = new LLUUID(reqPacket.TransferInfo.Params, 0);
 			WebRequest AssetLoad = WebRequest.Create(OpenSim_Main.cfg.AssetURL + "getasset/" + OpenSim_Main.cfg.AssetSendKey + "/" + AssetID + "/data");
 			WebResponse AssetResponse = AssetLoad.GetResponse();
@@ -131,7 +131,12 @@ namespace OpenSim
 			AssetResponse.Close();
 			}
 		}
-		
+	
+		public void Logout() {
+			// TODO - kill any AssetLoaders
+			ClientThread.Abort();
+		}
+	
 		public void ProcessInPacket(Packet Pack) {
 		    ack_pack(Pack);
 		    switch(Pack.Type) {
@@ -146,7 +151,7 @@ namespace OpenSim
 				ClientAvatar.SendInitialAppearance();
 			break;
 			case PacketType.TransferRequest:
-				Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
+				OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
 				// We put transfer requests into a big queue and then spawn a thread for each new one
 				TransferRequestPacket transfer = (TransferRequestPacket)Pack;
 		    		AssetRequests.Enqueue(transfer);
@@ -154,7 +159,7 @@ namespace OpenSim
                         	AssetLoaderThread.Start();
 			break;
 			case PacketType.LogoutRequest:
-				Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+				OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
 				lock(OpenSim_Main.local_world.Entities) {
 					OpenSim_Main.local_world.Entities.Remove(this.AgentID);	
 				}
@@ -166,7 +171,7 @@ namespace OpenSim
                         	String grTest = sr.ReadLine();
                         	sr.Close();
 	                        GridResponse.Close();
-				Console.WriteLine("DEBUG: " + grTest);
+				OpenSim_Main.localcons.WriteLine("DEBUG: " + grTest);
 				}
 				this.ClientThread.Abort();
 			break;
@@ -207,8 +212,6 @@ namespace OpenSim
 	 				{
 	 					if (now - packet.TickCount > RESEND_TIMEOUT)
 	 					{
-	 						Console.WriteLine("Resending " + packet.Type.ToString() + " packet, " +
-	 						 (now - packet.TickCount) + "ms have passed", Helpers.LogLevel.Info);
 
 	 						packet.Header.Resent = true;
 	 						OutPacket(packet);
@@ -225,12 +228,10 @@ namespace OpenSim
 	 			{
 	 				if (PendingAcks.Count > 250)
 	 				{
-	 					// FIXME: Handle the odd case where we have too many pending ACKs queued up
-	 					Console.WriteLine("Too many ACKs queued up!", Helpers.LogLevel.Error);
 	 					return;
 	 				}
 					
-					Console.WriteLine("Sending PacketAck");
+					OpenSim_Main.localcons.WriteLine("Sending PacketAck");
 					
 
 	 				int i = 0;
@@ -319,7 +320,6 @@ namespace OpenSim
 	 				}
 	 			}
 
-		Console.WriteLine("OUT: \n" + Pack.ToString());
 
 		    byte[] ZeroOutBuffer = new byte[4096];
 		    byte[] sendbuffer; 
@@ -333,7 +333,7 @@ namespace OpenSim
 				OpenSim_Main.Server.SendTo(sendbuffer, sendbuffer.Length, SocketFlags.None,userEP);
 			}
 		    } catch (Exception) {
-			Console.WriteLine("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
+			OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
 			ClientThread.Abort();
 		    }
 	
@@ -347,7 +347,7 @@ namespace OpenSim
 	 			{
 	 				foreach (uint ack in NewPack.Header.AckList)
 	 				{
-						Console.WriteLine("Got appended ack: "+ack);
+						OpenSim_Main.localcons.WriteLine("Got appended ack: "+ack);
 	 					NeedAck.Remove(ack);
 	 				}
 	 			}
@@ -362,7 +362,6 @@ namespace OpenSim
 	 			{
 	 				foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
 	 				{
-						Console.WriteLine("Got PacketAck: "+block.ID);
 	 					NeedAck.Remove(block.ID);
 	 				}
 	 			}
@@ -391,7 +390,7 @@ namespace OpenSim
 		}
 
 		public OpenSimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack) {
-	                Console.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
+	                OpenSim_Main.localcons.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
 			cirpack = initialcirpack;
 			userEP = remoteEP;
 			PacketQueue = new BlockingQueue<QueItem>();
@@ -406,7 +405,7 @@ namespace OpenSim
 		}
 		
 		private void ClientLoop() {
-			Console.WriteLine("OpenSimClient.cs:ClientLoop() - Entered loop");
+			OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:ClientLoop() - Entered loop");
 			while(true) {
 				QueItem nextPacket = PacketQueue.Dequeue();
 				if(nextPacket.Incoming)
@@ -423,7 +422,7 @@ namespace OpenSim
 		}
 
 		private void InitNewClient() {
-			Console.WriteLine("OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+			OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
 			OpenSim_Main.local_world.AddViewerAgent(this);
 			world.Entity tempent=OpenSim_Main.local_world.Entities[this.AgentID];
 			this.ClientAvatar=(world.Avatar)tempent;
@@ -431,23 +430,23 @@ namespace OpenSim
 		
 		private void AuthUser() {
 			if(OpenSim_Main.cfg.sandbox==false) {
-				Console.WriteLine("OpenSimClient.cs:AuthUser() - Authenticating new user request with grid");
+				OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:AuthUser() - Authenticating new user request with grid");
 				WebRequest CheckSession = WebRequest.Create(OpenSim_Main.cfg.GridURL + "/usersessions/" + OpenSim_Main.cfg.GridSendKey + "/" + cirpack.CircuitCode.ID.ToString() + "/" + cirpack.CircuitCode.Code.ToString() + "/exists");
-				Console.WriteLine(OpenSim_Main.cfg.GridURL);
+				OpenSim_Main.localcons.WriteLine(OpenSim_Main.cfg.GridURL);
 				WebResponse GridResponse = CheckSession.GetResponse();
 				StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
 				String grTest = sr.ReadLine();
 				sr.Close();
 				GridResponse.Close();
 				if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) { 	// YAY! Valid login
-					Console.WriteLine("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+					OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
 					this.AgentID=cirpack.CircuitCode.ID;
 					this.SessionID=cirpack.CircuitCode.SessionID;
 					this.CircuitCode=cirpack.CircuitCode.Code;
 					InitNewClient();
 					ClientLoop();	
 				} else {			// Invalid
-					Console.WriteLine("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+					OpenSim_Main.localcons.WriteLine("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
 					ClientThread.Abort();	
 				}
 			} else {

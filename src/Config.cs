@@ -64,68 +64,27 @@ namespace OpenSim
 		
 		public void LoadDefaults() {
 			string tempstring;
-			Console.WriteLine("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
-			Console.Write("Name [OpenSim test]:");
-			tempstring=Console.ReadLine();
-			if(tempstring=="") {
-				this.RegionName = "OpenSim test";
-			} else {
-				this.RegionName = tempstring;
-			}
-
-			Console.Write("Grid location X [997]:");
-			tempstring=Console.ReadLine();
-			if(tempstring=="") {
-				this.RegionLocX = 997;
-			} else {
-				this.RegionLocX = (uint)Convert.ToInt32(tempstring);
-			}
-		
-			Console.Write("Grid location Y [996]:");
-			tempstring=Console.ReadLine();
-			if(tempstring=="") {
-				this.RegionLocY = 996;
-			} else {
-				this.RegionLocY = (uint)Convert.ToInt32(tempstring);
-			}
-
-			Console.Write("Listen on UDP port for client connections [9000]:");
-			tempstring=Console.ReadLine();
-                        if(tempstring=="") {
-                                this.IPListenPort = 9000;
-                        } else {
-                                this.IPListenPort = Convert.ToInt32(tempstring);
-                        }
-
-			Console.Write("Listen on IP address for client connections [127.0.0.1]:");
-			tempstring=Console.ReadLine();
-			if(tempstring=="") {
-                                this.IPListenAddr = "127.0.0.1";
-                        } else {
-                                this.IPListenAddr = tempstring;
-                        }
+			OpenSim_Main.localcons.WriteLine("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+			
+			this.RegionName=OpenSim_Main.localcons.CmdPrompt("Name [OpenSim test]: ","OpenSim test");
+			this.RegionLocX=(uint)Convert.ToInt32(OpenSim_Main.localcons.CmdPrompt("Grid Location X [997]: ","997"));
+			this.RegionLocY=(uint)Convert.ToInt32(OpenSim_Main.localcons.CmdPrompt("Grid Location Y [996]: ","996"));
+			this.IPListenPort=Convert.ToInt32(OpenSim_Main.localcons.CmdPrompt("UDP port for client connections [9000]: ","9000"));
+			this.IPListenAddr=OpenSim_Main.localcons.CmdPrompt("IP Address to listen on for client connections [127.0.0.1]: ","127.0.0.1");
 	
 	
-			Console.Write("Run in sandbox or grid mode? [sandbox]:");
-			tempstring=Console.ReadLine();
-			if(tempstring=="") {
-                                this.sandbox = true;
-                        } else if(tempstring=="grid"){
+			tempstring=OpenSim_Main.localcons.CmdPrompt("Run in sandbox or grid mode? [sandbox]: ","sandbox", "sandbox", "grid");
+                        if(tempstring=="grid"){
                                 this.sandbox = false;
                         } else if(tempstring=="sandbox"){
 				this.sandbox=true;
 			}
 
 			if(!this.sandbox) {
-				Console.Write("Asset server URL:");
-				this.AssetURL=Console.ReadLine();
-				Console.Write("Key to send to asset server:");
-				this.AssetSendKey=Console.ReadLine();
-				Console.Write("Grid server URL:");
-				this.GridURL=Console.ReadLine();
-				Console.Write("Key to send to gridserver:");
-				this.GridSendKey=Console.ReadLine();
-				
+				this.AssetURL=OpenSim_Main.localcons.CmdPrompt("Asset server URL: ");
+				this.AssetSendKey=OpenSim_Main.localcons.CmdPrompt("Asset server key: ");
+				this.GridURL=OpenSim_Main.localcons.CmdPrompt("Grid server URL: ");
+				this.GridSendKey=OpenSim_Main.localcons.CmdPrompt("Grid server key: ");
 			}
 			this.RegionHandle = Helpers.UIntsToLong((RegionLocX*256), (RegionLocY*256));
 		}
@@ -135,7 +94,7 @@ namespace OpenSim
 				db = Db4oFactory.OpenFile("opensim.yap");
 				IObjectSet result = db.Get(typeof(SimConfig));
 				if(result.Count==1) {
-					Console.WriteLine("Config.cs:InitConfig() - Found a SimConfig object in the local database, loading");
+					OpenSim_Main.localcons.WriteLine("Config.cs:InitConfig() - Found a SimConfig object in the local database, loading");
 					foreach (SimConfig cfg in result) {
 						this.RegionName = cfg.RegionName;
 						this.RegionLocX = cfg.RegionLocX;
@@ -149,38 +108,38 @@ namespace OpenSim
 						this.GridSendKey = cfg.GridSendKey;
 					}
 				} else {
-					Console.WriteLine("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
+					OpenSim_Main.localcons.WriteLine("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
 					LoadDefaults();
-					Console.WriteLine("Writing out default settings to local database");
+					OpenSim_Main.localcons.WriteLine("Writing out default settings to local database");
 					db.Set(this);
 				}
 			} catch(Exception e) {
 				db.Close();
-				Console.WriteLine("Config.cs:InitConfig() - Exception occured");
-				Console.WriteLine(e.ToString());
+				OpenSim_Main.localcons.WriteLine("Config.cs:InitConfig() - Exception occured");
+				OpenSim_Main.localcons.WriteLine(e.ToString());
 			}
-			Console.WriteLine("Sim settings loaded:");
-			Console.WriteLine("Name: " + this.RegionName);
-			Console.WriteLine("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
-			Console.WriteLine("Region Handle: " + this.RegionHandle.ToString());
-			Console.WriteLine("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
-			Console.WriteLine("Sandbox Mode? " + this.sandbox.ToString());
-			Console.WriteLine("Asset URL: " + this.AssetURL);
-			Console.WriteLine("Asset key: " + this.AssetSendKey);
-			Console.WriteLine("Grid URL: " + this.GridURL);
-			Console.WriteLine("Grid key: " + this.GridSendKey);
+			OpenSim_Main.localcons.WriteLine("Sim settings loaded:");
+			OpenSim_Main.localcons.WriteLine("Name: " + this.RegionName);
+			OpenSim_Main.localcons.WriteLine("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
+			OpenSim_Main.localcons.WriteLine("Region Handle: " + this.RegionHandle.ToString());
+			OpenSim_Main.localcons.WriteLine("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
+			OpenSim_Main.localcons.WriteLine("Sandbox Mode? " + this.sandbox.ToString());
+			OpenSim_Main.localcons.WriteLine("Asset URL: " + this.AssetURL);
+			OpenSim_Main.localcons.WriteLine("Asset key: " + this.AssetSendKey);
+			OpenSim_Main.localcons.WriteLine("Grid URL: " + this.GridURL);
+			OpenSim_Main.localcons.WriteLine("Grid key: " + this.GridSendKey);
 		}
 	
 		public World LoadWorld() {
-			Console.WriteLine("Config.cs:LoadWorld() - Looking for a world object in local DB");
+			OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Looking for a world object in local DB");
 	//		IObjectSet world_result = db.Get(typeof(OpenSim.world.World));
 	//		if(world_result.Count==1) {
-	//			Console.WriteLine("Config.cs:LoadWorld() - Found an OpenSim.world.World object in local database, loading");
+	//			OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Found an OpenSim.world.World object in local database, loading");
 				//return (World)world_result.Next();	
 	//		} else {
-				Console.WriteLine("Config.cs:LoadWorld() - Could not find the world or too many worlds! Constructing blank one");
+				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Could not find the world or too many worlds! Constructing blank one");
 				World blank = new World();
-				Console.WriteLine("Config.cs:LoadWorld() - Saving initial world state to disk");
+				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Saving initial world state to disk");
 				//db.Set(blank);
 				//db.Commit();
 				return blank;	
@@ -188,7 +147,7 @@ namespace OpenSim
 		}
 
 		public void LoadFromGrid() {
-			Console.WriteLine("Config.cs:LoadFromGrid() - dummy function, DOING ABSOLUTELY NOTHING AT ALL!!!");
+			OpenSim_Main.localcons.WriteLine("Config.cs:LoadFromGrid() - dummy function, DOING ABSOLUTELY NOTHING AT ALL!!!");
 			// TODO: Make this crap work
 		}
 

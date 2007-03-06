@@ -49,6 +49,7 @@
 			</references>
 			<sources basedir="src/">
         	        	<include name="AssemblyInfo.cs" />
+				<include name="ServerConsole.cs" />
 				<include name="Config.cs" />
 				<include name="VersionInfo.cs" />
 				<include name="Util.cs" />
