@@ -231,7 +231,6 @@ namespace OpenSim
 	 					return;
 	 				}
 					
-					OpenSim_Main.localcons.WriteLine("Sending PacketAck");
 					
 
 	 				int i = 0;

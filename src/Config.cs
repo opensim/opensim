@@ -131,19 +131,23 @@ namespace OpenSim
 		}
 	
 		public World LoadWorld() {
-			OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Looking for a world object in local DB");
-	//		IObjectSet world_result = db.Get(typeof(OpenSim.world.World));
-	//		if(world_result.Count==1) {
-	//			OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Found an OpenSim.world.World object in local database, loading");
-				//return (World)world_result.Next();	
-	//		} else {
-				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Could not find the world or too many worlds! Constructing blank one");
-				World blank = new World();
-				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Saving initial world state to disk");
-				//db.Set(blank);
-				//db.Commit();
-				return blank;	
-	//		}
+			OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Loading world....");
+			World blank = new World();
+			OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Looking for a heightmap in local DB");
+			IObjectSet world_result = db.Get(new float[65536]);
+			if(world_result.Count>0) {
+				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Found a heightmap in local database, loading");
+				blank.LandMap=(float[])world_result.Next();	
+			} else {
+				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - No heightmap found, generating new one");
+				for(int i =0; i < 65536; i++) {
+                        		blank.LandMap[i] =  21.4989f;
+                		}
+				OpenSim_Main.localcons.WriteLine("Config.cs:LoadWorld() - Saving heightmap to local database");
+				db.Set(blank.LandMap);
+				db.Commit();
+			}
+			return blank;
 		}
 
 		public void LoadFromGrid() {

@@ -26,9 +26,6 @@ namespace OpenSim.world
 		OpenSim_Main.localcons.WriteLine("World.cs - creating LandMap");
 		terrainengine = new TerrainDecode();
                 LandMap = new float[65536];
-		for(int i =0; i < 65536; i++) {
-			LandMap[i] =  21.4989f;
-		}
  
         }
 
