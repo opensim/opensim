@@ -3,6 +3,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using PhysicsSystem;
 
 namespace OpenSim.world
@@ -27,7 +28,8 @@ namespace OpenSim.world
 
     		ServerConsole.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
     		TerrainManager = new TerrainManager(new SecondLife());
-    			
+    		Avatar.SetupTemplate("avatar-template.dat");
+
     	//	ServerConsole.MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
     		// Initialise this only after the world has loaded
     	//	Scripts = new ScriptEngine(this);
@@ -111,7 +113,6 @@ namespace OpenSim.world
 
     		return false;
     	}
-    	
-    	
+	
     }
 }

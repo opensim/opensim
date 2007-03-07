@@ -90,6 +90,14 @@ namespace OpenSim
 		    		break;
 		    	case PacketType.AgentWearablesRequest:
 		    		ClientAvatar.SendInitialAppearance();
+		    		foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+		    			if(client.AgentID != this.AgentID)
+		    			{
+		    				ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
+		    				this.OutPacket(objupdate);
+		    				client.ClientAvatar.SendAppearanceToOtherAgent(this);
+		    			}
+    				}
 		    		break;
 		    	case PacketType.ObjectAdd:
 		    		OpenSim_Main.local_world.AddNewPrim((ObjectAddPacket)Pack, this);
@@ -104,11 +112,11 @@ namespace OpenSim
 		    		break;
 		    	case PacketType.LogoutRequest:
 		    		ServerConsole.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+		    		OpenSim_Main.gridServers.GridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
 		    		lock(OpenSim_Main.local_world.Entities) {
 		    			OpenSim_Main.local_world.Entities.Remove(this.AgentID);
 		    		}
 		    		//need to do other cleaning up here too
-		    		OpenSim_Main.gridServers.GridServer.LogoutSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
 		    		this.ClientThread.Abort();
 		    		break;
 		    	case PacketType.ChatFromViewer:
@@ -254,6 +262,7 @@ namespace OpenSim
 	 				}
 	 			}
 
+			//ServerConsole.MainConsole.Instance.WriteLine("OUT: \n" + Pack.ToString());
 
 		    byte[] ZeroOutBuffer = new byte[4096];
 		    byte[] sendbuffer; 

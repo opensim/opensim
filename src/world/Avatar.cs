@@ -15,7 +15,7 @@ namespace OpenSim.world
     	public string lastname;
     	public OpenSimClient ControllingClient;
     	private PhysicsActor _physActor;
-    	private libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
+    	private static libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
 		private bool updateflag;
 		private bool walking;
 		private List<NewForce> forcesList = new List<NewForce>();
@@ -24,7 +24,6 @@ namespace OpenSim.world
     	public Avatar(OpenSimClient TheClient) {
     		ServerConsole.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
     		ControllingClient=TheClient;
-    		SetupTemplate("avatar-template.dat");
 			position = new LLVector3(100.0f,100.0f,30.0f);
 			position.Z = OpenSim_Main.local_world.LandMap[(int)position.Y * 256 + (int)position.X]+1;
 		}
@@ -103,7 +102,7 @@ namespace OpenSim.world
     		}
     	}
 
-    	private void SetupTemplate(string name)
+    	public static void SetupTemplate(string name)
     	{
     		
     		int i = 0;
@@ -127,7 +126,7 @@ namespace OpenSim.world
     		byte[] pb = pos.GetBytes();
     		Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);
     		
-    		AvatarTemplate = objdata;
+    		Avatar.AvatarTemplate = objdata;
     		
     	}
 
@@ -166,7 +165,16 @@ namespace OpenSim.world
     		
     		Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
     		OpenSim_Main.local_world._localNumber++;
-    		this.ControllingClient.OutPacket(objupdate);
+    		
+    		foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) 
+    		{
+    			client.OutPacket(objupdate);
+    			if(client.AgentID != ControllingClient.AgentID)
+    			{
+    				SendAppearanceToOtherAgent(client);
+    			}
+    		}
+    		//this.ControllingClient.OutPacket(objupdate);
     	}
     	
     	public void SendInitialAppearance() {
@@ -182,7 +190,8 @@ namespace OpenSim.world
     		awb.ItemID = LLUUID.Random();
     		aw.WearableData[0] = awb;
     		
-    		for(int i=1; i<13; i++) {
+    		for(int i=1; i<13; i++) 
+    		{
     			awb = new AgentWearablesUpdatePacket.WearableDataBlock();
     			awb.WearableType = (byte)i;
     			awb.AssetID = new LLUUID("00000000-0000-0000-0000-000000000000");
@@ -192,6 +201,54 @@ namespace OpenSim.world
     		
     		ControllingClient.OutPacket(aw);
     	}
+    	
+    	public ObjectUpdatePacket CreateUpdatePacket()
+    	{
+    		System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+    		//send a objectupdate packet with information about the clients avatar
+    		ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
+    		objupdate.RegionData.RegionHandle = OpenSim_Main.cfg.RegionHandle;
+    		objupdate.RegionData.TimeDilation = 64096;
+    		objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
+    		
+    		objupdate.ObjectData[0] = AvatarTemplate;
+    		//give this avatar object a local id and assign the user a name
+    		objupdate.ObjectData[0].ID = this.localid;
+    		objupdate.ObjectData[0].FullID = ControllingClient.AgentID;
+    		objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstname + "\nLastName STRING RW SV " + lastname + " \0");
+    		
+    		libsecondlife.LLVector3 pos2 = new LLVector3((float)this._physActor.Position.X, (float)this._physActor.Position.Y, (float)this._physActor.Position.Z);
+		
+    		byte[] pb = pos2.GetBytes();
+    		
+    		Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
+    	    return objupdate;
+    	}
+    	
+    	public void SendAppearanceToOtherAgent(OpenSimClient userInfo)
+		{
+			AvatarAppearancePacket avp = new AvatarAppearancePacket();
+		
+			
+			avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
+			//avp.ObjectData.TextureEntry=this.avatar_template.TextureEntry;// br.ReadBytes((int)numBytes);
+			
+			LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-0000-000000000005"));
+        	avp.ObjectData.TextureEntry = ntex.ToBytes();
+			
+			AvatarAppearancePacket.VisualParamBlock avblock = null;
+			for(int i = 0; i < 218; i++)
+			{
+				avblock = new AvatarAppearancePacket.VisualParamBlock();
+				avblock.ParamValue = (byte)100;
+				avp.VisualParam[i] = avblock;
+			}
+			
+			avp.Sender.IsTrial = false;
+			avp.Sender.ID = ControllingClient.AgentID;
+			userInfo.OutPacket(avp);
+			
+		}
     	
     	public void HandleUpdate(AgentUpdatePacket pack) {
            if(((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) !=0) {

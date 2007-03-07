@@ -55,7 +55,7 @@ namespace OpenSim.world
         	objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
         	PrimData PData = new PrimData();
         	this.primData = PData;
-        	objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();//OpenSim_Main.local_world.PrimTemplate;
+        	objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();
         	objupdate.ObjectData[0].PSBlock = new byte[0];
         	objupdate.ObjectData[0].ExtraParams = new byte[1];
         	objupdate.ObjectData[0].MediaURL = new byte[0];
@@ -67,7 +67,7 @@ namespace OpenSim.world
         	objupdate.ObjectData[0].JointPivot = new LLVector3(0,0,0);
         	objupdate.ObjectData[0].Material = 3;
         	objupdate.ObjectData[0].UpdateFlags=32+65536+131072+256+4+8+2048+524288+268435456;
-		objupdate.ObjectData[0].TextureAnim = new byte[0];
+        	objupdate.ObjectData[0].TextureAnim = new byte[0];
         	objupdate.ObjectData[0].Sound = LLUUID.Zero;
         	LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
         	objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
@@ -89,6 +89,7 @@ namespace OpenSim.world
         	PData.ProfileCurve = objupdate.ObjectData[0].ProfileCurve = addPacket.ObjectData.ProfileCurve;
         	PData.ParentID = objupdate.ObjectData[0].ParentID = 0;
         	PData.ProfileHollow = objupdate.ObjectData[0].ProfileHollow = addPacket.ObjectData.ProfileHollow;
+        	
         	//finish off copying rest of shape data
         	
         	objupdate.ObjectData[0].ID = (uint)(localID);
