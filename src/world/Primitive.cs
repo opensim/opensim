@@ -66,7 +66,8 @@ namespace OpenSim.world
         	objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0,0,0);
         	objupdate.ObjectData[0].JointPivot = new LLVector3(0,0,0);
         	objupdate.ObjectData[0].Material = 3;
-        	objupdate.ObjectData[0].TextureAnim = new byte[0];
+        	objupdate.ObjectData[0].UpdateFlags=32+65536+131072+256+4+8+2048+524288+268435456;
+		objupdate.ObjectData[0].TextureAnim = new byte[0];
         	objupdate.ObjectData[0].Sound = LLUUID.Zero;
         	LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
         	objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
