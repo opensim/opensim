@@ -104,7 +104,6 @@ namespace OpenSim.world
 
     	public static void SetupTemplate(string name)
     	{
-    		
     		int i = 0;
     		FileInfo fInfo = new FileInfo(name);
     		long numBytes = fInfo.Length;
@@ -127,7 +126,6 @@ namespace OpenSim.world
     		Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);
     		
     		Avatar.AvatarTemplate = objdata;
-    		
     	}
 
     	public void CompleteMovement(World RegionInfo) {

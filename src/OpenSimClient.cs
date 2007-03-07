@@ -35,6 +35,7 @@ using System.IO;
 using System.Threading;
 using System.Timers;
 using OpenSim.GridServers;
+using OpenSim.world;
 
 namespace OpenSim
 {
@@ -101,6 +102,39 @@ namespace OpenSim
 		    		break;
 		    	case PacketType.ObjectAdd:
 		    		OpenSim_Main.local_world.AddNewPrim((ObjectAddPacket)Pack, this);
+		    		break;
+		    	case PacketType.MultipleObjectUpdate :
+		    		MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)Pack;
+
+		    		for( int i = 0; i < multipleupdate.ObjectData.Length; i++ )
+		    		{
+		    			if( multipleupdate.ObjectData[ i ].Type == 9 ) //change position
+		    			{
+		    				libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[ i ].Data, 0 );
+		    				foreach (Entity ent in OpenSim_Main.local_world.Entities.Values)
+		    				{
+		    					if(ent.localid == multipleupdate.ObjectData[ i ].ObjectLocalID)
+		    					{
+		    						ent.position = pos;
+		    						((OpenSim.world.Primitive)ent).UpdateFlag = true;
+		    					}
+		    				}
+		    				
+		    				//should update stored position of the prim
+		    			}
+		    			else if(multipleupdate.ObjectData[i].Type == 10 )//rotation
+		    			{
+		    				libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+		    				foreach (Entity ent in OpenSim_Main.local_world.Entities.Values)
+		    				{
+		    					if(ent.localid == multipleupdate.ObjectData[ i ].ObjectLocalID)
+		    					{
+		    						ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.W);
+		    						((OpenSim.world.Primitive)ent).UpdateFlag = true;
+		    					}
+		    				}
+		    			}
+		    		}
 		    		break;
 		    	case PacketType.TransferRequest:
 		    		//Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");

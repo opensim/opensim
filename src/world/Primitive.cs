@@ -13,8 +13,21 @@ namespace OpenSim.world
         protected float mesh_cutend;
         protected PrimData primData;
         protected bool newPrimFlag;
+        protected bool updateFlag;
         protected ObjectUpdatePacket OurPacket;
 
+        public bool UpdateFlag
+        {
+        	get
+        	{
+        		return updateFlag;
+        	}
+        	set
+        	{
+        		updateFlag = value;
+        	}
+        }
+        
         public Primitive()
         {
             mesh_cutbegin = 0.0f;
@@ -43,6 +56,18 @@ namespace OpenSim.world
         			client.OutPacket(OurPacket);
         		}
         		this.newPrimFlag = false;
+        	}
+        	else if(this.updateFlag)
+        	{
+        		ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+    			terse.RegionData.RegionHandle = OpenSim_Main.cfg.RegionHandle; // FIXME
+    			terse.RegionData.TimeDilation = 64096;
+    			terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+    			terse.ObjectData[0] = this.CreateImprovedBlock();
+    			foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+        			client.OutPacket(terse);
+        		}
+        		this.updateFlag = false;
         	}
         }
         
@@ -108,6 +133,72 @@ namespace OpenSim.world
         	this.localid = objupdate.ObjectData[0].ID;
         	this.position = pos1;
         	this.OurPacket = objupdate;
+        }
+        
+        public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
+        {
+        	uint ID = this.localid;
+        	byte[] bytes = new byte[60];
+			
+			
+			int i = 0;
+			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+			dat.TextureEntry = this.OurPacket.ObjectData[0].TextureEntry;
+			
+			bytes[i++] = (byte)(ID % 256);
+			bytes[i++] = (byte)((ID >> 8) % 256);
+			bytes[i++] = (byte)((ID >> 16) % 256);
+			bytes[i++] = (byte)((ID >> 24) % 256);
+			bytes[i++]= 0;
+			bytes[i++]= 0;
+
+			byte[] pb = this.position.GetBytes();
+			Array.Copy(pb, 0, bytes, i, pb.Length);
+			i += 12;
+			ushort ac = 32767;
+
+			//vel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			//accel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			ushort rw, rx,ry,rz;
+			rw = (ushort)(32768 * (this.rotation.w+1));
+			rx = (ushort)(32768 * (this.rotation.x+1));
+			ry = (ushort)(32768 * (this.rotation.y+1));
+			rz = (ushort)(32768 * (this.rotation.z+1));
+			
+			//rot
+			bytes[i++] = (byte)(rx % 256);
+			bytes[i++] = (byte)((rx >> 8) % 256);
+			bytes[i++] = (byte)(ry % 256);
+			bytes[i++] = (byte)((ry >> 8) % 256);
+			bytes[i++] = (byte)(rz % 256);
+			bytes[i++] = (byte)((rz >> 8) % 256);
+			bytes[i++] = (byte)(rw % 256);
+			bytes[i++] = (byte)((rw >> 8) % 256);
+			
+			//rotation vel
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			bytes[i++] = (byte)(ac % 256);
+			bytes[i++] = (byte)((ac >> 8) % 256);
+			
+			dat.Data=bytes;
+			return dat;
         }
     }
     
