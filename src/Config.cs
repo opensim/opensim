@@ -96,7 +96,7 @@ namespace OpenSim
 				if(result.Count==1) {
 					OpenSim_Main.localcons.WriteLine("Config.cs:InitConfig() - Found a SimConfig object in the local database, loading");
 					foreach (SimConfig cfg in result) {
-						this.Sandbox = cfg.Sandbox;
+						this.sandbox = cfg.sandbox;
 						this.RegionName = cfg.RegionName;
 						this.RegionLocX = cfg.RegionLocX;
 						this.RegionLocY = cfg.RegionLocY;
