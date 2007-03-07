@@ -1,0 +1,52 @@
+LLWearable version 22
+Sexy - Female Skin
+
+	permissions 0
+	{
+		base_mask	00086000
+		owner_mask	00086000
+		group_mask	00000000
+		everyone_mask	00000000
+		next_owner_mask	00086000
+		creator_id	3b659a92-dbf0-4301-8fdc-208d78f00d77
+		owner_id	3d924400-038e-6ad9-920b-cfbb9b40585c
+		last_owner_id	101358d5-469d-4b24-9b85-4dc3c05e635d
+		group_id	00000000-0000-0000-0000-000000000000
+	}
+	sale_info	0
+	{
+		sale_type	not
+		sale_price	10
+	}
+type 1
+parameters 26
+108 0
+110 0
+111 0
+116 0
+117 1
+150 0
+162 0
+163 0
+165 0
+700 .01
+701 .5
+702 .26
+703 0
+704 0
+705 .5
+706 .6
+707 0
+708 0
+709 0
+710 0
+711 .5
+712 0
+713 .7
+714 0
+715 0
+775 0
+textures 3
+0 f9261672-5058-9ef8-c0c4-48f43a0b16d4
+5 b6ba53be-b5bf-9a1f-2e19-21daf998429c
+6 703f6e24-a1fb-1980-acaf-6ab8a99a5bd5
