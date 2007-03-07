@@ -46,19 +46,19 @@
     <Compile Include="Config.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="OpenSimClient.cs" />
-    <Compile Include="types\BitPack.cs" />
+    <Compile Include="ServerConsole.cs" />
     <Compile Include="types\Mesh.cs" />
     <Compile Include="types\Triangle.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="VersionInfo.cs" />
     <Compile Include="world\Avatar.cs" />
     <Compile Include="world\Entity.cs" />
+    <Compile Include="world\HeightmapGenHills.cs" />
     <Compile Include="world\PhysicsEngine.cs" />
     <Compile Include="world\Primitive.cs" />
     <Compile Include="world\ScriptEngine.cs" />
     <Compile Include="world\scripting\IScript.cs" />
     <Compile Include="world\SurfacePatch.cs" />
-    <Compile Include="world\TerrainDecoder.cs" />
     <Compile Include="world\World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
