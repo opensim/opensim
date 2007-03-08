@@ -104,6 +104,25 @@ namespace OpenSim
 		    	case PacketType.ObjectAdd:
 		    		OpenSim_Main.local_world.AddNewPrim((ObjectAddPacket)Pack, this);
 		    		break;
+		    	case PacketType.ObjectLink:
+		    		ServerConsole.MainConsole.Instance.WriteLine(Pack.ToString());
+		    		break;
+		    	case PacketType.ObjectScale:
+		    		ServerConsole.MainConsole.Instance.WriteLine(Pack.ToString());
+		    		break;
+		    	case PacketType.ObjectShape:
+		    		ObjectShapePacket shape = (ObjectShapePacket)Pack;
+		    		for(int i =0; i <shape.ObjectData.Length; i++)
+		    		{
+		    			foreach (Entity ent in OpenSim_Main.local_world.Entities.Values)
+		    			{
+		    				if(ent.localid == shape.ObjectData[i].ObjectLocalID)
+		    				{
+		    					((OpenSim.world.Primitive)ent).UpdateShape(shape.ObjectData[i]);
+		    				}
+		    			}
+		    		}
+		    		break;
 		    	case PacketType.MultipleObjectUpdate :
 		    		MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)Pack;
 
@@ -132,6 +151,18 @@ namespace OpenSim
 		    					{
 		    						ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.W);
 		    						((OpenSim.world.Primitive)ent).UpdateFlag = true;
+		    					}
+		    				}
+		    			}
+		    			else if(multipleupdate.ObjectData[i].Type == 13 )//scale
+		    			{
+		    				
+		    				libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[ i ].Data, 12 );
+		    				foreach (Entity ent in OpenSim_Main.local_world.Entities.Values)
+		    				{
+		    					if(ent.localid == multipleupdate.ObjectData[ i ].ObjectLocalID)
+		    					{ 
+		    						((OpenSim.world.Primitive)ent).Scale = scale;
 		    					}
 		    				}
 		    			}

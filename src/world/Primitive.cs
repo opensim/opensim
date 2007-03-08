@@ -15,6 +15,7 @@ namespace OpenSim.world
         protected PrimData primData;
         protected bool newPrimFlag;
         protected bool updateFlag;
+        protected bool dirtyFlag;
         protected ObjectUpdatePacket OurPacket;
        
         public bool UpdateFlag
@@ -28,7 +29,18 @@ namespace OpenSim.world
         		updateFlag = value;
         	}
         }
-        
+        public LLVector3 Scale
+        {
+        	set
+        	{
+        		this.primData.Scale = value;
+        		this.dirtyFlag = true;
+        	}
+        	get
+        	{
+        		return this.primData.Scale;
+        	}
+        }
         public Primitive()
         {
             mesh_cutbegin = 0.0f;
@@ -70,6 +82,13 @@ namespace OpenSim.world
         		}
         		this.updateFlag = false;
         	}
+        	else if(this.dirtyFlag)
+        	{
+        		foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+        			UpdateClient(client);
+        		}
+        		this.dirtyFlag = false;
+        	}
         	
         }
         
@@ -77,7 +96,56 @@ namespace OpenSim.world
         {
         	byte[] pb = this.position.GetBytes();
         	Array.Copy(pb, 0, OurPacket.ObjectData[0].ObjectData, 0, pb.Length);
+        	OurPacket.ObjectData[0].OwnerID = this.primData.OwnerID;
+        	OurPacket.ObjectData[0].PCode = this.primData.PCode;
+        	OurPacket.ObjectData[0].PathBegin = this.primData.PathBegin;
+        	OurPacket.ObjectData[0].PathEnd = this.primData.PathEnd;
+        	OurPacket.ObjectData[0].PathScaleX = this.primData.PathScaleX;
+        	OurPacket.ObjectData[0].PathScaleY = this.primData.PathScaleY;
+        	OurPacket.ObjectData[0].PathShearX = this.primData.PathShearX;
+        	OurPacket.ObjectData[0].PathShearY = this.primData.PathShearY;
+        	OurPacket.ObjectData[0].PathSkew = this.primData.PathSkew;
+        	OurPacket.ObjectData[0].ProfileBegin = this.primData.ProfileBegin;
+        	OurPacket.ObjectData[0].ProfileEnd = this.primData.ProfileEnd;
+        	OurPacket.ObjectData[0].Scale = this.primData.Scale;
+        	OurPacket.ObjectData[0].PathCurve = this.primData.PathCurve;
+        	OurPacket.ObjectData[0].ProfileCurve = this.primData.ProfileCurve;
+        	OurPacket.ObjectData[0].ParentID = 0;
+        	OurPacket.ObjectData[0].ProfileHollow = this.primData.ProfileHollow;
+        	//finish off copying rest of shape data
+        	OurPacket.ObjectData[0].PathRadiusOffset = this.primData.PathRadiusOffset;
+        	OurPacket.ObjectData[0].PathRevolutions = this.primData.PathRevolutions;
+        	OurPacket.ObjectData[0].PathTaperX = this.primData.PathTaperX;
+        	OurPacket.ObjectData[0].PathTaperY = this.primData.PathTaperY;
+        	OurPacket.ObjectData[0].PathTwist = this.primData.PathTwist;
+        	OurPacket.ObjectData[0].PathTwistBegin= this.primData.PathTwistBegin;
+        	
         	RemoteClient.OutPacket(OurPacket);
+        }
+        
+        public void UpdateShape(ObjectShapePacket.ObjectDataBlock addPacket)
+        {
+        	this.primData.PathBegin = addPacket.PathBegin;
+        	this.primData.PathEnd = addPacket.PathEnd;
+        	this.primData.PathScaleX = addPacket.PathScaleX;
+        	this.primData.PathScaleY = addPacket.PathScaleY;
+        	this.primData.PathShearX  = addPacket.PathShearX;
+        	this.primData.PathShearY = addPacket.PathShearY;
+        	this.primData.PathSkew = addPacket.PathSkew;
+        	this.primData.ProfileBegin = addPacket.ProfileBegin;
+        	this.primData.ProfileEnd = addPacket.ProfileEnd;
+        	this.primData.PathCurve = addPacket.PathCurve;
+        	this.primData.ProfileCurve = addPacket.ProfileCurve;
+        	this.primData.ProfileHollow = addPacket.ProfileHollow;
+        	
+        	this.primData.PathRadiusOffset = addPacket.PathRadiusOffset;
+        	this.primData.PathRevolutions = addPacket.PathRevolutions;
+        	this.primData.PathTaperX = addPacket.PathTaperX;
+        	this.primData.PathTaperY = addPacket.PathTaperY;
+        	this.primData.PathTwist = addPacket.PathTwist;
+        	this.primData.PathTwistBegin =addPacket.PathTwistBegin;
+        	this.dirtyFlag = true;
+        	
         }
         
         public void CreateFromPacket( ObjectAddPacket addPacket, LLUUID agentID, uint localID)
@@ -124,6 +192,13 @@ namespace OpenSim.world
         	PData.ParentID = objupdate.ObjectData[0].ParentID = 0;
         	PData.ProfileHollow = objupdate.ObjectData[0].ProfileHollow = addPacket.ObjectData.ProfileHollow;
         	
+        	PData.PathRadiusOffset = objupdate.ObjectData[0].PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
+        	PData.PathRevolutions = objupdate.ObjectData[0].PathRevolutions = addPacket.ObjectData.PathRevolutions;
+        	PData.PathTaperX = objupdate.ObjectData[0].PathTaperX = addPacket.ObjectData.PathTaperX;
+        	PData.PathTaperY = objupdate.ObjectData[0].PathTaperY = addPacket.ObjectData.PathTaperY;
+        	PData.PathTwist = objupdate.ObjectData[0].PathTwist = addPacket.ObjectData.PathTwist;
+        	PData.PathTwistBegin = objupdate.ObjectData[0].PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
+        	
         	//finish off copying rest of shape data
         	
         	objupdate.ObjectData[0].ID = (uint)(localID);
@@ -143,7 +218,7 @@ namespace OpenSim.world
         	this.OurPacket = objupdate;
         }
         
-        public void CreateFromStorage(PrimStorage store)
+        public void CreateFromStorage(PrimData store)
         {
         	//need to clean this up as it shares a lot of code with CreateFromPacket()
         	ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
@@ -151,7 +226,7 @@ namespace OpenSim.world
         	objupdate.RegionData.TimeDilation = 64096;	
         	objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
         	
-        	this.primData = store.Data;
+        	this.primData = store;
         	objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();
         	objupdate.ObjectData[0].PSBlock = new byte[0];
         	objupdate.ObjectData[0].ExtraParams = new byte[1];
@@ -187,6 +262,12 @@ namespace OpenSim.world
         	objupdate.ObjectData[0].ParentID = 0;
         	objupdate.ObjectData[0].ProfileHollow = this.primData.ProfileHollow;
         	//finish off copying rest of shape data
+        	objupdate.ObjectData[0].PathRadiusOffset = this.primData.PathRadiusOffset;
+        	objupdate.ObjectData[0].PathRevolutions = this.primData.PathRevolutions;
+        	objupdate.ObjectData[0].PathTaperX = this.primData.PathTaperX;
+        	objupdate.ObjectData[0].PathTaperY = this.primData.PathTaperY;
+        	objupdate.ObjectData[0].PathTwist = this.primData.PathTwist;
+        	objupdate.ObjectData[0].PathTwistBegin= this.primData.PathTwistBegin;
         	
         	objupdate.ObjectData[0].ID = (uint)store.LocalID;
         	objupdate.ObjectData[0].FullID = store.FullID;
@@ -203,6 +284,7 @@ namespace OpenSim.world
         	this.localid = objupdate.ObjectData[0].ID;
         	this.position = pos1;
         	this.OurPacket = objupdate;
+        	
         }
         public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
         {
@@ -272,13 +354,12 @@ namespace OpenSim.world
         
         public override void BackUp()
         {
-        	PrimStorage pStore = new PrimStorage();
-        	pStore.Data = this.primData;
-        	pStore.FullID = this.uuid;
-        	pStore.LocalID = this.localid;
-        	pStore.Position = this.position;
-        	pStore.Rotation = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z , this.rotation.w);
-        	OpenSim_Main.local_world.localStorage.StorePrim(pStore);
+        	
+        	this.primData.FullID = this.uuid;
+        	this.primData.LocalID = this.localid;
+        	this.primData.Position = this.position;
+        	this.primData.Rotation = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z , this.rotation.w);
+        	OpenSim_Main.local_world.localStorage.StorePrim(this.primData);
         }
     }
     

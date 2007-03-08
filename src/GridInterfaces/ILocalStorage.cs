@@ -35,7 +35,7 @@ namespace GridInterfaces
 	/// </summary>
 	public interface ILocalStorage
 	{
-		void StorePrim(PrimStorage prim);
+		void StorePrim(PrimData prim);
 		void RemovePrim(LLUUID primID);
 		void LoadPrimitives(ILocalStorageReceiver receiver);
 		void ShutDown();
@@ -43,23 +43,10 @@ namespace GridInterfaces
 	
 	public interface ILocalStorageReceiver
 	{
-		void PrimFromStorage(PrimStorage prim);
+		void PrimFromStorage(PrimData prim);
 	}
 	
-	public class PrimStorage
-	{
-		public PrimData Data;
-		public LLVector3 Position;
-		public LLQuaternion Rotation;
-		public uint LocalID;
-		public LLUUID FullID;
-		
-		public PrimStorage()
-		{
-			
-		}
-		
-	}
+	
 	public class PrimData
 	{
 		public LLUUID OwnerID;
@@ -78,6 +65,18 @@ namespace GridInterfaces
 		public byte ProfileCurve;
 		public uint ParentID=0;
 		public byte ProfileHollow;
+		public sbyte PathRadiusOffset;
+        public byte PathRevolutions;
+        public sbyte PathTaperX;
+        public sbyte PathTaperY;
+        public sbyte PathTwist;
+        public sbyte PathTwistBegin;
+        
+        //following only used during prim storage
+        public LLVector3 Position;
+		public LLQuaternion Rotation;
+		public uint LocalID;
+		public LLUUID FullID;
 		
 		public PrimData()
 		{

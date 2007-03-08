@@ -145,10 +145,15 @@ namespace OpenSim
 				case "help":
 				this.WriteLine("show users - show info about connected users");
 				this.WriteLine("shutdown - disconnect all clients and shutdown");
+				this.WriteLine("regenerate - regenerate the sim's terrain");
 				break;
 				
 				case "show":
 				ShowCommands(cmdparams[0]);
+				break;
+				
+				case "regenerate":
+				OpenSim_Main.local_world.RegenerateTerrain();
 				break;
 				
 				case "shutdown":
@@ -161,21 +166,21 @@ namespace OpenSim
 		// Shows data about something
 		public override void ShowCommands(string ShowWhat) {
 			switch(ShowWhat) {
-                                case "uptime":
-				this.WriteLine("OpenSim has been running since " + OpenSim_Main.sim.startuptime.ToString());
-                this.WriteLine("That is " + (DateTime.Now-OpenSim_Main.sim.startuptime).ToString());
-				break;
+				case "uptime":
+					this.WriteLine("OpenSim has been running since " + OpenSim_Main.sim.startuptime.ToString());
+					this.WriteLine("That is " + (DateTime.Now-OpenSim_Main.sim.startuptime).ToString());
+					break;
 				case "users":
-				OpenSim.world.Avatar TempAv;
-				this.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}","Firstname", "Lastname","Agent ID", "Session ID", "Circuit", "IP"));
-				foreach (libsecondlife.LLUUID UUID in OpenSim_Main.local_world.Entities.Keys) {
-					if(OpenSim_Main.local_world.Entities[UUID].ToString()== "OpenSim.world.Avatar")
-					{
-						TempAv=(OpenSim.world.Avatar)OpenSim_Main.local_world.Entities[UUID];
-						this.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}",TempAv.firstname, TempAv.lastname,UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
+					OpenSim.world.Avatar TempAv;
+					this.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}","Firstname", "Lastname","Agent ID", "Session ID", "Circuit", "IP"));
+					foreach (libsecondlife.LLUUID UUID in OpenSim_Main.local_world.Entities.Keys) {
+						if(OpenSim_Main.local_world.Entities[UUID].ToString()== "OpenSim.world.Avatar")
+						{
+							TempAv=(OpenSim.world.Avatar)OpenSim_Main.local_world.Entities[UUID];
+							this.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}",TempAv.firstname, TempAv.lastname,UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
+						}
 					}
-				}
-				break;
+					break;
 			}
 		}
 	

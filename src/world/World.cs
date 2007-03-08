@@ -71,7 +71,7 @@ namespace OpenSim.world
     		
     		//backup world data
     		this.storageCount++;
-			if(storageCount> 1200) //set to how often you want to backup (currently set for about every 2 minutes)
+			if(storageCount> 300) //set to how often you want to backup 
 			{
 				this.Backup();
 				storageCount =0;
@@ -107,13 +107,24 @@ namespace OpenSim.world
 			return(store == null);
     	}
     	
+    	public void RegenerateTerrain()
+    	{
+    		HeightmapGenHills hills = new HeightmapGenHills();
+    		this.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
+    		this.phyScene.SetTerrain(this.LandMap);
+    		OpenSim_Main.cfg.SaveMap();
+    		
+    		foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+    			this.SendLayerData(client);
+    		}
+    	}
     	public void LoadPrimsFromStorage()
     	{
     		ServerConsole.MainConsole.Instance.WriteLine("World.cs: LoadPrimsFromStorage() - Loading primitives");
     		this.localStorage.LoadPrimitives(this);
     	}
     	
-    	public void PrimFromStorage(PrimStorage prim)
+    	public void PrimFromStorage(PrimData prim)
     	{
     		if(prim.LocalID >= this._primCount)
     		{

@@ -55,23 +55,43 @@ namespace Db4LocalStorage
 			}
 		}
 		
-		public void StorePrim(PrimStorage prim)
+		public void StorePrim(PrimData prim)
 		{
 			IObjectSet result = db.Query(new UUIDQuery(prim.FullID));
 			if(result.Count>0)
 			{
 				//prim already in storage
 				//so update it
-				PrimStorage found = (PrimStorage) result.Next();
-				found.Data = prim.Data;
+				PrimData found = (PrimData) result.Next();
+				found.PathBegin = prim.PathBegin;
+				found.PathCurve= prim.PathCurve;
+				found.PathEnd = prim.PathEnd;
+				found.PathRadiusOffset = prim.PathRadiusOffset;
+				found.PathRevolutions = prim.PathRevolutions;
+				found.PathScaleX= prim.PathScaleX;
+				found.PathScaleY = prim.PathScaleY;
+				found.PathShearX = prim.PathShearX;
+				found.PathShearY = prim.PathShearY;
+				found.PathSkew = prim.PathSkew;
+				found.PathTaperX = prim.PathTaperX;
+				found.PathTaperY = prim.PathTaperY;
+				found.PathTwist = prim.PathTwist;
+				found.PathTwistBegin = prim.PathTwistBegin;
+				found.PCode = prim.PCode;
+				found.ProfileBegin = prim.ProfileBegin;
+				found.ProfileCurve = prim.ProfileCurve;
+				found.ProfileEnd = prim.ProfileEnd;
+				found.ProfileHollow = prim.ProfileHollow;
 				found.Position = prim.Position;
 				found.Rotation = prim.Rotation;
 				db.Set(found);
+				db.Commit();
 			}
 			else
 			{
 				//not in storage
 				db.Set(prim);
+				db.Commit();
 			}
 		}
 		
@@ -80,7 +100,7 @@ namespace Db4LocalStorage
 			IObjectSet result = db.Query(new UUIDQuery(primID));
 			if(result.Count>0)
 			{
-				PrimStorage found = (PrimStorage) result.Next();
+				PrimData found = (PrimData) result.Next();
 				db.Delete(found);
 			}
 		}
@@ -88,9 +108,9 @@ namespace Db4LocalStorage
 		
 		public void LoadPrimitives(ILocalStorageReceiver receiver)
 		{
-			IObjectSet result = db.Get(typeof(PrimStorage));
+			IObjectSet result = db.Get(typeof(PrimData));
 			ServerConsole.MainConsole.Instance.WriteLine("Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is "+result.Count);
-			foreach (PrimStorage prim in result) {
+			foreach (PrimData prim in result) {
 				receiver.PrimFromStorage(prim);
 			}
 		}
@@ -110,7 +130,7 @@ namespace Db4LocalStorage
 		{
 			_findID = find;
 		}
-		public bool Match(PrimStorage prim)
+		public bool Match(PrimData prim)
 		{
 			return (prim.FullID == _findID);
 		}

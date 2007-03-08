@@ -128,6 +128,20 @@ namespace Db40SimConfig
 			}
 			return blank;
 		}
+		
+		public override void SaveMap()
+		{
+			IObjectSet world_result = db.Get(typeof(MapStorage));
+			if(world_result.Count>0) {
+				ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - updating saved copy of heightmap in local database");
+				MapStorage map=(MapStorage)world_result.Next();
+				db.Delete(map);
+			}
+			MapStorage map1= new MapStorage();
+			map1.Map = OpenSim_Main.local_world.LandMap;
+			db.Set(map1);
+			db.Commit();
+		}
 
 		public override void LoadFromGrid() {
 			ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadFromGrid() - dummy function, DOING ABSOLUTELY NOTHING AT ALL!!!");

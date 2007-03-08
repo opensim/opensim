@@ -63,6 +63,8 @@ namespace OpenSim
 	    public abstract void InitConfig();
 	    public abstract void LoadFromGrid();
 	    public abstract World LoadWorld();
+	    public abstract void SaveMap();
+		
 	}
 	
 	public interface ISimConfig
