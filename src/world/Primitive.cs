@@ -4,6 +4,7 @@ using System.Text;
 using OpenSim.types;
 using libsecondlife;
 using libsecondlife.Packets;
+using GridInterfaces;
 
 namespace OpenSim.world
 {
@@ -15,7 +16,7 @@ namespace OpenSim.world
         protected bool newPrimFlag;
         protected bool updateFlag;
         protected ObjectUpdatePacket OurPacket;
-
+       
         public bool UpdateFlag
         {
         	get
@@ -69,6 +70,14 @@ namespace OpenSim.world
         		}
         		this.updateFlag = false;
         	}
+        	
+        }
+        
+        public void UpdateClient(OpenSimClient RemoteClient)
+        {
+        	byte[] pb = this.position.GetBytes();
+        	Array.Copy(pb, 0, OurPacket.ObjectData[0].ObjectData, 0, pb.Length);
+        	RemoteClient.OutPacket(OurPacket);
         }
         
         public void CreateFromPacket( ObjectAddPacket addPacket, LLUUID agentID, uint localID)
@@ -118,8 +127,7 @@ namespace OpenSim.world
         	//finish off copying rest of shape data
         	
         	objupdate.ObjectData[0].ID = (uint)(localID);
-        	objupdate.ObjectData[0].FullID = new LLUUID("edba7151-5857-acc5-b30b-f01efefda" + (localID- 702000).ToString("000"));
-        	
+        	objupdate.ObjectData[0].FullID = new LLUUID("edba7151-5857-acc5-b30b-f01efef" + (localID- 702000).ToString("00000"));
         	objupdate.ObjectData[0].ObjectData = new byte[60];
         	objupdate.ObjectData[0].ObjectData[46] = 128;
         	objupdate.ObjectData[0].ObjectData[47] = 63;
@@ -135,6 +143,67 @@ namespace OpenSim.world
         	this.OurPacket = objupdate;
         }
         
+        public void CreateFromStorage(PrimStorage store)
+        {
+        	//need to clean this up as it shares a lot of code with CreateFromPacket()
+        	ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
+        	objupdate.RegionData.RegionHandle = OpenSim_Main.cfg.RegionHandle;
+        	objupdate.RegionData.TimeDilation = 64096;	
+        	objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
+        	
+        	this.primData = store.Data;
+        	objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();
+        	objupdate.ObjectData[0].PSBlock = new byte[0];
+        	objupdate.ObjectData[0].ExtraParams = new byte[1];
+        	objupdate.ObjectData[0].MediaURL = new byte[0];
+        	objupdate.ObjectData[0].NameValue = new byte[0];
+        	objupdate.ObjectData[0].PSBlock = new byte[0];
+        	objupdate.ObjectData[0].Text = new byte[0];
+        	objupdate.ObjectData[0].TextColor = new byte[4];
+        	objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0,0,0);
+        	objupdate.ObjectData[0].JointPivot = new LLVector3(0,0,0);
+        	objupdate.ObjectData[0].Material = 3;
+        	objupdate.ObjectData[0].UpdateFlags=32+65536+131072+256+4+8+2048+524288+268435456;
+        	objupdate.ObjectData[0].TextureAnim = new byte[0];
+        	objupdate.ObjectData[0].Sound = LLUUID.Zero;
+        	LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+        	objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
+        	objupdate.ObjectData[0].State = 0;
+        	objupdate.ObjectData[0].Data = new byte[0];
+        	objupdate.ObjectData[0].OwnerID = this.primData.OwnerID;
+        	objupdate.ObjectData[0].PCode = this.primData.PCode;
+        	objupdate.ObjectData[0].PathBegin = this.primData.PathBegin;
+        	objupdate.ObjectData[0].PathEnd = this.primData.PathEnd;
+        	objupdate.ObjectData[0].PathScaleX = this.primData.PathScaleX;
+        	objupdate.ObjectData[0].PathScaleY = this.primData.PathScaleY;
+        	objupdate.ObjectData[0].PathShearX = this.primData.PathShearX;
+        	objupdate.ObjectData[0].PathShearY = this.primData.PathShearY;
+        	objupdate.ObjectData[0].PathSkew = this.primData.PathSkew;
+        	objupdate.ObjectData[0].ProfileBegin = this.primData.ProfileBegin;
+        	objupdate.ObjectData[0].ProfileEnd = this.primData.ProfileEnd;
+        	objupdate.ObjectData[0].Scale = this.primData.Scale;
+        	objupdate.ObjectData[0].PathCurve = this.primData.PathCurve;
+        	objupdate.ObjectData[0].ProfileCurve = this.primData.ProfileCurve;
+        	objupdate.ObjectData[0].ParentID = 0;
+        	objupdate.ObjectData[0].ProfileHollow = this.primData.ProfileHollow;
+        	//finish off copying rest of shape data
+        	
+        	objupdate.ObjectData[0].ID = (uint)store.LocalID;
+        	objupdate.ObjectData[0].FullID = store.FullID;
+        	
+        	objupdate.ObjectData[0].ObjectData = new byte[60];
+        	objupdate.ObjectData[0].ObjectData[46] = 128;
+        	objupdate.ObjectData[0].ObjectData[47] = 63;
+        	LLVector3 pos1= store.Position;
+        	//update position
+        	byte[] pb = pos1.GetBytes();
+        	Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 0, pb.Length);
+
+        	this.uuid = objupdate.ObjectData[0].FullID;
+        	this.localid = objupdate.ObjectData[0].ID;
+        	this.position = pos1;
+        	this.OurPacket = objupdate;
+        }
         public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
         {
         	uint ID = this.localid;
@@ -200,30 +269,17 @@ namespace OpenSim.world
 			dat.Data=bytes;
 			return dat;
         }
+        
+        public override void BackUp()
+        {
+        	PrimStorage pStore = new PrimStorage();
+        	pStore.Data = this.primData;
+        	pStore.FullID = this.uuid;
+        	pStore.LocalID = this.localid;
+        	pStore.Position = this.position;
+        	pStore.Rotation = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z , this.rotation.w);
+        	OpenSim_Main.local_world.localStorage.StorePrim(pStore);
+        }
     }
     
-    public class PrimData
-    {
-    	public LLUUID OwnerID;
-    	public byte PCode;
-    	public byte PathBegin;
-    	public byte PathEnd;
-    	public byte PathScaleX;
-    	public byte PathScaleY;
-    	public byte PathShearX;
-    	public byte PathShearY;
-    	public sbyte PathSkew;
-    	public byte ProfileBegin;
-    	public byte ProfileEnd;
-    	public LLVector3 Scale;
-    	public byte PathCurve;
-    	public byte ProfileCurve;
-    	public uint ParentID=0;
-    	public byte ProfileHollow;
-    	
-    	public PrimData()
-    	{
-    		
-    	}
-    }
 }

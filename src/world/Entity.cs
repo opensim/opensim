@@ -58,5 +58,10 @@ namespace OpenSim.world
 
             return mesh;
         }
+        
+        public virtual void BackUp()
+        {
+        	
+        }
     }
 }

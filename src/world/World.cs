@@ -3,12 +3,14 @@ using libsecondlife;
 using libsecondlife.Packets;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 using System.IO;
 using PhysicsSystem;
+using GridInterfaces;
 
 namespace OpenSim.world
 {
-    public class World
+	public class World : ILocalStorageReceiver
     {
     	public Dictionary<libsecondlife.LLUUID, Entity> Entities;
     	public float[] LandMap;
@@ -17,9 +19,10 @@ namespace OpenSim.world
     	private PhysicsScene phyScene;
     	private float timeStep= 0.1f;
     	private libsecondlife.TerrainManager TerrainManager;
-    	
+    	public ILocalStorage localStorage;
     	private Random Rand = new Random();
     	private uint _primCount = 702000;
+    	private int storageCount;
 
     	public World()
     	{
@@ -48,8 +51,7 @@ namespace OpenSim.world
     	
     	public void Update()
     	{
-
-		if(this.phyScene.IsThreaded)
+    		if(this.phyScene.IsThreaded)
     		{
     			this.phyScene.GetResults();
     			
@@ -66,24 +68,95 @@ namespace OpenSim.world
     		{
     			Entities[UUID].update();
     		}
+    		
+    		//backup world data
+    		this.storageCount++;
+			if(storageCount> 1200) //set to how often you want to backup (currently set for about every 2 minutes)
+			{
+				this.Backup();
+				storageCount =0;
+			}
     	}
 
+    	public bool LoadStorageDLL(string dllName)
+    	{
+    		Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+			ILocalStorage store = null;
+			
+			foreach (Type pluginType in pluginAssembly.GetTypes())
+			{
+				if (pluginType.IsPublic)
+				{
+					if (!pluginType.IsAbstract)
+					{
+						Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
+						
+						if (typeInterface != null)
+						{
+							ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+							store = plug;
+							break;
+						}
+						
+						typeInterface = null;
+					}
+				}
+			}
+			pluginAssembly = null;
+			this.localStorage = store;
+			return(store == null);
+    	}
+    	
+    	public void LoadPrimsFromStorage()
+    	{
+    		ServerConsole.MainConsole.Instance.WriteLine("World.cs: LoadPrimsFromStorage() - Loading primitives");
+    		this.localStorage.LoadPrimitives(this);
+    	}
+    	
+    	public void PrimFromStorage(PrimStorage prim)
+    	{
+    		if(prim.LocalID >= this._primCount)
+    		{
+    			_primCount = prim.LocalID + 1;
+    		}
+    		ServerConsole.MainConsole.Instance.WriteLine("World.cs: PrimFromStorage() - Reloading prim (localId "+ prim.LocalID+ " ) from storage");
+    		Primitive nPrim = new Primitive();
+    		nPrim.CreateFromStorage(prim);
+    		this.Entities.Add(nPrim.uuid, nPrim);
+    	}
+    	
+    	public void Close()
+    	{
+    		this.localStorage.ShutDown();
+    	}
+    	
     	public void SendLayerData(OpenSimClient RemoteClient) {
     		int[] patches = new int[4];
 
-            for (int y = 0; y < 16; y++)
-            {
-                for (int x = 0; x < 16; x = x + 4)
-                {
-                    patches[0] = x + 0 + y * 16;
-                    patches[1] = x + 1 + y * 16;
-                    patches[2] = x + 2 + y * 16;
-                    patches[3] = x + 3 + y * 16;
+    		for (int y = 0; y < 16; y++)
+    		{
+    			for (int x = 0; x < 16; x = x + 4)
+    			{
+    				patches[0] = x + 0 + y * 16;
+    				patches[1] = x + 1 + y * 16;
+    				patches[2] = x + 2 + y * 16;
+    				patches[3] = x + 3 + y * 16;
 
-                    Packet layerpack = TerrainManager.CreateLandPacket(LandMap, patches);
-                    RemoteClient.OutPacket(layerpack);
-                }
-            }
+    				Packet layerpack = TerrainManager.CreateLandPacket(LandMap, patches);
+    				RemoteClient.OutPacket(layerpack);
+    			}
+    		}
+    	}
+    	
+    	public void GetInitialPrims(OpenSimClient RemoteClient)
+    	{
+    		foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+    		{
+    			if(Entities[UUID].ToString()== "OpenSim.world.Primitive")
+    			{
+    				((OpenSim.world.Primitive)Entities[UUID]).UpdateClient(RemoteClient);
+    			}
+    		}
     	}
 
     	public void AddViewerAgent(OpenSimClient AgentClient) {
@@ -96,7 +169,7 @@ namespace OpenSim.world
     		NewAvatar.PhysActor = this.phyScene.AddAvatar(new PhysicsVector(NewAvatar.position.X, NewAvatar.position.Y, NewAvatar.position.Z));
     		//this.Update();		// will work for now, but needs to be optimised so we don't update everything in the sim for each new user
     		this.Entities.Add(AgentClient.AgentID, NewAvatar);
-	}
+    	}
     	
     	public void AddNewPrim(ObjectAddPacket addPacket, OpenSimClient AgentClient)
     	{
@@ -109,8 +182,12 @@ namespace OpenSim.world
 
     	public bool Backup() {
     		/* TODO: Save the current world entities state. */
-
-    		return false;
+    		ServerConsole.MainConsole.Instance.WriteLine("World.cs: Backup() - Backing up Primitives");
+    		foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+    		{
+    			Entities[UUID].BackUp();
+    		}
+    		return true;
     	}
 	
     }

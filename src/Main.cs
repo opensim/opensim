@@ -150,8 +150,12 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting up messaging system");
 			local_world.PhysScene = this.physManager.GetPhysicsScene("PhysX"); //should be reading from the config file what physics engine to use
 			local_world.PhysScene.SetTerrain(local_world.LandMap);
+	
 			OpenSim_Main.gridServers.AssetServer.SetServerInfo(OpenSim_Main.cfg.AssetURL, OpenSim_Main.cfg.AssetSendKey);
 			OpenSim_Main.gridServers.GridServer.SetServerInfo(OpenSim_Main.cfg.GridURL, OpenSim_Main.cfg.GridSendKey);
+			
+			local_world.LoadStorageDLL("Db4LocalStorage.dll"); //all these dll names shouldn't be hard coded.
+			local_world.LoadPrimsFromStorage();
 			
 			MainServerListener();
 
@@ -230,6 +234,7 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Shutdown() - Killing clients");
 			// IMPLEMENT THIS
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Shutdown() - Closing console and terminating");
+			OpenSim_Main.local_world.Close();
 			ServerConsole.MainConsole.Instance.Close();
 			Environment.Exit(0);
 		}

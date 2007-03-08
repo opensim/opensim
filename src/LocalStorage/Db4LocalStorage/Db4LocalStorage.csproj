@@ -1,11 +1,11 @@
 ﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>SimConfig</RootNamespace>
-    <AssemblyName>SimConfig</AssemblyName>
+    <RootNamespace>Db4LocalStorage</RootNamespace>
+    <AssemblyName>Db4LocalStorage</AssemblyName>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B063760D-DB8D-4F64-B6FE-335FAD1E650A}</ProjectGuid>
+    <ProjectGuid>{74784F23-B0FD-484C-82C1-96C0215733DC}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>bin\Debug\</OutputPath>
@@ -30,23 +30,23 @@
       <HintPath>..\..\..\bin\Db4objects.Db4o.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="libsecondlife">
+      <HintPath>..\..\..\..\..\..\..\Libsecond-dailys\libsl07-03\trunk\libsecondlife-cs\obj\Debug\libsecondlife.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Db4SimConfig.cs" />
+    <Compile Include="Db4LocalStorage.cs" />
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ServerConsole\ServerConsole\ServerConsole.csproj">
-      <Project>{C9A6026D-8E0C-4FE4-8691-FB2A566AA245}</Project>
-      <Name>ServerConsole</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Second-server.csproj">
-      <Project>{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}</Project>
-      <Name>Second-server</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\GridInterfaces\GridInterfaces.csproj">
       <Project>{5DA3174D-42F9-416D-9F0B-AF41FA2BE2F9}</Project>
       <Name>GridInterfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ServerConsole\ServerConsole\ServerConsole.csproj">
+      <Project>{C9A6026D-8E0C-4FE4-8691-FB2A566AA245}</Project>
+      <Name>ServerConsole</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />

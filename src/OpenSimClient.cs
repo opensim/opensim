@@ -99,6 +99,7 @@ namespace OpenSim
 		    				client.ClientAvatar.SendAppearanceToOtherAgent(this);
 		    			}
     				}
+		    		OpenSim_Main.local_world.GetInitialPrims(this);
 		    		break;
 		    	case PacketType.ObjectAdd:
 		    		OpenSim_Main.local_world.AddNewPrim((ObjectAddPacket)Pack, this);

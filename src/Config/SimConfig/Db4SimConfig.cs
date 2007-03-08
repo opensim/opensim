@@ -111,16 +111,19 @@ namespace Db40SimConfig
 			ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Loading world....");
 			World blank = new World();
 			ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Looking for a heightmap in local DB");
-			IObjectSet world_result = db.Get(new float[65536]);
+			IObjectSet world_result = db.Get(typeof(MapStorage));
 			if(world_result.Count>0) {
 				ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Found a heightmap in local database, loading");
-				blank.LandMap=(float[])world_result.Next();	
+				MapStorage map=(MapStorage)world_result.Next();	
+				blank.LandMap = map.Map;
 			} else {
 				ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - No heightmap found, generating new one");
 				HeightmapGenHills hills = new HeightmapGenHills();
                 blank.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
 				ServerConsole.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Saving heightmap to local database");
-				db.Set(blank.LandMap);
+				MapStorage map= new MapStorage();
+				map.Map = blank.LandMap;
+				db.Set(map);
 				db.Commit();
 			}
 			return blank;
@@ -141,6 +144,16 @@ namespace Db40SimConfig
 
 		public void Shutdown() {
 			db.Close();
+		}
+	}
+	
+	public class MapStorage
+	{
+		public float[] Map;
+		
+		public MapStorage()
+		{
+			
 		}
 	}
 }

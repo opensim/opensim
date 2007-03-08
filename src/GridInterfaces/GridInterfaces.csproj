@@ -35,6 +35,7 @@
     <Compile Include="IAssetServer.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="IGridServer.cs" />
+    <Compile Include="ILocalStorage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>
