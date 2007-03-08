@@ -46,6 +46,7 @@
 			<include name="src/RemoteServers/default.build" />
 			<include name="src/physics/default.build" />
 			<include name="src/physics/plugins/default.build" />
+			<include name="src/LocalStorage/default.build" />
 		</buildfiles>
 	</nant>
 
