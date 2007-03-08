@@ -178,6 +178,14 @@ namespace OpenSim
 		    		break;
 		    	case PacketType.LogoutRequest:
 		    		ServerConsole.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+		    		//tell all clients to kill our object
+		    		KillObjectPacket kill = new KillObjectPacket();
+		    		kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+		    		kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+		    		kill.ObjectData[0].ID = this.ClientAvatar.localid;
+		    		foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+		    			client.OutPacket(kill);
+		    		}
 		    		OpenSim_Main.gridServers.GridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
 		    		lock(OpenSim_Main.local_world.Entities) {
 		    			OpenSim_Main.local_world.Entities.Remove(this.AgentID);
