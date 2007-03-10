@@ -26,12 +26,12 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-    <Reference Include="Db4objects.Db4o">
-      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
+    <Reference Include="libsecondlife">
+      <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
-    <Reference Include="libsecondlife">
-      <HintPath>..\bin\libsecondlife.dll</HintPath>
+    <Reference Include="Db4objects.Db4o">
+      <HintPath>..\..\..\bin\Db4objects.Db4o.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
   </ItemGroup>

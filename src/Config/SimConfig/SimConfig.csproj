@@ -27,7 +27,7 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="Db4objects.Db4o">
-      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
+      <HintPath>..\..\..\bin\Db4objects.Db4o.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
   </ItemGroup>
