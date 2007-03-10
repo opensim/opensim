@@ -40,11 +40,11 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="libsecondlife">
-      <HintPath>..\..\..\..\..\Libsecond-dailys\libsl07-03\trunk\libsecondlife-cs\obj\Debug\libsecondlife.dll</HintPath>
+      <HintPath>..\bin\libsecondlife.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Axiom.MathLib">
-      <HintPath>..\..\..\..\..\Opensim-pluginsystem\bin\Axiom.MathLib.dll</HintPath>
+      <HintPath>..\bin\Axiom.MathLib.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="log4net">

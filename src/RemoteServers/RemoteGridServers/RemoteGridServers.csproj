@@ -27,7 +27,7 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="libsecondlife">
-      <HintPath>..\..\..\..\..\..\..\Libsecond-dailys\libsl07-03\trunk\libsecondlife-cs\obj\Debug\libsecondlife.dll</HintPath>
+      <HintPath>..\bin\libsecondlife.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
   </ItemGroup>
