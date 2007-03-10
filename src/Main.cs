@@ -71,6 +71,7 @@ namespace OpenSim
 		private PhysicsManager physManager;
 		private System.Timers.Timer timer1 = new System.Timers.Timer();
 		private string ConfigDll = "SimConfig.dll";
+		private string _physicsEngine = "PhysX";
 		public bool sandbox = false;
 		public bool loginserver = false;
 		
@@ -92,6 +93,11 @@ namespace OpenSim
 				if(args[i] == "-loginserver")
 				{
 					sim.loginserver = true;
+				}
+				if(args[i] == "-realphysx")
+				{
+					sim._physicsEngine = "RealPhysX";
+					OpenSim.world.Avatar.PhysicsEngineFlying = true;
 				}
 			}
 			
@@ -148,7 +154,7 @@ namespace OpenSim
 			this.physManager = new PhysicsSystem.PhysicsManager();
 			this.physManager.LoadPlugins();
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting up messaging system");
-			local_world.PhysScene = this.physManager.GetPhysicsScene("PhysX"); //should be reading from the config file what physics engine to use
+			local_world.PhysScene = this.physManager.GetPhysicsScene(this._physicsEngine); //should be reading from the config file what physics engine to use
 			local_world.PhysScene.SetTerrain(local_world.LandMap);
 	
 			OpenSim_Main.gridServers.AssetServer.SetServerInfo(OpenSim_Main.cfg.AssetURL, OpenSim_Main.cfg.AssetSendKey);

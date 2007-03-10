@@ -11,15 +11,17 @@ namespace OpenSim.world
 {
     public class Avatar : Entity
     {
+    	public static bool PhysicsEngineFlying;
     	public string firstname;
     	public string lastname;
     	public OpenSimClient ControllingClient;
     	private PhysicsActor _physActor;
     	private static libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
 		private bool updateflag;
-		private bool walking;
+		private byte movementflag;
 		private List<NewForce> forcesList = new List<NewForce>();
 		private short _updateCount;
+		private Axiom.MathLib.Quaternion bodyRot;
 		
     	public Avatar(OpenSimClient TheClient) {
     		ServerConsole.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
@@ -77,14 +79,14 @@ namespace OpenSim.world
     			}
     			
     			updateflag =false;
-    			this._updateCount = 0;
+    			//this._updateCount = 0;
     		}
     		else
     		{
-    			if(walking)
-    			{
+    			//if((movementflag & 1) !=0)
+    			//{
     				_updateCount++;
-    				if(_updateCount>3)
+    				if(( (!PhysicsEngineFlying) && (_updateCount>3)) || (_updateCount>0))
     				{
     					//It has been a while since last update was sent so lets send one.
     					ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
@@ -98,7 +100,7 @@ namespace OpenSim.world
     					}
     					_updateCount = 0;
     				}
-    			}
+    			//}
     		}
     	}
 
@@ -249,36 +251,111 @@ namespace OpenSim.world
 		}
     	
     	public void HandleUpdate(AgentUpdatePacket pack) {
-           if(((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) !=0) {
-    			if(!walking)
+    		if(((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_FLY) !=0)
+    		{
+    			this._physActor.Flying = true;
+    		}
+    		else
+    		{
+    			this._physActor.Flying = false;
+    		}
+    		if(((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) !=0) {
+    			Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
+    			if(((movementflag & 1) ==0) || (q!= this.bodyRot))
     			{
-    				//we should add a new force to the list 
+    				//we should add a new force to the list
     				// but for now we will deal with velocities
     				NewForce newVelocity = new NewForce();
     				Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
-    				Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
     				Axiom.MathLib.Vector3 direc = q * v3;
     				direc.Normalize();
     				
     				//work out velocity for sim physics system
     				direc = direc * ((0.03f) * 128f);
+    				if(this._physActor.Flying)
+    					direc *=2;
+    				
     				newVelocity.X = direc.x;
     				newVelocity.Y = direc.y;
     				newVelocity.Z = direc.z;
     				this.forcesList.Add(newVelocity);
-    				walking=true;
+    				movementflag = 1;
+    				this.bodyRot = q;
+    			}
+    		}
+    		else if((((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_UP_POS) !=0) &&(PhysicsEngineFlying)) {
+    			if(((movementflag & 2) ==0) && this._physActor.Flying)
+    			{
+    				//we should add a new force to the list
+    				// but for now we will deal with velocities
+    				NewForce newVelocity = new NewForce();
+    				Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(0, 0, 1);
+    				Axiom.MathLib.Vector3 direc = v3;
+    				direc.Normalize();
+    				
+    				//work out velocity for sim physics system
+    				direc = direc * ((0.03f) * 128f *2);
+    				newVelocity.X = direc.x;
+    				newVelocity.Y = direc.y;
+    				newVelocity.Z = direc.z;
+    				this.forcesList.Add(newVelocity);
+    				movementflag = 2;
+    			}
+    		}
+    		else if((((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_UP_NEG) !=0) && (PhysicsEngineFlying)) {
+    			if(((movementflag & 4) ==0) && this._physActor.Flying)
+    			{
+    				//we should add a new force to the list
+    				// but for now we will deal with velocities
+    				NewForce newVelocity = new NewForce();
+    				Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(0, 0, -1);
+    				//Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
+    				Axiom.MathLib.Vector3 direc = v3;
+    				direc.Normalize();
+    				
+    				//work out velocity for sim physics system
+    				direc = direc * ((0.03f) * 128f *2);
+    				newVelocity.X = direc.x;
+    				newVelocity.Y = direc.y;
+    				newVelocity.Z = direc.z;
+    				this.forcesList.Add(newVelocity);
+    				movementflag = 4;
+    			}
+    		}
+    		else if(((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_NEG) !=0) {
+    			Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
+    			if(((movementflag & 8) ==0) || (q!= this.bodyRot))
+    			{
+    				//we should add a new force to the list
+    				// but for now we will deal with velocities
+    				NewForce newVelocity = new NewForce();
+    				Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(-1, 0, 0);
+    				Axiom.MathLib.Vector3 direc = q * v3;
+    				direc.Normalize();
+    				
+    				//work out velocity for sim physics system
+    				direc = direc * ((0.03f) * 128f);
+    				if(this._physActor.Flying)
+    					direc *=2;
+    				
+    				newVelocity.X = direc.x;
+    				newVelocity.Y = direc.y;
+    				newVelocity.Z = direc.z;
+    				this.forcesList.Add(newVelocity);
+    				movementflag = 8;
+    				this.bodyRot = q;
     			}
     		}
     		else
     		{
-    			if(walking)
+    			if((movementflag) !=0)
     			{
     				NewForce newVelocity = new NewForce();
     				newVelocity.X = 0;
     				newVelocity.Y = 0;
     				newVelocity.Z = 0;
     				this.forcesList.Add(newVelocity);
-    				walking = false;
+    				movementflag = 0;
     			}
     		}
     	}

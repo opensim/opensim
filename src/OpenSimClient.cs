@@ -135,8 +135,8 @@ namespace OpenSim
 		    				{
 		    					if(ent.localid == multipleupdate.ObjectData[ i ].ObjectLocalID)
 		    					{
-		    						ent.position = pos;
-		    						((OpenSim.world.Primitive)ent).UpdateFlag = true;
+		    						((OpenSim.world.Primitive)ent).UpdatePosition( pos);
+		    						
 		    					}
 		    				}
 		    				
@@ -191,6 +191,7 @@ namespace OpenSim
 		    			OpenSim_Main.local_world.Entities.Remove(this.AgentID);
 		    		}
 		    		//need to do other cleaning up here too
+		    		OpenSim_Main.sim.ClientThreads.Remove(this.userEP);
 		    		this.ClientThread.Abort();
 		    		break;
 		    	case PacketType.ChatFromViewer:
@@ -222,7 +223,7 @@ namespace OpenSim
 	 			{
 	 				foreach (Packet packet in NeedAck.Values)
 	 				{
-	 					if (now - packet.TickCount > RESEND_TIMEOUT)
+	 					if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
 	 					{
 	 						ServerConsole.MainConsole.Instance.WriteLine("Resending " + packet.Type.ToString() + " packet, " +
 	 						 (now - packet.TickCount) + "ms have passed");

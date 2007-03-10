@@ -110,6 +110,8 @@ namespace PhysicsSystem
 	{
 		public abstract PhysicsActor AddAvatar(PhysicsVector position);
 		
+		public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size);
+		
 		public abstract void Simulate(float timeStep);
 		
 		public abstract void GetResults();
@@ -139,6 +141,11 @@ namespace PhysicsSystem
 		public abstract PhysicsVector Acceleration
 		{
 			get;
+		}
+		public abstract bool Flying
+		{
+			get;
+			set;
 		}
 		
 		public abstract void AddForce(PhysicsVector force);

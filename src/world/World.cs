@@ -176,9 +176,8 @@ namespace OpenSim.world
     		ServerConsole.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
     		ServerConsole.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
     		NewAvatar.SendRegionHandshake(this);
-    		
-    		NewAvatar.PhysActor = this.phyScene.AddAvatar(new PhysicsVector(NewAvatar.position.X, NewAvatar.position.Y, NewAvatar.position.Z));
-    		//this.Update();		// will work for now, but needs to be optimised so we don't update everything in the sim for each new user
+    		PhysicsVector pVec = new PhysicsVector(NewAvatar.position.X, NewAvatar.position.Y, NewAvatar.position.Z);
+    		NewAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
     		this.Entities.Add(AgentClient.AgentID, NewAvatar);
     	}
     	
@@ -187,6 +186,10 @@ namespace OpenSim.world
     		ServerConsole.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Creating new prim");
     		Primitive prim = new Primitive();
     		prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
+    		PhysicsVector pVec = new PhysicsVector(prim.position.X, prim.position.Y, prim.position.Z);
+    		PhysicsVector pSize = new PhysicsVector( 0.25f, 0.25f, 0.25f);
+    		//prim.PhysActor = this.phyScene.AddPrim(pVec, pSize );
+    		//prim.PhysicsEnabled = true;
     		this.Entities.Add(prim.uuid, prim);
     		this._primCount++;
     	}

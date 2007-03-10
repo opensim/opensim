@@ -5,6 +5,7 @@ using OpenSim.types;
 using libsecondlife;
 using libsecondlife.Packets;
 using GridInterfaces;
+using PhysicsSystem;
 
 namespace OpenSim.world
 {
@@ -16,8 +17,21 @@ namespace OpenSim.world
         protected bool newPrimFlag;
         protected bool updateFlag;
         protected bool dirtyFlag;
-        protected ObjectUpdatePacket OurPacket;
+        private ObjectUpdatePacket OurPacket;
+        private PhysicsActor _physActor;
+        private bool physicsEnabled;
        
+        public bool PhysicsEnabled
+        {
+        	get
+        	{
+        		return physicsEnabled;
+        	}
+        	set
+        	{
+        		physicsEnabled = value;
+        	}
+        }
         public bool UpdateFlag
         {
         	get
@@ -41,6 +55,14 @@ namespace OpenSim.world
         		return this.primData.Scale;
         	}
         }
+        public PhysicsActor PhysActor
+    	{
+    		set
+    		{
+    			this._physActor = value;
+    		}
+    	}
+        
         public Primitive()
         {
             mesh_cutbegin = 0.0f;
@@ -59,6 +81,16 @@ namespace OpenSim.world
             mesh += base.getMesh();
 
             return mesh;
+        }
+        
+        public void UpdatePosition( LLVector3 pos)
+        {
+        	this.position = pos;
+        	if(this._physActor != null && this.physicsEnabled)
+        	{
+        		this._physActor.Position = new PhysicsVector(pos.X, pos.Y, pos.Z);
+        	}
+        	this.updateFlag = true;
         }
         
         public override void update()
@@ -89,13 +121,39 @@ namespace OpenSim.world
         		}
         		this.dirtyFlag = false;
         	}
-        	
+        	else
+        	{
+        		if(this._physActor != null && this.physicsEnabled) 
+        		{
+        			ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+        			terse.RegionData.RegionHandle = OpenSim_Main.cfg.RegionHandle; // FIXME
+        			terse.RegionData.TimeDilation = 64096;
+        			terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+        			terse.ObjectData[0] = this.CreateImprovedBlock();
+        			foreach(OpenSimClient client in OpenSim_Main.sim.ClientThreads.Values) {
+        				client.OutPacket(terse);
+        			}
+        		}
+        	}
         }
         
         public void UpdateClient(OpenSimClient RemoteClient)
         {
-        	byte[] pb = this.position.GetBytes();
+        	
+        	LLVector3 lPos; 
+        	if( this._physActor != null && this.physicsEnabled)
+        	{
+        		PhysicsVector pPos = this._physActor.Position; 
+			 	lPos = new LLVector3( pPos.X, pPos.Y, pPos.Z);
+        	}
+        	else
+        	{
+        		lPos = this.position;
+        	}
+			byte[] pb = lPos.GetBytes();
         	Array.Copy(pb, 0, OurPacket.ObjectData[0].ObjectData, 0, pb.Length);
+        	
+        	// OurPacket should be update with the follwing in updateShape() rather than having to do it here
         	OurPacket.ObjectData[0].OwnerID = this.primData.OwnerID;
         	OurPacket.ObjectData[0].PCode = this.primData.PCode;
         	OurPacket.ObjectData[0].PathBegin = this.primData.PathBegin;
@@ -137,7 +195,6 @@ namespace OpenSim.world
         	this.primData.PathCurve = addPacket.PathCurve;
         	this.primData.ProfileCurve = addPacket.ProfileCurve;
         	this.primData.ProfileHollow = addPacket.ProfileHollow;
-        	
         	this.primData.PathRadiusOffset = addPacket.PathRadiusOffset;
         	this.primData.PathRevolutions = addPacket.PathRevolutions;
         	this.primData.PathTaperX = addPacket.PathTaperX;
@@ -145,7 +202,6 @@ namespace OpenSim.world
         	this.primData.PathTwist = addPacket.PathTwist;
         	this.primData.PathTwistBegin =addPacket.PathTwistBegin;
         	this.dirtyFlag = true;
-        	
         }
         
         public void CreateFromPacket( ObjectAddPacket addPacket, LLUUID agentID, uint localID)
@@ -162,7 +218,6 @@ namespace OpenSim.world
         	objupdate.ObjectData[0].ExtraParams = new byte[1];
         	objupdate.ObjectData[0].MediaURL = new byte[0];
         	objupdate.ObjectData[0].NameValue = new byte[0];
-        	objupdate.ObjectData[0].PSBlock = new byte[0];
         	objupdate.ObjectData[0].Text = new byte[0];
         	objupdate.ObjectData[0].TextColor = new byte[4];
         	objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0,0,0);
@@ -232,7 +287,6 @@ namespace OpenSim.world
         	objupdate.ObjectData[0].ExtraParams = new byte[1];
         	objupdate.ObjectData[0].MediaURL = new byte[0];
         	objupdate.ObjectData[0].NameValue = new byte[0];
-        	objupdate.ObjectData[0].PSBlock = new byte[0];
         	objupdate.ObjectData[0].Text = new byte[0];
         	objupdate.ObjectData[0].TextColor = new byte[4];
         	objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0,0,0);
@@ -291,7 +345,6 @@ namespace OpenSim.world
         	uint ID = this.localid;
         	byte[] bytes = new byte[60];
 			
-			
 			int i = 0;
 			ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
 			dat.TextureEntry = this.OurPacket.ObjectData[0].TextureEntry;
@@ -302,8 +355,18 @@ namespace OpenSim.world
 			bytes[i++] = (byte)((ID >> 24) % 256);
 			bytes[i++]= 0;
 			bytes[i++]= 0;
-
-			byte[] pb = this.position.GetBytes();
+			
+			LLVector3 lPos; 
+        	if( this._physActor != null && this.physicsEnabled)
+        	{
+        		PhysicsVector pPos = this._physActor.Position; 
+			 	lPos = new LLVector3( pPos.X, pPos.Y, pPos.Z);
+        	}
+        	else
+        	{
+        		lPos = this.position;
+        	}
+			byte[] pb = lPos.GetBytes();
 			Array.Copy(pb, 0, bytes, i, pb.Length);
 			i += 12;
 			ushort ac = 32767;

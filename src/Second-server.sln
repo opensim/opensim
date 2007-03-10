@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerConsole", "ServerCons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Db4LocalStorage", "LocalStorage\Db4LocalStorage\Db4LocalStorage.csproj", "{74784F23-B0FD-484C-82C1-96C0215733DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealPhysXplugin", "physics\RealPhysX\RealPhysXplugin\RealPhysXplugin.csproj", "{56C1D214-F389-4228-921A-0A3A0712C159}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|.NET 1.1 = Debug|.NET 1.1
@@ -99,6 +101,14 @@ Global
 		{74784F23-B0FD-484C-82C1-96C0215733DC}.Release|.NET 1.1.ActiveCfg = Release|.NET 1.1
 		{74784F23-B0FD-484C-82C1-96C0215733DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{74784F23-B0FD-484C-82C1-96C0215733DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Debug|.NET 1.1.Build.0 = Debug|.NET 1.1
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Debug|.NET 1.1.ActiveCfg = Debug|.NET 1.1
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Release|.NET 1.1.Build.0 = Release|.NET 1.1
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Release|.NET 1.1.ActiveCfg = Release|.NET 1.1
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56C1D214-F389-4228-921A-0A3A0712C159}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

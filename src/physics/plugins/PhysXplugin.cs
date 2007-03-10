@@ -85,14 +85,30 @@ namespace PhysXplugin
 			return act;
 		}
 		
+		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+		{
+			return null;
+		}
+		
 		public override void Simulate(float timeStep)
 		{
 			foreach (PhysXActor actor in _actors)
 			{
-				actor.Position.X = actor.Position.X + actor.Velocity.X * timeStep;
-				actor.Position.Y = actor.Position.Y + actor.Velocity.Y * timeStep;
-				actor.Position.Z = actor.Position.Z + actor.Velocity.Z * timeStep;
-				actor.Position.Z = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1;
+				actor.Position.X = actor.Position.X + (actor.Velocity.X * timeStep);
+				actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
+				actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
+				/*if(actor.Flying)
+				{
+					actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
+				}
+				else
+				{
+					actor.Position.Z = actor.Position.Z + ((-9.8f + actor.Velocity.Z) * timeStep);
+				}
+				if(actor.Position.Z < (_heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1))
+				{*/
+					actor.Position.Z = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1;
+				//}
 				if(actor.Position.X<0)
 				{
 					actor.Position.X = 0;
@@ -140,12 +156,24 @@ namespace PhysXplugin
 		private PhysicsVector _position;
 		private PhysicsVector _velocity;
 		private PhysicsVector _acceleration;
-		
+		private bool flying;
 		public PhysXActor()
 		{
 			_velocity = new PhysicsVector();
 			_position = new PhysicsVector();
 			_acceleration = new PhysicsVector();
+		}
+		
+		public override bool Flying
+		{
+			get
+			{
+				return false;
+			}
+			set
+			{
+				flying= value;
+			}
 		}
 		
 		public override PhysicsVector Position
