@@ -46,21 +46,15 @@ namespace PhysicsSystem
 		
 		public PhysicsScene GetPhysicsScene(string engineName)
 		{
-		    if( String.IsNullOrEmpty( engineName ) )
-		    {
-                return new NullPhysicsScene();
-		    }
-
-		    if(_plugins.ContainsKey(engineName))
+			if(_plugins.ContainsKey(engineName))
 			{
 				ServerConsole.MainConsole.Instance.WriteLine("creating "+engineName);
 				return _plugins[engineName].GetScene();
 			}
 			else
 			{
-                string error = String.Format("couldn't find physicsEngine: {0}", engineName);
-				ServerConsole.MainConsole.Instance.WriteLine( error );
-                throw new ArgumentException( error );
+				ServerConsole.MainConsole.Instance.WriteLine("couldn't find physicsEngine: "+ engineName);
+				return null;
 			}
 		}
 		
@@ -114,14 +108,6 @@ namespace PhysicsSystem
 	
 	public abstract class PhysicsScene
 	{
-        public static PhysicsScene Null
-        {
-            get
-            {                
-                return new NullPhysicsScene();
-            }
-        }
-	
 		public abstract PhysicsActor AddAvatar(PhysicsVector position);
 		
 		public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size);
@@ -138,49 +124,8 @@ namespace PhysicsSystem
 		}
 	}
 	
-    public class NullPhysicsScene : PhysicsScene
-    {
-        private static int m_workIndicator;
-        
-        public override PhysicsActor AddAvatar(PhysicsVector position)
-        {
-            ServerConsole.MainConsole.Instance.WriteLine("NullPhysicsScene : AddAvatar({0})", position );
-            return PhysicsActor.Null;
-        }
-
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
-        {
-            ServerConsole.MainConsole.Instance.WriteLine("NullPhysicsScene : AddPrim({0},{1})", position, size );
-            return PhysicsActor.Null;            
-        }
-
-        public override void Simulate(float timeStep)
-        {
-            m_workIndicator = ( m_workIndicator + 1 ) % 10;
-
-            ServerConsole.MainConsole.Instance.SetStatus( m_workIndicator.ToString() );
-        }
-
-        public override void GetResults()
-        {
-            ServerConsole.MainConsole.Instance.WriteLine("NullPhysicsScene : GetResults()" );
-        }
-
-        public override void SetTerrain(float[] heightMap)
-        {
-            ServerConsole.MainConsole.Instance.WriteLine("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length );
-        }
-
-        public override bool IsThreaded
-        {
-            get { return false; }
-        }
-    }
-    
 	public abstract class PhysicsActor
 	{
-        public static readonly PhysicsActor Null = new NullPhysicsActor();
-	    
 		public abstract PhysicsVector Position
 		{
 			get;
@@ -208,61 +153,7 @@ namespace PhysicsSystem
 		public abstract void SetMomentum(PhysicsVector momentum);
 	}
 
-    public class NullPhysicsActor : PhysicsActor
-    {
-        public override PhysicsVector Position
-        {
-            get
-            {
-                return PhysicsVector.Zero;
-            }
-            set
-            {
-                return;
-            }
-        }
-
-        public override PhysicsVector Velocity
-        {
-            get
-            {
-                return PhysicsVector.Zero;
-            }
-            set
-            {
-                return;
-            }
-        }
-
-        public override PhysicsVector Acceleration
-        {
-            get { return PhysicsVector.Zero; }
-        }
-
-        public override bool Flying
-        {
-            get
-            {
-                return false;
-            }
-            set
-            {
-                return;
-            }
-        }
-
-        public override void AddForce(PhysicsVector force)
-        {
-            return;
-        }
-
-        public override void SetMomentum(PhysicsVector momentum)
-        {
-            return;
-        }
-    }
-
-    public class PhysicsVector
+	public class PhysicsVector
 	{
 		public float X;
 		public float Y;
@@ -279,7 +170,5 @@ namespace PhysicsSystem
 			Y = y;
 			Z = z;
 		}
-
-        public static readonly PhysicsVector Zero = new PhysicsVector(0f, 0f, 0f);
 	}
 }

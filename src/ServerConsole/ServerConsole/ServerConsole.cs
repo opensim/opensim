@@ -43,7 +43,12 @@ namespace ServerConsole
 				instance = value;
 			}
 		}
-    }
+		
+		public MainConsole()
+		{
+			
+		}
+	}
 	
 	public abstract class ConsoleBase
 	{
@@ -55,14 +60,15 @@ namespace ServerConsole
 		}
 
 		public abstract void Close();
-
-        public abstract void Write(string format, params object[] args);
-
-        public abstract void WriteLine(string format, params object[] args);	
-	    
+	
+		// You know what ReadLine() and WriteLine() do, right? And Read() and Write()? Right, you do actually know C#, right? Are you actually a programmer? Do you know english? Do you find my sense of humour in comments irritating? Good, glad you're still here
+		public abstract void WriteLine(string Line) ;
+		
 		public abstract string ReadLine();
 
 		public abstract int Read() ;
+
+		public abstract void Write(string Line) ;
 
 		// Displays a command prompt and waits for the user to enter a string, then returns that string
 		public abstract string CmdPrompt(string prompt) ;
@@ -81,7 +87,5 @@ namespace ServerConsole
 	
 		// Displays a prompt to the user and then runs the command they entered
 		public abstract void MainConsolePrompt() ;
-
-        public abstract void SetStatus( string status );
-    }
+	}
 }

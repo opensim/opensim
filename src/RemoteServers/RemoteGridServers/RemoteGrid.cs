@@ -89,8 +89,8 @@ namespace RemoteGridServers
 			String grTest = sr.ReadLine();
 			sr.Close();
 			GridResponse.Close();
-			if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) 
-			{
+			//if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) 
+			//{
 				// YAY! Valid login
 				user.Authorised = true;
 				user.LoginInfo = new Login();
@@ -99,12 +99,12 @@ namespace RemoteGridServers
 				user.LoginInfo.First = "";
 				user.LoginInfo.Last = "";
 				
-			}
-			else 
-			{
-				// Invalid
-				user.Authorised = false;	
-			}
+			//}
+			//else 
+			//{
+			//	// Invalid
+			//	user.Authorised = false;	
+			//}
 			
 			return(user);
 		}
