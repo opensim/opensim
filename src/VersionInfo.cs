@@ -32,6 +32,6 @@ namespace OpenSim
 	/// </summary>
 	public class VersionInfo
 	{
-		public static string Version = "0.1, Build 1173778834, Revision 191M"; 
+		public static string Version = "0.1, Build 1173785234, Revision 192M"; 
 	}
 }

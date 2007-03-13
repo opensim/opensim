@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 [assembly: ComVisibleAttribute(false)]
 [assembly: CLSCompliantAttribute(false)]
-[assembly: AssemblyVersionAttribute("0.1.*.191")]
+[assembly: AssemblyVersionAttribute("0.1.*.192")]
 [assembly: AssemblyTitleAttribute("opensim-localstorage")]
 [assembly: AssemblyDescriptionAttribute("The local storage handler")]
 [assembly: AssemblyCopyrightAttribute("Copyright © OGS development team 2007")]

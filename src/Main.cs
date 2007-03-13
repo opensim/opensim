@@ -83,13 +83,18 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance = new MServerConsole(ServerConsole.ConsoleBase.ConsoleType.Local,"",0);
 			
 			sim = new OpenSim_Main();
-			
+
+            sim.sandbox = false;
+            sim.loginserver = false;
+            sim._physicsEngine = "PhysX";
+		    
 			for (int i = 0; i < args.Length; i++)
 			{
 				if(args[i] == "-sandbox")
 				{
 					sim.sandbox = true;
 				}
+			    
 				if(args[i] == "-loginserver")
 				{
 					sim.loginserver = true;
@@ -136,9 +141,6 @@ namespace OpenSim
 		
 		private void Startup() {
 			startuptime=DateTime.Now;
-			timer1.Enabled = true;
-			timer1.Interval = 100;
-			timer1.Elapsed +=new ElapsedEventHandler( this.Timer1Tick );
 			
 			// We check our local database first, then the grid for config options
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Loading configuration");
@@ -150,7 +152,11 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - We are " + cfg.RegionName + " at " + cfg.RegionLocX.ToString() + "," + cfg.RegionLocY.ToString());
 			ServerConsole.MainConsole.Instance.WriteLine("Initialising world");
 			local_world = cfg.LoadWorld();
-			
+
+            timer1.Enabled = true;
+            timer1.Interval = 100;
+            timer1.Elapsed += new ElapsedEventHandler(this.Timer1Tick);
+
 			this.physManager = new PhysicsSystem.PhysicsManager();
 			this.physManager.LoadPlugins();
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting up messaging system");
@@ -210,7 +216,7 @@ namespace OpenSim
 				OpenSimClient newuser = new OpenSimClient(epSender,(UseCircuitCodePacket)packet);
 				ClientThreads.Add(epSender, newuser);
 			} else { // invalid client
-				Console.Error.WriteLine("Main.cs:OnReceivedData() - WARNING: Got a " + packet.ToString() + " packet from an invalid client - " + epSender.ToString());
+				Console.Error.WriteLine("Main.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
 			}
 			Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 		}
