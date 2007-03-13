@@ -35,6 +35,9 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\bin\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -73,15 +76,25 @@
     <Compile Include="VersionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="GridServers" />
-    <Folder Include="Assets" />
     <ProjectReference Include="GridInterfaces\GridInterfaces.csproj">
       <Project>{5DA3174D-42F9-416D-9F0B-AF41FA2BE2F9}</Project>
       <Name>GridInterfaces</Name>
     </ProjectReference>
+    <ProjectReference Include="LocalServers\LocalGridServers\LocalGridServers.csproj">
+      <Project>{D7F0395B-FADC-4936-80A0-D95AACE92F62}</Project>
+      <Name>LocalGridServers</Name>
+    </ProjectReference>
+    <ProjectReference Include="LocalStorage\Db4LocalStorage\Db4LocalStorage.csproj">
+      <Project>{74784F23-B0FD-484C-82C1-96C0215733DC}</Project>
+      <Name>Db4LocalStorage</Name>
+    </ProjectReference>
     <ProjectReference Include="physics\PhysicsManager.csproj">
       <Project>{3C86A846-7977-4EE7-A8DC-DD487FA5DC2B}</Project>
       <Name>PhysicsManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="RemoteServers\RemoteGridServers\RemoteGridServers.csproj">
+      <Project>{CF0E7E62-34F4-4AB2-BDBD-AFC63224A7E5}</Project>
+      <Name>RemoteGridServers</Name>
     </ProjectReference>
     <ProjectReference Include="ServerConsole\ServerConsole\ServerConsole.csproj">
       <Project>{C9A6026D-8E0C-4FE4-8691-FB2A566AA245}</Project>

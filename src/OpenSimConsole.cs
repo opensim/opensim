@@ -61,6 +61,7 @@ namespace OpenSim
 			ConsType = constype;
 			switch(constype) {
 				case ConsoleType.Local:
+
 				Console.WriteLine("ServerConsole.cs - creating new local console");
 				Console.WriteLine("Logs will be saved to current directory in opensim-console.log");
 				Log=File.AppendText("opensim-console.log");
@@ -75,22 +76,30 @@ namespace OpenSim
 				default:
 					Console.WriteLine("ServerConsole.cs - what are you smoking? that isn't a valid console type!");
 				break;
-			}
+			}		   		    
 		}
 
 		public override void Close() {
 			Log.WriteLine("OpenSim shutdown at " + DateTime.Now.ToString());
 			Log.Close();
 		}
-	
-		// You know what ReadLine() and WriteLine() do, right? And Read() and Write()? Right, you do actually know C#, right? Are you actually a programmer? Do you know english? Do you find my sense of humour in comments irritating? Good, glad you're still here
-		public override void WriteLine(string Line) {
-			Log.WriteLine(Line);
-			Console.WriteLine(Line);
-			return;
-		}
-		
-		public override string ReadLine() {
+
+        public override void Write(string format, params object[] args)
+        {
+            Log.Write(format, args);
+            Console.Write(format, args);
+            return;
+        }
+
+        public override void WriteLine(string format, params object[] args)
+        {
+            Log.WriteLine(format, args);
+            Console.WriteLine(format, args);
+            return;
+        }
+
+        public override string ReadLine()
+        {
 			string TempStr=Console.ReadLine();
 			Log.WriteLine(TempStr);
 			return TempStr;
@@ -100,12 +109,6 @@ namespace OpenSim
 			int TempInt= Console.Read();
 			Log.Write((char)TempInt);
 			return TempInt;
-		}
-
-		public override void Write(string Line) {
-			Console.Write(Line);
-			Log.Write(Line);
-			return;
 		}
 
 		// Displays a command prompt and waits for the user to enter a string, then returns that string
@@ -196,7 +199,13 @@ namespace OpenSim
 			string[] cmdparams=(string[])tempstrarray;
 			RunCmd(cmd,cmdparams);
 		}
-	}
+
+
+        public override void SetStatus(string status)
+        {
+            Console.Write( status + "\r" );           
+        }
+    }
 }
 	
 

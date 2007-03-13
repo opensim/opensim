@@ -71,7 +71,7 @@ namespace OpenSim
 		private PhysicsManager physManager;
 		private System.Timers.Timer timer1 = new System.Timers.Timer();
 		private string ConfigDll = "SimConfig.dll";
-		private string _physicsEngine = "PhysX";
+		private string _physicsEngine = "";
 		public bool sandbox = false;
 		public bool loginserver = false;
 		
@@ -83,13 +83,18 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance = new MServerConsole(ServerConsole.ConsoleBase.ConsoleType.Local,"",0);
 			
 			sim = new OpenSim_Main();
-			
+
+            sim.sandbox = false;
+            sim.loginserver = false;
+            sim._physicsEngine = "";
+		    
 			for (int i = 0; i < args.Length; i++)
 			{
 				if(args[i] == "-sandbox")
 				{
 					sim.sandbox = true;
 				}
+			    
 				if(args[i] == "-loginserver")
 				{
 					sim.loginserver = true;
@@ -136,9 +141,6 @@ namespace OpenSim
 		
 		private void Startup() {
 			startuptime=DateTime.Now;
-			timer1.Enabled = true;
-			timer1.Interval = 100;
-			timer1.Elapsed +=new ElapsedEventHandler( this.Timer1Tick );
 			
 			// We check our local database first, then the grid for config options
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Loading configuration");
@@ -150,7 +152,11 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - We are " + cfg.RegionName + " at " + cfg.RegionLocX.ToString() + "," + cfg.RegionLocY.ToString());
 			ServerConsole.MainConsole.Instance.WriteLine("Initialising world");
 			local_world = cfg.LoadWorld();
-			
+
+            timer1.Enabled = true;
+            timer1.Interval = 100;
+            timer1.Elapsed += new ElapsedEventHandler(this.Timer1Tick);
+
 			this.physManager = new PhysicsSystem.PhysicsManager();
 			this.physManager.LoadPlugins();
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting up messaging system");
