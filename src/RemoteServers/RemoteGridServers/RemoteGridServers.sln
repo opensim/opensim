@@ -1,7 +1,0 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# SharpDevelop 2.1.0.2017
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteGridServers", "RemoteGridServers.csproj", "{CF0E7E62-34F4-4AB2-BDBD-AFC63224A7E5}"
-EndProject
-Global
-EndGlobal

@@ -74,6 +74,9 @@
     <Compile Include="OpenSimConsole.cs" />
     <Compile Include="HeightMapGenHills.cs" />
     <Compile Include="VersionInfo.cs" />
+    <Compile Include="CAPS\SimHttp.cs">
+      <Link>SimHttp.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="GridInterfaces\GridInterfaces.csproj">

@@ -1,7 +1,0 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# SharpDevelop 2.1.0.2017
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealPhysXplugin", "RealPhysXplugin.csproj", "{56C1D214-F389-4228-921A-0A3A0712C159}"
-EndProject
-Global
-EndGlobal
