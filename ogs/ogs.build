@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+    <project name="OGS" default="build" basedir=".">
+        <description>nant buildfile for OpenSim</description>
+        <property name="debug" value="true" overwrite="false" />
+        <target name="clean" description="remove all generated files">
+        <nant target="clean">
+                <buildfiles>
+                        <include name="ServerConsole/default.build" />
+                        <include name="gridserver/default.build" />
+                </buildfiles>
+        </nant>
+
+	</target>
+
+	<target name="svnupdate" description="updates to latest SVN">
+		<exec program="svn">
+			<arg value="update" />
+		</exec>
+	</target>
+
+	<target name="upgrade" description="updates from SVN and then builds" depends="clean,svnupdate,build">
+		
+	</target>
+	
+	<target name="build" description="compiles the source code">
+
+	<exec program="genvers.sh" />
+	<loadfile file="VERSION" property="svnver"/>
+
+	<nant>
+    		<buildfiles>
+        		<include name="ServerConsole/default.build" />
+			<include name="gridserver/default.build" />
+		</buildfiles>
+	</nant>
+
+	</target>
+</project>
