@@ -17,3 +17,13 @@ secondlife.exe -loginuri http://localhost:8080/
 
 * Have fun with your own sandbox!
 
+== Linux/mono sandbox build ==
+
+* check out the trunk code
+
+* ensure you have nant (http://nant.sf.net) installed
+
+* cd to the right directory and type "nant"
+
+* cd to bin/ and run "mono OpenSim.exe -sandbox -loginserver"
+
