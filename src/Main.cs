@@ -154,16 +154,12 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance.WriteLine("Initialising world");
 			local_world = cfg.LoadWorld();
 
-            timer1.Enabled = true;
-            timer1.Interval = 100;
-            timer1.Elapsed += new ElapsedEventHandler(this.Timer1Tick);
-
 			this.physManager = new PhysicsSystem.PhysicsManager();
 			this.physManager.LoadPlugins();
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting up messaging system");
 			local_world.PhysScene = this.physManager.GetPhysicsScene(this._physicsEngine); //should be reading from the config file what physics engine to use
 			local_world.PhysScene.SetTerrain(local_world.LandMap);
-	
+
 			OpenSim_Main.gridServers.AssetServer.SetServerInfo(OpenSim_Main.cfg.AssetURL, OpenSim_Main.cfg.AssetSendKey);
 			OpenSim_Main.gridServers.GridServer.SetServerInfo(OpenSim_Main.cfg.GridURL, OpenSim_Main.cfg.GridSendKey);
 			
@@ -173,7 +169,11 @@ namespace OpenSim
 			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting CAPS HTTP server");
 			http_server = new SimCAPSHTTPServer();
 
-			MainServerListener();
+            timer1.Enabled = true;
+            timer1.Interval = 100;
+            timer1.Elapsed += new ElapsedEventHandler(this.Timer1Tick);
+
+            MainServerListener();
 
 		}
 		
