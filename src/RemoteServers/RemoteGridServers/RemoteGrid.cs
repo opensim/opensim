@@ -69,7 +69,13 @@ namespace RemoteGridServers
 	{
 		private string GridServerUrl;
 		private string GridSendKey;
-		
+		private Dictionary<uint, agentcircuitdata> AgentCircuits = new Dictionary<uint, agentcircuitdata>(); 
+
+		public Dictionary<uint, agentcircuitdata> agentcircuits {
+                        get {return AgentCircuits;} 
+                        set {AgentCircuits=value;}
+                }
+	
 		public RemoteGridServer()
 		{
 			ServerConsole.MainConsole.Instance.WriteLine("Remote Grid Server class created");
@@ -79,26 +85,21 @@ namespace RemoteGridServers
 		{
 			return true;
 		}
-		public AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
+	
+	
+		public AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
 		{
+			agentcircuitdata validcircuit=this.AgentCircuits[circuitcode];
 			AuthenticateResponse user = new AuthenticateResponse();
-			
-			WebRequest CheckSession = WebRequest.Create(GridServerUrl + "/usersessions/" + GridSendKey + "/" + agentID.ToString() + "/" + circuitCode.ToString() + "/exists");
-			WebResponse GridResponse = CheckSession.GetResponse();
-			StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
-			String grTest = sr.ReadLine();
-			sr.Close();
-			GridResponse.Close();
-			if(String.IsNullOrEmpty(grTest) || grTest.Equals("1")) 
+			if((sessionID==validcircuit.SessionID) && (agentID==validcircuit.AgentID)) 
 			{
 				// YAY! Valid login
 				user.Authorised = true;
 				user.LoginInfo = new Login();
 				user.LoginInfo.Agent = agentID;
 				user.LoginInfo.Session = sessionID;
-				user.LoginInfo.First = "";
-				user.LoginInfo.Last = "";
-				
+				user.LoginInfo.First = validcircuit.firstname;
+				user.LoginInfo.Last = validcircuit.lastname;
 			}
 			else 
 			{
@@ -111,13 +112,18 @@ namespace RemoteGridServers
 		
 		public bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
 		{
-			WebRequest DeleteSession = WebRequest.Create(GridServerUrl + "/usersessions/" + GridSendKey + "/" + agentID.ToString() + "/" + circuitCode.ToString() + "/delete");
-			WebResponse GridResponse = DeleteSession.GetResponse();
-			StreamReader sr = new StreamReader(GridResponse.GetResponseStream());
-			String grTest = sr.ReadLine();
-			sr.Close();
-			GridResponse.Close();
-			ServerConsole.MainConsole.Instance.WriteLine("DEBUG: " + grTest);
+			WebRequest DeleteSession = WebRequest.Create(GridServerUrl + "/usersessions/" + sessionID.ToString());
+			DeleteSession.Method="DELETE";
+			DeleteSession.ContentType="text/plaintext";
+			DeleteSession.ContentLength=0;
+
+			StreamWriter stOut = new StreamWriter (DeleteSession.GetRequestStream(), System.Text.Encoding.ASCII);
+			stOut.Write("");
+			stOut.Close();
+
+			StreamReader stIn = new StreamReader(DeleteSession.GetResponse().GetResponseStream());
+			string GridResponse = stIn.ReadToEnd();
+			stIn.Close(); 
 			return(true);
 		}
 		
@@ -213,7 +219,7 @@ namespace RemoteGridServers
 			}
 		}
 	}
-	
+
 	public class BlockingQueue< T > {
 		private Queue< T > _queue = new Queue< T >();
 		private object _queueSync = new object();

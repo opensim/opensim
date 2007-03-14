@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 [assembly: ComVisibleAttribute(false)]
 [assembly: CLSCompliantAttribute(false)]
-[assembly: AssemblyVersionAttribute("0.1.*.192")]
+[assembly: AssemblyVersionAttribute("0.1.*.193206")]
 [assembly: AssemblyTitleAttribute("opensim-physicsmanager")]
 [assembly: AssemblyDescriptionAttribute("Handles physics plugins")]
 [assembly: AssemblyCopyrightAttribute("Copyright © OGS development team 2007")]

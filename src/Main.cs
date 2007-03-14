@@ -56,7 +56,8 @@ namespace OpenSim
 		public static SimConfig cfg;
 		public static World local_world;
 		public static Grid gridServers;
-		
+		public static SimCAPSHTTPServer http_server;
+	
 		public static Socket Server;
 		private static IPEndPoint ServerIncoming;
 		private static byte[] RecvBuffer = new byte[4096];
@@ -169,6 +170,9 @@ namespace OpenSim
 			local_world.LoadStorageDLL("Db4LocalStorage.dll"); //all these dll names shouldn't be hard coded.
 			local_world.LoadPrimsFromStorage();
 			
+			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting CAPS HTTP server");
+			http_server = new SimCAPSHTTPServer();
+
 			MainServerListener();
 
 		}

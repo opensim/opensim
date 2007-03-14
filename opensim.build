@@ -69,6 +69,7 @@
 				<include name="world/*.cs" />
 				<include name="GridServers/*.cs" />
 				<include name="Assets/*.cs" />
+				<include name="CAPS/*.cs" />
 			</sources>
 		</csc>
 

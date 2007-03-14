@@ -32,6 +32,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using libsecondlife;
+using OpenSim;
 
 namespace OpenSim.GridServers
 {
@@ -46,6 +47,10 @@ namespace OpenSim.GridServers
 	public interface IGridServer
 	{
 		bool RequestConnection();
+		Dictionary<uint, agentcircuitdata> agentcircuits {
+			get;
+			set;
+		}
 		UUIDBlock RequestUUIDBlock();
 		void RequestNeighbours(); //should return a array of neighbouring regions
 		AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
@@ -91,4 +96,16 @@ namespace OpenSim.GridServers
 	{
 		IGridServer GetGridServer();
 	}
+
+       public class agentcircuitdata {
+                public agentcircuitdata() { }
+                public LLUUID AgentID;
+                public LLUUID SessionID;
+                public LLUUID SecureSessionID;
+                public string firstname;
+                public string lastname;
+                public uint circuitcode;
+        }
+
+
 }

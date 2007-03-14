@@ -175,7 +175,7 @@ namespace OpenSim
 					break;
 				case "users":
 					OpenSim.world.Avatar TempAv;
-					this.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}","Firstname", "Lastname","Agent ID", "Session ID", "Circuit", "IP"));
+					this.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}","Firstname", "Lastname","Agent ID", "Session ID", "Circuit", "IP"));
 					foreach (libsecondlife.LLUUID UUID in OpenSim_Main.local_world.Entities.Keys) {
 						if(OpenSim_Main.local_world.Entities[UUID].ToString()== "OpenSim.world.Avatar")
 						{

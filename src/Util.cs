@@ -59,6 +59,16 @@ namespace OpenSim
                 public bool Incoming;
         }
 
+        public class agentcircuitdata {
+                public agentcircuitdata() { }
+                public LLUUID AgentID;
+                public LLUUID SessionID;
+                public LLUUID SecureSessionID;
+                public string firstname;
+                public string lastname;
+                public uint circuitcode;
+        }
+
 
         public class BlockingQueue< T > {
                 private Queue< T > _queue = new Queue< T >();

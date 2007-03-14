@@ -113,7 +113,14 @@ namespace LocalGridServers
 	public class LocalGridServer :IGridServer
 	{
 		public List<Login> Sessions = new List<Login>();  
-		
+	
+		private Dictionary<uint, agentcircuitdata> AgentCircuits = new Dictionary<uint, agentcircuitdata>();
+
+                public Dictionary<uint, agentcircuitdata> agentcircuits {
+                        get {return agentcircuits;}
+                        set {agentcircuits=value;}
+                }
+	
 		public LocalGridServer()
 		{
 			Sessions = new List<Login>();
