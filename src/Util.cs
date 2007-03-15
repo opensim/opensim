@@ -59,17 +59,19 @@ namespace OpenSim
                 public bool Incoming;
         }
 
-        public class agentcircuitdata {
-                public agentcircuitdata() { }
-                public LLUUID AgentID;
-                public LLUUID SessionID;
-                public LLUUID SecureSessionID;
-                public string firstname;
-                public string lastname;
-                public uint circuitcode;
-        }
-
-
+		/*  this is in IGridServer.cs, so there should be no reason for it to be here as well
+		public class agentcircuitdata
+		{
+			public agentcircuitdata() { }
+			public LLUUID AgentID;
+			public LLUUID SessionID;
+			public LLUUID SecureSessionID;
+			public string firstname;
+			public string lastname;
+			public uint circuitcode;
+		}
+		*/
+		
         public class BlockingQueue< T > {
                 private Queue< T > _queue = new Queue< T >();
                 private object _queueSync = new object();

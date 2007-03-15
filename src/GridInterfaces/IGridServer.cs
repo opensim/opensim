@@ -120,15 +120,16 @@ namespace OpenSim.GridServers
 		IGridServer GetGridServer();
 	}
 
-       public class agentcircuitdata {
-                public agentcircuitdata() { }
-                public LLUUID AgentID;
-                public LLUUID SessionID;
-                public LLUUID SecureSessionID;
-                public string firstname;
-                public string lastname;
-                public uint circuitcode;
-        }
+	public class agentcircuitdata 
+	{
+		public agentcircuitdata() { }
+		public LLUUID AgentID;
+		public LLUUID SessionID;
+		public LLUUID SecureSessionID;
+		public string firstname;
+		public string lastname;
+		public uint circuitcode;
+	}
 
 
 }

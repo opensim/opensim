@@ -76,27 +76,30 @@ namespace OpenSim
 		}
 
 		static string ParseXMLRPC(string requestBody) {
-			try{
-			XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
-		
-			Hashtable requestData = (Hashtable)request.Params[0];
-			switch(request.MethodName) {
-				case "expect_user":
-					GridServers.agentcircuitdata agent_data = new GridServers.agentcircuitdata();
-					agent_data.SessionID = new LLUUID((string)requestData["session_id"]);
-					agent_data.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
-					agent_data.firstname = (string)requestData["firstname"];
-					agent_data.lastname = (string)requestData["lastname"];
-					agent_data.AgentID = new LLUUID((string)requestData["agent_id"]);
-					agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-					if (OpenSim_Main.gridServers.GridServer.GetName() == "Remote")
-					{
-						((RemoteGridBase) OpenSim_Main.gridServers.GridServer).agentcircuits.Add((uint)agent_data.circuitcode,agent_data);
-					}
-					return "<?xml version=\"1.0\"?><methodResponse><params /></methodResponse>";
-				break;
-			}
-			} catch(Exception e) {
+			try
+			{
+				XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+				
+				Hashtable requestData = (Hashtable)request.Params[0];
+				switch(request.MethodName) {
+					case "expect_user":
+						GridServers.agentcircuitdata agent_data = new GridServers.agentcircuitdata();
+						agent_data.SessionID = new LLUUID((string)requestData["session_id"]);
+						agent_data.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
+						agent_data.firstname = (string)requestData["firstname"];
+						agent_data.lastname = (string)requestData["lastname"];
+						agent_data.AgentID = new LLUUID((string)requestData["agent_id"]);
+						agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+						if (OpenSim_Main.gridServers.GridServer.GetName() == "Remote")
+						{
+							((RemoteGridBase) OpenSim_Main.gridServers.GridServer).agentcircuits.Add((uint)agent_data.circuitcode,agent_data);
+						}
+						return "<?xml version=\"1.0\"?><methodResponse><params /></methodResponse>";
+						break;
+				}
+			} 
+			catch(Exception e) 
+			{
 				Console.WriteLine(e.ToString());
 			}
 			return "";
@@ -113,49 +116,48 @@ namespace OpenSim
 
 		static void HandleRequest(Object  stateinfo) {
 			HttpListenerContext context=(HttpListenerContext)stateinfo;
-		
-                	HttpListenerRequest request = context.Request;
-                	HttpListenerResponse response = context.Response;
+			
+			HttpListenerRequest request = context.Request;
+			HttpListenerResponse response = context.Response;
 
 			response.KeepAlive=false;
 			response.SendChunked=false;
 
 			System.IO.Stream body = request.InputStream;
-			System.Text.Encoding encoding = System.Text.Encoding.UTF8; 
+			System.Text.Encoding encoding = System.Text.Encoding.UTF8;
 			System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
-   
-	    		string requestBody = reader.ReadToEnd();
+			
+			string requestBody = reader.ReadToEnd();
 			body.Close();
-    			reader.Close();
+			reader.Close();
 
-                        string responseString="";
+			string responseString="";
 			switch(request.ContentType) {
-                                case "text/xml":
-                                	// must be XML-RPC, so pass to the XML-RPC parser
+				case "text/xml":
+					// must be XML-RPC, so pass to the XML-RPC parser
 					
 					responseString=ParseXMLRPC(requestBody);
-					response.AddHeader("Content-type","text/xml");	
-				break;
-                        
+					response.AddHeader("Content-type","text/xml");
+					break;
+					
 				case "application/xml":
 					// probably LLSD we hope, otherwise it should be ignored by the parser
 					responseString=ParseLLSDXML(requestBody);
 					response.AddHeader("Content-type","application/xml");
-				break;
-	
+					break;
+					
 				case null:
 					// must be REST or invalid crap, so pass to the REST parser
 					responseString=ParseREST(request.Url.OriginalString,requestBody);
-				break;
+					break;
 			}
-	
-	
-	                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-        	        System.IO.Stream output = response.OutputStream;
-    	        	response.SendChunked=false;
+				
+			byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+			System.IO.Stream output = response.OutputStream;
+			response.SendChunked=false;
 			response.ContentLength64=buffer.Length;
 			output.Write(buffer,0,buffer.Length);
-        	        output.Close();
+			output.Close();
 		}
 	}
 

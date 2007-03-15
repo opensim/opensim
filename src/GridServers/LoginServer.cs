@@ -216,6 +216,21 @@ namespace OpenSim.GridServers
 					int SessionRand = this.RandomClass.Next(1,999);
 					Session = new LLUUID("aaaabbbb-0200-"+SessionRand.ToString("0000")+"-8664-58f53e442797");
 					
+					//create some login info
+					Hashtable LoginFlagsHash = new Hashtable();
+					LoginFlagsHash["daylight_savings"]="N";
+					LoginFlagsHash["stipend_since_login"]="N";
+					LoginFlagsHash["gendered"]="Y";
+					LoginFlagsHash["ever_logged_in"]="Y";
+					ArrayList LoginFlags=new ArrayList();
+					LoginFlags.Add(LoginFlagsHash);
+					
+					Hashtable GlobalT = new Hashtable();
+					GlobalT["sun_texture_id"] = "cce0f112-878f-4586-a2e2-a8f104bba271";
+					GlobalT["cloud_texture_id"] = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+					GlobalT["moon_texture_id"] = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+					ArrayList GlobalTextures = new ArrayList();
+					GlobalTextures.Add(GlobalT);
 					
 					XmlRpcResponse response =(XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(this._defaultResponse);
 					Hashtable responseData = (Hashtable)response.Value;
@@ -224,6 +239,11 @@ namespace OpenSim.GridServers
 					responseData["sim_ip"] = OpenSim_Main.cfg.IPListenAddr;
 					responseData["agent_id"] = Agent.ToStringHyphenated();
 					responseData["session_id"] = Session.ToStringHyphenated();
+					responseData["seconds_since_epoch"]=(Int32)(DateTime.UtcNow - new DateTime(1970,1,1)).TotalSeconds;
+					responseData["login-flags"]=LoginFlags;
+					responseData["global-textures"]=GlobalTextures;
+					
+					//inventory
 					ArrayList InventoryList = (ArrayList) responseData["inventory-skeleton"];
 					Hashtable Inventory1 = (Hashtable)InventoryList[0];
 					Hashtable Inventory2 = (Hashtable)InventoryList[1];
@@ -249,7 +269,7 @@ namespace OpenSim.GridServers
 					_login.BaseFolder = BaseFolderID;
 					_login.InventoryFolder = InventoryFolderID;
 					
-					//working on local computer so lets add to the gridserver's list of sessions?
+					//working on local computer if so lets add to the gridserver's list of sessions?
 					if(OpenSim_Main.gridServers.GridServer.GetName() == "Local")
 					{
 						((LocalGridBase)this._gridServer).AddNewSession(_login);
