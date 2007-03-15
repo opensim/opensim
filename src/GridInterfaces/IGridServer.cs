@@ -46,18 +46,41 @@ namespace OpenSim.GridServers
 	
 	public interface IGridServer
 	{
-		bool RequestConnection();
-		Dictionary<uint, agentcircuitdata> agentcircuits {
-			get;
-			set;
-		}
 		UUIDBlock RequestUUIDBlock();
 		void RequestNeighbours(); //should return a array of neighbouring regions
 		AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+		string GetName();
+		bool RequestConnection();
 		void SetServerInfo(string ServerUrl, string ServerKey);
-	 	void AddNewSession(Login session); // only used by local version of grid server 
-	 									   // and didn't use to be part of this interface until we put this in a dll
+	 }
+	
+	public abstract class RemoteGridBase : IGridServer
+	{
+		public abstract Dictionary<uint, agentcircuitdata> agentcircuits {
+			get;
+			set;
+		}
+		
+		public abstract UUIDBlock RequestUUIDBlock();
+		public abstract void RequestNeighbours(); 
+		public abstract AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+		public abstract bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+		public abstract string GetName();
+		public abstract bool RequestConnection();
+		public abstract void SetServerInfo(string ServerUrl, string ServerKey);
+	}
+	
+	public abstract class LocalGridBase : IGridServer
+	{
+		public abstract UUIDBlock RequestUUIDBlock();
+		public abstract void RequestNeighbours(); 
+		public abstract AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+		public abstract bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+		public abstract string GetName();
+		public abstract bool RequestConnection();
+		public abstract void SetServerInfo(string ServerUrl, string ServerKey);
+		public abstract void AddNewSession(Login session);
 	}
 	
 	public struct UUIDBlock

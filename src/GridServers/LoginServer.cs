@@ -249,8 +249,11 @@ namespace OpenSim.GridServers
 					_login.BaseFolder = BaseFolderID;
 					_login.InventoryFolder = InventoryFolderID;
 					
-					//working on local computer so lets add to the gridserver's list of sessions
-					this._gridServer.AddNewSession(_login);
+					//working on local computer so lets add to the gridserver's list of sessions?
+					if(OpenSim_Main.gridServers.GridServer.GetName() == "Local")
+					{
+						((LocalGridBase)this._gridServer).AddNewSession(_login);
+					}
 					
 					// forward the XML-RPC response to the client
 					writer.WriteLine("HTTP/1.0 200 OK");

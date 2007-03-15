@@ -65,13 +65,13 @@ namespace RemoteGridServers
 			return(new RemoteAssetServer());
 		}
 	}
-	public class RemoteGridServer :IGridServer
+	public class RemoteGridServer : RemoteGridBase
 	{
 		private string GridServerUrl;
 		private string GridSendKey;
 		private Dictionary<uint, agentcircuitdata> AgentCircuits = new Dictionary<uint, agentcircuitdata>(); 
 
-		public Dictionary<uint, agentcircuitdata> agentcircuits {
+		public override Dictionary<uint, agentcircuitdata> agentcircuits {
                         get {return AgentCircuits;} 
                         set {AgentCircuits=value;}
                 }
@@ -81,13 +81,12 @@ namespace RemoteGridServers
 			ServerConsole.MainConsole.Instance.WriteLine("Remote Grid Server class created");
 		}
 		
-		public bool RequestConnection()
+		public override bool RequestConnection()
 		{
 			return true;
 		}
 	
-	
-		public AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
+		public override AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
 		{
 			agentcircuitdata validcircuit=this.AgentCircuits[circuitcode];
 			AuthenticateResponse user = new AuthenticateResponse();
@@ -110,7 +109,7 @@ namespace RemoteGridServers
 			return(user);
 		}
 		
-		public bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
+		public override bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
 		{
 			WebRequest DeleteSession = WebRequest.Create(GridServerUrl + "/usersessions/" + sessionID.ToString());
 			DeleteSession.Method="DELETE";
@@ -127,26 +126,26 @@ namespace RemoteGridServers
 			return(true);
 		}
 		
-		public UUIDBlock RequestUUIDBlock()
+		public override UUIDBlock RequestUUIDBlock()
 		{
 			UUIDBlock uuidBlock = new UUIDBlock();
 			return(uuidBlock);
 		}
 		
-		public void RequestNeighbours()
+		public override void RequestNeighbours()
 		{
 			return;
 		}
 		
-		public void SetServerInfo(string ServerUrl, string ServerKey)
+		public override void SetServerInfo(string ServerUrl, string ServerKey)
 		{
 			this.GridServerUrl = ServerUrl;
 			this.GridSendKey = ServerKey;
 		}
 		
-		public void AddNewSession(Login session)
-		{
-			
+		public override string GetName()
+		{ 
+			return "Remote";
 		}
 	}
 	

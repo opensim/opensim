@@ -38,6 +38,7 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using ServerConsole;
+using OpenSim.GridServers;
 
 namespace OpenSim
 {
@@ -54,16 +55,23 @@ namespace OpenSim
 		}
 
 		public void StartHTTP() {
-			ServerConsole.MainConsole.Instance.WriteLine("SimHttp.cs:StartHTTP() - Spawned main thread OK");
-			Listener = new HttpListener();
+			try
+			{
+				ServerConsole.MainConsole.Instance.WriteLine("SimHttp.cs:StartHTTP() - Spawned main thread OK");
+				Listener = new HttpListener();
 
-			Listener.Prefixes.Add("http://+:" + OpenSim_Main.cfg.IPListenPort + "/");
-			Listener.Start();
+				Listener.Prefixes.Add("http://+:" + OpenSim_Main.cfg.IPListenPort + "/");
+				Listener.Start();
 
-			HttpListenerContext context;
-			while(true) {
-				context = Listener.GetContext();
-				ThreadPool.QueueUserWorkItem(new WaitCallback(HandleRequest), context);
+				HttpListenerContext context;
+				while(true) {
+					context = Listener.GetContext();
+					ThreadPool.QueueUserWorkItem(new WaitCallback(HandleRequest), context);
+				}
+			}
+			catch (Exception e)
+			{
+				ServerConsole.MainConsole.Instance.WriteLine(e.Message);
 			}
 		}
 
@@ -81,7 +89,10 @@ namespace OpenSim
 					agent_data.lastname = (string)requestData["lastname"];
 					agent_data.AgentID = new LLUUID((string)requestData["agent_id"]);
 					agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-					OpenSim_Main.gridServers.GridServer.agentcircuits.Add((uint)agent_data.circuitcode,agent_data);
+					if (OpenSim_Main.gridServers.GridServer.GetName() == "Remote")
+					{
+						((RemoteGridBase) OpenSim_Main.gridServers.GridServer).agentcircuits.Add((uint)agent_data.circuitcode,agent_data);
+					}
 					return "<?xml version=\"1.0\"?><methodResponse><params /></methodResponse>";
 				break;
 			}
