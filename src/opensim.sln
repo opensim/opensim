@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C# Express 2005
+# Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Second-server", "Second-server.csproj", "{132A6E3E-8F2D-4BF5-BDFB-8555F53F334E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GridInterfaces", "GridInterfaces\GridInterfaces.csproj", "{5DA3174D-42F9-416D-9F0B-AF41FA2BE2F9}"
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicPhysicsplugin", "physics\plugins\BasicPhysicsplugin.csproj", "{52BCCE7B-69EA-4AC3-9DBC-D571B96C2EA1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealPhysXplugin", "physics\RealPhysX\RealPhysXplugin\RealPhysXplugin.csproj", "{56C1D214-F389-4228-921A-0A3A0712C159}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework", "OpenGrid.Framework\OpenGrid.Framework.csproj", "{407CE85B-628C-4788-9DBC-49BCEFC3A84F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +69,10 @@ Global
 		{56C1D214-F389-4228-921A-0A3A0712C159}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56C1D214-F389-4228-921A-0A3A0712C159}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56C1D214-F389-4228-921A-0A3A0712C159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{407CE85B-628C-4788-9DBC-49BCEFC3A84F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{407CE85B-628C-4788-9DBC-49BCEFC3A84F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{407CE85B-628C-4788-9DBC-49BCEFC3A84F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{407CE85B-628C-4788-9DBC-49BCEFC3A84F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

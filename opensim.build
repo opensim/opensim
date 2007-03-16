@@ -16,11 +16,23 @@
 	<target name="upgrade" description="updates from SVN and then builds" depends="clean,svnupdate,build">
 		
 	</target>
-	
-	<target name="build" description="compiles the source code">
 
-	<exec program="genvers.sh" />
-	<loadfile file="VERSION" property="svnver"/>
+	<target name="genvers">
+		<exec program="genvers.sh" />	
+		<loadfile file="VERSION" property="svnver"/>
+	</target>
+	
+	<target name="setvers">
+		<property name="svnver" value="0.0.0.1" />
+	</target>
+	
+	<target name="build" description="compiles the source code" depends="genvers, core_build">
+	</target>
+		
+	<target name="nogenvers" description="compiles the source code" depends="setvers, core_build">
+	</target>
+	
+	<target name="core_build" description="compiles the source code">
 
 	<asminfo output="src/AssemblyInfo.cs" language="CSharp">
 		<imports>
@@ -41,20 +53,22 @@
 	<nant>
     		<buildfiles>
         		<include name="src/GridInterfaces/default.build" />
+        		<include name="src/OpenGrid.Framework/default.build" />
 			<include name="src/ServerConsole/default.build" />
 			<include name="src/LocalServers/default.build" />
 			<include name="src/RemoteServers/default.build" />
 			<include name="src/physics/default.build" />
 			<include name="src/physics/plugins/default.build" />
 			<include name="src/LocalStorage/default.build" />
+			<include name="src/OpenGrid.Framework/default.build" />
 		</buildfiles>
 	</nant>
 
 	<csc target="exe" output="bin/OpenSim.exe" debug="${debug}" verbose="true" warninglevel="4">
 			<references basedir="bin/" failonempty="true">
-				<include name="System" />
-				<include name="System.Data" />
-				<include name="System.Xml" />
+				<include name="System.dll" />
+				<include name="System.Data.dll" />
+				<include name="System.Xml.dll" />
 				<include name="Axiom.MathLib.dll" />
 				<include name="libsecondlife.dll" />
 				<include name="log4net.dll" />
@@ -62,6 +76,7 @@
 				<include name="ServerConsole.dll" />
 				<include name="GridInterfaces.dll" />
 				<include name="PhysicsManager.dll" />
+				<include name="OpenGrid.Framework.dll" />
 			</references>
 			<sources basedir="src/">
 				<include name="*.cs" />

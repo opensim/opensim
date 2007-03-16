@@ -38,6 +38,7 @@ using System.Security.Cryptography;
 using System.Xml;
 using libsecondlife;
 using OpenSim;
+using OpenGrid.Framework;
 
 namespace OpenSim.GridServers
 {
@@ -45,7 +46,7 @@ namespace OpenSim.GridServers
 	/// <summary>
 	/// When running in local (default) mode , handles client logins.
 	/// </summary>
-	public class LoginServer
+	public class LoginServer : LoginService
 	{
 		public LoginServer(IGridServer gridServer)
 		{

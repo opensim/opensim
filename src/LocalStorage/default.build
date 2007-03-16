@@ -37,9 +37,9 @@
 
 	<csc target="library" output="../../bin/Db4LocalStorage.dll" debug="${debug}" verbose="true" warninglevel="4">
 			<references basedir="../../bin/" failonempty="true">
-				<include name="System" />
-				<include name="System.Data" />
-				<include name="System.Xml" />
+				<include name="System.dll" />
+				<include name="System.Data.dll" />
+				<include name="System.Xml.dll" />
 				<include name="libsecondlife.dll" />
 				<include name="GridInterfaces.dll" />
 				<include name="ServerConsole.dll" />

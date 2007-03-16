@@ -27,3 +27,8 @@ secondlife.exe -loginuri http://localhost:8080/
 
 * cd to bin/ and run "mono OpenSim.exe -sandbox -loginserver"
 
+=== Windows Nant Build ===
+
+* same as Linux/mono build, but use
+nant nogenvers
+to cicumvent bash invokation

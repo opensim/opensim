@@ -37,8 +37,8 @@
 
 	<csc target="library" output="../../bin/ServerConsole.dll" debug="${debug}" verbose="true" warninglevel="4">
 			<references>
-				<include name="System" />
-				<include name="System.Xml" />
+				<include name="System.dll" />
+				<include name="System.Xml.dll" />
 			</references>
 			<sources basedir="ServerConsole/">
 				<include name="*.cs" />
