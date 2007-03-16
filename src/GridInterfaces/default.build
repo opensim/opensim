@@ -39,7 +39,7 @@
 			<references basedir="../../bin" failonempty="true">
 				<include name="System.dll" />
 				<include name="System.Xml.dll" />
-				<include name="OpenGrid.Framework.dll" />
+				<include name="OpenSim.Framework.dll" />
 				<include name="libsecondlife.dll" />
 			</references>
 			<sources basedir="./">

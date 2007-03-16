@@ -53,14 +53,14 @@
 	<nant>
     		<buildfiles>
         		<include name="src/GridInterfaces/default.build" />
-        		<include name="src/OpenGrid.Framework/default.build" />
+        		<include name="src/OpenSim.Framework/default.build" />
 			<include name="src/ServerConsole/default.build" />
 			<include name="src/LocalServers/default.build" />
 			<include name="src/RemoteServers/default.build" />
 			<include name="src/physics/default.build" />
 			<include name="src/physics/plugins/default.build" />
 			<include name="src/LocalStorage/default.build" />
-			<include name="src/OpenGrid.Framework/default.build" />
+			<include name="src/OpenSim.Framework/default.build" />
 		</buildfiles>
 	</nant>
 
@@ -76,7 +76,7 @@
 				<include name="ServerConsole.dll" />
 				<include name="GridInterfaces.dll" />
 				<include name="PhysicsManager.dll" />
-				<include name="OpenGrid.Framework.dll" />
+				<include name="OpenSim.Framework.dll" />
 			</references>
 			<sources basedir="src/">
 				<include name="*.cs" />

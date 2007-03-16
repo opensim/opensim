@@ -90,9 +90,9 @@
       <Project>{74784F23-B0FD-484C-82C1-96C0215733DC}</Project>
       <Name>Db4LocalStorage</Name>
     </ProjectReference>
-    <ProjectReference Include="OpenGrid.Framework\OpenGrid.Framework.csproj">
+    <ProjectReference Include="OpenSim.Framework\OpenSim.Framework.csproj">
       <Project>{407CE85B-628C-4788-9DBC-49BCEFC3A84F}</Project>
-      <Name>OpenGrid.Framework</Name>
+      <Name>OpenSim.Framework</Name>
     </ProjectReference>
     <ProjectReference Include="physics\PhysicsManager.csproj">
       <Project>{3C86A846-7977-4EE7-A8DC-DD487FA5DC2B}</Project>

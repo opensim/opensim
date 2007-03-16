@@ -7,7 +7,7 @@
     <ProjectGuid>{407CE85B-628C-4788-9DBC-49BCEFC3A84F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenGrid.Framework</RootNamespace>
+    <RootNamespace>OpenSim.Framework</RootNamespace>
     <AssemblyName>OpenGrid.Framework</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

@@ -38,7 +38,7 @@ using System.Security.Cryptography;
 using System.Xml;
 using libsecondlife;
 using OpenSim;
-using OpenGrid.Framework;
+using OpenSim.Framework;
 
 namespace OpenSim.GridServers
 {

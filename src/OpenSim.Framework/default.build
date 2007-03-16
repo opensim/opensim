@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-    <project name="OpenGrid.Framework" default="build" basedir=".">
-        <description>nant buildfile for OpenGrid.Framework</description>
+    <project name="OpenSim.Framework" default="build" basedir=".">
+        <description>nant buildfile for OpenSim.Framework</description>
         <property name="debug" value="true" overwrite="false" />
         <target name="clean" description="remove all generated files">
-            <delete file="../../bin/OpenGrid.Framework.dll" failonerror="false" />
+            <delete file="../../bin/OpenSim.Framework.dll" failonerror="false" />
         </target>
 
 	<target name="svnupdate" description="updates to latest SVN">
@@ -35,7 +35,7 @@
 		</attributes>
 	</asminfo>
 
-	<csc target="library" output="../../bin/OpenGrid.Framework.dll" debug="${debug}" verbose="true" warninglevel="4">
+	<csc target="library" output="../../bin/OpenSim.Framework.dll" debug="${debug}" verbose="true" warninglevel="4">
 			<references basedir="../../bin" failonempty="true">
 				<include name="System.dll" />
 				<include name="System.Xml.dll" />

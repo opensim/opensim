@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicPhysicsplugin", "physi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealPhysXplugin", "physics\RealPhysX\RealPhysXplugin\RealPhysXplugin.csproj", "{56C1D214-F389-4228-921A-0A3A0712C159}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework", "OpenGrid.Framework\OpenGrid.Framework.csproj", "{407CE85B-628C-4788-9DBC-49BCEFC3A84F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework", "OpenSim.Framework\OpenSim.Framework.csproj", "{407CE85B-628C-4788-9DBC-49BCEFC3A84F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
