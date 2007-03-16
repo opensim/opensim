@@ -52,13 +52,12 @@ namespace OpenSim.GridServers
 		{
 			_gridServer = gridServer;
 		}
-		private Login _login;
+
 		private IGridServer _gridServer;
 		private ushort _loginPort = 8080;
 		public IPAddress clientAddress = IPAddress.Loopback;
 		public IPAddress remoteAddress = IPAddress.Any;
 		private Socket loginServer;
-		private Random RandomClass = new Random();
 		private int NumClients;
 		private string _defaultResponse;
 		
@@ -240,8 +239,7 @@ namespace OpenSim.GridServers
 					
 	            //create a agent and session LLUUID
 	            Agent = GetAgentId( first, last );
-	            int SessionRand = this.RandomClass.Next(1,999);
-	            Session = new LLUUID("aaaabbbb-0200-"+SessionRand.ToString("0000")+"-8664-58f53e442797");
+	            Session = LLUUID.Random();
 					
 	            //create some login info
 	            Hashtable LoginFlagsHash = new Hashtable();
@@ -284,7 +282,7 @@ namespace OpenSim.GridServers
 					
 	            CustomiseLoginResponse( responseData, first, last );
 					
-	            this._login = new Login();
+	            Login _login = new Login();
 	            //copy data to login object
 	            _login.First = first;
 	            _login.Last = last;
@@ -308,10 +306,7 @@ namespace OpenSim.GridServers
 
 		protected virtual LLUUID GetAgentId(string firstName, string lastName)
 		{
-			LLUUID Agent;
-			int AgentRand = this.RandomClass.Next(1,9999);
-			Agent = new LLUUID("99998888-0100-"+AgentRand.ToString("0000")+"-8ec1-0b1d5cd6aead");
-			return Agent;
+			return LLUUID.Random();
 		}
 
 		protected virtual bool Authenticate(string first, string last, string  passwd)
