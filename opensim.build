@@ -34,21 +34,6 @@
 	
 	<target name="core_build" description="compiles the source code">
 
-	<asminfo output="src/AssemblyInfo.cs" language="CSharp">
-		<imports>
-			<import namespace="System" />
-			<import namespace="System.Reflection" />
-			<import namespace="System.Runtime.InteropServices" />
-		</imports>
-		<attributes>
-			<attribute type="ComVisibleAttribute" value="false" />
-			<attribute type="CLSCompliantAttribute" value="false" />
-			<attribute type="AssemblyVersionAttribute" value="${svnver}" />
-			<attribute type="AssemblyTitleAttribute" value="opensim" />
-			<attribute type="AssemblyDescriptionAttribute" value="The C# implementation of the simulator portion of OGS" />
-			<attribute type="AssemblyCopyrightAttribute" value="Copyright © OGS development team 2007"/>
-		</attributes>
-	</asminfo>
 
 	<nant>
     		<buildfiles>
