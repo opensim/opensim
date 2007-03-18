@@ -132,5 +132,14 @@ namespace OpenSim.GridServers
 		public bool child_agent;
 	}
 
+	public class neighbourinfo
+	{
+		public neighbourinfo() { }
+		public ulong regionhandle;
+		public uint RegionLocX;
+		public uint RegionLocY;
+		public string sim_ip;
+		public uint sim_port;
+	}
 
 }
