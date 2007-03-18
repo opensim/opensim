@@ -129,6 +129,7 @@ namespace OpenSim.GridServers
 		public string firstname;
 		public string lastname;
 		public uint circuitcode;
+		public bool child_agent;
 	}
 
 
