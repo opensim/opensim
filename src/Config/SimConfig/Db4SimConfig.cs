@@ -59,7 +59,11 @@ namespace Db40SimConfig
 				this.AssetURL=ServerConsole.MainConsole.Instance.CmdPrompt("Asset server URL: ");
 				this.AssetSendKey=ServerConsole.MainConsole.Instance.CmdPrompt("Asset server key: ");
 				this.GridURL=ServerConsole.MainConsole.Instance.CmdPrompt("Grid server URL: ");
-				this.GridSendKey=ServerConsole.MainConsole.Instance.CmdPrompt("Grid server key: ");
+				this.GridSendKey=ServerConsole.MainConsole.Instance.CmdPrompt("Key to send to grid server: ");
+				this.GridRecvKey=ServerConsole.MainConsole.Instance.CmdPrompt("Key to expect from grid server: ");
+				this.UserURL=ServerConsole.MainConsole.Instance.CmdPrompt("User server URL: ");
+				this.UserSendKey=ServerConsole.MainConsole.Instance.CmdPrompt("Key to send to user server: ");
+				this.UserRecvKey=ServerConsole.MainConsole.Instance.CmdPrompt("Key to expect from user server: ");
 			}
 			this.RegionHandle = Util.UIntsToLong((RegionLocX*256), (RegionLocY*256));
 		}

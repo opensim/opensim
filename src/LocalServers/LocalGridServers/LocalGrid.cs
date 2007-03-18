@@ -96,7 +96,7 @@ namespace LocalGridServers
 			
 		}
 		
-		public void SetServerInfo(string ServerUrl, string ServerKey)
+		public void SetServerInfo(string ServerUrl, string SendKey)
 		{
 			
 		}
@@ -105,7 +105,7 @@ namespace LocalGridServers
 		{
 			while(true)
 			{
-				
+				Thread.Sleep(1000);	
 			}
 		}
 	}
@@ -160,12 +160,12 @@ namespace LocalGridServers
 			return(uuidBlock);
 		}
 		
-		public override void RequestNeighbours()
+		public override neighbourinfo[] RequestNeighbours()
 		{
-			return;
+			return new neighbourinfo[8];
 		}
 		
-		public override void SetServerInfo(string ServerUrl, string ServerKey)
+		public override void SetServerInfo(string GridServerUrl, string GridSendKey, string GridRecvKey, string UserServerUrl, string UserSendKey, string UserRecvKey)
 		{
 			
 		}

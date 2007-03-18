@@ -47,12 +47,12 @@ namespace OpenSim.GridServers
 	public interface IGridServer
 	{
 		UUIDBlock RequestUUIDBlock();
-		void RequestNeighbours(); //should return a array of neighbouring regions
+		neighbourinfo[] RequestNeighbours(); //should return a array of neighbouring regions
 		AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		string GetName();
 		bool RequestConnection();
-		void SetServerInfo(string ServerUrl, string ServerKey);
+		void SetServerInfo(string GridServerUrl, string GridSendKey, string GridRecvKey, string UserServerUrl, string UserSendKey, string UserRecvKey);
 	 }
 	
 	public abstract class RemoteGridBase : IGridServer
@@ -63,23 +63,23 @@ namespace OpenSim.GridServers
 		}
 		
 		public abstract UUIDBlock RequestUUIDBlock();
-		public abstract void RequestNeighbours(); 
+		public abstract neighbourinfo[] RequestNeighbours(); 
 		public abstract AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract string GetName();
 		public abstract bool RequestConnection();
-		public abstract void SetServerInfo(string ServerUrl, string ServerKey);
+		public abstract void SetServerInfo(string GridServerUrl, string GridSendKey, string GridRecvKey, string UserServerUrl, string UserSendKey, string UserRecvKey);
 	}
 	
 	public abstract class LocalGridBase : IGridServer
 	{
 		public abstract UUIDBlock RequestUUIDBlock();
-		public abstract void RequestNeighbours(); 
+		public abstract neighbourinfo[] RequestNeighbours(); 
 		public abstract AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract string GetName();
 		public abstract bool RequestConnection();
-		public abstract void SetServerInfo(string ServerUrl, string ServerKey);
+		public abstract void SetServerInfo(string GridServerUrl, string GridSendKey, string GridRecvKey, string UserServerUrl, string UserSendKey, string UserRecvKey);
 		public abstract void AddNewSession(Login session);
 	}
 	

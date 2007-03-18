@@ -161,7 +161,7 @@ namespace OpenSim
 			local_world.PhysScene.SetTerrain(local_world.LandMap);
 
 			OpenSim_Main.gridServers.AssetServer.SetServerInfo(OpenSim_Main.cfg.AssetURL, OpenSim_Main.cfg.AssetSendKey);
-			OpenSim_Main.gridServers.GridServer.SetServerInfo(OpenSim_Main.cfg.GridURL, OpenSim_Main.cfg.GridSendKey);
+			OpenSim_Main.gridServers.GridServer.SetServerInfo(OpenSim_Main.cfg.GridURL, OpenSim_Main.cfg.GridSendKey, OpenSim_Main.cfg.GridRecvKey, OpenSim_Main.cfg.UserURL, OpenSim_Main.cfg.UserSendKey, OpenSim_Main.cfg.UserRecvKey);
 			
 			local_world.LoadStorageDLL("Db4LocalStorage.dll"); //all these dll names shouldn't be hard coded.
 			local_world.LoadPrimsFromStorage();

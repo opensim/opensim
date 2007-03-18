@@ -69,6 +69,11 @@ namespace RemoteGridServers
 	{
 		private string GridServerUrl;
 		private string GridSendKey;
+		private string GridRecvKey;
+		private string UserServerUrl;
+		private string UserSendKey;
+		private string UserRecvKey;
+
 		private Dictionary<uint, agentcircuitdata> AgentCircuits = new Dictionary<uint, agentcircuitdata>(); 
 
 		public override Dictionary<uint, agentcircuitdata> agentcircuits {
@@ -132,15 +137,20 @@ namespace RemoteGridServers
 			return(uuidBlock);
 		}
 		
-		public override void RequestNeighbours()
+		public override neighbourinfo[] RequestNeighbours()
 		{
-			return;
+			neighbourinfo[] neighbours= new neighbourinfo[8];
+			return neighbours;
 		}
 		
-		public override void SetServerInfo(string ServerUrl, string ServerKey)
+		public override void SetServerInfo(string UserServerUrl, string UserSendKey, string UserRecvKey, string GridServerKey, string GridSendKey, string GridRecvKey)
 		{
-			this.GridServerUrl = ServerUrl;
-			this.GridSendKey = ServerKey;
+			this.UserServerUrl = UserServerUrl;
+			this.UserSendKey = UserSendKey;
+			this.UserRecvKey = UserRecvKey;
+			this.GridServerUrl = GridServerUrl;
+			this.GridSendKey = GridSendKey;
+			this.GridRecvKey = GridRecvKey;
 		}
 		
 		public override string GetName()

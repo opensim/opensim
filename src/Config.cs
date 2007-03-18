@@ -59,7 +59,12 @@ namespace OpenSim
 		
 	    public string GridURL;
 	    public string GridSendKey;
-		
+	    public string GridRecvKey;
+	    public string UserURL;
+	    public string UserSendKey;
+	    public string UserRecvKey;
+
+	
 	    public abstract void InitConfig();
 	    public abstract void LoadFromGrid();
 	    public abstract World LoadWorld();
