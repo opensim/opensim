@@ -33,7 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IAssetServer.cs" />
-    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="IGridServer.cs" />
     <Compile Include="ILocalStorage.cs" />
   </ItemGroup>
