@@ -25,11 +25,13 @@
 * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Xml;
 using libsecondlife;
 using OpenSim.GridServers;
 
@@ -116,7 +118,7 @@ namespace RemoteGridServers
 		
 		public override bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
 		{
-			WebRequest DeleteSession = WebRequest.Create(GridServerUrl + "/usersessions/" + sessionID.ToString());
+			WebRequest DeleteSession = WebRequest.Create(UserServerUrl + "/usersessions/" + sessionID.ToString());
 			DeleteSession.Method="DELETE";
 			DeleteSession.ContentType="text/plaintext";
 			DeleteSession.ContentLength=0;
@@ -137,16 +139,37 @@ namespace RemoteGridServers
 			return(uuidBlock);
 		}
 		
-		public override neighbourinfo[] RequestNeighbours()
+		public override neighbourinfo[] RequestNeighbours(ulong regionhandle)
 		{
-			neighbourinfo[] neighbours= new neighbourinfo[8];
-			return neighbours;
+			ArrayList neighbourlist = new ArrayList();
+			
+			WebRequest FindNeighbours = WebRequest.Create(GridServerUrl + "/regions/" + regionhandle.ToString() + "/neighbours");
+                        FindNeighbours.ContentType="text/plaintext";
+                        FindNeighbours.ContentLength=0;
+
+                        StreamWriter stOut = new StreamWriter (FindNeighbours.GetRequestStream(), System.Text.Encoding.ASCII);
+                        stOut.Write("");
+                        stOut.Close();
+
+                        
+			XmlDocument GridRespXml = new XmlDocument();
+			GridRespXml.Load(FindNeighbours.GetResponse().GetResponseStream());
+			
+
+			XmlNode NeighboursRoot = GridRespXml.FirstChild;
+			if(NeighboursRoot.Name != "neighbours") {
+				return new neighbourinfo[0];
+			}
+
+			FindNeighbours.GetResponse().GetResponseStream().Close();	
+			
+			return new neighbourinfo[0];
 		}
 		
-		public override void SetServerInfo(string UserServerUrl, string UserSendKey, string UserRecvKey, string GridServerKey, string GridSendKey, string GridRecvKey)
+		public override void SetServerInfo(string UserServerUrl, string UserSendKey, string UserRecvKey, string GridServerUrl, string GridSendKey, string GridRecvKey)
 		{
 			this.UserServerUrl = UserServerUrl;
-			this.UserSendKey = UserSendKey;
+			this.UserSendKey = UserSendKey;			
 			this.UserRecvKey = UserRecvKey;
 			this.GridServerUrl = GridServerUrl;
 			this.GridSendKey = GridSendKey;

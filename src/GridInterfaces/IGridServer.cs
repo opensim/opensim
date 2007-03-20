@@ -47,7 +47,7 @@ namespace OpenSim.GridServers
 	public interface IGridServer
 	{
 		UUIDBlock RequestUUIDBlock();
-		neighbourinfo[] RequestNeighbours(); //should return a array of neighbouring regions
+		neighbourinfo[] RequestNeighbours(ulong regionhandle); //should return a array of neighbouring regions
 		AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		string GetName();
@@ -63,7 +63,7 @@ namespace OpenSim.GridServers
 		}
 		
 		public abstract UUIDBlock RequestUUIDBlock();
-		public abstract neighbourinfo[] RequestNeighbours(); 
+		public abstract neighbourinfo[] RequestNeighbours(ulong regionhandle); 
 		public abstract AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract string GetName();
@@ -74,7 +74,7 @@ namespace OpenSim.GridServers
 	public abstract class LocalGridBase : IGridServer
 	{
 		public abstract UUIDBlock RequestUUIDBlock();
-		public abstract neighbourinfo[] RequestNeighbours(); 
+		public abstract neighbourinfo[] RequestNeighbours(ulong regionhandle);
 		public abstract AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 		public abstract string GetName();

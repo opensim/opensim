@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 [assembly: ComVisibleAttribute(false)]
 [assembly: CLSCompliantAttribute(false)]
-[assembly: AssemblyVersionAttribute("0.1.*.236")]
+[assembly: AssemblyVersionAttribute("0.1.0.240")]
 [assembly: AssemblyTitleAttribute("opensim-serverconsole")]
 [assembly: AssemblyDescriptionAttribute("The default server console")]
 [assembly: AssemblyCopyrightAttribute("Copyright © OGS development team 2007")]

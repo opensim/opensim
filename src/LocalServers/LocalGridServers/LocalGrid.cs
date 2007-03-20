@@ -160,7 +160,7 @@ namespace LocalGridServers
 			return(uuidBlock);
 		}
 		
-		public override neighbourinfo[] RequestNeighbours()
+		public override neighbourinfo[] RequestNeighbours(ulong regionhandle)
 		{
 			return new neighbourinfo[8];
 		}
