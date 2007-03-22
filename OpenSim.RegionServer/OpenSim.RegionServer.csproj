@@ -1,0 +1,169 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B48F0D82-2DE5-42B0-9F1D-0F4353FA243A}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon></ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>OpenSim.RegionServer</AssemblyName>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder></AppDesignerFolder>
+    <RootNamespace>OpenSim.RegionServer</RootNamespace>
+    <StartupObject>OpenSim.RegionServer</StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DocumentationFile></DocumentationFile>
+    <DebugSymbols>True</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>False</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn></NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile></DocumentationFile>
+    <DebugSymbols>False</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>True</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn></NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" >
+      <HintPath>\System.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.dll" >
+      <HintPath>\System.Xml.dll.dll</HintPath>
+    </Reference>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>\libsecondlife.dll.dll</HintPath>
+    </Reference>
+    <Reference Include="Axiom.MathLib.dll" >
+      <HintPath>\Axiom.MathLib.dll.dll</HintPath>
+    </Reference>
+    <Reference Include="Db4objects.Db4o.dll" >
+      <HintPath>\Db4objects.Db4o.dll.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+      <Name>OpenSim.Framework.Console</Name>
+      <Project>{C8405E1A-EC19-48B6-9C8C-CA03624B9916}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
+      <Name>OpenSim.Physics.Manager</Name>
+      <Project>{58360A80-9333-4E0F-8F83-3CF937E51633}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+      <Name>OpenSim.Framework</Name>
+      <Project>{1D2865A9-CF8E-45F7-B96D-91ED128A32CF}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Grid.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OpenSimApplication.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OpenSimMain.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OpenSimRoot.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="QueItem.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimClient.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimConsole.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="VersionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Assets\InventoryCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAPS\SimHttp.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="types\Mesh.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="types\Triangle.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserServer\LocalUserProfileManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserServer\LoginServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\Avatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\Entity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\ScriptEngine.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\SurfacePatch.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\World.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\scripting\IScript.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

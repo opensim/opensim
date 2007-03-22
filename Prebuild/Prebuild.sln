@@ -1,0 +1,25 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prebuild", "src\Prebuild.csproj", "{A5CC8344-BEE4-442E-92F1-FBCB05D6AB78}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{468F1D07-AD17-4CC3-ABD0-2CA268E4E1A6}"
+	ProjectSection(SolutionItems) = preProject
+		prebuild = prebuild
+		prebuild.xml = prebuild.xml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5CC8344-BEE4-442E-92F1-FBCB05D6AB78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5CC8344-BEE4-442E-92F1-FBCB05D6AB78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5CC8344-BEE4-442E-92F1-FBCB05D6AB78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5CC8344-BEE4-442E-92F1-FBCB05D6AB78}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

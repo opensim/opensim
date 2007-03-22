@@ -4,7 +4,7 @@ Build Instructions
 
 * Check out the trunk code
 
-* Build the /src/opensim.sln solution
+* Build the /OpenSim.sln solution
 
 * open cmd window, go to /bin and launch 
 OpenSim.exe -sandbox -loginserver
@@ -23,12 +23,33 @@ secondlife.exe -loginuri http://localhost:8080/
 
 * ensure you have nant (http://nant.sf.net) installed
 
-* cd to the right directory and type "nant"
+* cd to the trunk root directory and type "nant"
 
 * cd to bin/ and run "mono OpenSim.exe -sandbox -loginserver"
 
-=== Windows Nant Build ===
+=== Prebuild ===
 
-* same as Linux/mono build, but use
-nant nogenvers
-to cicumvent bash invokation
+We use Prebuild to generate vs2005 solutions and nant build scripts.
+
+The Prebuild master project is /prebuild.xml
+
+To build it with vs2005 :
+
+* build the solution /Prebuild/Prebuild.sln
+
+To build it with nant :
+
+* cd to /Prebuild/
+* type 'nant'
+
+After you've built it, move it from /Prebuild/src/bin to /bin/ directory,
+
+after that you just modify the prebuild.xml and then execute
+
+bin/Prebuild.exe /target {target}
+
+where target is either 
+vs2005 - to generate new vs2005 solutions and projects
+nant - to generate new nant build scripts
+
+

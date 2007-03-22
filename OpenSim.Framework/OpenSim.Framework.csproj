@@ -1,0 +1,151 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1D2865A9-CF8E-45F7-B96D-91ED128A32CF}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon></ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>OpenSim.Framework</AssemblyName>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder></AppDesignerFolder>
+    <RootNamespace>OpenSim.Framework</RootNamespace>
+    <StartupObject></StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DocumentationFile></DocumentationFile>
+    <DebugSymbols>True</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>False</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn></NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile></DocumentationFile>
+    <DebugSymbols>False</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>True</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn></NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.dll" >
+      <HintPath>\System.dll.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.dll" >
+      <HintPath>\System.Xml.dll.dll</HintPath>
+    </Reference>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>\libsecondlife.dll.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AgentCiruitData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="AssetBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BlockingQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HeightMapGenHills.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IAssetServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IGridServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ILocalStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Inventory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IUserServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LocalGridBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Login.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LoginService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NeighbourInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PrimData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RemoteGridBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimProfile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimProfileBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserProfile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserProfileManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserProfileManagerBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Util.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

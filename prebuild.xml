@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
+  <Solution name="OpenSim" activeConfig="Debug" path="./">
+    <Configuration name="Debug">
+      <Options>
+        <CompilerDefines>TRACE;DEBUG</CompilerDefines>
+        <OptimizeCode>false</OptimizeCode>
+        <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
+        <AllowUnsafe>false</AllowUnsafe>
+        <WarningLevel>4</WarningLevel>
+        <WarningsAsErrors>false</WarningsAsErrors>
+        <SuppressWarnings></SuppressWarnings>
+        <OutputPath>bin</OutputPath>
+        <DebugInformation>true</DebugInformation>
+        <IncrementalBuild>true</IncrementalBuild>
+        <NoStdLib>false</NoStdLib>
+      </Options>
+    </Configuration>
+    <Configuration name="Release">
+      <Options>
+        <CompilerDefines>TRACE</CompilerDefines>
+        <OptimizeCode>true</OptimizeCode>
+        <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
+        <AllowUnsafe>false</AllowUnsafe>
+        <WarningLevel>4</WarningLevel>
+        <WarningsAsErrors>false</WarningsAsErrors>
+        <SuppressWarnings></SuppressWarnings>
+        <OutputPath>bin</OutputPath>
+        <DebugInformation>false</DebugInformation>
+        <IncrementalBuild>true</IncrementalBuild>
+        <NoStdLib>false</NoStdLib>
+      </Options>
+    </Configuration>
+
+    <!-- Core OpenSim Projects -->
+
+    <Project name="OpenSim.Framework" path="./OpenSim.Framework" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System.dll"/>
+      <Reference name="System.Xml.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Framework.Console" path="./OpenSim.Framework.Console" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Physics.Manager" path="./OpenSim.Physics/Manager" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml.dll" localCopy="false" />
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework.Console" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
+    <!-- Config Plug-ins -->
+    <Project name="OpenSim.Config.SimConfigDb4o" path="./OpenSim.Config/SimConfigDb4o" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data.dll"/>
+      <Reference name="System.Xml.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!-- Grid Server Plug-ins -->
+    <Project name="OpenSim.GridInterfaces.Local" path="OpenSim.GridInterfaces/Local" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml.dll"/>
+      <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.GridInterfaces.Remote" path="OpenSim.GridInterfaces/Remote" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!-- Physics Plug-ins -->
+    <Project name="OpenSim.Physics.BasicPhysicsPlugin" path="OpenSim.Physics/BasicPhysicsPlugin" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Physics.Manager" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Physics.PhysXPlugin" path="OpenSim.Physics/PhysXPlugin" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="PhysX_Wrapper_Dotnet.dll" localCopy="false"/>
+      <Reference name="OpenSim.Physics.Manager" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!-- OpenSim app -->
+    <Project name="OpenSim.RegionServer" path="OpenSim.RegionServer" type="Exe" startupObject="OpenSim.RegionServer">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Physics.Manager"/>
+      <Reference name="OpenSim.Framework"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!-- Storage Plug-ins -->
+    <Project name="OpenSim.Storage.LocalStorageDb4o" path="OpenSim.Storage/LocalStorageDb4o" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml.dll"/>
+      <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+  </Solution>
+  <Solution name="Prebuild" path="./Prebuild/" >
+    <Configuration name="Debug">
+      <Options>
+        <CompilerDefines>DEBUG;TRACE</CompilerDefines>
+        <OptimizeCode>false</OptimizeCode>
+        <OutputPath>bin/Debug</OutputPath>
+        <DebugInformation>true</DebugInformation>
+        <SuppressWarnings>1595</SuppressWarnings>
+      </Options>
+    </Configuration>
+    <Configuration name="Release">
+      <Options>
+        <CompilerDefines>TRACE</CompilerDefines>
+        <OutputPath>bin/Release</OutputPath>
+        <OptimizeCode>true</OptimizeCode>
+        <DebugInformation>false</DebugInformation>
+        <SuppressWarnings>1595</SuppressWarnings>
+      </Options>
+    </Configuration>
+    <Files>
+      <File>prebuild.xml</File>
+      <File>prebuild</File>
+    </Files>
+    <Project name="Prebuild" path="src/" language="C#" assemblyName="prebuild" icon="App.ico" type="Exe" rootNamespace="Prebuild" startupObject="Prebuild.Prebuild">
+      <Configuration name="Debug">
+        <Options>
+          <CompilerDefines>DEBUG;TRACE</CompilerDefines>
+          <OptimizeCode>false</OptimizeCode>
+          <OutputPath>..\bin\</OutputPath>
+          <DebugInformation>true</DebugInformation>
+          <KeyFile>Prebuild.snk</KeyFile>
+          <SuppressWarnings>1595</SuppressWarnings>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <CompilerDefines>TRACE</CompilerDefines>
+          <OutputPath>..\bin\</OutputPath>
+          <OptimizeCode>true</OptimizeCode>
+          <DebugInformation>false</DebugInformation>
+          <KeyFile>Prebuild.snk</KeyFile>
+          <SuppressWarnings>1595</SuppressWarnings>
+        </Options>
+      </Configuration>
+      <Reference name="System.EnterpriseServices" />
+      <Reference name="System.Xml" />
+      <Reference name="System" />
+      <Files>
+        <Match pattern="App.ico" buildAction="EmbeddedResource"/>
+        <Match path="data" pattern="prebuild-1.7.xsd" buildAction="EmbeddedResource"/>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+  </Solution>
+</Prebuild>
+
+
