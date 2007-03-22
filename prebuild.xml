@@ -215,7 +215,7 @@
     </Project>
 
     <!-- OpenSim app -->
-    <Project name="OpenSim.RegionServer" path="OpenSim.RegionServer" type="Exe" startupObject="OpenSim.RegionServer">
+    <Project name="OpenSim" path="OpenSim.RegionServer" type="Exe" startupObject="OpenSim">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -267,6 +267,16 @@
       </Files>
     </Project>
   </Solution>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- Prebuild tool -->
   <Solution name="Prebuild" path="./Prebuild/" >
     <Configuration name="Debug">
       <Options>
