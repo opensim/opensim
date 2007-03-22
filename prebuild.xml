@@ -215,7 +215,7 @@
     </Project>
 
     <!-- OpenSim app -->
-    <Project name="OpenSim" path="OpenSim.RegionServer" type="Exe" startupObject="OpenSim">
+    <Project name="OpenSim" path="OpenSim.RegionServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>

@@ -9,7 +9,7 @@
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.RegionServer</AssemblyName>
+    <AssemblyName>OpenSim</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
@@ -17,7 +17,6 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
     <RootNamespace>OpenSim.RegionServer</RootNamespace>
-    <StartupObject>OpenSim.RegionServer</StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
