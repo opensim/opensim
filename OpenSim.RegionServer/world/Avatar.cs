@@ -17,7 +17,9 @@ namespace OpenSim.world
 	public string firstname;
         public string lastname;
         public SimClient ControllingClient;
-        private PhysicsActor _physActor;
+        public LLUUID current_anim;
+	public int anim_seq;
+	private PhysicsActor _physActor;
         private static libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
         private bool updateflag = false;
         private byte movementflag = 0;
@@ -275,7 +277,15 @@ namespace OpenSim.world
                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
                 if (((movementflag & 1) == 0) || (q != this.bodyRot))
                 {
-                    //we should add a new force to the list
+                    
+		    if((movementflag &1) == 0)
+                    {
+			this.current_anim=AnimsLLUUID["ANIM_AGENT_STAND"];
+                        this.anim_seq=1;
+                	this.SendAnimPack();
+		    }
+
+		    //we should add a new force to the list
                     // but for now we will deal with velocities
                     NewForce newVelocity = new NewForce();
                     Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
@@ -371,11 +381,31 @@ namespace OpenSim.world
                     newVelocity.Z = 0;
                     this.forcesList.Add(newVelocity);
                     movementflag = 0;
-                }
+                    // We're standing still, so make it show!
+		    this.current_anim=AnimsLLUUID["ANIM_AGENT_STAND"];
+		    this.anim_seq=1;
+		    this.SendAnimPack();
+		}
             }
         }
 
-        //should be moved somewhere else
+	// Sends animation update
+	public void SendAnimPack()
+	{
+	    AvatarAnimationPacket ani = new AvatarAnimationPacket(); 
+            ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
+            ani.AnimationSourceList[0] = new AvatarAnimationPacket.AnimationSourceListBlock();
+            ani.AnimationSourceList[0].ObjectID = ControllingClient.AgentID;
+            ani.Sender = new AvatarAnimationPacket.SenderBlock();
+            ani.Sender.ID = ControllingClient.AgentID;
+            ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
+            ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
+            ani.AnimationList[0].AnimID = this.current_anim;
+            ani.AnimationList[0].AnimSequenceID = this.anim_seq;
+	    ControllingClient.OutPacket(ani);
+	}
+
+	//should be moved somewhere else
         public void SendRegionHandshake(World RegionInfo)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
