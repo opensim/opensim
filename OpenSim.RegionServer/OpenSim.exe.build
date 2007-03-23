@@ -27,6 +27,7 @@
                 <include name="UserServer/LocalUserProfileManager.cs" />
                 <include name="UserServer/LoginServer.cs" />
                 <include name="world/Avatar.cs" />
+		<include name="world/AvatarAnimations.cs" />
                 <include name="world/Entity.cs" />
                 <include name="world/Primitive.cs" />
                 <include name="world/ScriptEngine.cs" />
