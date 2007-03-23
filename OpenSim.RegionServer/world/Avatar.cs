@@ -274,10 +274,23 @@ namespace OpenSim.world
         {
             if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_FLY) != 0)
             {
+                if (this._physActor.Flying == false)
+                {
+                    this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_FLY"];
+                    this.anim_seq = 1;
+                    this.SendAnimPack();
+                }
                 this._physActor.Flying = true;
+                
             }
             else
             {
+                if (this._physActor.Flying == true)
+                {
+                    this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_STAND"];
+                    this.anim_seq = 1;
+                    this.SendAnimPack();
+                }
                 this._physActor.Flying = false;
             }
             if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) != 0)
@@ -286,7 +299,7 @@ namespace OpenSim.world
                 if (((movementflag & 1) == 0) || (q != this.bodyRot))
                 {
 
-                    if ((movementflag & 1) == 0)
+                    if (((movementflag & 1) == 0) && (!this._physActor.Flying))
                     {
                         this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_WALK"];
                         this.anim_seq = 1;
@@ -395,10 +408,14 @@ namespace OpenSim.world
                     this.forcesList.Add(newVelocity);
                     movementflag = 0;
                     // We're standing still, so make it show!
-                    this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_STAND"];
-                    this.anim_seq = 1;
-                    this.SendAnimPack();
+                    if (this._physActor.Flying == false)
+                    {
+                        this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_STAND"];
+                        this.anim_seq = 1;
+                        this.SendAnimPack();
+                    }
                     this.movementflag = 16;
+
                 }
             }
         }
