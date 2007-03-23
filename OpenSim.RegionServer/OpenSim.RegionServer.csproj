@@ -1,12 +1,13 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B48F0D82-2DE5-42B0-9F1D-0F4353FA243A}</ProjectGuid>
+    <ProjectGuid>{50D8594C-39E2-4695-B28D-AC8ADE15BC5A}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
     <AssemblyName>OpenSim</AssemblyName>
@@ -15,7 +16,8 @@
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder></AppDesignerFolder>
+    <AppDesignerFolder>
+    </AppDesignerFolder>
     <RootNamespace>OpenSim.RegionServer</RootNamespace>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -27,7 +29,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
@@ -36,7 +39,8 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
@@ -45,7 +49,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
@@ -54,22 +59,23 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
+    <Reference Include="System">
       <HintPath>\System.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml.dll" >
+    <Reference Include="System.Xml.dll">
       <HintPath>\System.Xml.dll.dll</HintPath>
     </Reference>
-    <Reference Include="libsecondlife.dll" >
+    <Reference Include="libsecondlife.dll">
       <HintPath>\libsecondlife.dll.dll</HintPath>
     </Reference>
-    <Reference Include="Axiom.MathLib.dll" >
+    <Reference Include="Axiom.MathLib.dll">
       <HintPath>\Axiom.MathLib.dll.dll</HintPath>
     </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
+    <Reference Include="Db4objects.Db4o.dll">
       <HintPath>\Db4objects.Db4o.dll.dll</HintPath>
     </Reference>
   </ItemGroup>
