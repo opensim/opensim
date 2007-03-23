@@ -170,8 +170,6 @@ namespace OpenSim
 
             OpenSimRoot.Instance.LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
             OpenSimRoot.Instance.LocalWorld.LoadPrimsFromStorage();
-	    
-	    OpenSim.world.Avatar.LoadAnims();
 
             if (this.sandbox)
             {

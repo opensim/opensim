@@ -145,15 +145,12 @@ namespace OpenSim.Assets
                 num = 5;
             }
             AssetRequest req;
-            Console.WriteLine("processing texture requests ( " + num + " )");
             for (int i = 0; i < num; i++)
             {
                 req = (AssetRequest)this.TextureRequests[i];
                 if (req.PacketCounter != req.NumPackets)
                 {
-                    // if (req.ImageInfo.FullID == new LLUUID("00000000-0000-0000-5005-000000000005"))
-                    Console.WriteLine("sending base texture ( " + req.ImageInfo.FullID + " ) in " + req.NumPackets + "number of packets");
-
+                     
                     if (req.PacketCounter == 0)
                     {
                         //first time for this request so send imagedata packet
@@ -227,7 +224,6 @@ namespace OpenSim.Assets
         }
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
-            Console.WriteLine("received asset from asset server ( " + asset.FullID + " )");
             if (asset.FullID != LLUUID.Zero)  // if it is set to zero then the asset wasn't found by the server
             {
                 //check if it is a texture or not
@@ -433,9 +429,6 @@ namespace OpenSim.Assets
         /// <param name="imageID"></param>
         public void AddTextureRequest(SimClient userInfo, LLUUID imageID)
         {
-            if (imageID == new LLUUID("00000000-0000-0000-5005-000000000005"))
-                Console.WriteLine("request base prim texture ");
-
             //check to see if texture is in local cache, if not request from asset server
             if (!this.Textures.ContainsKey(imageID))
             {

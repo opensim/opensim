@@ -37,6 +37,7 @@ namespace OpenSim.world
     	//	ServerConsole.MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
     		// Initialise this only after the world has loaded
     	//	Scripts = new ScriptEngine(this);
+            Avatar.LoadAnims();
     	}
     	
     	public PhysicsScene PhysScene

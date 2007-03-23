@@ -84,6 +84,11 @@ namespace OpenSim.Assets
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
             {
                 newItem = this._agentsInventory[remoteClient.AgentID].AddToInventory(folderID, asset);
+                if (newItem != null)
+                {
+                    InventoryItem Item = this._agentsInventory[remoteClient.AgentID].InventoryItems[newItem];
+                    this.SendItemUpdateCreate(remoteClient, Item);
+                }
             }
 
             return newItem;
@@ -184,6 +189,37 @@ namespace OpenSim.Assets
                     }
                 }
             }
+        }
+        private void SendItemUpdateCreate(SimClient remoteClient, InventoryItem Item)
+        {
+
+            UpdateCreateInventoryItemPacket InventoryReply = new UpdateCreateInventoryItemPacket();
+            InventoryReply.AgentData.AgentID = remoteClient.AgentID;
+            InventoryReply.AgentData.SimApproved = true;
+            InventoryReply.InventoryData = new UpdateCreateInventoryItemPacket.InventoryDataBlock[1];
+            InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
+            InventoryReply.InventoryData[0].ItemID = Item.ItemID;
+            InventoryReply.InventoryData[0].AssetID = Item.AssetID;
+            InventoryReply.InventoryData[0].CreatorID = Item.CreatorID;
+            InventoryReply.InventoryData[0].BaseMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].CreationDate = 1000;
+            InventoryReply.InventoryData[0].Description = _enc.GetBytes(Item.Description + "\0");
+            InventoryReply.InventoryData[0].EveryoneMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].Flags = 1;
+            InventoryReply.InventoryData[0].FolderID = Item.FolderID;
+            InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            InventoryReply.InventoryData[0].GroupMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].InvType = Item.InvType;
+            InventoryReply.InventoryData[0].Name = _enc.GetBytes(Item.Name + "\0");
+            InventoryReply.InventoryData[0].NextOwnerMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].OwnerID = Item.OwnerID;
+            InventoryReply.InventoryData[0].OwnerMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].SalePrice = 100;
+            InventoryReply.InventoryData[0].SaleType = 0;
+            InventoryReply.InventoryData[0].Type = Item.Type;
+            InventoryReply.InventoryData[0].CRC = libsecondlife.Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+
+            remoteClient.OutPacket(InventoryReply);
         }
     }
 

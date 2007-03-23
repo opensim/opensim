@@ -279,15 +279,12 @@ namespace OpenSim
                     break;
                 case PacketType.AssetUploadRequest:
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                    Console.WriteLine("upload request "+ request.AssetBlock.TransactionID);
                     AssetBase newAsset = OpenSimRoot.Instance.AssetCache.UploadPacket(request, LLUUID.Random());
-                    if (newAsset != null)
+                    if ((newAsset != null) && (this.newAssetFolder != LLUUID.Zero))
                     {
                         OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this, this.newAssetFolder, newAsset);
                     }
-                    Console.WriteLine(request.ToString());
-                    Console.WriteLine("combined uuid is " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
-
+                    
                     AssetUploadCompletePacket response = new AssetUploadCompletePacket();
                     response.AssetBlock.Type =request.AssetBlock.Type;
                     response.AssetBlock.Success = true;
