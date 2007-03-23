@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{00594B9E-29A5-4B9C-AEBD-0AD08C73CFE8}</ProjectGuid>
+    <ProjectGuid>{BD7FF9CA-48DA-4DC3-9ADA-3A9AB10A27F2}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -59,17 +59,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" >
-      <HintPath>\System.dll</HintPath>
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Axiom.MathLib.dll" >
-      <HintPath>\Axiom.MathLib.dll.dll</HintPath>
+      <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{58360A80-9333-4E0F-8F83-3CF937E51633}</Project>
+      <Project>{FA317002-FFCB-4066-B107-FCCD5E313DE9}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

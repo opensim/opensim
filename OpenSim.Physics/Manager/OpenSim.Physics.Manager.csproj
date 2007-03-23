@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{58360A80-9333-4E0F-8F83-3CF937E51633}</ProjectGuid>
+    <ProjectGuid>{FA317002-FFCB-4066-B107-FCCD5E313DE9}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -59,20 +59,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" >
-      <HintPath>\System.dll</HintPath>
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml.dll" >
-      <HintPath>\System.Xml.dll.dll</HintPath>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Axiom.MathLib.dll" >
-      <HintPath>\Axiom.MathLib.dll.dll</HintPath>
+      <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{C8405E1A-EC19-48B6-9C8C-CA03624B9916}</Project>
+      <Project>{FCDE59EA-602A-4705-BBC1-A228522669E4}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -47,8 +47,8 @@
       </Configuration>
 
       <ReferencePath>../bin/</ReferencePath>
-      <Reference name="System.dll"/>
-      <Reference name="System.Xml.dll"/>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -88,7 +88,7 @@
 
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml.dll" localCopy="false" />
+      <Reference name="System.Xml" localCopy="false" />
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
       <Files>
@@ -112,7 +112,7 @@
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data.dll"/>
-      <Reference name="System.Xml.dll"/>
+      <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -137,7 +137,7 @@
 
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml.dll"/>
+      <Reference name="System.Xml"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -161,7 +161,7 @@
 
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml.dll"/>
+      <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -229,7 +229,7 @@
 
       <ReferencePath>../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml.dll"/>
+      <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
@@ -257,7 +257,7 @@
 
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml.dll"/>
+      <Reference name="System.Xml"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -277,7 +277,7 @@
   
   
   <!-- Prebuild tool -->
-  <Solution name="Prebuild" path="./Prebuild/" >
+  <!-- Solution name="Prebuild" path="./Prebuild/" >
     <Configuration name="Debug">
       <Options>
         <CompilerDefines>DEBUG;TRACE</CompilerDefines>
@@ -330,7 +330,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-  </Solution>
+  </Solution -->
 </Prebuild>
 
 

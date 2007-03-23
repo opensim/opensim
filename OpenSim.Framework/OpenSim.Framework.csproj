@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{1D2865A9-CF8E-45F7-B96D-91ED128A32CF}</ProjectGuid>
+    <ProjectGuid>{08C84711-1498-461D-8081-02FDD06BBC4D}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -58,14 +58,17 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.dll" >
-      <HintPath>\System.dll.dll</HintPath>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml.dll" >
-      <HintPath>\System.Xml.dll.dll</HintPath>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>\libsecondlife.dll.dll</HintPath>
+      <HintPath>..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C077B28B-2F8D-4BD9-8E47-84C51B3A7358}</ProjectGuid>
+    <ProjectGuid>{C8A6D58C-E2CD-4AA7-BD04-B1DBBF8BA648}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -59,31 +59,38 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" >
-      <HintPath>\System.dll</HintPath>
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Data.dll" >
-      <HintPath>\System.Data.dll.dll</HintPath>
+      <HintPath>..\..\bin\System.Data.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml.dll" >
-      <HintPath>\System.Xml.dll.dll</HintPath>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>\libsecondlife.dll.dll</HintPath>
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>\Db4objects.Db4o.dll.dll</HintPath>
+      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
-      <Project>{1D2865A9-CF8E-45F7-B96D-91ED128A32CF}</Project>
+      <Project>{08C84711-1498-461D-8081-02FDD06BBC4D}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{C8405E1A-EC19-48B6-9C8C-CA03624B9916}</Project>
+      <Project>{FCDE59EA-602A-4705-BBC1-A228522669E4}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

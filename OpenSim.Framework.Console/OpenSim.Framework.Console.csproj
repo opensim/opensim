@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C8405E1A-EC19-48B6-9C8C-CA03624B9916}</ProjectGuid>
+    <ProjectGuid>{FCDE59EA-602A-4705-BBC1-A228522669E4}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -59,7 +59,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" >
-      <HintPath>\System.dll</HintPath>
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>

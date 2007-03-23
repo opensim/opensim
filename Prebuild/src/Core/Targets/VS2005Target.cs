@@ -458,6 +458,8 @@ namespace Prebuild.Core.Targets
 
                 // Assembly References
                 ps.WriteLine("  <ItemGroup>");
+                string refPath = ((ReferencePathNode) project.ReferencePaths[0]).Path;
+                
                 foreach (ReferenceNode refr in project.References)
                 {
                     if (!solution.ProjectsTable.ContainsKey(refr.Name))
@@ -466,16 +468,21 @@ namespace Prebuild.Core.Targets
                         ps.Write(" Include=\"");
                         ps.Write(refr.Name);
 
-                        if (!string.IsNullOrEmpty(refr.Version))
-                        {
-                            ps.Write(", Version=");
-                            ps.Write(refr.Version);
-                        }
-
                         ps.WriteLine("\" >");
 
+                        string path;
+                        
+                        if( refr.Name.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase ))
+                        {
+                            path = Helper.NormalizePath(Path.Combine( refPath, refr.Name), '\\');
+                        }
+                        else
+                        {
+                            path = refr.Name + ".dll";
+                        }
+                        
                         // TODO: Allow reference to *.exe files
-                        ps.WriteLine("      <HintPath>{0}</HintPath>", Helper.MakePathRelativeTo(project.FullPath, refr.Path + "\\" + refr.Name + ".dll"));
+                        ps.WriteLine("      <HintPath>{0}</HintPath>", path );
                         ps.WriteLine("      <Private>{0}</Private>", refr.LocalCopy);
                         ps.WriteLine("    </Reference>");
                     }
@@ -490,7 +497,10 @@ namespace Prebuild.Core.Targets
                     {
                         ProjectNode refProject = (ProjectNode)solution.ProjectsTable[refr.Name];
                         // TODO: Allow reference to visual basic projects
-                        ps.WriteLine("    <ProjectReference Include=\"{0}\">", Helper.MakePathRelativeTo(project.FullPath, Helper.MakeFilePath(refProject.FullPath, refProject.Name, "csproj")));
+                        string path =
+                            Helper.MakePathRelativeTo(project.FullPath,
+                                                      Helper.MakeFilePath(refProject.FullPath, refProject.Name, "csproj"));
+                        ps.WriteLine("    <ProjectReference Include=\"{0}\">", path );
                         //<ProjectReference Include="..\..\RealmForge\Utility\RealmForge.Utility.csproj">
                         ps.WriteLine("      <Name>{0}</Name>", refProject.Name);
                         //  <Name>RealmForge.Utility</Name>
