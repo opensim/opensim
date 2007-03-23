@@ -280,7 +280,7 @@ namespace OpenSim.world
                     
 		    if((movementflag &1) == 0)
                     {
-			this.current_anim=AnimsLLUUID["ANIM_AGENT_STAND"];
+			this.current_anim=AnimsLLUUID["ANIM_AGENT_WALK"];
                         this.anim_seq=1;
                 	this.SendAnimPack();
 		    }
