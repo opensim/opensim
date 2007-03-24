@@ -236,7 +236,7 @@ namespace OpenSim.world
 		{
 			lock (OpenSimRoot.Instance.LocalWorld.Entities)
 			{
-				//OpenSimRoot.Instance.LocalWorld.Entities.Remove(uuid);
+				OpenSimRoot.Instance.LocalWorld.Entities.Remove(uuid);
 			}
 		}
 		
