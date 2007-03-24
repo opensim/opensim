@@ -307,6 +307,10 @@ namespace OpenSim
                     FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
                     OpenSimRoot.Instance.InventoryCache.FetchInventoryDescendents(this, Fetch);
                     break;
+                case PacketType.DeRezObject:
+                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
+                    OpenSimRoot.Instance.LocalWorld.DeRezObject((DeRezObjectPacket)Pack, this);
+                    break;
             }
         }
 

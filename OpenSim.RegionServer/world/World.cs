@@ -198,7 +198,49 @@ namespace OpenSim.world
     		//prim.PhysicsEnabled = true;
     		this.Entities.Add(prim.uuid, prim);
     		this._primCount++;
-    	}
+	}
+
+        public void DeRezObject(DeRezObjectPacket DeRezPacket, SimClient AgentClient)
+        {
+		//Needs to delete object from physics at a later date
+		
+		libsecondlife.LLUUID [] DeRezEnts;
+		DeRezEnts = new libsecondlife.LLUUID[ DeRezPacket.ObjectData.Length ];
+		int i = 0;
+		foreach( DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData )
+		{
+			//OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
+			foreach (Entity ent in OpenSimRoot.Instance.LocalWorld.Entities.Values)
+			{
+				if (ent.localid == Data.ObjectLocalID)
+				{
+					DeRezEnts[i++] = ent.uuid;
+					this.localStorage.RemovePrim(ent.uuid);
+					KillObjectPacket kill = new KillObjectPacket();
+					kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+					kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+					kill.ObjectData[0].ID = ent.localid;
+					foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
+					{
+						client.OutPacket(kill);
+					}
+					//Uncommenting this means an old UUID will be re-used, thus crashing the asset server
+					//Uncomment when prim/object UUIDs are random or such
+					//2007-03-22 - Randomskk
+					//this._primCount--;
+					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Deleted UUID " + ent.uuid);
+				}
+			}
+		}
+		foreach( libsecondlife.LLUUID uuid in DeRezEnts )
+		{
+			lock (OpenSimRoot.Instance.LocalWorld.Entities)
+			{
+				//OpenSimRoot.Instance.LocalWorld.Entities.Remove(uuid);
+			}
+		}
+		
+        }
 
     	public bool Backup() {
     	
