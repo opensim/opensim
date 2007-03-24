@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+    <project name="ServerConsole" default="build" basedir=".">
+        <property name="debug" value="true" overwrite="false" />
+        <target name="clean" description="remove all generated files">
+            <delete file="../common/bin/ServerConsole.dll" failonerror="false" />
+	    <delete file="../common/bin/ServerConsole.dll.mdb" failonerror="false" />
+        </target>
+
+	<target name="svnupdate" description="updates to latest SVN">
+		<exec program="svn">
+			<arg value="update" />
+		</exec>
+	</target>
+
+	<target name="upgrade" description="updates from SVN and then builds" depends="clean,svnupdate,build">
+		
+	</target>
+	
+	<target name="build" description="compiles the source code">
+	
+	<loadfile file="../VERSION" property="svnver"/>
+	<asminfo output="AssemblyInfo.cs" language="CSharp">
+		<imports>
+			<import namespace="System" />
+			<import namespace="System.Reflection" />
+			<import namespace="System.Runtime.InteropServices" />
+		</imports>
+		<attributes>
+			<attribute type="ComVisibleAttribute" value="false" />
+			<attribute type="CLSCompliantAttribute" value="false" />
+			<attribute type="AssemblyVersionAttribute" value="${svnver}" />
+			<attribute type="AssemblyTitleAttribute" value="ogs-serverconsole" />
+			<attribute type="AssemblyDescriptionAttribute" value="The default server console" />
+			<attribute type="AssemblyCopyrightAttribute" value="Copyright © OGS development team 2007"/>
+		</attributes>
+	</asminfo>
+
+	<csc target="library" output="../common/bin/ServerConsole.dll" debug="${debug}" verbose="true" warninglevel="4">
+			<references>
+				<include name="System" />
+				<include name="System.Xml" />
+			</references>
+			<sources>
+				<include name="*.cs" />
+			</sources>
+		</csc>
+	</target>
+</project>
