@@ -42,9 +42,9 @@ To build it with nant :
 * cd to /Prebuild/
 * type 'nant'
 
-After you've built it, move it from /Prebuild/src/bin to /bin/ directory,
+After you've built it, it will land in the root /bin/ directory,
 
-after that you just modify the prebuild.xml and then execute
+When adding or changing projects, modify the prebuild.xml and then execute
 
 bin/Prebuild.exe /target {target}
 
@@ -52,4 +52,5 @@ where target is either
 vs2005 - to generate new vs2005 solutions and projects
 nant - to generate new nant build scripts
 
+Remember to run prebuild whenever you've added or removed files as well.
 

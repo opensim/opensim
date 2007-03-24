@@ -214,8 +214,7 @@
       </Files>
     </Project>
 
-    <!-- OpenSim app -->
-    <Project name="OpenSim" path="OpenSim.RegionServer" type="Exe">
+    <Project name="OpenSim.RegionServer" path="OpenSim.RegionServer" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -236,6 +235,35 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Framework"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!-- OpenSim app -->
+    <Project name="OpenSim" path="OpenSim" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Physics.Manager"/>
+      <Reference name="OpenSim.RegionServer"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -277,7 +305,7 @@
   
   
   <!-- Prebuild tool -->
-  <!-- Solution name="Prebuild" path="./Prebuild/" >
+  <Solution name="Prebuild" path="./Prebuild/" >
     <Configuration name="Debug">
       <Options>
         <CompilerDefines>DEBUG;TRACE</CompilerDefines>
@@ -305,7 +333,7 @@
         <Options>
           <CompilerDefines>DEBUG;TRACE</CompilerDefines>
           <OptimizeCode>false</OptimizeCode>
-          <OutputPath>..\bin\</OutputPath>
+          <OutputPath>..\..\bin\</OutputPath>
           <DebugInformation>true</DebugInformation>
           <KeyFile>Prebuild.snk</KeyFile>
           <SuppressWarnings>1595</SuppressWarnings>
@@ -314,13 +342,14 @@
       <Configuration name="Release">
         <Options>
           <CompilerDefines>TRACE</CompilerDefines>
-          <OutputPath>..\bin\</OutputPath>
+          <OutputPath>..\..\bin\</OutputPath>
           <OptimizeCode>true</OptimizeCode>
           <DebugInformation>false</DebugInformation>
           <KeyFile>Prebuild.snk</KeyFile>
           <SuppressWarnings>1595</SuppressWarnings>
         </Options>
       </Configuration>
+      <ReferencePath>../bin/</ReferencePath>
       <Reference name="System.EnterpriseServices" />
       <Reference name="System.Xml" />
       <Reference name="System" />
@@ -330,7 +359,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-  </Solution -->
+  </Solution>
 </Prebuild>
 
 

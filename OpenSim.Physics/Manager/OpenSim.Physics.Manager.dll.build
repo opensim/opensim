@@ -23,7 +23,7 @@
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
                 <include name="System.dll" />
-                <include name="System.Xml.dll.dll" />
+                <include name="System.Xml.dll" />
                 <include name="../../bin/Axiom.MathLib.dll" />
                 <include name="../../OpenSim.Framework.Console/${build.dir}/OpenSim.Framework.Console.dll" />
             </references>

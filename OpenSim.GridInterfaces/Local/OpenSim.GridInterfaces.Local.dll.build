@@ -21,7 +21,7 @@
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
                 <include name="System.dll" />
-                <include name="System.Xml.dll.dll" />
+                <include name="System.Xml.dll" />
                 <include name="../../bin/Db4objects.Db4o.dll" />
                 <include name="../../bin/libsecondlife.dll" />
                 <include name="../../OpenSim.Framework/${build.dir}/OpenSim.Framework.dll" />

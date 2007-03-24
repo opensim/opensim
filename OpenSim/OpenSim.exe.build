@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="OpenSim.GridInterfaces.Remote" default="build">
+<project name="OpenSim" default="build">
     <target name="build">
         <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
         <mkdir dir="${project::get-base-directory()}/${build.dir}" />
@@ -7,13 +7,11 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
-            <resources prefix="OpenSim.GridInterfaces.Remote" dynamicprefix="true" >
+        <csc target="exe" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.exe">
+            <resources prefix="OpenSim" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="AssemblyInfo.cs" />
-                <include name="RemoteAssetServer.cs" />
-                <include name="RemoteGridServer.cs" />
+                <include name="RegionServer.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -22,14 +20,18 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
-                <include name="../../bin/libsecondlife.dll" />
-                <include name="../../OpenSim.Framework/${build.dir}/OpenSim.Framework.dll" />
-                <include name="../../OpenSim.Framework.Console/${build.dir}/OpenSim.Framework.Console.dll" />
+                <include name="../bin/libsecondlife.dll" />
+                <include name="../bin/Axiom.MathLib.dll" />
+                <include name="../bin/Db4objects.Db4o.dll" />
+                <include name="../OpenSim.Framework/${build.dir}/OpenSim.Framework.dll" />
+                <include name="../OpenSim.Framework.Console/${build.dir}/OpenSim.Framework.Console.dll" />
+                <include name="../OpenSim.Physics/Manager/${build.dir}/OpenSim.Physics.Manager.dll" />
+                <include name="../OpenSim.RegionServer/${build.dir}/OpenSim.RegionServer.dll" />
             </references>
         </csc>
-        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />
-        <mkdir dir="${project::get-base-directory()}/../../bin/"/>
-        <copy todir="${project::get-base-directory()}/../../bin/">
+        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/" />
+        <mkdir dir="${project::get-base-directory()}/../bin/"/>
+        <copy todir="${project::get-base-directory()}/../bin/">
             <fileset basedir="${project::get-base-directory()}/${build.dir}/" >
                 <include name="*.dll"/>
                 <include name="*.exe"/>

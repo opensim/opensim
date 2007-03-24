@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E0C662BD-1B64-4782-B8F2-9511255DB971}</ProjectGuid>
+    <ProjectGuid>{778D384D-088A-42DF-A683-2244BD9530DE}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.GridInterfaces.Remote</AssemblyName>
+    <AssemblyName>OpenSim</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.GridInterfaces.Remote</RootNamespace>
+    <RootNamespace>OpenSim</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -67,32 +67,46 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <HintPath>..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Axiom.MathLib.dll" >
+      <HintPath>..\bin\Axiom.MathLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Db4objects.Db4o.dll" >
+      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\OpenSim.Framework\OpenSim.Framework.csproj">
+    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{71848571-2BC0-41DC-A69C-28B6DDB8C8CE}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
       <Project>{CE124F22-69FC-4499-AE68-1B877C5898C4}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
+      <Name>OpenSim.Physics.Manager</Name>
+      <Project>{79C8C9A7-EF80-426D-B815-AC88E7998DFE}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenSim.RegionServer\OpenSim.RegionServer.csproj">
+      <Name>OpenSim.RegionServer</Name>
+      <Project>{457CE564-0922-4F15-846F-147E5BE62D67}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="RemoteAssetServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="RemoteGridServer.cs">
+    <Compile Include="RegionServer.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
