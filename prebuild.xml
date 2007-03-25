@@ -292,6 +292,30 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Physics.OdePlugin" path="OpenSim.Physics/OdePlugin" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Physics.Manager" localCopy="false"/>
+      <Reference name="../lib/Ode.NET.dll" localCopy="false"/>      
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+
     <Project name="OpenSim.RegionServer" path="OpenSim.RegionServer" type="Library">
       <Configuration name="Debug">
         <Options>
