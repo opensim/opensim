@@ -281,15 +281,15 @@ namespace OpenSim
                 case PacketType.AssetUploadRequest:
                     //this.debug = true;
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                    Console.WriteLine(Pack.ToString());
-                    if (request.AssetBlock.Type == 0)
-                    {
-                        this.UploadAssets.HandleUploadPacket(request, LLUUID.Random());
-                    }
-                    else
-                    {
+                   // Console.WriteLine(Pack.ToString());
+                   // if (request.AssetBlock.Type == 0)
+                   // {
+                        //this.UploadAssets.HandleUploadPacket(request, LLUUID.Random());
+                    //}
+                    //else
+                    //{*/
                         this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
-                    }
+                    //}
                     break;
                 case PacketType.SendXferPacket:
                     Console.WriteLine(Pack.ToString());

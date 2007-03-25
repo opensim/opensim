@@ -139,17 +139,23 @@ namespace OpenSim.Assets
 
         public void AddAsset(AssetBase asset)
         {
-            this._assetServer.UploadNewAsset(asset);
             if (asset.Type == 0)
             {
-                 //texture
-                TextureImage textur = new TextureImage(asset);
-                this.Textures.Add(textur.FullID, textur);
+                if (!this.Textures.ContainsKey(asset.FullID))
+                { //texture
+                    TextureImage textur = new TextureImage(asset);
+                    this.Textures.Add(textur.FullID, textur);
+                    this._assetServer.UploadNewAsset(asset);
+                }
             }
             else
             {
-                AssetInfo assetInf = new AssetInfo(asset);
-                this.Assets.Add(assetInf.FullID, assetInf);
+                if (!this.Assets.ContainsKey(asset.FullID))
+                {
+                    AssetInfo assetInf = new AssetInfo(asset);
+                    this.Assets.Add(assetInf.FullID, assetInf);
+                    this._assetServer.UploadNewAsset(asset);
+                }
             }
         }
 

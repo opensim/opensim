@@ -191,10 +191,10 @@ namespace OpenSim.Assets
                         InventoryReply.InventoryData[0].AssetID = Item.AssetID;
                         InventoryReply.InventoryData[0].CreatorID = Item.CreatorID;
                         InventoryReply.InventoryData[0].BaseMask = FULL_MASK_PERMISSIONS;
-                        InventoryReply.InventoryData[0].CreationDate = 1000;
+                        InventoryReply.InventoryData[0].CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
                         InventoryReply.InventoryData[0].Description = _enc.GetBytes(Item.Description + "\0");
                         InventoryReply.InventoryData[0].EveryoneMask = FULL_MASK_PERMISSIONS;
-                        InventoryReply.InventoryData[0].Flags = 1;
+                        InventoryReply.InventoryData[0].Flags = 0;
                         InventoryReply.InventoryData[0].FolderID = Item.FolderID;
                         InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                         InventoryReply.InventoryData[0].GroupMask = FULL_MASK_PERMISSIONS;
@@ -228,7 +228,7 @@ namespace OpenSim.Assets
             InventoryReply.InventoryData[0].CreationDate = 1000;
             InventoryReply.InventoryData[0].Description = _enc.GetBytes(Item.Description + "\0");
             InventoryReply.InventoryData[0].EveryoneMask = FULL_MASK_PERMISSIONS;
-            InventoryReply.InventoryData[0].Flags = 1;
+            InventoryReply.InventoryData[0].Flags = 0;
             InventoryReply.InventoryData[0].FolderID = Item.FolderID;
             InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             InventoryReply.InventoryData[0].GroupMask = FULL_MASK_PERMISSIONS;

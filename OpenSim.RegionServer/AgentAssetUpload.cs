@@ -20,7 +20,6 @@ namespace OpenSim
 
         public void AddUpload(LLUUID transactionID, AssetBase asset)
         {
-            Console.WriteLine("adding upload asset");
             AssetTransaction upload = new AssetTransaction();
             lock (this.transactions)
             {
@@ -40,7 +39,6 @@ namespace OpenSim
             }
             else
             {
-                Console.WriteLine(" no data in upload request so use xfer system");
                 upload.UploadComplete = false;
                 upload.XferID = Util.GetNextXferID();
                 RequestXferPacket xfer = new RequestXferPacket();
@@ -155,7 +153,7 @@ namespace OpenSim
                                 OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
                             }
 
-                            Console.WriteLine(Helpers.FieldToString(trans.Asset.Data));
+                           
                         }
                         break;
                     }
@@ -183,7 +181,7 @@ namespace OpenSim
                 {
                     //already complete so we can add it to the inventory
                     OpenSimRoot.Instance.AssetCache.AddAsset(trans.Asset);
-                    OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset);
+                   Console.WriteLine( "ITem created is " +OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
                 }
                 else
                 {

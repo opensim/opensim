@@ -220,7 +220,8 @@ namespace OpenSim.world
 
         public void UpdateTexture(byte[] tex)
         {
-            this.primData.Texture = this.OurPacket.ObjectData[0].TextureEntry = tex;
+            this.OurPacket.ObjectData[0].TextureEntry = tex;
+            this.primData.Texture = tex;
             this.dirtyFlag = true;
         }
 
@@ -401,8 +402,9 @@ namespace OpenSim.world
 
             int i = 0;
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
-            dat.TextureEntry = this.OurPacket.ObjectData[0].TextureEntry;
-
+            //dat.TextureEntry = this.OurPacket.ObjectData[0].TextureEntry;
+            dat.TextureEntry = new byte[0];
+            //Console.WriteLine("texture-entry length in improvedterse block is " + this.OurPacket.ObjectData[0].TextureEntry.Length);
             bytes[i++] = (byte)(ID % 256);
             bytes[i++] = (byte)((ID >> 8) % 256);
             bytes[i++] = (byte)((ID >> 16) % 256);
