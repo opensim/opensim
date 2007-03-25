@@ -9,6 +9,8 @@ namespace OpenSim.Framework.Utilities
     public class Util
     {
         private static Random randomClass = new Random();
+        private static uint nextXferID = 10000;
+        private static object XferLock = new object();
 
         public static ulong UIntsToLong(uint X, uint Y)
         {
@@ -21,6 +23,17 @@ namespace OpenSim.Framework.Utilities
             {
                 return randomClass;
             }
+        }
+
+        public static uint GetNextXferID()
+        {
+            uint id = 0;
+            lock(XferLock)
+            {
+                id = nextXferID;
+                nextXferID++;
+            }
+            return id;
         }
 
         public Util()

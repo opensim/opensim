@@ -123,6 +123,36 @@ namespace OpenSim.Assets
             return inventorySet;
         }
 
+        public AssetBase GetAsset(LLUUID assetID)
+        {
+            AssetBase asset = null;
+            if(this.Textures.ContainsKey(assetID))
+            {
+                asset = this.Textures[assetID];
+            }
+            else if (this.Assets.ContainsKey(assetID))
+            {
+                asset = this.Assets[assetID];
+            }
+            return asset;
+        }
+
+        public void AddAsset(AssetBase asset)
+        {
+            this._assetServer.UploadNewAsset(asset);
+            if (asset.Type == 0)
+            {
+                 //texture
+                TextureImage textur = new TextureImage(asset);
+                this.Textures.Add(textur.FullID, textur);
+            }
+            else
+            {
+                AssetInfo assetInf = new AssetInfo(asset);
+                this.Assets.Add(assetInf.FullID, assetInf);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -150,7 +180,7 @@ namespace OpenSim.Assets
                 req = (AssetRequest)this.TextureRequests[i];
                 if (req.PacketCounter != req.NumPackets)
                 {
-                     
+                    // if (req.ImageInfo.FullID == new LLUUID("00000000-0000-0000-5005-000000000005"))
                     if (req.PacketCounter == 0)
                     {
                         //first time for this request so send imagedata packet
@@ -186,7 +216,7 @@ namespace OpenSim.Assets
                     }
                     else
                     {
-                        //send imagepacket
+                         //send imagepacket
                         //more than one packet so split file up
                         ImagePacketPacket im = new ImagePacketPacket();
                         im.ImageID.Packet = (ushort)req.PacketCounter;
@@ -461,7 +491,6 @@ namespace OpenSim.Assets
             {
                 req.NumPackets = 1;
             }
-
             this.TextureRequests.Add(req);
         }
 
@@ -475,50 +504,6 @@ namespace OpenSim.Assets
             newImage.Name = source.Name;
             return (newImage);
         }
-        #endregion
-
-        #region viewer asset uploading
-        public AssetBase UploadPacket(AssetUploadRequestPacket pack, LLUUID assetID)
-        {
-            
-            AssetBase asset = null;
-            if (pack.AssetBlock.Type == 0)
-            {
-                if (pack.AssetBlock.AssetData.Length > 0)
-                {
-                    //first packet for transaction
-                    asset = new AssetBase();
-                    asset.FullID = assetID;
-                    asset.Type = pack.AssetBlock.Type;
-                    asset.InvType = asset.Type;
-                    asset.Name = "UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
-                    asset.Data = pack.AssetBlock.AssetData;
-                    this._assetServer.UploadNewAsset(asset);
-                    TextureImage image = new TextureImage(asset);
-                    this.Textures.Add(image.FullID, image);
-                }
-            }
-
-            return asset;
-        }
-
-        /*
-        public AssetBase TransactionComplete(LLUUID transactionID)
-        {
-            AssetBase asset = null;
-            if(this.IncomingAssets.ContainsKey(transactionID))
-            {
-               // not the first packet of this transaction	
-               asset = this.IncomingAssets[transactionID];
-               if(asset.Type == 0)
-               {
-                    TextureImage image = new TextureImage(asset);
-                    this.Textures.Add(image.FullID, image);
-               }
-            }
-            return asset;
-        }*/
-
         #endregion
 
     }

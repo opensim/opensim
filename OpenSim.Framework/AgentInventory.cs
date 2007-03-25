@@ -25,12 +25,12 @@ namespace OpenSim.Framework.Inventory
 
         public virtual void Initialise()
         {
-            Wearables = new AvatarWearable[2]; //should be 12 of these
-            for (int i = 0; i < 2; i++)
+            Wearables = new AvatarWearable[13]; //should be 12 of these
+            for (int i = 0; i < 13; i++)
             {
                 Wearables[i] = new AvatarWearable();
             }
-
+            
             InventoryRoot = new InventoryFolder();
             InventoryRoot.FolderID = LLUUID.Random();
             InventoryRoot.ParentID = new LLUUID();
@@ -40,14 +40,27 @@ namespace OpenSim.Framework.Inventory
             InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
         }
 
-        public bool CreateNewFolder(LLUUID folderID)
+        public bool CreateNewFolder(LLUUID folderID, ushort type)
         {
             InventoryFolder Folder = new InventoryFolder();
             Folder.FolderID = folderID;
             Folder.OwnerID = this.AgentID;
+            Folder.DefaultType = type;
             this.InventoryFolders.Add(Folder.FolderID, Folder);
 
             return (true);
+        }
+
+        public bool UpdateItem(LLUUID itemID, AssetBase asset)
+        {
+            if(this.InventoryItems.ContainsKey(itemID))
+            {
+                InventoryItem Item = this.InventoryItems[itemID];
+                Item.AssetID = asset.FullID;
+                Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() + " so it now is set to asset " + asset.FullID.ToStringHyphenated());
+                //TODO need to update the rest of the info
+            }
+            return true;
         }
 
         public LLUUID AddToInventory(LLUUID folderID, AssetBase asset)

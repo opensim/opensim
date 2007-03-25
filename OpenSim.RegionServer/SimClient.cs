@@ -68,6 +68,7 @@ namespace OpenSim
         private const int MAX_APPENDED_ACKS = 10;
         private const int RESEND_TIMEOUT = 4000;
         private const int MAX_SEQUENCE = 0xFFFFFF;
+        private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
         private bool debug = false;
 
@@ -278,34 +279,66 @@ namespace OpenSim
 
                     break;
                 case PacketType.AssetUploadRequest:
+                    //this.debug = true;
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                    AssetBase newAsset = OpenSimRoot.Instance.AssetCache.UploadPacket(request, LLUUID.Random());
-                    if ((newAsset != null) && (this.newAssetFolder != LLUUID.Zero))
+                    Console.WriteLine(Pack.ToString());
+                    if (request.AssetBlock.Type == 0)
                     {
-                        OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this, this.newAssetFolder, newAsset);
+                        this.UploadAssets.HandleUploadPacket(request, LLUUID.Random());
                     }
-                    
-                    AssetUploadCompletePacket response = new AssetUploadCompletePacket();
-                    response.AssetBlock.Type =request.AssetBlock.Type;
-                    response.AssetBlock.Success = true;
-                    response.AssetBlock.UUID = request.AssetBlock.TransactionID.Combine(this.SecureSessionID);
-		    		
-                    this.OutPacket(response);
+                    else
+                    {
+                        this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
+                    }
+                    break;
+                case PacketType.SendXferPacket:
+                    Console.WriteLine(Pack.ToString());
+                    this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
                     break;
                 case PacketType.CreateInventoryFolder:
-                    //Console.WriteLine(Pack.ToString());
+                    CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
+                    OpenSimRoot.Instance.InventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type);
+                    Console.WriteLine(Pack.ToString());
                     break;
                 case PacketType.CreateInventoryItem:
-                    //Console.WriteLine(Pack.ToString());
+                    Console.WriteLine(Pack.ToString());
+                    CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
+                    if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
+                    {
+                        this.UploadAssets.CreateInventoryItem(createItem);
+                    }
                     break;
                 case PacketType.FetchInventory:
-                    Console.WriteLine("fetch item packet");
+                    //Console.WriteLine("fetch item packet");
                     FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
                     OpenSimRoot.Instance.InventoryCache.FetchInventory(this, FetchInventory);
                     break;
                 case PacketType.FetchInventoryDescendents:
                     FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
                     OpenSimRoot.Instance.InventoryCache.FetchInventoryDescendents(this, Fetch);
+                    break;
+                case PacketType.UpdateInventoryItem:
+                  /*  UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
+                    for (int i = 0; i < update.InventoryData.Length; i++)
+                    {
+                        if (update.InventoryData[i].TransactionID != LLUUID.Zero)
+                        {
+                            AssetBase asset = OpenSimRoot.Instance.AssetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
+                            OpenSimRoot.Instance.InventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                        }
+                    }*/
+                    break;
+                case PacketType.ViewerEffect:
+                    ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
+                    foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
+                    {
+                        if (client.AgentID != this.AgentID)
+                        {
+                            viewer.AgentData.AgentID = client.AgentID;
+                            viewer.AgentData.SessionID = client.SessionID;
+                            client.OutPacket(viewer);
+                        }
+                    }
                     break;
                 case PacketType.DeRezObject:
                     //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
@@ -522,6 +555,8 @@ namespace OpenSim
             cirpack = initialcirpack;
             userEP = remoteEP;
             PacketQueue = new BlockingQueue<QueItem>();
+
+            this.UploadAssets = new AgentAssetUpload(this);
             AckTimer = new System.Timers.Timer(500);
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();

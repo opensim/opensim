@@ -65,14 +65,20 @@ namespace OpenSim.Assets
             }
 
         }
+
         public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID)
+        {
+            return this.CreateNewInventoryFolder(remoteClient, folderID, 0);
+        }
+
+        public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID, ushort type)
         {
             bool res = false;
             if (folderID != LLUUID.Zero)  //don't create a folder with a zero id
             {
                 if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
                 {
-                    res = this._agentsInventory[remoteClient.AgentID].CreateNewFolder(folderID);
+                    res = this._agentsInventory[remoteClient.AgentID].CreateNewFolder(folderID, type);
                 }
             }
             return res;
@@ -92,6 +98,22 @@ namespace OpenSim.Assets
             }
 
             return newItem;
+        }
+
+        public bool UpdateInventoryItem(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Assets.AssetBase asset)
+        {
+            if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
+            {
+                bool res = _agentsInventory[remoteClient.AgentID].UpdateItem(itemID, asset);
+                if (res)
+                {
+                    InventoryItem Item = this._agentsInventory[remoteClient.AgentID].InventoryItems[itemID];
+                    this.SendItemUpdateCreate(remoteClient, Item);
+                }
+                return res;
+            }
+
+            return false;
         }
 
         public void FetchInventoryDescendents(SimClient userInfo, FetchInventoryDescendentsPacket FetchDescend)
@@ -190,6 +212,7 @@ namespace OpenSim.Assets
                 }
             }
         }
+
         private void SendItemUpdateCreate(SimClient remoteClient, InventoryItem Item)
         {
 
@@ -223,7 +246,7 @@ namespace OpenSim.Assets
         }
     }
 
-    
+
 
     public class UserServerRequest
     {

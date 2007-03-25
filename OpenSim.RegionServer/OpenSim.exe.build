@@ -11,6 +11,7 @@
             <resources prefix="OpenSim" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+		<include name="AgentAssetUpload.cs" />
                 <include name="Grid.cs" />
                 <include name="OpenSimApplication.cs" />
                 <include name="OpenSimMain.cs" />
