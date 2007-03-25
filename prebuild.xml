@@ -175,7 +175,7 @@
     </Project>
 
     <!-- Config Plug-ins -->
-    <Project name="OpenSim.Config.SimConfigDb4o" path="./OpenSim.Config/SimConfigDb4o" type="Library">
+    <Project name="OpenSim.Framework.Config.SimConfigDb4o" path="./OpenSim.Framework.Config/SimConfigDb4o" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
