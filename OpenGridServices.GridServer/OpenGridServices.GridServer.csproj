@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{78435A3F-EA0F-47AE-9539-E9E07D47F9A7}</ProjectGuid>
+    <ProjectGuid>{2E6F5AFB-1130-4200-B089-3B0FCD111343}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.GridInterfaces.Local</AssemblyName>
+    <AssemblyName>OpenGridServices.GridServer</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.GridInterfaces.Local</RootNamespace>
+    <RootNamespace>OpenGridServices.GridServer</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -62,41 +62,47 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Data" >
+      <HintPath>System.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
+    <Reference Include="OpenSim.Framework.dll" >
+      <HintPath>..\bin\OpenSim.Framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenSim.Framework.Console.dll" >
+      <HintPath>..\bin\OpenSim.Framework.Console.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenGridServices.ServerConsole.dll" >
+      <HintPath>..\bin\OpenGridServices.ServerConsole.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <HintPath>..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\OpenSim.Framework\OpenSim.Framework.csproj">
-      <Name>OpenSim.Framework</Name>
-      <Project>{03AE7311-0158-40B2-BA49-B1E560645594}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
-      <Name>OpenSim.Framework.Console</Name>
-      <Project>{AD9B8A83-DF95-4B46-A91F-32F05669A390}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs">
+    <Compile Include="ConsoleCmds.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LocalAssetServer.cs">
+    <Compile Include="GridHttp.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LocalGridServer.cs">
+    <Compile Include="Main.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimProfiles.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

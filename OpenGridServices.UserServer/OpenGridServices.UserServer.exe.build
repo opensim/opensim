@@ -26,7 +26,7 @@
                 <include name="System.Xml.dll" />
                 <include name="../bin/OpenSim.Framework.dll" />
                 <include name="../bin/OpenSim.Framework.Console.dll" />
-                <include name="OpenGridServices.ServerConsole.dll.dll" />
+                <include name="../bin/OpenGridServices.ServerConsole.dll" />
                 <include name="../bin/libsecondlife.dll" />
             </references>
         </csc>

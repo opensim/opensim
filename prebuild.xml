@@ -95,7 +95,6 @@
 
      <Files>
        <Match pattern="*.cs" recurse="true"/>
-       <Match pattern="..\OGS\common\VersionInfo\VersionInfo.cs"/>
      </Files>
     </Project>
 
@@ -426,10 +425,6 @@
         <SuppressWarnings>1595</SuppressWarnings>
       </Options>
     </Configuration>
-    <Files>
-      <File>prebuild.xml</File>
-      <File>prebuild</File>
-    </Files>
     <Project name="Prebuild" path="src/" language="C#" assemblyName="prebuild" icon="App.ico" type="Exe" rootNamespace="Prebuild" startupObject="Prebuild.Prebuild">
       <Configuration name="Debug">
         <Options>

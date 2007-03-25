@@ -1,26 +1,34 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C# Express 2005
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.PhysXPlugin", "OpenSim.Physics\PhysXPlugin\OpenSim.Physics.PhysXPlugin.csproj", "{62652FE9-20CC-4855-9D1C-6C1CCD706CC1}"
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGridServices.ServerConsole", "OpenGridServices.ServerConsole\OpenGridServices.ServerConsole.csproj", "{871ABABA-7F63-4CD8-9BA8-E9297F29DD45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework.Console", "OpenSim.Framework.Console\OpenSim.Framework.Console.csproj", "{CE124F22-69FC-4499-AE68-1B877C5898C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework.Console", "OpenSim.Framework.Console\OpenSim.Framework.Console.csproj", "{AD9B8A83-DF95-4B46-A91F-32F05669A390}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Config.SimConfigDb4o", "OpenSim.Config\SimConfigDb4o\OpenSim.Config.SimConfigDb4o.csproj", "{C77FAE85-A786-4DEB-9AEB-46B75169079C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Config.SimConfigDb4o", "OpenSim.Config\SimConfigDb4o\OpenSim.Config.SimConfigDb4o.csproj", "{7A104F58-11C3-446C-BE67-4FCD36F23F2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.BasicPhysicsPlugin", "OpenSim.Physics\BasicPhysicsPlugin\OpenSim.Physics.BasicPhysicsPlugin.csproj", "{0A4D5E28-88B6-474E-AC5F-3F99822DD976}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGridServices.UserServer", "OpenGridServices.UserServer\OpenGridServices.UserServer.csproj", "{572FF644-323A-4FDE-9A05-0F33C740630F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.GridInterfaces.Remote", "OpenSim.GridInterfaces\Remote\OpenSim.GridInterfaces.Remote.csproj", "{E0C662BD-1B64-4782-B8F2-9511255DB971}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.GridInterfaces.Remote", "OpenSim.GridInterfaces\Remote\OpenSim.GridInterfaces.Remote.csproj", "{D39D5A84-7A0B-4512-8AFE-8EC7BDD7F9B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageDb4o", "OpenSim.Storage\LocalStorageDb4o\OpenSim.Storage.LocalStorageDb4o.csproj", "{455B4201-F942-48A1-ADE3-E38641ABB4D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageDb4o", "OpenSim.Storage\LocalStorageDb4o\OpenSim.Storage.LocalStorageDb4o.csproj", "{66112D21-35DD-49A0-AC73-559FC8966BA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework", "OpenSim.Framework\OpenSim.Framework.csproj", "{71848571-2BC0-41DC-A69C-28B6DDB8C8CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework", "OpenSim.Framework\OpenSim.Framework.csproj", "{03AE7311-0158-40B2-BA49-B1E560645594}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.RegionServer", "OpenSim.RegionServer\OpenSim.RegionServer.csproj", "{457CE564-0922-4F15-846F-147E5BE62D67}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGridServices.GridServer", "OpenGridServices.GridServer\OpenGridServices.GridServer.csproj", "{2E6F5AFB-1130-4200-B089-3B0FCD111343}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.Manager", "OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj", "{79C8C9A7-EF80-426D-B815-AC88E7998DFE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.OdePlugin", "OpenSim.Physics\OdePlugin\OpenSim.Physics.OdePlugin.csproj", "{B9118A0A-2A54-45C0-8B45-3C8727E1F136}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.GridInterfaces.Local", "OpenSim.GridInterfaces\Local\OpenSim.GridInterfaces.Local.csproj", "{5A852B3E-E770-4B00-A34B-1F8B4ABDA570}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.BasicPhysicsPlugin", "OpenSim.Physics\BasicPhysicsPlugin\OpenSim.Physics.BasicPhysicsPlugin.csproj", "{EFFAF441-6D39-4723-9F63-B8701F6190AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim", "OpenSim\OpenSim.csproj", "{778D384D-088A-42DF-A683-2244BD9530DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim", "OpenSim\OpenSim.csproj", "{0BC13D45-108A-45EB-8B13-2C452E2BB1C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.RegionServer", "OpenSim.RegionServer\OpenSim.RegionServer.csproj", "{E386E390-3D1E-47E8-A0AB-FBABC6A45690}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.Manager", "OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj", "{A122E6D1-0245-40BB-9986-E7C828B2177B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.GridInterfaces.Local", "OpenSim.GridInterfaces\Local\OpenSim.GridInterfaces.Local.csproj", "{78435A3F-EA0F-47AE-9539-E9E07D47F9A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.PhysXPlugin", "OpenSim.Physics\PhysXPlugin\OpenSim.Physics.PhysXPlugin.csproj", "{E3B7B51F-00E3-439D-9A6D-278F20B42AB7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,50 +36,66 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{62652FE9-20CC-4855-9D1C-6C1CCD706CC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62652FE9-20CC-4855-9D1C-6C1CCD706CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62652FE9-20CC-4855-9D1C-6C1CCD706CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62652FE9-20CC-4855-9D1C-6C1CCD706CC1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CE124F22-69FC-4499-AE68-1B877C5898C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE124F22-69FC-4499-AE68-1B877C5898C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE124F22-69FC-4499-AE68-1B877C5898C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE124F22-69FC-4499-AE68-1B877C5898C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C77FAE85-A786-4DEB-9AEB-46B75169079C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C77FAE85-A786-4DEB-9AEB-46B75169079C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C77FAE85-A786-4DEB-9AEB-46B75169079C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C77FAE85-A786-4DEB-9AEB-46B75169079C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A4D5E28-88B6-474E-AC5F-3F99822DD976}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A4D5E28-88B6-474E-AC5F-3F99822DD976}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A4D5E28-88B6-474E-AC5F-3F99822DD976}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A4D5E28-88B6-474E-AC5F-3F99822DD976}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E0C662BD-1B64-4782-B8F2-9511255DB971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E0C662BD-1B64-4782-B8F2-9511255DB971}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E0C662BD-1B64-4782-B8F2-9511255DB971}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E0C662BD-1B64-4782-B8F2-9511255DB971}.Release|Any CPU.Build.0 = Release|Any CPU
-		{455B4201-F942-48A1-ADE3-E38641ABB4D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{455B4201-F942-48A1-ADE3-E38641ABB4D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{455B4201-F942-48A1-ADE3-E38641ABB4D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{455B4201-F942-48A1-ADE3-E38641ABB4D2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{71848571-2BC0-41DC-A69C-28B6DDB8C8CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71848571-2BC0-41DC-A69C-28B6DDB8C8CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71848571-2BC0-41DC-A69C-28B6DDB8C8CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71848571-2BC0-41DC-A69C-28B6DDB8C8CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{457CE564-0922-4F15-846F-147E5BE62D67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{457CE564-0922-4F15-846F-147E5BE62D67}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{457CE564-0922-4F15-846F-147E5BE62D67}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{457CE564-0922-4F15-846F-147E5BE62D67}.Release|Any CPU.Build.0 = Release|Any CPU
-		{79C8C9A7-EF80-426D-B815-AC88E7998DFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{79C8C9A7-EF80-426D-B815-AC88E7998DFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{79C8C9A7-EF80-426D-B815-AC88E7998DFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{79C8C9A7-EF80-426D-B815-AC88E7998DFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5A852B3E-E770-4B00-A34B-1F8B4ABDA570}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5A852B3E-E770-4B00-A34B-1F8B4ABDA570}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5A852B3E-E770-4B00-A34B-1F8B4ABDA570}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5A852B3E-E770-4B00-A34B-1F8B4ABDA570}.Release|Any CPU.Build.0 = Release|Any CPU
-		{778D384D-088A-42DF-A683-2244BD9530DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{778D384D-088A-42DF-A683-2244BD9530DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{778D384D-088A-42DF-A683-2244BD9530DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{778D384D-088A-42DF-A683-2244BD9530DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{871ABABA-7F63-4CD8-9BA8-E9297F29DD45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{871ABABA-7F63-4CD8-9BA8-E9297F29DD45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{871ABABA-7F63-4CD8-9BA8-E9297F29DD45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{871ABABA-7F63-4CD8-9BA8-E9297F29DD45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD9B8A83-DF95-4B46-A91F-32F05669A390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD9B8A83-DF95-4B46-A91F-32F05669A390}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD9B8A83-DF95-4B46-A91F-32F05669A390}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD9B8A83-DF95-4B46-A91F-32F05669A390}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A104F58-11C3-446C-BE67-4FCD36F23F2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A104F58-11C3-446C-BE67-4FCD36F23F2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A104F58-11C3-446C-BE67-4FCD36F23F2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A104F58-11C3-446C-BE67-4FCD36F23F2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{572FF644-323A-4FDE-9A05-0F33C740630F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{572FF644-323A-4FDE-9A05-0F33C740630F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{572FF644-323A-4FDE-9A05-0F33C740630F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{572FF644-323A-4FDE-9A05-0F33C740630F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D39D5A84-7A0B-4512-8AFE-8EC7BDD7F9B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D39D5A84-7A0B-4512-8AFE-8EC7BDD7F9B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D39D5A84-7A0B-4512-8AFE-8EC7BDD7F9B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D39D5A84-7A0B-4512-8AFE-8EC7BDD7F9B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66112D21-35DD-49A0-AC73-559FC8966BA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66112D21-35DD-49A0-AC73-559FC8966BA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66112D21-35DD-49A0-AC73-559FC8966BA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66112D21-35DD-49A0-AC73-559FC8966BA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03AE7311-0158-40B2-BA49-B1E560645594}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03AE7311-0158-40B2-BA49-B1E560645594}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03AE7311-0158-40B2-BA49-B1E560645594}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03AE7311-0158-40B2-BA49-B1E560645594}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E6F5AFB-1130-4200-B089-3B0FCD111343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E6F5AFB-1130-4200-B089-3B0FCD111343}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E6F5AFB-1130-4200-B089-3B0FCD111343}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E6F5AFB-1130-4200-B089-3B0FCD111343}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9118A0A-2A54-45C0-8B45-3C8727E1F136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9118A0A-2A54-45C0-8B45-3C8727E1F136}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9118A0A-2A54-45C0-8B45-3C8727E1F136}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9118A0A-2A54-45C0-8B45-3C8727E1F136}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFFAF441-6D39-4723-9F63-B8701F6190AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFFAF441-6D39-4723-9F63-B8701F6190AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFFAF441-6D39-4723-9F63-B8701F6190AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFFAF441-6D39-4723-9F63-B8701F6190AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BC13D45-108A-45EB-8B13-2C452E2BB1C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BC13D45-108A-45EB-8B13-2C452E2BB1C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BC13D45-108A-45EB-8B13-2C452E2BB1C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BC13D45-108A-45EB-8B13-2C452E2BB1C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E386E390-3D1E-47E8-A0AB-FBABC6A45690}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E386E390-3D1E-47E8-A0AB-FBABC6A45690}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E386E390-3D1E-47E8-A0AB-FBABC6A45690}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E386E390-3D1E-47E8-A0AB-FBABC6A45690}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A122E6D1-0245-40BB-9986-E7C828B2177B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A122E6D1-0245-40BB-9986-E7C828B2177B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A122E6D1-0245-40BB-9986-E7C828B2177B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A122E6D1-0245-40BB-9986-E7C828B2177B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78435A3F-EA0F-47AE-9539-E9E07D47F9A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78435A3F-EA0F-47AE-9539-E9E07D47F9A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78435A3F-EA0F-47AE-9539-E9E07D47F9A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78435A3F-EA0F-47AE-9539-E9E07D47F9A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3B7B51F-00E3-439D-9A6D-278F20B42AB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3B7B51F-00E3-439D-9A6D-278F20B42AB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3B7B51F-00E3-439D-9A6D-278F20B42AB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3B7B51F-00E3-439D-9A6D-278F20B42AB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
