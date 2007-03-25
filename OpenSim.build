@@ -50,7 +50,7 @@
         <nant buildfile="../opensim/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="clean" />
         <nant buildfile="../opensim/OpenSim.Physics/Manager/OpenSim.Physics.Manager.dll.build" target="clean" />
         <nant buildfile="../opensim/OpenSim.Physics/BasicPhysicsPlugin/OpenSim.Physics.BasicPhysicsPlugin.dll.build" target="clean" />
-        <nant buildfile="../opensim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="clean" />
+        <nant buildfile="../opensim/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="clean" />
         <nant buildfile="../opensim/OpenSim.Config/SimConfigDb4o/OpenSim.Config.SimConfigDb4o.dll.build" target="clean" />
         <nant buildfile="../opensim/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="clean" />
         <nant buildfile="../opensim/OpenGridServices.ServerConsole/OpenGridServices.ServerConsole.dll.build" target="clean" />
@@ -59,12 +59,14 @@
         <nant buildfile="../opensim/OpenSim/OpenSim.exe.build" target="clean" />
         <nant buildfile="../opensim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="clean" />
         <nant buildfile="../opensim/OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="clean" />
+        <nant buildfile="../opensim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="clean" />
     </target>
 
     <target name="build" depends="init" description="">
         <nant buildfile="../opensim/OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="../opensim/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="build" />
         <nant buildfile="../opensim/OpenGridServices.ServerConsole/OpenGridServices.ServerConsole.dll.build" target="build" />
+        <nant buildfile="../opensim/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="build" />
         <nant buildfile="../opensim/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="build" />
         <nant buildfile="../opensim/OpenSim.Physics/Manager/OpenSim.Physics.Manager.dll.build" target="build" />
         <nant buildfile="../opensim/OpenSim.Config/SimConfigDb4o/OpenSim.Config.SimConfigDb4o.dll.build" target="build" />
@@ -89,7 +91,7 @@
         <nant buildfile="../opensim/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="doc" />
         <nant buildfile="../opensim/OpenSim.Physics/Manager/OpenSim.Physics.Manager.dll.build" target="doc" />
         <nant buildfile="../opensim/OpenSim.Physics/BasicPhysicsPlugin/OpenSim.Physics.BasicPhysicsPlugin.dll.build" target="doc" />
-        <nant buildfile="../opensim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="doc" />
+        <nant buildfile="../opensim/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="doc" />
         <nant buildfile="../opensim/OpenSim.Config/SimConfigDb4o/OpenSim.Config.SimConfigDb4o.dll.build" target="doc" />
         <nant buildfile="../opensim/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="doc" />
         <nant buildfile="../opensim/OpenGridServices.ServerConsole/OpenGridServices.ServerConsole.dll.build" target="doc" />
@@ -98,6 +100,7 @@
         <nant buildfile="../opensim/OpenSim/OpenSim.exe.build" target="doc" />
         <nant buildfile="../opensim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="doc" />
         <nant buildfile="../opensim/OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="doc" />
+        <nant buildfile="../opensim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="doc" />
     </target>
 
 </project>

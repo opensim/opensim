@@ -99,6 +99,31 @@
      </Files>
     </Project>
 
+    <Project name="OpenGridServices.GridServer" path="./OpenGridServices.GridServer" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+     <ReferencePath>../bin/</ReferencePath>
+     <Reference name="System" localCopy="false"/>
+     <Reference name="System.Data" localCopy="false"/>
+     <Reference name="System.Xml" localCopy="false"/>
+     <Reference name="OpenSim.Framework.dll"/>
+     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenGridServices.ServerConsole.dll"/>
+     <Reference name="libsecondlife.dll"/>
+
+     <Files>
+       <Match pattern="*.cs" recurse="true"/>
+     </Files>
+    </Project>
 
     <Project name="OpenGridServices.UserServer" path="./OpenGridServices.UserServer" type="Exe">
       <Configuration name="Debug">
@@ -123,7 +148,6 @@
 
      <Files>
        <Match pattern="*.cs" recurse="true"/>
-       <Match pattern="..\OGS\common\VersionInfo\VersionInfo.cs"/>
      </Files> 
     </Project>
     
