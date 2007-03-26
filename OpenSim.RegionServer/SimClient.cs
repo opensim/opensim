@@ -124,6 +124,15 @@ namespace OpenSim
                     }
                     OpenSimRoot.Instance.LocalWorld.GetInitialPrims(this);
                     break;
+                case PacketType.AgentIsNowWearing:
+                    AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
+                    //Console.WriteLine(Pack.ToString());
+                    break;
+                case PacketType.AgentSetAppearance:
+                    AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
+                    // Console.WriteLine(appear.ToString());
+                    this.ClientAvatar.SetAppearance(appear);
+                    break;
                 case PacketType.ObjectAdd:
                     OpenSimRoot.Instance.LocalWorld.AddNewPrim((ObjectAddPacket)Pack, this);
                     break;
@@ -279,7 +288,7 @@ namespace OpenSim
 
                     break;
                 case PacketType.AssetUploadRequest:
-                    //this.debug = true;
+                    this.debug = true;
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
                    // Console.WriteLine(Pack.ToString());
                    // if (request.AssetBlock.Type == 0)
@@ -318,7 +327,6 @@ namespace OpenSim
                     OpenSimRoot.Instance.InventoryCache.FetchInventoryDescendents(this, Fetch);
                     break;
                 case PacketType.UpdateInventoryItem:
-                    /*
                     UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
                     for (int i = 0; i < update.InventoryData.Length; i++)
                     {
@@ -338,7 +346,7 @@ namespace OpenSim
                                 }
                             }
                         }
-                    }*/
+                    }
                     break;
                 case PacketType.ViewerEffect:
                     ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;

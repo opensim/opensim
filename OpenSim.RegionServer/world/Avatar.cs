@@ -5,6 +5,7 @@ using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Physics.Manager;
+using OpenSim.Framework.Inventory;
 using Axiom.MathLib;
 
 namespace OpenSim.world
@@ -25,6 +26,9 @@ namespace OpenSim.world
         private List<NewForce> forcesList = new List<NewForce>();
         private short _updateCount = 0;
         private Axiom.MathLib.Quaternion bodyRot;
+        private LLObject.TextureEntry avatarAppearanceTexture = null;
+        private byte[] visualParams;
+        private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
 
         public Avatar(SimClient TheClient)
@@ -34,6 +38,21 @@ namespace OpenSim.world
             localid = 8880000 + (OpenSimRoot.Instance.LocalWorld._localNumber++);
             position = new LLVector3(100.0f, 100.0f, 30.0f);
             position.Z = OpenSimRoot.Instance.LocalWorld.LandMap[(int)position.Y * 256 + (int)position.X] + 1;
+            visualParams = new byte[218];
+            for (int i = 0; i < 218; i++)
+            {
+                visualParams[i] = 100;
+            }
+            Wearables = new AvatarWearable[13]; //should be 13 of these
+            for (int i = 0; i < 13; i++)
+            {
+                Wearables[i] = new AvatarWearable();
+            }
+            this.Wearables[0].AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+            this.Wearables[0].ItemID = LLUUID.Random();
+
+            this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+           
         }
 
         public PhysicsActor PhysActor
@@ -97,7 +116,6 @@ namespace OpenSim.world
                     _updateCount++;
                     if (((!PhysicsEngineFlying) && (_updateCount > 3)) || (PhysicsEngineFlying) && (_updateCount > 0))
                     {
-                        //Console.WriteLine("been a while since update so have one");
                         //It has been a while since last update was sent so lets send one.
                         ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
                         ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
@@ -119,6 +137,7 @@ namespace OpenSim.world
                 }
 
             }
+            this.positionLastFrame = pos2;
         }
 
         public static void SetupTemplate(string name)
@@ -204,18 +223,13 @@ namespace OpenSim.world
             aw.AgentData.SessionID = ControllingClient.SessionID;
 
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
-            AgentWearablesUpdatePacket.WearableDataBlock awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-            awb.WearableType = (byte)0;
-            awb.AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-            awb.ItemID = LLUUID.Random();
-            aw.WearableData[0] = awb;
-
-            for (int i = 1; i < 13; i++)
+            AgentWearablesUpdatePacket.WearableDataBlock awb;
+            for (int i = 0; i < 13; i++)
             {
                 awb = new AgentWearablesUpdatePacket.WearableDataBlock();
                 awb.WearableType = (byte)i;
-                awb.AssetID = new LLUUID("00000000-0000-0000-0000-000000000000");
-                awb.ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
+                awb.AssetID = this.Wearables[i].AssetID;
+                awb.ItemID = this.Wearables[i].ItemID;
                 aw.WearableData[i] = awb;
             }
 
@@ -253,14 +267,15 @@ namespace OpenSim.world
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
             //avp.ObjectData.TextureEntry=this.avatar_template.TextureEntry;// br.ReadBytes((int)numBytes);
 
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-0000-000000000005"));
-            avp.ObjectData.TextureEntry = ntex.ToBytes();
+            //LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-0000-000000000005"));
+            //avp.ObjectData.TextureEntry = ntex.ToBytes();
+            avp.ObjectData.TextureEntry = this.avatarAppearanceTexture.ToBytes();
 
             AvatarAppearancePacket.VisualParamBlock avblock = null;
             for (int i = 0; i < 218; i++)
             {
                 avblock = new AvatarAppearancePacket.VisualParamBlock();
-                avblock.ParamValue = (byte)100;
+                avblock.ParamValue = visualParams[i];
                 avp.VisualParam[i] = avblock;
             }
 
@@ -269,6 +284,24 @@ namespace OpenSim.world
             userInfo.OutPacket(avp);
 
         }
+        public void SetAppearance(AgentSetAppearancePacket appear)
+        {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
+            this.avatarAppearanceTexture = tex;
+            for (int i = 0; i < appear.VisualParam.Length; i++)
+            {
+                this.visualParams[i] = appear.VisualParam[i].ParamValue;
+            }
+
+            foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
+            {
+                if (client.AgentID != ControllingClient.AgentID)
+                {
+                    SendAppearanceToOtherAgent(client);
+                }
+            }
+        }
+
 
         public void HandleUpdate(AgentUpdatePacket pack)
         {
@@ -479,7 +512,7 @@ namespace OpenSim.world
             int i = 0;
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
 
-            dat.TextureEntry = AvatarTemplate.TextureEntry;
+            dat.TextureEntry = new byte[0];// AvatarTemplate.TextureEntry;
             libsecondlife.LLVector3 pos2 = new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z);
 
             uint ID = this.localid;
