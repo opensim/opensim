@@ -85,6 +85,7 @@ namespace OpenSim.Physics.OdePlugin
                         d.WorldSetAutoDisableFlag(world, true);
                         d.WorldSetContactMaxCorrectingVel(world, 0.1f);
                         d.WorldSetContactSurfaceLayer(world, 0.001f);
+			this._heightmap=new double[65536];
 		}
 		
 		public override PhysicsActor AddAvatar(PhysicsVector position)

@@ -39,7 +39,12 @@ namespace OpenSim
                     sim._physicsEngine = "RealPhysX";
                     OpenSim.world.Avatar.PhysicsEngineFlying = true;
                 }
-            }
+                if (args[i] == "-ode")
+		{
+		    sim._physicsEngine = "OpenDynamicsEngine";
+		    OpenSim.world.Avatar.PhysicsEngineFlying = true;
+		}
+	    }
 
 
             OpenSimRoot.Instance.GridServers = new Grid();

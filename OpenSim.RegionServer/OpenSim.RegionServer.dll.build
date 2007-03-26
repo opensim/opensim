@@ -7,7 +7,7 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
+        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
             <resources prefix="OpenSim.RegionServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
@@ -23,10 +23,10 @@
                 <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />
                 <include name="CAPS/SimHttp.cs" />
-                <include name="types/Mesh.cs" />
-                <include name="types/Triangle.cs" />
                 <include name="UserServer/LocalUserProfileManager.cs" />
                 <include name="UserServer/LoginServer.cs" />
+                <include name="types/Mesh.cs" />
+                <include name="types/Triangle.cs" />
                 <include name="world/Avatar.cs" />
                 <include name="world/AvatarAnimations.cs" />
                 <include name="world/Entity.cs" />
