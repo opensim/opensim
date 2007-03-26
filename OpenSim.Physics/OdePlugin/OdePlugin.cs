@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Physics.Manager;
+using Ode.NET;
 
 namespace OpenSim.Physics.OdePlugin
 {
@@ -69,10 +70,21 @@ namespace OpenSim.Physics.OdePlugin
 	
 	public class OdeScene :PhysicsScene
 	{
-		
+		private	IntPtr world;
+		private IntPtr space;
+		private IntPtr contactgroup;
+		private double[] _heightmap;
+
 		public OdeScene()
 		{
-		
+			world = d.WorldCreate();
+                        space = d.HashSpaceCreate(IntPtr.Zero);
+                        contactgroup = d.JointGroupCreate(0);
+			d.WorldSetGravity(world, 0.0f, 0.0f, -0.5f);
+                        d.WorldSetCFM(world, 1e-5f);
+                        d.WorldSetAutoDisableFlag(world, true);
+                        d.WorldSetContactMaxCorrectingVel(world, 0.1f);
+                        d.WorldSetContactSurfaceLayer(world, 0.001f);
 		}
 		
 		public override PhysicsActor AddAvatar(PhysicsVector position)
@@ -117,6 +129,12 @@ namespace OpenSim.Physics.OdePlugin
 		
 		public override void SetTerrain(float[] heightMap)
 		{
+			for(int i=0; i<65536; i++) {
+				this._heightmap[i]=(double)heightMap[i];
+			}
+			IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
+			d.GeomHeightfieldDataBuildDouble(HeightmapData,_heightmap,1,256,256,256,256,1.0f,0.0f,2.0f,0);
+			d.CreateHeightfield(space, HeightmapData, 0);
 		}
 	}
 	
