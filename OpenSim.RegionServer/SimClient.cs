@@ -288,7 +288,7 @@ namespace OpenSim
 
                     break;
                 case PacketType.AssetUploadRequest:
-                    this.debug = true;
+                    //this.debug = true;
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
                    // Console.WriteLine(Pack.ToString());
                    // if (request.AssetBlock.Type == 0)
