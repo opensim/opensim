@@ -7,7 +7,7 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="exe" debug="${build.debug}" keyfile="Prebuild.snk" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.exe" win32icon="App.ico">
+        <csc target="exe" debug="${build.debug}" keyfile="Prebuild.snk" unsafe="False" define="DEBUG;TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.exe" win32icon="App.ico">
             <resources prefix="Prebuild" dynamicprefix="true" >
                 <include name="App.ico" />
                 <include name="data/prebuild-1.7.xsd" />
