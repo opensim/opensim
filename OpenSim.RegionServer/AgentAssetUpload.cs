@@ -79,7 +79,6 @@ namespace OpenSim
 
                 
             }
-            /* for now we will only support uploading of textures 
             else if (pack.AssetBlock.Type == 13 | pack.AssetBlock.Type == 5)
             {
                
@@ -92,7 +91,7 @@ namespace OpenSim
                     asset.Data = pack.AssetBlock.AssetData;
 
                
-            }*/
+            }
 
             if (asset != null)
             {
@@ -168,6 +167,22 @@ namespace OpenSim
         }
 
         #endregion
+
+        public AssetBase AddUploadToAssetCache(LLUUID transactionID)
+        {
+            AssetBase asset = null;
+            if(this.transactions.ContainsKey(transactionID))
+            {
+                AssetTransaction trans = this.transactions[transactionID];
+                if (trans.UploadComplete)
+                {
+                    OpenSimRoot.Instance.AssetCache.AddAsset(trans.Asset);
+                    asset = trans.Asset;
+                }
+            }
+
+            return asset;
+        }
 
         public void CreateInventoryItem(CreateInventoryItemPacket packet)
         {

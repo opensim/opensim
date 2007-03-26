@@ -57,6 +57,16 @@ namespace OpenSim.Assets
             this._agentsInventory.Add(agentInventory.AgentID, agentInventory);
         }
 
+        public AgentInventory GetAgentsInventory(LLUUID agentID)
+        {
+            if (this._agentsInventory.ContainsKey(agentID))
+            {
+                return this._agentsInventory[agentID];
+            }
+
+            return null;
+        }
+
         public void ClientLeaving(LLUUID clientID)
         {
             if (this._agentsInventory.ContainsKey(clientID))

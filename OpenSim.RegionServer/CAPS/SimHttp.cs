@@ -48,12 +48,17 @@ namespace OpenSim.CAPS
     {
         public Thread HTTPD;
         public HttpListener Listener;
+        private string AdminPage;
+        private string NewAccountForm;
+        private string LoginForm;
+        private string passWord = "Admin";
 
         public SimCAPSHTTPServer()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Starting up HTTP Server");
             HTTPD = new Thread(new ThreadStart(StartHTTP));
             HTTPD.Start();
+            LoadAdminPage();
         }
 
         public void StartHTTP()
@@ -79,7 +84,7 @@ namespace OpenSim.CAPS
             }
         }
 
-        static string ParseXMLRPC(string requestBody)
+        private string ParseXMLRPC(string requestBody)
         {
             try
             {
@@ -111,19 +116,101 @@ namespace OpenSim.CAPS
             return "";
         }
 
-        static string ParseREST(string requestBody, string requestURL)
+        private string ParseREST(string requestBody, string requestURL, string requestMethod)
         {
-            return "";
+            string responseString = "";
+            switch (requestURL)
+            {
+                case "/Admin/Accounts":
+                    if (requestMethod == "GET")
+                    {
+                        responseString = "<p> Account management </p>";
+                        responseString += "<br> ";
+                        responseString += "<p> Create New Account </p>";
+                        responseString += NewAccountForm;
+                    }
+                    break;
+                case "/Admin/Clients":
+                    if (requestMethod == "GET")
+                    {
+                        responseString = " <p> Listing connected Clients </p>" ;
+                        OpenSim.world.Avatar TempAv;
+                        foreach (libsecondlife.LLUUID UUID in OpenSimRoot.Instance.LocalWorld.Entities.Keys)
+                        {
+                            if (OpenSimRoot.Instance.LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                            {
+                                TempAv = (OpenSim.world.Avatar)OpenSimRoot.Instance.LocalWorld.Entities[UUID];
+                                responseString += "<p>";
+                                responseString += String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
+                                responseString += "</p>";
+                            }
+                        }
+                    }
+                    break;
+                case "/Admin/NewAccount": 
+                    if (requestMethod == "POST")
+                    {
+                        string[] comp = new string[10];
+                        string[] passw = new string[3];
+                        string delimStr = "&";
+                        char[] delimiter = delimStr.ToCharArray();
+                        string delimStr2 = "=";
+                        char[] delimiter2 = delimStr2.ToCharArray();
+
+                        //Console.WriteLine(requestBody);
+                        comp = requestBody.Split(delimiter);
+                        passw = comp[3].Split(delimiter2);
+                        if (passw[1] == passWord)
+                        {
+                            responseString = "<p> New Account created </p>";
+                        }
+                        else
+                        {
+                            responseString = "<p> Admin password is incorrect, please login with the correct password</p>";
+                            responseString += "<br><br>" + LoginForm;
+                        }
+                       
+                        
+                    }
+                    break;
+                case "/Admin/Login":
+                    if (requestMethod == "POST")
+                    {
+                        Console.WriteLine(requestBody);
+                        if (requestBody == passWord)
+                        {
+                            responseString = "<p> Login Successful </p>";
+                        }
+                        else
+                        {
+                            responseString = "<p> PassWord Error </p>";
+                            responseString += "<p> Please Login with the correct password </p>";
+                            responseString += "<br><br> " + LoginForm;
+                        }
+                    }
+                    break;
+                case "/Admin/Welcome":
+                    if (requestMethod == "GET")
+                    {
+                        responseString = "Welcome to the OpenSim Admin Page";
+                        responseString += "<br><br><br> " + LoginForm;
+
+                    }
+                    break;
+            }
+
+            return responseString;
         }
 
-        static string ParseLLSDXML(string requestBody)
+        private string ParseLLSDXML(string requestBody)
         {
             // dummy function for now - IMPLEMENT ME!
             return "";
         }
 
-        static void HandleRequest(Object stateinfo)
+        public void HandleRequest(Object stateinfo)
         {
+           // Console.WriteLine("new http incoming");
             HttpListenerContext context = (HttpListenerContext)stateinfo;
 
             HttpListenerRequest request = context.Request;
@@ -139,6 +226,9 @@ namespace OpenSim.CAPS
             string requestBody = reader.ReadToEnd();
             body.Close();
             reader.Close();
+
+            //Console.WriteLine(request.HttpMethod + " " + request.RawUrl + " Http/" + request.ProtocolVersion.ToString() + " content type: " + request.ContentType);
+            //Console.WriteLine(requestBody);
 
             string responseString = "";
             switch (request.ContentType)
@@ -156,10 +246,26 @@ namespace OpenSim.CAPS
                     response.AddHeader("Content-type", "application/xml");
                     break;
 
-                case null:
-                    // must be REST or invalid crap, so pass to the REST parser
-                    responseString = ParseREST(request.Url.OriginalString, requestBody);
+                case "application/x-www-form-urlencoded":
+                    // a form data POST so send to the REST parser
+                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                    response.AddHeader("Content-type", "text/html");
                     break;
+
+                case null:
+                    if ((request.HttpMethod == "GET") && (request.RawUrl == "/Admin"))
+                    {
+                        responseString = AdminPage;
+                        response.AddHeader("Content-type", "text/html");
+                    }
+                    else
+                    {
+                        // must be REST or invalid crap, so pass to the REST parser
+                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                        response.AddHeader("Content-type", "text/html");
+                    }
+                    break;
+               
             }
 
             byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
@@ -168,6 +274,52 @@ namespace OpenSim.CAPS
             response.ContentLength64 = buffer.Length;
             output.Write(buffer, 0, buffer.Length);
             output.Close();
+        }
+
+        private void LoadAdminPage()
+        {
+            try
+            {
+                StreamReader SR;
+                string lines;
+                AdminPage = "";
+                NewAccountForm = "";
+                LoginForm = "";
+                SR = File.OpenText("testadmin.htm");
+
+                while (!SR.EndOfStream)
+                {
+                    lines = SR.ReadLine();
+                    AdminPage += lines + "\n";
+
+                }
+                SR.Close();
+
+                SR = File.OpenText("newaccountform.htm");
+
+                while (!SR.EndOfStream)
+                {
+                    lines = SR.ReadLine();
+                    NewAccountForm += lines + "\n";
+
+                }
+                SR.Close();
+
+                SR = File.OpenText("login.htm");
+
+                while (!SR.EndOfStream)
+                {
+                    lines = SR.ReadLine();
+                    LoginForm += lines + "\n";
+
+                }
+                SR.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
         }
     }
 

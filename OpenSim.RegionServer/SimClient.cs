@@ -287,7 +287,7 @@ namespace OpenSim
                         //this.UploadAssets.HandleUploadPacket(request, LLUUID.Random());
                     //}
                     //else
-                    //{*/
+                    //{
                         this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
                     //}
                     break;
@@ -318,13 +318,25 @@ namespace OpenSim
                     OpenSimRoot.Instance.InventoryCache.FetchInventoryDescendents(this, Fetch);
                     break;
                 case PacketType.UpdateInventoryItem:
-                  /*  UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
+                    /*
+                    UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
                     for (int i = 0; i < update.InventoryData.Length; i++)
                     {
                         if (update.InventoryData[i].TransactionID != LLUUID.Zero)
                         {
                             AssetBase asset = OpenSimRoot.Instance.AssetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
-                            OpenSimRoot.Instance.InventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                            if (asset != null)
+                            {
+                                OpenSimRoot.Instance.InventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                            }
+                            else
+                            {
+                                asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
+                                if (asset != null)
+                                {
+                                    OpenSimRoot.Instance.InventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                                }
+                            }
                         }
                     }*/
                     break;
