@@ -70,31 +70,54 @@ namespace OpenSim.Physics.OdePlugin
 	
 	public class OdeScene :PhysicsScene
 	{
-		public IntPtr world;
-		public IntPtr space;
-		private IntPtr contactgroup;
+		static public IntPtr world;
+		static public IntPtr space;
+		static private IntPtr contactgroup;
+		static private IntPtr LandGeom;
+		static private IntPtr Land;
 		private double[] _heightmap;
+		static private d.NearCallback nearCallback = near;
+		private List<OdeCharacter> _characters = new List<OdeCharacter>();
+		private static d.ContactGeom[] contacts = new d.ContactGeom[500];
+                private static d.Contact contact;
 
-		public OdeScene()
-		{
+		public OdeScene() {
 			world = d.WorldCreate();
                         space = d.HashSpaceCreate(IntPtr.Zero);
                         contactgroup = d.JointGroupCreate(0);
 			d.WorldSetGravity(world, 0.0f, 0.0f, -0.5f);
                         d.WorldSetCFM(world, 1e-5f);
-                        d.WorldSetAutoDisableFlag(world, true);
-                        d.WorldSetContactMaxCorrectingVel(world, 0.1f);
-                        d.WorldSetContactSurfaceLayer(world, 0.001f);
+                        d.WorldSetAutoDisableFlag(world, false);
 			this._heightmap=new double[65536];
 		}
 		
+		// This function blatantly ripped off from BoxStack.cs
+		static private void near(IntPtr space, IntPtr g1, IntPtr g2)
+                {
+                        IntPtr b1 = d.GeomGetBody(g1);
+                        IntPtr b2 = d.GeomGetBody(g2);
+                        if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
+                                return;
+
+                        int count = d.Collide(g1, g2, 500, contacts, d.ContactGeom.SizeOf);
+                        for (int i = 0; i < count; ++i)
+                        {
+                                contact.geom = contacts[i];
+                                IntPtr joint = d.JointCreateContact(world, contactgroup, ref contact);
+                                d.JointAttach(joint, b1, b2);
+                        }
+
+		}
+
 		public override PhysicsActor AddAvatar(PhysicsVector position)
 		{
 			PhysicsVector pos = new PhysicsVector();
 			pos.X = position.X;
 			pos.Y = position.Y;
 			pos.Z = position.Z;
-			return new OdeCharacter(this,pos);
+			OdeCharacter newAv= new OdeCharacter(this,pos);
+			this._characters.Add(newAv);
+			return newAv;
 		}
 		
 		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
@@ -112,7 +135,16 @@ namespace OpenSim.Physics.OdePlugin
 		
 		public override void Simulate(float timeStep)
 		{
-				
+			foreach (OdeCharacter actor in _characters) {
+				actor.Move(timeStep*5f);
+			}
+			d.SpaceCollide(space, IntPtr.Zero, nearCallback);
+			d.WorldQuickStep(world, timeStep*5f);
+			foreach (OdeCharacter actor in _characters)
+                        {
+                                actor.UpdatePosition();
+                        }
+
 		}
 		
 		public override void GetResults()
@@ -135,7 +167,8 @@ namespace OpenSim.Physics.OdePlugin
 			}
 			IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
 			d.GeomHeightfieldDataBuildDouble(HeightmapData,_heightmap,1,256,256,256,256,1.0f,0.0f,2.0f,0);
-			d.CreateHeightfield(space, HeightmapData, 0);
+			LandGeom=d.CreateHeightfield(space, HeightmapData, 1);
+			d.GeomSetPosition(LandGeom,0,0,0);
 		}
 	}
 	
@@ -156,7 +189,10 @@ namespace OpenSim.Physics.OdePlugin
 			_position = pos;
 			_acceleration = new PhysicsVector();
 			d.MassSetCapsule(out capsule_mass, 5.0f, 3, 0.5f, 2f);
-                        capsule_geom = d.CreateCapsule(parent_scene.space, 0.5f, 2f);
+                        capsule_geom = d.CreateCapsule(OdeScene.space, 0.5f, 2f);
+			this.BoundingCapsule=d.BodyCreate(OdeScene.world);
+			d.BodySetMass(BoundingCapsule, ref capsule_mass);
+			d.BodySetPosition(BoundingCapsule,pos.X,pos.Y,pos.Z);
 		}
 		
 		public override bool Flying
@@ -249,12 +285,7 @@ namespace OpenSim.Physics.OdePlugin
 			vec.Y = this._velocity.Y * timeStep;
 			if(flying)
 			{
-				vec.Z = ( this._velocity.Z) * timeStep;
-			}
-			else
-			{
-				gravityAccel+= -9.8f;
-				vec.Z = (gravityAccel + this._velocity.Z) * timeStep;
+				vec.Z = ( this._velocity.Z+0.5f) * timeStep;
 			}
 			d.BodySetLinearVel(this.BoundingCapsule, vec.X, vec.Y, vec.Z);
 		}
@@ -265,7 +296,6 @@ namespace OpenSim.Physics.OdePlugin
                         this._position.X = vec.X;
                         this._position.Y = vec.Y;
                         this._position.Z = vec.Z;
-
 		}
 	}
 	
@@ -297,7 +327,7 @@ namespace OpenSim.Physics.OdePlugin
 			get
 			{
 				PhysicsVector pos = new PhysicsVector();
-				//PhysicsVector vec = this._prim.Position;
+			//	PhysicsVector vec = this._prim.Position;
 				//pos.X = vec.X;
 				//pos.Y = vec.Y;
 				//pos.Z = vec.Z;
