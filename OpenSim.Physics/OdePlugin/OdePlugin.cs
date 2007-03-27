@@ -70,8 +70,8 @@ namespace OpenSim.Physics.OdePlugin
 	
 	public class OdeScene :PhysicsScene
 	{
-		private	IntPtr world;
-		private IntPtr space;
+		public IntPtr world;
+		public IntPtr space;
 		private IntPtr contactgroup;
 		private double[] _heightmap;
 
@@ -94,7 +94,7 @@ namespace OpenSim.Physics.OdePlugin
 			pos.X = position.X;
 			pos.Y = position.Y;
 			pos.Z = position.Z;
-			return new OdeCharacter();
+			return new OdeCharacter(this,pos);
 		}
 		
 		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
@@ -139,19 +139,24 @@ namespace OpenSim.Physics.OdePlugin
 		}
 	}
 	
-	public  class OdeCharacter : PhysicsActor
+	public class OdeCharacter : PhysicsActor
 	{
 		private PhysicsVector _position;
 		private PhysicsVector _velocity;
 		private PhysicsVector _acceleration;
 		private bool flying;
 		private float gravityAccel;
-		
-		public OdeCharacter()
+		private IntPtr BoundingCapsule;
+		IntPtr capsule_geom;
+                d.Mass capsule_mass;
+	
+		public OdeCharacter(OdeScene parent_scene, PhysicsVector pos)
 		{
 			_velocity = new PhysicsVector();
-			_position = new PhysicsVector();
+			_position = pos;
 			_acceleration = new PhysicsVector();
+			d.MassSetCapsule(out capsule_mass, 5.0f, 3, 0.5f, 2f);
+                        capsule_geom = d.CreateCapsule(parent_scene.space, 0.5f, 2f);
 		}
 		
 		public override bool Flying
