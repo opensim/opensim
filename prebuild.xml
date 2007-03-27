@@ -188,6 +188,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false" />
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
       <Files>
         <Match pattern="*.cs" recurse="false"/>
