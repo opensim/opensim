@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{094D67CC-5605-4F32-891F-F026CF6068D0}</ProjectGuid>
+    <ProjectGuid>{CC3316C2-0D2C-47DC-9BDD-C2D84BB2D36B}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -78,13 +78,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
-      <Project>{6CE3530E-1D8E-47D8-9B6D-82A86E71D657}</Project>
+      <Project>{1817C154-9111-4C45-A19A-609A5717C1FA}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{4E3D1135-5AD9-4C23-BB9A-E4FCCA4B0BC7}</Project>
+      <Project>{023EA61E-BBAE-4FCC-BCDD-43A50FD95D54}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

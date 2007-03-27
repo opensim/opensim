@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{90F935D0-00A6-4A5D-82F0-BB7FB8AFC99D}</ProjectGuid>
+    <ProjectGuid>{D385B640-E037-419A-AC83-5CB6E66D9FF3}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -80,21 +80,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+      <Name>OpenSim.Framework</Name>
+      <Project>{1817C154-9111-4C45-A19A-609A5717C1FA}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{4E3D1135-5AD9-4C23-BB9A-E4FCCA4B0BC7}</Project>
+      <Project>{023EA61E-BBAE-4FCC-BCDD-43A50FD95D54}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{7D98B8F9-1409-40DD-8A8F-9B7669761B6C}</Project>
+      <Project>{D9A7F5B1-0F86-4463-BA4C-9F15D3981E5C}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
-      <Name>OpenSim.Framework</Name>
-      <Project>{6CE3530E-1D8E-47D8-9B6D-82A86E71D657}</Project>
+    <ProjectReference Include="..\Servers\OpenSim.Servers.csproj">
+      <Name>OpenSim.Servers</Name>
+      <Project>{570A9C4C-950E-4F9D-9FB1-1A77E1A5C4C2}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

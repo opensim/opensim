@@ -39,22 +39,27 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Servers;
 
 namespace OpenSim.CAPS
 {
     // Dummy HTTP server, does nothing useful for now
 
-    public class SimCAPSHTTPServer
+    public class SimCAPSHTTPServer : BaseHttpServer
     {
-        public Thread HTTPD;
-        public HttpListener Listener;
-        private Dictionary<string, IRestHandler> restHandlers = new Dictionary<string, IRestHandler>();
+        private Thread m_workerThread;
+        private HttpListener m_httpListener;
+        private Dictionary<string, IRestHandler> m_restHandlers = new Dictionary<string, IRestHandler>();
+        private IGridServer m_gridServer;
+        private int m_port;
 
-        public SimCAPSHTTPServer()
+        public SimCAPSHTTPServer(IGridServer gridServer, int port)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Starting up HTTP Server");
-            HTTPD = new Thread(new ThreadStart(StartHTTP));
-            HTTPD.Start();
+            m_workerThread = new Thread(new ThreadStart(StartHTTP));
+            m_workerThread.Start();
+            m_gridServer = gridServer;
+            m_port = port;
         }
 
         public void StartHTTP()
@@ -62,15 +67,15 @@ namespace OpenSim.CAPS
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimHttp.cs:StartHTTP() - Spawned main thread OK");
-                Listener = new HttpListener();
+                m_httpListener = new HttpListener();
 
-                Listener.Prefixes.Add("http://+:" + OpenSimRoot.Instance.Cfg.IPListenPort + "/");
-                Listener.Start();
+                m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                m_httpListener.Start();
 
                 HttpListenerContext context;
                 while (true)
                 {
-                    context = Listener.GetContext();
+                    context = m_httpListener.GetContext();
                     ThreadPool.QueueUserWorkItem(new WaitCallback(HandleRequest), context);
                 }
             }
@@ -82,9 +87,9 @@ namespace OpenSim.CAPS
 
         public bool AddRestHandler(string path, IRestHandler handler)
         {
-            if (!this.restHandlers.ContainsKey(path))
+            if (!this.m_restHandlers.ContainsKey(path))
             {
-                this.restHandlers.Add(path, handler);
+                this.m_restHandlers.Add(path, handler);
                 return true;
             }
 
@@ -108,12 +113,12 @@ namespace OpenSim.CAPS
                         agent_data.lastname = (string)requestData["lastname"];
                         agent_data.AgentID = new LLUUID((string)requestData["agent_id"]);
                         agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-                        if (OpenSimRoot.Instance.GridServers.GridServer.GetName() == "Remote")
+                        if (m_gridServer.GetName() == "Remote")
                         {
-                            ((RemoteGridBase)OpenSimRoot.Instance.GridServers.GridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
+                            
+                            ((RemoteGridBase)m_gridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
                         }
                         return "<?xml version=\"1.0\"?><methodResponse><params /></methodResponse>";
-                        break;
                 }
             }
             catch (Exception e)
@@ -135,9 +140,9 @@ namespace OpenSim.CAPS
             //path[0] should be empty so we are interested in path[1]
             if (path.Length > 1)
             {
-                if ((path[1] != "") && (this.restHandlers.ContainsKey(path[1])))
+                if ((path[1] != "") && (this.m_restHandlers.ContainsKey(path[1])))
                 {
-                    responseString = this.restHandlers[path[1]].HandleREST(requestBody, requestURL, requestMethod);
+                    responseString = this.m_restHandlers[path[1]].HandleREST(requestBody, requestURL, requestMethod);
                 }
             }
            

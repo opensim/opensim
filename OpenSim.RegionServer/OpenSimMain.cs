@@ -113,7 +113,7 @@ namespace OpenSim
             }
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting CAPS HTTP server");
-            OpenSimRoot.Instance.HttpServer = new SimCAPSHTTPServer();
+            OpenSimRoot.Instance.HttpServer = new SimCAPSHTTPServer(OpenSimRoot.Instance.GridServers.GridServer, OpenSimRoot.Instance.Cfg.IPListenPort);
             OpenSimRoot.Instance.HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin"));
 
             timer1.Enabled = true;
@@ -172,7 +172,7 @@ namespace OpenSim
             { // new client
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
                 this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-                SimClient newuser = new SimClient(epSender, useCircuit);
+                SimClient newuser = new SimClient(epSender, useCircuit, OpenSimRoot.Instance.LocalWorld, OpenSimRoot.Instance.ClientThreads, OpenSimRoot.Instance.AssetCache, OpenSimRoot.Instance.GridServers.GridServer, OpenSimRoot.Instance.Application, OpenSimRoot.Instance.InventoryCache, OpenSimRoot.Instance.Sandbox);
                 //OpenSimRoot.Instance.ClientThreads.Add(epSender, newuser);
                 OpenSimRoot.Instance.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
             }

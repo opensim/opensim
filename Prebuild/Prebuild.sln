@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prebuild", "src\Prebuild.csproj", "{BEF662A4-BA6D-4BDB-BE04-4E6055E9D276}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prebuild", "src\Prebuild.csproj", "{6A56621D-A328-4E23-96E3-0514A3817BAF}"
 EndProject
 Global
   GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,10 +8,10 @@ Global
     Release|Any CPU = Release|Any CPU
   EndGlobalSection
   GlobalSection(ProjectConfigurationPlatforms) = postSolution
-    {BEF662A4-BA6D-4BDB-BE04-4E6055E9D276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    {BEF662A4-BA6D-4BDB-BE04-4E6055E9D276}.Debug|Any CPU.Build.0 = Debug|Any CPU
-    {BEF662A4-BA6D-4BDB-BE04-4E6055E9D276}.Release|Any CPU.ActiveCfg = Release|Any CPU
-    {BEF662A4-BA6D-4BDB-BE04-4E6055E9D276}.Release|Any CPU.Build.0 = Release|Any CPU
+    {6A56621D-A328-4E23-96E3-0514A3817BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {6A56621D-A328-4E23-96E3-0514A3817BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {6A56621D-A328-4E23-96E3-0514A3817BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {6A56621D-A328-4E23-96E3-0514A3817BAF}.Release|Any CPU.Build.0 = Release|Any CPU
   EndGlobalSection
   GlobalSection(SolutionProperties) = preSolution
     HideSolutionNode = FALSE

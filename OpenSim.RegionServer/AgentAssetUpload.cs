@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Assets;
 using OpenSim.Framework.Assets;
 using OpenSim.Framework.Utilities;
 using libsecondlife;
@@ -12,10 +13,14 @@ namespace OpenSim
     {
         private Dictionary<LLUUID, AssetTransaction> transactions = new Dictionary<LLUUID, AssetTransaction>();
         private SimClient ourClient;
+        private AssetCache m_assetCache;
+        private InventoryCache m_inventoryCache;
 
-        public AgentAssetUpload(SimClient client)
+        public AgentAssetUpload(SimClient client, AssetCache assetCache, InventoryCache inventoryCache)
         {
             this.ourClient = client;
+            m_assetCache = assetCache;
+            m_inventoryCache = inventoryCache;
         }
 
         public void AddUpload(LLUUID transactionID, AssetBase asset)
@@ -148,8 +153,8 @@ namespace OpenSim
                             //check if we should add it to inventory 
                             if (trans.AddToInventory)
                             {
-                                OpenSimRoot.Instance.AssetCache.AddAsset(trans.Asset);
-                                OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
+                                m_assetCache.AddAsset(trans.Asset);
+                                m_inventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
                             }
 
                            
@@ -176,7 +181,7 @@ namespace OpenSim
                 AssetTransaction trans = this.transactions[transactionID];
                 if (trans.UploadComplete)
                 {
-                    OpenSimRoot.Instance.AssetCache.AddAsset(trans.Asset);
+                    m_assetCache.AddAsset(trans.Asset);
                     asset = trans.Asset;
                 }
             }
@@ -195,8 +200,8 @@ namespace OpenSim
                 if (trans.UploadComplete)
                 {
                     //already complete so we can add it to the inventory
-                    OpenSimRoot.Instance.AssetCache.AddAsset(trans.Asset);
-                   Console.WriteLine( "ITem created is " +OpenSimRoot.Instance.InventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
+                    m_assetCache.AddAsset(trans.Asset);
+                   Console.WriteLine( "ITem created is " +m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
                 }
                 else
                 {

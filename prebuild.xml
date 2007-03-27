@@ -354,9 +354,10 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
-      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Servers"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
