@@ -11,7 +11,6 @@
             <resources prefix="OpenGridServices.UserServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="ConsoleCmds.cs" />
                 <include name="Main.cs" />
                 <include name="UserHttp.cs" />
                 <include name="Properties/AssemblyInfo.cs" />

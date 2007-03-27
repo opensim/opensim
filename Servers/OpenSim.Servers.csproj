@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{EAC45D69-AA44-45FB-B0CE-A95272A9B67B}</ProjectGuid>
+    <ProjectGuid>{2EF6000C-A72B-4CBF-99A8-ECDAE8ED41DE}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -82,6 +82,9 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="dummy.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

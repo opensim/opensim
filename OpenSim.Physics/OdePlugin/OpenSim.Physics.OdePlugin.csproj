@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B96EF3C6-4512-4D35-8FF7-91B2C9294F46}</ProjectGuid>
+    <ProjectGuid>{1B7DDBC8-A2BC-45E3-AB85-4B4B1008E24B}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -74,7 +74,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{F9EA091B-3231-4D1B-A068-EF4A5781A0D5}</Project>
+      <Project>{7D98B8F9-1409-40DD-8A8F-9B7669761B6C}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

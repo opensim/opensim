@@ -1,0 +1,1 @@
+// This here because prebuild breaks nant build on empty fileset, ie a project containing no files
