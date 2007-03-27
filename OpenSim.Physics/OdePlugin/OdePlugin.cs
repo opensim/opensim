@@ -140,6 +140,7 @@ namespace OpenSim.Physics.OdePlugin
 			}
 			d.SpaceCollide(space, IntPtr.Zero, nearCallback);
 			d.WorldQuickStep(world, timeStep*5f);
+			d.JointGroupEmpty(contactgroup);
 			foreach (OdeCharacter actor in _characters)
                         {
                                 actor.UpdatePosition();
@@ -167,8 +168,7 @@ namespace OpenSim.Physics.OdePlugin
 			}
 			IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
 			d.GeomHeightfieldDataBuildDouble(HeightmapData,_heightmap,1,256,256,256,256,1.0f,0.0f,2.0f,0);
-			LandGeom=d.CreateHeightfield(space, HeightmapData, 1);
-			d.GeomSetPosition(LandGeom,0,0,0);
+			LandGeom=d.CreateHeightfield(space, HeightmapData, 0);
 		}
 	}
 	
