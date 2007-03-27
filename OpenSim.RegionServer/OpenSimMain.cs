@@ -91,7 +91,7 @@ namespace OpenSim
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:Startup() - We are " + OpenSimRoot.Instance.Cfg.RegionName + " at " + OpenSimRoot.Instance.Cfg.RegionLocX.ToString() + "," + OpenSimRoot.Instance.Cfg.RegionLocY.ToString());
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Initialising world");
-            OpenSimRoot.Instance.LocalWorld = new World();
+            OpenSimRoot.Instance.LocalWorld = new World(OpenSimRoot.Instance.ClientThreads, OpenSimRoot.Instance.Cfg.RegionHandle, OpenSimRoot.Instance.LocalWorld, OpenSimRoot.Instance.Cfg.RegionName, OpenSimRoot.Instance.Cfg);
             OpenSimRoot.Instance.LocalWorld.LandMap = OpenSimRoot.Instance.Cfg.LoadWorld();
 
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
@@ -114,7 +114,7 @@ namespace OpenSim
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting CAPS HTTP server");
             OpenSimRoot.Instance.HttpServer = new SimCAPSHTTPServer(OpenSimRoot.Instance.GridServers.GridServer, OpenSimRoot.Instance.Cfg.IPListenPort);
-            OpenSimRoot.Instance.HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin"));
+            OpenSimRoot.Instance.HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", OpenSimRoot.Instance.LocalWorld));
 
             timer1.Enabled = true;
             timer1.Interval = 100;
