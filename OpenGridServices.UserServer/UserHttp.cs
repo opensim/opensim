@@ -37,25 +37,25 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
-using ServerConsole;
 using OpenSim.Framework.User;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Console;
 
-namespace OpenGridServices
+namespace OpenGridServices.UserServer
 {
 	public class UserHTTPServer {
 		public Thread HTTPD;
 		public HttpListener Listener;
 	
 		public UserHTTPServer() {
-	 		ServerConsole.MainConsole.Instance.WriteLine("Starting up HTTP Server");
+	 		MainConsole.Instance.WriteLine("Starting up HTTP Server");
 			HTTPD = new Thread(new ThreadStart(StartHTTP));
 			HTTPD.Start();
 		}
 
 		public void StartHTTP() {
-			ServerConsole.MainConsole.Instance.WriteLine("UserHttp.cs:StartHTTP() - Spawned main thread OK");
+			MainConsole.Instance.WriteLine("UserHttp.cs:StartHTTP() - Spawned main thread OK");
 			Listener = new HttpListener();
 
 			Listener.Prefixes.Add("http://+:8002/userserver/");
@@ -70,7 +70,7 @@ namespace OpenGridServices
 		}
 
 		static string ParseXMLRPC(string requestBody) {
-            return OpenGridServices.OpenUser_Main.userserver._profilemanager.ParseXMLRPC(requestBody);
+            return OpenUser_Main.userserver._profilemanager.ParseXMLRPC(requestBody);
 		}
 		
 		static string ParseREST(HttpListenerRequest www_req) {
@@ -93,7 +93,6 @@ namespace OpenGridServices
 
 					}
 					return "OK";
-				break;
 			}
 
 			return "";

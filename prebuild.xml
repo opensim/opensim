@@ -34,7 +34,7 @@
 
     <!-- Core OpenSim Projects -->
 
-    <Project name="OpenSim.Framework" path="./OpenSim.Framework" type="Library">
+    <Project name="OpenSim.Framework" path="OpenSim.Framework" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -55,7 +55,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Console" path="./OpenSim.Framework.Console" type="Library">
+    <Project name="OpenSim.Framework.Console" path="OpenSim.Framework.Console" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -74,8 +74,7 @@
       </Files>
     </Project>
 
-    <!-- OGS stuff -->
-    <Project name="OpenGridServices.ServerConsole" path="./OpenGridServices.ServerConsole" type="Library">
+    <Project name="OpenSim.Framework" path="OpenSim.Framework" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -87,18 +86,42 @@
         </Options>
       </Configuration>
 
-     <ReferencePath>../bin/</ReferencePath>
-     <Reference name="System" localCopy="false"/>
-     <Reference name="System.Data" localCopy="false"/>
-     <Reference name="System.Xml" localCopy="false"/>
-     <Reference name="OpenSim.Framework.dll"/>
-
-     <Files>
-       <Match pattern="*.cs" recurse="true"/>
-     </Files>
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="libsecondlife.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
     </Project>
 
-    <Project name="OpenGridServices.GridServer" path="./OpenGridServices.GridServer" type="Exe">
+    <!-- Project name="OpenSim.Servers" path="Servers" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+     <Reference name="OpenSim.Framework.dll"/>
+     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="libsecondlife.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project -->
+
+    <!-- OGS projects -->
+
+    <Project name="OpenGridServices.GridServer" path="OpenGridServices.GridServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -116,7 +139,6 @@
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework.dll"/>
      <Reference name="OpenSim.Framework.Console.dll"/>
-     <Reference name="OpenGridServices.ServerConsole.dll"/>
      <Reference name="libsecondlife.dll"/>
 
      <Files>
@@ -124,7 +146,7 @@
      </Files>
     </Project>
 
-    <Project name="OpenGridServices.UserServer" path="./OpenGridServices.UserServer" type="Exe">
+    <Project name="OpenGridServices.UserServer" path="OpenGridServices.UserServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -142,7 +164,6 @@
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework.dll"/>
      <Reference name="OpenSim.Framework.Console.dll"/>
-     <Reference name="OpenGridServices.ServerConsole.dll"/>
      <Reference name="libsecondlife.dll"/>
 
      <Files>
@@ -151,7 +172,7 @@
     </Project>
     
 
-    <Project name="OpenSim.Physics.Manager" path="./OpenSim.Physics/Manager" type="Library">
+    <Project name="OpenSim.Physics.Manager" path="OpenSim.Physics/Manager" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -174,7 +195,7 @@
     </Project>
 
     <!-- Config Plug-ins -->
-    <Project name="OpenSim.Config.SimConfigDb4o" path="./OpenSim.Config/SimConfigDb4o" type="Library">
+    <Project name="OpenSim.Config.SimConfigDb4o" path="OpenSim.Config/SimConfigDb4o" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -307,7 +328,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="OpenSim.Physics.Manager" localCopy="false"/>
-      <Reference name="../lib/Ode.NET.dll" localCopy="false"/>      
+      <Reference name="Ode.NET.dll" localCopy="false" />      
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -406,7 +427,7 @@
   
   
   <!-- Prebuild tool -->
-  <Solution name="Prebuild" path="./Prebuild/" >
+  <Solution name="Prebuild" path="Prebuild/" >
     <Configuration name="Debug">
       <Options>
         <CompilerDefines>DEBUG;TRACE</CompilerDefines>
@@ -446,7 +467,7 @@
           <SuppressWarnings>1595</SuppressWarnings>
         </Options>
       </Configuration>
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System.EnterpriseServices" />
       <Reference name="System.Xml" />
       <Reference name="System" />

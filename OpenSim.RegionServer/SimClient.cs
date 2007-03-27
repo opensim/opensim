@@ -490,7 +490,7 @@ namespace OpenSim
                 }
             }
 
-            //ServerConsole.MainConsole.Instance.WriteLine("OUT: \n" + Pack.ToString());
+            //MainConsole.Instance.WriteLine("OUT: \n" + Pack.ToString());
 
             byte[] ZeroOutBuffer = new byte[4096];
             byte[] sendbuffer;

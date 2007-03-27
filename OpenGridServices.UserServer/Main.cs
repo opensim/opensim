@@ -33,16 +33,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using libsecondlife;
-using ServerConsole;
 using OpenSim.Framework.User;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Console;
 
-namespace OpenGridServices
+namespace OpenGridServices.UserServer
 {
 	/// <summary>
 	/// </summary>
-	public class OpenUser_Main
+	public class OpenUser_Main : conscmd_callback
 	{
 		
 		public static OpenUser_Main userserver;
@@ -57,32 +57,45 @@ namespace OpenGridServices
 
 		public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
+        ConsoleBase m_console;
+	    
 		[STAThread]
 		public static void Main( string[] args )
 		{
 			Console.WriteLine("Starting...\n");
-			ServerConsole.MainConsole.Instance = new MServerConsole(ServerConsole.ConsoleBase.ConsoleType.Local, "", 0, "opengrid-console.log", "OpenUser", new UserConsole());
 
 			userserver = new OpenUser_Main();
-			userserver.Startup();
-	
-			ServerConsole.MainConsole.Instance.WriteLine("\nEnter help for a list of commands\n");
-	
-			while(true) {
-				ServerConsole.MainConsole.Instance.MainConsolePrompt();
-			}
+			userserver.Startup();	
+		    
+		    userserver.Work();
 		}
-	
-		public void Startup() {
-			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Please press enter to retain default settings");
 
-            this.GridURL=ServerConsole.MainConsole.Instance.CmdPrompt("Grid URL: ");
-			this.GridSendKey=ServerConsole.MainConsole.Instance.CmdPrompt("Key to send to grid: ");
-			this.GridRecvKey=ServerConsole.MainConsole.Instance.CmdPrompt("Key to expect from grid: ");
+	    private OpenUser_Main()
+	    {
+            m_console = new ConsoleBase("opengrid-console.log", "OpenUser", this);
+            MainConsole.Instance = m_console;
+        }
+	
+	    private void Work()
+	    {
+            m_console.WriteLine("\nEnter help for a list of commands\n");
+
+            while (true)
+            {
+                m_console.MainConsolePrompt();
+            }
+	    }
+	    
+		public void Startup() {
+			MainConsole.Instance.WriteLine("Main.cs:Startup() - Please press enter to retain default settings");
+
+            this.GridURL=MainConsole.Instance.CmdPrompt("Grid URL: ");
+			this.GridSendKey=MainConsole.Instance.CmdPrompt("Key to send to grid: ");
+			this.GridRecvKey=MainConsole.Instance.CmdPrompt("Key to expect from grid: ");
 		
-			this.DefaultStartupMsg=ServerConsole.MainConsole.Instance.CmdPrompt("Default startup message for clients [Welcome to OGS!] :","Welcome to OGS!");
+			this.DefaultStartupMsg=MainConsole.Instance.CmdPrompt("Default startup message for clients [Welcome to OGS!] :","Welcome to OGS!");
            
-			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Creating user profile manager");
+			MainConsole.Instance.WriteLine("Main.cs:Startup() - Creating user profile manager");
 			_profilemanager = new UserProfileManager();
 			_profilemanager.InitUserProfiles();
             _profilemanager.SetKeys(GridSendKey, GridRecvKey, GridURL, DefaultStartupMsg);
@@ -91,10 +104,10 @@ namespace OpenGridServices
 			string tempfirstname;
 			string templastname;
 			string tempMD5Passwd;
-			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Please configure the grid god user:");
-			tempfirstname=ServerConsole.MainConsole.Instance.CmdPrompt("First name: ");
-			templastname=ServerConsole.MainConsole.Instance.CmdPrompt("Last name: ");
-			tempMD5Passwd=ServerConsole.MainConsole.Instance.PasswdPrompt("Password: ");
+			MainConsole.Instance.WriteLine("Main.cs:Startup() - Please configure the grid god user:");
+			tempfirstname=MainConsole.Instance.CmdPrompt("First name: ");
+			templastname=MainConsole.Instance.CmdPrompt("Last name: ");
+			tempMD5Passwd=MainConsole.Instance.PasswdPrompt("Password: ");
 		
 			System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
 			byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
@@ -111,149 +124,27 @@ namespace OpenGridServices
 			GridGod.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
 			GridGod.homepos = new LLVector3(128f,128f,23f);
 
-			ServerConsole.MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
+			MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
 			_httpd = new UserHTTPServer();
-		}	
-	}
-
-	public class MServerConsole : ConsoleBase
-	{
-			
-		private ConsoleType ConsType;
-		StreamWriter Log;
-		public conscmd_callback cmdparser;
-		public string componentname;
-		
-		// STUPID HACK ALERT!!!! STUPID HACK ALERT!!!!!
-		// constype - the type of console to use (see enum ConsoleType)
-		// sparam - depending on the console type:
-		//		TCP - the IP to bind to (127.0.0.1 if blank)
-		//		Local - param ignored
-		// and for the iparam:
-		//		TCP - the port to bind to
-		//		Local - param ignored
-		// LogFile - duh
-		// componentname - which component of the OGS system? (user, asset etc)
-		// cmdparser - a reference to a conscmd_callback object
-	
-		public MServerConsole(ConsoleType constype, string sparam, int iparam, string LogFile, string componentname, conscmd_callback cmdparser) {
-			ConsType = constype;
-			this.componentname = componentname;
-			this.cmdparser = cmdparser;
-			switch(constype) {
-				case ConsoleType.Local:
-				Console.WriteLine("ServerConsole.cs - creating new local console");
-				Console.WriteLine("Logs will be saved to current directory in " + LogFile);
-				Log=File.AppendText(LogFile);
-				Log.WriteLine("========================================================================");
-				Log.WriteLine(componentname + " Started at " + DateTime.Now.ToString());
-				break;
-				
-				case ConsoleType.TCP:
-				break;
-				
-				default:
-					Console.WriteLine("ServerConsole.cs - what are you smoking? that isn't a valid console type!");
-				break;
-			}
 		}
 
-		public override void Close() {
-			Log.WriteLine("Shutdown at " + DateTime.Now.ToString());
-			Log.Close();
-		}
-	
-		// You know what ReadLine() and WriteLine() do, right? And Read() and Write()? Right, you do actually know C#, right? Are you actually a programmer? Do you know english? Do you find my sense of humour in comments irritating? Good, glad you're still here
-		public override void WriteLine(string Line) {
-			Log.WriteLine(Line);
-			Console.WriteLine(Line);
-			return;
-		}
-		
-		public override string ReadLine() {
-			string TempStr=Console.ReadLine();
-			Log.WriteLine(TempStr);
-			return TempStr;
-		}
+        public void RunCmd(string cmd, string[] cmdparams)
+        {
+            switch (cmd)
+            {
+                case "help":
+                    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
+                    break;
 
-		public override int Read() {
-			int TempInt= Console.Read();
-			Log.Write((char)TempInt);
-			return TempInt;
-		}
-
-		public override void Write(string Line) {
-			Console.Write(Line);
-			Log.Write(Line);
-			return;
-		}
-
-		
-		// Displays a prompt and waits for the user to enter a string, then returns that string
-		// Done with no echo and suitable for passwords
-                public override string PasswdPrompt(string prompt) {
-                        // FIXME: Needs to be better abstracted
-			Log.WriteLine(prompt);
-			this.Write(prompt);
-                	ConsoleColor oldfg=Console.ForegroundColor;
-			Console.ForegroundColor=Console.BackgroundColor;
-			string temp=Console.ReadLine();
-			Console.ForegroundColor=oldfg;
-                	return temp;
-		}
-
-		// Displays a command prompt and waits for the user to enter a string, then returns that string
-		public override string CmdPrompt(string prompt) {
-			this.Write(prompt);
-			return this.ReadLine();
-		}
-
-		// Displays a command prompt and returns a default value if the user simply presses enter
-		public override string CmdPrompt(string prompt, string defaultresponse) {
-			string temp=CmdPrompt(prompt);
-			if(temp=="") {
-				 return defaultresponse;
-			} else {
-				return temp;
-			}
-		}
-
-		// Displays a command prompt and returns a default value, user may only enter 1 of 2 options
-		public override string CmdPrompt(string prompt, string defaultresponse, string OptionA, string OptionB) {
-			bool itisdone=false;
-			string temp=CmdPrompt(prompt,defaultresponse);
-			while(itisdone==false) {
-				if((temp==OptionA) || (temp==OptionB)) {
-					itisdone=true;
-				} else {
-					this.WriteLine("Valid options are " + OptionA + " or " + OptionB);
-					temp=CmdPrompt(prompt,defaultresponse);
-				}
-			}
-			return temp;
-		}
-
-		// Runs a command with a number of parameters
-		public override Object RunCmd(string Cmd, string[] cmdparams) {
-			cmdparser.RunCmd(Cmd, cmdparams);
-			return null;
-		}
-
-		// Shows data about something
-		public override void ShowCommands(string ShowWhat) {
-			cmdparser.Show(ShowWhat);
-		}
-
-                public override void MainConsolePrompt() {
-                        string[] tempstrarray;
-                        string tempstr = this.CmdPrompt(this.componentname + "# ");
-                        tempstrarray = tempstr.Split(' ');
-                        string cmd=tempstrarray[0];
-                        Array.Reverse(tempstrarray);
-                        Array.Resize<string>(ref tempstrarray,tempstrarray.Length-1);
-                        Array.Reverse(tempstrarray);
-                        string[] cmdparams=(string[])tempstrarray;
-                        RunCmd(cmd,cmdparams);
-                }
+                case "shutdown":
+                    m_console.Close();
+                    Environment.Exit(0);
+                    break;
+            }
+        }
+	    
+        public void Show(string ShowWhat)
+        {
+        }
 	}
 }

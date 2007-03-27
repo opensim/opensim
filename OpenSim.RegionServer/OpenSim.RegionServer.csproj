@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A88526E3-397A-479D-93E1-8865F3336A87}</ProjectGuid>
+    <ProjectGuid>{4171D545-81F5-4C64-AD29-6D7414C38181}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -82,25 +82,28 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{F5AD51E9-CF59-4C70-A586-CBD161EBB85F}</Project>
+      <Project>{7AED7536-7D6B-4E28-8016-B5A554C663B4}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{12F74CC6-E820-4716-8A34-A7B67B9EB3CC}</Project>
+      <Project>{0AAA0EEB-1F2C-4B4B-9BFA-7C3E45BCD348}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
-      <Project>{26E437F6-BA50-44CD-BB44-E911E25CA88C}</Project>
+      <Project>{90D4F7AF-D75E-4DE8-A0E1-70CC242B31A1}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AgentAssetUpload.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ConsoleCmds.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Grid.cs">

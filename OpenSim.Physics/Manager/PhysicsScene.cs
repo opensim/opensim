@@ -76,8 +76,6 @@ namespace OpenSim.Physics.Manager
         public override void Simulate(float timeStep)
         {
             m_workIndicator = (m_workIndicator + 1) % 10;
-
-            OpenSim.Framework.Console.MainConsole.Instance.SetStatus(m_workIndicator.ToString());
         }
 
         public override void GetResults()

@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F5AD51E9-CF59-4C70-A586-CBD161EBB85F}</ProjectGuid>
+    <ProjectGuid>{7AED7536-7D6B-4E28-8016-B5A554C663B4}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -70,6 +70,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ConsoleBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ConsoleCallbacksBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MainConsole.cs">

@@ -48,7 +48,7 @@ using OpenSim.Physics.Manager;
 
 namespace OpenSim
 {
-    public class OpenSimMain : OpenSimApplication
+    public class OpenSimMain : OpenSimApplication, conscmd_callback
     {
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         private PhysicsManager physManager;
@@ -67,8 +67,12 @@ namespace OpenSim
         public bool sandbox = false;
         public bool loginserver = false;
 
+        protected ConsoleBase m_console;
+        
         public OpenSimMain()
         {
+            m_console = new ConsoleBase("region-console.log", "Region", this);
+            OpenSim.Framework.Console.MainConsole.Instance = m_console;
         }
 
         public override void StartUp()
@@ -245,6 +249,53 @@ namespace OpenSim
         void Timer1Tick(object sender, System.EventArgs e)
         {
             OpenSimRoot.Instance.LocalWorld.Update();
+        }
+        
+        public void RunCmd(string command, string[] cmdparams)
+        {
+            switch (command)
+            {
+                case "help":
+                    m_console.WriteLine("show users - show info about connected users");
+                    m_console.WriteLine("shutdown - disconnect all clients and shutdown");
+                    m_console.WriteLine("regenerate - regenerate the sim's terrain");
+                    break;
+
+                case "show":
+                    Show(cmdparams[0]);
+                    break;
+
+                case "regenerate":
+                    OpenSimRoot.Instance.LocalWorld.RegenerateTerrain();
+                    break;
+
+                case "shutdown":
+                    OpenSimRoot.Instance.Shutdown();
+                    break;
+            }
+        }
+
+        public void Show(string ShowWhat)
+        {
+            switch (ShowWhat)
+            {
+                case "uptime":
+                    m_console.WriteLine("OpenSim has been running since " + OpenSimRoot.Instance.startuptime.ToString());
+                    m_console.WriteLine("That is " + (DateTime.Now - OpenSimRoot.Instance.startuptime).ToString());
+                    break;
+                case "users":
+                    OpenSim.world.Avatar TempAv;
+                    m_console.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
+                    foreach (libsecondlife.LLUUID UUID in OpenSimRoot.Instance.LocalWorld.Entities.Keys)
+                    {
+                        if (OpenSimRoot.Instance.LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                        {
+                            TempAv = (OpenSim.world.Avatar)OpenSimRoot.Instance.LocalWorld.Entities[UUID];
+                            m_console.WriteLine(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
+                        }
+                    }
+                    break;
+            }
         }
     }
 

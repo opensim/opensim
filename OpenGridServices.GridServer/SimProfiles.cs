@@ -32,11 +32,10 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
-using ServerConsole;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Sims;
 
-namespace OpenGridServices
+namespace OpenGridServices.GridServer
 {
 	/// <summary>
 	/// </summary>

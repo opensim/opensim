@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.UserServer;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
@@ -12,12 +13,11 @@ namespace OpenSim
         {
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
             Console.WriteLine("Starting...\n");
-            OpenSim.Framework.Console.MainConsole.Instance = new SimConsole(OpenSim.Framework.Console.ConsoleBase.ConsoleType.Local, "", 0);
-
+            
             //OpenSimRoot.instance = new OpenSimRoot();
             OpenSimMain sim = new OpenSimMain();
             OpenSimRoot.Instance.Application = sim;
-
+            
             sim.sandbox = false;
             sim.loginserver = false;
             sim._physicsEngine = "basicphysics";

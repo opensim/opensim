@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F7DE71C5-CD20-4AD8-83A4-1363066853A6}</ProjectGuid>
+    <ProjectGuid>{3378EE78-2D72-4C21-8F9D-680B33AAFFEE}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -78,10 +78,6 @@
       <HintPath>..\bin\OpenSim.Framework.Console.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenGridServices.ServerConsole.dll" >
-      <HintPath>..\bin\OpenGridServices.ServerConsole.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="libsecondlife.dll" >
       <HintPath>..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
@@ -90,9 +86,6 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleCmds.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="GridHttp.cs">
       <SubType>Code</SubType>
     </Compile>

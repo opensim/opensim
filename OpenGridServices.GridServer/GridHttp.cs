@@ -37,23 +37,23 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
-using ServerConsole;
 using OpenSim.Framework.Sims;
+using OpenSim.Framework.Console;
 
-namespace OpenGridServices
+namespace OpenGridServices.GridServer
 {
 	public class GridHTTPServer {
 		public Thread HTTPD;
 		public HttpListener Listener;
 	
 		public GridHTTPServer() {
-	 		ServerConsole.MainConsole.Instance.WriteLine("Starting up HTTP Server");
+	 		MainConsole.Instance.WriteLine("Starting up HTTP Server");
 			HTTPD = new Thread(new ThreadStart(StartHTTP));
 			HTTPD.Start();
 		}
 
 		public void StartHTTP() {
-			ServerConsole.MainConsole.Instance.WriteLine("GridHttp.cs:StartHTTP() - Spawned main thread OK");
+			MainConsole.Instance.WriteLine("GridHttp.cs:StartHTTP() - Spawned main thread OK");
 			Listener = new HttpListener();
 
 			Listener.Prefixes.Add("http://+:8001/gridserver/");

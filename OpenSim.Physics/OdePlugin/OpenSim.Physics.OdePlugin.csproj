@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{58E9E005-093A-4E83-AB76-CA02CD14E53D}</ProjectGuid>
+    <ProjectGuid>{C81B7E61-943D-4190-87C3-CB02BF67A2B3}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -66,15 +66,15 @@
       <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="../lib/Ode.NET.dll" >
-      <HintPath>..\..\bin\..\lib\Ode.NET.dll</HintPath>
+    <Reference Include="Ode.NET.dll" >
+      <HintPath>..\..\bin\Ode.NET.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{12F74CC6-E820-4716-8A34-A7B67B9EB3CC}</Project>
+      <Project>{0AAA0EEB-1F2C-4B4B-9BFA-7C3E45BCD348}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
