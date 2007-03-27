@@ -23,6 +23,8 @@
                 <include name="VersionInfo.cs" />
                 <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />
+                <include name="CAPS/AdminWebFront.cs" />
+                <include name="CAPS/IRestHandler.cs" />
                 <include name="CAPS/SimHttp.cs" />
                 <include name="types/Mesh.cs" />
                 <include name="types/Triangle.cs" />
