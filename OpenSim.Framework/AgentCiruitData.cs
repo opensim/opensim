@@ -14,5 +14,6 @@ namespace OpenSim.Framework.Interfaces
         public string firstname;
         public string lastname;
         public uint circuitcode;
+    	public bool child;
     }
 }
