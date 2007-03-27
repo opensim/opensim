@@ -63,14 +63,14 @@ namespace OpenSim
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Starting in Grid mode");
             }
 
+            OpenSimRoot.Instance.StartUp();
+
             if (sim.loginserver && sim.sandbox)
             {
                 LoginServer loginServer = new LoginServer(OpenSimRoot.Instance.GridServers.GridServer, OpenSimRoot.Instance.Cfg.IPListenAddr, OpenSimRoot.Instance.Cfg.IPListenPort);
                 loginServer.Startup();
             }
-
-            OpenSimRoot.Instance.StartUp();
-
+            
             while (true)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.MainConsolePrompt();
