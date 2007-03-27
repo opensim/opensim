@@ -22,7 +22,7 @@
                 <include name="System.dll" />
                 <include name="../../bin/Axiom.MathLib.dll" />
                 <include name="../../bin/PhysX_Wrapper_Dotnet.dll" />
-                <include name="../../bin/OpenSim.Physics.Manager.dll" />
+                <include name="../Manager/${build.dir}/OpenSim.Physics.Manager.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/Physics/" />

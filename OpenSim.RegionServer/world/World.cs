@@ -25,21 +25,10 @@ namespace OpenSim.world
     	private Random Rand = new Random();
     	private uint _primCount = 702000;
     	private int storageCount;
-	    private Dictionary<uint, SimClient> m_clientThreads;
-	    private ulong m_regionHandle;
-	    private World m_world;
-	    private string m_regionName;
-	    private SimConfig m_cfg;
 
-	    public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, World world, string regionName, SimConfig cfg)
+    	public World()
     	{
-            m_clientThreads = clientThreads;
-            m_regionHandle = regionHandle;
-            m_world = world;
-            m_regionName = regionName;
-            m_cfg = cfg;
-	        
-	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
+    		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
     		Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
 
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
@@ -126,9 +115,9 @@ namespace OpenSim.world
     		HeightmapGenHills hills = new HeightmapGenHills();
     		this.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
     		this.phyScene.SetTerrain(this.LandMap);
-    		m_cfg.SaveMap(this.LandMap);
+    		OpenSimRoot.Instance.Cfg.SaveMap(this.LandMap);
     		
-    		foreach(SimClient client in m_clientThreads.Values) {
+    		foreach(SimClient client in OpenSimRoot.Instance.ClientThreads.Values) {
     			this.SendLayerData(client);
     		}
     	}
@@ -145,7 +134,7 @@ namespace OpenSim.world
     			_primCount = prim.LocalID + 1;
     		}
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: PrimFromStorage() - Reloading prim (localId "+ prim.LocalID+ " ) from storage");
-    		Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, m_world);
+    		Primitive nPrim = new Primitive();
     		nPrim.CreateFromStorage(prim);
     		this.Entities.Add(nPrim.uuid, nPrim);
     	}
@@ -186,7 +175,7 @@ namespace OpenSim.world
 
     	public void AddViewerAgent(SimClient AgentClient) {
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-    		Avatar NewAvatar = new Avatar(AgentClient, m_world, m_regionName, m_clientThreads, m_regionHandle );
+    		Avatar NewAvatar = new Avatar(AgentClient);
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
     		NewAvatar.SendRegionHandshake(this);
@@ -198,7 +187,7 @@ namespace OpenSim.world
     	public void AddNewPrim(ObjectAddPacket addPacket, SimClient AgentClient)
     	{
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Creating new prim");
-            Primitive prim = new Primitive(m_clientThreads, m_regionHandle, m_world );
+    		Primitive prim = new Primitive();
     		prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
     		PhysicsVector pVec = new PhysicsVector(prim.position.X, prim.position.Y, prim.position.Z);
     		PhysicsVector pSize = new PhysicsVector( 0.255f, 0.255f, 0.255f);
@@ -221,7 +210,7 @@ namespace OpenSim.world
 		foreach( DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData )
 		{
 			//OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
-			foreach (Entity ent in m_world.Entities.Values)
+			foreach (Entity ent in OpenSimRoot.Instance.LocalWorld.Entities.Values)
 			{
 				if (ent.localid == Data.ObjectLocalID)
 				{
@@ -231,7 +220,7 @@ namespace OpenSim.world
 					kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
 					kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
 					kill.ObjectData[0].ID = ent.localid;
-					foreach (SimClient client in m_clientThreads.Values)
+					foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
 					{
 						client.OutPacket(kill);
 					}
@@ -245,9 +234,9 @@ namespace OpenSim.world
 		}
 		foreach( libsecondlife.LLUUID uuid in DeRezEnts )
 		{
-			lock (m_world.Entities)
+			lock (OpenSimRoot.Instance.LocalWorld.Entities)
 			{
-				m_world.Entities.Remove(uuid);
+				OpenSimRoot.Instance.LocalWorld.Entities.Remove(uuid);
 			}
 		}
 		

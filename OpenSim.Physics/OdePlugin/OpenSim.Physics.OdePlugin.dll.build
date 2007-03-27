@@ -21,7 +21,7 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="../../bin/Axiom.MathLib.dll" />
-                <include name="../../bin/OpenSim.Physics.Manager.dll" />
+                <include name="../Manager/${build.dir}/OpenSim.Physics.Manager.dll" />
                 <include name="../../bin/Ode.NET.dll" />
             </references>
         </csc>

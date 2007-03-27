@@ -30,23 +30,14 @@ namespace OpenSim.world
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
-        private World m_world;
-        private ulong m_regionHandle;
-        private Dictionary<uint, SimClient> m_clientThreads;
-        private string m_regionName;
 
-        public Avatar(SimClient TheClient, World world, string regionName, Dictionary<uint, SimClient> clientThreads, ulong regionHandle)
+        public Avatar(SimClient TheClient)
         {
-            m_world = world;
-            m_clientThreads = clientThreads;
-            m_regionName = regionName;
-            m_regionHandle = regionHandle;
-            
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
-            localid = 8880000 + (m_world._localNumber++);
+            localid = 8880000 + (OpenSimRoot.Instance.LocalWorld._localNumber++);
             position = new LLVector3(100.0f, 100.0f, 30.0f);
-            position.Z = m_world.LandMap[(int)position.Y * 256 + (int)position.X] + 1;
+            position.Z = OpenSimRoot.Instance.LocalWorld.LandMap[(int)position.Y * 256 + (int)position.X] + 1;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -61,7 +52,7 @@ namespace OpenSim.world
             this.Wearables[0].ItemID = LLUUID.Random();
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-
+           
         }
 
         public PhysicsActor PhysActor
@@ -105,11 +96,11 @@ namespace OpenSim.world
                 //use CreateTerseBlock()
                 ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
                 ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                terse.RegionData.RegionHandle = OpenSimRoot.Instance.Cfg.RegionHandle; // FIXME
                 terse.RegionData.TimeDilation = 64096;
                 terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                 terse.ObjectData[0] = terseBlock;
-                foreach (SimClient client in m_clientThreads.Values)
+                foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
                 {
                     client.OutPacket(terse);
                 }
@@ -128,11 +119,11 @@ namespace OpenSim.world
                         //It has been a while since last update was sent so lets send one.
                         ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
                         ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                        terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                        terse.RegionData.RegionHandle = OpenSimRoot.Instance.Cfg.RegionHandle; // FIXME
                         terse.RegionData.TimeDilation = 64096;
                         terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                         terse.ObjectData[0] = terseBlock;
-                        foreach (SimClient client in m_clientThreads.Values)
+                        foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
                         {
                             client.OutPacket(terse);
                         }
@@ -181,7 +172,7 @@ namespace OpenSim.world
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
             mov.AgentData.SessionID = this.ControllingClient.SessionID;
             mov.AgentData.AgentID = this.ControllingClient.AgentID;
-            mov.Data.RegionHandle = m_regionHandle;
+            mov.Data.RegionHandle = OpenSimRoot.Instance.Cfg.RegionHandle;
             // TODO - dynamicalise this stuff
             mov.Data.Timestamp = 1172750370;
             mov.Data.Position = new LLVector3(100f, 100f, 23f);
@@ -196,7 +187,7 @@ namespace OpenSim.world
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
-            objupdate.RegionData.RegionHandle = m_regionHandle;
+            objupdate.RegionData.RegionHandle = OpenSimRoot.Instance.Cfg.RegionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
 
@@ -211,9 +202,9 @@ namespace OpenSim.world
             byte[] pb = pos2.GetBytes();
 
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
-            m_world._localNumber++;
+            OpenSimRoot.Instance.LocalWorld._localNumber++;
 
-            foreach (SimClient client in m_clientThreads.Values)
+            foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
             {
                 client.OutPacket(objupdate);
                 if (client.AgentID != ControllingClient.AgentID)
@@ -250,7 +241,7 @@ namespace OpenSim.world
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
-            objupdate.RegionData.RegionHandle = m_regionHandle;
+            objupdate.RegionData.RegionHandle = OpenSimRoot.Instance.Cfg.RegionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
 
@@ -302,7 +293,7 @@ namespace OpenSim.world
                 this.visualParams[i] = appear.VisualParam[i].ParamValue;
             }
 
-            foreach (SimClient client in m_clientThreads.Values)
+            foreach (SimClient client in OpenSimRoot.Instance.ClientThreads.Values)
             {
                 if (client.AgentID != ControllingClient.AgentID)
                 {
@@ -499,7 +490,7 @@ namespace OpenSim.world
             handshake.RegionInfo.SimAccess = 13;
             handshake.RegionInfo.WaterHeight = 20;
             handshake.RegionInfo.RegionFlags = 72458694;
-            handshake.RegionInfo.SimName = _enc.GetBytes(m_regionName + "\0");
+            handshake.RegionInfo.SimName = _enc.GetBytes(OpenSimRoot.Instance.Cfg.RegionName + "\0");
             handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");
             handshake.RegionInfo.TerrainBase0 = new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
             handshake.RegionInfo.TerrainBase1 = new LLUUID("abb783e6-3e93-26c0-248a-247666855da3");

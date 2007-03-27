@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8038EFDC-3245-4EA1-B198-0DA1E724D7A1}</ProjectGuid>
+    <ProjectGuid>{A8E12EC9-CB2F-4D25-AFD0-626BF2162F5D}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -82,7 +82,7 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseHttpServer.cs">
+    <Compile Include="CapsHttpServer.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

@@ -77,16 +77,16 @@ namespace Prebuild.Core.Targets
 			return tmpPath;
 		}
 
-		private static string BuildReference(SolutionNode solution, ProjectNode currentProject, ReferenceNode refr)
+		private static string BuildReference(SolutionNode solution, ReferenceNode refr)
 		{
 			string ret = "";
 			if(solution.ProjectsTable.ContainsKey(refr.Name))
 			{
-				ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
-
-                string finalPath = Helper.NormalizePath(((ReferencePathNode)currentProject.ReferencePaths[0]).Path + refr.Name + ".dll", '/');
-				
-				return finalPath;
+				ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];				
+				string fileRef = FindFileReference(refr.Name, project);
+				string finalPath = Helper.NormalizePath(Helper.MakeFilePath(project.FullPath + "/${build.dir}/", refr.Name, "dll"), '/');
+				ret += finalPath;
+				return ret;
 			}
 			else
 			{
@@ -126,11 +126,12 @@ namespace Prebuild.Core.Targets
 			string ret = "";
 			if(solution.ProjectsTable.ContainsKey(refr.Name))
 			{
-				ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
-                string finalPath = Helper.NormalizePath(((ReferencePathNode)project.ReferencePaths[0]).Path, '/');
-
-                return finalPath;
-            }
+				ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];				
+				string fileRef = FindFileReference(refr.Name, project);
+				string finalPath = Helper.NormalizePath(Helper.MakeReferencePath(project.FullPath + "/${build.dir}/"), '/');
+				ret += finalPath;
+				return ret;
+			}
 			else
 			{
 				ProjectNode project = (ProjectNode)refr.Parent;
@@ -225,7 +226,7 @@ namespace Prebuild.Core.Targets
 				{
 					if (refr.LocalCopy)
 					{
-						ss.WriteLine("                <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr))+"\" />", '/'));
+						ss.WriteLine("                <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, refr))+"\" />", '/'));
 					}
 				}
 				ss.WriteLine("            </fileset>");
@@ -315,8 +316,7 @@ namespace Prebuild.Core.Targets
 				ss.WriteLine("                </lib>");
 				foreach(ReferenceNode refr in project.References)
 				{
-				    string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr)), '/');
-					ss.WriteLine("                <include name=\""+ path + "\" />" );
+					ss.WriteLine("                <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, refr))+"\" />", '/'));
 				}
 				ss.WriteLine("            </references>");
                 
