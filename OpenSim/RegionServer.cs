@@ -7,7 +7,7 @@ using OpenSim.Framework.Console;
 namespace OpenSim
 {
     public class RegionServer : OpenSimMain
-    {
+    {        
         [STAThread]
         public static void Main(string[] args)
         {
@@ -63,14 +63,14 @@ namespace OpenSim
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Starting in Grid mode");
             }
 
-            if (sim.loginserver && sim.sandbox)
-            {
-                LoginServer loginServer = new LoginServer(OpenSimRoot.Instance.GridServers.GridServer);
-                loginServer.Startup();
-            }
-
             OpenSimRoot.Instance.StartUp();
 
+            if (sim.loginserver && sim.sandbox)
+            {
+                LoginServer loginServer = new LoginServer(OpenSimRoot.Instance.GridServers.GridServer, OpenSimRoot.Instance.Cfg.IPListenAddr, OpenSimRoot.Instance.Cfg.IPListenPort);
+                loginServer.Startup();
+            }
+            
             while (true)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.MainConsolePrompt();

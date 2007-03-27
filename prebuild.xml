@@ -95,7 +95,7 @@
       </Files>
     </Project>
 
-    <!-- Project name="OpenSim.Servers" path="Servers" type="Library">
+    <Project name="OpenSim.Servers" path="Servers" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -110,14 +110,14 @@
       <ReferencePath>../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-     <Reference name="OpenSim.Framework.dll"/>
-     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenSim.Framework"/>
+     <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
-    </Project -->
+    </Project>
 
     <!-- OGS projects -->
 
@@ -138,7 +138,7 @@
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework.dll"/>
-     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
 
      <Files>
@@ -163,7 +163,7 @@
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework.dll"/>
-     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
 
      <Files>
@@ -188,6 +188,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false" />
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
       <Files>
         <Match pattern="*.cs" recurse="false"/>
@@ -354,9 +355,10 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
-      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Servers"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

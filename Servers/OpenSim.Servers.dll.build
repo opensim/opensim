@@ -11,7 +11,8 @@
             <resources prefix="OpenSim.Servers" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="CapsHttpServer.cs" />
+                <include name="BaseHttpServer.cs" />
+                <include name="dummy.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

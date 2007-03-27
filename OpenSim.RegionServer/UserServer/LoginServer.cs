@@ -52,7 +52,7 @@ namespace OpenSim.UserServer
     /// </summary>
     public class LoginServer : LoginService , IUserServer
     {
-        private IGridServer _gridServer;
+        private IGridServer m_gridServer;
         private ushort _loginPort = 8080;
         public IPAddress clientAddress = IPAddress.Loopback;
         public IPAddress remoteAddress = IPAddress.Any;
@@ -63,10 +63,14 @@ namespace OpenSim.UserServer
         private string _mpasswd;
         private bool _needPasswd = false;
         private LocalUserProfileManager userManager;
+        private int m_simPort;
+        private string m_simAddr;
 
-        public LoginServer(IGridServer gridServer)
+        public LoginServer(IGridServer gridServer, string simAddr, int simPort)
         {
-            _gridServer = gridServer;
+            m_gridServer = gridServer;
+            m_simPort = simPort;
+            m_simAddr = simAddr;
         }
 
         // InitializeLogin: initialize the login 
@@ -89,7 +93,7 @@ namespace OpenSim.UserServer
             SR.Close();
             this._mpasswd = EncodePassword("testpass");
 
-            userManager = new LocalUserProfileManager(this._gridServer);
+            userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr );
             userManager.InitUserProfiles();
             userManager.SetKeys("", "", "", "Welcome to OpenSim");
 
@@ -289,8 +293,8 @@ namespace OpenSim.UserServer
             XmlRpcResponse response = (XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(this._defaultResponse);
             Hashtable responseData = (Hashtable)response.Value;
 
-            responseData["sim_port"] = OpenSimRoot.Instance.Cfg.IPListenPort;
-            responseData["sim_ip"] = OpenSimRoot.Instance.Cfg.IPListenAddr;
+            responseData["sim_port"] = m_simPort;
+            responseData["sim_ip"] = m_simAddr;
             responseData["agent_id"] = Agent.ToStringHyphenated();
             responseData["session_id"] = Session.ToStringHyphenated();
             responseData["secure_session_id"]= secureSess.ToStringHyphenated();
@@ -327,9 +331,9 @@ namespace OpenSim.UserServer
             _login.InventoryFolder = InventoryFolderID;
 
             //working on local computer if so lets add to the gridserver's list of sessions?
-            if (OpenSimRoot.Instance.GridServers.GridServer.GetName() == "Local")
+            if (m_gridServer.GetName() == "Local")
             {
-                ((LocalGridBase)this._gridServer).AddNewSession(_login);
+                ((LocalGridBase)m_gridServer).AddNewSession(_login);
             }
 
             // forward the XML-RPC response to the client

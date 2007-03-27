@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using OpenSim.world;
 
 namespace OpenSim.CAPS
 {
@@ -11,9 +12,11 @@ namespace OpenSim.CAPS
         private string NewAccountForm;
         private string LoginForm;
         private string passWord = "Admin";
+        private World m_world;
 
-        public AdminWebFront(string password)
+        public AdminWebFront(string password, World world)
         {
+            m_world = world;
             passWord = password;
             LoadAdminPage();
         }
@@ -45,11 +48,11 @@ namespace OpenSim.CAPS
                         {
                             responseString = " <p> Listing connected Clients </p>";
                             OpenSim.world.Avatar TempAv;
-                            foreach (libsecondlife.LLUUID UUID in OpenSimRoot.Instance.LocalWorld.Entities.Keys)
+                            foreach (libsecondlife.LLUUID UUID in m_world.Entities.Keys)
                             {
-                                if (OpenSimRoot.Instance.LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                                if (m_world.Entities[UUID].ToString() == "OpenSim.world.Avatar")
                                 {
-                                    TempAv = (OpenSim.world.Avatar)OpenSimRoot.Instance.LocalWorld.Entities[UUID];
+                                    TempAv = (OpenSim.world.Avatar)m_world.Entities[UUID];
                                     responseString += "<p>";
                                     responseString += String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
                                     responseString += "</p>";
