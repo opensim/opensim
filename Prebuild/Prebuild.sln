@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prebuild", "src\Prebuild.csproj", "{912F8E52-C5A0-4912-A702-D6DC3F1B4B54}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prebuild", "src\Prebuild.csproj", "{F9A31A1F-E13C-493B-B5E3-1BE5F9518E85}"
 EndProject
 Global
   GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,10 +8,10 @@ Global
     Release|Any CPU = Release|Any CPU
   EndGlobalSection
   GlobalSection(ProjectConfigurationPlatforms) = postSolution
-    {912F8E52-C5A0-4912-A702-D6DC3F1B4B54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    {912F8E52-C5A0-4912-A702-D6DC3F1B4B54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-    {912F8E52-C5A0-4912-A702-D6DC3F1B4B54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-    {912F8E52-C5A0-4912-A702-D6DC3F1B4B54}.Release|Any CPU.Build.0 = Release|Any CPU
+    {F9A31A1F-E13C-493B-B5E3-1BE5F9518E85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {F9A31A1F-E13C-493B-B5E3-1BE5F9518E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {F9A31A1F-E13C-493B-B5E3-1BE5F9518E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {F9A31A1F-E13C-493B-B5E3-1BE5F9518E85}.Release|Any CPU.Build.0 = Release|Any CPU
   EndGlobalSection
   GlobalSection(SolutionProperties) = preSolution
     HideSolutionNode = FALSE

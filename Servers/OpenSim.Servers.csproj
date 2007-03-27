@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A8E12EC9-CB2F-4D25-AFD0-626BF2162F5D}</ProjectGuid>
+    <ProjectGuid>{EAC45D69-AA44-45FB-B0CE-A95272A9B67B}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -82,9 +82,6 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CapsHttpServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

@@ -1,13 +1,12 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{36895293-A627-42EC-BA77-6AF6F5A4A7DF}</ProjectGuid>
+    <ProjectGuid>{E198DB67-006C-4E76-8D5B-8DD09E91EE2A}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ApplicationIcon>
-    </ApplicationIcon>
+    <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
     <AssemblyName>OpenGridServices.UserServer</AssemblyName>
@@ -16,11 +15,9 @@
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>
-    </AppDesignerFolder>
+    <AppDesignerFolder></AppDesignerFolder>
     <RootNamespace>OpenGridServices.UserServer</RootNamespace>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
@@ -31,8 +28,7 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile></DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
@@ -41,8 +37,7 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>
-    </NoWarn>
+    <NoWarn></NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
@@ -51,8 +46,7 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile></DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
@@ -61,31 +55,30 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>
-    </NoWarn>
+    <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System">
+    <Reference Include="System" >
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data">
+    <Reference Include="System.Data" >
       <HintPath>System.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml">
+    <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.Framework.dll">
+    <Reference Include="OpenSim.Framework.dll" >
       <HintPath>..\bin\OpenSim.Framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.Framework.Console.dll">
+    <Reference Include="OpenSim.Framework.Console.dll" >
       <HintPath>..\bin\OpenSim.Framework.Console.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll">
+    <Reference Include="libsecondlife.dll" >
       <HintPath>..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
@@ -93,6 +86,9 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleCmds.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Main.cs">
       <SubType>Code</SubType>
     </Compile>

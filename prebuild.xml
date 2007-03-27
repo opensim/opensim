@@ -95,7 +95,7 @@
       </Files>
     </Project>
 
-    <!-- Project name="OpenSim.Servers" path="Servers" type="Library">
+    <Project name="OpenSim.Servers" path="Servers" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -117,7 +117,7 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
-    </Project -->
+    </Project>
 
     <!-- OGS projects -->
 
