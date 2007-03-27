@@ -256,15 +256,16 @@ namespace OpenSim.Physics.OdePlugin
 				gravityAccel+= -9.8f;
 				vec.Z = (gravityAccel + this._velocity.Z) * timeStep;
 			}
-			//int res = this._character.Move(vec);
-			//if(res == 1)
-			//{
-			//	gravityAccel = 0;
-			//}
+			d.BodySetLinearVel(this.BoundingCapsule, vec.X, vec.Y, vec.Z);
 		}
 		
 		public void UpdatePosition()
 		{
+                        d.Vector3 vec = d.BodyGetPosition(BoundingCapsule);
+                        this._position.X = vec.X;
+                        this._position.Y = vec.Y;
+                        this._position.Z = vec.Z;
+
 		}
 	}
 	
