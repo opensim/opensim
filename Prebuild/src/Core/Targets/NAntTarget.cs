@@ -83,10 +83,10 @@ namespace Prebuild.Core.Targets
 			if(solution.ProjectsTable.ContainsKey(refr.Name))
 			{
 				ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];				
-				string fileRef = FindFileReference(refr.Name, project);
-				string finalPath = Helper.NormalizePath(Helper.MakeFilePath(project.FullPath + "/${build.dir}/", refr.Name, "dll"), '/');
-				ret += finalPath;
-				return ret;
+				
+				string finalPath = Helper.NormalizePath( ((ReferencePathNode) project.ReferencePaths[0]).Path + refr.Name + ".dll", '/');
+				
+				return finalPath;
 			}
 			else
 			{
@@ -316,7 +316,8 @@ namespace Prebuild.Core.Targets
 				ss.WriteLine("                </lib>");
 				foreach(ReferenceNode refr in project.References)
 				{
-					ss.WriteLine("                <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, refr))+"\" />", '/'));
+				    string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, refr)), '/');
+					ss.WriteLine("                <include name=\""+ path + "\" />" );
 				}
 				ss.WriteLine("            </references>");
                 
