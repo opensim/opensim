@@ -110,8 +110,8 @@
       <ReferencePath>../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-     <Reference name="OpenSim.Framework.dll"/>
-     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenSim.Framework"/>
+     <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
 
       <Files>
@@ -138,7 +138,7 @@
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework.dll"/>
-     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
 
      <Files>
@@ -163,7 +163,7 @@
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework.dll"/>
-     <Reference name="OpenSim.Framework.Console.dll"/>
+     <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
 
      <Files>

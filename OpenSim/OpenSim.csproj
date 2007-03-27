@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{631F3710-2C88-4AD4-AA6E-FB06BC909769}</ProjectGuid>
+    <ProjectGuid>{974744D2-C043-42F8-BEE0-DABFD4A294E9}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -82,25 +82,25 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
-      <Project>{1817C154-9111-4C45-A19A-609A5717C1FA}</Project>
+      <Project>{E1171263-9131-454C-B0A6-2374D98714A8}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{023EA61E-BBAE-4FCC-BCDD-43A50FD95D54}</Project>
+      <Project>{C73A2D5E-EF8F-41D1-9A1D-1730694B6822}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{D9A7F5B1-0F86-4463-BA4C-9F15D3981E5C}</Project>
+      <Project>{EE1CA661-C388-44B7-BBE4-7C59C83B1E09}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.RegionServer\OpenSim.RegionServer.csproj">
       <Name>OpenSim.RegionServer</Name>
-      <Project>{D385B640-E037-419A-AC83-5CB6E66D9FF3}</Project>
+      <Project>{72B438C6-38C5-4620-AC4C-E15BA326FF51}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

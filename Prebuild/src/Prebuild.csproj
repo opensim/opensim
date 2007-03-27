@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
@@ -17,7 +17,8 @@
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder></AppDesignerFolder>
+    <AppDesignerFolder>
+    </AppDesignerFolder>
     <RootNamespace>Prebuild</RootNamespace>
     <StartupObject>Prebuild.Prebuild</StartupObject>
     <FileUpgradeFlags>
@@ -30,7 +31,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
@@ -48,7 +50,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
@@ -60,15 +63,15 @@
     <NoWarn>1595</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.EnterpriseServices" >
+    <Reference Include="System.EnterpriseServices">
       <HintPath>System.EnterpriseServices.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" >
+    <Reference Include="System.Xml">
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System" >
+    <Reference Include="System">
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>

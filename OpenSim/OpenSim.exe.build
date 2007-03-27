@@ -25,7 +25,7 @@
                 <include name="../bin/Db4objects.Db4o.dll" />
                 <include name="../bin/OpenSim.Framework.dll" />
                 <include name="../bin/OpenSim.Framework.Console.dll" />
-                <include name="../../bin/OpenSim.Physics.Manager.dll" />
+                <include name="../bin/OpenSim.Physics.Manager.dll" />
                 <include name="../bin/OpenSim.RegionServer.dll" />
             </references>
         </csc>
