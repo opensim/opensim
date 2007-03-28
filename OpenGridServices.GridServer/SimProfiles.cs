@@ -72,6 +72,10 @@ namespace OpenGridServices.GridServer
 			
 		}
 
+		public string GetXMLNeighbours(ulong reqhandle) {
+			return "";
+		}
+
 		public SimProfileBase CreateNewProfile(string regionname, string caps_url, string sim_ip, uint sim_port, uint RegionLocX, uint RegionLocY, string sendkey, string recvkey) {
 			SimProfileBase newprofile = new SimProfileBase();
 			newprofile.regionname=regionname;

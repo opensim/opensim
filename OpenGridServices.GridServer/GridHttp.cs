@@ -116,7 +116,22 @@ namespace OpenGridServices.GridServer
 		}
 		
 		static string ParseREST(string requestBody, string requestURL) {
+			char[] splitter  = {'/'};
+                        string[] rest_params = requestURL.Split(splitter);
+                        string req_type = rest_params[1];       // First part of the URL is the type of request - 
+                        switch(req_type) {
+                                case "regions":
+                                        ulong regionhandle = (ulong)Convert.ToInt64(rest_params[2]);  // get usersessions/sessionid
+					switch(rest_params[3]) {
+						case "neighbours":
+							return OpenGrid_Main.thegrid._regionmanager.GetXMLNeighbours(regionhandle);
+						break;
+					}
+                                        return "OK";
+				break;
+                        }
 			return "";
+
 		}
 
 
