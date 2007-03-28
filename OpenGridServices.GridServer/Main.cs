@@ -78,7 +78,7 @@ namespace OpenGridServices.GridServer
 
         private OpenGrid_Main()
         {
-            m_console = new ConsoleBase("opengrid-console.log", "OpenGrid", this);
+            m_console = new ConsoleBase("opengrid-gridserver-console.log", "OpenGrid", this);
             MainConsole.Instance = m_console;
         }
         
