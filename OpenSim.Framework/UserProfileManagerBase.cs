@@ -41,19 +41,23 @@ namespace OpenSim.Framework.User
         public virtual bool AuthenticateUser(string firstname, string lastname, string passwd)
         {
             UserProfile TheUser = GetProfileByName(firstname, lastname);
+            passwd = passwd.Remove(0, 3); //remove $1$
             if (TheUser != null)
             {
                 if (TheUser.MD5passwd == passwd)
                 {
+                    Console.WriteLine("UserProfile - authorised ");
                     return true;
                 }
                 else
                 {
+                    Console.WriteLine("UserProfile - not authorised, password not match "+ TheUser.MD5passwd +" and "+ passwd);
                     return false;
                 }
             }
             else
             {
+                Console.WriteLine("UserProfile - not authorised , unkown: "+ firstname +" , " + lastname);
                 return false;
             }
 
@@ -66,12 +70,14 @@ namespace OpenSim.Framework.User
 
         public virtual UserProfile CreateNewProfile(string firstname, string lastname, string MD5passwd)
         {
+            Console.WriteLine("creating new profile for : " + firstname + " , " + lastname);
             UserProfile newprofile = new UserProfile();
             newprofile.homeregionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
             newprofile.firstname = firstname;
             newprofile.lastname = lastname;
             newprofile.MD5passwd = MD5passwd;
             newprofile.UUID = LLUUID.Random();
+            newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
             this.UserProfiles.Add(newprofile.UUID, newprofile);
             return newprofile;
         }

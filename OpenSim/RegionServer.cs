@@ -18,6 +18,7 @@ namespace OpenSim
             bool startLoginServer = false;
             string physicsEngine = "basicphysics";
             bool allowFlying = false;
+            bool userAccounts = false;
             
             for (int i = 0; i < args.Length; i++)
             {
@@ -29,6 +30,10 @@ namespace OpenSim
                 if (args[i] == "-loginserver")
                 {
                     startLoginServer = true;
+                }
+                if (args[i] == "-accounts")
+                {
+                    userAccounts = true;
                 }
                 if (args[i] == "-realphysx")
                 {
@@ -44,6 +49,7 @@ namespace OpenSim
             OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine );
            // OpenSimRoot.Instance.Application = sim;
             sim.m_sandbox = sandBoxMode;
+            sim.user_accounts = userAccounts;
             OpenSim.world.Avatar.PhysicsEngineFlying = allowFlying;
 
             sim.StartUp();

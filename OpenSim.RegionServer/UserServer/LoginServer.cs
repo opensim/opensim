@@ -66,11 +66,12 @@ namespace OpenSim.UserServer
         private int m_simPort;
         private string m_simAddr;
 
-        public LoginServer(IGridServer gridServer, string simAddr, int simPort)
+        public LoginServer(IGridServer gridServer, string simAddr, int simPort , bool useAccounts)
         {
             m_gridServer = gridServer;
             m_simPort = simPort;
             m_simAddr = simAddr;
+            this.userAccounts = useAccounts;
         }
 
         // InitializeLogin: initialize the login 
@@ -395,6 +396,15 @@ namespace OpenSim.UserServer
             return Regex.Replace(BitConverter.ToString(encodedBytes), "-", "").ToLower();
         }
 
+        public bool CreateUserAccount(string firstName, string lastName, string password)
+        {
+            Console.WriteLine("creating new user account");
+            string mdPassword = EncodePassword(password);
+            Console.WriteLine("with password: " + mdPassword);
+            this.userManager.CreateNewProfile(firstName, lastName, mdPassword);
+            return true;
+        }
+
         //IUserServer implementation
         public AgentInventory RequestAgentsInventory(LLUUID agentID)
         {
@@ -405,6 +415,11 @@ namespace OpenSim.UserServer
             }
 
             return aInventory;
+        }
+
+        public bool UpdateAgentsInventory(LLUUID agentID, AgentInventory inventory)
+        {
+            return true;
         }
 
         public void SetServerInfo(string ServerUrl, string SendKey, string RecvKey)

@@ -68,6 +68,7 @@ namespace OpenSim.Framework.User
 
                     UserProfile TheUser = GetProfileByName(firstname, lastname);
 
+                    /*
                     if (!((TheUser.CurrentSessionID == null) && (TheUser.CurrentSecureSessionID == null)))
                     {
                         XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
@@ -78,7 +79,7 @@ namespace OpenSim.Framework.User
                         PresenceErrorResp.Value = PresenceErrorRespData;
                         return (Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", ""));
 
-                    }
+                    }*/
 
                     try
                     {
@@ -116,6 +117,7 @@ namespace OpenSim.Framework.User
                         ArrayList ClassifiedCategories = new ArrayList();
                         ClassifiedCategories.Add(ClassifiedCategoriesHash);
 
+                        Console.WriteLine("copying inventory data to response");
                         ArrayList AgentInventory = new ArrayList();
                         foreach (InventoryFolder InvFolder in TheUser.Inventory.InventoryFolders.Values)
                         {
@@ -142,7 +144,7 @@ namespace OpenSim.Framework.User
                         uint circode = (uint)(Util.RandomClass.Next());
                         //TheUser.AddSimCircuit(circode, SimInfo.UUID);
 
-                        LoginGoodData["last_name"] = "\"" + TheUser.firstname + "\"";
+                        LoginGoodData["last_name"] = "\"" + TheUser.lastname + "\"";
                         LoginGoodData["ui-config"] = ui_config;
                         LoginGoodData["sim_ip"] = "127.0.0.1"; //SimInfo.sim_ip.ToString();
                         LoginGoodData["login-flags"] = LoginFlags;
@@ -160,7 +162,7 @@ namespace OpenSim.Framework.User
                         LoginGoodData["start_location"] = "last";
                         LoginGoodData["home"] = "{'region_handle':[r" + (997 * 256).ToString() + ",r" + (996 * 256).ToString() + "], 'position':[r" + TheUser.homepos.X.ToString() + ",r" + TheUser.homepos.Y.ToString() + ",r" + TheUser.homepos.Z.ToString() + "], 'look_at':[r" + TheUser.homelookat.X.ToString() + ",r" + TheUser.homelookat.Y.ToString() + ",r" + TheUser.homelookat.Z.ToString() + "]}";
                         LoginGoodData["message"] = DefaultStartupMsg;
-                        LoginGoodData["first_name"] = "\"" + firstname + "\"";
+                        LoginGoodData["first_name"] = "\"" + TheUser.firstname + "\"";
                         LoginGoodData["circuit_code"] = (Int32)circode;
                         LoginGoodData["sim_port"] = 9000; //(Int32)SimInfo.sim_port;
                         LoginGoodData["secure_session_id"] = TheUser.CurrentSecureSessionID.ToStringHyphenated();
@@ -196,8 +198,8 @@ namespace OpenSim.Framework.User
             SimProfile SimInfo = new SimProfile();
             //get siminfo from grid server
             SimInfo = SimInfo.LoadFromGrid(theUser.homeregionhandle, GridURL, GridSendKey, GridRecvKey);
-            uint circode = (uint)response["circuit_code"];
-            theUser.AddSimCircuit(circode, SimInfo.UUID);
+            Int32 circode = (Int32)response["circuit_code"];
+            theUser.AddSimCircuit((uint)circode, SimInfo.UUID);
             response["home"] = "{'region_handle':[r" + (SimInfo.RegionLocX * 256).ToString() + ",r" + (SimInfo.RegionLocY * 256).ToString() + "], 'position':[r" + theUser.homepos.X.ToString() + ",r" + theUser.homepos.Y.ToString() + ",r" + theUser.homepos.Z.ToString() + "], 'look_at':[r" + theUser.homelookat.X.ToString() + ",r" + theUser.homelookat.Y.ToString() + ",r" + theUser.homelookat.Z.ToString() + "]}";
             response["sim_ip"] = SimInfo.sim_ip.ToString();
             response["sim_port"] = (Int32)SimInfo.sim_port;

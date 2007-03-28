@@ -33,6 +33,7 @@ using libsecondlife.Packets;
 //using OpenSim.GridServers;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Assets;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Assets
 {
@@ -54,7 +55,21 @@ namespace OpenSim.Assets
 
         public void AddNewAgentsInventory(AgentInventory agentInventory)
         {
-            this._agentsInventory.Add(agentInventory.AgentID, agentInventory);
+            if (!this._agentsInventory.ContainsKey(agentInventory.AgentID))
+            {
+                this._agentsInventory.Add(agentInventory.AgentID, agentInventory);
+            }
+        }
+
+        public AgentInventory FetchAgentsInventory(LLUUID agentID, IUserServer userserver)
+        {
+            AgentInventory res = null;
+            if (!this._agentsInventory.ContainsKey(agentID))
+            {
+                res = userserver.RequestAgentsInventory(agentID);
+                this._agentsInventory.Add(agentID,res);
+            }
+            return res;
         }
 
         public AgentInventory GetAgentsInventory(LLUUID agentID)
@@ -67,13 +82,16 @@ namespace OpenSim.Assets
             return null;
         }
 
-        public void ClientLeaving(LLUUID clientID)
-        {
+        public void ClientLeaving(LLUUID clientID, IUserServer userserver)
+        { 
             if (this._agentsInventory.ContainsKey(clientID))
             {
+                if (userserver != null)
+                {
+                    userserver.UpdateAgentsInventory(clientID, this._agentsInventory[clientID]);
+                }
                 this._agentsInventory.Remove(clientID);
             }
-
         }
 
         public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID)
@@ -171,6 +189,7 @@ namespace OpenSim.Assets
                             Descend.ItemData[i].Type = Item.Type;
                             Descend.ItemData[i].CRC = libsecondlife.Helpers.InventoryCRC(1000, 0, Descend.ItemData[i].InvType, Descend.ItemData[i].Type, Descend.ItemData[i].AssetID, Descend.ItemData[i].GroupID, 100, Descend.ItemData[i].OwnerID, Descend.ItemData[i].CreatorID, Descend.ItemData[i].ItemID, Descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
                         }
+                        
                         userInfo.OutPacket(Descend);
 
                     }

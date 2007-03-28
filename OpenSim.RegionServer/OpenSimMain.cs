@@ -75,6 +75,7 @@ namespace OpenSim
         public string m_physicsEngine;
         public bool m_sandbox = false;
         public bool m_loginserver;
+        public bool user_accounts = false;
 
         protected ConsoleBase m_console;
         
@@ -145,12 +146,22 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:Startup() - Starting CAPS HTTP server");
             HttpServer = new SimCAPSHTTPServer(GridServers.GridServer, Cfg.IPListenPort);
-            HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld));
 
-            if ( m_loginserver && m_sandbox)
+            LoginServer loginServer = null;
+            if (m_loginserver && m_sandbox)
             {
-                LoginServer loginServer = new LoginServer(GridServers.GridServer, Cfg.IPListenAddr, Cfg.IPListenPort);
+                loginServer = new LoginServer(GridServers.GridServer, Cfg.IPListenAddr, Cfg.IPListenPort, this.user_accounts);
                 loginServer.Startup();
+                
+            }
+            if((m_loginserver) && (m_sandbox) && (user_accounts))
+            {
+                this.GridServers.UserServer = loginServer;
+                HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, loginServer));
+            }
+            else 
+            {
+                HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, null));
             }
 
             MainServerListener();
@@ -210,6 +221,11 @@ namespace OpenSim
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
                 this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
                 SimClient newuser = new SimClient(epSender, useCircuit, LocalWorld, ClientThreads, AssetCache, GridServers.GridServer, this, InventoryCache, m_sandbox);
+                if ((this.GridServers.UserServer != null) && (user_accounts))
+                {
+                    Console.WriteLine("setting userserver");
+                    newuser.UserServer = this.GridServers.UserServer;
+                }
                 //OpenSimRoot.Instance.ClientThreads.Add(epSender, newuser);
                 ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
             }

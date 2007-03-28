@@ -201,6 +201,7 @@ namespace OpenSim
                 {
                     //already complete so we can add it to the inventory
                     m_assetCache.AddAsset(trans.Asset);
+                    Console.WriteLine("creating inventory item");
                    Console.WriteLine( "ITem created is " +m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
                 }
                 else

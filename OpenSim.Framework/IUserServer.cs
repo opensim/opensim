@@ -10,5 +10,6 @@ namespace OpenSim.Framework.Interfaces
     {
         AgentInventory RequestAgentsInventory(LLUUID agentID);
         void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
+        bool UpdateAgentsInventory(LLUUID agentID, AgentInventory inventory);
     }
 }

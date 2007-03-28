@@ -11,6 +11,7 @@ namespace OpenSim
     {
         public IAssetServer AssetServer;
         public IGridServer GridServer;
+        public IUserServer UserServer;
         public string AssetDll = "";
         public string GridDll = "";
 

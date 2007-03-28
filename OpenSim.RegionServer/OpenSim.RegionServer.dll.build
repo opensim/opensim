@@ -16,7 +16,6 @@
                 <include name="Grid.cs" />
                 <include name="OpenSimMain.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
-                <include name="OpenSimRoot.cs" />
                 <include name="QueItem.cs" />
                 <include name="SimClient.cs" />
                 <include name="SimConsole.cs" />

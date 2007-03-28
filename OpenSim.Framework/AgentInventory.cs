@@ -11,7 +11,7 @@ namespace OpenSim.Framework.Inventory
         //Holds the local copy of Inventory info for a agent
         public Dictionary<LLUUID, InventoryFolder> InventoryFolders;
         public Dictionary<LLUUID, InventoryItem> InventoryItems;
-        public InventoryFolder InventoryRoot;
+        public InventoryFolder InventoryRoot = new InventoryFolder();
         public int LastCached;  //maybe used by opensim app, time this was last stored/compared to user server
         public LLUUID AgentID;
         public AvatarWearable[] Wearables;
@@ -30,14 +30,16 @@ namespace OpenSim.Framework.Inventory
             {
                 Wearables[i] = new AvatarWearable();
             }
-            
+
             InventoryRoot = new InventoryFolder();
             InventoryRoot.FolderID = LLUUID.Random();
             InventoryRoot.ParentID = new LLUUID();
             InventoryRoot.Version = 1;
             InventoryRoot.DefaultType = 8;
+            InventoryRoot.OwnerID = this.AgentID;
             InventoryRoot.FolderName = "My Inventory";
             InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
+            
         }
 
         public bool CreateNewFolder(LLUUID folderID, ushort type)
@@ -47,8 +49,59 @@ namespace OpenSim.Framework.Inventory
             Folder.OwnerID = this.AgentID;
             Folder.DefaultType = type;
             this.InventoryFolders.Add(Folder.FolderID, Folder);
+            return (true);
+        }
+
+        public void CreateRootFolder(LLUUID newAgentID, bool createTextures)
+        {
+            this.AgentID = newAgentID;
+           /* InventoryRoot = new InventoryFolder();
+            InventoryRoot.FolderID = LLUUID.Random();
+            InventoryRoot.ParentID = new LLUUID();
+            InventoryRoot.Version = 1;
+            InventoryRoot.DefaultType = 8;
+            InventoryRoot.OwnerID = this.AgentID;
+            InventoryRoot.FolderName = "My Inventory-";
+            InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);*/
+            InventoryRoot.OwnerID = this.AgentID;
+            if (createTextures)
+            {
+                this.CreateNewFolder(LLUUID.Random(), 0, "Textures", InventoryRoot.FolderID);
+            }
+        }
+
+        public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName)
+        {
+            InventoryFolder Folder = new InventoryFolder();
+            Folder.FolderID = folderID;
+            Folder.OwnerID = this.AgentID;
+            Folder.DefaultType = type;
+            Folder.FolderName = folderName;
+            this.InventoryFolders.Add(Folder.FolderID, Folder);
 
             return (true);
+        }
+
+        public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName, LLUUID parent)
+        {
+            InventoryFolder Folder = new InventoryFolder();
+            Folder.FolderID = folderID;
+            Folder.OwnerID = this.AgentID;
+            Folder.DefaultType = type;
+            Folder.FolderName = folderName;
+            Folder.ParentID = parent;
+            this.InventoryFolders.Add(Folder.FolderID, Folder);
+
+            return (true);
+        }
+
+        public bool HasFolder(LLUUID folderID)
+        {
+            if (this.InventoryFolders.ContainsKey(folderID))
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool UpdateItem(LLUUID itemID, AssetBase asset)
@@ -96,7 +149,7 @@ namespace OpenSim.Framework.Inventory
         //public List<InventoryFolder> Subfolders;
         public LLUUID FolderID;
         public LLUUID OwnerID;
-        public LLUUID ParentID;
+        public LLUUID ParentID = LLUUID.Zero;
         public string FolderName;
         public ushort DefaultType;
         public ushort Version;

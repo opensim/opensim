@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using OpenSim.world;
+using OpenSim.UserServer;
 
 namespace OpenSim.CAPS
 {
@@ -13,9 +14,11 @@ namespace OpenSim.CAPS
         private string LoginForm;
         private string passWord = "Admin";
         private World m_world;
+        private LoginServer _userServer;
 
-        public AdminWebFront(string password, World world)
+        public AdminWebFront(string password, World world, LoginServer userserver)
         {
+            _userServer = userserver;
             m_world = world;
             passWord = password;
             LoadAdminPage();
@@ -63,8 +66,12 @@ namespace OpenSim.CAPS
                     case "/Admin/NewAccount":
                         if (requestMethod == "POST")
                         {
-                            string[] comp = new string[10];
-                            string[] passw = new string[3];
+                            string firstName = "";
+                            string secondName = "";
+                            string userPasswd = "";
+                            string[] comp;
+                            string[] passw;
+                            string[] line;
                             string delimStr = "&";
                             char[] delimiter = delimStr.ToCharArray();
                             string delimStr2 = "=";
@@ -75,6 +82,26 @@ namespace OpenSim.CAPS
                             passw = comp[3].Split(delimiter2);
                             if (passw[1] == passWord)
                             {
+                                
+                                line = comp[0].Split(delimiter2); //split firstname
+                                if (line.Length > 1)
+                                {
+                                    firstName = line[1];
+                                }
+                                line = comp[1].Split(delimiter2); //split secondname
+                                if (line.Length > 1)
+                                {
+                                    secondName = line[1];
+                                }
+                                line = comp[2].Split(delimiter2); //split user password
+                                if (line.Length > 1)
+                                {
+                                    userPasswd = line[1];
+                                }
+                                if (this._userServer != null)
+                                {
+                                    this._userServer.CreateUserAccount(firstName, secondName, userPasswd);
+                                }
                                 responseString = "<p> New Account created </p>";
                             }
                             else

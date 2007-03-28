@@ -32,6 +32,7 @@ namespace OpenSim.Framework.User
             Circuits = new Dictionary<LLUUID, uint>();
             Inventory = new AgentInventory();
             homeregionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256)); ;
+            
         }
 
         public void InitSessionData()

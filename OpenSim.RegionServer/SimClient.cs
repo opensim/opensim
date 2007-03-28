@@ -75,9 +75,19 @@ namespace OpenSim
         private Dictionary<uint, SimClient> m_clientThreads;
         private AssetCache m_assetCache;
         private IGridServer m_gridServer;
+        private IUserServer m_userServer = null;
         private OpenSimNetworkHandler m_application;
         private InventoryCache m_inventoryCache;
         private bool m_sandboxMode;
+
+
+        public IUserServer UserServer
+        {
+            set
+            {
+                this.m_userServer = value;
+            }
+        }
 
         private void ack_pack(Packet Pack)
         {
@@ -241,6 +251,15 @@ namespace OpenSim
                     {
                         client.OutPacket(kill);
                     }
+                    if (this.m_userServer != null)
+                    {
+                        this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
+                    }
+                    else
+                    {
+                        this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+                    }
+
                     m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
                     lock (m_world.Entities)
                     {
@@ -657,12 +676,16 @@ namespace OpenSim
                 // Create Inventory, currently only works for sandbox mode
                 if (m_sandboxMode)
                 {
+                    AgentInventory inventory = null;
                     if (sessionInfo.LoginInfo.InventoryFolder != null)
                     {
-                        this.CreateInventory(sessionInfo.LoginInfo.InventoryFolder);
+                        inventory = this.CreateInventory(sessionInfo.LoginInfo.InventoryFolder);
                         if (sessionInfo.LoginInfo.BaseFolder != null)
                         {
-                            m_inventoryCache.CreateNewInventoryFolder(this, sessionInfo.LoginInfo.BaseFolder);
+                            if (!inventory.HasFolder(sessionInfo.LoginInfo.BaseFolder))
+                            {
+                                m_inventoryCache.CreateNewInventoryFolder(this, sessionInfo.LoginInfo.BaseFolder);
+                            }
                             this.newAssetFolder = sessionInfo.LoginInfo.BaseFolder;
                             AssetBase[] inventorySet = m_assetCache.CreateNewInventorySet(this.AgentID);
                             if (inventorySet != null)
@@ -683,12 +706,23 @@ namespace OpenSim
             }
         }
 
-        private void CreateInventory(LLUUID baseFolder)
+        private AgentInventory CreateInventory(LLUUID baseFolder)
         {
-            AgentInventory inventory = new AgentInventory();
-            inventory.AgentID = this.AgentID;
-            m_inventoryCache.AddNewAgentsInventory(inventory);
-            m_inventoryCache.CreateNewInventoryFolder(this, baseFolder);
+            AgentInventory inventory = null;
+            if (this.m_userServer != null)
+            {
+                // a user server is set so request the inventory from it
+                inventory = m_inventoryCache.FetchAgentsInventory(this.AgentID, m_userServer);
+            }
+            else
+            {
+                inventory = new AgentInventory();
+                inventory.AgentID = this.AgentID;
+                inventory.CreateRootFolder(this.AgentID, false);
+                m_inventoryCache.AddNewAgentsInventory(inventory);
+                m_inventoryCache.CreateNewInventoryFolder(this, baseFolder);
+            }
+            return inventory;
         }
     }
 }
