@@ -44,20 +44,5 @@ namespace OpenSim
         public OpenSimApplication Application;
         public bool Sandbox = false;
 
-        public void StartUp()
-        {
-            if (this.Application != null)
-            {
-                this.Application.StartUp();
-            }
-        }
-
-        public void Shutdown()
-        {
-            if (this.Application != null)
-            {
-                this.Application.Shutdown();
-            }
-        }
     }
 }

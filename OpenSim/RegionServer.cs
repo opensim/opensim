@@ -8,69 +8,50 @@ namespace OpenSim
 {
     public class RegionServer : OpenSimMain
     {        
+        public RegionServer( ) : base( false, false, String.Empty )
+        {
+        }
+        
         [STAThread]
         public static void Main(string[] args)
         {
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
             Console.WriteLine("Starting...\n");
             
-            //OpenSimRoot.instance = new OpenSimRoot();
-            OpenSimMain sim = new OpenSimMain();
-            OpenSimRoot.Instance.Application = sim;
+            bool sandBoxMode = false;
+            bool startLoginServer = false;
+            string physicsEngine = "basicphysics";
+            bool allowFlying = false;
             
-            sim.sandbox = false;
-            sim.loginserver = false;
-            sim._physicsEngine = "basicphysics";
-
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-sandbox")
                 {
-                    sim.sandbox = true;
-                    OpenSimRoot.Instance.Sandbox = true;
+                    sandBoxMode = true;
                 }
 
                 if (args[i] == "-loginserver")
                 {
-                    sim.loginserver = true;
+                    startLoginServer = true;
                 }
                 if (args[i] == "-realphysx")
                 {
-                    sim._physicsEngine = "RealPhysX";
-                    OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                    physicsEngine = "RealPhysX";
                 }
                 if (args[i] == "-ode")
                 {
-                    sim._physicsEngine = "OpenDynamicsEngine";
-                    OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                    physicsEngine = "OpenDynamicsEngine";
+                    allowFlying = true;
                 }
             }
 
+            OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine );
+            OpenSimRoot.Instance.Application = sim;
+            OpenSimRoot.Instance.Sandbox = sandBoxMode;
+            OpenSim.world.Avatar.PhysicsEngineFlying = allowFlying;
 
-            OpenSimRoot.Instance.GridServers = new Grid();
-            if (sim.sandbox)
-            {
-                OpenSimRoot.Instance.GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
-                OpenSimRoot.Instance.GridServers.GridDll = "OpenSim.GridInterfaces.Local.dll";
-                OpenSimRoot.Instance.GridServers.Initialise();
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Starting in Sandbox mode");
-            }
-            else
-            {
-                OpenSimRoot.Instance.GridServers.AssetDll = "OpenSim.GridInterfaces.Remote.dll";
-                OpenSimRoot.Instance.GridServers.GridDll = "OpenSim.GridInterfaces.Remote.dll";
-                OpenSimRoot.Instance.GridServers.Initialise();
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Starting in Grid mode");
-            }
+            sim.StartUp();
 
-            OpenSimRoot.Instance.StartUp();
-
-            if (sim.loginserver && sim.sandbox)
-            {
-                LoginServer loginServer = new LoginServer(OpenSimRoot.Instance.GridServers.GridServer, OpenSimRoot.Instance.Cfg.IPListenAddr, OpenSimRoot.Instance.Cfg.IPListenPort);
-                loginServer.Startup();
-            }
-            
             while (true)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.MainConsolePrompt();
