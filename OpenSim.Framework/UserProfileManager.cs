@@ -144,7 +144,7 @@ namespace OpenSim.Framework.User
                         uint circode = (uint)(Util.RandomClass.Next());
                         //TheUser.AddSimCircuit(circode, SimInfo.UUID);
 
-                        LoginGoodData["last_name"] = "\"" + TheUser.lastname + "\"";
+                        LoginGoodData["last_name"] = TheUser.lastname ;
                         LoginGoodData["ui-config"] = ui_config;
                         LoginGoodData["sim_ip"] = "127.0.0.1"; //SimInfo.sim_ip.ToString();
                         LoginGoodData["login-flags"] = LoginFlags;
@@ -162,7 +162,7 @@ namespace OpenSim.Framework.User
                         LoginGoodData["start_location"] = "last";
                         LoginGoodData["home"] = "{'region_handle':[r" + (997 * 256).ToString() + ",r" + (996 * 256).ToString() + "], 'position':[r" + TheUser.homepos.X.ToString() + ",r" + TheUser.homepos.Y.ToString() + ",r" + TheUser.homepos.Z.ToString() + "], 'look_at':[r" + TheUser.homelookat.X.ToString() + ",r" + TheUser.homelookat.Y.ToString() + ",r" + TheUser.homelookat.Z.ToString() + "]}";
                         LoginGoodData["message"] = DefaultStartupMsg;
-                        LoginGoodData["first_name"] = "\"" + TheUser.firstname + "\"";
+                        LoginGoodData["first_name"] =  TheUser.firstname ;
                         LoginGoodData["circuit_code"] = (Int32)circode;
                         LoginGoodData["sim_port"] = 9000; //(Int32)SimInfo.sim_port;
                         LoginGoodData["secure_session_id"] = TheUser.CurrentSecureSessionID.ToStringHyphenated();

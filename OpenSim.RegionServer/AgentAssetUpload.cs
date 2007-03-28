@@ -89,7 +89,7 @@ namespace OpenSim
                
                     asset = new AssetBase();
                     asset.FullID = assetID;
-                    Console.WriteLine("skin asset id is " + assetID.ToStringHyphenated());
+                  //  Console.WriteLine("skin asset id is " + assetID.ToStringHyphenated());
                     asset.Type = pack.AssetBlock.Type;
                     asset.InvType = asset.Type;
                     asset.Name = "NewClothing" + Util.RandomClass.Next(1, 1000).ToString("000");
@@ -201,8 +201,7 @@ namespace OpenSim
                 {
                     //already complete so we can add it to the inventory
                     m_assetCache.AddAsset(trans.Asset);
-                    Console.WriteLine("creating inventory item");
-                   Console.WriteLine( "ITem created is " +m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
+                   Console.WriteLine( "Item created is " +m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
                 }
                 else
                 {
