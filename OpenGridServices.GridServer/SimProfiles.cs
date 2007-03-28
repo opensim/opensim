@@ -89,7 +89,7 @@ namespace OpenGridServices.GridServer
 
 				}
 			}
-			return "";
+			return response;
 		}
 
 		public SimProfileBase CreateNewProfile(string regionname, string caps_url, string sim_ip, uint sim_port, uint RegionLocX, uint RegionLocY, string sendkey, string recvkey) {
