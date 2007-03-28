@@ -6,12 +6,8 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
-    public class RegionServer : OpenSimMain
+    public class RegionServer
     {        
-        public RegionServer( ) : base( false, false, String.Empty )
-        {
-        }
-        
         [STAThread]
         public static void Main(string[] args)
         {
