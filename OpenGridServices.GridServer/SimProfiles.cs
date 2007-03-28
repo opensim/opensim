@@ -73,6 +73,22 @@ namespace OpenGridServices.GridServer
 		}
 
 		public string GetXMLNeighbours(ulong reqhandle) {
+			string response="";
+			SimProfileBase central_region = GetProfileByHandle(reqhandle);
+			SimProfileBase neighbour;
+			for(int x=-1; x<2; x++) for(int y=-1; y<2; y++) {
+				if(GetProfileByHandle(Util.UIntsToLong((uint)((central_region.RegionLocX+x)*256), (uint)(central_region.RegionLocY+y)*256))!=null) {
+					neighbour=GetProfileByHandle(Util.UIntsToLong((uint)((central_region.RegionLocX+x)*256), (uint)(central_region.RegionLocY+y)*256));
+					response+="<neighbour>";
+					response+="<sim_ip>" + neighbour.sim_ip + "</sim_ip>";
+					response+="<sim_port>" + neighbour.sim_port.ToString() + "</sim_port>";
+					response+="<locx>" + neighbour.RegionLocX.ToString() + "</locx>";
+					response+="<locy>" + neighbour.RegionLocY.ToString() + "</locy>";
+					response+="<regionhandle>" + neighbour.regionhandle.ToString() + "</regionhandle>";
+					response+="</neighbour>";
+
+				}
+			}
 			return "";
 		}
 
