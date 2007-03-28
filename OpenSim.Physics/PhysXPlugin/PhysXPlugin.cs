@@ -98,7 +98,7 @@ namespace OpenSim.Physics.PhysXPlugin
 	{
 		private List<PhysXCharacter> _characters = new List<PhysXCharacter>();
 		private List<PhysXPrim> _prims = new List<PhysXPrim>();
-		private float[] _heightMap;
+		private float[] _heightMap = null;
 		private NxPhysicsSDK mySdk;
 		private NxScene scene;
 		
@@ -138,18 +138,25 @@ namespace OpenSim.Physics.PhysXPlugin
 		}
 		public override void Simulate(float timeStep)
 		{
-			foreach (PhysXCharacter actor in _characters)
-			{
-				actor.Move(timeStep);
-			}
-			scene.Simulate(timeStep);
-			scene.FetchResults();
-			scene.UpdateControllers();
-			
-			foreach (PhysXCharacter actor in _characters)
-			{
-				actor.UpdatePosition();
-			}
+            try
+            {
+                foreach (PhysXCharacter actor in _characters)
+                {
+                    actor.Move(timeStep);
+                }
+                scene.Simulate(timeStep);
+                scene.FetchResults();
+                scene.UpdateControllers();
+
+                foreach (PhysXCharacter actor in _characters)
+                {
+                    actor.UpdatePosition();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 				
 		}
 		
@@ -168,10 +175,20 @@ namespace OpenSim.Physics.PhysXPlugin
 		
 		public override void SetTerrain(float[] heightMap)
 		{
+            if (this._heightMap != null)
+            {
+                Console.WriteLine("PhysX - deleting old terrain");
+                this.scene.DeleteTerrain();
+            }
 			this._heightMap = heightMap;
 			this.scene.AddTerrain(heightMap);
 		}
-	}
+
+        public override void DeleteTerrain()
+        {
+            this.scene.DeleteTerrain();
+        }	
+    }
 	
 	public  class PhysXCharacter : PhysicsActor
 	{
@@ -211,6 +228,11 @@ namespace OpenSim.Physics.PhysXPlugin
 			set
 			{
 				_position = value;
+                Vec3 ps = new Vec3();
+                ps.X = value.X;
+                ps.Y = value.Y;
+                ps.Z = value.Z;
+                this._character.Position = ps;
 			}
 		}
 		

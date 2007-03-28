@@ -41,10 +41,10 @@ namespace OpenSim.world
             m_clientThreads = clientThreads;
             m_regionName = regionName;
             m_regionHandle = regionHandle;
-            
+
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
-            localid = 8880000 + (m_world._localNumber++);
+            localid = 8880000 + (this.m_world._localNumber++);
             position = new LLVector3(100.0f, 100.0f, 30.0f);
             position.Z = m_world.LandMap[(int)position.Y * 256 + (int)position.X] + 1;
             visualParams = new byte[218];
@@ -61,7 +61,7 @@ namespace OpenSim.world
             this.Wearables[0].ItemID = LLUUID.Random();
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-
+           
         }
 
         public PhysicsActor PhysActor
@@ -82,7 +82,10 @@ namespace OpenSim.world
                     {
                         NewForce force = this.forcesList[i];
                         PhysicsVector phyVector = new PhysicsVector(force.X, force.Y, force.Z);
-                        this._physActor.Velocity = phyVector;
+                        lock (m_world.LockPhysicsEngine)
+                        {
+                            this._physActor.Velocity = phyVector;
+                        }
                         this.updateflag = true;
                         this.velocity = new LLVector3(force.X, force.Y, force.Z); //shouldn't really be doing this
                         // but as we are setting the velocity (rather than using real forces) at the moment it is okay.
@@ -181,7 +184,7 @@ namespace OpenSim.world
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
             mov.AgentData.SessionID = this.ControllingClient.SessionID;
             mov.AgentData.AgentID = this.ControllingClient.AgentID;
-            mov.Data.RegionHandle = m_regionHandle;
+            mov.Data.RegionHandle = this.m_regionHandle;
             // TODO - dynamicalise this stuff
             mov.Data.Timestamp = 1172750370;
             mov.Data.Position = new LLVector3(100f, 100f, 23f);
@@ -475,7 +478,12 @@ namespace OpenSim.world
             ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
             ani.AnimationList[0].AnimID = this.current_anim;
             ani.AnimationList[0].AnimSequenceID = this.anim_seq;
-            ControllingClient.OutPacket(ani);
+           
+            //ControllingClient.OutPacket(ani);
+            foreach (SimClient client in m_clientThreads.Values)
+            {
+                client.OutPacket(ani);
+            }
         }
 
         //should be moved somewhere else
@@ -522,7 +530,11 @@ namespace OpenSim.world
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
 
             dat.TextureEntry = new byte[0];// AvatarTemplate.TextureEntry;
-            libsecondlife.LLVector3 pos2 = new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z);
+            libsecondlife.LLVector3 pos2 = new LLVector3(0, 0, 0);
+            lock (m_world.LockPhysicsEngine)
+            {
+                pos2 = new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z);
+            }
 
             uint ID = this.localid;
 
@@ -542,8 +554,11 @@ namespace OpenSim.world
             ushort InternVelocityX;
             ushort InternVelocityY;
             ushort InternVelocityZ;
-
-            Axiom.MathLib.Vector3 internDirec = new Axiom.MathLib.Vector3(this._physActor.Velocity.X, this._physActor.Velocity.Y, this._physActor.Velocity.Z);
+            Axiom.MathLib.Vector3 internDirec = new Axiom.MathLib.Vector3(0, 0, 0);
+            lock (m_world.LockPhysicsEngine)
+            {
+                internDirec = new Axiom.MathLib.Vector3(this._physActor.Velocity.X, this._physActor.Velocity.Y, this._physActor.Velocity.Z);
+            }
             internDirec = internDirec / 128.0f;
             internDirec.x += 1;
             internDirec.y += 1;
@@ -595,6 +610,27 @@ namespace OpenSim.world
         {
             Avatar.Animations = new AvatarAnimations();
             Avatar.Animations.LoadAnims();
+        }
+
+        public override void LandRenegerated()
+        {
+            position = new LLVector3(100.0f, 100.0f, 30.0f);
+            position.Z = this.m_world.LandMap[(int)position.Y * 256 + (int)position.X] + 50;
+            if (this._physActor != null)
+            {
+                try
+                {
+                    lock (this.m_world.LockPhysicsEngine)
+                    {
+
+                        this._physActor.Position = new PhysicsVector(position.X, position.Y, position.Z);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }       
+            }
         }
     }
 

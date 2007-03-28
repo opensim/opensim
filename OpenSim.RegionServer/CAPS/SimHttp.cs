@@ -50,6 +50,7 @@ namespace OpenSim.CAPS
         private Thread m_workerThread;
         private HttpListener m_httpListener;
         private Dictionary<string, IRestHandler> m_restHandlers = new Dictionary<string, IRestHandler>();
+        private Dictionary<string, IXmlRPCHandler> RPCHandlers = new Dictionary<string, IXmlRPCHandler>();
         private IGridServer m_gridServer;
         private int m_port;
 
@@ -96,8 +97,22 @@ namespace OpenSim.CAPS
             //must already have a handler for that path so return false
             return false;
         }
+
+        public bool AddXmlRPCHandler(string method, IXmlRPCHandler handler)
+        {
+            if (!this.RPCHandlers.ContainsKey(method))
+            {
+                this.RPCHandlers.Add(method, handler);
+                return true;
+            }
+
+            //must already have a handler for that path so return false
+            return false;
+        }
+
         protected virtual string ParseXMLRPC(string requestBody)
         {
+            string responseString = "";
             try
             {
                 XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
@@ -115,17 +130,23 @@ namespace OpenSim.CAPS
                         agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
                         if (m_gridServer.GetName() == "Remote")
                         {
-                            
-                            ((RemoteGridBase)m_gridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
+                            ((RemoteGridBase) m_gridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
                         }
-                        return "<?xml version=\"1.0\"?><methodResponse><params /></methodResponse>";
+                        responseString = "<?xml version=\"1.0\"?><methodResponse><params /></methodResponse>";
+                        break;
+                    default:
+                        if (this.RPCHandlers.ContainsKey(request.MethodName))
+                        {
+                            //responseString = this.RPCHandlers[request.MethodName]
+                        }
+                        break;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
-            return "";
+            return responseString;
         }
 
         protected virtual string ParseREST(string requestBody, string requestURL, string requestMethod)

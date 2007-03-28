@@ -137,52 +137,92 @@ namespace OpenSim.GridInterfaces.Local
 
         private void SetUpAssetDatabase()
         {
-            Console.WriteLine("setting up Asset database");
+            try
+            {
 
-            AssetBase Image = new AssetBase();
-            Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
-            Image.Name = "test Texture";
-            this.LoadAsset(Image, true, "testpic2.jp2");
-            AssetStorage store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+                Console.WriteLine("setting up Asset database");
 
-            Image = new AssetBase();
-            Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000002");
-            Image.Name = "test Texture2";
-            this.LoadAsset(Image, true, "map_base.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+                AssetBase Image = new AssetBase();
+                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
+                Image.Name = "Bricks";
+                this.LoadAsset(Image, true, "bricks.jp2");
+                AssetStorage store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
 
-            Image = new AssetBase();
-            Image.FullID = new LLUUID("00000000-0000-0000-5005-000000000005");
-            Image.Name = "Prim Base Texture";
-            this.LoadAsset(Image, true, "testpic2.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+                Image = new AssetBase();
+                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000002");
+                Image.Name = "Plywood";
+                this.LoadAsset(Image, true, "plywood.jp2");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
 
-            Image = new AssetBase();
-            Image.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-            Image.Name = "Shape";
-            this.LoadAsset(Image, false, "base_shape.dat");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+                Image = new AssetBase();
+                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000003");
+                Image.Name = "Rocks";
+                this.LoadAsset(Image, true, "rocks.jp2");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
 
+                Image = new AssetBase();
+                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000004");
+                Image.Name = "Granite";
+                this.LoadAsset(Image, true, "granite.jp2");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
+
+                Image = new AssetBase();
+                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000005");
+                Image.Name = "Hardwood";
+                this.LoadAsset(Image, true, "hardwood.jp2");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
+
+                Image = new AssetBase();
+                Image.FullID = new LLUUID("00000000-0000-0000-5005-000000000005");
+                Image.Name = "Prim Base Texture";
+                this.LoadAsset(Image, true, "plywood.jp2");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
+
+                Image = new AssetBase();
+                Image.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+                Image.Name = "Shape";
+                this.LoadAsset(Image, false, "base_shape.dat");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
         }
 

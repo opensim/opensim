@@ -75,7 +75,7 @@ namespace OpenSim
         private Dictionary<uint, SimClient> m_clientThreads;
         private AssetCache m_assetCache;
         private IGridServer m_gridServer;
-        private OpenSimApplication m_application;
+        private OpenSimNetworkHandler m_application;
         private InventoryCache m_inventoryCache;
         private bool m_sandboxMode;
 
@@ -188,7 +188,7 @@ namespace OpenSim
                             {
                                 if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
                                 {
-                                    ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.W);
+                                    ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
                                     ((OpenSim.world.Primitive)ent).UpdateFlag = true;
                                 }
                             }
@@ -576,7 +576,7 @@ namespace OpenSim
             this.PacketQueue.Enqueue(item);
         }
 
-        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimApplication application, InventoryCache inventoryCache, bool sandboxMode)
+        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode)
         {
             m_world = world;
             m_clientThreads = clientThreads;

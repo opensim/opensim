@@ -309,7 +309,7 @@ namespace OpenSim.UserServer
             Hashtable Inventory2 = (Hashtable)InventoryList[1];
             LLUUID BaseFolderID = LLUUID.Random();
             LLUUID InventoryFolderID = LLUUID.Random();
-            Inventory2["name"] = "Base";
+            Inventory2["name"] = "Textures";
             Inventory2["folder_id"] = BaseFolderID.ToStringHyphenated();
             Inventory2["type_default"] = 0;
             Inventory1["folder_id"] = InventoryFolderID.ToStringHyphenated();

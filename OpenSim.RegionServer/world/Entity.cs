@@ -63,5 +63,10 @@ namespace OpenSim.world
         {
         	
         }
+
+        public virtual void LandRenegerated()
+        {
+
+        }
     }
 }

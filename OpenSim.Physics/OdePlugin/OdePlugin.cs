@@ -170,6 +170,11 @@ namespace OpenSim.Physics.OdePlugin
 			d.GeomHeightfieldDataBuildDouble(HeightmapData,_heightmap,1,256,256,256,256,1.0f,0.0f,2.0f,0);
 			LandGeom=d.CreateHeightfield(space, HeightmapData, 0);
 		}
+
+        public override void DeleteTerrain()
+        {
+           
+        }	
 	}
 	
 	public class OdeCharacter : PhysicsActor

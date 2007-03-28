@@ -14,8 +14,8 @@
                 <include name="AgentAssetUpload.cs" />
                 <include name="ConsoleCmds.cs" />
                 <include name="Grid.cs" />
-                <include name="OpenSimApplication.cs" />
                 <include name="OpenSimMain.cs" />
+                <include name="OpenSimNetworkHandler.cs" />
                 <include name="OpenSimRoot.cs" />
                 <include name="QueItem.cs" />
                 <include name="SimClient.cs" />
@@ -25,6 +25,7 @@
                 <include name="Assets/InventoryCache.cs" />
                 <include name="CAPS/AdminWebFront.cs" />
                 <include name="CAPS/IRestHandler.cs" />
+                <include name="CAPS/IXmlRPCHandler.cs" />
                 <include name="CAPS/SimHttp.cs" />
                 <include name="types/Mesh.cs" />
                 <include name="types/Triangle.cs" />

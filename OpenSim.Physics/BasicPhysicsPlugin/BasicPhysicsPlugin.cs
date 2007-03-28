@@ -149,6 +149,11 @@ namespace OpenSim.Physics.BasicPhysicsPlugin
 		{
 			this._heightMap = heightMap;
 		}
+
+        public override void DeleteTerrain()
+        {
+
+        }
 	}
 	
 	public  class BasicActor : PhysicsActor

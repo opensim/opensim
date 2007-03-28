@@ -12,6 +12,7 @@ namespace OpenSim.world
 {
     public class Primitive : Entity
     {
+        //private static object physicsLock = new object();
         protected float mesh_cutbegin;
         protected float mesh_cutend;
         protected PrimData primData;
@@ -21,7 +22,8 @@ namespace OpenSim.world
         private ObjectUpdatePacket OurPacket;
         private PhysicsActor _physActor;
         private bool physicsEnabled = false;
-        private bool physicstest = false; //just added for testing 
+        private bool physicstest = false;  
+        private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private Dictionary<uint, SimClient> m_clientThreads;
         private ulong m_regionHandle;
         private World m_world;
@@ -72,7 +74,7 @@ namespace OpenSim.world
         {
             mesh_cutbegin = 0.0f;
             mesh_cutend = 1.0f;
-            
+
             m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_world = world;
@@ -97,13 +99,30 @@ namespace OpenSim.world
             this.position = pos;
             if (this._physActor != null) // && this.physicsEnabled)
             {
-                this._physActor.Position = new PhysicsVector(pos.X, pos.Y, pos.Z);
+                try
+                {
+                    lock (m_world.LockPhysicsEngine)
+                    {
+                        this._physActor.Position = new PhysicsVector(pos.X, pos.Y, pos.Z);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
             this.updateFlag = true;
         }
 
         public override void update()
         {
+            LLVector3 pos2 = new LLVector3(0, 0, 0);
+            if (this._physActor != null && this.physicsEnabled)
+            {
+
+                PhysicsVector pPos = this._physActor.Position;
+                pos2 = new LLVector3(pPos.X, pPos.Y, pPos.Z);
+            }
             if (this.newPrimFlag)
             {
                 foreach (SimClient client in m_clientThreads.Values)
@@ -137,15 +156,19 @@ namespace OpenSim.world
             {
                 if (this._physActor != null && this.physicsEnabled)
                 {
-                    ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                    terse.RegionData.RegionHandle = m_regionHandle; // FIXME
-                    terse.RegionData.TimeDilation = 64096;
-                    terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-                    terse.ObjectData[0] = this.CreateImprovedBlock();
-                    foreach (SimClient client in m_clientThreads.Values)
+                    if (pos2 != this.positionLastFrame)
                     {
-                        client.OutPacket(terse);
+                        ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+                        terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                        terse.RegionData.TimeDilation = 64096;
+                        terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+                        terse.ObjectData[0] = this.CreateImprovedBlock();
+                        foreach (SimClient client in m_clientThreads.Values)
+                        {
+                            client.OutPacket(terse);
+                        }
                     }
+                    this.positionLastFrame = pos2;
                 }
             }
 
@@ -487,7 +510,7 @@ namespace OpenSim.world
             this.primData.LocalID = this.localid;
             this.primData.Position = this.position;
             this.primData.Rotation = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z, this.rotation.w);
-            m_world.localStorage.StorePrim(this.primData);
+            this.m_world.localStorage.StorePrim(this.primData);
         }
     }
 

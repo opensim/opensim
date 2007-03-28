@@ -50,6 +50,8 @@ namespace OpenSim.Physics.Manager
         public abstract void GetResults();
 
         public abstract void SetTerrain(float[] heightMap);
+        
+        public abstract void DeleteTerrain();
 
         public abstract bool IsThreaded
         {
@@ -76,6 +78,8 @@ namespace OpenSim.Physics.Manager
         public override void Simulate(float timeStep)
         {
             m_workIndicator = (m_workIndicator + 1) % 10;
+
+            //OpenSim.Framework.Console.MainConsole.Instance.SetStatus(m_workIndicator.ToString());
         }
 
         public override void GetResults()
@@ -86,6 +90,11 @@ namespace OpenSim.Physics.Manager
         public override void SetTerrain(float[] heightMap)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
+        }
+
+        public override void DeleteTerrain()
+        {
+
         }
 
         public override bool IsThreaded

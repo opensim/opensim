@@ -42,8 +42,8 @@ namespace OpenSim
             }
 
             OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine );
-            OpenSimRoot.Instance.Application = sim;
-            OpenSimRoot.Instance.Sandbox = sandBoxMode;
+           // OpenSimRoot.Instance.Application = sim;
+            sim.m_sandbox = sandBoxMode;
             OpenSim.world.Avatar.PhysicsEngineFlying = allowFlying;
 
             sim.StartUp();

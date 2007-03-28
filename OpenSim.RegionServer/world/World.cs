@@ -14,6 +14,7 @@ namespace OpenSim.world
 {
 	public class World : ILocalStorageReceiver
     {
+        public object LockPhysicsEngine = new object();
     	public Dictionary<libsecondlife.LLUUID, Entity> Entities;
     	public float[] LandMap;
     	public ScriptEngine Scripts;
@@ -25,19 +26,19 @@ namespace OpenSim.world
     	private Random Rand = new Random();
     	private uint _primCount = 702000;
     	private int storageCount;
-	    private Dictionary<uint, SimClient> m_clientThreads;
-	    private ulong m_regionHandle;
-	    private string m_regionName;
-	    private SimConfig m_cfg;
+        private Dictionary<uint, SimClient> m_clientThreads;
+        private ulong m_regionHandle;
+        private string m_regionName;
+        private SimConfig m_cfg;
 
-	    public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName, SimConfig cfg)
-    	{
+        public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName, SimConfig cfg)
+        {
             m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_regionName = regionName;
             m_cfg = cfg;
-	        
-	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
+
+    		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
     		Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
 
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
@@ -73,8 +74,11 @@ namespace OpenSim.world
     		{
     			Entities[UUID].addForces();
     		}
-    		
-    		this.phyScene.Simulate(timeStep);
+
+            lock (this.LockPhysicsEngine)
+            {
+                this.phyScene.Simulate(timeStep);
+            }
     		
     		foreach (libsecondlife.LLUUID UUID in Entities.Keys)
     		{
@@ -118,18 +122,49 @@ namespace OpenSim.world
 			this.localStorage = store;
 			return(store == null);
     	}
+
+        public void RegenerateTerrain()
+        {
+            HeightmapGenHills hills = new HeightmapGenHills();
+            this.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
+            lock (this.LockPhysicsEngine)
+            {
+                this.phyScene.SetTerrain(this.LandMap);
+            }
+            m_cfg.SaveMap(this.LandMap);
+
+            foreach (SimClient client in m_clientThreads.Values)
+            {
+                this.SendLayerData(client);
+            }
+
+            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+            {
+                Entities[UUID].LandRenegerated();
+            }
+        }
+
+        public void RegenerateTerrain(float[] newMap)
+        {
+
+            this.LandMap = newMap;
+            lock (this.LockPhysicsEngine)
+            {
+                this.phyScene.SetTerrain(this.LandMap);
+            }
+            m_cfg.SaveMap(this.LandMap);
+
+            foreach (SimClient client in m_clientThreads.Values)
+            {
+                this.SendLayerData(client);
+            }
+
+            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+            {
+                Entities[UUID].LandRenegerated();
+            }
+        }
     	
-    	public void RegenerateTerrain()
-    	{
-    		HeightmapGenHills hills = new HeightmapGenHills();
-    		this.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-    		this.phyScene.SetTerrain(this.LandMap);
-    		m_cfg.SaveMap(this.LandMap);
-    		
-    		foreach(SimClient client in m_clientThreads.Values) {
-    			this.SendLayerData(client);
-    		}
-    	}
     	public void LoadPrimsFromStorage()
     	{
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadPrimsFromStorage() - Loading primitives");
@@ -143,7 +178,7 @@ namespace OpenSim.world
     			_primCount = prim.LocalID + 1;
     		}
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: PrimFromStorage() - Reloading prim (localId "+ prim.LocalID+ " ) from storage");
-    		Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
+            Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
     		nPrim.CreateFromStorage(prim);
     		this.Entities.Add(nPrim.uuid, nPrim);
     	}
@@ -182,27 +217,34 @@ namespace OpenSim.world
     		}
     	}
 
-    	public void AddViewerAgent(SimClient AgentClient) {
+    	public void AddViewerAgent(SimClient AgentClient) 
+        {
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-    		Avatar NewAvatar = new Avatar(AgentClient, this, m_regionName, m_clientThreads, m_regionHandle );
+            Avatar NewAvatar = new Avatar(AgentClient, this, m_regionName, m_clientThreads, m_regionHandle);
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
     		NewAvatar.SendRegionHandshake(this);
     		PhysicsVector pVec = new PhysicsVector(NewAvatar.position.X, NewAvatar.position.Y, NewAvatar.position.Z);
-    		NewAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+            lock (this.LockPhysicsEngine)
+            {
+                NewAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+            }
     		this.Entities.Add(AgentClient.AgentID, NewAvatar);
     	}
     	
     	public void AddNewPrim(ObjectAddPacket addPacket, SimClient AgentClient)
     	{
     		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Creating new prim");
-            Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this );
+            Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
     		prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
     		PhysicsVector pVec = new PhysicsVector(prim.position.X, prim.position.Y, prim.position.Z);
     		PhysicsVector pSize = new PhysicsVector( 0.255f, 0.255f, 0.255f);
     		if(OpenSim.world.Avatar.PhysicsEngineFlying)
     		{
-    			prim.PhysActor = this.phyScene.AddPrim(pVec, pSize );
+                lock (this.LockPhysicsEngine)
+                {
+                    prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
+                }
     		}
     		//prim.PhysicsEnabled = true;
     		this.Entities.Add(prim.uuid, prim);
@@ -243,9 +285,9 @@ namespace OpenSim.world
 		}
 		foreach( libsecondlife.LLUUID uuid in DeRezEnts )
 		{
-			lock (this.Entities)
+			lock (Entities)
 			{
-				this.Entities.Remove(uuid);
+				Entities.Remove(uuid);
 			}
 		}
 		
