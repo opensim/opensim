@@ -4,10 +4,11 @@ using System.Text;
 using System.IO;
 using OpenSim.world;
 using OpenSim.UserServer;
+using OpenSim.Servers;
 
 namespace OpenSim.CAPS
 {
-    public class AdminWebFront : IRestHandler
+    public class AdminWebFront
     {
         private string AdminPage;
         private string NewAccountForm;
@@ -24,124 +25,122 @@ namespace OpenSim.CAPS
             LoadAdminPage();
         }
 
-        public string HandleREST(string requestBody, string requestURL, string requestMethod)
+        public void LoadMethods( BaseHttpServer server )
         {
-            string responseString = "";
-            try
+            server.AddRestHandler("GET", "/Admin", GetAdminPage);
+            server.AddRestHandler("GET", "/Admin/Welcome", GetWelcomePage);
+            server.AddRestHandler("GET", "/Admin/Accounts", GetAccountsPage );
+            server.AddRestHandler("GET", "/Admin/Clients", GetConnectedClientsPage );
+
+            server.AddRestHandler("POST", "/Admin/NewAccount", PostNewAccount );
+            server.AddRestHandler("POST", "/Admin/Login", PostLogin );
+        }
+        
+        private string GetWelcomePage( string request )
+        {
+            string responseString;
+            responseString = "Welcome to the OpenSim Admin Page";
+            responseString += "<br><br><br> " + LoginForm;
+            return responseString;
+        }
+
+        private string PostLogin(string requestBody)
+        {
+            string responseString;
+// Console.WriteLine(requestBody);
+            if (requestBody == passWord)
             {
-                switch (requestURL)
-                {
-                    case "/Admin":
-                        if (requestMethod == "GET")
-                        {
-                            responseString = AdminPage;
-                        }
-                        break;
-                    case "/Admin/Accounts":
-                        if (requestMethod == "GET")
-                        {
-                            responseString = "<p> Account management </p>";
-                            responseString += "<br> ";
-                            responseString += "<p> Create New Account </p>";
-                            responseString += NewAccountForm;
-                        }
-                        break;
-                    case "/Admin/Clients":
-                        if (requestMethod == "GET")
-                        {
-                            responseString = " <p> Listing connected Clients </p>";
-                            OpenSim.world.Avatar TempAv;
-                            foreach (libsecondlife.LLUUID UUID in m_world.Entities.Keys)
-                            {
-                                if (m_world.Entities[UUID].ToString() == "OpenSim.world.Avatar")
-                                {
-                                    TempAv = (OpenSim.world.Avatar)m_world.Entities[UUID];
-                                    responseString += "<p>";
-                                    responseString += String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
-                                    responseString += "</p>";
-                                }
-                            }
-                        }
-                        break;
-                    case "/Admin/NewAccount":
-                        if (requestMethod == "POST")
-                        {
-                            string firstName = "";
-                            string secondName = "";
-                            string userPasswd = "";
-                            string[] comp;
-                            string[] passw;
-                            string[] line;
-                            string delimStr = "&";
-                            char[] delimiter = delimStr.ToCharArray();
-                            string delimStr2 = "=";
-                            char[] delimiter2 = delimStr2.ToCharArray();
-
-                            //Console.WriteLine(requestBody);
-                            comp = requestBody.Split(delimiter);
-                            passw = comp[3].Split(delimiter2);
-                            if (passw[1] == passWord)
-                            {
-                                
-                                line = comp[0].Split(delimiter2); //split firstname
-                                if (line.Length > 1)
-                                {
-                                    firstName = line[1];
-                                }
-                                line = comp[1].Split(delimiter2); //split secondname
-                                if (line.Length > 1)
-                                {
-                                    secondName = line[1];
-                                }
-                                line = comp[2].Split(delimiter2); //split user password
-                                if (line.Length > 1)
-                                {
-                                    userPasswd = line[1];
-                                }
-                                if (this._userServer != null)
-                                {
-                                    this._userServer.CreateUserAccount(firstName, secondName, userPasswd);
-                                }
-                                responseString = "<p> New Account created </p>";
-                            }
-                            else
-                            {
-                                responseString = "<p> Admin password is incorrect, please login with the correct password</p>";
-                                responseString += "<br><br>" + LoginForm;
-                            }
-                        }
-                        break;
-                    case "/Admin/Login":
-                        if (requestMethod == "POST")
-                        {
-                            // Console.WriteLine(requestBody);
-                            if (requestBody == passWord)
-                            {
-                                responseString = "<p> Login Successful </p>";
-                            }
-                            else
-                            {
-                                responseString = "<p> Password Error </p>";
-                                responseString += "<p> Please Login with the correct password </p>";
-                                responseString += "<br><br> " + LoginForm;
-                            }
-                        }
-                        break;
-                    case "/Admin/Welcome":
-                        if (requestMethod == "GET")
-                        {
-                            responseString = "Welcome to the OpenSim Admin Page";
-                            responseString += "<br><br><br> " + LoginForm;
-
-                        }
-                        break;
-                }
+                responseString = "<p> Login Successful </p>";
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine(e.ToString());
+                responseString = "<p> Password Error </p>";
+                responseString += "<p> Please Login with the correct password </p>";
+                responseString += "<br><br> " + LoginForm;
             }
             return responseString;
+        }
+
+        private string PostNewAccount(string requestBody)
+        {
+            string responseString;
+            string firstName = "";
+            string secondName = "";
+            string userPasswd = "";
+            string[] comp;
+            string[] passw;
+            string[] line;
+            string delimStr = "&";
+            char[] delimiter = delimStr.ToCharArray();
+            string delimStr2 = "=";
+            char[] delimiter2 = delimStr2.ToCharArray();
+
+            //Console.WriteLine(requestBody);
+            comp = requestBody.Split(delimiter);
+            passw = comp[3].Split(delimiter2);
+            if (passw[1] == passWord)
+            {
+                                
+                line = comp[0].Split(delimiter2); //split firstname
+                if (line.Length > 1)
+                {
+                    firstName = line[1];
+                }
+                line = comp[1].Split(delimiter2); //split secondname
+                if (line.Length > 1)
+                {
+                    secondName = line[1];
+                }
+                line = comp[2].Split(delimiter2); //split user password
+                if (line.Length > 1)
+                {
+                    userPasswd = line[1];
+                }
+                if (this._userServer != null)
+                {
+                    this._userServer.CreateUserAccount(firstName, secondName, userPasswd);
+                }
+                responseString = "<p> New Account created </p>";
+            }
+            else
+            {
+                responseString = "<p> Admin password is incorrect, please login with the correct password</p>";
+                responseString += "<br><br>" + LoginForm;
+            }
+            return responseString;
+        }
+
+        private string GetConnectedClientsPage( string request )
+        {
+            string responseString;
+            responseString = " <p> Listing connected Clients </p>";
+            OpenSim.world.Avatar TempAv;
+            foreach (libsecondlife.LLUUID UUID in m_world.Entities.Keys)
+            {
+                if (m_world.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                {
+                    TempAv = (OpenSim.world.Avatar)m_world.Entities[UUID];
+                    responseString += "<p>";
+                    responseString += String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
+                    responseString += "</p>";
+                }
+            }
+            return responseString;
+        }
+
+        private string GetAccountsPage( string request )
+        {
+            string responseString;
+            responseString = "<p> Account management </p>";
+            responseString += "<br> ";
+            responseString += "<p> Create New Account </p>";
+            responseString += NewAccountForm;
+            return responseString;
+        }
+
+        private string GetAdminPage( string request )
+        {
+            return AdminPage;
         }
 
         private void LoadAdminPage()

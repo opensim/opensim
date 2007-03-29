@@ -14,7 +14,7 @@ namespace OpenSim.Servers
     {
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
-        protected Dictionary<string, IRestHandler> m_restHandlers = new Dictionary<string, IRestHandler>();
+        protected Dictionary<string, RestMethod> m_restHandlers = new Dictionary<string, RestMethod>();
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected int m_port;
 
@@ -23,11 +23,13 @@ namespace OpenSim.Servers
             m_port = port;
         }
 
-        public bool AddRestHandler(string path, IRestHandler handler)
+        public bool AddRestHandler(string method, string path, RestMethod handler)
         {
-            if (!this.m_restHandlers.ContainsKey(path))
+            string methodKey = String.Format("{0}: {1}", method, path);
+                
+            if (!this.m_restHandlers.ContainsKey(methodKey))
             {
-                this.m_restHandlers.Add(path, handler);
+                this.m_restHandlers.Add(methodKey, handler);
                 return true;
             }
 
@@ -69,25 +71,24 @@ namespace OpenSim.Servers
             return XmlRpcResponseSerializer.Singleton.Serialize(response);
         }
 
-        protected virtual string ParseREST(string requestBody, string requestURL, string requestMethod)
+        protected virtual string ParseREST(string request, string path, string method)
         {
-            string[] path;
-            string pathDelimStr = "/";
-            char[] pathDelimiter = pathDelimStr.ToCharArray();
-            path = requestURL.Split(pathDelimiter);
+            string response;
+            RestMethod handler;
+            
+            string methodKey = String.Format("{0}: {1}", method, path);
 
-            string responseString = "";
-
-            //path[0] should be empty so we are interested in path[1]
-            if (path.Length > 1)
+            if (m_restHandlers.TryGetValue(methodKey, out handler))
             {
-                if ((path[1] != "") && (this.m_restHandlers.ContainsKey(path[1])))
-                {
-                    responseString = this.m_restHandlers[path[1]].HandleREST(requestBody, requestURL, requestMethod);
-                }
+                response = handler(request);
+            
+            }
+            else
+            {
+                response = String.Empty;
             }
 
-            return responseString;
+            return response;
         }
 
         protected virtual string ParseLLSDXML(string requestBody)

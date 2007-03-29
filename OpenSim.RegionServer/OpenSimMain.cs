@@ -199,7 +199,8 @@ namespace OpenSim
                 }
             }
 
-            HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, adminLoginServer ));
+            AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, adminLoginServer);
+            adminWebFront.LoadMethods( HttpServer );
             
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
             HttpServer.Start();
