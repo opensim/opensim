@@ -96,6 +96,8 @@
     <Compile Include="BaseHttpServer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="IRestHandler.cs" />
+    <Compile Include="XmlRpcMethod.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

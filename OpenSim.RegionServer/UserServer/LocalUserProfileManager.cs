@@ -10,7 +10,7 @@ using libsecondlife;
 
 namespace OpenSim.UserServer
 {
-    class LocalUserProfileManager : UserProfileManager 
+    public class LocalUserProfileManager : UserProfileManager 
     {
         private IGridServer m_gridServer;
         private int m_port;

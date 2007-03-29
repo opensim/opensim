@@ -117,7 +117,6 @@
     <Compile Include="AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAPS\IXmlRPCHandler.cs" />
     <Compile Include="ConsoleCmds.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -149,12 +148,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CAPS\AdminWebFront.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAPS\IRestHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAPS\SimHttp.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="types\Mesh.cs">

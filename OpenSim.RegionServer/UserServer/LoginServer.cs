@@ -50,7 +50,7 @@ namespace OpenSim.UserServer
     /// <summary>
     /// When running in local (default) mode , handles client logins.
     /// </summary>
-    public class LoginServer : LoginService , IUserServer
+    public class LoginServer : LoginService, IUserServer
     {
         private IGridServer m_gridServer;
         private ushort _loginPort = 8080;
@@ -66,12 +66,28 @@ namespace OpenSim.UserServer
         private int m_simPort;
         private string m_simAddr;
 
-        public LoginServer(IGridServer gridServer, string simAddr, int simPort , bool useAccounts)
+        public LocalUserProfileManager LocalUserManager
+        {
+            get
+            {
+                return userManager;
+            }
+        }
+
+        public LoginServer(IGridServer gridServer, string simAddr, int simPort, bool useAccounts)
         {
             m_gridServer = gridServer;
             m_simPort = simPort;
             m_simAddr = simAddr;
             this.userAccounts = useAccounts;
+        }
+
+        public void Startup()
+        {
+            this.InitializeLogin();
+            //Thread runLoginProxy = new Thread(new ThreadStart(RunLogin));
+            //runLoginProxy.IsBackground = true;
+            //runLoginProxy.Start();
         }
 
         // InitializeLogin: initialize the login 
@@ -94,135 +110,132 @@ namespace OpenSim.UserServer
             SR.Close();
             this._mpasswd = EncodePassword("testpass");
 
-            userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr );
+            userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr);
             userManager.InitUserProfiles();
             userManager.SetKeys("", "", "", "Welcome to OpenSim");
 
-            loginServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            loginServer.Bind(new IPEndPoint(remoteAddress, _loginPort));
-            loginServer.Listen(1);
+            //loginServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            // loginServer.Bind(new IPEndPoint(remoteAddress, _loginPort));
+            //loginServer.Listen(1);
         }
 
-        public void Startup()
+        /* private void RunLogin()
+         {
+             Console.WriteLine("Starting Login Server");
+             try
+             {
+                 for (; ; )
+                 {
+                     Socket client = loginServer.Accept();
+                     IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
+
+
+                     NetworkStream networkStream = new NetworkStream(client);
+                     StreamReader networkReader = new StreamReader(networkStream);
+                     StreamWriter networkWriter = new StreamWriter(networkStream);
+
+                     try
+                     {
+                         LoginRequest(networkReader, networkWriter);
+                     }
+                     catch (Exception e)
+                     {
+                         Console.WriteLine(e.Message);
+                     }
+
+                     networkWriter.Close();
+                     networkReader.Close();
+                     networkStream.Close();
+
+                     client.Close();
+
+                     // send any packets queued for injection
+
+                 }
+             }
+             catch (Exception e)
+             {
+                 Console.WriteLine(e.Message);
+                 Console.WriteLine(e.StackTrace);
+             }
+         }
+
+         // ProxyLogin: proxy a login request
+         private void LoginRequest(StreamReader reader, StreamWriter writer)
+         {
+             lock (this)
+             {
+                 string line;
+                 int contentLength = 0;
+                 // read HTTP header
+                 do
+                 {
+                     // read one line of the header
+                     line = reader.ReadLine();
+
+                     // check for premature EOF
+                     if (line == null)
+                         throw new Exception("EOF in client HTTP header");
+
+                     // look for Content-Length
+                     Match match = (new Regex(@"Content-Length: (\d+)$")).Match(line);
+                     if (match.Success)
+                         contentLength = Convert.ToInt32(match.Groups[1].Captures[0].ToString());
+                 } while (line != "");
+
+                 // read the HTTP body into a buffer
+                 char[] content = new char[contentLength];
+                 reader.Read(content, 0, contentLength);
+
+                 if (this.userAccounts)
+                 {
+                     //ask the UserProfile Manager to process the request
+                     string reply = this.userManager.ParseXMLRPC(new String(content));
+                     // forward the XML-RPC response to the client
+                     writer.WriteLine("HTTP/1.0 200 OK");
+                     writer.WriteLine("Content-type: text/xml");
+                     writer.WriteLine();
+                     writer.WriteLine(reply);
+                 }
+                 else
+                 {
+                     //handle ourselves
+                     XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(new String(content));
+                     if (request.MethodName == "login_to_simulator")
+                     {
+                         this.ProcessXmlRequest(request, writer);
+                     }
+                     else
+                     {
+                         XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
+                         Hashtable PresenceErrorRespData = new Hashtable();
+                         PresenceErrorRespData["reason"] = "XmlRequest"; ;
+                         PresenceErrorRespData["message"] = "Unknown Rpc request";
+                         PresenceErrorRespData["login"] = "false";
+                         PresenceErrorResp.Value = PresenceErrorRespData;
+                         string reply = Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", "");
+                         writer.WriteLine("HTTP/1.0 200 OK");
+                         writer.WriteLine("Content-type: text/xml");
+                         writer.WriteLine();
+                         writer.WriteLine(reply);
+                     }
+                 }
+             }
+         }
+         */
+        //public bool ProcessXmlRequest(XmlRpcRequest request, StreamWriter writer)
+
+        public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
-            this.InitializeLogin();
-            Thread runLoginProxy = new Thread(new ThreadStart(RunLogin));
-            runLoginProxy.IsBackground = true;
-            runLoginProxy.Start();
-        }
-
-        private void RunLogin()
-        {
-            Console.WriteLine("Starting Login Server");
-            try
-            {
-                for (; ; )
-                {
-                    Socket client = loginServer.Accept();
-                    IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
-
-
-                    NetworkStream networkStream = new NetworkStream(client);
-                    StreamReader networkReader = new StreamReader(networkStream);
-                    StreamWriter networkWriter = new StreamWriter(networkStream);
-
-                    try
-                    {
-                        LoginRequest(networkReader, networkWriter);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-
-                    networkWriter.Close();
-                    networkReader.Close();
-                    networkStream.Close();
-
-                    client.Close();
-
-                    // send any packets queued for injection
-
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
-            }
-        }
-
-        // ProxyLogin: proxy a login request
-        private void LoginRequest(StreamReader reader, StreamWriter writer)
-        {
-            lock (this)
-            {
-                string line;
-                int contentLength = 0;
-                // read HTTP header
-                do
-                {
-                    // read one line of the header
-                    line = reader.ReadLine();
-
-                    // check for premature EOF
-                    if (line == null)
-                        throw new Exception("EOF in client HTTP header");
-
-                    // look for Content-Length
-                    Match match = (new Regex(@"Content-Length: (\d+)$")).Match(line);
-                    if (match.Success)
-                        contentLength = Convert.ToInt32(match.Groups[1].Captures[0].ToString());
-                } while (line != "");
-
-                // read the HTTP body into a buffer
-                char[] content = new char[contentLength];
-                reader.Read(content, 0, contentLength);
-
-                if (this.userAccounts)
-                {
-                    //ask the UserProfile Manager to process the request
-                    string reply = this.userManager.ParseXMLRPC(new String(content));
-                    // forward the XML-RPC response to the client
-                    writer.WriteLine("HTTP/1.0 200 OK");
-                    writer.WriteLine("Content-type: text/xml");
-                    writer.WriteLine();
-                    writer.WriteLine(reply);
-                }
-                else
-                {
-                    //handle ourselves
-                    XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(new String(content));
-                    if (request.MethodName == "login_to_simulator")
-                    {
-                        this.ProcessXmlRequest(request, writer);
-                    }
-                    else
-                    {
-                        XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
-                        Hashtable PresenceErrorRespData = new Hashtable();
-                        PresenceErrorRespData["reason"] = "XmlRequest"; ;
-                        PresenceErrorRespData["message"] = "Unknown Rpc request";
-                        PresenceErrorRespData["login"] = "false";
-                        PresenceErrorResp.Value = PresenceErrorRespData;
-                        string reply = Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", "");
-                        writer.WriteLine("HTTP/1.0 200 OK");
-                        writer.WriteLine("Content-type: text/xml");
-                        writer.WriteLine();
-                        writer.WriteLine(reply);
-                    }
-                }
-            }
-        }
-
-        public bool ProcessXmlRequest(XmlRpcRequest request, StreamWriter writer)
-        {
+            Console.WriteLine("login attempt");
             Hashtable requestData = (Hashtable)request.Params[0];
             string first;
             string last;
             string passwd;
             LLUUID Agent;
             LLUUID Session;
+
+            XmlRpcResponse response = new XmlRpcResponse();
 
             //get login name
             if (requestData.Contains("first"))
@@ -254,18 +267,24 @@ namespace OpenSim.UserServer
 
             if (!Authenticate(first, last, passwd))
             {
-                XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
-                Hashtable PresenceErrorRespData = new Hashtable();
-                PresenceErrorRespData["reason"] = "key"; ;
-                PresenceErrorRespData["message"] = "You have entered an invalid name/password combination. Check Caps/lock.";
-                PresenceErrorRespData["login"] = "false";
-                PresenceErrorResp.Value = PresenceErrorRespData;
-                string reply = Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", "");
-                writer.WriteLine("HTTP/1.0 200 OK");
-                writer.WriteLine("Content-type: text/xml");
-                writer.WriteLine();
-                writer.WriteLine(reply);
-                return false;
+                /* XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
+                 Hashtable PresenceErrorRespData = new Hashtable();
+                 PresenceErrorRespData["reason"] = "key"; ;
+                 PresenceErrorRespData["message"] = "You have entered an invalid name/password combination. Check Caps/lock.";
+                 PresenceErrorRespData["login"] = "false";
+                 PresenceErrorResp.Value = PresenceErrorRespData;
+                 string reply = Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", "");
+                 writer.WriteLine("HTTP/1.0 200 OK");
+                 writer.WriteLine("Content-type: text/xml");
+                 writer.WriteLine();
+                 writer.WriteLine(reply);
+                 return false;*/
+
+                Hashtable loginError = new Hashtable();
+                loginError["reason"] = "key"; ;
+                loginError["message"] = "You have entered an invalid name/password combination. Check Caps/lock.";
+                loginError["login"] = "false";
+                response.Value = loginError;
             }
 
             NumClients++;
@@ -291,15 +310,15 @@ namespace OpenSim.UserServer
             ArrayList GlobalTextures = new ArrayList();
             GlobalTextures.Add(GlobalT);
 
-            XmlRpcResponse response = (XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(this._defaultResponse);
+            response = (XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(this._defaultResponse);
             Hashtable responseData = (Hashtable)response.Value;
 
             responseData["sim_port"] = m_simPort;
             responseData["sim_ip"] = m_simAddr;
             responseData["agent_id"] = Agent.ToStringHyphenated();
             responseData["session_id"] = Session.ToStringHyphenated();
-            responseData["secure_session_id"]= secureSess.ToStringHyphenated();
-            responseData["circuit_code"] = (Int32)(Util.RandomClass.Next()); 
+            responseData["secure_session_id"] = secureSess.ToStringHyphenated();
+            responseData["circuit_code"] = (Int32)(Util.RandomClass.Next());
             responseData["seconds_since_epoch"] = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             responseData["login-flags"] = LoginFlags;
             responseData["global-textures"] = GlobalTextures;
@@ -337,16 +356,16 @@ namespace OpenSim.UserServer
                 ((LocalGridBase)m_gridServer).AddNewSession(_login);
             }
 
-            // forward the XML-RPC response to the client
-            writer.WriteLine("HTTP/1.0 200 OK");
-            writer.WriteLine("Content-type: text/xml");
-            writer.WriteLine();
+            /* // forward the XML-RPC response to the client
+             writer.WriteLine("HTTP/1.0 200 OK");
+             writer.WriteLine("Content-type: text/xml");
+             writer.WriteLine();
 
-            XmlTextWriter responseWriter = new XmlTextWriter(writer);
-            XmlRpcResponseSerializer.Singleton.Serialize(responseWriter, response);
-            responseWriter.Close();
+             XmlTextWriter responseWriter = new XmlTextWriter(writer);
+             XmlRpcResponseSerializer.Singleton.Serialize(responseWriter, response);
+             responseWriter.Close();*/
 
-            return true;
+            return response;
         }
 
         protected virtual void CustomiseLoginResponse(Hashtable responseData, string first, string last)
