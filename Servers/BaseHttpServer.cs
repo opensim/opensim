@@ -76,11 +76,23 @@ namespace OpenSim.Servers
             string response;
             RestMethod handler;
             
-            string methodKey = String.Format("{0}: {1}", method, path);
-
-            if (m_restHandlers.TryGetValue(methodKey, out handler))
+            string requestKey = String.Format("{0}: {1}", method, path);
+                    
+            string bestMatch = String.Empty;
+            foreach( string currentKey in m_restHandlers.Keys )
             {
-                response = handler(request);
+                if( requestKey.StartsWith( currentKey ))
+                {
+                    if(currentKey.Length > bestMatch.Length )
+                    {
+                        bestMatch = currentKey;
+                    }
+                }
+            }
+            
+            if (m_restHandlers.TryGetValue(bestMatch, out handler))
+            {
+                response = handler(request, path);
             
             }
             else

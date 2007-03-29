@@ -35,8 +35,8 @@ namespace OpenSim.CAPS
             server.AddRestHandler("POST", "/Admin/NewAccount", PostNewAccount );
             server.AddRestHandler("POST", "/Admin/Login", PostLogin );
         }
-        
-        private string GetWelcomePage( string request )
+
+        private string GetWelcomePage(string request, string path)
         {
             string responseString;
             responseString = "Welcome to the OpenSim Admin Page";
@@ -44,7 +44,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string PostLogin(string requestBody)
+        private string PostLogin(string requestBody, string path)
         {
             string responseString;
 // Console.WriteLine(requestBody);
@@ -61,7 +61,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string PostNewAccount(string requestBody)
+        private string PostNewAccount(string requestBody, string path)
         {
             string responseString;
             string firstName = "";
@@ -110,7 +110,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetConnectedClientsPage( string request )
+        private string GetConnectedClientsPage(string request, string path)
         {
             string responseString;
             responseString = " <p> Listing connected Clients </p>";
@@ -128,7 +128,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetAccountsPage( string request )
+        private string GetAccountsPage(string request, string path)
         {
             string responseString;
             responseString = "<p> Account management </p>";
@@ -138,7 +138,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetAdminPage( string request )
+        private string GetAdminPage(string request, string path)
         {
             return AdminPage;
         }

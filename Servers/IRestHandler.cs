@@ -4,5 +4,5 @@ using System.Text;
 
 namespace OpenSim.CAPS
 {
-    public delegate string RestMethod( string request );
+    public delegate string RestMethod( string request, string path );
 }
