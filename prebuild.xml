@@ -387,6 +387,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
+      <Reference name="OpenSim.Servers"/>
       <Reference name="OpenSim.RegionServer"/>
 
       <Files>

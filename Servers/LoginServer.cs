@@ -53,10 +53,8 @@ namespace OpenSim.UserServer
     public class LoginServer : LoginService, IUserServer
     {
         private IGridServer m_gridServer;
-        private ushort _loginPort = 8080;
         public IPAddress clientAddress = IPAddress.Loopback;
         public IPAddress remoteAddress = IPAddress.Any;
-        private Socket loginServer;
         private int NumClients;
         private string _defaultResponse;
         private bool userAccounts = false;

@@ -92,6 +92,12 @@
     <Compile Include="IRestHandler.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LocalUserProfileManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LoginServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="XmlRpcMethod.cs">
       <SubType>Code</SubType>
     </Compile>

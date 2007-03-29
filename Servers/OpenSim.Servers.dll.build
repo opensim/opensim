@@ -13,6 +13,8 @@
             <sources failonempty="true">
                 <include name="BaseHttpServer.cs" />
                 <include name="IRestHandler.cs" />
+                <include name="LocalUserProfileManager.cs" />
+                <include name="LoginServer.cs" />
                 <include name="XmlRpcMethod.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

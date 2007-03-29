@@ -148,12 +148,6 @@
     <Compile Include="types\Triangle.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserServer\LocalUserProfileManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserServer\LoginServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="world\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
