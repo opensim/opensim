@@ -73,7 +73,7 @@ namespace OpenSim
         private EndPoint epSender;
         private AsyncCallback ReceivedData;
 
-        private System.Timers.Timer timer1 = new System.Timers.Timer();
+        private System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         private string ConfigDll = "OpenSim.Config.SimConfigDb4o.dll";
         public string m_physicsEngine;
         public bool m_sandbox = false;
@@ -176,40 +176,39 @@ namespace OpenSim
 
 
             LoginServer loginServer = null;
-            if (m_loginserver && m_sandbox)
+            LoginServer adminLoginServer = null;
+
+            bool sandBoxWithLoginServer = m_loginserver && m_sandbox;
+            if (sandBoxWithLoginServer)
             {
                 loginServer = new LoginServer(gridServer, Cfg.IPListenAddr, Cfg.IPListenPort, this.user_accounts);
                 loginServer.Startup();
-
+                
+                if( user_accounts )
+                {
+                    //sandbox mode with loginserver using accounts
+                    this.GridServers.UserServer = loginServer;
+                    adminLoginServer = loginServer;
+                    
+                    HttpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);                    
+                }
+                else
+                {
+                    //sandbox mode with loginserver not using accounts
+                    HttpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
+                }
             }
 
-            if ((m_loginserver) && (m_sandbox) && (user_accounts))
-            {
-                //sandbox mode with loginserver using accounts
-                this.GridServers.UserServer = loginServer;
-                HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, loginServer));
-                HttpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);
-            }
-            else if ((m_loginserver) && (m_sandbox))
-            {
-                //sandbox mode with loginserver not using accounts
-                HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, null));
-                HttpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
-            }
-            else
-            {
-                //not in sandbox mode so no loginserver, so we don't handle login attempts
-                HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, null));
-            }
-
+            HttpServer.AddRestHandler("Admin", new AdminWebFront("Admin", LocalWorld, adminLoginServer ));
+            
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
             HttpServer.Start();
 
             MainServerListener();
 
-            timer1.Enabled = true;
-            timer1.Interval = 100;
-            timer1.Elapsed += new ElapsedEventHandler(this.Timer1Tick);
+            m_heartbeatTimer.Enabled = true;
+            m_heartbeatTimer.Interval = 100;
+            m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
         }
 
         private SimConfig LoadConfigDll(string dllName)
@@ -340,7 +339,7 @@ namespace OpenSim
             Environment.Exit(0);
         }
 
-        void Timer1Tick(object sender, System.EventArgs e)
+        void Heartbeat(object sender, System.EventArgs e)
         {
             LocalWorld.Update();
         }

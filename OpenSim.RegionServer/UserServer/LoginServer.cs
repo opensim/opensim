@@ -84,28 +84,16 @@ namespace OpenSim.UserServer
 
         public void Startup()
         {
-            this.InitializeLogin();
-            //Thread runLoginProxy = new Thread(new ThreadStart(RunLogin));
-            //runLoginProxy.IsBackground = true;
-            //runLoginProxy.Start();
-        }
-
-        // InitializeLogin: initialize the login 
-        private void InitializeLogin()
-        {
             this._needPasswd = false;
             //read in default response string
             StreamReader SR;
             string lines;
             SR = File.OpenText("new-login.dat");
 
-            //lines=SR.ReadLine();
-
             while (!SR.EndOfStream)
             {
                 lines = SR.ReadLine();
                 _defaultResponse += lines;
-                //lines = SR.ReadLine();
             }
             SR.Close();
             this._mpasswd = EncodePassword("testpass");
@@ -113,117 +101,7 @@ namespace OpenSim.UserServer
             userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr);
             userManager.InitUserProfiles();
             userManager.SetKeys("", "", "", "Welcome to OpenSim");
-
-            //loginServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            // loginServer.Bind(new IPEndPoint(remoteAddress, _loginPort));
-            //loginServer.Listen(1);
         }
-
-        /* private void RunLogin()
-         {
-             Console.WriteLine("Starting Login Server");
-             try
-             {
-                 for (; ; )
-                 {
-                     Socket client = loginServer.Accept();
-                     IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
-
-
-                     NetworkStream networkStream = new NetworkStream(client);
-                     StreamReader networkReader = new StreamReader(networkStream);
-                     StreamWriter networkWriter = new StreamWriter(networkStream);
-
-                     try
-                     {
-                         LoginRequest(networkReader, networkWriter);
-                     }
-                     catch (Exception e)
-                     {
-                         Console.WriteLine(e.Message);
-                     }
-
-                     networkWriter.Close();
-                     networkReader.Close();
-                     networkStream.Close();
-
-                     client.Close();
-
-                     // send any packets queued for injection
-
-                 }
-             }
-             catch (Exception e)
-             {
-                 Console.WriteLine(e.Message);
-                 Console.WriteLine(e.StackTrace);
-             }
-         }
-
-         // ProxyLogin: proxy a login request
-         private void LoginRequest(StreamReader reader, StreamWriter writer)
-         {
-             lock (this)
-             {
-                 string line;
-                 int contentLength = 0;
-                 // read HTTP header
-                 do
-                 {
-                     // read one line of the header
-                     line = reader.ReadLine();
-
-                     // check for premature EOF
-                     if (line == null)
-                         throw new Exception("EOF in client HTTP header");
-
-                     // look for Content-Length
-                     Match match = (new Regex(@"Content-Length: (\d+)$")).Match(line);
-                     if (match.Success)
-                         contentLength = Convert.ToInt32(match.Groups[1].Captures[0].ToString());
-                 } while (line != "");
-
-                 // read the HTTP body into a buffer
-                 char[] content = new char[contentLength];
-                 reader.Read(content, 0, contentLength);
-
-                 if (this.userAccounts)
-                 {
-                     //ask the UserProfile Manager to process the request
-                     string reply = this.userManager.ParseXMLRPC(new String(content));
-                     // forward the XML-RPC response to the client
-                     writer.WriteLine("HTTP/1.0 200 OK");
-                     writer.WriteLine("Content-type: text/xml");
-                     writer.WriteLine();
-                     writer.WriteLine(reply);
-                 }
-                 else
-                 {
-                     //handle ourselves
-                     XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(new String(content));
-                     if (request.MethodName == "login_to_simulator")
-                     {
-                         this.ProcessXmlRequest(request, writer);
-                     }
-                     else
-                     {
-                         XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
-                         Hashtable PresenceErrorRespData = new Hashtable();
-                         PresenceErrorRespData["reason"] = "XmlRequest"; ;
-                         PresenceErrorRespData["message"] = "Unknown Rpc request";
-                         PresenceErrorRespData["login"] = "false";
-                         PresenceErrorResp.Value = PresenceErrorRespData;
-                         string reply = Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", "");
-                         writer.WriteLine("HTTP/1.0 200 OK");
-                         writer.WriteLine("Content-type: text/xml");
-                         writer.WriteLine();
-                         writer.WriteLine(reply);
-                     }
-                 }
-             }
-         }
-         */
-        //public bool ProcessXmlRequest(XmlRpcRequest request, StreamWriter writer)
 
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
@@ -267,19 +145,6 @@ namespace OpenSim.UserServer
 
             if (!Authenticate(first, last, passwd))
             {
-                /* XmlRpcResponse PresenceErrorResp = new XmlRpcResponse();
-                 Hashtable PresenceErrorRespData = new Hashtable();
-                 PresenceErrorRespData["reason"] = "key"; ;
-                 PresenceErrorRespData["message"] = "You have entered an invalid name/password combination. Check Caps/lock.";
-                 PresenceErrorRespData["login"] = "false";
-                 PresenceErrorResp.Value = PresenceErrorRespData;
-                 string reply = Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(PresenceErrorResp), " encoding=\"utf-16\"", "");
-                 writer.WriteLine("HTTP/1.0 200 OK");
-                 writer.WriteLine("Content-type: text/xml");
-                 writer.WriteLine();
-                 writer.WriteLine(reply);
-                 return false;*/
-
                 Hashtable loginError = new Hashtable();
                 loginError["reason"] = "key"; ;
                 loginError["message"] = "You have entered an invalid name/password combination. Check Caps/lock.";
@@ -355,15 +220,6 @@ namespace OpenSim.UserServer
             {
                 ((LocalGridBase)m_gridServer).AddNewSession(_login);
             }
-
-            /* // forward the XML-RPC response to the client
-             writer.WriteLine("HTTP/1.0 200 OK");
-             writer.WriteLine("Content-type: text/xml");
-             writer.WriteLine();
-
-             XmlTextWriter responseWriter = new XmlTextWriter(writer);
-             XmlRpcResponseSerializer.Singleton.Serialize(responseWriter, response);
-             responseWriter.Close();*/
 
             return response;
         }
@@ -445,7 +301,6 @@ namespace OpenSim.UserServer
         {
 
         }
-
     }
 
 
