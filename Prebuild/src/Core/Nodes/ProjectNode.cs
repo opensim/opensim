@@ -424,7 +424,11 @@ namespace Prebuild.Core.Nodes
 			m_Runtime = (ClrRuntime)Helper.EnumAttributeValue(node, "runtime", typeof(ClrRuntime), m_Runtime);
 			m_StartupObject = Helper.AttributeValue(node, "startupObject", m_StartupObject);
 			m_RootNamespace = Helper.AttributeValue(node, "rootNamespace", m_RootNamespace);
-			m_Guid = Guid.NewGuid();
+		    
+            int hash = m_Name.GetHashCode();
+
+		    m_Guid = new Guid( hash, 0, 0, 0, 0, 0, 0,0,0,0,0 );
+		    
             m_GenerateAssemblyInfoFile = Helper.ParseBoolean(node, "generateAssemblyInfoFile", false);
             
 			if(m_AssemblyName == null || m_AssemblyName.Length < 1)

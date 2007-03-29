@@ -665,7 +665,7 @@ namespace Prebuild.Core.Targets
 
                 if (projectFile.Contains( "OpenSim.csproj" ))
                 {
-                    ps.WriteLine("    <StartArguments>-loginserver -sandbox -accounts -realphysx</StartArguments>");
+                    ps.WriteLine("    <StartArguments>-loginserver -sandbox -accounts</StartArguments>");
                 }
 
                 ps.WriteLine("    <ReferencePath>{0}</ReferencePath>", MakeRefPath(project));
