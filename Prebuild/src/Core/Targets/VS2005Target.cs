@@ -658,8 +658,16 @@ namespace Prebuild.Core.Targets
                 //ps.WriteLine("    <Build>");
                 ps.WriteLine("  <PropertyGroup>");
                 //ps.WriteLine("      <Settings ReferencePath=\"{0}\">", MakeRefPath(project));
+
+
                 ps.WriteLine("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>");
                 ps.WriteLine("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>");
+
+                if (projectFile.Contains( "OpenSim.csproj" ))
+                {
+                    ps.WriteLine("    <StartArguments>-loginserver -sandbox -accounts -realphysx</StartArguments>");
+                }
+
                 ps.WriteLine("    <ReferencePath>{0}</ReferencePath>", MakeRefPath(project));
                 ps.WriteLine("    <LastOpenVersion>{0}</LastOpenVersion>", this.ProductVersion);
                 ps.WriteLine("    <ProjectView>ProjectFiles</ProjectView>");
@@ -671,11 +679,7 @@ namespace Prebuild.Core.Targets
                     ps.Write(" Condition = \" '$(Configuration)|$(Platform)' == '{0}|AnyCPU' \"", conf.Name);
                     ps.WriteLine(" />");
                 }
-                //ps.WriteLine("      </Settings>");
-
-                //ps.WriteLine("    </Build>");
-                //ps.WriteLine("  </{0}>", toolInfo.XMLTag);
-                //ps.WriteLine("</VisualStudioProject>");
+                
                 ps.WriteLine("</Project>");
             }
             #endregion
