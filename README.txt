@@ -34,6 +34,22 @@ secondlife.exe -loginuri http://localhost:9000/
 * cd to bin/ and run "mono OpenSim.exe -sandbox -loginserver"
 
 
+RUNNING SANDBOX WITH USER ACCOUNTS
+
+* open cmd window, go to /bin and launch 
+OpenSim.exe -sandbox -loginserver -useraccounts
+
+* launch web browser, go to
+http://localhost:9000/Admin
+enter password 'Admin'
+
+* Select 'Accounts', enter credentials, press 'Create'
+
+* Now, log on thru your viewer (see above) with your newly created credentials.
+
+* Have Fun!
+
+
 
 PREBUILD
 
