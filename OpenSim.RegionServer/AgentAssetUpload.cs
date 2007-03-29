@@ -197,6 +197,7 @@ namespace OpenSim
                 trans.Asset.Description = Helpers.FieldToString(packet.InventoryBlock.Description);
                 trans.Asset.Name = Helpers.FieldToString(packet.InventoryBlock.Name);
                 trans.Asset.Type = packet.InventoryBlock.Type;
+                trans.Asset.InvType = packet.InventoryBlock.InvType;
                 if (trans.UploadComplete)
                 {
                     //already complete so we can add it to the inventory

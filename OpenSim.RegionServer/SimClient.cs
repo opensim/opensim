@@ -49,7 +49,6 @@ namespace OpenSim
     /// </summary>
     public class SimClient
     {
-
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
@@ -354,6 +353,7 @@ namespace OpenSim
                     break;
                 case PacketType.UpdateInventoryItem:
                     UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
+                    Console.WriteLine(Pack.ToString());
                     for (int i = 0; i < update.InventoryData.Length; i++)
                     {
                         if (update.InventoryData[i].TransactionID != LLUUID.Zero)
@@ -362,7 +362,7 @@ namespace OpenSim
                             if (asset != null)
                             {
                                 Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
-                                m_inventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                                m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                             }
                             else
                             {
@@ -370,13 +370,17 @@ namespace OpenSim
                                 if (asset != null)
                                 {
                                     Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
-                                    m_inventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                                    m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                 }
                                 else
                                 {
                                     Console.WriteLine("trying to update inventory item, but asset is null");
                                 }
                             }
+                        }
+                        else
+                        {
+                            m_inventoryCache.UpdateInventoryItemDetails(this, update.InventoryData[i].ItemID, update.InventoryData[i]); ;
                         }
                     }
                     break;

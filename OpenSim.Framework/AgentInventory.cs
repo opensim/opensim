@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
+using libsecondlife.Packets;
 using OpenSim.Framework.Assets;
 
 namespace OpenSim.Framework.Inventory
@@ -105,13 +106,27 @@ namespace OpenSim.Framework.Inventory
             return false;
         }
 
-        public bool UpdateItem(LLUUID itemID, AssetBase asset)
+        public bool UpdateItemAsset(LLUUID itemID, AssetBase asset)
         {
             if(this.InventoryItems.ContainsKey(itemID))
             {
                 InventoryItem Item = this.InventoryItems[itemID];
                 Item.AssetID = asset.FullID;
                 Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() + " so it now is set to asset " + asset.FullID.ToStringHyphenated());
+                //TODO need to update the rest of the info
+            }
+            return true;
+        }
+
+        public bool UpdateItemDetails(LLUUID itemID, UpdateInventoryItemPacket.InventoryDataBlock packet)
+        {
+            Console.WriteLine("updating inventory item details");
+            if (this.InventoryItems.ContainsKey(itemID))
+            {
+                Console.WriteLine("changing name to "+ Helpers.FieldToString(packet.Name));
+                InventoryItem Item = this.InventoryItems[itemID];
+                Item.Name = Helpers.FieldToString(packet.Name);
+                Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated());
                 //TODO need to update the rest of the info
             }
             return true;

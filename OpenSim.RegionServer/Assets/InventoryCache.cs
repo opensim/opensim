@@ -141,11 +141,27 @@ namespace OpenSim.Assets
             return newItem;
         }
 
-        public bool UpdateInventoryItem(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Assets.AssetBase asset)
+        public bool UpdateInventoryItemAsset(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Assets.AssetBase asset)
         {
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
             {
-                bool res = _agentsInventory[remoteClient.AgentID].UpdateItem(itemID, asset);
+                bool res = _agentsInventory[remoteClient.AgentID].UpdateItemAsset(itemID, asset);
+                if (res)
+                {
+                    InventoryItem Item = this._agentsInventory[remoteClient.AgentID].InventoryItems[itemID];
+                    this.SendItemUpdateCreate(remoteClient, Item);
+                }
+                return res;
+            }
+
+            return false;
+        }
+
+        public bool UpdateInventoryItemDetails(SimClient remoteClient, LLUUID itemID, UpdateInventoryItemPacket.InventoryDataBlock packet)
+        {
+            if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
+            {
+                bool res = _agentsInventory[remoteClient.AgentID].UpdateItemDetails(itemID, packet);
                 if (res)
                 {
                     InventoryItem Item = this._agentsInventory[remoteClient.AgentID].InventoryItems[itemID];

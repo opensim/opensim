@@ -78,7 +78,7 @@ namespace OpenSim.CAPS
             //Console.WriteLine(requestBody);
             comp = requestBody.Split(delimiter);
             passw = comp[3].Split(delimiter2);
-            if (passw[1] == passWord)
+            if (passw[1] == passWord)  // check admin password is correct
             {
                                 
                 line = comp[0].Split(delimiter2); //split firstname
