@@ -287,9 +287,11 @@ namespace OpenSim.Framework.User
                     ClassifiedCategories.Add(ClassifiedCategoriesHash);
 
                     ArrayList AgentInventory = new ArrayList();
+                    Console.WriteLine("adding inventory to response");
                     foreach (InventoryFolder InvFolder in TheUser.Inventory.InventoryFolders.Values)
                     {
                         Hashtable TempHash = new Hashtable();
+                        Console.WriteLine("adding folder " + InvFolder.FolderName + ", ID: " + InvFolder.FolderID.ToStringHyphenated() + " with parent: " + InvFolder.ParentID.ToStringHyphenated()); 
                         TempHash["name"] = InvFolder.FolderName;
                         TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
                         TempHash["version"] = (Int32)InvFolder.Version;

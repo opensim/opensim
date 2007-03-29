@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Inventory
 
             InventoryRoot = new InventoryFolder();
             InventoryRoot.FolderID = LLUUID.Random();
-            InventoryRoot.ParentID = new LLUUID();
+            InventoryRoot.ParentID = LLUUID.Zero;
             InventoryRoot.Version = 1;
             InventoryRoot.DefaultType = 8;
             InventoryRoot.OwnerID = this.AgentID;
@@ -84,6 +84,7 @@ namespace OpenSim.Framework.Inventory
 
         public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName, LLUUID parent)
         {
+            Console.WriteLine("creating new folder called " + folderName + " in agents inventory");
             InventoryFolder Folder = new InventoryFolder();
             Folder.FolderID = folderID;
             Folder.OwnerID = this.AgentID;

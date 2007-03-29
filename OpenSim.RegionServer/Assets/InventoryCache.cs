@@ -112,6 +112,19 @@ namespace OpenSim.Assets
             return res;
         }
 
+        public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID, ushort type, string folderName, LLUUID parent)
+        {
+            bool res = false;
+            if (folderID != LLUUID.Zero)  //don't create a folder with a zero id
+            {
+                if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
+                {
+                    res = this._agentsInventory[remoteClient.AgentID].CreateNewFolder(folderID, type, folderName, parent);
+                }
+            }
+            return res;
+        }
+
         public LLUUID AddNewInventoryItem(SimClient remoteClient, LLUUID folderID, OpenSim.Framework.Assets.AssetBase asset)
         {
             LLUUID newItem = null;

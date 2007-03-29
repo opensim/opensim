@@ -332,7 +332,7 @@ namespace OpenSim
                     break;
                 case PacketType.CreateInventoryFolder:
                     CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
-                    m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type);
+                    m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Helpers.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
                     Console.WriteLine(Pack.ToString());
                     break;
                 case PacketType.CreateInventoryItem:
@@ -361,6 +361,7 @@ namespace OpenSim
                             AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
                             if (asset != null)
                             {
+                                Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
                                 m_inventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
                             }
                             else
@@ -368,7 +369,12 @@ namespace OpenSim
                                 asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
                                 if (asset != null)
                                 {
+                                    Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
                                     m_inventoryCache.UpdateInventoryItem(this, update.InventoryData[i].ItemID, asset);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("trying to update inventory item, but asset is null");
                                 }
                             }
                         }
@@ -712,6 +718,7 @@ namespace OpenSim
             if (this.m_userServer != null)
             {
                 // a user server is set so request the inventory from it
+                Console.WriteLine("getting inventory from user server");
                 inventory = m_inventoryCache.FetchAgentsInventory(this.AgentID, m_userServer);
             }
             else
