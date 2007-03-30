@@ -69,7 +69,7 @@ namespace OpenSim
         private const int MAX_SEQUENCE = 0xFFFFFF;
         private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
-        private bool debug = true;//false;
+        private bool debug = false;
         private World m_world;
         private Dictionary<uint, SimClient> m_clientThreads;
         private AssetCache m_assetCache;
@@ -764,7 +764,6 @@ namespace OpenSim
         {
             if (packet.InventoryBlock.Type == 7)
             {
-                this.debug = true;
                 //lets try this out with creating a notecard
                 AssetBase asset = new AssetBase();
                 asset.Name = Helpers.FieldToString(packet.InventoryBlock.Name);
