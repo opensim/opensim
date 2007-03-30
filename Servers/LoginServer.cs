@@ -46,7 +46,6 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.UserServer
 {
-
     /// <summary>
     /// When running in local (default) mode , handles client logins.
     /// </summary>
@@ -83,7 +82,7 @@ namespace OpenSim.UserServer
         public void Startup()
         {
             this._needPasswd = false;
-            //read in default response string
+            // read in default response string
             StreamReader SR;
             string lines;
             SR = File.OpenText("new-login.dat");
@@ -111,7 +110,7 @@ namespace OpenSim.UserServer
             LLUUID Agent;
             LLUUID Session;
 
-            XmlRpcResponse response = new XmlRpcResponse();
+            LoginResponse loginResponse = new LoginResponse();
 
             //get login name
             if (requestData.Contains("first"))
@@ -143,50 +142,27 @@ namespace OpenSim.UserServer
 
             if (!Authenticate(first, last, passwd))
             {
-                Hashtable loginError = new Hashtable();
-                loginError["reason"] = "key"; ;
-                loginError["message"] = "You have entered an invalid name/password combination. Check Caps/lock.";
-                loginError["login"] = "false";
-                response.Value = loginError;
+                return loginResponse.LoginFailedResponse();
             }
 
             NumClients++;
 
-            //create a agent and session LLUUID
+            // Create a agent and session LLUUID
             Agent = GetAgentId(first, last);
             int SessionRand = Util.RandomClass.Next(1, 999);
             Session = new LLUUID("aaaabbbb-0200-" + SessionRand.ToString("0000") + "-8664-58f53e442797");
-            LLUUID secureSess = LLUUID.Random();
-            //create some login info
-            Hashtable LoginFlagsHash = new Hashtable();
-            LoginFlagsHash["daylight_savings"] = "N";
-            LoginFlagsHash["stipend_since_login"] = "N";
-            LoginFlagsHash["gendered"] = "Y";
-            LoginFlagsHash["ever_logged_in"] = "Y";
-            ArrayList LoginFlags = new ArrayList();
-            LoginFlags.Add(LoginFlagsHash);
+            LLUUID secureSess = LLUUID.Random();            
 
-            Hashtable GlobalT = new Hashtable();
-            GlobalT["sun_texture_id"] = "cce0f112-878f-4586-a2e2-a8f104bba271";
-            GlobalT["cloud_texture_id"] = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-            GlobalT["moon_texture_id"] = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-            ArrayList GlobalTextures = new ArrayList();
-            GlobalTextures.Add(GlobalT);
-
-            response = (XmlRpcResponse)(new XmlRpcResponseDeserializer()).Deserialize(this._defaultResponse);
+            loginResponse.SimPort = m_simPort.ToString();
+            loginResponse.SimAddress = m_simAddr.ToString();
+            loginResponse.AgentID = Agent.ToStringHyphenated();
+            loginResponse.SessionID = Session.ToStringHyphenated();
+            loginResponse.SecureSessionID = secureSess.ToStringHyphenated();
+            loginResponse.CircuitCode = (Int32)(Util.RandomClass.Next());
+            XmlRpcResponse response = loginResponse.ToXmlRpcResponse();
             Hashtable responseData = (Hashtable)response.Value;
 
-            responseData["sim_port"] = m_simPort;
-            responseData["sim_ip"] = m_simAddr;
-            responseData["agent_id"] = Agent.ToStringHyphenated();
-            responseData["session_id"] = Session.ToStringHyphenated();
-            responseData["secure_session_id"] = secureSess.ToStringHyphenated();
-            responseData["circuit_code"] = (Int32)(Util.RandomClass.Next());
-            responseData["seconds_since_epoch"] = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            responseData["login-flags"] = LoginFlags;
-            responseData["global-textures"] = GlobalTextures;
-
-            //inventory
+            // inventory
             ArrayList InventoryList = (ArrayList)responseData["inventory-skeleton"];
             Hashtable Inventory1 = (Hashtable)InventoryList[0];
             Hashtable Inventory2 = (Hashtable)InventoryList[1];
