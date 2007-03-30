@@ -4,7 +4,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using OpenSim.CAPS;
+//using OpenSim.CAPS;
 using Nwc.XmlRpc;
 using System.Collections;
 
@@ -191,11 +191,11 @@ namespace OpenSim.Servers
 
         public void Start()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("BaseHttpServer.cs: Starting up HTTP Server");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("BaseHttpServer.cs: Starting up HTTP Server");
 
-            m_workerThread = new Thread(new ThreadStart(StartHTTP));
-            m_workerThread.IsBackground = true;
-            m_workerThread.Start();
+                m_workerThread = new Thread(new ThreadStart(StartHTTP));
+                m_workerThread.IsBackground = true;
+                m_workerThread.Start();
         }
 
         private void StartHTTP()

@@ -5,6 +5,8 @@ using System.IO;
 using OpenSim.world;
 using OpenSim.UserServer;
 using OpenSim.Servers;
+using OpenSim.Assets;
+using OpenSim.Framework.Inventory;
 
 namespace OpenSim.CAPS
 {
@@ -16,9 +18,11 @@ namespace OpenSim.CAPS
         private string passWord = "Admin";
         private World m_world;
         private LoginServer _userServer;
+        private InventoryCache _inventoryCache;
 
-        public AdminWebFront(string password, World world, LoginServer userserver)
+        public AdminWebFront(string password, World world, InventoryCache inventoryCache, LoginServer userserver)
         {
+            _inventoryCache = inventoryCache;
             _userServer = userserver;
             m_world = world;
             passWord = password;
@@ -31,9 +35,10 @@ namespace OpenSim.CAPS
             server.AddRestHandler("GET", "/Admin/Welcome", GetWelcomePage);
             server.AddRestHandler("GET", "/Admin/Accounts", GetAccountsPage );
             server.AddRestHandler("GET", "/Admin/Clients", GetConnectedClientsPage );
+            server.AddRestHandler("GET", "/ClientInventory", GetClientsInventory);
 
             server.AddRestHandler("POST", "/Admin/NewAccount", PostNewAccount );
-            server.AddRestHandler("POST", "/Admin/Login", PostLogin );
+            server.AddRestHandler("POST", "/Admin/Login", PostLogin );      
         }
 
         private string GetWelcomePage(string request, string path)
@@ -120,12 +125,46 @@ namespace OpenSim.CAPS
                 if (m_world.Entities[UUID].ToString() == "OpenSim.world.Avatar")
                 {
                     TempAv = (OpenSim.world.Avatar)m_world.Entities[UUID];
-                    responseString += "<p>";
-                    responseString += String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
+                    responseString += "<p> Client: ";
+                    responseString += TempAv.firstname + " , " + TempAv.lastname + " , <A HREF=\"javascript:loadXMLDoc('ClientInventory/" + UUID.ToString() + "')\">" + UUID + "</A> , " + TempAv.ControllingClient.SessionID + " ,  " + TempAv.ControllingClient.CircuitCode + " , " + TempAv.ControllingClient.userEP.ToString();//String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
                     responseString += "</p>";
                 }
             }
             return responseString;
+        }
+
+        private string GetClientsInventory(string request, string path)
+        {
+            string[] line;
+            string delimStr = "/";
+            char[] delimiter = delimStr.ToCharArray();
+            string responseString;
+            responseString = " <p> Listing Inventory </p>";
+
+            line = path.Split(delimiter);
+            if (line.Length > 2)
+            {
+                if (line[1] == "ClientInventory")
+                {
+                    AgentInventory inven = this._inventoryCache.GetAgentsInventory(new libsecondlife.LLUUID(line[2]));
+                    responseString += " <p> Client: " + inven.AgentID.ToStringHyphenated() +" </p>";
+                    if (inven != null)
+                    {
+                        foreach (InventoryItem item in inven.InventoryItems.Values)
+                        {
+                            responseString += "<p> InventoryItem: ";
+                            responseString +=  item.Name +" , "+ item.ItemID +" , "+ item.Type +" , "+ item.FolderID +" , "+ item.AssetID +" , "+ item.Description ; //String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", item.Name, item.ItemID, item.Type, item.FolderID, item.AssetID, item.Description);
+                            responseString += "</p>";
+                        }
+                    }
+                }
+            }
+            return responseString;
+        }
+
+        private string GetCachedAssets(string request, string path)
+        {
+            return "";
         }
 
         private string GetAccountsPage(string request, string path)
