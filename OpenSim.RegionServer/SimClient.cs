@@ -69,7 +69,7 @@ namespace OpenSim
         private const int MAX_SEQUENCE = 0xFFFFFF;
         private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
-        private bool debug = false;
+        private bool debug = true;//false;
         private World m_world;
         private Dictionary<uint, SimClient> m_clientThreads;
         private AssetCache m_assetCache;
@@ -78,6 +78,7 @@ namespace OpenSim
         private OpenSimNetworkHandler m_application;
         private InventoryCache m_inventoryCache;
         private bool m_sandboxMode;
+        private int cachedtextureserial = 0;
 
 
         public IUserServer UserServer
@@ -148,6 +149,25 @@ namespace OpenSim
                     AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
                     // Console.WriteLine(appear.ToString());
                     this.ClientAvatar.SetAppearance(appear);
+                    break;
+                case PacketType.AgentCachedTexture:
+                    Console.WriteLine(Pack.ToString());
+                    AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)Pack;
+                    AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
+                    cachedresp.AgentData.AgentID = this.AgentID;
+                    cachedresp.AgentData.SessionID = this.SessionID;
+                    cachedresp.AgentData.SerialNum = this.cachedtextureserial;
+                    this.cachedtextureserial++;
+                    cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
+                    for (int i = 0; i < chechedtex.WearableData.Length; i++)
+                    {
+                        cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                        cachedresp.WearableData[i].TextureIndex = chechedtex.WearableData[i].TextureIndex;
+                        cachedresp.WearableData[i].TextureID = LLUUID.Zero;
+                        cachedresp.WearableData[i].HostName = new byte[0];
+                    }
+
+                    this.OutPacket(cachedresp);
                     break;
                 case PacketType.ObjectAdd:
                     m_world.AddNewPrim((ObjectAddPacket)Pack, this);

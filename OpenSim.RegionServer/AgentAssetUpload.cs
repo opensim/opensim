@@ -41,6 +41,7 @@ namespace OpenSim
                 response.AssetBlock.Success = true;
                 response.AssetBlock.UUID = transactionID.Combine(this.ourClient.SecureSessionID);
                 this.ourClient.OutPacket(response);
+                m_assetCache.AddAsset(asset);
             }
             else
             {
@@ -150,10 +151,11 @@ namespace OpenSim
                             response.AssetBlock.UUID = trans.TransactionID.Combine(this.ourClient.SecureSessionID);
                             this.ourClient.OutPacket(response);
 
+                            m_assetCache.AddAsset(trans.Asset);
                             //check if we should add it to inventory 
                             if (trans.AddToInventory)
                             {
-                                m_assetCache.AddAsset(trans.Asset);
+                               // m_assetCache.AddAsset(trans.Asset);
                                 m_inventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
                             }
 
@@ -201,7 +203,7 @@ namespace OpenSim
                 if (trans.UploadComplete)
                 {
                     //already complete so we can add it to the inventory
-                    m_assetCache.AddAsset(trans.Asset);
+                    //m_assetCache.AddAsset(trans.Asset);
                    Console.WriteLine( "Item created is " +m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
                 }
                 else
