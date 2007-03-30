@@ -341,6 +341,10 @@ namespace OpenSim
                     {
                         this.UploadAssets.CreateInventoryItem(createItem);
                     }
+                    else
+                    {
+                        this.CreateInventoryItem(createItem);
+                    }
                     break;
                 case PacketType.FetchInventory:
                     //Console.WriteLine("fetch item packet");
@@ -734,6 +738,27 @@ namespace OpenSim
                 m_inventoryCache.CreateNewInventoryFolder(this, baseFolder);
             }
             return inventory;
+        }
+
+        private void CreateInventoryItem(CreateInventoryItemPacket packet)
+        {
+            if (packet.InventoryBlock.Type == 7)
+            {
+                Console.WriteLine(packet.ToString());
+                this.debug = true;
+                //lets try this out with creating a notecard
+                AssetBase asset = new AssetBase();
+                asset.Name = Helpers.FieldToString(packet.InventoryBlock.Name);
+                asset.Description = Helpers.FieldToString(packet.InventoryBlock.Description);
+                asset.InvType = packet.InventoryBlock.InvType;
+                asset.Type = packet.InventoryBlock.Type;
+                asset.FullID = LLUUID.Random();
+                asset.Data = new byte[0];
+                Console.WriteLine("created new notecard with asset : " + asset.FullID.ToStringHyphenated());
+
+                m_assetCache.AddAsset(asset);
+                m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
+            }
         }
     }
 }

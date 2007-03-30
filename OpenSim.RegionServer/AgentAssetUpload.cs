@@ -84,14 +84,14 @@ namespace OpenSim
 
                 
             }
-            else if (pack.AssetBlock.Type == 13 | pack.AssetBlock.Type == 5)
+            else if (pack.AssetBlock.Type == 13 | pack.AssetBlock.Type == 5 | pack.AssetBlock.Type == 7)
             {
                
                     asset = new AssetBase();
                     asset.FullID = assetID;
                   //  Console.WriteLine("skin asset id is " + assetID.ToStringHyphenated());
                     asset.Type = pack.AssetBlock.Type;
-                    asset.InvType = asset.Type;
+                    asset.InvType = asset.Type ;
                     asset.Name = "NewClothing" + Util.RandomClass.Next(1, 1000).ToString("000");
                     asset.Data = pack.AssetBlock.AssetData;
 
