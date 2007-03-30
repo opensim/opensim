@@ -506,7 +506,7 @@ namespace OpenSim.world
             handshake.RegionInfo.TerrainStartHeight11 = 10;
             handshake.RegionInfo.SimAccess = 13;
             handshake.RegionInfo.WaterHeight = 20;
-            handshake.RegionInfo.RegionFlags = 72458694;
+            handshake.RegionInfo.RegionFlags = 72458694 -32;
             handshake.RegionInfo.SimName = _enc.GetBytes(m_regionName + "\0");
             handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");
             handshake.RegionInfo.TerrainBase0 = new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");

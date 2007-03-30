@@ -424,6 +424,38 @@ namespace OpenSim
                     //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
                     m_world.DeRezObject((DeRezObjectPacket)Pack, this);
                     break;
+                case PacketType.ModifyLand:
+                    ModifyLandPacket modify = (ModifyLandPacket)Pack;
+                    switch (modify.ModifyBlock.Action)
+                    {
+                        case 1:
+                            if (modify.ParcelData.Length > 0)
+                            {
+                                int mody = (int) modify.ParcelData[0].North;
+                                int modx = (int) modify.ParcelData[0].West;
+                                this.m_world.LandMap[(mody * 256) + modx -1 ] += 0.1f;
+                                this.m_world.LandMap[(mody * 256) + modx] += 0.2f;
+                                this.m_world.LandMap[(mody * 256) + modx + 1] += 0.1f;
+                                this.m_world.LandMap[((mody+1) * 256) + modx] += 0.1f;
+                                this.m_world.LandMap[((mody -1) * 256) + modx] += 0.1f;
+                                m_world.RegenerateTerrain(true, modx, mody);
+                            }
+                            break;
+                        case 2:
+                            if (modify.ParcelData.Length > 0)
+                            {
+                                int mody = (int)modify.ParcelData[0].North;
+                                int modx = (int)modify.ParcelData[0].West;
+                                this.m_world.LandMap[(mody * 256) + modx - 1] -= 0.1f;
+                                this.m_world.LandMap[(mody * 256) + modx] -= 0.2f;
+                                this.m_world.LandMap[(mody * 256) + modx + 1] -= 0.1f;
+                                this.m_world.LandMap[((mody + 1) * 256) + modx] -= 0.1f;
+                                this.m_world.LandMap[((mody - 1) * 256) + modx] -= 0.1f;
+                                m_world.RegenerateTerrain(true, modx, mody);
+                            }
+                            break;
+                    }
+                    break;
             }
         }
 

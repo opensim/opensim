@@ -295,13 +295,15 @@ namespace OpenSim.world
             objupdate.ObjectData[0].PSBlock = new byte[0];
             objupdate.ObjectData[0].ExtraParams = new byte[1];
             objupdate.ObjectData[0].MediaURL = new byte[0];
-            objupdate.ObjectData[0].NameValue = new byte[0];
+            objupdate.ObjectData[0].NameValue = new byte[2];
+            objupdate.ObjectData[0].NameValue[0] = (byte)'t';
+            objupdate.ObjectData[0].NameValue[1] = (byte)'o';
             objupdate.ObjectData[0].Text = new byte[0];
             objupdate.ObjectData[0].TextColor = new byte[4];
             objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0, 0, 0);
             objupdate.ObjectData[0].JointPivot = new LLVector3(0, 0, 0);
             objupdate.ObjectData[0].Material = 3;
-            objupdate.ObjectData[0].UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
+            objupdate.ObjectData[0].UpdateFlags =  32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
             objupdate.ObjectData[0].TextureAnim = new byte[0];
             objupdate.ObjectData[0].Sound = LLUUID.Zero;
             LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
