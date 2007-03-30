@@ -329,7 +329,6 @@ namespace OpenSim.Assets
         /// <param name="transferRequest"></param>
         public void AddAssetRequest(SimClient userInfo, TransferRequestPacket transferRequest)
         {
-            Console.WriteLine("AssetCache- got asset request: " + transferRequest.TransferInfo.TransferID.ToString());
             LLUUID requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
             //check to see if asset is in local cache, if not we need to request it from asset server.
             if (!this.Assets.ContainsKey(requestID))
@@ -338,7 +337,6 @@ namespace OpenSim.Assets
                 // so request from asset server
                 if (!this.RequestedAssets.ContainsKey(requestID))
                 {
-                    Console.WriteLine("which isn't in our cache, so requesting from asset server");
                     AssetRequest request = new AssetRequest();
                     request.RequestUser = userInfo;
                     request.RequestAssetID = requestID;
@@ -349,8 +347,7 @@ namespace OpenSim.Assets
                 return;
             }
             //it is in our cache 
-            Console.WriteLine("which is in our cache so will be sending it");
-            AssetInfo asset = this.Assets[requestID];
+             AssetInfo asset = this.Assets[requestID];
 
             //work out how many packets it  should be sent in 
             // and add to the AssetRequests list

@@ -357,7 +357,7 @@ namespace OpenSim
                     break;
                 case PacketType.UpdateInventoryItem:
                     UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
-                    Console.WriteLine(Pack.ToString());
+                    //Console.WriteLine(Pack.ToString());
                     for (int i = 0; i < update.InventoryData.Length; i++)
                     {
                         if (update.InventoryData[i].TransactionID != LLUUID.Zero)
@@ -744,7 +744,6 @@ namespace OpenSim
         {
             if (packet.InventoryBlock.Type == 7)
             {
-                Console.WriteLine(packet.ToString());
                 this.debug = true;
                 //lets try this out with creating a notecard
                 AssetBase asset = new AssetBase();
@@ -754,8 +753,7 @@ namespace OpenSim
                 asset.Type = packet.InventoryBlock.Type;
                 asset.FullID = LLUUID.Random();
                 asset.Data = new byte[0];
-                Console.WriteLine("created new notecard with asset : " + asset.FullID.ToStringHyphenated());
-
+                
                 m_assetCache.AddAsset(asset);
                 m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
             }
