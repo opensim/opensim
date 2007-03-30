@@ -95,6 +95,9 @@
     <Compile Include="LocalUserProfileManager.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LoginResponse.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LoginServer.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -14,6 +14,7 @@
                 <include name="BaseHttpServer.cs" />
                 <include name="IRestHandler.cs" />
                 <include name="LocalUserProfileManager.cs" />
+                <include name="LoginResponse.cs" />
                 <include name="LoginServer.cs" />
                 <include name="XmlRpcMethod.cs" />
             </sources>
