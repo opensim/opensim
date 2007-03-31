@@ -43,6 +43,8 @@ using OpenSim.Assets;
 
 namespace OpenSim
 {
+    public delegate bool PacketMethod(SimClient simClient, Packet packet);
+
     /// <summary>
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
@@ -80,6 +82,12 @@ namespace OpenSim
         private bool m_sandboxMode;
         private int cachedtextureserial = 0;
 
+        // local packet handler list not currently used but is here so each client could have a different handler for a packet to another client
+        // this is so we could do such things as have multiple world objects in a sim (or multiple "sims" handled by one server and different clients in different worlds
+        // maybe not a very practicle example but there are various other things it could be used for.
+        // protected Dictionary<string, PacketMethod> m_packetHandlers = new Dictionary<string, PacketMethod>();
+
+        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>();
 
         public IUserServer UserServer
         {
@@ -87,6 +95,37 @@ namespace OpenSim
             {
                 this.m_userServer = value;
             }
+        }
+
+        public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
+        {
+            bool result = false;
+            lock (PacketHandlers)
+            {
+                if (!PacketHandlers.ContainsKey(packetType))
+                {
+                    PacketHandlers.Add(packetType, handler);
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        protected virtual bool ProcessPacketMethod(Packet packet)
+        {
+            bool result = false;
+            bool found = false;
+            PacketMethod method;
+            lock (PacketHandlers)
+            {
+               found = PacketHandlers.TryGetValue(packet.Type, out method);
+            }
+            if (found)
+            {
+                result = method(this, packet);
+            }
+
+            return result;
         }
 
         private void ack_pack(Packet Pack)
@@ -112,7 +151,6 @@ namespace OpenSim
         protected virtual void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)
@@ -120,410 +158,420 @@ namespace OpenSim
                     Console.WriteLine(Pack.Type.ToString());
                 }
             }
-            switch (Pack.Type)
+
+            if (this.ProcessPacketMethod(Pack))
             {
-                case PacketType.CompleteAgentMovement:
-                    ClientAvatar.CompleteMovement(m_world);
-                    ClientAvatar.SendInitialPosition();
-                    break;
-                case PacketType.RegionHandshakeReply:
-                    m_world.SendLayerData(this);
-                    break;
-                case PacketType.AgentWearablesRequest:
-                    ClientAvatar.SendInitialAppearance();
-                    foreach (SimClient client in m_clientThreads.Values)
-                    {
-                        if (client.AgentID != this.AgentID)
+                return;
+            }
+            else
+            {
+                System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+               
+                switch (Pack.Type)
+                {
+                    case PacketType.CompleteAgentMovement:
+                        ClientAvatar.CompleteMovement(m_world);
+                        ClientAvatar.SendInitialPosition();
+                        break;
+                    case PacketType.RegionHandshakeReply:
+                        m_world.SendLayerData(this);
+                        break;
+                    case PacketType.AgentWearablesRequest:
+                        ClientAvatar.SendInitialAppearance();
+                        foreach (SimClient client in m_clientThreads.Values)
                         {
-                            ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
-                            this.OutPacket(objupdate);
-                            client.ClientAvatar.SendAppearanceToOtherAgent(this);
+                            if (client.AgentID != this.AgentID)
+                            {
+                                ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
+                                this.OutPacket(objupdate);
+                                client.ClientAvatar.SendAppearanceToOtherAgent(this);
+                            }
                         }
-                    }
-                    m_world.GetInitialPrims(this);
-                    break;
-                case PacketType.AgentIsNowWearing:
-                    AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
-                    //Console.WriteLine(Pack.ToString());
-                    break;
-                case PacketType.AgentSetAppearance:
-                    AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
-                    // Console.WriteLine(appear.ToString());
-                    this.ClientAvatar.SetAppearance(appear);
-                    break;
-                case PacketType.AgentCachedTexture:
-                    Console.WriteLine(Pack.ToString());
-                    AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)Pack;
-                    AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
-                    cachedresp.AgentData.AgentID = this.AgentID;
-                    cachedresp.AgentData.SessionID = this.SessionID;
-                    cachedresp.AgentData.SerialNum = this.cachedtextureserial;
-                    this.cachedtextureserial++;
-                    cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
-                    for (int i = 0; i < chechedtex.WearableData.Length; i++)
-                    {
-                        cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
-                        cachedresp.WearableData[i].TextureIndex = chechedtex.WearableData[i].TextureIndex;
-                        cachedresp.WearableData[i].TextureID = LLUUID.Zero;
-                        cachedresp.WearableData[i].HostName = new byte[0];
-                    }
-                    this.OutPacket(cachedresp);
-                    break;
-                case PacketType.ObjectAdd:
-                    m_world.AddNewPrim((ObjectAddPacket)Pack, this);
-                    break;
-                case PacketType.ObjectLink:
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
-                    break;
-                case PacketType.ObjectScale:
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
-                    break;
-                case PacketType.ObjectShape:
-                    ObjectShapePacket shape = (ObjectShapePacket)Pack;
-                    for (int i = 0; i < shape.ObjectData.Length; i++)
-                    {
+                        m_world.GetInitialPrims(this);
+                        break;
+                    case PacketType.AgentIsNowWearing:
+                        AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
+                        //Console.WriteLine(Pack.ToString());
+                        break;
+                    case PacketType.AgentSetAppearance:
+                        AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
+                        // Console.WriteLine(appear.ToString());
+                        this.ClientAvatar.SetAppearance(appear);
+                        break;
+                    case PacketType.AgentCachedTexture:
+                        Console.WriteLine(Pack.ToString());
+                        AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)Pack;
+                        AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
+                        cachedresp.AgentData.AgentID = this.AgentID;
+                        cachedresp.AgentData.SessionID = this.SessionID;
+                        cachedresp.AgentData.SerialNum = this.cachedtextureserial;
+                        this.cachedtextureserial++;
+                        cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
+                        for (int i = 0; i < chechedtex.WearableData.Length; i++)
+                        {
+                            cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                            cachedresp.WearableData[i].TextureIndex = chechedtex.WearableData[i].TextureIndex;
+                            cachedresp.WearableData[i].TextureID = LLUUID.Zero;
+                            cachedresp.WearableData[i].HostName = new byte[0];
+                        }
+                        this.OutPacket(cachedresp);
+                        break;
+                    case PacketType.ObjectAdd:
+                        m_world.AddNewPrim((ObjectAddPacket)Pack, this);
+                        break;
+                    case PacketType.ObjectLink:
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
+                        break;
+                    case PacketType.ObjectScale:
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
+                        break;
+                    case PacketType.ObjectShape:
+                        ObjectShapePacket shape = (ObjectShapePacket)Pack;
+                        for (int i = 0; i < shape.ObjectData.Length; i++)
+                        {
+                            foreach (Entity ent in m_world.Entities.Values)
+                            {
+                                if (ent.localid == shape.ObjectData[i].ObjectLocalID)
+                                {
+                                    ((OpenSim.world.Primitive)ent).UpdateShape(shape.ObjectData[i]);
+                                }
+                            }
+                        }
+                        break;
+                    case PacketType.MultipleObjectUpdate:
+                        MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)Pack;
+
+                        for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
+                        {
+                            if (multipleupdate.ObjectData[i].Type == 9) //change position
+                            {
+                                libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                                foreach (Entity ent in m_world.Entities.Values)
+                                {
+                                    if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
+                                    {
+                                        ((OpenSim.world.Primitive)ent).UpdatePosition(pos);
+
+                                    }
+                                }
+
+                                //should update stored position of the prim
+                            }
+                            else if (multipleupdate.ObjectData[i].Type == 10)//rotation
+                            {
+                                libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                                foreach (Entity ent in m_world.Entities.Values)
+                                {
+                                    if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
+                                    {
+                                        ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+                                        ((OpenSim.world.Primitive)ent).UpdateFlag = true;
+                                    }
+                                }
+                            }
+                            else if (multipleupdate.ObjectData[i].Type == 13)//scale
+                            {
+
+                                libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                                foreach (Entity ent in m_world.Entities.Values)
+                                {
+                                    if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
+                                    {
+                                        ((OpenSim.world.Primitive)ent).Scale = scale;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case PacketType.RequestImage:
+                        RequestImagePacket imageRequest = (RequestImagePacket)Pack;
+                        for (int i = 0; i < imageRequest.RequestImage.Length; i++)
+                        {
+                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image);
+                        }
+                        break;
+                    case PacketType.TransferRequest:
+                        //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
+                        TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+                        m_assetCache.AddAssetRequest(this, transfer);
+                        break;
+                    case PacketType.AgentUpdate:
+                        ClientAvatar.HandleUpdate((AgentUpdatePacket)Pack);
+                        break;
+                    case PacketType.LogoutRequest:
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+                        //send reply to let the client logout
+                        LogoutReplyPacket logReply = new LogoutReplyPacket();
+                        logReply.AgentData.AgentID = this.AgentID;
+                        logReply.AgentData.SessionID = this.SessionID;
+                        logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
+                        logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
+                        logReply.InventoryData[0].ItemID = LLUUID.Zero;
+                        OutPacket(logReply);
+                        //tell all clients to kill our object
+                        KillObjectPacket kill = new KillObjectPacket();
+                        kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+                        kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+                        kill.ObjectData[0].ID = this.ClientAvatar.localid;
+                        foreach (SimClient client in m_clientThreads.Values)
+                        {
+                            client.OutPacket(kill);
+                        }
+                        if (this.m_userServer != null)
+                        {
+                            this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
+                        }
+                        else
+                        {
+                            this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+                        }
+
+                        m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
+                        lock (m_world.Entities)
+                        {
+                            m_world.Entities.Remove(this.AgentID);
+                        }
+                        //need to do other cleaning up here too
+                        m_clientThreads.Remove(this.CircuitCode); //this.userEP);
+                        m_application.RemoveClientCircuit(this.CircuitCode);
+                        this.ClientThread.Abort();
+                        break;
+                    case PacketType.ChatFromViewer:
+                        ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
+                        if (Helpers.FieldToString(inchatpack.ChatData.Message) == "") break;
+
+
+                        libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
+                        reply.ChatData.Audible = 1;
+                        reply.ChatData.Message = inchatpack.ChatData.Message;
+                        reply.ChatData.ChatType = 1;
+                        reply.ChatData.SourceType = 1;
+                        reply.ChatData.Position = this.ClientAvatar.position;
+                        reply.ChatData.FromName = _enc.GetBytes(this.ClientAvatar.firstname + " " + this.ClientAvatar.lastname + "\0");
+                        reply.ChatData.OwnerID = this.AgentID;
+                        reply.ChatData.SourceID = this.AgentID;
+                        foreach (SimClient client in m_clientThreads.Values)
+                        {
+                            client.OutPacket(reply);
+                        }
+                        break;
+                    case PacketType.ObjectImage:
+                        ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
+                        for (int i = 0; i < imagePack.ObjectData.Length; i++)
+                        {
+                            foreach (Entity ent in m_world.Entities.Values)
+                            {
+                                if (ent.localid == imagePack.ObjectData[i].ObjectLocalID)
+                                {
+                                    ((OpenSim.world.Primitive)ent).UpdateTexture(imagePack.ObjectData[i].TextureEntry);
+                                }
+                            }
+                        }
+                        break;
+                    case PacketType.ObjectFlagUpdate:
+                        ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
                         foreach (Entity ent in m_world.Entities.Values)
                         {
-                            if (ent.localid == shape.ObjectData[i].ObjectLocalID)
+                            if (ent.localid == flags.AgentData.ObjectLocalID)
                             {
-                                ((OpenSim.world.Primitive)ent).UpdateShape(shape.ObjectData[i]);
+                                ((OpenSim.world.Primitive)ent).UpdateObjectFlags(flags);
                             }
                         }
-                    }
-                    break;
-                case PacketType.MultipleObjectUpdate:
-                    MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)Pack;
 
-                    for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
-                    {
-                        if (multipleupdate.ObjectData[i].Type == 9) //change position
-                        {
-                            libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                            foreach (Entity ent in m_world.Entities.Values)
-                            {
-                                if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
-                                {
-                                    ((OpenSim.world.Primitive)ent).UpdatePosition(pos);
-
-                                }
-                            }
-
-                            //should update stored position of the prim
-                        }
-                        else if (multipleupdate.ObjectData[i].Type == 10)//rotation
-                        {
-                            libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                            foreach (Entity ent in m_world.Entities.Values)
-                            {
-                                if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
-                                {
-                                    ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
-                                    ((OpenSim.world.Primitive)ent).UpdateFlag = true;
-                                }
-                            }
-                        }
-                        else if (multipleupdate.ObjectData[i].Type == 13)//scale
-                        {
-
-                            libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                            foreach (Entity ent in m_world.Entities.Values)
-                            {
-                                if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
-                                {
-                                    ((OpenSim.world.Primitive)ent).Scale = scale;
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case PacketType.RequestImage:
-                    RequestImagePacket imageRequest = (RequestImagePacket)Pack;
-                    for (int i = 0; i < imageRequest.RequestImage.Length; i++)
-                    {
-                        m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image);
-                    }
-                    break;
-                case PacketType.TransferRequest:
-                    //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
-                    TransferRequestPacket transfer = (TransferRequestPacket)Pack;
-                    m_assetCache.AddAssetRequest(this, transfer);
-                    break;
-                case PacketType.AgentUpdate:
-                    ClientAvatar.HandleUpdate((AgentUpdatePacket)Pack);
-                    break;
-                case PacketType.LogoutRequest:
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
-                    //send reply to let the client logout
-                    LogoutReplyPacket logReply = new LogoutReplyPacket();
-                    logReply.AgentData.AgentID = this.AgentID;
-                    logReply.AgentData.SessionID = this.SessionID;
-                    logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
-                    logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
-                    logReply.InventoryData[0].ItemID = LLUUID.Zero;
-                    OutPacket(logReply);
-                    //tell all clients to kill our object
-                    KillObjectPacket kill = new KillObjectPacket();
-                    kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-                    kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-                    kill.ObjectData[0].ID = this.ClientAvatar.localid;
-                    foreach (SimClient client in m_clientThreads.Values)
-                    {
-                        client.OutPacket(kill);
-                    }
-                    if (this.m_userServer != null)
-                    {
-                        this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
-                    }
-                    else
-                    {
-                        this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-                    }
-
-                    m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
-                    lock (m_world.Entities)
-                    {
-                        m_world.Entities.Remove(this.AgentID);
-                    }
-                    //need to do other cleaning up here too
-                    m_clientThreads.Remove(this.CircuitCode); //this.userEP);
-                    m_application.RemoveClientCircuit(this.CircuitCode);
-                    this.ClientThread.Abort();
-                    break;
-                case PacketType.ChatFromViewer:
-                    ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
-                    if (Helpers.FieldToString(inchatpack.ChatData.Message) == "") break;
-
-                   
-                    libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
-                    reply.ChatData.Audible = 1;
-                    reply.ChatData.Message = inchatpack.ChatData.Message;
-                    reply.ChatData.ChatType = 1;
-                    reply.ChatData.SourceType = 1;
-                    reply.ChatData.Position = this.ClientAvatar.position;
-                    reply.ChatData.FromName = _enc.GetBytes(this.ClientAvatar.firstname + " " + this.ClientAvatar.lastname + "\0");
-                    reply.ChatData.OwnerID = this.AgentID;
-                    reply.ChatData.SourceID = this.AgentID;
-                    foreach (SimClient client in m_clientThreads.Values)
-                    {
-                        client.OutPacket(reply);
-                    }
-                    break;
-                case PacketType.ObjectImage:
-                    ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
-                    for (int i = 0; i < imagePack.ObjectData.Length; i++)
-                    {
-                        foreach (Entity ent in m_world.Entities.Values)
-                        {
-                            if (ent.localid == imagePack.ObjectData[i].ObjectLocalID)
-                            {
-                                ((OpenSim.world.Primitive)ent).UpdateTexture(imagePack.ObjectData[i].TextureEntry);
-                            }
-                        }
-                    }
-                    break;
-                case PacketType.ObjectFlagUpdate:
-                    ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
-                    foreach (Entity ent in m_world.Entities.Values)
-                    {
-                        if (ent.localid == flags.AgentData.ObjectLocalID)
-                        {
-                            ((OpenSim.world.Primitive)ent).UpdateObjectFlags(flags);
-                        }
-                    }
-
-                    break;
-                case PacketType.AssetUploadRequest:
-                    //this.debug = true;
-                    AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                   // Console.WriteLine(Pack.ToString());
-                   // if (request.AssetBlock.Type == 0)
-                   // {
+                        break;
+                    case PacketType.AssetUploadRequest:
+                        //this.debug = true;
+                        AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
+                        // Console.WriteLine(Pack.ToString());
+                        // if (request.AssetBlock.Type == 0)
+                        // {
                         //this.UploadAssets.HandleUploadPacket(request, LLUUID.Random());
-                    //}
-                    //else
-                    //{
+                        //}
+                        //else
+                        //{
                         this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
-                    //}
-                    break;
-                case PacketType.SendXferPacket:
-                    Console.WriteLine(Pack.ToString());
-                    this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
-                    break;
-                case PacketType.CreateInventoryFolder:
-                    CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
-                    m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Helpers.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
-                    Console.WriteLine(Pack.ToString());
-                    break;
-                case PacketType.CreateInventoryItem:
-                    Console.WriteLine(Pack.ToString());
-                    CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
-                    if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
-                    {
-                        this.UploadAssets.CreateInventoryItem(createItem);
-                    }
-                    else
-                    {
-                        Console.Write(Pack.ToString());
-                        this.CreateInventoryItem(createItem);
-                    }
-                    break;
-                case PacketType.FetchInventory:
-                    //Console.WriteLine("fetch item packet");
-                    FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
-                    m_inventoryCache.FetchInventory(this, FetchInventory);
-                    break;
-                case PacketType.FetchInventoryDescendents:
-                    FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
-                    m_inventoryCache.FetchInventoryDescendents(this, Fetch);
-                    break;
-                case PacketType.UpdateInventoryItem:
-                    UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
-                    //Console.WriteLine(Pack.ToString());
-                    for (int i = 0; i < update.InventoryData.Length; i++)
-                    {
-                        if (update.InventoryData[i].TransactionID != LLUUID.Zero)
+                        //}
+                        break;
+                    case PacketType.SendXferPacket:
+                        Console.WriteLine(Pack.ToString());
+                        this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
+                        break;
+                    case PacketType.CreateInventoryFolder:
+                        CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
+                        m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Helpers.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
+                        Console.WriteLine(Pack.ToString());
+                        break;
+                    case PacketType.CreateInventoryItem:
+                        Console.WriteLine(Pack.ToString());
+                        CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
+                        if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
                         {
-                            AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
-                            if (asset != null)
+                            this.UploadAssets.CreateInventoryItem(createItem);
+                        }
+                        else
+                        {
+                            Console.Write(Pack.ToString());
+                            this.CreateInventoryItem(createItem);
+                        }
+                        break;
+                    case PacketType.FetchInventory:
+                        //Console.WriteLine("fetch item packet");
+                        FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
+                        m_inventoryCache.FetchInventory(this, FetchInventory);
+                        break;
+                    case PacketType.FetchInventoryDescendents:
+                        FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
+                        m_inventoryCache.FetchInventoryDescendents(this, Fetch);
+                        break;
+                    case PacketType.UpdateInventoryItem:
+                        UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
+                        //Console.WriteLine(Pack.ToString());
+                        for (int i = 0; i < update.InventoryData.Length; i++)
+                        {
+                            if (update.InventoryData[i].TransactionID != LLUUID.Zero)
                             {
-                                Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
-                                m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
-                            }
-                            else
-                            {
-                                asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
+                                AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
                                 if (asset != null)
                                 {
-                                    Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
+                                    Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
                                     m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                 }
                                 else
                                 {
-                                    Console.WriteLine("trying to update inventory item, but asset is null");
+                                    asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
+                                    if (asset != null)
+                                    {
+                                        Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
+                                        m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("trying to update inventory item, but asset is null");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                m_inventoryCache.UpdateInventoryItemDetails(this, update.InventoryData[i].ItemID, update.InventoryData[i]); ;
+                            }
+                        }
+                        break;
+                    case PacketType.ViewerEffect:
+                        ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
+                        foreach (SimClient client in m_clientThreads.Values)
+                        {
+                            if (client.AgentID != this.AgentID)
+                            {
+                                viewer.AgentData.AgentID = client.AgentID;
+                                viewer.AgentData.SessionID = client.SessionID;
+                                client.OutPacket(viewer);
+                            }
+                        }
+                        break;
+                    case PacketType.DeRezObject:
+                        //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
+                        m_world.DeRezObject((DeRezObjectPacket)Pack, this);
+                        break;
+                    case PacketType.RezObject:
+                        //Console.WriteLine(Pack.ToString());
+                        m_world.RezObject(this, (RezObjectPacket)Pack);
+                        break;
+                    case PacketType.ModifyLand:
+                        ModifyLandPacket modify = (ModifyLandPacket)Pack;
+                        //Console.WriteLine("terraform: number of parcel data blocks" + modify.ParcelData.Length);
+
+                        switch (modify.ModifyBlock.Action)
+                        {
+                            case 1:
+                                if (modify.ParcelData.Length > 0)
+                                {
+                                    int mody = (int)modify.ParcelData[0].North;
+                                    int modx = (int)modify.ParcelData[0].West;
+                                    // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
+                                    // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
+
+                                    this.m_world.LandMap[(mody * 256) + modx - 1] += 0.05f;
+                                    this.m_world.LandMap[(mody * 256) + modx] += 0.1f;
+                                    this.m_world.LandMap[(mody * 256) + modx + 1] += 0.05f;
+                                    this.m_world.LandMap[((mody + 1) * 256) + modx] += 0.05f;
+                                    this.m_world.LandMap[((mody - 1) * 256) + modx] += 0.05f;
+                                    m_world.RegenerateTerrain(true, modx, mody);
+                                }
+                                break;
+                            case 2:
+                                if (modify.ParcelData.Length > 0)
+                                {
+                                    int mody = (int)modify.ParcelData[0].North;
+                                    int modx = (int)modify.ParcelData[0].West;
+                                    // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
+                                    // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
+
+                                    this.m_world.LandMap[(mody * 256) + modx - 1] -= 0.05f;
+                                    this.m_world.LandMap[(mody * 256) + modx] -= 0.1f;
+                                    this.m_world.LandMap[(mody * 256) + modx + 1] -= 0.05f;
+                                    this.m_world.LandMap[((mody + 1) * 256) + modx] -= 0.05f;
+                                    this.m_world.LandMap[((mody - 1) * 256) + modx] -= 0.05f;
+                                    m_world.RegenerateTerrain(true, modx, mody);
+                                }
+                                break;
+                        }
+                        break;
+                    case PacketType.RequestTaskInventory:
+                        // Console.WriteLine(Pack.ToString());
+                        RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
+                        ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
+                        bool foundent = false;
+                        foreach (Entity ent in m_world.Entities.Values)
+                        {
+                            if (ent.localid == requesttask.InventoryData.LocalID)
+                            {
+                                replytask.InventoryData.TaskID = ent.uuid;
+                                replytask.InventoryData.Serial = 0;
+                                replytask.InventoryData.Filename = new byte[0];
+                                foundent = true;
+                            }
+                        }
+                        if (foundent)
+                        {
+                            this.OutPacket(replytask);
+                        }
+                        break;
+                    case PacketType.UUIDNameRequest:
+                        //System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+                        Console.WriteLine(Pack.ToString());
+                        UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)Pack;
+                        UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
+                        nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+
+                        for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
+                        {
+                            nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
+                            nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
+                            nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("Who\0");  //for now send any name
+                            nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("Knows\0");	   //in future need to look it up		
+                        }
+                        this.OutPacket(nameReply);
+                        break;
+                    case PacketType.AgentAnimation:
+                        //Console.WriteLine(Pack.ToString());
+                        break;
+                    case PacketType.ObjectSelect:
+                        ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
+                        for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+                        {
+                            foreach (Entity ent in m_world.Entities.Values)
+                            {
+                                if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
+                                {
+                                    ((OpenSim.world.Primitive)ent).GetProperites(this);
+                                    break;
                                 }
                             }
                         }
-                        else
-                        {
-                            m_inventoryCache.UpdateInventoryItemDetails(this, update.InventoryData[i].ItemID, update.InventoryData[i]); ;
-                        }
-                    }
-                    break;
-                case PacketType.ViewerEffect:
-                    ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
-                    foreach (SimClient client in m_clientThreads.Values)
-                    {
-                        if (client.AgentID != this.AgentID)
-                        {
-                            viewer.AgentData.AgentID = client.AgentID;
-                            viewer.AgentData.SessionID = client.SessionID;
-                            client.OutPacket(viewer);
-                        }
-                    }
-                    break;
-                case PacketType.DeRezObject:
-                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
-                    m_world.DeRezObject((DeRezObjectPacket)Pack, this);
-                    break;
-                case PacketType.RezObject:
-                    //Console.WriteLine(Pack.ToString());
-                    m_world.RezObject(this, (RezObjectPacket)Pack);
-                    break;
-                case PacketType.ModifyLand:
-                    ModifyLandPacket modify = (ModifyLandPacket)Pack;
-                    //Console.WriteLine("terraform: number of parcel data blocks" + modify.ParcelData.Length);
-                    
-                    switch (modify.ModifyBlock.Action)
-                    {
-                        case 1:
-                            if (modify.ParcelData.Length > 0)
-                            {
-                                int mody = (int) modify.ParcelData[0].North;
-                                int modx = (int) modify.ParcelData[0].West;
-                               // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
-                               // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
-                                
-                                this.m_world.LandMap[(mody * 256) + modx -1 ] += 0.05f;
-                                this.m_world.LandMap[(mody * 256) + modx] += 0.1f;
-                                this.m_world.LandMap[(mody * 256) + modx + 1] += 0.05f;
-                                this.m_world.LandMap[((mody+1) * 256) + modx] += 0.05f;
-                                this.m_world.LandMap[((mody -1) * 256) + modx] += 0.05f;
-                                m_world.RegenerateTerrain(true, modx, mody);
-                            }
-                            break;
-                        case 2:
-                            if (modify.ParcelData.Length > 0)
-                            {
-                                int mody = (int)modify.ParcelData[0].North;
-                                int modx = (int)modify.ParcelData[0].West;
-                               // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
-                               // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
-                                
-                                this.m_world.LandMap[(mody * 256) + modx - 1] -= 0.05f;
-                                this.m_world.LandMap[(mody * 256) + modx] -= 0.1f;
-                                this.m_world.LandMap[(mody * 256) + modx + 1] -= 0.05f;
-                                this.m_world.LandMap[((mody + 1) * 256) + modx] -= 0.05f;
-                                this.m_world.LandMap[((mody - 1) * 256) + modx] -= 0.05f;
-                                m_world.RegenerateTerrain(true, modx, mody);
-                            }
-                            break;
-                    }
-                    break;
-                case PacketType.RequestTaskInventory:
-                   // Console.WriteLine(Pack.ToString());
-                    RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
-                    ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
-                    bool foundent = false;
-                    foreach (Entity ent in m_world.Entities.Values)
-                    {
-                        if (ent.localid == requesttask.InventoryData.LocalID)
-                        {
-                            replytask.InventoryData.TaskID = ent.uuid;
-                            replytask.InventoryData.Serial = 0;
-                            replytask.InventoryData.Filename = new byte[0];
-                            foundent = true;
-                        }
-                    }
-                    if (foundent)
-                    {
-                        this.OutPacket(replytask);
-                    }
-                    break;
-                case PacketType.UUIDNameRequest:
-                    //System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-                    Console.WriteLine(Pack.ToString());
-                    UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)Pack;
-                    UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
-                    nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+                        break;
 
-                    for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
-                    {
-                        nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
-                        nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
-                        nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("Who\0");  //for now send any name
-                        nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("Knows\0");	   //in future need to look it up		
-                    }
-                    this.OutPacket(nameReply);
-                    break;
-                case PacketType.AgentAnimation:
-                    //Console.WriteLine(Pack.ToString());
-                    break;
-                case PacketType.ObjectSelect:
-                    ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
-                    for (int i = 0; i < incomingselect.ObjectData.Length; i++)
-                    {
-                        foreach (Entity ent in m_world.Entities.Values)
-                        {
-                            if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
-                            {
-                                ((OpenSim.world.Primitive)ent).GetProperites(this);
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                   
-        		
+
+                }
             }
         }
 
@@ -676,7 +724,7 @@ namespace OpenSim
 
         }
 
-        public  virtual void InPacket(Packet NewPack)
+        public virtual void InPacket(Packet NewPack)
         {
             // Handle appended ACKs
             if (NewPack.Header.AppendedAcks)
@@ -738,13 +786,13 @@ namespace OpenSim
             m_application = application;
             m_inventoryCache = inventoryCache;
             m_sandboxMode = sandboxMode;
-            
+
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
             PacketQueue = new BlockingQueue<QueItem>();
 
-            this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache );
+            this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
             AckTimer = new System.Timers.Timer(500);
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();
@@ -776,10 +824,10 @@ namespace OpenSim
         protected virtual void InitNewClient()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
-            
+
             m_world.AddViewerAgent(this);
             world.Entity tempent = m_world.Entities[this.AgentID];
-            
+
             this.ClientAvatar = (world.Avatar)tempent;
         }
 
@@ -872,7 +920,7 @@ namespace OpenSim
                 asset.Type = packet.InventoryBlock.Type;
                 asset.FullID = LLUUID.Random();
                 asset.Data = new byte[0];
-                
+
                 m_assetCache.AddAsset(asset);
                 m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
             }

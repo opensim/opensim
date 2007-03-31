@@ -50,6 +50,7 @@ using OpenSim.Servers;
 
 namespace OpenSim
 {
+
     public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
     {
         private PhysicsManager physManager;
