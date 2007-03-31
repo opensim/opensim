@@ -74,29 +74,29 @@ namespace OpenSim
             AssetBase asset = null;
             if (pack.AssetBlock.Type == 0)
             {
-                
-                    //first packet for transaction
-                    asset = new AssetBase();
-                    asset.FullID = assetID;
-                    asset.Type = pack.AssetBlock.Type;
-                    asset.InvType = asset.Type;
-                    asset.Name = "UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
-                    asset.Data = pack.AssetBlock.AssetData;
 
-                
+                //first packet for transaction
+                asset = new AssetBase();
+                asset.FullID = assetID;
+                asset.Type = pack.AssetBlock.Type;
+                asset.InvType = asset.Type;
+                asset.Name = "UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
+                asset.Data = pack.AssetBlock.AssetData;
+
+
             }
             else if (pack.AssetBlock.Type == 13 | pack.AssetBlock.Type == 5 | pack.AssetBlock.Type == 7)
             {
-               
-                    asset = new AssetBase();
-                    asset.FullID = assetID;
-                  //  Console.WriteLine("skin asset id is " + assetID.ToStringHyphenated());
-                    asset.Type = pack.AssetBlock.Type;
-                    asset.InvType = asset.Type ;
-                    asset.Name = "NewClothing" + Util.RandomClass.Next(1, 1000).ToString("000");
-                    asset.Data = pack.AssetBlock.AssetData;
 
-               
+                asset = new AssetBase();
+                asset.FullID = assetID;
+                //  Console.WriteLine("skin asset id is " + assetID.ToStringHyphenated());
+                asset.Type = pack.AssetBlock.Type;
+                asset.InvType = asset.Type;
+                asset.Name = "NewClothing" + Util.RandomClass.Next(1, 1000).ToString("000");
+                asset.Data = pack.AssetBlock.AssetData;
+
+
             }
 
             if (asset != null)
@@ -105,7 +105,7 @@ namespace OpenSim
             }
             else
             {
-                
+
                 //currently we don't support this asset type 
                 //so lets just tell the client that the upload is complete
                 AssetUploadCompletePacket response = new AssetUploadCompletePacket();
@@ -136,8 +136,8 @@ namespace OpenSim
                         }
                         else
                         {
-                            byte[] newArray = new byte[xferPacket.DataPacket.Data.Length-4];
-                            Array.Copy(xferPacket.DataPacket.Data, 4, newArray, 0, xferPacket.DataPacket.Data.Length-4);
+                            byte[] newArray = new byte[xferPacket.DataPacket.Data.Length - 4];
+                            Array.Copy(xferPacket.DataPacket.Data, 4, newArray, 0, xferPacket.DataPacket.Data.Length - 4);
                             trans.Asset.Data = newArray;
                         }
 
@@ -155,11 +155,11 @@ namespace OpenSim
                             //check if we should add it to inventory 
                             if (trans.AddToInventory)
                             {
-                               // m_assetCache.AddAsset(trans.Asset);
+                                // m_assetCache.AddAsset(trans.Asset);
                                 m_inventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
                             }
 
-                           
+
                         }
                         break;
                     }
@@ -178,7 +178,7 @@ namespace OpenSim
         public AssetBase AddUploadToAssetCache(LLUUID transactionID)
         {
             AssetBase asset = null;
-            if(this.transactions.ContainsKey(transactionID))
+            if (this.transactions.ContainsKey(transactionID))
             {
                 AssetTransaction trans = this.transactions[transactionID];
                 if (trans.UploadComplete)
@@ -193,7 +193,7 @@ namespace OpenSim
 
         public void CreateInventoryItem(CreateInventoryItemPacket packet)
         {
-            if(this.transactions.ContainsKey(packet.InventoryBlock.TransactionID))
+            if (this.transactions.ContainsKey(packet.InventoryBlock.TransactionID))
             {
                 AssetTransaction trans = this.transactions[packet.InventoryBlock.TransactionID];
                 trans.Asset.Description = Helpers.FieldToString(packet.InventoryBlock.Description);
@@ -204,7 +204,7 @@ namespace OpenSim
                 {
                     //already complete so we can add it to the inventory
                     //m_assetCache.AddAsset(trans.Asset);
-                   Console.WriteLine( "Item created is " +m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
+                    Console.WriteLine("Item created is " + m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset).ToStringHyphenated());
                 }
                 else
                 {
@@ -214,20 +214,19 @@ namespace OpenSim
             }
         }
 
-    }
-
-    public class AssetTransaction
-    {
-        public uint XferID;
-        public AssetBase Asset;
-        public bool AddToInventory;
-        public LLUUID InventFolder = LLUUID.Zero;
-        public bool UploadComplete = false;
-        public LLUUID TransactionID = LLUUID.Zero;
-
-        public AssetTransaction()
+        private class AssetTransaction
         {
+            public uint XferID;
+            public AssetBase Asset;
+            public bool AddToInventory;
+            public LLUUID InventFolder = LLUUID.Zero;
+            public bool UploadComplete = false;
+            public LLUUID TransactionID = LLUUID.Zero;
 
+            public AssetTransaction()
+            {
+
+            }
         }
     }
 }

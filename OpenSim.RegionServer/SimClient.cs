@@ -426,6 +426,8 @@ namespace OpenSim
                     break;
                 case PacketType.ModifyLand:
                     ModifyLandPacket modify = (ModifyLandPacket)Pack;
+                    //Console.WriteLine("terraform: number of parcel data blocks" + modify.ParcelData.Length);
+                    
                     switch (modify.ModifyBlock.Action)
                     {
                         case 1:
@@ -433,11 +435,14 @@ namespace OpenSim
                             {
                                 int mody = (int) modify.ParcelData[0].North;
                                 int modx = (int) modify.ParcelData[0].West;
-                                this.m_world.LandMap[(mody * 256) + modx -1 ] += 0.1f;
-                                this.m_world.LandMap[(mody * 256) + modx] += 0.2f;
-                                this.m_world.LandMap[(mody * 256) + modx + 1] += 0.1f;
-                                this.m_world.LandMap[((mody+1) * 256) + modx] += 0.1f;
-                                this.m_world.LandMap[((mody -1) * 256) + modx] += 0.1f;
+                               // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
+                               // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
+                                
+                                this.m_world.LandMap[(mody * 256) + modx -1 ] += 0.05f;
+                                this.m_world.LandMap[(mody * 256) + modx] += 0.1f;
+                                this.m_world.LandMap[(mody * 256) + modx + 1] += 0.05f;
+                                this.m_world.LandMap[((mody+1) * 256) + modx] += 0.05f;
+                                this.m_world.LandMap[((mody -1) * 256) + modx] += 0.05f;
                                 m_world.RegenerateTerrain(true, modx, mody);
                             }
                             break;
@@ -446,11 +451,14 @@ namespace OpenSim
                             {
                                 int mody = (int)modify.ParcelData[0].North;
                                 int modx = (int)modify.ParcelData[0].West;
-                                this.m_world.LandMap[(mody * 256) + modx - 1] -= 0.1f;
-                                this.m_world.LandMap[(mody * 256) + modx] -= 0.2f;
-                                this.m_world.LandMap[(mody * 256) + modx + 1] -= 0.1f;
-                                this.m_world.LandMap[((mody + 1) * 256) + modx] -= 0.1f;
-                                this.m_world.LandMap[((mody - 1) * 256) + modx] -= 0.1f;
+                               // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
+                               // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
+                                
+                                this.m_world.LandMap[(mody * 256) + modx - 1] -= 0.05f;
+                                this.m_world.LandMap[(mody * 256) + modx] -= 0.1f;
+                                this.m_world.LandMap[(mody * 256) + modx + 1] -= 0.05f;
+                                this.m_world.LandMap[((mody + 1) * 256) + modx] -= 0.05f;
+                                this.m_world.LandMap[((mody - 1) * 256) + modx] -= 0.05f;
                                 m_world.RegenerateTerrain(true, modx, mody);
                             }
                             break;
