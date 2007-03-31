@@ -9,6 +9,8 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Assets;
 using OpenSim.Framework.Terrain;
+using OpenSim.Framework.Inventory;
+using OpenSim.Assets;
 
 namespace OpenSim.world
 {
@@ -30,6 +32,8 @@ namespace OpenSim.world
         private ulong m_regionHandle;
         private string m_regionName;
         private SimConfig m_cfg;
+        private InventoryCache _inventoryCache;
+        private AssetCache _assetCache;
 
         public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName, SimConfig cfg)
         {
@@ -50,6 +54,21 @@ namespace OpenSim.world
             Avatar.LoadAnims();
         }
 
+        public InventoryCache InventoryCache
+        {
+            set
+            {
+                this._inventoryCache = value;
+            }
+        }
+
+        public AssetCache AssetCache
+        {
+            set
+            {
+                this._assetCache = value;
+            }
+        }
         public PhysicsScene PhysScene
         {
             set
@@ -291,44 +310,109 @@ namespace OpenSim.world
 
         public void DeRezObject(DeRezObjectPacket DeRezPacket, SimClient AgentClient)
         {
+           // Console.WriteLine(DeRezPacket);
             //Needs to delete object from physics at a later date
-
-            libsecondlife.LLUUID[] DeRezEnts;
-            DeRezEnts = new libsecondlife.LLUUID[DeRezPacket.ObjectData.Length];
-            int i = 0;
-            foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
+            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
             {
-                //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
-                foreach (Entity ent in this.Entities.Values)
+                libsecondlife.LLUUID[] DeRezEnts;
+                DeRezEnts = new libsecondlife.LLUUID[DeRezPacket.ObjectData.Length];
+                int i = 0;
+                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
                 {
-                    if (ent.localid == Data.ObjectLocalID)
+
+                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
+                    foreach (Entity ent in this.Entities.Values)
                     {
-                        DeRezEnts[i++] = ent.uuid;
-                        this.localStorage.RemovePrim(ent.uuid);
+                        if (ent.localid == Data.ObjectLocalID)
+                        {
+                            DeRezEnts[i++] = ent.uuid;
+                            this.localStorage.RemovePrim(ent.uuid);
+                            KillObjectPacket kill = new KillObjectPacket();
+                            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+                            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+                            kill.ObjectData[0].ID = ent.localid;
+                            foreach (SimClient client in m_clientThreads.Values)
+                            {
+                                client.OutPacket(kill);
+                            }
+                            //Uncommenting this means an old UUID will be re-used, thus crashing the asset server
+                            //Uncomment when prim/object UUIDs are random or such
+                            //2007-03-22 - Randomskk
+                            //this._primCount--;
+                            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Deleted UUID " + ent.uuid);
+                        }
+                    }
+                }
+                foreach (libsecondlife.LLUUID uuid in DeRezEnts)
+                {
+                    lock (Entities)
+                    {
+                        Entities.Remove(uuid);
+                    }
+                }
+            }
+            else
+            {
+                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
+                {
+                    Entity selectedEnt = null;
+                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
+                    foreach (Entity ent in this.Entities.Values)
+                    {
+                        if (ent.localid == Data.ObjectLocalID)
+                        {
+                            AssetBase primAsset = new AssetBase();
+                            primAsset.FullID = LLUUID.Random();//DeRezPacket.AgentBlock.TransactionID.Combine(LLUUID.Zero); //should be combining with securesessionid
+                            primAsset.InvType = 6;
+                            primAsset.Type = 6;
+                            primAsset.Name = "Prim";
+                            primAsset.Description = "";
+                            primAsset.Data = ((Primitive)ent).GetByteArray();
+                            this._assetCache.AddAsset(primAsset);
+                            this._inventoryCache.AddNewInventoryItem(AgentClient, DeRezPacket.AgentBlock.DestinationID, primAsset);
+                            selectedEnt = ent;
+                            break;
+                        }
+                    }
+                    if (selectedEnt != null)
+                    {
+                        this.localStorage.RemovePrim(selectedEnt.uuid);
                         KillObjectPacket kill = new KillObjectPacket();
                         kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
                         kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-                        kill.ObjectData[0].ID = ent.localid;
+                        kill.ObjectData[0].ID = selectedEnt.localid;
                         foreach (SimClient client in m_clientThreads.Values)
                         {
                             client.OutPacket(kill);
                         }
-                        //Uncommenting this means an old UUID will be re-used, thus crashing the asset server
-                        //Uncomment when prim/object UUIDs are random or such
-                        //2007-03-22 - Randomskk
-                        //this._primCount--;
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Deleted UUID " + ent.uuid);
+                        lock (Entities)
+                        {
+                            Entities.Remove(selectedEnt.uuid);
+                        }
                     }
                 }
             }
-            foreach (libsecondlife.LLUUID uuid in DeRezEnts)
+        }
+
+        public void RezObject(SimClient remoteClient, RezObjectPacket packet)
+        {
+            AgentInventory inven =this._inventoryCache.GetAgentsInventory(remoteClient.AgentID);
+            if(inven != null)
             {
-                lock (Entities)
+                if (inven.InventoryItems.ContainsKey(packet.InventoryData.ItemID))
                 {
-                    Entities.Remove(uuid);
+                    AssetBase asset = this._assetCache.GetAsset(inven.InventoryItems[packet.InventoryData.ItemID].AssetID);
+                    if (asset != null)
+                    {
+                        PrimData primd = new PrimData(asset.Data);
+                        Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
+                        nPrim.CreateFromStorage(primd, packet.RezData.RayEnd, this._primCount, true);
+                        this.Entities.Add(nPrim.uuid, nPrim);
+                        this._primCount++;
+                        this._inventoryCache.DeleteInventoryItem(remoteClient, packet.InventoryData.ItemID);
+                    }
                 }
             }
-
         }
 
         public bool Backup()

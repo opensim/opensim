@@ -27,6 +27,7 @@ namespace OpenSim.world
         private Dictionary<uint, SimClient> m_clientThreads;
         private ulong m_regionHandle;
         private World m_world;
+        private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
         public bool PhysicsEnabled
         {
@@ -94,6 +95,40 @@ namespace OpenSim.world
             return mesh;
         }
 
+        public byte[] GetByteArray()
+        {
+            return this.primData.ToBytes();
+        }
+
+        public void GetProperites(SimClient client)
+        {
+            ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
+            proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
+            proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
+            proper.ObjectData[0].ItemID = LLUUID.Zero; // this.uuid;
+            proper.ObjectData[0].CreationDate = (ulong) this.primData.CreationDate;
+            proper.ObjectData[0].CreatorID = this.primData.OwnerID;
+            proper.ObjectData[0].FolderID = LLUUID.Zero;
+            proper.ObjectData[0].FromTaskID = LLUUID.Zero;
+            proper.ObjectData[0].GroupID = LLUUID.Zero;
+            proper.ObjectData[0].InventorySerial = 0;
+            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
+            proper.ObjectData[0].ObjectID = this.uuid;
+            proper.ObjectData[0].OwnerID = primData.OwnerID;
+            proper.ObjectData[0].TouchName = new byte[0];
+            proper.ObjectData[0].TextureID = new byte[0];
+            proper.ObjectData[0].SitName = new byte[0];
+            proper.ObjectData[0].Name = new byte[0];
+            proper.ObjectData[0].Description = new byte[0];
+            proper.ObjectData[0].OwnerMask = this.primData.OwnerMask;
+            proper.ObjectData[0].NextOwnerMask = this.primData.NextOwnerMask;
+            proper.ObjectData[0].GroupMask = this.primData.GroupMask;
+            proper.ObjectData[0].EveryoneMask = this.primData.EveryoneMask;
+            proper.ObjectData[0].BaseMask = this.primData.BaseMask;
+            
+            client.OutPacket(proper);
+        }
+
         public void UpdatePosition(LLVector3 pos)
         {
             this.position = pos;
@@ -125,9 +160,45 @@ namespace OpenSim.world
             }
             if (this.newPrimFlag)
             {
+              /*  ObjectOwnerPacket objown = new ObjectOwnerPacket();
+                objown.HeaderData.GroupID = LLUUID.Zero;
+                objown.HeaderData.Override = false;
+                objown.HeaderData.OwnerID = LLUUID.Zero;
+                objown.ObjectData = new ObjectOwnerPacket.ObjectDataBlock[1];
+                objown.ObjectData[0] = new ObjectOwnerPacket.ObjectDataBlock();
+                objown.ObjectData[0].ObjectLocalID = this.localid;
+                ObjectGroupPacket objgroup = new ObjectGroupPacket();
+                objgroup.ObjectData = new ObjectGroupPacket.ObjectDataBlock[1];
+                objgroup.ObjectData[0] = new ObjectGroupPacket.ObjectDataBlock();
+                objgroup.ObjectData[0].ObjectLocalID = this.localid;
+                ObjectPermissionsPacket objper = new ObjectPermissionsPacket();
+                objper.HeaderData.Override = false;
+                objper.ObjectData = new ObjectPermissionsPacket.ObjectDataBlock[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    objper.ObjectData[i] = new ObjectPermissionsPacket.ObjectDataBlock();
+                    objper.ObjectData[i].ObjectLocalID = this.localid;
+                    objper.ObjectData[i].Set = 1;
+                    objper.ObjectData[i].Field = 0;
+                }
+                objper.ObjectData[0].Mask = 8192;
+                objper.ObjectData[1].Mask = 16384;
+                objper.ObjectData[2].Mask = 32768;*/
+                
                 foreach (SimClient client in m_clientThreads.Values)
                 {
                     client.OutPacket(OurPacket);
+                   /* objown.AgentData.AgentID = client.AgentID;
+                    objown.AgentData.SessionID = client.SessionID;
+                    objown.HeaderData.OwnerID = client.AgentID;
+                    client.OutPacket(objown);
+                    objgroup.AgentData.AgentID = client.AgentID;
+                    objgroup.AgentData.GroupID = LLUUID.Zero;
+                    objgroup.AgentData.SessionID = client.SessionID;
+                    client.OutPacket(objgroup);
+                    objper.AgentData.AgentID = client.AgentID;
+                    objper.AgentData.SessionID = client.SessionID;
+                    client.OutPacket(objper);*/
                 }
                 this.newPrimFlag = false;
             }
@@ -286,18 +357,18 @@ namespace OpenSim.world
         {
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = m_regionHandle;
-            objupdate.RegionData.TimeDilation = 64096;
+            objupdate.RegionData.TimeDilation = 64096; 
 
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
             PrimData PData = new PrimData();
             this.primData = PData;
+            this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+           
             objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();
             objupdate.ObjectData[0].PSBlock = new byte[0];
             objupdate.ObjectData[0].ExtraParams = new byte[1];
             objupdate.ObjectData[0].MediaURL = new byte[0];
-            objupdate.ObjectData[0].NameValue = new byte[2];
-            objupdate.ObjectData[0].NameValue[0] = (byte)'t';
-            objupdate.ObjectData[0].NameValue[1] = (byte)'o';
+            objupdate.ObjectData[0].NameValue = new byte[0];
             objupdate.ObjectData[0].Text = new byte[0];
             objupdate.ObjectData[0].TextColor = new byte[4];
             objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0, 0, 0);
@@ -307,7 +378,7 @@ namespace OpenSim.world
             objupdate.ObjectData[0].TextureAnim = new byte[0];
             objupdate.ObjectData[0].Sound = LLUUID.Zero;
             LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-            objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
+            this.primData.Texture = objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
             objupdate.ObjectData[0].State = 0;
             objupdate.ObjectData[0].Data = new byte[0];
             PData.OwnerID = objupdate.ObjectData[0].OwnerID = agentID;
@@ -326,14 +397,12 @@ namespace OpenSim.world
             PData.ProfileCurve = objupdate.ObjectData[0].ProfileCurve = addPacket.ObjectData.ProfileCurve;
             PData.ParentID = objupdate.ObjectData[0].ParentID = 0;
             PData.ProfileHollow = objupdate.ObjectData[0].ProfileHollow = addPacket.ObjectData.ProfileHollow;
-
             PData.PathRadiusOffset = objupdate.ObjectData[0].PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
             PData.PathRevolutions = objupdate.ObjectData[0].PathRevolutions = addPacket.ObjectData.PathRevolutions;
             PData.PathTaperX = objupdate.ObjectData[0].PathTaperX = addPacket.ObjectData.PathTaperX;
             PData.PathTaperY = objupdate.ObjectData[0].PathTaperY = addPacket.ObjectData.PathTaperY;
             PData.PathTwist = objupdate.ObjectData[0].PathTwist = addPacket.ObjectData.PathTwist;
             PData.PathTwistBegin = objupdate.ObjectData[0].PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-
             objupdate.ObjectData[0].ID = (uint)(localID);
             objupdate.ObjectData[0].FullID = new LLUUID("edba7151-5857-acc5-b30b-f01efef" + (localID - 702000).ToString("00000"));
             objupdate.ObjectData[0].ObjectData = new byte[60];
@@ -343,15 +412,19 @@ namespace OpenSim.world
             //update position
             byte[] pb = pos1.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 0, pb.Length);
-
             this.newPrimFlag = true;
-            this.uuid = objupdate.ObjectData[0].FullID;
+            this.primData.FullID = this.uuid = objupdate.ObjectData[0].FullID;
             this.localid = objupdate.ObjectData[0].ID;
-            this.position = pos1;
+            this.primData.Position =  this.position = pos1;
             this.OurPacket = objupdate;
         }
 
         public void CreateFromStorage(PrimData store)
+        {
+            this.CreateFromStorage(store, store.Position, store.LocalID, false);
+        }
+
+        public void CreateFromStorage(PrimData store, LLVector3 posi, uint localID, bool newprim)
         {
             //need to clean this up as it shares a lot of code with CreateFromPacket()
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
@@ -410,13 +483,13 @@ namespace OpenSim.world
             objupdate.ObjectData[0].PathTwist = this.primData.PathTwist;
             objupdate.ObjectData[0].PathTwistBegin = this.primData.PathTwistBegin;
 
-            objupdate.ObjectData[0].ID = (uint)store.LocalID;
+            objupdate.ObjectData[0].ID = localID; // (uint)store.LocalID;
             objupdate.ObjectData[0].FullID = store.FullID;
 
             objupdate.ObjectData[0].ObjectData = new byte[60];
             objupdate.ObjectData[0].ObjectData[46] = 128;
             objupdate.ObjectData[0].ObjectData[47] = 63;
-            LLVector3 pos1 = store.Position;
+            LLVector3 pos1 = posi; // store.Position;
             //update position
             byte[] pb = pos1.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 0, pb.Length);
@@ -425,8 +498,12 @@ namespace OpenSim.world
             this.localid = objupdate.ObjectData[0].ID;
             this.position = pos1;
             this.OurPacket = objupdate;
-
+            if (newprim)
+            {
+                this.newPrimFlag = true;
+            }
         }
+
         public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
         {
             uint ID = this.localid;

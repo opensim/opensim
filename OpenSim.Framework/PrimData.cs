@@ -7,6 +7,8 @@ namespace OpenSim.Framework.Assets
 {
     public class PrimData
     {
+        private const uint FULL_MASK_PERMISSIONS = 2147483647;
+
         public LLUUID OwnerID;
         public byte PCode;
         public byte PathBegin;
@@ -30,16 +32,133 @@ namespace OpenSim.Framework.Assets
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
         public byte[] Texture;
+       
+
+        public Int32 CreationDate;
+        public uint OwnerMask = FULL_MASK_PERMISSIONS;
+        public uint NextOwnerMask = FULL_MASK_PERMISSIONS;
+        public uint GroupMask = FULL_MASK_PERMISSIONS;
+        public uint EveryoneMask = FULL_MASK_PERMISSIONS;
+        public uint BaseMask = FULL_MASK_PERMISSIONS;
 
         //following only used during prim storage
         public LLVector3 Position;
-        public LLQuaternion Rotation;
+        public LLQuaternion Rotation = new LLQuaternion(0,1,0,0);
         public uint LocalID;
         public LLUUID FullID;
 
         public PrimData()
         {
 
+        }
+
+        public PrimData(byte[] data)
+        {
+            int i =0;
+
+            this.OwnerID = new LLUUID(data, i); i += 16;
+            this.PCode = data[i++];
+            this.PathBegin = data[i++];
+            this.PathEnd = data[i++];
+            this.PathScaleX = data[i++];
+            this.PathScaleY = data[i++];
+            this.PathShearX = data[i++];
+            this.PathShearY = data[i++];
+            this.PathSkew = (sbyte)data[i++];
+            this.ProfileBegin = data[i++];
+            this.ProfileEnd = data[i++];
+            this.Scale = new LLVector3(data, i); i += 12;
+            this.PathCurve = data[i++];
+            this.ProfileCurve = data[i++];
+            this.ParentID = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.ProfileHollow = data[i++];
+            this.PathRadiusOffset = (sbyte)data[i++];
+            this.PathRevolutions = data[i++];
+            this.PathTaperX = (sbyte)data[i++];
+            this.PathTaperY =(sbyte) data[i++];
+            this.PathTwist = (sbyte) data[i++];
+            this.PathTwistBegin = (sbyte) data[i++];
+            ushort length = (ushort)(data[i++] + (data[i++] << 8));
+            this.Texture = new byte[length];
+            Array.Copy(data, i, Texture, 0, length); i += length;
+            this.CreationDate = (Int32)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.OwnerMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.NextOwnerMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.GroupMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.EveryoneMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.BaseMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.Position = new LLVector3(data, i); i += 12;
+            this.Rotation = new LLQuaternion(data,i, true); i += 12;
+            this.LocalID = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
+            this.FullID = new LLUUID(data, i); i += 16;
+
+        }
+
+        public byte[] ToBytes()
+        {
+            int i = 0;
+            byte[] bytes = new byte[121 + Texture.Length];
+            Array.Copy(OwnerID.GetBytes(), 0, bytes, i, 16); i += 16;
+            bytes[i++] = this.PCode;
+            bytes[i++] = this.PathBegin;
+            bytes[i++] = this.PathEnd;
+            bytes[i++] = this.PathScaleX;
+            bytes[i++] = this.PathScaleY;
+            bytes[i++] = this.PathShearX;
+            bytes[i++] = this.PathShearY;
+            bytes[i++] = (byte)this.PathSkew;
+            bytes[i++] = this.ProfileBegin;
+            bytes[i++] = this.ProfileEnd;
+            Array.Copy(Scale.GetBytes(), 0, bytes, i, 12); i += 12;
+            bytes[i++] = this.PathCurve;
+            bytes[i++] = this.ProfileCurve;
+            bytes[i++] = (byte)(ParentID % 256);
+            bytes[i++] = (byte)((ParentID >> 8) % 256);
+            bytes[i++] = (byte)((ParentID >> 16) % 256);
+            bytes[i++] = (byte)((ParentID >> 24) % 256);
+            bytes[i++] = this.ProfileHollow;
+            bytes[i++] = ((byte)this.PathRadiusOffset);
+            bytes[i++] = this.PathRevolutions;
+            bytes[i++] = ((byte) this.PathTaperX);
+            bytes[i++] = ((byte) this.PathTaperY);
+            bytes[i++] = ((byte) this.PathTwist);
+            bytes[i++] = ((byte) this.PathTwistBegin);
+            bytes[i++] = (byte)(Texture.Length % 256);
+            bytes[i++] = (byte)((Texture.Length >> 8) % 256);
+            Array.Copy(Texture, 0, bytes, i, Texture.Length); i += Texture.Length;
+            bytes[i++] = (byte)(this.CreationDate % 256);
+            bytes[i++] = (byte)((this.CreationDate >> 8) % 256);
+            bytes[i++] = (byte)((this.CreationDate >> 16) % 256);
+            bytes[i++] = (byte)((this.CreationDate >> 24) % 256);
+            bytes[i++] = (byte)(this.OwnerMask % 256);
+            bytes[i++] = (byte)((this.OwnerMask >> 8) % 256);
+            bytes[i++] = (byte)((this.OwnerMask >> 16) % 256);
+            bytes[i++] = (byte)((this.OwnerMask >> 24) % 256);
+            bytes[i++] = (byte)(this.NextOwnerMask % 256);
+            bytes[i++] = (byte)((this.NextOwnerMask >> 8) % 256);
+            bytes[i++] = (byte)((this.NextOwnerMask >> 16) % 256);
+            bytes[i++] = (byte)((this.NextOwnerMask >> 24) % 256);
+            bytes[i++] = (byte)(this.GroupMask % 256);
+            bytes[i++] = (byte)((this.GroupMask >> 8) % 256);
+            bytes[i++] = (byte)((this.GroupMask >> 16) % 256);
+            bytes[i++] = (byte)((this.GroupMask >> 24) % 256);
+            bytes[i++] = (byte)(this.EveryoneMask % 256);
+            bytes[i++] = (byte)((this.EveryoneMask >> 8) % 256);
+            bytes[i++] = (byte)((this.EveryoneMask >> 16) % 256);
+            bytes[i++] = (byte)((this.EveryoneMask >> 24) % 256);
+            bytes[i++] = (byte)(this.BaseMask % 256);
+            bytes[i++] = (byte)((this.BaseMask >> 8) % 256);
+            bytes[i++] = (byte)((this.BaseMask >> 16) % 256);
+            bytes[i++] = (byte)((this.BaseMask >> 24) % 256);
+            Array.Copy(this.Position.GetBytes(), 0, bytes, i, 12); i += 12;
+            Array.Copy(this.Rotation.GetBytes(), 0, bytes, i, 12); i += 12;
+            bytes[i++] = (byte)(this.LocalID % 256);
+            bytes[i++] = (byte)((this.LocalID >> 8) % 256);
+            bytes[i++] = (byte)((this.LocalID >> 16) % 256);
+            bytes[i++] = (byte)((this.LocalID >> 24) % 256);
+            Array.Copy(FullID.GetBytes(), 0, bytes, i, 16); i += 16;
+
+            return bytes;
         }
     }
 }

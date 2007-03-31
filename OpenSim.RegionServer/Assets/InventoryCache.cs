@@ -140,6 +140,26 @@ namespace OpenSim.Assets
 
             return newItem;
         }
+        public bool DeleteInventoryItem(SimClient remoteClient, LLUUID itemID)
+        {
+            bool res = false;
+            if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
+            {
+                res = this._agentsInventory[remoteClient.AgentID].DeleteFromInventory(itemID);
+                if (res)
+                {
+                    RemoveInventoryItemPacket remove = new RemoveInventoryItemPacket();
+                    remove.AgentData.AgentID = remoteClient.AgentID;
+                    remove.AgentData.SessionID = remoteClient.SessionID;
+                    remove.InventoryData = new RemoveInventoryItemPacket.InventoryDataBlock[1];
+                    remove.InventoryData[0] = new RemoveInventoryItemPacket.InventoryDataBlock();
+                    remove.InventoryData[0].ItemID = itemID;
+                    remoteClient.OutPacket(remove);
+                }
+            }
+
+            return res;
+        }
 
         public bool UpdateInventoryItemAsset(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Assets.AssetBase asset)
         {

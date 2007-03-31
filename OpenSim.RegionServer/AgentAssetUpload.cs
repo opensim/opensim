@@ -70,7 +70,7 @@ namespace OpenSim
 
         public void HandleUploadPacket(AssetUploadRequestPacket pack, LLUUID assetID)
         {
-
+            Console.Write("asset upload request , type = " + pack.AssetBlock.Type.ToString());
             AssetBase asset = null;
             if (pack.AssetBlock.Type == 0)
             {

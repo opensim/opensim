@@ -128,6 +128,8 @@ namespace OpenSim
             m_console.WriteLine("Initialising world");
             LocalWorld = new World(ClientThreads, Cfg.RegionHandle, Cfg.RegionName, Cfg);
             LocalWorld.LandMap = Cfg.LoadWorld();
+            LocalWorld.InventoryCache = InventoryCache;
+            LocalWorld.AssetCache = AssetCache;
 
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();

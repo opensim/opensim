@@ -157,6 +157,27 @@ namespace OpenSim.Framework.Inventory
                 return (null);
             }
         }
+
+        public bool DeleteFromInventory(LLUUID itemID)
+        {
+            bool res = false;
+            if (this.InventoryItems.ContainsKey(itemID))
+            {
+                InventoryItem item = this.InventoryItems[itemID];
+                this.InventoryItems.Remove(itemID);
+                foreach (InventoryFolder fold in InventoryFolders.Values)
+                {
+                    if (fold.Items.Contains(item))
+                    {
+                        fold.Items.Remove(item);
+                        break;
+                    }
+                }
+                res = true;
+                
+            }
+            return res;
+        }
     }
 
     public class InventoryFolder

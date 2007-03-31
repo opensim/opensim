@@ -112,6 +112,7 @@ namespace OpenSim
         protected virtual void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
+            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)
@@ -166,7 +167,6 @@ namespace OpenSim
                         cachedresp.WearableData[i].TextureID = LLUUID.Zero;
                         cachedresp.WearableData[i].HostName = new byte[0];
                     }
-
                     this.OutPacket(cachedresp);
                     break;
                 case PacketType.ObjectAdd:
@@ -293,7 +293,7 @@ namespace OpenSim
                     ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
                     if (Helpers.FieldToString(inchatpack.ChatData.Message) == "") break;
 
-                    System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+                   
                     libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
                     reply.ChatData.Audible = 1;
                     reply.ChatData.Message = inchatpack.ChatData.Message;
@@ -363,6 +363,7 @@ namespace OpenSim
                     }
                     else
                     {
+                        Console.Write(Pack.ToString());
                         this.CreateInventoryItem(createItem);
                     }
                     break;
@@ -424,6 +425,10 @@ namespace OpenSim
                     //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
                     m_world.DeRezObject((DeRezObjectPacket)Pack, this);
                     break;
+                case PacketType.RezObject:
+                    //Console.WriteLine(Pack.ToString());
+                    m_world.RezObject(this, (RezObjectPacket)Pack);
+                    break;
                 case PacketType.ModifyLand:
                     ModifyLandPacket modify = (ModifyLandPacket)Pack;
                     //Console.WriteLine("terraform: number of parcel data blocks" + modify.ParcelData.Length);
@@ -464,6 +469,61 @@ namespace OpenSim
                             break;
                     }
                     break;
+                case PacketType.RequestTaskInventory:
+                   // Console.WriteLine(Pack.ToString());
+                    RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
+                    ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
+                    bool foundent = false;
+                    foreach (Entity ent in m_world.Entities.Values)
+                    {
+                        if (ent.localid == requesttask.InventoryData.LocalID)
+                        {
+                            replytask.InventoryData.TaskID = ent.uuid;
+                            replytask.InventoryData.Serial = 0;
+                            replytask.InventoryData.Filename = new byte[0];
+                            foundent = true;
+                        }
+                    }
+                    if (foundent)
+                    {
+                        this.OutPacket(replytask);
+                    }
+                    break;
+                case PacketType.UUIDNameRequest:
+                    //System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+                    Console.WriteLine(Pack.ToString());
+                    UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)Pack;
+                    UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
+                    nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+
+                    for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
+                    {
+                        nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
+                        nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
+                        nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("Who\0");  //for now send any name
+                        nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("Knows\0");	   //in future need to look it up		
+                    }
+                    this.OutPacket(nameReply);
+                    break;
+                case PacketType.AgentAnimation:
+                    //Console.WriteLine(Pack.ToString());
+                    break;
+                case PacketType.ObjectSelect:
+                    ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
+                    for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+                    {
+                        foreach (Entity ent in m_world.Entities.Values)
+                        {
+                            if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
+                            {
+                                ((OpenSim.world.Primitive)ent).GetProperites(this);
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                   
+        		
             }
         }
 
