@@ -32,6 +32,22 @@ namespace OpenSim.Framework.User
             DefaultStartupMsg = message;
         }
 
+        public virtual string ParseXMLRPC(string requestBody)
+        {
+
+            XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+
+            switch (request.MethodName)
+            {
+                case "login_to_simulator":
+                    XmlRpcResponse response = XmlRpcLoginMethod(request);
+
+                    return (Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(response), "utf-16", "utf-8"));
+            }
+
+            return "";
+        }
+
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
