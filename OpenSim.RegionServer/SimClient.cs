@@ -123,7 +123,8 @@ namespace OpenSim
 
         protected virtual void RegisterLocalPacketHandlers()
         {
-
+            this.AddLocalPacketHandler(PacketType.LogoutRequest, this.Logout);
+            this.AddLocalPacketHandler(PacketType.AgentCachedTexture, this.AgentTextureCached);
         }
 
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
@@ -250,24 +251,6 @@ namespace OpenSim
                         // Console.WriteLine(appear.ToString());
                         this.ClientAvatar.SetAppearance(appear);
                         break;
-                    case PacketType.AgentCachedTexture:
-                        Console.WriteLine(Pack.ToString());
-                        AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)Pack;
-                        AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
-                        cachedresp.AgentData.AgentID = this.AgentID;
-                        cachedresp.AgentData.SessionID = this.SessionID;
-                        cachedresp.AgentData.SerialNum = this.cachedtextureserial;
-                        this.cachedtextureserial++;
-                        cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
-                        for (int i = 0; i < chechedtex.WearableData.Length; i++)
-                        {
-                            cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
-                            cachedresp.WearableData[i].TextureIndex = chechedtex.WearableData[i].TextureIndex;
-                            cachedresp.WearableData[i].TextureID = LLUUID.Zero;
-                            cachedresp.WearableData[i].HostName = new byte[0];
-                        }
-                        this.OutPacket(cachedresp);
-                        break;
                     case PacketType.ObjectAdd:
                         m_world.AddNewPrim((ObjectAddPacket)Pack, this);
                         break;
@@ -292,7 +275,6 @@ namespace OpenSim
                         break;
                     case PacketType.MultipleObjectUpdate:
                         MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)Pack;
-
                         for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
                         {
                             if (multipleupdate.ObjectData[i].Type == 9) //change position
@@ -306,7 +288,6 @@ namespace OpenSim
 
                                     }
                                 }
-
                                 //should update stored position of the prim
                             }
                             else if (multipleupdate.ObjectData[i].Type == 10)//rotation
@@ -350,63 +331,6 @@ namespace OpenSim
                     case PacketType.AgentUpdate:
                         ClientAvatar.HandleUpdate((AgentUpdatePacket)Pack);
                         break;
-                    case PacketType.LogoutRequest:
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
-                        //send reply to let the client logout
-                        LogoutReplyPacket logReply = new LogoutReplyPacket();
-                        logReply.AgentData.AgentID = this.AgentID;
-                        logReply.AgentData.SessionID = this.SessionID;
-                        logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
-                        logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
-                        logReply.InventoryData[0].ItemID = LLUUID.Zero;
-                        OutPacket(logReply);
-                        //tell all clients to kill our object
-                        KillObjectPacket kill = new KillObjectPacket();
-                        kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-                        kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-                        kill.ObjectData[0].ID = this.ClientAvatar.localid;
-                        foreach (SimClient client in m_clientThreads.Values)
-                        {
-                            client.OutPacket(kill);
-                        }
-                        if (this.m_userServer != null)
-                        {
-                            this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
-                        }
-                        else
-                        {
-                            this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-                        }
-
-                        m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
-                        lock (m_world.Entities)
-                        {
-                            m_world.Entities.Remove(this.AgentID);
-                        }
-                        //need to do other cleaning up here too
-                        m_clientThreads.Remove(this.CircuitCode); //this.userEP);
-                        m_application.RemoveClientCircuit(this.CircuitCode);
-                        this.ClientThread.Abort();
-                        break;
-                    case PacketType.ChatFromViewer:
-                        ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
-                        if (Helpers.FieldToString(inchatpack.ChatData.Message) == "") break;
-
-
-                        libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
-                        reply.ChatData.Audible = 1;
-                        reply.ChatData.Message = inchatpack.ChatData.Message;
-                        reply.ChatData.ChatType = 1;
-                        reply.ChatData.SourceType = 1;
-                        reply.ChatData.Position = this.ClientAvatar.position;
-                        reply.ChatData.FromName = _enc.GetBytes(this.ClientAvatar.firstname + " " + this.ClientAvatar.lastname + "\0");
-                        reply.ChatData.OwnerID = this.AgentID;
-                        reply.ChatData.SourceID = this.AgentID;
-                        foreach (SimClient client in m_clientThreads.Values)
-                        {
-                            client.OutPacket(reply);
-                        }
-                        break;
                     case PacketType.ObjectImage:
                         ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
                         for (int i = 0; i < imagePack.ObjectData.Length; i++)
@@ -429,23 +353,12 @@ namespace OpenSim
                                 ((OpenSim.world.Primitive)ent).UpdateObjectFlags(flags);
                             }
                         }
-
                         break;
                     case PacketType.AssetUploadRequest:
-                        //this.debug = true;
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                        // Console.WriteLine(Pack.ToString());
-                        // if (request.AssetBlock.Type == 0)
-                        // {
-                        //this.UploadAssets.HandleUploadPacket(request, LLUUID.Random());
-                        //}
-                        //else
-                        //{
                         this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
-                        //}
                         break;
                     case PacketType.SendXferPacket:
-                        Console.WriteLine(Pack.ToString());
                         this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
                         break;
                     case PacketType.CreateInventoryFolder:
@@ -522,11 +435,11 @@ namespace OpenSim
                         break;
                     case PacketType.DeRezObject:
                         //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
-                        m_world.DeRezObject((DeRezObjectPacket)Pack, this);
+                        m_world.DeRezObject(this, Pack);
                         break;
                     case PacketType.RezObject:
                         //Console.WriteLine(Pack.ToString());
-                        m_world.RezObject(this, (RezObjectPacket)Pack);
+                        m_world.RezObject(this, Pack);
                         break;
                     case PacketType.RequestTaskInventory:
                         // Console.WriteLine(Pack.ToString());
@@ -547,22 +460,6 @@ namespace OpenSim
                         {
                             this.OutPacket(replytask);
                         }
-                        break;
-                    case PacketType.UUIDNameRequest:
-                        //System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-                        Console.WriteLine(Pack.ToString());
-                        UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)Pack;
-                        UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
-                        nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
-
-                        for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
-                        {
-                            nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
-                            nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
-                            nameReply.UUIDNameBlock[i].FirstName = _enc.GetBytes("Who\0");  //for now send any name
-                            nameReply.UUIDNameBlock[i].LastName = _enc.GetBytes("Knows\0");	   //in future need to look it up		
-                        }
-                        this.OutPacket(nameReply);
                         break;
                     case PacketType.AgentAnimation:
                         //Console.WriteLine(Pack.ToString());
@@ -872,6 +769,71 @@ namespace OpenSim
                 ClientLoop();
             }
         }
+        #region Packet handlers
+
+        protected virtual bool Logout(SimClient simClient, Packet packet)
+        {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+            //send reply to let the client logout
+            LogoutReplyPacket logReply = new LogoutReplyPacket();
+            logReply.AgentData.AgentID = this.AgentID;
+            logReply.AgentData.SessionID = this.SessionID;
+            logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
+            logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
+            logReply.InventoryData[0].ItemID = LLUUID.Zero;
+            OutPacket(logReply);
+            //tell all clients to kill our object
+            KillObjectPacket kill = new KillObjectPacket();
+            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+            kill.ObjectData[0].ID = this.ClientAvatar.localid;
+            foreach (SimClient client in m_clientThreads.Values)
+            {
+                client.OutPacket(kill);
+            }
+            if (this.m_userServer != null)
+            {
+                this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
+            }
+            else
+            {
+                this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+            }
+
+            m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
+            lock (m_world.Entities)
+            {
+                m_world.Entities.Remove(this.AgentID);
+            }
+            //need to do other cleaning up here too
+            m_clientThreads.Remove(this.CircuitCode); //this.userEP);
+            m_application.RemoveClientCircuit(this.CircuitCode);
+            this.ClientThread.Abort();
+            return true;
+        }
+
+        protected bool AgentTextureCached(SimClient simclient, Packet packet)
+        {
+            Console.WriteLine(packet.ToString());
+            AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
+            AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
+            cachedresp.AgentData.AgentID = this.AgentID;
+            cachedresp.AgentData.SessionID = this.SessionID;
+            cachedresp.AgentData.SerialNum = this.cachedtextureserial;
+            this.cachedtextureserial++;
+            cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
+            for (int i = 0; i < chechedtex.WearableData.Length; i++)
+            {
+                cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                cachedresp.WearableData[i].TextureIndex = chechedtex.WearableData[i].TextureIndex;
+                cachedresp.WearableData[i].TextureID = LLUUID.Zero;
+                cachedresp.WearableData[i].HostName = new byte[0];
+            }
+            this.OutPacket(cachedresp);
+            return true;
+        }
+
+        #endregion
 
         private AgentInventory CreateInventory(LLUUID baseFolder)
         {

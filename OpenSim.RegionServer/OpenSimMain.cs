@@ -353,6 +353,8 @@ namespace OpenSim
         protected virtual void RegisterClientPacketHandlers()
         {
             SimClient.AddPacketHandler(PacketType.ModifyLand, LocalWorld.ModifyTerrain);
+            SimClient.AddPacketHandler(PacketType.ChatFromViewer, LocalWorld.SimChat);
+            SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
         }
 
         public void RunCmd(string command, string[] cmdparams)
@@ -401,6 +403,29 @@ namespace OpenSim
                     break;
             }
         }
+
+        #region Client Packet Handlers
+
+        public bool RequestUUIDName(SimClient simClient, Packet packet)
+        {
+            System.Text.Encoding enc = System.Text.Encoding.ASCII;
+            Console.WriteLine(packet.ToString());
+            UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)packet;
+            UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
+            nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+
+            for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
+            {
+                nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
+                nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
+                nameReply.UUIDNameBlock[i].FirstName = enc.GetBytes("Who\0");  //for now send any name
+                nameReply.UUIDNameBlock[i].LastName = enc.GetBytes("Knows\0");	   //in future need to look it up		
+            }
+            simClient.OutPacket(nameReply);
+            return true;
+        }
+
+        #endregion
     }
 
 

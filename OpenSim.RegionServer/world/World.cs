@@ -308,8 +308,9 @@ namespace OpenSim.world
             this._primCount++;
         }
 
-        public void DeRezObject(DeRezObjectPacket DeRezPacket, SimClient AgentClient)
+        public void DeRezObject(SimClient simClient, Packet packet)
         {
+            DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
            // Console.WriteLine(DeRezPacket);
             //Needs to delete object from physics at a later date
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
@@ -369,7 +370,7 @@ namespace OpenSim.world
                             primAsset.Description = "";
                             primAsset.Data = ((Primitive)ent).GetByteArray();
                             this._assetCache.AddAsset(primAsset);
-                            this._inventoryCache.AddNewInventoryItem(AgentClient, DeRezPacket.AgentBlock.DestinationID, primAsset);
+                            this._inventoryCache.AddNewInventoryItem(simClient, DeRezPacket.AgentBlock.DestinationID, primAsset);
                             selectedEnt = ent;
                             break;
                         }
@@ -389,27 +390,6 @@ namespace OpenSim.world
                         {
                             Entities.Remove(selectedEnt.uuid);
                         }
-                    }
-                }
-            }
-        }
-
-        public void RezObject(SimClient remoteClient, RezObjectPacket packet)
-        {
-            AgentInventory inven =this._inventoryCache.GetAgentsInventory(remoteClient.AgentID);
-            if(inven != null)
-            {
-                if (inven.InventoryItems.ContainsKey(packet.InventoryData.ItemID))
-                {
-                    AssetBase asset = this._assetCache.GetAsset(inven.InventoryItems[packet.InventoryData.ItemID].AssetID);
-                    if (asset != null)
-                    {
-                        PrimData primd = new PrimData(asset.Data);
-                        Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
-                        nPrim.CreateFromStorage(primd, packet.RezData.RayEnd, this._primCount, true);
-                        this.Entities.Add(nPrim.uuid, nPrim);
-                        this._primCount++;
-                        this._inventoryCache.DeleteInventoryItem(remoteClient, packet.InventoryData.ItemID);
                     }
                 }
             }
@@ -470,6 +450,56 @@ namespace OpenSim.world
             }
             return true;
         }
+
+        public bool SimChat(SimClient simClient, Packet packet)
+        {
+            System.Text.Encoding enc = System.Text.Encoding.ASCII;
+            ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)packet;
+            if (Helpers.FieldToString(inchatpack.ChatData.Message) == "")
+            {
+                //empty message so don't bother with it
+                return true;
+            }
+
+            libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
+            reply.ChatData.Audible = 1;
+            reply.ChatData.Message = inchatpack.ChatData.Message;
+            reply.ChatData.ChatType = 1;
+            reply.ChatData.SourceType = 1;
+            reply.ChatData.Position = simClient.ClientAvatar.position;
+            reply.ChatData.FromName = enc.GetBytes(simClient.ClientAvatar.firstname + " " + simClient.ClientAvatar.lastname + "\0");
+            reply.ChatData.OwnerID = simClient.AgentID;
+            reply.ChatData.SourceID = simClient.AgentID;
+            foreach (SimClient client in m_clientThreads.Values)
+            {
+                client.OutPacket(reply);
+            }
+            return true;
+        }
+
+        public bool RezObject(SimClient simClient, Packet packet)
+        {
+            RezObjectPacket rezPacket = (RezObjectPacket)packet;
+            AgentInventory inven = this._inventoryCache.GetAgentsInventory(simClient.AgentID);
+            if (inven != null)
+            {
+                if (inven.InventoryItems.ContainsKey(rezPacket.InventoryData.ItemID))
+                {
+                    AssetBase asset = this._assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
+                    if (asset != null)
+                    {
+                        PrimData primd = new PrimData(asset.Data);
+                        Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
+                        nPrim.CreateFromStorage(primd, rezPacket.RezData.RayEnd, this._primCount, true);
+                        this.Entities.Add(nPrim.uuid, nPrim);
+                        this._primCount++;
+                        this._inventoryCache.DeleteInventoryItem(simClient, rezPacket.InventoryData.ItemID);
+                    }
+                }
+            }
+            return true;
+        }
+
         #endregion
     }
 }
