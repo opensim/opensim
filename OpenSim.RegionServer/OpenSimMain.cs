@@ -350,13 +350,6 @@ namespace OpenSim
             LocalWorld.Update();
         }
 
-        protected virtual void RegisterClientPacketHandlers()
-        {
-            SimClient.AddPacketHandler(PacketType.ModifyLand, LocalWorld.ModifyTerrain);
-            SimClient.AddPacketHandler(PacketType.ChatFromViewer, LocalWorld.SimChat);
-            SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
-        }
-
         public void RunCmd(string command, string[] cmdparams)
         {
             switch (command)
@@ -402,6 +395,15 @@ namespace OpenSim
                     }
                     break;
             }
+        }
+
+        protected virtual void RegisterClientPacketHandlers()
+        {
+            SimClient.AddPacketHandler(PacketType.ModifyLand, LocalWorld.ModifyTerrain);
+            SimClient.AddPacketHandler(PacketType.ChatFromViewer, LocalWorld.SimChat);
+            SimClient.AddPacketHandler(PacketType.RezObject, LocalWorld.RezObject);
+            SimClient.AddPacketHandler(PacketType.DeRezObject, LocalWorld.DeRezObject);
+            SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
         }
 
         #region Client Packet Handlers

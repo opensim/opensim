@@ -12,7 +12,6 @@ namespace OpenSim.world
 {
     public class Primitive : Entity
     {
-        //private static object physicsLock = new object();
         protected float mesh_cutbegin;
         protected float mesh_cutend;
         protected PrimData primData;

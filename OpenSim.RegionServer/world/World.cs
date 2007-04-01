@@ -308,7 +308,7 @@ namespace OpenSim.world
             this._primCount++;
         }
 
-        public void DeRezObject(SimClient simClient, Packet packet)
+        public bool DeRezObject(SimClient simClient, Packet packet)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
            // Console.WriteLine(DeRezPacket);
@@ -393,6 +393,7 @@ namespace OpenSim.world
                     }
                 }
             }
+            return true;
         }
 
         public bool Backup()

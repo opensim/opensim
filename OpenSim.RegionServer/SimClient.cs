@@ -125,6 +125,7 @@ namespace OpenSim
         {
             this.AddLocalPacketHandler(PacketType.LogoutRequest, this.Logout);
             this.AddLocalPacketHandler(PacketType.AgentCachedTexture, this.AgentTextureCached);
+            this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
         }
 
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
@@ -273,49 +274,6 @@ namespace OpenSim
                             }
                         }
                         break;
-                    case PacketType.MultipleObjectUpdate:
-                        MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)Pack;
-                        for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
-                        {
-                            if (multipleupdate.ObjectData[i].Type == 9) //change position
-                            {
-                                libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                                foreach (Entity ent in m_world.Entities.Values)
-                                {
-                                    if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
-                                    {
-                                        ((OpenSim.world.Primitive)ent).UpdatePosition(pos);
-
-                                    }
-                                }
-                                //should update stored position of the prim
-                            }
-                            else if (multipleupdate.ObjectData[i].Type == 10)//rotation
-                            {
-                                libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                                foreach (Entity ent in m_world.Entities.Values)
-                                {
-                                    if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
-                                    {
-                                        ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
-                                        ((OpenSim.world.Primitive)ent).UpdateFlag = true;
-                                    }
-                                }
-                            }
-                            else if (multipleupdate.ObjectData[i].Type == 13)//scale
-                            {
-
-                                libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                                foreach (Entity ent in m_world.Entities.Values)
-                                {
-                                    if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
-                                    {
-                                        ((OpenSim.world.Primitive)ent).Scale = scale;
-                                    }
-                                }
-                            }
-                        }
-                        break;
                     case PacketType.RequestImage:
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
@@ -432,14 +390,6 @@ namespace OpenSim
                                 client.OutPacket(viewer);
                             }
                         }
-                        break;
-                    case PacketType.DeRezObject:
-                        //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Received DeRezObject packet");
-                        m_world.DeRezObject(this, Pack);
-                        break;
-                    case PacketType.RezObject:
-                        //Console.WriteLine(Pack.ToString());
-                        m_world.RezObject(this, Pack);
                         break;
                     case PacketType.RequestTaskInventory:
                         // Console.WriteLine(Pack.ToString());
@@ -830,6 +780,52 @@ namespace OpenSim
                 cachedresp.WearableData[i].HostName = new byte[0];
             }
             this.OutPacket(cachedresp);
+            return true;
+        }
+
+        protected bool MultipleObjUpdate(SimClient simClient, Packet packet)
+        {
+            MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
+            for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
+            {
+                if (multipleupdate.ObjectData[i].Type == 9) //change position
+                {
+                    libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                    foreach (Entity ent in m_world.Entities.Values)
+                    {
+                        if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
+                        {
+                            ((OpenSim.world.Primitive)ent).UpdatePosition(pos);
+
+                        }
+                    }
+                    //should update stored position of the prim
+                }
+                else if (multipleupdate.ObjectData[i].Type == 10)//rotation
+                {
+                    libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                    foreach (Entity ent in m_world.Entities.Values)
+                    {
+                        if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
+                        {
+                            ent.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+                            ((OpenSim.world.Primitive)ent).UpdateFlag = true;
+                        }
+                    }
+                }
+                else if (multipleupdate.ObjectData[i].Type == 13)//scale
+                {
+
+                    libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                    foreach (Entity ent in m_world.Entities.Values)
+                    {
+                        if (ent.localid == multipleupdate.ObjectData[i].ObjectLocalID)
+                        {
+                            ((OpenSim.world.Primitive)ent).Scale = scale;
+                        }
+                    }
+                }
+            }
             return true;
         }
 
