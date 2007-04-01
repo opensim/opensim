@@ -53,16 +53,15 @@ namespace OpenSim
 
     public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
     {
-        private PhysicsManager physManager;
-        private World LocalWorld;
-        private Grid GridServers;
         private SimConfig Cfg;
-        //private SimCAPSHTTPServer HttpServer;
-        private BaseHttpServer HttpServer;
+        private PhysicsManager physManager;
+        private Grid GridServers;
+        private BaseHttpServer _httpServer;
+        private PacketServer _packetServer;
+        private World LocalWorld;
         private AssetCache AssetCache;
         private InventoryCache InventoryCache;
-        //public Dictionary<EndPoint, SimClient> ClientThreads = new Dictionary<EndPoint, SimClient>();
-        private Dictionary<uint, SimClient> ClientThreads = new Dictionary<uint, SimClient>();
+        //private Dictionary<uint, SimClient> ClientThreads = new Dictionary<uint, SimClient>();
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         private DateTime startuptime;
 
@@ -125,12 +124,17 @@ namespace OpenSim
             m_console.WriteLine("Main.cs:Startup() - Contacting gridserver");
             Cfg.LoadFromGrid();
 
+            PacketServer packetServer = new PacketServer(this); 
+
             m_console.WriteLine("Main.cs:Startup() - We are " + Cfg.RegionName + " at " + Cfg.RegionLocX.ToString() + "," + Cfg.RegionLocY.ToString());
             m_console.WriteLine("Initialising world");
-            LocalWorld = new World(ClientThreads, Cfg.RegionHandle, Cfg.RegionName, Cfg);
+            LocalWorld = new World(this._packetServer.ClientThreads, Cfg.RegionHandle, Cfg.RegionName, Cfg);
             LocalWorld.LandMap = Cfg.LoadWorld();
             LocalWorld.InventoryCache = InventoryCache;
             LocalWorld.AssetCache = AssetCache;
+
+            this._packetServer.LocalWorld = LocalWorld;
+            this._packetServer.RegisterClientPacketHandlers();
 
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();
@@ -152,16 +156,14 @@ namespace OpenSim
                 AssetCache.LoadDefaultTextureSet();
             }
 
-            RegisterClientPacketHandlers();
-
             m_console.WriteLine("Main.cs:Startup() - Initialising HTTP server");
             // HttpServer = new SimCAPSHTTPServer(GridServers.GridServer, Cfg.IPListenPort);
-            HttpServer = new BaseHttpServer(Cfg.IPListenPort);
+            _httpServer = new BaseHttpServer(Cfg.IPListenPort);
 
             if (gridServer.GetName() == "Remote")
             {
                 //we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
-                HttpServer.AddXmlRPCHandler("expect_user",
+                _httpServer.AddXmlRPCHandler("expect_user",
                     delegate(XmlRpcRequest request)
                     {
                         Hashtable requestData = (Hashtable)request.Params[0];
@@ -179,7 +181,6 @@ namespace OpenSim
                     });
             }
 
-
             LoginServer loginServer = null;
             LoginServer adminLoginServer = null;
 
@@ -195,20 +196,20 @@ namespace OpenSim
                     this.GridServers.UserServer = loginServer;
                     adminLoginServer = loginServer;
                     
-                    HttpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);                    
+                    _httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);                    
                 }
                 else
                 {
                     //sandbox mode with loginserver not using accounts
-                    HttpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
+                    _httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
                 }
             }
 
             AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, InventoryCache, adminLoginServer);
-            adminWebFront.LoadMethods( HttpServer );
+            adminWebFront.LoadMethods( _httpServer );
             
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
-            HttpServer.Start();
+            _httpServer.Start();
 
             MainServerListener();
 
@@ -260,19 +261,20 @@ namespace OpenSim
             // do we already have a circuit for this endpoint
             if (this.clientCircuits.ContainsKey(epSender))
             {
-                ClientThreads[this.clientCircuits[epSender]].InPacket(packet);
+                //ClientThreads[this.clientCircuits[epSender]].InPacket(packet);
+                this._packetServer.ClientInPacket(this.clientCircuits[epSender], packet);
             }
             else if (packet.Type == PacketType.UseCircuitCode)
             { // new client
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
                 this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-                SimClient newuser = new SimClient(epSender, useCircuit, LocalWorld, ClientThreads, AssetCache, GridServers.GridServer, this, InventoryCache, m_sandbox);
+                SimClient newuser = new SimClient(epSender, useCircuit, LocalWorld, _packetServer.ClientThreads, AssetCache, GridServers.GridServer, this, InventoryCache, m_sandbox);
                 if ((this.GridServers.UserServer != null) && (user_accounts))
                 {
                     newuser.UserServer = this.GridServers.UserServer;
                 }
                 //OpenSimRoot.Instance.ClientThreads.Add(epSender, newuser);
-                ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
+                this._packetServer.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
             }
             else
             { // invalid client
@@ -299,6 +301,11 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:MainServerListener() - Listening...");
 
+        }
+
+        public void RegisterPacketServer(PacketServer server)
+        {
+            this._packetServer = server;
         }
 
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)//EndPoint packetSender)
@@ -396,38 +403,6 @@ namespace OpenSim
                     break;
             }
         }
-
-        protected virtual void RegisterClientPacketHandlers()
-        {
-            SimClient.AddPacketHandler(PacketType.ModifyLand, LocalWorld.ModifyTerrain);
-            SimClient.AddPacketHandler(PacketType.ChatFromViewer, LocalWorld.SimChat);
-            SimClient.AddPacketHandler(PacketType.RezObject, LocalWorld.RezObject);
-            SimClient.AddPacketHandler(PacketType.DeRezObject, LocalWorld.DeRezObject);
-            SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
-        }
-
-        #region Client Packet Handlers
-
-        public bool RequestUUIDName(SimClient simClient, Packet packet)
-        {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
-            Console.WriteLine(packet.ToString());
-            UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)packet;
-            UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
-            nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
-
-            for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
-            {
-                nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
-                nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
-                nameReply.UUIDNameBlock[i].FirstName = enc.GetBytes("Who\0");  //for now send any name
-                nameReply.UUIDNameBlock[i].LastName = enc.GetBytes("Knows\0");	   //in future need to look it up		
-            }
-            simClient.OutPacket(nameReply);
-            return true;
-        }
-
-        #endregion
     }
 
 

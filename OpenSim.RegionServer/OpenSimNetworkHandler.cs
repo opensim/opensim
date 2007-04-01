@@ -12,5 +12,6 @@ namespace OpenSim
        // public abstract void Shutdown();
         void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode);// EndPoint packetSender);
         void RemoveClientCircuit(uint circuitcode);
+        void RegisterPacketServer(PacketServer server);
     }
 }

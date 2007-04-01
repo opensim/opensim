@@ -38,6 +38,7 @@ namespace OpenSim
                 if (args[i] == "-realphysx")
                 {
                     physicsEngine = "RealPhysX";
+                    allowFlying = true;
                 }
                 if (args[i] == "-ode")
                 {
