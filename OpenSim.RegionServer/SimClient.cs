@@ -82,19 +82,48 @@ namespace OpenSim
         private bool m_sandboxMode;
         private int cachedtextureserial = 0;
 
-        // local packet handler list not currently used but is here so each client could have a different handler for a packet to another client
-        // this is so we could do such things as have multiple world objects in a sim (or multiple "sims" handled by one server and different clients in different worlds
-        // maybe not a very practicle example but there are various other things it could be used for.
-        // protected Dictionary<string, PacketMethod> m_packetHandlers = new Dictionary<string, PacketMethod>();
+        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
-        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>();
-
+        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>(); //local handlers for this instance 
+        
         public IUserServer UserServer
         {
             set
             {
                 this.m_userServer = value;
             }
+        }
+
+        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode)
+        {
+            m_world = world;
+            m_clientThreads = clientThreads;
+            m_assetCache = assetCache;
+            m_gridServer = gridServer;
+            m_application = application;
+            m_inventoryCache = inventoryCache;
+            m_sandboxMode = sandboxMode;
+
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
+            cirpack = initialcirpack;
+            userEP = remoteEP;
+            PacketQueue = new BlockingQueue<QueItem>();
+
+            this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
+            AckTimer = new System.Timers.Timer(500);
+            AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
+            AckTimer.Start();
+
+            this.RegisterLocalPacketHandlers();
+
+            ClientThread = new Thread(new ThreadStart(AuthUser));
+            ClientThread.IsBackground = true;
+            ClientThread.Start();
+        }
+
+        protected virtual void RegisterLocalPacketHandlers()
+        {
+
         }
 
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
@@ -111,20 +140,42 @@ namespace OpenSim
             return result;
         }
 
+        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler)
+        {
+            bool result = false;
+            lock (m_packetHandlers)
+            {
+                if (!m_packetHandlers.ContainsKey(packetType))
+                {
+                    m_packetHandlers.Add(packetType, handler);
+                    result = true;
+                }
+            }
+            return result;
+        }
+
         protected virtual bool ProcessPacketMethod(Packet packet)
         {
             bool result = false;
             bool found = false;
             PacketMethod method;
-            lock (PacketHandlers)
+            if (m_packetHandlers.TryGetValue(packet.Type, out method))
             {
-               found = PacketHandlers.TryGetValue(packet.Type, out method);
-            }
-            if (found)
-            {
+                //there is a local handler for this packet type
                 result = method(this, packet);
             }
-
+            else
+            {
+                //there is not a local handler so see if there is a Global handler
+                lock (PacketHandlers)
+                {
+                    found = PacketHandlers.TryGetValue(packet.Type, out method);
+                }
+                if (found)
+                {
+                    result = method(this, packet);
+                }
+            }
             return result;
         }
 
@@ -161,6 +212,7 @@ namespace OpenSim
 
             if (this.ProcessPacketMethod(Pack))
             {
+                //there is a handler registered that handled this packet type 
                 return;
             }
             else
@@ -476,46 +528,6 @@ namespace OpenSim
                         //Console.WriteLine(Pack.ToString());
                         m_world.RezObject(this, (RezObjectPacket)Pack);
                         break;
-                    case PacketType.ModifyLand:
-                        ModifyLandPacket modify = (ModifyLandPacket)Pack;
-                        //Console.WriteLine("terraform: number of parcel data blocks" + modify.ParcelData.Length);
-
-                        switch (modify.ModifyBlock.Action)
-                        {
-                            case 1:
-                                if (modify.ParcelData.Length > 0)
-                                {
-                                    int mody = (int)modify.ParcelData[0].North;
-                                    int modx = (int)modify.ParcelData[0].West;
-                                    // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
-                                    // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
-
-                                    this.m_world.LandMap[(mody * 256) + modx - 1] += 0.05f;
-                                    this.m_world.LandMap[(mody * 256) + modx] += 0.1f;
-                                    this.m_world.LandMap[(mody * 256) + modx + 1] += 0.05f;
-                                    this.m_world.LandMap[((mody + 1) * 256) + modx] += 0.05f;
-                                    this.m_world.LandMap[((mody - 1) * 256) + modx] += 0.05f;
-                                    m_world.RegenerateTerrain(true, modx, mody);
-                                }
-                                break;
-                            case 2:
-                                if (modify.ParcelData.Length > 0)
-                                {
-                                    int mody = (int)modify.ParcelData[0].North;
-                                    int modx = (int)modify.ParcelData[0].West;
-                                    // Console.WriteLine("height in packet is " + modify.ModifyBlock.Height.ToString());
-                                    // Console.WriteLine("current height at that point is " + this.m_world.LandMap[(mody * 256) + modx].ToString());
-
-                                    this.m_world.LandMap[(mody * 256) + modx - 1] -= 0.05f;
-                                    this.m_world.LandMap[(mody * 256) + modx] -= 0.1f;
-                                    this.m_world.LandMap[(mody * 256) + modx + 1] -= 0.05f;
-                                    this.m_world.LandMap[((mody + 1) * 256) + modx] -= 0.05f;
-                                    this.m_world.LandMap[((mody - 1) * 256) + modx] -= 0.05f;
-                                    m_world.RegenerateTerrain(true, modx, mody);
-                                }
-                                break;
-                        }
-                        break;
                     case PacketType.RequestTaskInventory:
                         // Console.WriteLine(Pack.ToString());
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
@@ -569,8 +581,6 @@ namespace OpenSim
                             }
                         }
                         break;
-
-
                 }
             }
         }
@@ -775,31 +785,6 @@ namespace OpenSim
             item.Packet = NewPack;
             item.Incoming = false;
             this.PacketQueue.Enqueue(item);
-        }
-
-        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode)
-        {
-            m_world = world;
-            m_clientThreads = clientThreads;
-            m_assetCache = assetCache;
-            m_gridServer = gridServer;
-            m_application = application;
-            m_inventoryCache = inventoryCache;
-            m_sandboxMode = sandboxMode;
-
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
-            cirpack = initialcirpack;
-            userEP = remoteEP;
-            PacketQueue = new BlockingQueue<QueItem>();
-
-            this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
-            AckTimer = new System.Timers.Timer(500);
-            AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
-            AckTimer.Start();
-
-            ClientThread = new Thread(new ThreadStart(AuthUser));
-            ClientThread.IsBackground = true;
-            ClientThread.Start();
         }
 
         protected virtual void ClientLoop()

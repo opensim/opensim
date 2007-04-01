@@ -152,6 +152,8 @@ namespace OpenSim
                 AssetCache.LoadDefaultTextureSet();
             }
 
+            RegisterClientPacketHandlers();
+
             m_console.WriteLine("Main.cs:Startup() - Initialising HTTP server");
             // HttpServer = new SimCAPSHTTPServer(GridServers.GridServer, Cfg.IPListenPort);
             HttpServer = new BaseHttpServer(Cfg.IPListenPort);
@@ -346,6 +348,11 @@ namespace OpenSim
         void Heartbeat(object sender, System.EventArgs e)
         {
             LocalWorld.Update();
+        }
+
+        protected virtual void RegisterClientPacketHandlers()
+        {
+            SimClient.AddPacketHandler(PacketType.ModifyLand, LocalWorld.ModifyTerrain);
         }
 
         public void RunCmd(string command, string[] cmdparams)

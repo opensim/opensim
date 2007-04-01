@@ -426,5 +426,50 @@ namespace OpenSim.world
             return true;
         }
 
+        #region Packet Handlers
+        public bool ModifyTerrain(SimClient simClient, Packet packet)
+        {
+            ModifyLandPacket modify = (ModifyLandPacket)packet;
+           
+            switch (modify.ModifyBlock.Action)
+            {
+                case 1:
+                    // raise terrain
+                    if (modify.ParcelData.Length > 0)
+                    {
+                        int mody = (int)modify.ParcelData[0].North;
+                        int modx = (int)modify.ParcelData[0].West;
+                        lock (LandMap)
+                        {
+                            LandMap[(mody * 256) + modx - 1] += 0.05f;
+                            LandMap[(mody * 256) + modx] += 0.1f;
+                            LandMap[(mody * 256) + modx + 1] += 0.05f;
+                            LandMap[((mody + 1) * 256) + modx] += 0.05f;
+                            LandMap[((mody - 1) * 256) + modx] += 0.05f;
+                        }
+                        RegenerateTerrain(true, modx, mody);
+                    }
+                    break;
+                case 2:
+                    //lower terrain
+                    if (modify.ParcelData.Length > 0)
+                    {
+                        int mody = (int)modify.ParcelData[0].North;
+                        int modx = (int)modify.ParcelData[0].West;
+                        lock (LandMap)
+                        {
+                            LandMap[(mody * 256) + modx - 1] -= 0.05f;
+                            LandMap[(mody * 256) + modx] -= 0.1f;
+                            LandMap[(mody * 256) + modx + 1] -= 0.05f;
+                            LandMap[((mody + 1) * 256) + modx] -= 0.05f;
+                            LandMap[((mody - 1) * 256) + modx] -= 0.05f;
+                        }
+                        RegenerateTerrain(true, modx, mody);
+                    }
+                    break;
+            }
+            return true;
+        }
+        #endregion
     }
 }
