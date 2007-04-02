@@ -94,6 +94,7 @@ namespace OpenSim
 
         public virtual void StartUp()
         {
+
             GridServers = new Grid();
             if (m_sandbox)
             {

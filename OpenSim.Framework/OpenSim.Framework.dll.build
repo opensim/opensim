@@ -7,7 +7,7 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
+        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
             <resources prefix="OpenSim.Framework" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
@@ -18,6 +18,7 @@
                 <include name="HeightMapGenHills.cs" />
                 <include name="IAssetServer.cs" />
                 <include name="IConfig.cs" />
+                <include name="IGenericConfig.cs" />
                 <include name="IGridConfig.cs" />
                 <include name="IGridServer.cs" />
                 <include name="ILocalStorage.cs" />

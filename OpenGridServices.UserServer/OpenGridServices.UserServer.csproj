@@ -74,6 +74,10 @@
       <HintPath>..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Db4objects.Db4o.dll" >
+      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
