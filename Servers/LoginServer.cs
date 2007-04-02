@@ -83,7 +83,7 @@ namespace OpenSim.UserServer
         {
             this._needPasswd = false;
             // read in default response string
-            StreamReader SR;
+           /* StreamReader SR;
             string lines;
             SR = File.OpenText("new-login.dat");
 
@@ -93,6 +93,8 @@ namespace OpenSim.UserServer
                 _defaultResponse += lines;
             }
             SR.Close();
+            * */
+
             this._mpasswd = EncodePassword("testpass");
 
             userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr);
