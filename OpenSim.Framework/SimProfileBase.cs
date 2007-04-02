@@ -17,7 +17,7 @@ namespace OpenSim.Framework.Sims
         public uint RegionLocY;
         public string sendkey;
         public string recvkey;
-	public bool online;
+	    public bool online;
 
         public SimProfileBase()
         {

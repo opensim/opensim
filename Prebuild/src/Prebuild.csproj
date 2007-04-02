@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B6D9A5CB-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{92E80C1C-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon>App.ico</ApplicationIcon>
@@ -23,24 +23,6 @@
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
-    <BaseAddress>285212672</BaseAddress>
-    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-    <ConfigurationOverrideFile>
-    </ConfigurationOverrideFile>
-    <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile></DocumentationFile>
-    <DebugSymbols>False</DebugSymbols>
-    <FileAlignment>4096</FileAlignment>
-    <Optimize>True</Optimize>
-    <OutputPath>../../bin/</OutputPath>
-    <RegisterForComInterop>False</RegisterForComInterop>
-    <RemoveIntegerChecks>False</RemoveIntegerChecks>
-    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>1595</NoWarn>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
@@ -52,7 +34,25 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>../../bin/</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>1595</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile></DocumentationFile>
+    <DebugSymbols>False</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>True</Optimize>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -78,120 +78,120 @@
   <ItemGroup>
     <EmbeddedResource Include="App.ico">
     </EmbeddedResource>
-    <EmbeddedResource Include="data/prebuild-1.7.xsd">
+    <EmbeddedResource Include="data\prebuild-1.7.xsd">
     </EmbeddedResource>
     <Compile Include="Prebuild.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/FatalException.cs">
+    <Compile Include="Core\FatalException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Kernel.cs">
+    <Compile Include="Core\Kernel.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/UnknownLanguageException.cs">
+    <Compile Include="Core\UnknownLanguageException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/WarningException.cs">
+    <Compile Include="Core\WarningException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Attributes/DataNodeAttribute.cs">
+    <Compile Include="Core\Attributes\DataNodeAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Attributes/OptionNodeAttribute.cs">
+    <Compile Include="Core\Attributes\OptionNodeAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Attributes/TargetAttribute.cs">
+    <Compile Include="Core\Attributes\TargetAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Interfaces/IDataNode.cs">
+    <Compile Include="Core\Interfaces\IDataNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Interfaces/ITarget.cs">
+    <Compile Include="Core\Interfaces\ITarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/ConfigurationNode.cs">
+    <Compile Include="Core\Nodes\ConfigurationNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/DataNode.cs">
+    <Compile Include="Core\Nodes\DataNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/ExcludeNode.cs">
+    <Compile Include="Core\Nodes\ExcludeNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/FileNode.cs">
+    <Compile Include="Core\Nodes\FileNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/FilesNode.cs">
+    <Compile Include="Core\Nodes\FilesNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/MatchNode.cs">
+    <Compile Include="Core\Nodes\MatchNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/OptionsNode.cs">
+    <Compile Include="Core\Nodes\OptionsNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/ProcessNode.cs">
+    <Compile Include="Core\Nodes\ProcessNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/ProjectNode.cs">
+    <Compile Include="Core\Nodes\ProjectNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/ReferenceNode.cs">
+    <Compile Include="Core\Nodes\ReferenceNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/ReferencePathNode.cs">
+    <Compile Include="Core\Nodes\ReferencePathNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Nodes/SolutionNode.cs">
+    <Compile Include="Core\Nodes\SolutionNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Parse/IfContext.cs">
+    <Compile Include="Core\Parse\IfContext.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Parse/Preprocessor.cs">
+    <Compile Include="Core\Parse\Preprocessor.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/AutotoolsTarget.cs">
+    <Compile Include="Core\Targets\AutotoolsTarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/DebugTarget.cs">
+    <Compile Include="Core\Targets\DebugTarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/MonoDevelopTarget.cs">
+    <Compile Include="Core\Targets\MonoDevelopTarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/NAntTarget.cs">
+    <Compile Include="Core\Targets\NAntTarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/SharpDevelop2Target.cs">
+    <Compile Include="Core\Targets\SharpDevelop2Target.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/SharpDevelopTarget.cs">
+    <Compile Include="Core\Targets\SharpDevelopTarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/VS2002Target.cs">
+    <Compile Include="Core\Targets\VS2002Target.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/VS2003Target.cs">
+    <Compile Include="Core\Targets\VS2003Target.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Targets/VS2005Target.cs">
+    <Compile Include="Core\Targets\VS2005Target.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Utilities/CommandLineCollection.cs">
+    <Compile Include="Core\Utilities\CommandLineCollection.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Utilities/CurrentDirectory.cs">
+    <Compile Include="Core\Utilities\CurrentDirectory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Utilities/Helper.cs">
+    <Compile Include="Core\Utilities\Helper.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core/Utilities/Log.cs">
+    <Compile Include="Core\Utilities\Log.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties/AssemblyInfo.cs">
+    <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
