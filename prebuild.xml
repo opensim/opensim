@@ -369,6 +369,28 @@
       </Files>
     </Project>
 
+     <!-- Xml Config Dll -->
+     <Project name="OpenSim.GenericConfig.Xml" path="OpenSim.GenericConfig/Xml" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+     <Reference name="OpenSim.Framework"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
 
     <Project name="OpenSim.RegionServer" path="OpenSim.RegionServer" type="Library">
       <Configuration name="Debug">
@@ -390,6 +412,7 @@
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.GenericConfig.Xml"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
 
@@ -453,28 +476,6 @@
       </Files>
     </Project>
 
-     <!-- Xml Config Dll -->
-     <Project name="OpenSim.GenericConfig.Xml" path="OpenSim.GenericConfig/Xml" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-     <Reference name="OpenSim.Framework"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
   </Solution>
   
   

@@ -12,6 +12,7 @@ namespace OpenSim.GenericConfig
         private XmlNode rootNode;
         private XmlNode configNode;
         private string fileName;
+        private bool createdFile = false;
 
         public XmlConfig(string filename)
         {
@@ -23,10 +24,22 @@ namespace OpenSim.GenericConfig
             doc = new XmlDocument();
             try
             {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
+                if (System.IO.File.Exists(fileName))
+                {
+                    XmlTextReader reader = new XmlTextReader(fileName);
+                    reader.WhitespaceHandling = WhitespaceHandling.None;
+                    doc.Load(reader);
+                    reader.Close();
+                }
+                else
+                {
+                    createdFile = true;
+                    rootNode = doc.CreateNode(XmlNodeType.Element, "Root", "");
+                    doc.AppendChild(rootNode);
+                    configNode = doc.CreateNode(XmlNodeType.Element, "Config", "");
+                    rootNode.AppendChild(configNode);
+                }
+
             }
             catch (Exception e)
             {
@@ -47,6 +60,10 @@ namespace OpenSim.GenericConfig
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+            if (createdFile)
+            {
+                this.Commit();
             }
         }
 

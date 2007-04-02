@@ -13,36 +13,40 @@ namespace OpenSim.Framework.User
 
         public Dictionary<LLUUID, UserProfile> UserProfiles = new Dictionary<LLUUID, UserProfile>();
 
-        public UserProfileManagerBase() {
-	}
+        public UserProfileManagerBase()
+        {
+        }
 
         public virtual void InitUserProfiles()
         {
-                IObjectContainer db;
-                db = Db4oFactory.OpenFile("userprofiles.yap");
-                IObjectSet result = db.Get(typeof(UserProfile));
-                foreach (UserProfile userprof in result) {
-                       UserProfiles.Add(userprof.UUID, userprof);
-                }
-                Console.WriteLine("UserProfiles.Cs:InitUserProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
-                db.Close();
+            IObjectContainer db;
+            db = Db4oFactory.OpenFile("userprofiles.yap");
+            IObjectSet result = db.Get(typeof(UserProfile));
+            foreach (UserProfile userprof in result)
+            {
+                UserProfiles.Add(userprof.UUID, userprof);
+            }
+            Console.WriteLine("UserProfiles.Cs:InitUserProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
+            db.Close();
         }
 
-	public virtual void SaveUserProfiles()		// ZOMG! INEFFICIENT!
-	{
-		IObjectContainer db;
-		db = Db4oFactory.OpenFile("userprofiles.yap");
-		IObjectSet result = db.Get(typeof(UserProfile));
-		foreach (UserProfile userprof in result) {
-			db.Delete(userprof);
-			db.Commit();
-		}
-		foreach (UserProfile userprof in UserProfiles.Values) {
-			db.Set(userprof);
-			db.Commit();
-		}
-		db.Close();
-	}
+        public virtual void SaveUserProfiles()		// ZOMG! INEFFICIENT!
+        {
+            IObjectContainer db;
+            db = Db4oFactory.OpenFile("userprofiles.yap");
+            IObjectSet result = db.Get(typeof(UserProfile));
+            foreach (UserProfile userprof in result)
+            {
+                db.Delete(userprof);
+                db.Commit();
+            }
+            foreach (UserProfile userprof in UserProfiles.Values)
+            {
+                db.Set(userprof);
+                db.Commit();
+            }
+            db.Close();
+        }
 
         public UserProfile GetProfileByName(string firstname, string lastname)
         {
@@ -74,13 +78,13 @@ namespace OpenSim.Framework.User
                 }
                 else
                 {
-                    Console.WriteLine("UserProfile - not authorised, password not match "+ TheUser.MD5passwd +" and "+ passwd);
+                    Console.WriteLine("UserProfile - not authorised, password not match " + TheUser.MD5passwd + " and " + passwd);
                     return false;
                 }
             }
             else
             {
-                Console.WriteLine("UserProfile - not authorised , unkown: "+ firstname +" , " + lastname);
+                Console.WriteLine("UserProfile - not authorised , unkown: " + firstname + " , " + lastname);
                 return false;
             }
 
@@ -102,8 +106,8 @@ namespace OpenSim.Framework.User
             newprofile.UUID = LLUUID.Random();
             newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
             this.UserProfiles.Add(newprofile.UUID, newprofile);
-	    return newprofile;
-	}
+            return newprofile;
+        }
 
         public virtual AgentInventory GetUsersInventory(LLUUID agentID)
         {

@@ -45,6 +45,7 @@ using OpenSim.Assets;
 using OpenSim.CAPS;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
+using OpenSim.GenericConfig;
 using Nwc.XmlRpc;
 using OpenSim.Servers;
 
@@ -53,7 +54,9 @@ namespace OpenSim
 
     public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
     {
-        private SimConfig Cfg;
+        //private SimConfig Cfg;
+        private IGenericConfig localConfig;
+        //private IGenericConfig remoteConfig;
         private PhysicsManager physManager;
         private Grid GridServers;
         private BaseHttpServer _httpServer;
@@ -64,6 +67,7 @@ namespace OpenSim
         //private Dictionary<uint, SimClient> ClientThreads = new Dictionary<uint, SimClient>();
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         private DateTime startuptime;
+        private RegionInfo regionData;
 
         public Socket Server;
         private IPEndPoint ServerIncoming;
@@ -74,7 +78,7 @@ namespace OpenSim
         private AsyncCallback ReceivedData;
 
         private System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
-        private string ConfigDll = "OpenSim.Config.SimConfigDb4o.dll";
+        //private string ConfigDll = "OpenSim.Config.SimConfigDb4o.dll";
         public string m_physicsEngine;
         public bool m_sandbox = false;
         public bool m_loginserver;
@@ -94,6 +98,30 @@ namespace OpenSim
 
         public virtual void StartUp()
         {
+            this.regionData = new RegionInfo();
+            try
+            {
+                this.localConfig = new XmlConfig("simconfig.xml");
+                this.localConfig.LoadData();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            string configfromgrid = localConfig.GetAttribute("ConfigFromGrid");
+            if (configfromgrid == "true")
+            {
+                //config from remote server is not implemented yet
+                //this.remoteConfig = new RemoteConfig(localConfig.GetAttribute("RemoteConfigURL"), localConfig.GetAttribute("SimUUID"));
+                //this.remoteConfig.LoadData();   
+                //this.regionData.InitConfig(this.m_sandbox, this.remoteConfig);
+                //this.remoteConfig.Close();
+            }
+            else
+            {
+                this.regionData.InitConfig(this.m_sandbox, this.localConfig);
+            }
 
             GridServers = new Grid();
             if (m_sandbox)
@@ -120,17 +148,14 @@ namespace OpenSim
 
             // We check our local database first, then the grid for config options
             m_console.WriteLine("Main.cs:Startup() - Loading configuration");
-            Cfg = this.LoadConfigDll(this.ConfigDll);
-            Cfg.InitConfig(this.m_sandbox);
-            m_console.WriteLine("Main.cs:Startup() - Contacting gridserver");
-            Cfg.LoadFromGrid();
+            //Cfg = this.LoadConfigDll(this.ConfigDll);
+            //Cfg.InitConfig(this.m_sandbox);
 
-            PacketServer packetServer = new PacketServer(this); 
+            PacketServer packetServer = new PacketServer(this);
 
-            m_console.WriteLine("Main.cs:Startup() - We are " + Cfg.RegionName + " at " + Cfg.RegionLocX.ToString() + "," + Cfg.RegionLocY.ToString());
+            m_console.WriteLine("Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
             m_console.WriteLine("Initialising world");
-            LocalWorld = new World(this._packetServer.ClientThreads, Cfg.RegionHandle, Cfg.RegionName, Cfg);
-            //LocalWorld.LandMap = Cfg.LoadWorld();
+            LocalWorld = new World(this._packetServer.ClientThreads, regionData.RegionHandle, regionData.RegionName);
             LocalWorld.InventoryCache = InventoryCache;
             LocalWorld.AssetCache = AssetCache;
 
@@ -147,10 +172,10 @@ namespace OpenSim
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); //should be reading from the config file what physics engine to use
             LocalWorld.PhysScene.SetTerrain(LocalWorld.LandMap);
 
-            GridServers.AssetServer.SetServerInfo(Cfg.AssetURL, Cfg.AssetSendKey);
-            //GridServers.GridServer.SetServerInfo(Cfg.GridURL, Cfg.GridSendKey, Cfg.GridRecvKey);
+            //should be passing a IGenericConfig object to these so they can read the config data they want from it
+            GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
             IGridServer gridServer = GridServers.GridServer;
-            gridServer.SetServerInfo(Cfg.GridURL, Cfg.GridSendKey, Cfg.GridRecvKey);
+            gridServer.SetServerInfo(regionData.GridURL, regionData.GridSendKey, regionData.GridRecvKey);
 
             LocalWorld.LoadPrimsFromStorage();
 
@@ -161,7 +186,7 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:Startup() - Initialising HTTP server");
             // HttpServer = new SimCAPSHTTPServer(GridServers.GridServer, Cfg.IPListenPort);
-            _httpServer = new BaseHttpServer(Cfg.IPListenPort);
+            _httpServer = new BaseHttpServer(regionData.IPListenPort);
 
             if (gridServer.GetName() == "Remote")
             {
@@ -195,7 +220,7 @@ namespace OpenSim
             bool sandBoxWithLoginServer = m_loginserver && m_sandbox;
             if (sandBoxWithLoginServer)
             {
-                loginServer = new LoginServer(gridServer, Cfg.IPListenAddr, Cfg.IPListenPort, this.user_accounts);
+                loginServer = new LoginServer(gridServer, regionData.IPListenAddr, regionData.IPListenPort, this.user_accounts);
                 loginServer.Startup();
                 
                 if( user_accounts )
@@ -294,9 +319,9 @@ namespace OpenSim
         private void MainServerListener()
         {
             m_console.WriteLine("Main.cs:MainServerListener() - New thread started");
-            m_console.WriteLine("Main.cs:MainServerListener() - Opening UDP socket on " + Cfg.IPListenAddr + ":" + Cfg.IPListenPort);
+            m_console.WriteLine("Main.cs:MainServerListener() - Opening UDP socket on " + regionData.IPListenAddr + ":" + regionData.IPListenPort);
 
-            ServerIncoming = new IPEndPoint(IPAddress.Any, Cfg.IPListenPort);
+            ServerIncoming = new IPEndPoint(IPAddress.Any, regionData.IPListenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
 

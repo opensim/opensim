@@ -31,16 +31,14 @@ namespace OpenSim.world
         private Dictionary<uint, SimClient> m_clientThreads;
         private ulong m_regionHandle;
         private string m_regionName;
-        private SimConfig m_cfg;
         private InventoryCache _inventoryCache;
         private AssetCache _assetCache;
 
-        public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName, SimConfig cfg)
+        public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName)
         {
             m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_regionName = regionName;
-            m_cfg = cfg;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
             Entities = new Dictionary<libsecondlife.LLUUID, Entity>();

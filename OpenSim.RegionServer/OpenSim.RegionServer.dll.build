@@ -18,6 +18,7 @@
                 <include name="OpenSimNetworkHandler.cs" />
                 <include name="PacketServer.cs" />
                 <include name="QueItem.cs" />
+                <include name="RegionInfo.cs" />
                 <include name="SimClient.cs" />
                 <include name="SimConsole.cs" />
                 <include name="VersionInfo.cs" />
@@ -47,6 +48,7 @@
                 <include name="../bin/Db4objects.Db4o.dll" />
                 <include name="../bin/OpenSim.Framework.dll" />
                 <include name="../bin/OpenSim.Framework.Console.dll" />
+                <include name="../bin/OpenSim.GenericConfig.Xml.dll" />
                 <include name="../bin/OpenSim.Physics.Manager.dll" />
                 <include name="../bin/OpenSim.Servers.dll" />
             </references>
