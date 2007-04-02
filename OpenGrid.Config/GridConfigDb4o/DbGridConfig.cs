@@ -84,9 +84,9 @@ namespace OpenGrid.Config.GridConfigDb4o
 					LoadDefaults();
 					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Writing out default settings to local database");
 					db.Set(this);
+					db.Close();
 				}
 			} catch(Exception e) {
-				db.Close();
 				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Exception occured");
 				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
 			}
