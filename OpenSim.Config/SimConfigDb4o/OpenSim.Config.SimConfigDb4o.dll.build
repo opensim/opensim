@@ -13,7 +13,6 @@
             <sources failonempty="true">
                 <include name="AssemblyInfo.cs" />
                 <include name="DbSimConfig.cs" />
-                <include name="MapStorage.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

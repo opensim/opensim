@@ -4,6 +4,7 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Inventory;
+using Db4objects.Db4o;
 
 namespace OpenSim.Framework.User
 {
@@ -12,13 +13,19 @@ namespace OpenSim.Framework.User
 
         public Dictionary<LLUUID, UserProfile> UserProfiles = new Dictionary<LLUUID, UserProfile>();
 
-        public UserProfileManagerBase()
-        {
-        }
+        public UserProfileManagerBase() {
+	}
 
         public virtual void InitUserProfiles()
         {
-            // TODO: need to load from database
+                IObjectContainer db;
+                db = Db4oFactory.OpenFile("userprofiles.yap");
+                IObjectSet result = db.Get(typeof(UserProfile));
+                foreach (UserProfile userprof in result) {
+                       UserProfiles.Add(userprof.UUID, userprof);
+                }
+                Console.WriteLine("UserProfiles.Cs:InitUserProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
+                db.Close();
         }
 
         public UserProfile GetProfileByName(string firstname, string lastname)

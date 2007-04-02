@@ -68,7 +68,6 @@
     <target name="build" depends="init" description="">
         <nant buildfile="OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="build" />
-        <nant buildfile="OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="Servers/OpenSim.Servers.dll.build" target="build" />
         <nant buildfile="OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="build" />
