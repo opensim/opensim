@@ -145,7 +145,7 @@ namespace OpenGridServices.GridServer
 		foreach(SimProfileBase sim in _regionmanager.SimProfiles.Values) {
 			string SimResponse="";
 			try {
-				WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus");
+				WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus/");
 		        	CheckSim.Method = "GET";
             			CheckSim.ContentType = "text/plaintext";
             			CheckSim.ContentLength = 0;
