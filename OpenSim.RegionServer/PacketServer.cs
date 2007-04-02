@@ -39,6 +39,16 @@ namespace OpenSim
             return false;
         }
 
+        public void SendPacketToAllClients(Packet packet)
+        {
+
+        }
+
+        public void SendPacketToAllExcept(Packet packet, SimClient simClient)
+        {
+
+        }
+
         public virtual void RegisterClientPacketHandlers()
         {
             SimClient.AddPacketHandler(PacketType.ModifyLand, _localWorld.ModifyTerrain);
