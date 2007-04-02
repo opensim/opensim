@@ -33,7 +33,9 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Sims;
+using Db4objects.Db4o;
 
 namespace OpenGridServices.GridServer
 {
@@ -46,8 +48,15 @@ namespace OpenGridServices.GridServer
 		public SimProfileManager() {
 		}
 		
-		public void InitSimProfiles() {
-			// TODO: need to load from database
+		public void LoadProfiles() {		// should abstract this out
+			IObjectContainer db;
+			db = Db4oFactory.OpenFile("simprofiles.yap");
+                        IObjectSet result = db.Get(typeof(SimProfileBase));
+			foreach (SimProfileBase simprof in result) {
+				SimProfiles.Add(simprof.UUID, simprof);
+			}
+			MainConsole.Instance.WriteLine("SimProfiles.Cs:LoadProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
+			db.Close();
 		}
 
 		public SimProfileBase GetProfileByHandle(ulong reqhandle) {

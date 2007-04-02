@@ -39,7 +39,6 @@ namespace OpenGridServices.GridServer
     /// </summary>
     public class OpenGrid_Main : conscmd_callback
     {
-
         public static OpenGrid_Main thegrid;
         public string GridOwner;
         public string DefaultStartupMsg;
@@ -49,6 +48,9 @@ namespace OpenGridServices.GridServer
         public string DefaultUserServer;
         public string UserSendKey;
         public string UserRecvKey;
+	public string SimSendKey;
+	public string SimRecvKey;
+	public LLUUID highestUUID;
 
         public GridHTTPServer _httpd;
         public SimProfileManager _regionmanager;
@@ -97,11 +99,16 @@ namespace OpenGridServices.GridServer
             this.UserSendKey = m_console.CmdPrompt("Key to send to user server: ");
             this.UserRecvKey = m_console.CmdPrompt("Key to expect from user server: ");
 
-            m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
+            this.SimSendKey = m_console.CmdPrompt("Key to send to sims: ");
+	    this.SimRecvKey = m_console.CmdPrompt("Key to expect from sims: ");    
+	
+	    m_console.WriteLine("Main.cs:Startup() - Loading sim profiles from database");
+	    this._regionmanager = new SimProfileManager();
+	    _regionmanager.LoadProfiles();
+
+	    m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
             _httpd = new GridHTTPServer();
 
-            this._regionmanager = new SimProfileManager();
-            _regionmanager.CreateNewProfile("OpenSim Test", "http://there-is-no-caps.com", "4.78.190.75", 9000, 997, 996, this.UserSendKey, this.UserRecvKey);
         }
 
         public void RunCmd(string cmd, string[] cmdparams)
