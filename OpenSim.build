@@ -61,6 +61,7 @@
         <nant buildfile="OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.exe.build" target="clean" />
         <nant buildfile="OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="clean" />
+        <nant buildfile="OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="clean" />
         <nant buildfile="OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="clean" />
     </target>
 
@@ -74,6 +75,7 @@
         <nant buildfile="OpenSim.Physics/Manager/OpenSim.Physics.Manager.dll.build" target="build" />
         <nant buildfile="OpenSim.Config/SimConfigDb4o/OpenSim.Config.SimConfigDb4o.dll.build" target="build" />
         <nant buildfile="OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="build" />
+        <nant buildfile="OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="build" />
         <nant buildfile="OpenSim.GridInterfaces/Local/OpenSim.GridInterfaces.Local.dll.build" target="build" />
         <nant buildfile="OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="build" />
         <nant buildfile="OpenSim.Physics/BasicPhysicsPlugin/OpenSim.Physics.BasicPhysicsPlugin.dll.build" target="build" />
@@ -107,6 +109,7 @@
         <nant buildfile="OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.exe.build" target="doc" />
         <nant buildfile="OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="doc" />
+        <nant buildfile="OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="doc" />
         <nant buildfile="OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="doc" />
     </target>
 

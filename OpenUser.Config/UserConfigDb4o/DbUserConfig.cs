@@ -30,54 +30,42 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using Db4objects.Db4o;
 
-namespace OpenGrid.Config.GridConfigDb4o
+namespace OpenUser.Config.UserConfigDb4o
 {
-	public class Db40ConfigPlugin: IGridConfig
+	public class Db4oConfigPlugin: IUserConfig
 	{
-		public GridConfig GetConfigObject()
+		public UserConfig GetConfigObject()
 		{
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Loading Db40Config dll");
-			return ( new DbGridConfig());
+			return ( new DbUserConfig());
 		}
 	}
 	
-	public class DbGridConfig : GridConfig
+	public class DbUserConfig : UserConfig
 	{
 		private IObjectContainer db;	
 		
 		public void LoadDefaults() {
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 			
-			this.GridOwner = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid owner [OGS development team]: ", "OGS development team");
+			this.DefaultStartupMsg = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default startup message [Welcome to OGS]: ", "Welcome to OGS");
 
-			this.DefaultAssetServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default asset server [no default]: ");
-            		this.AssetSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to asset server: ");
-            		this.AssetRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from asset server: ");
-
-		        this.DefaultUserServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default user server [no default]: ");
-            		this.UserSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to user server: ");
-            		this.UserRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from user server: ");
-
-            		this.SimSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to sims: ");
-            		this.SimRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from sims: ");
+			this.GridServerURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL: ");
+            		this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server: ");
+            		this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server: ");
 		}
 
 		public override void InitConfig() {
 			try {
-				db = Db4oFactory.OpenFile("opengrid.yap");
-				IObjectSet result = db.Get(typeof(DbGridConfig));
+				db = Db4oFactory.OpenFile("openuser.yap");
+				IObjectSet result = db.Get(typeof(DbUserConfig));
 				if(result.Count==1) {
-					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Found a GridConfig object in the local database, loading");
-					foreach (DbGridConfig cfg in result) {
-						this.GridOwner=cfg.GridOwner;
-						this.DefaultAssetServer=cfg.DefaultAssetServer;
-						this.AssetSendKey=cfg.AssetSendKey;
-						this.AssetRecvKey=cfg.AssetRecvKey;
-						this.DefaultUserServer=cfg.DefaultUserServer;
-						this.UserSendKey=cfg.UserSendKey;
-						this.UserRecvKey=cfg.UserRecvKey;
-						this.SimSendKey=cfg.SimSendKey;
-						this.SimRecvKey=cfg.SimRecvKey;
+					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Found a UserConfig object in the local database, loading");
+					foreach (DbUserConfig cfg in result) {
+						this.GridServerURL=cfg.GridServerURL;
+						this.GridSendKey=cfg.GridSendKey;
+						this.GridRecvKey=cfg.GridRecvKey;
+						this.DefaultStartupMsg=cfg.DefaultStartupMsg;
 					}
 				} else {
 					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
@@ -91,16 +79,11 @@ namespace OpenGrid.Config.GridConfigDb4o
 				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
 			}
 			
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid settings loaded:");
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid owner: " + this.GridOwner);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Default asset server: " + this.DefaultAssetServer);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to asset server: " + this.AssetSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from asset server: " + this.AssetRecvKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Default user server: " + this.DefaultUserServer);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to user server: " + this.UserSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from user server: " + this.UserRecvKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to sims: " + this.SimSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from sims: " + this.SimRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("User settings loaded:");
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Default startup message: " + this.DefaultStartupMsg);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid server URL: " + this.GridServerURL);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to grid: " + this.GridSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from sims: " + this.GridRecvKey);
 		}
 	
 

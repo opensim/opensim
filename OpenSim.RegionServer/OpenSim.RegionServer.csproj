@@ -3,7 +3,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{632E1BFD-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{58019DB8-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
@@ -21,24 +21,6 @@
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
-    <BaseAddress>285212672</BaseAddress>
-    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-    <ConfigurationOverrideFile>
-    </ConfigurationOverrideFile>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile></DocumentationFile>
-    <DebugSymbols>True</DebugSymbols>
-    <FileAlignment>4096</FileAlignment>
-    <Optimize>False</Optimize>
-    <OutputPath>..\bin\</OutputPath>
-    <RegisterForComInterop>False</RegisterForComInterop>
-    <RemoveIntegerChecks>False</RemoveIntegerChecks>
-    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
@@ -50,7 +32,25 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>../bin/</OutputPath>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn></NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DocumentationFile></DocumentationFile>
+    <DebugSymbols>True</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>False</Optimize>
+    <OutputPath>../bin/</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -80,27 +80,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+    <ProjectReference Include="../OpenSim.Framework/OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
-      <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
+      <Project>{7404933D-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+    <ProjectReference Include="../OpenSim.Framework.Console/OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
-      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
+      <Project>{16759386-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
+    <ProjectReference Include="../OpenSim.Physics/Manager/OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
-      <Project>{8BE16150-0000-0000-0000-000000000000}</Project>
+      <Project>{DA1FDCE5-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Servers\OpenSim.Servers.csproj">
+    <ProjectReference Include="../Servers/OpenSim.Servers.csproj">
       <Name>OpenSim.Servers</Name>
-      <Project>{8BB20F0A-0000-0000-0000-000000000000}</Project>
+      <Project>{111F9E8F-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
@@ -136,43 +136,43 @@
     <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\AssetCache.cs">
+    <Compile Include="Assets/AssetCache.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\InventoryCache.cs">
+    <Compile Include="Assets/InventoryCache.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAPS\AdminWebFront.cs">
+    <Compile Include="CAPS/AdminWebFront.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="types\Mesh.cs">
+    <Compile Include="types/Mesh.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="types\Triangle.cs">
+    <Compile Include="types/Triangle.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\Avatar.cs">
+    <Compile Include="world/Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\AvatarAnimations.cs">
+    <Compile Include="world/AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\Entity.cs">
+    <Compile Include="world/Entity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\Primitive.cs">
+    <Compile Include="world/Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\ScriptEngine.cs">
+    <Compile Include="world/ScriptEngine.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\SurfacePatch.cs">
+    <Compile Include="world/SurfacePatch.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\World.cs">
+    <Compile Include="world/World.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\scripting\IScript.cs">
+    <Compile Include="world/scripting/IScript.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

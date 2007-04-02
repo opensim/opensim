@@ -21,6 +21,7 @@
                 <include name="IGridConfig.cs" />
                 <include name="IGridServer.cs" />
                 <include name="ILocalStorage.cs" />
+                <include name="IUserConfig.cs" />
                 <include name="IUserServer.cs" />
                 <include name="LocalGridBase.cs" />
                 <include name="Login.cs" />
