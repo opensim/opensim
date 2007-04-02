@@ -28,6 +28,22 @@ namespace OpenSim.Framework.User
                 db.Close();
         }
 
+	public virtual void SaveUserProfiles()		// ZOMG! INEFFICIENT!
+	{
+		IObjectContainer db;
+		db = Db4oFactory.OpenFile("userprofiles.yap");
+		IObjectSet result = db.Get(typeof(UserProfile));
+		foreach (UserProfile userprof in result) {
+			db.Delete(userprof);
+			db.Commit();
+		}
+		foreach (UserProfile userprof in UserProfiles.Values) {
+			db.Set(userprof);
+			db.Commit();
+		}
+		db.Close();
+	}
+
         public UserProfile GetProfileByName(string firstname, string lastname)
         {
             foreach (libsecondlife.LLUUID UUID in UserProfiles.Keys)
@@ -86,8 +102,8 @@ namespace OpenSim.Framework.User
             newprofile.UUID = LLUUID.Random();
             newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
             this.UserProfiles.Add(newprofile.UUID, newprofile);
-            return newprofile;
-        }
+	    return newprofile;
+	}
 
         public virtual AgentInventory GetUsersInventory(LLUUID agentID)
         {
