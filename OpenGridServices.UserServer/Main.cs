@@ -30,12 +30,14 @@ Copyright (c) OpenSim project, http://osgrid.org/
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.IO;
 using System.Text;
 using libsecondlife;
 using OpenSim.Framework.User;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
 
 namespace OpenGridServices.UserServer
@@ -44,20 +46,17 @@ namespace OpenGridServices.UserServer
 	/// </summary>
 	public class OpenUser_Main : conscmd_callback
 	{
-		
+		private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
+	        private UserConfig Cfg;
+
 		public static OpenUser_Main userserver;
 		
 		public UserHTTPServer _httpd;
 		public UserProfileManager _profilemanager;
-		public UserProfile GridGod;
-		public string DefaultStartupMsg;
-		public string GridURL;
-		public string GridSendKey;
-		public string GridRecvKey;
 
 		public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
-        ConsoleBase m_console;
+	        ConsoleBase m_console;
 	    
 		[STAThread]
 		public static void Main( string[] args )
@@ -72,9 +71,9 @@ namespace OpenGridServices.UserServer
 
 	    private OpenUser_Main()
 	    {
-            m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this);
-            MainConsole.Instance = m_console;
-        }
+        	m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this);
+            	MainConsole.Instance = m_console;
+            }
 	
 	    private void Work()
 	    {
@@ -87,42 +86,14 @@ namespace OpenGridServices.UserServer
 	    }
 	    
 		public void Startup() {
-			MainConsole.Instance.WriteLine("Main.cs:Startup() - Please press enter to retain default settings");
+			MainConsole.Instance.WriteLine("Main.cs:Startup() - Loading configuration");
+            		Cfg = this.LoadConfigDll(this.ConfigDll);
+            		Cfg.InitConfig();
 
-            this.GridURL=MainConsole.Instance.CmdPrompt("Grid URL: ");
-			this.GridSendKey=MainConsole.Instance.CmdPrompt("Key to send to grid: ");
-			this.GridRecvKey=MainConsole.Instance.CmdPrompt("Key to expect from grid: ");
-		
-			this.DefaultStartupMsg=MainConsole.Instance.CmdPrompt("Default startup message for clients [Welcome to OGS!] :","Welcome to OGS!");
-           
 			MainConsole.Instance.WriteLine("Main.cs:Startup() - Creating user profile manager");
 			_profilemanager = new UserProfileManager();
 			_profilemanager.InitUserProfiles();
-            _profilemanager.SetKeys(GridSendKey, GridRecvKey, GridURL, DefaultStartupMsg);
-
-		
-			string tempfirstname;
-			string templastname;
-			string tempMD5Passwd;
-			MainConsole.Instance.WriteLine("Main.cs:Startup() - Please configure the grid god user:");
-			tempfirstname=MainConsole.Instance.CmdPrompt("First name: ");
-			templastname=MainConsole.Instance.CmdPrompt("Last name: ");
-			tempMD5Passwd=MainConsole.Instance.PasswdPrompt("Password: ");
-		
-			System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
-			byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
-			bs = x.ComputeHash(bs);
-			System.Text.StringBuilder s = new System.Text.StringBuilder();
-			foreach (byte b in bs)
-			{
-   				s.Append(b.ToString("x2").ToLower());
-			}
-			tempMD5Passwd = "$1$" + s.ToString();
-
-			GridGod=_profilemanager.CreateNewProfile(tempfirstname,templastname,tempMD5Passwd);
-			_profilemanager.SetGod(GridGod.UUID);
-			GridGod.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
-			GridGod.homepos = new LLVector3(128f,128f,23f);
+            		_profilemanager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
 
 			MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
 			_httpd = new UserHTTPServer();
@@ -141,6 +112,34 @@ namespace OpenGridServices.UserServer
                     Environment.Exit(0);
                     break;
             }
+        }
+
+	private UserConfig LoadConfigDll(string dllName)
+        {
+            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+            UserConfig config = null;
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        Type typeInterface = pluginType.GetInterface("IUserConfig", true);
+
+                        if (typeInterface != null)
+                        {
+                            IUserConfig plug = (IUserConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            config = plug.GetConfigObject();
+                            break;
+                        }
+
+                        typeInterface = null;
+                    }
+                }
+            }
+            pluginAssembly = null;
+            return config;
         }
 	    
         public void Show(string ShowWhat)
