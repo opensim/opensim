@@ -77,12 +77,12 @@ namespace OpenGridServices.UserServer
 	
 	    private void Work()
 	    {
-            m_console.WriteLine("\nEnter help for a list of commands\n");
+            	m_console.WriteLine("\nEnter help for a list of commands\n");
 
-            while (true)
-            {
-                m_console.MainConsolePrompt();
-            }
+	            while (true)
+        	    {
+                	m_console.MainConsolePrompt();
+            	    }
 	    }
 	    
 		public void Startup() {
@@ -104,7 +104,8 @@ namespace OpenGridServices.UserServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.WriteLine("create user - create a new user");
+		    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "create user":
