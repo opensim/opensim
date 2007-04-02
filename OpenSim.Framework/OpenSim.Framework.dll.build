@@ -18,6 +18,7 @@
                 <include name="HeightMapGenHills.cs" />
                 <include name="IAssetServer.cs" />
                 <include name="IConfig.cs" />
+                <include name="IGridConfig.cs" />
                 <include name="IGridServer.cs" />
                 <include name="ILocalStorage.cs" />
                 <include name="IUserServer.cs" />

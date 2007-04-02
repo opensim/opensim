@@ -32,10 +32,12 @@ using System.IO;
 using System.Text;
 using System.Timers;
 using System.Net;
+using System.Reflection;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenGridServices.GridServer
 {
@@ -43,6 +45,8 @@ namespace OpenGridServices.GridServer
     /// </summary>
     public class OpenGrid_Main : conscmd_callback
     {
+	private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
+	private GridConfig Cfg;
         public static OpenGrid_Main thegrid;
         public string GridOwner;
         public string DefaultStartupMsg;
@@ -91,22 +95,10 @@ namespace OpenGridServices.GridServer
         
         public void Startup()
         {
-            m_console.WriteLine("Main.cs:Startup() - Please press enter to retain default settings");
+            m_console.WriteLine("Main.cs:Startup() - Loading configuration");
+            Cfg = this.LoadConfigDll(this.ConfigDll);
+            Cfg.InitConfig();
 
-            this.GridOwner = m_console.CmdPrompt("Grid owner [OGS development team]: ", "OGS development team");
-            this.DefaultStartupMsg = m_console.CmdPrompt("Default startup message for clients [Welcome to OGS!]: ", "Welcome to OGS!");
-
-            this.DefaultAssetServer = m_console.CmdPrompt("Default asset server [no default]: ");
-            this.AssetSendKey = m_console.CmdPrompt("Key to send to asset server: ");
-            this.AssetRecvKey = m_console.CmdPrompt("Key to expect from asset server: ");
-
-            this.DefaultUserServer = m_console.CmdPrompt("Default user server [no default]: ");
-            this.UserSendKey = m_console.CmdPrompt("Key to send to user server: ");
-            this.UserRecvKey = m_console.CmdPrompt("Key to expect from user server: ");
-
-            this.SimSendKey = m_console.CmdPrompt("Key to send to sims: ");
-	    this.SimRecvKey = m_console.CmdPrompt("Key to expect from sims: ");    
-	
 	    m_console.WriteLine("Main.cs:Startup() - Loading sim profiles from database");
 	    this._regionmanager = new SimProfileManager();
 	    _regionmanager.LoadProfiles();
@@ -121,6 +113,34 @@ namespace OpenGridServices.GridServer
 	    SimCheckTimer.Enabled=true;
         }
 	
+	private GridConfig LoadConfigDll(string dllName)
+        {
+            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+            GridConfig config = null;
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        Type typeInterface = pluginType.GetInterface("IGridConfig", true);
+
+                        if (typeInterface != null)
+                        {
+                            IGridConfig plug = (IGridConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            config = plug.GetConfigObject();
+                            break;
+                        }
+
+                        typeInterface = null;
+                    }
+                }
+            }
+            pluginAssembly = null;
+            return config;
+        }
+
 	public void CheckSims(object sender, ElapsedEventArgs e) {
 		foreach(SimProfileBase sim in _regionmanager.SimProfiles.Values) {
 			string SimResponse="";

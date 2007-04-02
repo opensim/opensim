@@ -26,70 +26,58 @@
 */
 using System;
 using System.Collections.Generic;
-using OpenSim;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Terrain;
-//using OpenSim.world;
 using Db4objects.Db4o;
 
-namespace OpenSim.Config.SimConfigDb4o
+namespace OpenGrid.Config.GridConfigDb4o
 {
-	public class Db40ConfigPlugin: ISimConfig
+	public class Db40ConfigPlugin: IGridConfig
 	{
-		public SimConfig GetConfigObject()
+		public GridConfig GetConfigObject()
 		{
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Loading Db40Config dll");
-			return ( new DbSimConfig());
+			return ( new DbGridConfig());
 		}
 	}
 	
-	public class DbSimConfig : SimConfig
+	public class DbGridConfig : GridConfig
 	{
-        private bool isSandbox;
 		private IObjectContainer db;	
 		
 		public void LoadDefaults() {
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 			
-			this.RegionName=OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Name [OpenSim test]: ","OpenSim test");
-			this.RegionLocX=(uint)Convert.ToInt32(OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location X [997]: ","997"));
-			this.RegionLocY=(uint)Convert.ToInt32(OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location Y [996]: ","996"));
-			this.IPListenPort=Convert.ToInt32(OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("UDP port for client connections [9000]: ","9000"));
-			this.IPListenAddr=OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("IP Address to listen on for client connections [127.0.0.1]: ","127.0.0.1");
-			
-			if(!isSandbox)
-			{
-				this.AssetURL=OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Asset server URL: ");
-				this.AssetSendKey=OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Asset server key: ");
-				this.GridURL=OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL: ");
-                this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server: ");
-                this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server: ");
-                this.UserURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("User server URL: ");
-                this.UserSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to user server: ");
-                this.UserRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from user server: ");
-			}
-			this.RegionHandle = Util.UIntsToLong((RegionLocX*256), (RegionLocY*256));
+			this.GridOwner = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid owner [OGS development team]: ", "OGS development team");
+
+			this.DefaultAssetServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default asset server [no default]: ");
+            		this.AssetSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to asset server: ");
+            		this.AssetRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from asset server: ");
+
+		        this.DefaultUserServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default user server [no default]: ");
+            		this.UserSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to user server: ");
+            		this.UserRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from user server: ");
+
+            		this.SimSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to sims: ");
+            		this.SimRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from sims: ");
 		}
 
-		public override void InitConfig(bool sandboxMode) {
-            this.isSandbox = sandboxMode;
+		public override void InitConfig() {
 			try {
-				db = Db4oFactory.OpenFile("opensim.yap");
-				IObjectSet result = db.Get(typeof(DbSimConfig));
+				db = Db4oFactory.OpenFile("opengrid.yap");
+				IObjectSet result = db.Get(typeof(DbGridConfig));
 				if(result.Count==1) {
-					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Found a SimConfig object in the local database, loading");
-					foreach (DbSimConfig cfg in result) {
-						this.RegionName = cfg.RegionName;
-						this.RegionLocX = cfg.RegionLocX;
-						this.RegionLocY = cfg.RegionLocY;
-						this.RegionHandle = Util.UIntsToLong((RegionLocX*256), (RegionLocY*256));
-						this.IPListenPort = cfg.IPListenPort;
-						this.IPListenAddr = cfg.IPListenAddr;
-						this.AssetURL = cfg.AssetURL;
-						this.AssetSendKey = cfg.AssetSendKey;
-						this.GridURL = cfg.GridURL;
-						this.GridSendKey = cfg.GridSendKey;
+					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Found a GridConfig object in the local database, loading");
+					foreach (DbGridConfig cfg in result) {
+						this.GridOwner=cfg.GridOwner;
+						this.DefaultAssetServer=cfg.DefaultAssetServer;
+						this.AssetSendKey=cfg.AssetSendKey;
+						this.AssetRecvKey=cfg.AssetRecvKey;
+						this.DefaultUserServer=cfg.DefaultUserServer;
+						this.UserSendKey=cfg.UserSendKey;
+						this.UserRecvKey=cfg.UserRecvKey;
+						this.SimSendKey=cfg.SimSendKey;
+						this.SimRecvKey=cfg.SimRecvKey;
 					}
 				} else {
 					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
@@ -103,70 +91,18 @@ namespace OpenSim.Config.SimConfigDb4o
 				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
 			}
 			
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sim settings loaded:");
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Name: " + this.RegionName);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Region Handle: " + this.RegionHandle.ToString());
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sandbox Mode? " + isSandbox.ToString());
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Asset URL: " + this.AssetURL);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Asset key: " + this.AssetSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid URL: " + this.GridURL);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid key: " + this.GridSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid settings loaded:");
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid owner: " + this.GridOwner);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Default asset server: " + this.DefaultAssetServer);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to asset server: " + this.AssetSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from asset server: " + this.AssetRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Default user server: " + this.DefaultUserServer);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to user server: " + this.UserSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from user server: " + this.UserRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to sims: " + this.SimSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from sims: " + this.SimRecvKey);
 		}
 	
-		public override float[] LoadWorld() 
-		{
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Loading world....");
-			//World blank = new World();
-            float[] heightmap = null;
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Looking for a heightmap in local DB");
-			IObjectSet world_result = db.Get(typeof(MapStorage));
-			if(world_result.Count>0) {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Found a heightmap in local database, loading");
-				MapStorage map=(MapStorage)world_result.Next();	
-				//blank.LandMap = map.Map;
-                heightmap = map.Map;
-			} else {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - No heightmap found, generating new one");
-				HeightmapGenHills hills = new HeightmapGenHills();
-               // blank.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-                heightmap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Saving heightmap to local database");
-				MapStorage map= new MapStorage();
-                map.Map = heightmap; //blank.LandMap;
-				db.Set(map);
-				db.Commit();
-			}
-			return heightmap;
-		}
-		
-		public override void SaveMap(float[] heightmap)
-		{
-			IObjectSet world_result = db.Get(typeof(MapStorage));
-			if(world_result.Count>0) {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - updating saved copy of heightmap in local database");
-				MapStorage map=(MapStorage)world_result.Next();
-				db.Delete(map);
-			}
-			MapStorage map1= new MapStorage();
-            map1.Map = heightmap; //OpenSim_Main.local_world.LandMap;
-			db.Set(map1);
-			db.Commit();
-		}
-
-		public override void LoadFromGrid() {
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadFromGrid() - dummy function, DOING ABSOLUTELY NOTHING AT ALL!!!");
-			// TODO: Make this crap work
-			/* WebRequest GridLogin = WebRequest.Create(this.GridURL + "regions/" + this.RegionHandle.ToString() + "/login");
-			WebResponse GridResponse = GridLogin.GetResponse();
-	                byte[] idata = new byte[(int)GridResponse.ContentLength];
-			BinaryReader br = new BinaryReader(GridResponse.GetResponseStream());
-			
-			br.Close();
-			GridResponse.Close();
-		 	*/										    
-		}
 
 		public void Shutdown() {
 			db.Close();
