@@ -8,11 +8,11 @@ using System.Runtime.InteropServices;
 // change them to the information which is associated with the assembly
 // you compile.
 
-[assembly: AssemblyTitle("SimConfig")]
+[assembly: AssemblyTitle("GridConfig")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SimConfig")]
+[assembly: AssemblyProduct("GridConfig")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
