@@ -181,6 +181,11 @@ namespace OpenSim
 
                         return new XmlRpcResponse();
                     });
+		_httpServer.AddRestHandler("GET","/simstatus/",
+		    delegate(string request, string path)
+		    {
+			return "OK";
+		    });
             }
 
             LoginServer loginServer = null;
