@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Config.SimConfigDb4o
+namespace OpenSim.Storage.LocalStorageDb4o
 {
     public class MapStorage
     {

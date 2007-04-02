@@ -29,7 +29,6 @@ using System.Collections.Generic;
 using OpenSim;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Terrain;
 //using OpenSim.world;
 using Db4objects.Db4o;
 
@@ -96,6 +95,7 @@ namespace OpenSim.Config.SimConfigDb4o
 					LoadDefaults();
 					OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Writing out default settings to local database");
 					db.Set(this);
+                    db.Commit();
 				}
 			} catch(Exception e) {
 				db.Close();
@@ -113,46 +113,6 @@ namespace OpenSim.Config.SimConfigDb4o
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Asset key: " + this.AssetSendKey);
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid URL: " + this.GridURL);
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid key: " + this.GridSendKey);
-		}
-	
-		public override float[] LoadWorld() 
-		{
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Loading world....");
-			//World blank = new World();
-            float[] heightmap = null;
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Looking for a heightmap in local DB");
-			IObjectSet world_result = db.Get(typeof(MapStorage));
-			if(world_result.Count>0) {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Found a heightmap in local database, loading");
-				MapStorage map=(MapStorage)world_result.Next();	
-				//blank.LandMap = map.Map;
-                heightmap = map.Map;
-			} else {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - No heightmap found, generating new one");
-				HeightmapGenHills hills = new HeightmapGenHills();
-               // blank.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-                heightmap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - Saving heightmap to local database");
-				MapStorage map= new MapStorage();
-                map.Map = heightmap; //blank.LandMap;
-				db.Set(map);
-				db.Commit();
-			}
-			return heightmap;
-		}
-		
-		public override void SaveMap(float[] heightmap)
-		{
-			IObjectSet world_result = db.Get(typeof(MapStorage));
-			if(world_result.Count>0) {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadWorld() - updating saved copy of heightmap in local database");
-				MapStorage map=(MapStorage)world_result.Next();
-				db.Delete(map);
-			}
-			MapStorage map1= new MapStorage();
-            map1.Map = heightmap; //OpenSim_Main.local_world.LandMap;
-			db.Set(map1);
-			db.Commit();
 		}
 
 		public override void LoadFromGrid() {

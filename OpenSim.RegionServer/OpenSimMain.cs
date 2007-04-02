@@ -129,7 +129,7 @@ namespace OpenSim
             m_console.WriteLine("Main.cs:Startup() - We are " + Cfg.RegionName + " at " + Cfg.RegionLocX.ToString() + "," + Cfg.RegionLocY.ToString());
             m_console.WriteLine("Initialising world");
             LocalWorld = new World(this._packetServer.ClientThreads, Cfg.RegionHandle, Cfg.RegionName, Cfg);
-            LocalWorld.LandMap = Cfg.LoadWorld();
+            //LocalWorld.LandMap = Cfg.LoadWorld();
             LocalWorld.InventoryCache = InventoryCache;
             LocalWorld.AssetCache = AssetCache;
 
@@ -138,6 +138,9 @@ namespace OpenSim
 
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();
+
+            LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
+            LocalWorld.LoadWorldMap();
 
             m_console.WriteLine("Main.cs:Startup() - Starting up messaging system");
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); //should be reading from the config file what physics engine to use
@@ -148,7 +151,6 @@ namespace OpenSim
             IGridServer gridServer = GridServers.GridServer;
             gridServer.SetServerInfo(Cfg.GridURL, Cfg.GridSendKey, Cfg.GridRecvKey);
 
-            LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
             LocalWorld.LoadPrimsFromStorage();
 
             if (m_sandbox)

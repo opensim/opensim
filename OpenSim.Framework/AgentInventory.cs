@@ -39,8 +39,7 @@ namespace OpenSim.Framework.Inventory
             InventoryRoot.DefaultType = 8;
             InventoryRoot.OwnerID = this.AgentID;
             InventoryRoot.FolderName = "My Inventory";
-            InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
-            
+            InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);        
         }
 
         public bool CreateNewFolder(LLUUID folderID, ushort type)

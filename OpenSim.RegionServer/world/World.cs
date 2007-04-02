@@ -150,7 +150,7 @@ namespace OpenSim.world
             {
                 this.phyScene.SetTerrain(this.LandMap);
             }
-            m_cfg.SaveMap(this.LandMap);
+            this.localStorage.SaveMap(this.LandMap);
 
             foreach (SimClient client in m_clientThreads.Values)
             {
@@ -171,7 +171,7 @@ namespace OpenSim.world
             {
                 this.phyScene.SetTerrain(this.LandMap);
             }
-            m_cfg.SaveMap(this.LandMap);
+            this.localStorage.SaveMap(this.LandMap);
 
             foreach (SimClient client in m_clientThreads.Values)
             {
@@ -192,13 +192,18 @@ namespace OpenSim.world
                 {
                     this.phyScene.SetTerrain(this.LandMap);
                 }
-                m_cfg.SaveMap(this.LandMap);
+                this.localStorage.SaveMap(this.LandMap);
 
                 foreach (SimClient client in m_clientThreads.Values)
                 {
                     this.SendLayerData(pointx , pointy , client);
                 }
             }
+        }
+
+        public void LoadWorldMap()
+        {
+            LandMap = this.localStorage.LoadWorld();
         }
 
         public void LoadPrimsFromStorage()

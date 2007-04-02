@@ -39,6 +39,8 @@ namespace OpenSim.Framework.Interfaces
         void StorePrim(PrimData prim);
         void RemovePrim(LLUUID primID);
         void LoadPrimitives(ILocalStorageReceiver receiver);
+        float[] LoadWorld();
+        void SaveMap(float[] heightmap);
         void ShutDown();
     }
 

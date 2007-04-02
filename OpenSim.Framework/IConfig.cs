@@ -66,8 +66,6 @@ namespace OpenSim.Framework.Interfaces
 
         public abstract void InitConfig(bool sandboxMode);
         public abstract void LoadFromGrid(); 
-        public abstract float[] LoadWorld();
-        public abstract void SaveMap(float[] heightmap);
 
     }
 
