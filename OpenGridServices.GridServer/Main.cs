@@ -30,7 +30,11 @@ Copyright (c) OpenSim project, http://osgrid.org/
 using System;
 using System.IO;
 using System.Text;
+using System.Timers;
+using System.Net;
 using libsecondlife;
+using OpenSim.Framework;
+using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
 
 namespace OpenGridServices.GridServer
@@ -56,6 +60,7 @@ namespace OpenGridServices.GridServer
         public SimProfileManager _regionmanager;
 
         private ConsoleBase m_console;
+	private Timer SimCheckTimer;
         
         [STAThread]
         public static void Main(string[] args)
@@ -109,9 +114,40 @@ namespace OpenGridServices.GridServer
 	    m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
             _httpd = new GridHTTPServer();
 
+	    m_console.WriteLine("Main.cs:Startup() - Starting sim status checker");
+	    SimCheckTimer = new Timer();
+	    SimCheckTimer.Interval = 300000;		// 5 minutes
+	    SimCheckTimer.Elapsed+=new ElapsedEventHandler(CheckSims);
+	    SimCheckTimer.Enabled=true;
         }
+	
+	public void CheckSims(object sender, ElapsedEventArgs e) {
+		foreach(SimProfileBase sim in _regionmanager.SimProfiles.Values) {
+			string SimResponse="";
+			try {
+				WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus");
+		        	CheckSim.Method = "GET";
+            			CheckSim.ContentType = "text/plaintext";
+            			CheckSim.ContentLength = 0;
 
-        public void RunCmd(string cmd, string[] cmdparams)
+				StreamWriter stOut = new StreamWriter(CheckSim.GetRequestStream(), System.Text.Encoding.ASCII);
+        	    		stOut.Write("");
+	            		stOut.Close();
+
+				StreamReader stIn = new StreamReader(CheckSim.GetResponse().GetResponseStream());
+            			SimResponse = stIn.ReadToEnd();
+            			stIn.Close();
+			} catch(Exception exception) {
+			}
+			if(SimResponse=="OK") {
+				_regionmanager.SimProfiles[sim.UUID].online=true;
+			} else {
+				_regionmanager.SimProfiles[sim.UUID].online=false;
+			}
+		}
+	}
+
+	public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
             {
