@@ -59,11 +59,11 @@ namespace OpenSim
                 {
                     string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location X [997]: ", "997");
                     configData.SetAttribute("SimLocationX", location);
-                    this.RegionLocX = (uint)Convert.ToInt32(location);
+                    this.RegionLocX = (uint)Convert.ToUInt32(location);
                 }
                 else
                 {
-                    this.RegionLocX = (uint)Convert.ToInt32(attri);
+                    this.RegionLocX = (uint)Convert.ToUInt32(attri);
                 }
                 // Sim/Grid location Y
                 attri = "";
@@ -72,11 +72,11 @@ namespace OpenSim
                 {
                     string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location Y [996]: ", "996");
                     configData.SetAttribute("SimLocationY", location);
-                    this.RegionLocY = (uint)Convert.ToInt32(location);
+                    this.RegionLocY = (uint)Convert.ToUInt32(location);
                 }
                 else
                 {
-                    this.RegionLocY = (uint)Convert.ToInt32(attri);
+                    this.RegionLocY = (uint)Convert.ToUInt32(attri);
                 }
                 //Sim Listen Port
                 attri = "";

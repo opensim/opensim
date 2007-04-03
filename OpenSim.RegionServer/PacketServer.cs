@@ -51,11 +51,14 @@ namespace OpenSim
 
         public virtual void RegisterClientPacketHandlers()
         {
-            SimClient.AddPacketHandler(PacketType.ModifyLand, _localWorld.ModifyTerrain);
-            SimClient.AddPacketHandler(PacketType.ChatFromViewer, _localWorld.SimChat);
-            SimClient.AddPacketHandler(PacketType.RezObject, _localWorld.RezObject);
-            SimClient.AddPacketHandler(PacketType.DeRezObject, _localWorld.DeRezObject);
-            SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
+            if (this._localWorld != null)
+            {
+                SimClient.AddPacketHandler(PacketType.ModifyLand, _localWorld.ModifyTerrain);
+                SimClient.AddPacketHandler(PacketType.ChatFromViewer, _localWorld.SimChat);
+                SimClient.AddPacketHandler(PacketType.RezObject, _localWorld.RezObject);
+                SimClient.AddPacketHandler(PacketType.DeRezObject, _localWorld.DeRezObject);
+                SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
+            }
         }
 
         #region Client Packet Handlers

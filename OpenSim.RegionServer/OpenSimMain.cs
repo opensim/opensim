@@ -108,7 +108,7 @@ namespace OpenSim
             {
                 Console.WriteLine(e.Message);
             }
-
+            m_console.WriteLine("Main.cs:Startup() - Loading configuration");
             string configfromgrid = localConfig.GetAttribute("ConfigFromGrid");
             if (configfromgrid == "true")
             {
@@ -122,6 +122,7 @@ namespace OpenSim
             {
                 this.regionData.InitConfig(this.m_sandbox, this.localConfig);
             }
+            this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
             GridServers = new Grid();
             if (m_sandbox)
@@ -145,11 +146,6 @@ namespace OpenSim
 
             AssetCache = new AssetCache(GridServers.AssetServer);
             InventoryCache = new InventoryCache();
-
-            // We check our local database first, then the grid for config options
-            m_console.WriteLine("Main.cs:Startup() - Loading configuration");
-            //Cfg = this.LoadConfigDll(this.ConfigDll);
-            //Cfg.InitConfig(this.m_sandbox);
 
             PacketServer packetServer = new PacketServer(this);
 
@@ -207,11 +203,11 @@ namespace OpenSim
 
                         return new XmlRpcResponse();
                     });
-		_httpServer.AddRestHandler("GET","/simstatus/",
-		    delegate(string request, string path)
-		    {
-			return "OK";
-		    });
+                _httpServer.AddRestHandler("GET", "/simstatus/",
+                    delegate(string request, string path)
+                    {
+                        return "OK";
+                    });
             }
 
             LoginServer loginServer = null;
@@ -222,14 +218,14 @@ namespace OpenSim
             {
                 loginServer = new LoginServer(gridServer, regionData.IPListenAddr, regionData.IPListenPort, this.user_accounts);
                 loginServer.Startup();
-                
-                if( user_accounts )
+
+                if (user_accounts)
                 {
                     //sandbox mode with loginserver using accounts
                     this.GridServers.UserServer = loginServer;
                     adminLoginServer = loginServer;
-                    
-                    _httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);                    
+
+                    _httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);
                 }
                 else
                 {
@@ -239,8 +235,8 @@ namespace OpenSim
             }
 
             AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, InventoryCache, adminLoginServer);
-            adminWebFront.LoadMethods( _httpServer );
-            
+            adminWebFront.LoadMethods(_httpServer);
+
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
             _httpServer.Start();
 

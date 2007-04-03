@@ -151,6 +151,10 @@ namespace OpenSim.Framework.Assets
             bytes[i++] = (byte)((this.BaseMask >> 16) % 256);
             bytes[i++] = (byte)((this.BaseMask >> 24) % 256);
             Array.Copy(this.Position.GetBytes(), 0, bytes, i, 12); i += 12;
+            if (this.Rotation == new LLQuaternion(0,0,0,0))
+            {
+                this.Rotation = new LLQuaternion(0, 1, 0, 0);
+            }
             Array.Copy(this.Rotation.GetBytes(), 0, bytes, i, 12); i += 12;
             bytes[i++] = (byte)(this.LocalID % 256);
             bytes[i++] = (byte)((this.LocalID >> 8) % 256);

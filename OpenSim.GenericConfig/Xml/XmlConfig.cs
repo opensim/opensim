@@ -81,7 +81,7 @@ namespace OpenSim.GenericConfig
         {
             if (configNode.Attributes[attributeName] != null)
             {
-                configNode.Attributes.GetNamedItem(attributeName).Value = attributeValue;
+                 ((XmlAttribute)configNode.Attributes.GetNamedItem(attributeName)).Value = attributeValue;
             }
             else
             {

@@ -51,8 +51,6 @@ namespace OpenSim.Assets
         public Dictionary<LLUUID, AssetRequest> RequestedAssets = new Dictionary<LLUUID, AssetRequest>(); //Assets requested from the asset server
         public Dictionary<LLUUID, AssetRequest> RequestedTextures = new Dictionary<LLUUID, AssetRequest>(); //Textures requested from the asset server
 
-        //private Dictionary<libsecondlife.LLUUID, AssetBase> IncomingAssets;
-
         private IAssetServer _assetServer;
         private Thread _assetCacheThread;
         private LLUUID[] textureList = new LLUUID[5];
@@ -67,7 +65,6 @@ namespace OpenSim.Assets
             _assetServer.SetReceiver(this);
             Assets = new Dictionary<libsecondlife.LLUUID, AssetInfo>();
             Textures = new Dictionary<libsecondlife.LLUUID, TextureImage>();
-            //IncomingAssets = new Dictionary<libsecondlife.LLUUID, AssetBase>();
             this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();

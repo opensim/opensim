@@ -158,46 +158,10 @@ namespace OpenSim.world
                 pos2 = new LLVector3(pPos.X, pPos.Y, pPos.Z);
             }
             if (this.newPrimFlag)
-            {
-              /*  ObjectOwnerPacket objown = new ObjectOwnerPacket();
-                objown.HeaderData.GroupID = LLUUID.Zero;
-                objown.HeaderData.Override = false;
-                objown.HeaderData.OwnerID = LLUUID.Zero;
-                objown.ObjectData = new ObjectOwnerPacket.ObjectDataBlock[1];
-                objown.ObjectData[0] = new ObjectOwnerPacket.ObjectDataBlock();
-                objown.ObjectData[0].ObjectLocalID = this.localid;
-                ObjectGroupPacket objgroup = new ObjectGroupPacket();
-                objgroup.ObjectData = new ObjectGroupPacket.ObjectDataBlock[1];
-                objgroup.ObjectData[0] = new ObjectGroupPacket.ObjectDataBlock();
-                objgroup.ObjectData[0].ObjectLocalID = this.localid;
-                ObjectPermissionsPacket objper = new ObjectPermissionsPacket();
-                objper.HeaderData.Override = false;
-                objper.ObjectData = new ObjectPermissionsPacket.ObjectDataBlock[3];
-                for (int i = 0; i < 3; i++)
-                {
-                    objper.ObjectData[i] = new ObjectPermissionsPacket.ObjectDataBlock();
-                    objper.ObjectData[i].ObjectLocalID = this.localid;
-                    objper.ObjectData[i].Set = 1;
-                    objper.ObjectData[i].Field = 0;
-                }
-                objper.ObjectData[0].Mask = 8192;
-                objper.ObjectData[1].Mask = 16384;
-                objper.ObjectData[2].Mask = 32768;*/
-                
+            {   
                 foreach (SimClient client in m_clientThreads.Values)
                 {
                     client.OutPacket(OurPacket);
-                   /* objown.AgentData.AgentID = client.AgentID;
-                    objown.AgentData.SessionID = client.SessionID;
-                    objown.HeaderData.OwnerID = client.AgentID;
-                    client.OutPacket(objown);
-                    objgroup.AgentData.AgentID = client.AgentID;
-                    objgroup.AgentData.GroupID = LLUUID.Zero;
-                    objgroup.AgentData.SessionID = client.SessionID;
-                    client.OutPacket(objgroup);
-                    objper.AgentData.AgentID = client.AgentID;
-                    objper.AgentData.SessionID = client.SessionID;
-                    client.OutPacket(objper);*/
                 }
                 this.newPrimFlag = false;
             }

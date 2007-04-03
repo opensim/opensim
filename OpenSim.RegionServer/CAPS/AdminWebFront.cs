@@ -126,7 +126,7 @@ namespace OpenSim.CAPS
                 {
                     TempAv = (OpenSim.world.Avatar)m_world.Entities[UUID];
                     responseString += "<p> Client: ";
-                    responseString += TempAv.firstname + " , " + TempAv.lastname + " , <A HREF=\"javascript:loadXMLDoc('ClientInventory/" + UUID.ToString() + "')\">" + UUID + "</A> , " + TempAv.ControllingClient.SessionID + " ,  " + TempAv.ControllingClient.CircuitCode + " , " + TempAv.ControllingClient.userEP.ToString();//String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString());
+                    responseString += TempAv.firstname + " , " + TempAv.lastname + " , <A HREF=\"javascript:loadXMLDoc('ClientInventory/" + UUID.ToString() + "')\">" + UUID + "</A> , " + TempAv.ControllingClient.SessionID + " ,  " + TempAv.ControllingClient.CircuitCode + " , " + TempAv.ControllingClient.userEP.ToString();
                     responseString += "</p>";
                 }
             }
@@ -153,7 +153,7 @@ namespace OpenSim.CAPS
                         foreach (InventoryItem item in inven.InventoryItems.Values)
                         {
                             responseString += "<p> InventoryItem: ";
-                            responseString +=  item.Name +" , "+ item.ItemID +" , "+ item.Type +" , "+ item.FolderID +" , "+ item.AssetID +" , "+ item.Description ; //String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", item.Name, item.ItemID, item.Type, item.FolderID, item.AssetID, item.Description);
+                            responseString +=  item.Name +" , "+ item.ItemID +" , "+ item.Type +" , "+ item.FolderID +" , "+ item.AssetID +" , "+ item.Description ; 
                             responseString += "</p>";
                         }
                     }
