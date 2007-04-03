@@ -102,3 +102,15 @@ LOCAL SET-UP OF OGS CONFIGURATION
 
 * start the secondlife viewer with -loginuri http://localhost:8080/
 
+=== Trying Prototype Scripting Engine out ===
+
+* Update, build and run in sandbox mode.
+* Use the admin web front localhost:9000/Admin, password Admin
+* Create an account, then log in with the viewer
+* Press 'Entities' in the admin view and memorize the guids (well, try to)
+* Create a new object in the viewer
+* Refresh the entities view (You might have to empty cache....)
+* Locate the new guid, that's the primitive you just created
+* Be sure to see both the object in the viewer and the admin web front.
+* Press 'add test script'.
+* Enjoy the blinkenlichten!
