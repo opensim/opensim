@@ -196,6 +196,12 @@
     <Compile Include="world\scripting\Script.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\scripting\ScriptFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\scripting\Scripts\FollowRandomAvatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

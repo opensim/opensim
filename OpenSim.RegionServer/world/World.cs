@@ -13,6 +13,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Assets;
 using OpenSim.world.scripting;
 using OpenSim.RegionServer.world.scripting;
+using OpenSim.RegionServer.world.scripting.Scripts;
 
 namespace OpenSim.world
 {
@@ -32,20 +33,20 @@ namespace OpenSim.world
         private int storageCount;
         private Dictionary<uint, SimClient> m_clientThreads;
         private Dictionary<LLUUID, ScriptHandler> m_scriptHandlers;
-        private Dictionary<string, Script> m_scripts;
+        private Dictionary<string, ScriptFactory> m_scripts;
         private ulong m_regionHandle;
         private string m_regionName;
         private InventoryCache _inventoryCache;
         private AssetCache _assetCache;
 
         public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName)
-        { 
+        {
             m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_regionName = regionName;
 
             m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
-            m_scripts = new Dictionary<string, Script>();
+            m_scripts = new Dictionary<string, ScriptFactory>();
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
             Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
@@ -75,11 +76,17 @@ namespace OpenSim.world
             scriptend = scriptData.LastIndexOf("</Script>");
             substring = scriptData.Substring(scriptstart + 8, scriptend - scriptstart - 8);
             substring = substring.Trim();
-            Console.WriteLine("searching for script to add: " +  substring);
-            if (this.m_scripts.ContainsKey(substring))
+            Console.WriteLine("searching for script to add: " + substring);
+            
+            ScriptFactory scriptFactory;
+            
+            if (this.m_scripts.TryGetValue(substring, out scriptFactory ))
             {
                 Console.WriteLine("added script");
-                this.AddScript(entity, this.m_scripts[substring]);
+                
+                
+                
+                this.AddScript(entity, scriptFactory());
             }
             /*string delimStr = " ";
             char[] delimiter = delimStr.ToCharArray();
@@ -357,7 +364,7 @@ namespace OpenSim.world
                     prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
                 }
             }
-            
+
             this.Entities.Add(prim.uuid, prim);
             this._primCount++;
         }
@@ -557,31 +564,13 @@ namespace OpenSim.world
 
         public void SetDefaultScripts()
         {
-            this.m_scripts.Add("Test", new TestScript1());
+            this.m_scripts.Add("FollowRandomAvatar", delegate()
+                                                             {
+                                                             return new FollowRandomAvatar();
+                                                         });
         }
+
 
         #endregion
-    }
-
-    public class TestScript1 : Script
-    {
-        int toggle = 0;
-
-        public TestScript1()
-            : base(LLUUID.Random())
-        {
-            OnFrame += MyOnFrame;
-        }
-
-        private void MyOnFrame(IScriptContext context)
-        {
-            toggle = 2 - toggle;
-
-            LLVector3 pos = context.GetPos();
-
-            pos.X += (toggle - 1);
-
-            context.MoveTo(pos);
-        }
     }
 }

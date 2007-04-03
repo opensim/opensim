@@ -39,6 +39,8 @@
                 <include name="world/scripting/IScriptEntity.cs" />
                 <include name="world/scripting/IScriptHandler.cs" />
                 <include name="world/scripting/Script.cs" />
+                <include name="world/scripting/ScriptFactory.cs" />
+                <include name="world/scripting/Scripts/FollowRandomAvatar.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

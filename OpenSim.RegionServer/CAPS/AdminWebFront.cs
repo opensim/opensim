@@ -10,6 +10,7 @@ using OpenSim.Framework.Inventory;
 using libsecondlife;
 using OpenSim.RegionServer.world.scripting;
 using Avatar=libsecondlife.Avatar;
+using OpenSim.RegionServer.world.scripting.Scripts;
 
 namespace OpenSim.CAPS
 {
@@ -139,35 +140,6 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-
-        private class TestScript : Script
-        {
-            public TestScript()
-                : base(LLUUID.Random())
-            {
-                OnFrame += MyOnFrame;
-            }
-
-            private void MyOnFrame(IScriptContext context)
-            {
-                LLVector3 pos = context.Entity.Pos;
-
-                IScriptReadonlyEntity avatar;
-                
-                if( context.TryGetRandomAvatar( out avatar ) )
-                {
-                    LLVector3 avatarPos = avatar.Pos;
-
-                    float x = pos.X + ((float)avatarPos.X.CompareTo(pos.X))/2;
-                    float y = pos.Y + ((float)avatarPos.Y.CompareTo(pos.Y))/2;
-
-                    LLVector3 newPos = new LLVector3( x, y, pos.Z );
-                    
-                    context.Entity.Pos = newPos;
-                }                
-            }
-        }
-
         private string AddTestScript(string request, string path)
         {
             int index = path.LastIndexOf('/');
@@ -179,7 +151,7 @@ namespace OpenSim.CAPS
             if( LLUUID.TryParse( lluidStr, out id ) )
             {
                 // This is just here for concept purposes... Remove!
-                m_world.AddScript( m_world.Entities[id], new TestScript());
+                m_world.AddScript( m_world.Entities[id], new FollowRandomAvatar());
                 return String.Format("Added new script to object [{0}]", id);
             }
             else
