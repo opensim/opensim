@@ -114,7 +114,6 @@ namespace OpenGridServices.GridServer
 								SimNeighboursData.Add(NeighbourBlock);
 							}
 						}
-	
 
 						SimLoginRespData["region_locx"]=TheSim.RegionLocX.ToString();
 						SimLoginRespData["region_locy"]=TheSim.RegionLocY.ToString();

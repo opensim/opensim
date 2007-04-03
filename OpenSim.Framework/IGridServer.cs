@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Interfaces
         AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
         bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
         string GetName();
-        bool RequestConnection();
+        bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port);
         void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
         void Close();
     }

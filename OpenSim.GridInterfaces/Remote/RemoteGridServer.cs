@@ -25,12 +25,14 @@
 * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using libsecondlife;
+using Nwc.XmlRpc;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Assets;
 
@@ -54,10 +56,28 @@ namespace OpenSim.GridInterfaces.Remote
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Remote Grid Server class created");
         }
 
-        public override bool RequestConnection()
+        public override bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port)
         {
-            return true;
-        }
+	    Hashtable GridParams = new Hashtable();
+            GridParams["authkey"]=GridSendKey;
+	    GridParams["UUID"]=SimUUID.ToString();
+	    GridParams["sim_ip"]=sim_ip;
+	    GridParams["sim_port"]=sim_port.ToString();
+	    ArrayList SendParams = new ArrayList();
+            SendParams.Add(GridParams);
+
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
+            XmlRpcResponse GridResp = GridReq.Send(this.GridServerUrl, 3000);
+	    Hashtable GridRespData = (Hashtable)GridResp.Value;
+            
+	    if(GridRespData.ContainsKey("error")) {
+	    	string errorstring = (string)GridRespData["error"];
+		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Error connecting to grid:");
+		OpenSim.Framework.Console.MainConsole.Instance.WriteLine(errorstring);
+	    	return false;
+	    }
+	    return true;
+	}
 
         public override AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
         {
@@ -82,7 +102,7 @@ namespace OpenSim.GridInterfaces.Remote
                 user.LoginInfo.Agent = agentID;
                 user.LoginInfo.Session = sessionID;
                 user.LoginInfo.SecureSession = validcircuit.SecureSessionID;
-                user.LoginInfo.First = validcircuit.firstname;
+             	user.LoginInfo.First = validcircuit.firstname;
                 user.LoginInfo.Last = validcircuit.lastname;
             }
             else

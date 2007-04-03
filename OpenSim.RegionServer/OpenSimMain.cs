@@ -54,7 +54,8 @@ namespace OpenSim
 
     public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
     {
-        //private SimConfig Cfg;
+        
+	//private SimConfig Cfg;
         private IGenericConfig localConfig;
         //private IGenericConfig remoteConfig;
         private PhysicsManager physManager;
