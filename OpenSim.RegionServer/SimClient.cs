@@ -183,14 +183,18 @@ namespace OpenSim
 
         private void ack_pack(Packet Pack)
         {
-            //libsecondlife.Packets.PacketAckPacket ack_it = new PacketAckPacket();
-            //ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
-            //ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
-            //ack_it.Packets[0].ID = Pack.Header.ID;
-            //ack_it.Header.Reliable = false;
+            if (Pack.Header.Reliable)
+            {
+                libsecondlife.Packets.PacketAckPacket ack_it = new PacketAckPacket();
+                ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
+                ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
+                ack_it.Packets[0].ID = Pack.Header.Sequence;
+                ack_it.Header.Reliable = false;
 
-            //OutPacket(ack_it);
+                OutPacket(ack_it);
 
+            }
+            /*
             if (Pack.Header.Reliable)
             {
                 lock (PendingAcks)
@@ -198,7 +202,7 @@ namespace OpenSim
                     uint sequence = (uint)Pack.Header.Sequence;
                     if (!PendingAcks.ContainsKey(sequence)) { PendingAcks[sequence] = sequence; }
                 }
-            }
+            }*/
         }
 
         protected virtual void ProcessInPacket(Packet Pack)
