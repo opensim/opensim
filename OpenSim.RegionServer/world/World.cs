@@ -11,6 +11,8 @@ using OpenSim.Framework.Assets;
 using OpenSim.Framework.Terrain;
 using OpenSim.Framework.Inventory;
 using OpenSim.Assets;
+using OpenSim.world.scripting;
+using OpenSim.RegionServer.world.scripting;
 
 namespace OpenSim.world
 {
@@ -29,6 +31,7 @@ namespace OpenSim.world
         private uint _primCount = 702000;
         private int storageCount;
         private Dictionary<uint, SimClient> m_clientThreads;
+        private Dictionary<LLUUID, ScriptHandler> m_scriptHandlers;
         private ulong m_regionHandle;
         private string m_regionName;
         private InventoryCache _inventoryCache;
@@ -40,6 +43,8 @@ namespace OpenSim.world
             m_regionHandle = regionHandle;
             m_regionName = regionName;
 
+            m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
+
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
             Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
 
@@ -50,6 +55,12 @@ namespace OpenSim.world
             // Initialise this only after the world has loaded
             //	Scripts = new ScriptEngine(this);
             Avatar.LoadAnims();
+        }
+
+        public void AddScript(Entity entity, Script script)
+        {
+            ScriptHandler scriptHandler = new ScriptHandler(script, entity, this);
+            m_scriptHandlers.Add(scriptHandler.ScriptId, scriptHandler);
         }
 
         public InventoryCache InventoryCache
@@ -100,6 +111,11 @@ namespace OpenSim.world
             foreach (libsecondlife.LLUUID UUID in Entities.Keys)
             {
                 Entities[UUID].update();
+            }
+
+            foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
+            {
+                scriptHandler.OnFrame();
             }
 
             //backup world data
@@ -194,7 +210,7 @@ namespace OpenSim.world
 
                 foreach (SimClient client in m_clientThreads.Values)
                 {
-                    this.SendLayerData(pointx , pointy , client);
+                    this.SendLayerData(pointx, pointy, client);
                 }
             }
         }
@@ -251,10 +267,10 @@ namespace OpenSim.world
             int[] patches = new int[1];
             int patchx, patchy;
             patchx = px / 16;
-           /* if (patchx > 12)
-            {
-                patchx = 12;
-            }*/
+            /* if (patchx > 12)
+             {
+                 patchx = 12;
+             }*/
             patchy = py / 16;
 
             patches[0] = patchx + 0 + patchy * 16;
@@ -270,9 +286,10 @@ namespace OpenSim.world
         {
             foreach (libsecondlife.LLUUID UUID in Entities.Keys)
             {
-                if (Entities[UUID].ToString() == "OpenSim.world.Primitive")
+                if (Entities[UUID] is Primitive)
                 {
-                    ((OpenSim.world.Primitive)Entities[UUID]).UpdateClient(RemoteClient);
+                    Primitive primitive = Entities[UUID] as Primitive;
+                    primitive.UpdateClient(RemoteClient);
                 }
             }
         }
@@ -306,7 +323,7 @@ namespace OpenSim.world
                     prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
                 }
             }
-            //prim.PhysicsEnabled = true;
+            
             this.Entities.Add(prim.uuid, prim);
             this._primCount++;
         }
@@ -314,7 +331,7 @@ namespace OpenSim.world
         public bool DeRezObject(SimClient simClient, Packet packet)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
-           // Console.WriteLine(DeRezPacket);
+            // Console.WriteLine(DeRezPacket);
             //Needs to delete object from physics at a later date
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
             {
@@ -414,7 +431,7 @@ namespace OpenSim.world
         public bool ModifyTerrain(SimClient simClient, Packet packet)
         {
             ModifyLandPacket modify = (ModifyLandPacket)packet;
-           
+
             switch (modify.ModifyBlock.Action)
             {
                 case 1:

@@ -7,6 +7,8 @@ using OpenSim.UserServer;
 using OpenSim.Servers;
 using OpenSim.Assets;
 using OpenSim.Framework.Inventory;
+using libsecondlife;
+using OpenSim.RegionServer.world.scripting;
 
 namespace OpenSim.CAPS
 {
@@ -34,7 +36,10 @@ namespace OpenSim.CAPS
             server.AddRestHandler("GET", "/Admin", GetAdminPage);
             server.AddRestHandler("GET", "/Admin/Welcome", GetWelcomePage);
             server.AddRestHandler("GET", "/Admin/Accounts", GetAccountsPage );
-            server.AddRestHandler("GET", "/Admin/Clients", GetConnectedClientsPage );
+            server.AddRestHandler("GET", "/Admin/Clients", GetConnectedClientsPage);
+            server.AddRestHandler("GET", "/Admin/Entities", GetEntitiesPage);
+            server.AddRestHandler("GET", "/Admin/Scripts", GetScriptsPage);
+            server.AddRestHandler("GET", "/Admin/AddTestScript", AddTestScript );
             server.AddRestHandler("GET", "/ClientInventory", GetClientsInventory);
 
             server.AddRestHandler("POST", "/Admin/NewAccount", PostNewAccount );
@@ -133,6 +138,68 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
+
+        private class TestScript : Script
+        {
+            int toggle = 0;
+
+            public TestScript()
+                : base(LLUUID.Random())
+            {
+                OnFrame += MyOnFrame;
+            }
+
+            private void MyOnFrame(IScriptContext context)
+            {
+                toggle = 2 - toggle;
+
+                LLVector3 pos = context.GetPos();
+
+                pos.X += (toggle - 1);
+
+                context.MoveTo(pos);
+            }
+        }
+
+        private string AddTestScript(string request, string path)
+        {
+            int index = path.LastIndexOf('/');
+
+            string lluidStr = path.Substring(index+1);
+            
+            LLUUID id;
+            
+            if( LLUUID.TryParse( lluidStr, out id ) )
+            {
+                // This is just here for concept purposes... Remove!
+                m_world.AddScript( m_world.Entities[id], new TestScript());
+                return String.Format("Added new script to object [{0}]", id);
+            }
+            else
+            {
+                return String.Format("Couldn't parse [{0}]", lluidStr );
+            }
+        }
+        
+        private string GetScriptsPage(string request, string path)
+        {
+            return String.Empty;
+        }
+        
+        private string GetEntitiesPage(string request, string path)
+        {
+            string responseString;
+            responseString = " <p> Listing current entities</p><ul>";
+            
+            foreach (Entity entity in m_world.Entities.Values)
+            {
+                string testScriptLink = "javascript:loadXMLDoc('Admin/AddTestScript/" + entity.uuid.ToString() + "');";
+                responseString += String.Format( "<li>[{0}] \"{1}\" @ {2} <a href=\"{3}\">add test script</a></li>", entity.uuid, entity.getName(), entity.position, testScriptLink  );
+            }
+            responseString += "</ul>";
+            return responseString;
+        }
+
         private string GetClientsInventory(string request, string path)
         {
             string[] line;
@@ -187,38 +254,17 @@ namespace OpenSim.CAPS
             try
             {
                 StreamReader SR;
-                string lines;
-                AdminPage = "";
-                NewAccountForm = "";
-                LoginForm = "";
+                
                 SR = File.OpenText("testadmin.htm");
-
-                while (!SR.EndOfStream)
-                {
-                    lines = SR.ReadLine();
-                    AdminPage += lines + "\n";
-
-                }
+                AdminPage = SR.ReadToEnd();                
                 SR.Close();
 
                 SR = File.OpenText("newaccountform.htm");
-
-                while (!SR.EndOfStream)
-                {
-                    lines = SR.ReadLine();
-                    NewAccountForm += lines + "\n";
-
-                }
+                NewAccountForm = SR.ReadToEnd();
                 SR.Close();
 
                 SR = File.OpenText("login.htm");
-
-                while (!SR.EndOfStream)
-                {
-                    lines = SR.ReadLine();
-                    LoginForm += lines + "\n";
-
-                }
+                LoginForm = SR.ReadToEnd();
                 SR.Close();
             }
             catch (Exception e)

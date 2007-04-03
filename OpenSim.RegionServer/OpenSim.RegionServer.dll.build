@@ -35,6 +35,9 @@
                 <include name="world/SurfacePatch.cs" />
                 <include name="world/World.cs" />
                 <include name="world/scripting/IScript.cs" />
+                <include name="world/scripting/IScriptContext.cs" />
+                <include name="world/scripting/IScriptHandler.cs" />
+                <include name="world/scripting/Script.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

@@ -184,6 +184,15 @@
     <Compile Include="world\scripting\IScript.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\scripting\IScriptContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\scripting\IScriptHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\scripting\Script.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
