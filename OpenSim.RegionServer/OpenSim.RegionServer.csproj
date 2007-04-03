@@ -187,6 +187,9 @@
     <Compile Include="world\scripting\IScriptContext.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\scripting\IScriptEntity.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="world\scripting\IScriptHandler.cs">
       <SubType>Code</SubType>
     </Compile>

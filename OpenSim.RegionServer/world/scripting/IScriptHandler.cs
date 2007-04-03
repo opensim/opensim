@@ -4,18 +4,19 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Physics.Manager;
 using OpenSim.world;
-using Primitive=OpenSim.world.Primitive;
+using Avatar=OpenSim.world.Avatar;
+using Primitive = OpenSim.world.Primitive;
 
 namespace OpenSim.RegionServer.world.scripting
 {
-    public delegate void ScriptEventHandler( IScriptContext context );
-    
-    public class ScriptHandler : IScriptContext
+    public delegate void ScriptEventHandler(IScriptContext context);
+
+    public class ScriptHandler : IScriptContext, IScriptEntity, IScriptReadonlyEntity
     {
         private World m_world;
         private Script m_script;
         private Entity m_entity;
-        
+
         public LLUUID ScriptId
         {
             get
@@ -23,13 +24,13 @@ namespace OpenSim.RegionServer.world.scripting
                 return m_script.ScriptId;
             }
         }
-        
+
         public void OnFrame()
         {
             m_script.OnFrame(this);
         }
 
-        public ScriptHandler( Script script, Entity entity, World world )
+        public ScriptHandler(Script script, Entity entity, World world)
         {
             m_script = script;
             m_entity = entity;
@@ -38,22 +39,57 @@ namespace OpenSim.RegionServer.world.scripting
 
         #region IScriptContext Members
 
-        bool IScriptContext.MoveTo(LLVector3 newPos)
+        IScriptEntity IScriptContext.Entity
         {
-            if (m_entity is Primitive)
+            get
             {
-                Primitive prim = m_entity as Primitive;
-                // Of course, we really should have asked the physEngine if this is possible, and if not, returned false.
-                prim.UpdatePosition( newPos );
-                return true;
+                return this;
+            }
+        }
+
+        bool IScriptContext.TryGetRandomAvatar(out IScriptReadonlyEntity avatar)
+        {
+            foreach (Entity entity in m_world.Entities.Values )
+            {
+                if( entity is Avatar )
+                {
+                    avatar = entity;
+                    return true;
+                }
             }
             
+            avatar = null;
             return false;
         }
 
-        LLVector3 IScriptContext.GetPos()
+        #endregion
+
+        #region IScriptEntity and IScriptReadonlyEntity Members
+
+        public string Name
         {
-            return m_entity.position;
+            get
+            {
+                return m_entity.Name;
+            }
+        }
+
+        public LLVector3 Pos
+        {
+            get
+            {
+                return m_entity.Pos;
+            }
+
+            set
+            {
+                if (m_entity is Primitive)
+                {
+                    Primitive prim = m_entity as Primitive;
+                    // Of course, we really should have asked the physEngine if this is possible, and if not, returned false.
+                    prim.UpdatePosition( value );
+                }
+            }
         }
 
         #endregion

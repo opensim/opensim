@@ -19,13 +19,11 @@ namespace OpenSim.world
         protected bool updateFlag = false;
         protected bool dirtyFlag = false;
         private ObjectUpdatePacket OurPacket;
-        private PhysicsActor _physActor;
         private bool physicsEnabled = false;
         private bool physicstest = false;  
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private Dictionary<uint, SimClient> m_clientThreads;
         private ulong m_regionHandle;
-        private World m_world;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
         public bool PhysicsEnabled
@@ -130,7 +128,7 @@ namespace OpenSim.world
 
         public void UpdatePosition(LLVector3 pos)
         {
-            this.position = pos;
+            this.Pos = pos;
             if (this._physActor != null) // && this.physicsEnabled)
             {
                 try
@@ -208,7 +206,7 @@ namespace OpenSim.world
 
             if (this.physicstest)
             {
-                LLVector3 pos = this.position;
+                LLVector3 pos = this.Pos;
                 pos.Z += 0.0001f;
                 this.UpdatePosition(pos);
                 this.physicstest = false;
@@ -226,7 +224,7 @@ namespace OpenSim.world
             }
             else
             {
-                lPos = this.position;
+                lPos = this.Pos;
             }
             byte[] pb = lPos.GetBytes();
             Array.Copy(pb, 0, OurPacket.ObjectData[0].ObjectData, 0, pb.Length);
@@ -300,7 +298,7 @@ namespace OpenSim.world
                 this.physicsEnabled = pack.AgentData.UsePhysics;
                 if (this._physActor.Kinematic == false)
                 {
-                    LLVector3 pos = this.position;
+                    LLVector3 pos = this.Pos;
                     this.UpdatePosition(pos);
                     pos.Z += 0.000001f;
                     this.UpdatePosition(pos);
@@ -310,7 +308,7 @@ namespace OpenSim.world
                 {
                     PhysicsVector vec = this._physActor.Position;
                     LLVector3 pos = new LLVector3(vec.X, vec.Y, vec.Z);
-                    this.position = pos;
+                    this.Pos = pos;
                     this.updateFlag = true;
                 }
             }
@@ -319,7 +317,7 @@ namespace OpenSim.world
         public void MakeParent(Primitive prim)
         {
             this.primData.ParentID = prim.localid;
-            this.position -= prim.position;
+            this.Pos -= prim.Pos;
             this.dirtyFlag = true;
         }
 
@@ -385,7 +383,7 @@ namespace OpenSim.world
             this.newPrimFlag = true;
             this.primData.FullID = this.uuid = objupdate.ObjectData[0].FullID;
             this.localid = objupdate.ObjectData[0].ID;
-            this.primData.Position =  this.position = pos1;
+            this.primData.Position =  this.Pos = pos1;
             this.OurPacket = objupdate;
         }
 
@@ -466,7 +464,7 @@ namespace OpenSim.world
 
             this.uuid = objupdate.ObjectData[0].FullID;
             this.localid = objupdate.ObjectData[0].ID;
-            this.position = pos1;
+            this.Pos = pos1;
             this.OurPacket = objupdate;
             if (newprim)
             {
@@ -501,7 +499,7 @@ namespace OpenSim.world
             }
             else
             {
-                lPos = this.position;
+                lPos = this.Pos;
                 lRot = this.rotation;
             }
             byte[] pb = lPos.GetBytes();
@@ -557,10 +555,9 @@ namespace OpenSim.world
         {
             this.primData.FullID = this.uuid;
             this.primData.LocalID = this.localid;
-            this.primData.Position = this.position;
+            this.primData.Position = this.Pos;
             this.primData.Rotation = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z, this.rotation.w);
             this.m_world.localStorage.StorePrim(this.primData);
         }
     }
-
 }

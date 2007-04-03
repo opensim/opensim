@@ -19,7 +19,6 @@ namespace OpenSim.world
         public SimClient ControllingClient;
         public LLUUID current_anim;
         public int anim_seq;
-        private PhysicsActor _physActor;
         private static libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
         private bool updateflag = false;
         private byte movementflag = 0;
@@ -30,7 +29,6 @@ namespace OpenSim.world
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
-        private World m_world;
         private ulong m_regionHandle;
         private Dictionary<uint, SimClient> m_clientThreads;
         private string m_regionName;
@@ -45,8 +43,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
-            position = new LLVector3(100.0f, 100.0f, 30.0f);
-            position.Z = m_world.LandMap[(int)position.Y * 256 + (int)position.X] + 1;
+            Pos = new LLVector3(100.0f, 100.0f, m_world.LandMap[(int)Pos.Y * 256 + (int)Pos.X] + 1);
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -209,7 +206,7 @@ namespace OpenSim.world
             this.uuid = objupdate.ObjectData[0].FullID = ControllingClient.AgentID;
             objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstname + "\nLastName STRING RW SV " + lastname + " \0");
 
-            libsecondlife.LLVector3 pos2 = new LLVector3((float)this.position.X, (float)this.position.Y, (float)this.position.Z);
+            libsecondlife.LLVector3 pos2 = new LLVector3((float)this.Pos.X, (float)this.Pos.Y, (float)this.Pos.Z);
 
             byte[] pb = pos2.GetBytes();
 
@@ -614,23 +611,7 @@ namespace OpenSim.world
 
         public override void LandRenegerated()
         {
-            position = new LLVector3(100.0f, 100.0f, 30.0f);
-            position.Z = this.m_world.LandMap[(int)position.Y * 256 + (int)position.X] + 50;
-            if (this._physActor != null)
-            {
-                try
-                {
-                    lock (this.m_world.LockPhysicsEngine)
-                    {
-
-                        this._physActor.Position = new PhysicsVector(position.X, position.Y, position.Z);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }       
-            }
+            Pos = new LLVector3(100.0f, 100.0f, this.m_world.LandMap[(int)Pos.Y * 256 + (int)Pos.X] + 50);
         }
     }
 

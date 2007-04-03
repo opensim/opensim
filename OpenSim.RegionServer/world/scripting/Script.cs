@@ -7,8 +7,7 @@ namespace OpenSim.RegionServer.world.scripting
 {
     public class Script
     {
-        private LLUUID m_scriptId;
-        
+        private LLUUID m_scriptId;        
         public virtual LLUUID ScriptId
         {
             get

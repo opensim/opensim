@@ -7,7 +7,7 @@ namespace OpenSim.RegionServer.world.scripting
 {
     public interface IScriptContext
     {
-        bool MoveTo(LLVector3 newPos);
-        LLVector3 GetPos();
+        IScriptEntity Entity { get; }
+        bool TryGetRandomAvatar(out IScriptReadonlyEntity avatar);
     }
 }

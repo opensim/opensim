@@ -335,7 +335,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
             NewAvatar.SendRegionHandshake(this);
-            PhysicsVector pVec = new PhysicsVector(NewAvatar.position.X, NewAvatar.position.Y, NewAvatar.position.Z);
+            PhysicsVector pVec = new PhysicsVector(NewAvatar.Pos.X, NewAvatar.Pos.Y, NewAvatar.Pos.Z);
             lock (this.LockPhysicsEngine)
             {
                 NewAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
@@ -348,7 +348,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Creating new prim");
             Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
             prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
-            PhysicsVector pVec = new PhysicsVector(prim.position.X, prim.position.Y, prim.position.Z);
+            PhysicsVector pVec = new PhysicsVector(prim.Pos.X, prim.Pos.Y, prim.Pos.Z);
             PhysicsVector pSize = new PhysicsVector(0.255f, 0.255f, 0.255f);
             if (OpenSim.world.Avatar.PhysicsEngineFlying)
             {
@@ -521,7 +521,7 @@ namespace OpenSim.world
             reply.ChatData.Message = inchatpack.ChatData.Message;
             reply.ChatData.ChatType = 1;
             reply.ChatData.SourceType = 1;
-            reply.ChatData.Position = simClient.ClientAvatar.position;
+            reply.ChatData.Position = simClient.ClientAvatar.Pos;
             reply.ChatData.FromName = enc.GetBytes(simClient.ClientAvatar.firstname + " " + simClient.ClientAvatar.lastname + "\0");
             reply.ChatData.OwnerID = simClient.AgentID;
             reply.ChatData.SourceID = simClient.AgentID;

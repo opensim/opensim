@@ -9,6 +9,7 @@ using OpenSim.Assets;
 using OpenSim.Framework.Inventory;
 using libsecondlife;
 using OpenSim.RegionServer.world.scripting;
+using Avatar=libsecondlife.Avatar;
 
 namespace OpenSim.CAPS
 {
@@ -141,8 +142,6 @@ namespace OpenSim.CAPS
 
         private class TestScript : Script
         {
-            int toggle = 0;
-
             public TestScript()
                 : base(LLUUID.Random())
             {
@@ -151,13 +150,21 @@ namespace OpenSim.CAPS
 
             private void MyOnFrame(IScriptContext context)
             {
-                toggle = 2 - toggle;
+                LLVector3 pos = context.Entity.Pos;
 
-                LLVector3 pos = context.GetPos();
+                IScriptReadonlyEntity avatar;
+                
+                if( context.TryGetRandomAvatar( out avatar ) )
+                {
+                    LLVector3 avatarPos = avatar.Pos;
 
-                pos.X += (toggle - 1);
+                    float x = pos.X + ((float)avatarPos.X.CompareTo(pos.X))/2;
+                    float y = pos.Y + ((float)avatarPos.Y.CompareTo(pos.Y))/2;
 
-                context.MoveTo(pos);
+                    LLVector3 newPos = new LLVector3( x, y, pos.Z );
+                    
+                    context.Entity.Pos = newPos;
+                }                
             }
         }
 
@@ -194,7 +201,7 @@ namespace OpenSim.CAPS
             foreach (Entity entity in m_world.Entities.Values)
             {
                 string testScriptLink = "javascript:loadXMLDoc('Admin/AddTestScript/" + entity.uuid.ToString() + "');";
-                responseString += String.Format( "<li>[{0}] \"{1}\" @ {2} <a href=\"{3}\">add test script</a></li>", entity.uuid, entity.getName(), entity.position, testScriptLink  );
+                responseString += String.Format( "<li>[{0}] \"{1}\" @ {2} <a href=\"{3}\">add test script</a></li>", entity.uuid, entity.Name, entity.Pos, testScriptLink  );
             }
             responseString += "</ul>";
             return responseString;
