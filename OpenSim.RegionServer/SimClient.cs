@@ -436,6 +436,32 @@ namespace OpenSim
                             this.OutPacket(replytask);
                         }
                         break;
+                    case PacketType.UpdateTaskInventory:
+                        Console.WriteLine(Pack.ToString());
+                        UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
+                        AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
+                        if (myinventory != null)
+                        {
+                            if (myinventory.InventoryItems[updatetask.InventoryData.ItemID] != null)
+                            {
+                                if (myinventory.InventoryItems[updatetask.InventoryData.ItemID].Type == 7)
+                                {
+                                    LLUUID noteaid = myinventory.InventoryItems[updatetask.InventoryData.ItemID].AssetID;
+                                    AssetBase assBase = this.m_assetCache.GetAsset(noteaid);
+                                    if (assBase != null)
+                                    {
+                                        foreach (Entity ent in m_world.Entities.Values)
+                                        {
+                                            if (ent.localid == updatetask.UpdateData.LocalID)
+                                            {
+                                                this.m_world.AddScript(ent, Helpers.FieldToString(assBase.Data));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
                     case PacketType.AgentAnimation:
                         //Console.WriteLine(Pack.ToString());
                         break;
