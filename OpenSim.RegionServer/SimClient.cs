@@ -257,6 +257,31 @@ namespace OpenSim
                         break;
                     case PacketType.ObjectLink:
                         OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
+                        ObjectLinkPacket link = (ObjectLinkPacket)Pack;
+                        uint parentprimid = 0;
+                        OpenSim.world.Primitive parentprim = null;
+                        if (link.ObjectData.Length > 1)
+                        {
+                            parentprimid = link.ObjectData[0].ObjectLocalID;
+                            foreach (Entity ent in m_world.Entities.Values)
+                            {
+                                if (ent.localid == parentprimid)
+                                {
+                                    parentprim = (OpenSim.world.Primitive)ent;
+                                    
+                                }
+                            }
+                            for (int i = 1; i < link.ObjectData.Length; i++)
+                            {
+                                foreach (Entity ent in m_world.Entities.Values)
+                                {
+                                    if (ent.localid == link.ObjectData[i].ObjectLocalID)
+                                    {
+                                        ((OpenSim.world.Primitive)ent).MakeParent(parentprim);
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case PacketType.ObjectScale:
                         OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
@@ -554,8 +579,6 @@ namespace OpenSim
                     }
                 }
             }
-
-            //MainConsole.Instance.WriteLine("OUT: \n" + Pack.ToString());
 
             byte[] ZeroOutBuffer = new byte[4096];
             byte[] sendbuffer;

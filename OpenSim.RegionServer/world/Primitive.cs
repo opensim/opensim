@@ -246,7 +246,7 @@ namespace OpenSim.world
             OurPacket.ObjectData[0].Scale = this.primData.Scale;
             OurPacket.ObjectData[0].PathCurve = this.primData.PathCurve;
             OurPacket.ObjectData[0].ProfileCurve = this.primData.ProfileCurve;
-            OurPacket.ObjectData[0].ParentID = 0;
+            OurPacket.ObjectData[0].ParentID = this.primData.ParentID ;
             OurPacket.ObjectData[0].ProfileHollow = this.primData.ProfileHollow;
             //finish off copying rest of shape data
             OurPacket.ObjectData[0].PathRadiusOffset = this.primData.PathRadiusOffset;
@@ -314,6 +314,13 @@ namespace OpenSim.world
                     this.updateFlag = true;
                 }
             }
+        }
+
+        public void MakeParent(Primitive prim)
+        {
+            this.primData.ParentID = prim.localid;
+            this.position -= prim.position;
+            this.dirtyFlag = true;
         }
 
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
