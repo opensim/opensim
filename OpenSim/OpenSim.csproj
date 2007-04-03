@@ -112,6 +112,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RegionServer.cs">
       <SubType>Code</SubType>
     </Compile>

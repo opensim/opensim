@@ -11,6 +11,7 @@
             <resources prefix="OpenSim" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="Application.cs" />
                 <include name="RegionServer.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
