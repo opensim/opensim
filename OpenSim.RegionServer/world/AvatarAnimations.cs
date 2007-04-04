@@ -10,8 +10,7 @@ namespace OpenSim.world
 
         public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
         public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
-
-
+        
         public AvatarAnimations()
         {
         }
@@ -154,7 +153,6 @@ namespace OpenSim.world
             AnimsLLUUID.Add("ANIM_AGENT_YES", new LLUUID("15dd911d-be82-2856-26db-27659b142875"));
             AnimsLLUUID.Add("ANIM_AGENT_YES_HAPPY", new LLUUID("b8c8b2a3-9008-1771-3bfc-90924955ab2d"));
             AnimsLLUUID.Add("ANIM_AGENT_YOGA_FLOAT", new LLUUID("42ecd00b-9947-a97c-400a-bbc9174c7aeb"));
-
 
             foreach (KeyValuePair<string, LLUUID> kp in OpenSim.world.Avatar.Animations.AnimsLLUUID)
             {

@@ -21,6 +21,8 @@ namespace OpenSim.world
     {
         public object LockPhysicsEngine = new object();
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
+        public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
+        public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
         public float[] LandMap;
         public ScriptEngine Scripts;
         public uint _localNumber = 0;
@@ -50,6 +52,8 @@ namespace OpenSim.world
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
             Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
+            Avatars = new Dictionary<LLUUID, Avatar>();
+            Prims = new Dictionary<LLUUID, Primitive>();
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
             TerrainManager = new TerrainManager(new SecondLife());

@@ -166,6 +166,12 @@
     <Compile Include="world\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\AvatarClient.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="world\AvatarUpdate.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="world\Entity.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -29,6 +29,8 @@
                 <include name="types/Triangle.cs" />
                 <include name="world/Avatar.cs" />
                 <include name="world/AvatarAnimations.cs" />
+                <include name="world/AvatarClient.cs" />
+                <include name="world/AvatarUpdate.cs" />
                 <include name="world/Entity.cs" />
                 <include name="world/Primitive.cs" />
                 <include name="world/Primitive2.cs" />
