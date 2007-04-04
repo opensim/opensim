@@ -160,6 +160,8 @@ namespace OpenGridServices.GridServer
 								respstring+="<estate_id>1</estate_id>";
 								respstring+="</sim>";
 							break;
+							case "POST":
+							break;
 						}
 					}
 				break;

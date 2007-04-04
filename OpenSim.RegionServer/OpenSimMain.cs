@@ -55,6 +55,7 @@ namespace OpenSim
     public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
     {
         
+	LLUUID SimUUID;
 	//private SimConfig Cfg;
         private IGenericConfig localConfig;
         //private IGenericConfig remoteConfig;
@@ -110,20 +111,9 @@ namespace OpenSim
                 Console.WriteLine(e.Message);
             }
             m_console.WriteLine("Main.cs:Startup() - Loading configuration");
-            string configfromgrid = localConfig.GetAttribute("ConfigFromGrid");
-            if (configfromgrid == "true")
-            {
-                //config from remote server is not implemented yet
-                //this.remoteConfig = new RemoteConfig(localConfig.GetAttribute("RemoteConfigURL"), localConfig.GetAttribute("SimUUID"));
-                //this.remoteConfig.LoadData();   
-                //this.regionData.InitConfig(this.m_sandbox, this.remoteConfig);
-                //this.remoteConfig.Close();
-            }
-            else
-            {
-                this.regionData.InitConfig(this.m_sandbox, this.localConfig);
-            }
-            this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
+            this.regionData.InitConfig(this.m_sandbox, this.localConfig);
+            SimUUID = new LLUUID(localConfig.GetAttribute("SimUUID"));
+	    this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
             GridServers = new Grid();
             if (m_sandbox)
