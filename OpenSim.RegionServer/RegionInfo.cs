@@ -9,9 +9,8 @@ namespace OpenSim
 {
     public class RegionInfo  // could inherit from SimProfileBase
     {
+        public LLUUID SimUUID;
         public string RegionName;
-	public LLUUID SimUUID;
-
         public uint RegionLocX;
         public uint RegionLocY;
         public ulong RegionHandle;
@@ -42,21 +41,21 @@ namespace OpenSim
             this.isSandbox = sandboxMode;
             try
             {
-		// Sim UUID
-		string attri ="";
-		attri = configData.GetAttribute("SimUUID");
-		if (attri == "")
-		{
-		   this.SimUUID = LLUUID.Random();
-		   configData.SetAttribute("SimUUID", this.SimUUID.ToString());
-		}
-		else
-		{
-		   this.SimUUID = new LLUUID(attri);
-		}
+                // Sim UUID
+                string attri = "";
+                attri = configData.GetAttribute("SimUUID");
+                if (attri == "")
+                {
+                    this.SimUUID = LLUUID.Random();
+                    configData.SetAttribute("SimUUID", this.SimUUID.ToString());
+                }
+                else
+                {
+                    this.SimUUID = new LLUUID(attri);
+                }
 
                 // Sim name
-                attri ="";
+                attri = "";
                 attri = configData.GetAttribute("SimName");
                 if (attri == "")
                 {
@@ -116,7 +115,7 @@ namespace OpenSim
                 }
                 else
                 {
-                     this.IPListenAddr = attri;
+                    this.IPListenAddr = attri;
                 }
 
                 if (!isSandbox)
@@ -231,7 +230,7 @@ namespace OpenSim
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sim settings loaded:");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("UUID: " + this.SimUUID.ToStringHyphenated());
-	    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Name: " + this.RegionName);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Name: " + this.RegionName);
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Region Handle: " + this.RegionHandle.ToString());
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);

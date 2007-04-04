@@ -24,6 +24,8 @@ namespace OpenSim.world
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
         private string inventoryFileName = "";
 
+        #region Properties
+
         public LLVector3 Scale
         {
             set
@@ -45,6 +47,7 @@ namespace OpenSim.world
             }
         }
 
+        #endregion
 
         public Primitive2(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, World world)
         {
@@ -88,14 +91,42 @@ namespace OpenSim.world
             return result;
         }
 
+        #region Overridden Methods
+
         public override void update()
         {
             LLVector3 pos2 = new LLVector3(0, 0, 0);
         }
 
-        public void UpdateShape(ObjectShapePacket.ObjectDataBlock addPacket)
+        public override void BackUp()
         {
 
+        }
+
+        #endregion
+
+        #region Packet handlers
+
+        public void UpdateShape(ObjectShapePacket.ObjectDataBlock addPacket)
+        {
+            this.primData.PathBegin = addPacket.PathBegin;
+            this.primData.PathEnd = addPacket.PathEnd;
+            this.primData.PathScaleX = addPacket.PathScaleX;
+            this.primData.PathScaleY = addPacket.PathScaleY;
+            this.primData.PathShearX = addPacket.PathShearX;
+            this.primData.PathShearY = addPacket.PathShearY;
+            this.primData.PathSkew = addPacket.PathSkew;
+            this.primData.ProfileBegin = addPacket.ProfileBegin;
+            this.primData.ProfileEnd = addPacket.ProfileEnd;
+            this.primData.PathCurve = addPacket.PathCurve;
+            this.primData.ProfileCurve = addPacket.ProfileCurve;
+            this.primData.ProfileHollow = addPacket.ProfileHollow;
+            this.primData.PathRadiusOffset = addPacket.PathRadiusOffset;
+            this.primData.PathRevolutions = addPacket.PathRevolutions;
+            this.primData.PathTaperX = addPacket.PathTaperX;
+            this.primData.PathTaperY = addPacket.PathTaperY;
+            this.primData.PathTwist = addPacket.PathTwist;
+            this.primData.PathTwistBegin = addPacket.PathTwistBegin;
         }
 
         public void UpdateTexture(byte[] tex)
@@ -114,6 +145,10 @@ namespace OpenSim.world
         {
 
         }
+
+        #endregion
+
+        # region Inventory Methods
 
         public bool AddToInventory(InventoryItem item)
         {
@@ -164,39 +199,57 @@ namespace OpenSim.world
 
         }
 
-        public override void BackUp()
+        #endregion
+
+        #region Update viewers methods
+
+        public void SendFullUpdateToClient(SimClient remoteClient)
+        {
+            LLVector3 lPos;
+            if (this._physActor != null && this.physicsEnabled)
+            {
+                PhysicsVector pPos = this._physActor.Position;
+                lPos = new LLVector3(pPos.X, pPos.Y, pPos.Z);
+            }
+            else
+            {
+                lPos = this.Pos;
+            }
+            byte[] pb = lPos.GetBytes();
+            Array.Copy(pb, 0, OurPacket.ObjectData[0].ObjectData, 0, pb.Length);
+
+            this.UpdatePacketShapeData();
+            remoteClient.OutPacket(OurPacket);
+        }
+
+        public void SendTerseUpdateToClient(SimClient RemoteClient)
         {
 
         }
+
+        public void SendTerseUpdateToALLClients()
+        {
+
+        }
+
+        #endregion
+
+        #region Create Methods
 
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = m_regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
-
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
             PrimData PData = new PrimData();
             this.primData = PData;
             this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 
             objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();
-            objupdate.ObjectData[0].PSBlock = new byte[0];
-            objupdate.ObjectData[0].ExtraParams = new byte[1];
-            objupdate.ObjectData[0].MediaURL = new byte[0];
-            objupdate.ObjectData[0].NameValue = new byte[0];
-            objupdate.ObjectData[0].Text = new byte[0];
-            objupdate.ObjectData[0].TextColor = new byte[4];
-            objupdate.ObjectData[0].JointAxisOrAnchor = new LLVector3(0, 0, 0);
-            objupdate.ObjectData[0].JointPivot = new LLVector3(0, 0, 0);
-            objupdate.ObjectData[0].Material = 3;
+            this.SetDefaultPacketValues(objupdate.ObjectData[0]);
+
             objupdate.ObjectData[0].UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
-            objupdate.ObjectData[0].TextureAnim = new byte[0];
-            objupdate.ObjectData[0].Sound = LLUUID.Zero;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-            this.primData.Texture = objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
-            objupdate.ObjectData[0].State = 0;
-            objupdate.ObjectData[0].Data = new byte[0];
             PData.OwnerID = objupdate.ObjectData[0].OwnerID = agentID;
             PData.PCode = objupdate.ObjectData[0].PCode = addPacket.ObjectData.PCode;
             PData.PathBegin = objupdate.ObjectData[0].PathBegin = addPacket.ObjectData.PathBegin;
@@ -221,9 +274,6 @@ namespace OpenSim.world
             PData.PathTwistBegin = objupdate.ObjectData[0].PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             objupdate.ObjectData[0].ID = (uint)(localID);
             objupdate.ObjectData[0].FullID = new LLUUID("edba7151-5857-acc5-b30b-f01efef" + (localID - 702000).ToString("00000"));
-            objupdate.ObjectData[0].ObjectData = new byte[60];
-            objupdate.ObjectData[0].ObjectData[46] = 128;
-            objupdate.ObjectData[0].ObjectData[47] = 63;
             LLVector3 pos1 = addPacket.ObjectData.RayEnd;
             //update position
             byte[] pb = pos1.GetBytes();
@@ -235,12 +285,71 @@ namespace OpenSim.world
             this.OurPacket = objupdate;
         }
 
-        public void SendFullUpdateToClient(SimClient RemoteClient)
+        public void CreateFromBytes(byte[] data)
         {
 
         }
 
-        public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
+        public void CreateFromPrimData(PrimData primData)
+        {
+
+        }
+
+        #endregion
+
+        #region Packet Update Methods
+        protected void SetDefaultPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
+        {
+            objdata.PSBlock = new byte[0];
+            objdata.ExtraParams = new byte[1];
+            objdata.MediaURL = new byte[0];
+            objdata.NameValue = new byte[0];
+            objdata.Text = new byte[0];
+            objdata.TextColor = new byte[4];
+            objdata.JointAxisOrAnchor = new LLVector3(0, 0, 0);
+            objdata.JointPivot = new LLVector3(0, 0, 0);
+            objdata.Material = 3;
+            objdata.TextureAnim = new byte[0];
+            objdata.Sound = LLUUID.Zero;
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+            this.primData.Texture = objdata.TextureEntry = ntex.ToBytes();
+            objdata.State = 0;
+            objdata.Data = new byte[0];
+
+            objdata.ObjectData = new byte[60];
+            objdata.ObjectData[46] = 128;
+            objdata.ObjectData[47] = 63;
+        }
+
+        protected void UpdatePacketShapeData()
+        {
+            OurPacket.ObjectData[0].OwnerID = this.primData.OwnerID;
+            OurPacket.ObjectData[0].PCode = this.primData.PCode;
+            OurPacket.ObjectData[0].PathBegin = this.primData.PathBegin;
+            OurPacket.ObjectData[0].PathEnd = this.primData.PathEnd;
+            OurPacket.ObjectData[0].PathScaleX = this.primData.PathScaleX;
+            OurPacket.ObjectData[0].PathScaleY = this.primData.PathScaleY;
+            OurPacket.ObjectData[0].PathShearX = this.primData.PathShearX;
+            OurPacket.ObjectData[0].PathShearY = this.primData.PathShearY;
+            OurPacket.ObjectData[0].PathSkew = this.primData.PathSkew;
+            OurPacket.ObjectData[0].ProfileBegin = this.primData.ProfileBegin;
+            OurPacket.ObjectData[0].ProfileEnd = this.primData.ProfileEnd;
+            OurPacket.ObjectData[0].Scale = this.primData.Scale;
+            OurPacket.ObjectData[0].PathCurve = this.primData.PathCurve;
+            OurPacket.ObjectData[0].ProfileCurve = this.primData.ProfileCurve;
+            OurPacket.ObjectData[0].ParentID = this.primData.ParentID;
+            OurPacket.ObjectData[0].ProfileHollow = this.primData.ProfileHollow;
+            OurPacket.ObjectData[0].PathRadiusOffset = this.primData.PathRadiusOffset;
+            OurPacket.ObjectData[0].PathRevolutions = this.primData.PathRevolutions;
+            OurPacket.ObjectData[0].PathTaperX = this.primData.PathTaperX;
+            OurPacket.ObjectData[0].PathTaperY = this.primData.PathTaperY;
+            OurPacket.ObjectData[0].PathTwist = this.primData.PathTwist;
+            OurPacket.ObjectData[0].PathTwistBegin = this.primData.PathTwistBegin;
+        }
+
+        #endregion
+
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
         {
             uint ID = this.localid;
             byte[] bytes = new byte[60];
