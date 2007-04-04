@@ -31,6 +31,7 @@
                 <include name="world/AvatarAnimations.cs" />
                 <include name="world/Entity.cs" />
                 <include name="world/Primitive.cs" />
+                <include name="world/Primitive2.cs" />
                 <include name="world/ScriptEngine.cs" />
                 <include name="world/SurfacePatch.cs" />
                 <include name="world/World.cs" />

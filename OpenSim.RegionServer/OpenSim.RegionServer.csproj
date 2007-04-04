@@ -172,6 +172,9 @@
     <Compile Include="world\Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\Primitive2.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="world\ScriptEngine.cs">
       <SubType>Code</SubType>
     </Compile>
