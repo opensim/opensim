@@ -23,11 +23,11 @@ namespace OpenSim.world
             get { return m_name; }
         }
 
-        private LLVector3 m_pos;
+        protected LLVector3 m_pos;
         protected PhysicsActor _physActor;
         protected World m_world;
 
-        public LLVector3 Pos
+        public virtual LLVector3 Pos
         {
             get
             {

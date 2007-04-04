@@ -207,12 +207,25 @@ namespace OpenSim.Framework.Inventory
         public LLUUID CreatorID;
         public sbyte InvType;
         public sbyte Type;
-        public string Name;
+        public string Name ="";
         public string Description;
 
         public InventoryItem()
         {
             this.CreatorID = LLUUID.Zero;
+        }
+
+        public string ExportString()
+        {
+            string typ = "notecard";
+            string result = "";
+            result += "\tinv_object\t0\n\t{\n";
+            result += "\t\tobj_id\t%s\n";
+            result +=  "\t\tparent_id\t"+ ItemID.ToString() +"\n";
+            result += "\t\ttype\t"+ typ +"\n";
+            result += "\t\tname\t" + Name+"|\n";
+            result += "\t}\n";
+            return result;
         }
     }
 

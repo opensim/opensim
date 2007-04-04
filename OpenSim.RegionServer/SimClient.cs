@@ -345,16 +345,19 @@ namespace OpenSim
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
                         this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
                         break;
+                    case PacketType.RequestXfer:
+                        //Console.WriteLine(Pack.ToString());
+                        break;
                     case PacketType.SendXferPacket:
                         this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
                         break;
                     case PacketType.CreateInventoryFolder:
                         CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
                         m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Helpers.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
-                        Console.WriteLine(Pack.ToString());
+                        //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.CreateInventoryItem:
-                        Console.WriteLine(Pack.ToString());
+                        //Console.WriteLine(Pack.ToString());
                         CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
                         if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
                         {
@@ -362,7 +365,7 @@ namespace OpenSim
                         }
                         else
                         {
-                            Console.Write(Pack.ToString());
+                           // Console.Write(Pack.ToString());
                             this.CreateInventoryItem(createItem);
                         }
                         break;
@@ -385,7 +388,7 @@ namespace OpenSim
                                 AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
                                 if (asset != null)
                                 {
-                                    Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
+                                   // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
                                     m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                 }
                                 else
@@ -393,12 +396,12 @@ namespace OpenSim
                                     asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
                                     if (asset != null)
                                     {
-                                        Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
+                                        //Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
                                         m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                     }
                                     else
                                     {
-                                        Console.WriteLine("trying to update inventory item, but asset is null");
+                                        //Console.WriteLine("trying to update inventory item, but asset is null");
                                     }
                                 }
                             }
@@ -441,24 +444,30 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
-                        Console.WriteLine(Pack.ToString());
+                       // Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
                         AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
                         if (myinventory != null)
                         {
-                            if (myinventory.InventoryItems[updatetask.InventoryData.ItemID] != null)
+                            if (updatetask.UpdateData.Key == 0)
                             {
-                                if (myinventory.InventoryItems[updatetask.InventoryData.ItemID].Type == 7)
+                                if (myinventory.InventoryItems[updatetask.InventoryData.ItemID] != null)
                                 {
-                                    LLUUID noteaid = myinventory.InventoryItems[updatetask.InventoryData.ItemID].AssetID;
-                                    AssetBase assBase = this.m_assetCache.GetAsset(noteaid);
-                                    if (assBase != null)
+                                    if (myinventory.InventoryItems[updatetask.InventoryData.ItemID].Type == 7)
                                     {
-                                        foreach (Entity ent in m_world.Entities.Values)
+                                        LLUUID noteaid = myinventory.InventoryItems[updatetask.InventoryData.ItemID].AssetID;
+                                        AssetBase assBase = this.m_assetCache.GetAsset(noteaid);
+                                        if (assBase != null)
                                         {
-                                            if (ent.localid == updatetask.UpdateData.LocalID)
+                                            foreach (Entity ent in m_world.Entities.Values)
                                             {
-                                                this.m_world.AddScript(ent, Helpers.FieldToString(assBase.Data));
+                                                if (ent.localid == updatetask.UpdateData.LocalID)
+                                                {
+                                                    if (ent is OpenSim.world.Primitive)
+                                                    {
+                                                        this.m_world.AddScript(ent, Helpers.FieldToString(assBase.Data));
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -520,7 +529,7 @@ namespace OpenSim
                         return;
                     }
 
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sending PacketAck");
+                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sending PacketAck");
 
 
                     int i = 0;
@@ -817,7 +826,7 @@ namespace OpenSim
 
         protected bool AgentTextureCached(SimClient simclient, Packet packet)
         {
-            Console.WriteLine(packet.ToString());
+           // Console.WriteLine(packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
             cachedresp.AgentData.AgentID = this.AgentID;

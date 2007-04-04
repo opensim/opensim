@@ -76,32 +76,16 @@ namespace OpenSim.world
             scriptend = scriptData.LastIndexOf("</Script>");
             substring = scriptData.Substring(scriptstart + 8, scriptend - scriptstart - 8);
             substring = substring.Trim();
-            Console.WriteLine("searching for script to add: " + substring);
-            
+            //Console.WriteLine("searching for script to add: " + substring);
+
             ScriptFactory scriptFactory;
-            
-            if (this.m_scripts.TryGetValue(substring, out scriptFactory ))
+
+            if (this.m_scripts.TryGetValue(substring, out scriptFactory))
             {
-                Console.WriteLine("added script");
-                
-                
-                
+               //Console.WriteLine("added script");
                 this.AddScript(entity, scriptFactory());
             }
-            /*string delimStr = " ";
-            char[] delimiter = delimStr.ToCharArray();
-            string[] line;
-            line = scriptData.Split(delimiter);
-            if (line.Length > 1)
-            {
-                if (line[0] == "script:")
-                {
-                    if (this.m_scripts.ContainsKey(line[1]))
-                    {
-                        this.AddScript(entity, this.m_scripts[line[1]]);
-                    }
-                }
-            }*/
+           
         }
 
         public InventoryCache InventoryCache
@@ -566,8 +550,8 @@ namespace OpenSim.world
         {
             this.m_scripts.Add("FollowRandomAvatar", delegate()
                                                              {
-                                                             return new FollowRandomAvatar();
-                                                         });
+                                                                 return new FollowRandomAvatar();
+                                                             });
         }
 
 
