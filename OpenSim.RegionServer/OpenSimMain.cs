@@ -54,8 +54,6 @@ namespace OpenSim
 
     public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
     {
-        
-	LLUUID SimUUID;
 	//private SimConfig Cfg;
         private IGenericConfig localConfig;
         //private IGenericConfig remoteConfig;
@@ -112,7 +110,7 @@ namespace OpenSim
             }
             m_console.WriteLine("Main.cs:Startup() - Loading configuration");
             this.regionData.InitConfig(this.m_sandbox, this.localConfig);
-            SimUUID = new LLUUID(localConfig.GetAttribute("SimUUID"));
+            regionData.SimUUID = new LLUUID(localConfig.GetAttribute("SimUUID"));
 	    this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
             GridServers = new Grid();
