@@ -37,6 +37,7 @@
                 <include name="world/ScriptEngine.cs" />
                 <include name="world/SurfacePatch.cs" />
                 <include name="world/World.cs" />
+                <include name="world/WorldPacketHandlers.cs" />
                 <include name="world/scripting/IScript.cs" />
                 <include name="world/scripting/IScriptContext.cs" />
                 <include name="world/scripting/IScriptEntity.cs" />

@@ -813,12 +813,13 @@ namespace OpenSim
             }
 
             m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
-            lock (m_world.Entities)
+            /*lock (m_world.Entities)
             {
                 m_world.Entities.Remove(this.AgentID);
-            }
+            }*/
+            m_world.RemoveViewerAgent(this);
             //need to do other cleaning up here too
-            m_clientThreads.Remove(this.CircuitCode); //this.userEP);
+            m_clientThreads.Remove(this.CircuitCode); 
             m_application.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
             return true;
