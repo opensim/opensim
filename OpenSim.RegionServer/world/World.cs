@@ -185,6 +185,8 @@ namespace OpenSim.world
             return (store == null);
         }
 
+        #region Regenerate Terrain
+
         public void RegenerateTerrain()
         {
             HeightmapGenHills hills = new HeightmapGenHills();
@@ -242,6 +244,8 @@ namespace OpenSim.world
                 }
             }
         }
+
+        #endregion
 
         public void LoadWorldMap()
         {

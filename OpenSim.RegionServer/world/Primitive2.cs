@@ -201,7 +201,7 @@ namespace OpenSim.world
 
         #endregion
 
-        #region Update viewers methods
+        #region Update viewers Methods
 
         public void SendFullUpdateToClient(SimClient remoteClient)
         {
