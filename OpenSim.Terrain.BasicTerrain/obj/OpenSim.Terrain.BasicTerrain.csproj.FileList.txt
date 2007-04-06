@@ -1,0 +1,5 @@
+bin\Debug\OpenSim.Terrain.BasicTerrain.dll
+bin\Debug\OpenSim.Terrain.BasicTerrain.pdb
+obj\Debug\ResolveAssemblyReference.cache
+obj\Debug\OpenSim.Terrain.BasicTerrain.dll
+obj\Debug\OpenSim.Terrain.BasicTerrain.pdb

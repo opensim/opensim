@@ -49,7 +49,7 @@ namespace OpenSim.Physics.Manager
 
         public abstract void GetResults();
 
-        public abstract void SetTerrain(float[] heightMap);
+        public abstract void SetTerrain(float[,] heightMap);
         
         public abstract void DeleteTerrain();
 
@@ -87,7 +87,7 @@ namespace OpenSim.Physics.Manager
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("NullPhysicsScene : GetResults()");
         }
 
-        public override void SetTerrain(float[] heightMap)
+        public override void SetTerrain(float[,] heightMap)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
         }

@@ -14,6 +14,7 @@ using OpenSim.Assets;
 using OpenSim.world.scripting;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.RegionServer.world.scripting.Scripts;
+using OpenSim.Terrain;
 
 namespace OpenSim.world
 {
@@ -23,8 +24,9 @@ namespace OpenSim.world
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
-        public float[] LandMap;
+//        public float[] LandMap;
         public ScriptEngine Scripts;
+        public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         public uint _localNumber = 0;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
@@ -189,13 +191,13 @@ namespace OpenSim.world
 
         public void RegenerateTerrain()
         {
-            HeightmapGenHills hills = new HeightmapGenHills();
-            this.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
+            Terrain.hills();
+
             lock (this.LockPhysicsEngine)
             {
-                this.phyScene.SetTerrain(this.LandMap);
+                this.phyScene.SetTerrain(Terrain.map);
             }
-            this.localStorage.SaveMap(this.LandMap);
+            this.localStorage.SaveMap(this.Terrain.map);
 
             foreach (SimClient client in m_clientThreads.Values)
             {
@@ -208,14 +210,14 @@ namespace OpenSim.world
             }
         }
 
-        public void RegenerateTerrain(float[] newMap)
+        public void RegenerateTerrain(float[,] newMap)
         {
-            this.LandMap = newMap;
+            this.Terrain.map = newMap;
             lock (this.LockPhysicsEngine)
             {
-                this.phyScene.SetTerrain(this.LandMap);
+                this.phyScene.SetTerrain(this.Terrain.map);
             }
-            this.localStorage.SaveMap(this.LandMap);
+            this.localStorage.SaveMap(this.Terrain.map);
 
             foreach (SimClient client in m_clientThreads.Values)
             {
@@ -234,9 +236,9 @@ namespace OpenSim.world
             {
                 lock (this.LockPhysicsEngine)
                 {
-                    this.phyScene.SetTerrain(this.LandMap);
+                    this.phyScene.SetTerrain(this.Terrain.map);
                 }
-                this.localStorage.SaveMap(this.LandMap);
+                this.localStorage.SaveMap(this.Terrain.map);
 
                 foreach (SimClient client in m_clientThreads.Values)
                 {
@@ -249,7 +251,7 @@ namespace OpenSim.world
 
         public void LoadWorldMap()
         {
-            LandMap = this.localStorage.LoadWorld();
+            Terrain.map = this.localStorage.LoadWorld();
         }
 
         public void LoadPrimsFromStorage()
@@ -288,7 +290,7 @@ namespace OpenSim.world
                     patches[2] = x + 2 + y * 16;
                     patches[3] = x + 3 + y * 16;
 
-                    Packet layerpack = TerrainManager.CreateLandPacket(LandMap, patches);
+                    Packet layerpack = TerrainManager.CreateLandPacket(Terrain.map, patches);
                     RemoteClient.OutPacket(layerpack);
                 }
             }
@@ -310,7 +312,7 @@ namespace OpenSim.world
             //patches[2] = patchx + 2 + patchy * 16;
             //patches[3] = patchx + 3 + patchy * 16;
 
-            Packet layerpack = TerrainManager.CreateLandPacket(LandMap, patches);
+            Packet layerpack = TerrainManager.CreateLandPacket(Terrain.map, patches);
             RemoteClient.OutPacket(layerpack);
         }
 

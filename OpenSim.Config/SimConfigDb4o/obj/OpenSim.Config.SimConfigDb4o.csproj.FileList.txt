@@ -1,0 +1,5 @@
+..\..\bin\OpenSim.Config.SimConfigDb4o.dll
+..\..\bin\OpenSim.Config.SimConfigDb4o.pdb
+obj\Debug\ResolveAssemblyReference.cache
+obj\Debug\OpenSim.Config.SimConfigDb4o.dll
+obj\Debug\OpenSim.Config.SimConfigDb4o.pdb

@@ -33,7 +33,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TerrainManager.cs" />
+    <Compile Include="Hills.cs" />
+    <Compile Include="RaiseLower.cs" />
+    <Compile Include="TerrainEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

@@ -173,7 +173,7 @@ namespace OpenSim.Physics.OdePlugin
             }
         }
 
-        public override void SetTerrain(float[] heightMap)
+        public override void SetTerrain(float[,] heightMap)
         {
             for (int i = 0; i < 65536; i++)
             {

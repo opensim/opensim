@@ -24,34 +24,16 @@ namespace OpenSim.world
                     // raise terrain
                     if (modify.ParcelData.Length > 0)
                     {
-                        int mody = (int)modify.ParcelData[0].North;
-                        int modx = (int)modify.ParcelData[0].West;
-                        lock (LandMap)
-                        {
-                            LandMap[(mody * 256) + modx - 1] += 0.05f;
-                            LandMap[(mody * 256) + modx] += 0.1f;
-                            LandMap[(mody * 256) + modx + 1] += 0.05f;
-                            LandMap[((mody + 1) * 256) + modx] += 0.05f;
-                            LandMap[((mody - 1) * 256) + modx] += 0.05f;
-                        }
-                        RegenerateTerrain(true, modx, mody);
+                        Terrain.raise(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
+                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
                     }
                     break;
                 case 2:
                     //lower terrain
                     if (modify.ParcelData.Length > 0)
                     {
-                        int mody = (int)modify.ParcelData[0].North;
-                        int modx = (int)modify.ParcelData[0].West;
-                        lock (LandMap)
-                        {
-                            LandMap[(mody * 256) + modx - 1] -= 0.05f;
-                            LandMap[(mody * 256) + modx] -= 0.1f;
-                            LandMap[(mody * 256) + modx + 1] -= 0.05f;
-                            LandMap[((mody + 1) * 256) + modx] -= 0.05f;
-                            LandMap[((mody - 1) * 256) + modx] -= 0.05f;
-                        }
-                        RegenerateTerrain(true, modx, mody);
+                        Terrain.lower(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
+                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
                     }
                     break;
             }

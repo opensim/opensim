@@ -156,7 +156,7 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:Startup() - Starting up messaging system");
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); //should be reading from the config file what physics engine to use
-            LocalWorld.PhysScene.SetTerrain(LocalWorld.LandMap);
+            LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.map);
 
             //should be passing a IGenericConfig object to these so they can read the config data they want from it
             GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
