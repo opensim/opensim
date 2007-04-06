@@ -33,6 +33,7 @@ using Nwc.XmlRpc;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Net;
+using System.Xml;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -161,12 +162,18 @@ namespace OpenGridServices.GridServer
 								respstring+="</sim>";
 							break;
 							case "POST":
+								XmlDocument doc = new XmlDocument();
+								doc.LoadXml(requestBody);
+								XmlNode authkeynode = doc.FirstChild;
+                						if (authkeynode.Name != "authkey")
+                    							respstring = "<error>bad XML - expected authkey tag</error>";
+								XmlNode simnode = doc.ChildNodes[1];
+								if (simnode.Name != "sim")
+									respstring = "<error>bad XML - expected sim tag</error>";
+
 							break;
 						}
 					}
-				break;
-                        	case "highestuuid":
-					
 				break;
 			}
 			return "";
