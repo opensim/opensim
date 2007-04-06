@@ -20,6 +20,16 @@ namespace OpenSim.Terrain
 
         }
 
+        public float[] getHeights1D()
+        {
+            float[] heights = new float[w*h];
+            int i;
+            for(i=0;i<w*h;i++) {
+                heights[i] = (int)(i / w) + (i % w);
+            }
+            return heights;
+        }
+
         /// <summary>
         /// Swaps the references between the height and water buffers to allow you to edit the water heightmap. Remember to swap back when you are done.
         /// </summary>
