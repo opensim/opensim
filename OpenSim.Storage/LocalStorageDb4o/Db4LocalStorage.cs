@@ -134,6 +134,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
             }
             else
             {
+                /*
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - No heightmap found, generating new one");
                 HeightmapGenHills hills = new HeightmapGenHills();
                 // blank.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
@@ -144,6 +145,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 map.Map = heightmap; //blank.LandMap;
                 db.Set(map);
                 db.Commit();
+                 */
             }
             return heightmap;
         }

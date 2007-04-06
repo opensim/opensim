@@ -59,6 +59,7 @@ namespace OpenSim.world
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
             TerrainManager = new TerrainManager(new SecondLife());
+            Terrain = new TerrainEngine();
             Avatar.SetupTemplate("avatar-template.dat");
             //	MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
             // Initialise this only after the world has loaded
@@ -251,7 +252,16 @@ namespace OpenSim.world
 
         public void LoadWorldMap()
         {
-            Terrain.map = this.localStorage.LoadWorld();
+            float[,] map = this.localStorage.LoadWorld();
+            if (map == null)
+            {
+                this.Terrain.hills();
+                //this.localStorage.SaveMap(this.Terrain.map);
+            }
+            else
+            {
+                this.Terrain.map = map;
+            }
         }
 
         public void LoadPrimsFromStorage()
