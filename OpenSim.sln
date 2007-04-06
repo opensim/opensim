@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C# Express 2005
+# Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim", "OpenSim\OpenSim.csproj", "{438A9556-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.OdePlugin", "OpenSim.Physics\OdePlugin\OpenSim.Physics.OdePlugin.csproj", "{63A05FE9-0000-0000-0000-000000000000}"
@@ -33,6 +33,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.GridInterfaces.Local", "OpenSim.GridInterfaces\Local\OpenSim.GridInterfaces.Local.csproj", "{546099CD-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGridServices.GridServer", "OpenGridServices.GridServer\OpenGridServices.GridServer.csproj", "{21BFC8E2-0000-0000-0000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Terrain.BasicTerrain", "OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj", "{FFD5951C-4002-4ACA-9ADF-68852357B94A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -108,6 +110,10 @@ Global
 		{21BFC8E2-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21BFC8E2-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21BFC8E2-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFD5951C-4002-4ACA-9ADF-68852357B94A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFD5951C-4002-4ACA-9ADF-68852357B94A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFD5951C-4002-4ACA-9ADF-68852357B94A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFD5951C-4002-4ACA-9ADF-68852357B94A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
