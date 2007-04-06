@@ -195,7 +195,7 @@ namespace OpenSim.world
 
             lock (this.LockPhysicsEngine)
             {
-                this.phyScene.SetTerrain(Terrain.map);
+                this.phyScene.SetTerrain(Terrain.getHeights1D());
             }
             this.localStorage.SaveMap(this.Terrain.map);
 
@@ -215,7 +215,7 @@ namespace OpenSim.world
             this.Terrain.map = newMap;
             lock (this.LockPhysicsEngine)
             {
-                this.phyScene.SetTerrain(this.Terrain.map);
+                this.phyScene.SetTerrain(this.Terrain.getHeights1D());
             }
             this.localStorage.SaveMap(this.Terrain.map);
 
@@ -236,7 +236,7 @@ namespace OpenSim.world
             {
                 lock (this.LockPhysicsEngine)
                 {
-                    this.phyScene.SetTerrain(this.Terrain.map);
+                    this.phyScene.SetTerrain(this.Terrain.getHeights1D());
                 }
                 this.localStorage.SaveMap(this.Terrain.map);
 
@@ -290,7 +290,7 @@ namespace OpenSim.world
                     patches[2] = x + 2 + y * 16;
                     patches[3] = x + 3 + y * 16;
 
-                    Packet layerpack = TerrainManager.CreateLandPacket(Terrain.map, patches);
+                    Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
                     RemoteClient.OutPacket(layerpack);
                 }
             }
@@ -312,7 +312,7 @@ namespace OpenSim.world
             //patches[2] = patchx + 2 + patchy * 16;
             //patches[3] = patchx + 3 + patchy * 16;
 
-            Packet layerpack = TerrainManager.CreateLandPacket(Terrain.map, patches);
+            Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
             RemoteClient.OutPacket(layerpack);
         }
 

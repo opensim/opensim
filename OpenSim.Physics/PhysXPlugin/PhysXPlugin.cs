@@ -173,7 +173,7 @@ namespace OpenSim.Physics.PhysXPlugin
 			}
 		}
 		
-		public override void SetTerrain(float[,] heightMap)
+		public override void SetTerrain(float[] heightMap)
 		{
             if (this._heightMap != null)
             {

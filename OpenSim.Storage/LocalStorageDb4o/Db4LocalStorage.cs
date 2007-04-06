@@ -118,11 +118,11 @@ namespace OpenSim.Storage.LocalStorageDb4o
 			}
 		}
 
-        public float[] LoadWorld()
+        public float[,] LoadWorld()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - Loading world....");
             //World blank = new World();
-            float[] heightmap = null;
+            float[,] heightmap = null;
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - Looking for a heightmap in local DB");
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
@@ -137,7 +137,8 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - No heightmap found, generating new one");
                 HeightmapGenHills hills = new HeightmapGenHills();
                 // blank.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-                heightmap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
+               // heightmap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
+                heightmap = new float[256, 256];
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - Saving heightmap to local database");
                 MapStorage map = new MapStorage();
                 map.Map = heightmap; //blank.LandMap;
@@ -147,7 +148,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
             return heightmap;
         }
 
-        public void SaveMap(float[] heightmap)
+        public void SaveMap(float[,] heightmap)
         {
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
