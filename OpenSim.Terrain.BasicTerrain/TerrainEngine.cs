@@ -25,7 +25,7 @@ namespace OpenSim.Terrain
             float[] heights = new float[w*h];
             int i;
             for(i=0;i<w*h;i++) {
-                heights[i] = (int)(i / w) + (i % w);
+                heights[i] = map[i / w, i % w];
             }
             return heights;
         }
