@@ -67,6 +67,7 @@ namespace OpenSim.Terrain
             lock (map)
             {
                 Hills.hillsSpheres(this.map, 1337, 200, 20, 40, true, true, false);
+                Normalise.normalise(this.map,60);
             }
         }
 
