@@ -20,6 +20,10 @@ namespace OpenSim.Terrain
 
         }
 
+        /// <summary>
+        /// Converts the heightmap to a 65536 value 1D floating point array
+        /// </summary>
+        /// <returns>A float[65536] array containing the heightmap</returns>
         public float[] getHeights1D()
         {
             float[] heights = new float[w*h];
@@ -30,12 +34,35 @@ namespace OpenSim.Terrain
             return heights;
         }
 
+        /// <summary>
+        /// Imports a 1D floating point array into the 2D heightmap array
+        /// </summary>
+        /// <param name="heights">The array to import (must have 65536 members)</param>
         public void setHeights1D(float[] heights)
         {
             int i;
             for (i = 0; i < w * h; i++)
             {
                 map[i / w, i % w] = heights[i];
+            }
+        }
+
+        /// <summary>
+        /// Loads a file consisting of 256x256 doubles and imports it as an array into the map.
+        /// </summary>
+        /// <param name="filename">The filename of the double array to import</param>
+        public void loadFromFileF64(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            System.IO.BinaryReader bs = new System.IO.BinaryReader(s);
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    map[x, y] = (float)bs.ReadDouble();
+                }
             }
         }
 
