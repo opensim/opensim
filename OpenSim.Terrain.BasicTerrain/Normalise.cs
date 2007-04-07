@@ -6,6 +6,10 @@ namespace OpenSim.Terrain.BasicTerrain
 {
     static class Normalise
     {
+        /// <summary>
+        /// Converts the heightmap to values ranging from 0..1
+        /// </summary>
+        /// <param name="map">The heightmap to be normalised</param>
         public static void normalise(float[,] map)
         {
             double max = findMax(map);
@@ -24,6 +28,11 @@ namespace OpenSim.Terrain.BasicTerrain
             }
         }
 
+        /// <summary>
+        /// Converts the heightmap to values ranging from 0..<newmax>
+        /// </summary>
+        /// <param name="map">The heightmap to be normalised</param>
+        /// <param name="newmax">The new maximum height value of the map</param>
         public static void normalise(float[,] map, double newmax)
         {
             double max = findMax(map);
@@ -42,6 +51,11 @@ namespace OpenSim.Terrain.BasicTerrain
             }
         }
 
+        /// <summary>
+        /// Finds the largest value in the heightmap
+        /// </summary>
+        /// <param name="map">The heightmap</param>
+        /// <returns>The highest value</returns>
         public static double findMax(float[,] map)
         {
             int x, y;
@@ -61,6 +75,11 @@ namespace OpenSim.Terrain.BasicTerrain
             return max;
         }
 
+        /// <summary>
+        /// Finds the lowest value in a heightmap
+        /// </summary>
+        /// <param name="map">The heightmap</param>
+        /// <returns>The minimum value</returns>
         public static double findMin(float[,] map)
         {
             int x, y;

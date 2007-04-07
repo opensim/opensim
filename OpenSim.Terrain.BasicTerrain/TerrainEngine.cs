@@ -7,10 +7,19 @@ namespace OpenSim.Terrain
 {
     public class TerrainEngine
     {
+        /// <summary>
+        /// A [normally] 256x256 heightmap
+        /// </summary>
         public float[,] map;
+        /// <summary>
+        /// A 256x256 heightmap storing water height values
+        /// </summary>
         public float[,] water;
         int w, h;
 
+        /// <summary>
+        /// Generate a new TerrainEngine instance and creates a new heightmap
+        /// </summary>
         public TerrainEngine()
         {
             w = 256;
@@ -90,6 +99,14 @@ namespace OpenSim.Terrain
                 RaiseLower.raiseSphere(this.map, rx, ry, size, amount);
             }
         }
+
+        /// <summary>
+        /// Lowers the land in a sphere around the specified coordinates
+        /// </summary>
+        /// <param name="rx">The center of the sphere at the X axis</param>
+        /// <param name="ry">The center of the sphere at the Y axis</param>
+        /// <param name="size">The radius of the sphere in meters</param>
+        /// <param name="amount">Scale the height of the sphere by this amount (recommended 0..2)</param>
         public void lower(double rx, double ry, double size, double amount)
         {
             lock (map)
@@ -98,6 +115,9 @@ namespace OpenSim.Terrain
             }
         }
 
+        /// <summary>
+        /// Generates a simple set of hills in the shape of an island
+        /// </summary>
         public void hills()
         {
             lock (map)
