@@ -96,6 +96,9 @@ namespace OpenSim
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
         }
 
+        /// <summary>
+        /// Performs initialisation of the world, such as loading configuration from disk.
+        /// </summary>
         public virtual void StartUp()
         {
             this.regionData = new RegionInfo();
@@ -358,6 +361,9 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Performs any last-minute sanity checking and shuts down the region server
+        /// </summary>
         public virtual void Shutdown()
         {
             m_console.WriteLine("Main.cs:Shutdown() - Closing all threads");
@@ -371,11 +377,21 @@ namespace OpenSim
             Environment.Exit(0);
         }
 
+        /// <summary>
+        /// Performs per-frame updates regularly
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void Heartbeat(object sender, System.EventArgs e)
         {
             LocalWorld.Update();
         }
 
+        /// <summary>
+        /// Runs commands issued by the server console from the operator
+        /// </summary>
+        /// <param name="command">The first argument of the parameter (the command)</param>
+        /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
             switch (command)
@@ -400,6 +416,10 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Outputs to the console information about the region
+        /// </summary>
+        /// <param name="ShowWhat">What information to display (valid arguments are "uptime", "users")</param>
         public void Show(string ShowWhat)
         {
             switch (ShowWhat)

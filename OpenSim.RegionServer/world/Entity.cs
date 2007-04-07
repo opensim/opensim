@@ -62,7 +62,9 @@ namespace OpenSim.world
             }
         }
 
-        
+        /// <summary>
+        /// Creates a new Entity (should not occur on it's own)
+        /// </summary>
         public Entity()
         {
             uuid = new libsecondlife.LLUUID();
@@ -81,6 +83,10 @@ namespace OpenSim.world
                 child.addForces();
             }
         }
+
+        /// <summary>
+        /// Performs any updates that need to be done at each frame. This function is overridable from it's children.
+        /// </summary>
         public virtual void update() {
             // Do any per-frame updates needed that are applicable to every type of entity
             foreach (Entity child in children)
@@ -89,6 +95,10 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Returns a mesh for this object and any dependents
+        /// </summary>
+        /// <returns>The mesh of this entity tree</returns>
         public virtual Mesh getMesh()
         {
             Mesh mesh = new Mesh();
