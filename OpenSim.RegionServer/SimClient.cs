@@ -85,7 +85,7 @@ namespace OpenSim
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>(); //local handlers for this instance 
-        
+
         public IUserServer UserServer
         {
             set
@@ -224,7 +224,7 @@ namespace OpenSim
             else
             {
                 System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-               
+
                 switch (Pack.Type)
                 {
                     case PacketType.CompleteAgentMovement:
@@ -272,7 +272,7 @@ namespace OpenSim
                                 if (ent.localid == parentprimid)
                                 {
                                     parentprim = (OpenSim.world.Primitive)ent;
-                                    
+
                                 }
                             }
                             for (int i = 1; i < link.ObjectData.Length; i++)
@@ -365,7 +365,7 @@ namespace OpenSim
                         }
                         else
                         {
-                           // Console.Write(Pack.ToString());
+                            // Console.Write(Pack.ToString());
                             this.CreateInventoryItem(createItem);
                         }
                         break;
@@ -388,7 +388,7 @@ namespace OpenSim
                                 AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
                                 if (asset != null)
                                 {
-                                   // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
+                                    // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
                                     m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                 }
                                 else
@@ -444,7 +444,7 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
-                       // Console.WriteLine(Pack.ToString());
+                        // Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
                         AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
                         if (myinventory != null)
@@ -477,15 +477,15 @@ namespace OpenSim
                         break;
                     case PacketType.AgentAnimation:
                         AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
-	                for (int i = 0; i < AgentAni.AnimationList.Length; i++)
-                  	{
-	                     if (AgentAni.AnimationList[i].StartAnim)
-	                     {
-		                ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
-                    		ClientAvatar.anim_seq = 1;
-				ClientAvatar.SendAnimPack();
-	                     }
-	                }
+                        for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+                        {
+                            if (AgentAni.AnimationList[i].StartAnim)
+                            {
+                                ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
+                                ClientAvatar.anim_seq = 1;
+                                ClientAvatar.SendAnimPack();
+                            }
+                        }
                         break;
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
@@ -828,7 +828,7 @@ namespace OpenSim
             }*/
             m_world.RemoveViewerAgent(this);
             //need to do other cleaning up here too
-            m_clientThreads.Remove(this.CircuitCode); 
+            m_clientThreads.Remove(this.CircuitCode);
             m_application.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
             return true;
@@ -836,7 +836,7 @@ namespace OpenSim
 
         protected bool AgentTextureCached(SimClient simclient, Packet packet)
         {
-           // Console.WriteLine(packet.ToString());
+            // Console.WriteLine(packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
             cachedresp.AgentData.AgentID = this.AgentID;

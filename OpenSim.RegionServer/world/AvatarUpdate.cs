@@ -109,8 +109,11 @@ namespace OpenSim.world
                 client.OutPacket(objupdate);
                 if (client.AgentID != ControllingClient.AgentID)
                 {
-                    client.ClientAvatar.SendAppearanceToOtherAgent(this.ControllingClient);
-		    SendAppearanceToOtherAgent(client);
+                    //the below line is already in Simclient.cs at line number 245 , directly below the call to this method
+                    //if there is a problem/bug with that , then lets fix it there rather than duplicating it here
+                    //client.ClientAvatar.SendAppearanceToOtherAgent(this.ControllingClient);
+
+                    SendAppearanceToOtherAgent(client);
                 }
             }
         }
@@ -142,10 +145,12 @@ namespace OpenSim.world
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
             avp.ObjectData.TextureEntry = this.avatarAppearanceTexture.ToBytes();
 
-            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
+            //a wearable update packets should only be sent about the viewers/agents own avatar not for other avatars
+            //but it seems that the following code only created the packets and never actually sent them anyway
+            /*AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
             aw.AgentData.AgentID = this.ControllingClient.AgentID;
-	    aw.AgentData.SessionID = userInfo.SessionID;
-            aw.AgentData.SerialNum = (uint)(new Random()).Next();
+            aw.AgentData.SessionID = userInfo.SessionID;
+            aw.AgentData.SerialNum = 0; //removed the use of a random number as a random number could be less than the last number, should have a counter variable for this
 
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
             AgentWearablesUpdatePacket.WearableDataBlock awb;
@@ -156,7 +161,7 @@ namespace OpenSim.world
                 awb.AssetID = this.Wearables[i].AssetID;
                 awb.ItemID = this.Wearables[i].ItemID;
                 aw.WearableData[i] = awb;
-            }
+            }*/
 
             AvatarAppearancePacket.VisualParamBlock avblock = null;
             for (int i = 0; i < 218; i++)
