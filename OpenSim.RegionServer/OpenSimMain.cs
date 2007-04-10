@@ -39,6 +39,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.world;
+using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.UserServer;
 using OpenSim.Assets;
