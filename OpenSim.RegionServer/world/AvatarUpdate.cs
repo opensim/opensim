@@ -109,7 +109,8 @@ namespace OpenSim.world
                 client.OutPacket(objupdate);
                 if (client.AgentID != ControllingClient.AgentID)
                 {
-                    SendAppearanceToOtherAgent(client);
+                    client.ClientAvatar.SendAppearanceToOtherAgent(this.ControllingClient);
+		    SendAppearanceToOtherAgent(client);
                 }
             }
         }
