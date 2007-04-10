@@ -142,6 +142,22 @@ namespace OpenSim.world
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
             avp.ObjectData.TextureEntry = this.avatarAppearanceTexture.ToBytes();
 
+            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
+            aw.AgentData.AgentID = this.ControllingClient.AgentID;
+	    aw.AgentData.SessionID = userInfo.SessionID;
+            aw.AgentData.SerialNum = (uint)(new Random()).Next();
+
+            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
+            AgentWearablesUpdatePacket.WearableDataBlock awb;
+            for (int i = 0; i < 13; i++)
+            {
+                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+                awb.WearableType = (byte)i;
+                awb.AssetID = this.Wearables[i].AssetID;
+                awb.ItemID = this.Wearables[i].ItemID;
+                aw.WearableData[i] = awb;
+            }
+
             AvatarAppearancePacket.VisualParamBlock avblock = null;
             for (int i = 0; i < 218; i++)
             {
