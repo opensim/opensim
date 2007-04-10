@@ -476,7 +476,16 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.AgentAnimation:
-                        //Console.WriteLine(Pack.ToString());
+                        AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+	                for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+                  	{
+	                     if (AgentAni.AnimationList[i].StartAnim)
+	                     {
+		                ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
+                    		ClientAvatar.anim_seq = 1;
+				ClientAvatar.SendAnimPack();
+	                     }
+	                }
                         break;
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
