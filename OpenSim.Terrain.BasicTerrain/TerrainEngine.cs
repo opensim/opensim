@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Terrain.BasicTerrain;
+using libTerrain;
 
 namespace OpenSim.Terrain
 {
@@ -10,11 +10,8 @@ namespace OpenSim.Terrain
         /// <summary>
         /// A [normally] 256x256 heightmap
         /// </summary>
-        public float[,] map;
-        /// <summary>
-        /// A 256x256 heightmap storing water height values
-        /// </summary>
-        public float[,] water;
+        public Channel heightmap;
+
         int w, h;
 
         /// <summary>
@@ -24,8 +21,7 @@ namespace OpenSim.Terrain
         {
             w = 256;
             h = 256;
-            map = new float[w, h];
-            water = new float[w, h];
+            heightmap = new Channel(w, h);
 
         }
 
@@ -38,7 +34,21 @@ namespace OpenSim.Terrain
             float[] heights = new float[w*h];
             int i;
             for(i=0;i<w*h;i++) {
-                heights[i] = map[i / w, i % w];
+                heights[i] = (float)heightmap.map[i / w, i % w];
+            }
+            return heights;
+        }
+
+        public float[,] getHeights2D()
+        {
+            float[,] heights = new float[w, h];
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    heights[x, y] = (float)heightmap.map[x, y];
+                }
             }
             return heights;
         }
@@ -52,13 +62,27 @@ namespace OpenSim.Terrain
             int i;
             for (i = 0; i < w * h; i++)
             {
-                map[i / w, i % w] = heights[i];
+                heightmap.map[i / w, i % w] = heights[i];
             }
+        }
+
+        public float[,] setHeights2D(float[,] heights)
+        {
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    heightmap.set(x,y,(double)heights[x,y]);
+                }
+            }
+            return heights;
         }
 
         /// <summary>
         /// Loads a file consisting of 256x256 doubles and imports it as an array into the map.
         /// </summary>
+        /// <remarks>TODO: Move this to libTerrain itself</remarks>
         /// <param name="filename">The filename of the double array to import</param>
         public void loadFromFileF64(string filename)
         {
@@ -70,19 +94,9 @@ namespace OpenSim.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    map[x, y] = (float)bs.ReadDouble();
+                    heightmap.map[x, y] = bs.ReadDouble();
                 }
             }
-        }
-
-        /// <summary>
-        /// Swaps the references between the height and water buffers to allow you to edit the water heightmap. Remember to swap back when you are done.
-        /// </summary>
-        public void swapWaterBuffer()
-        {
-            float[,] temp = map;
-            map = water;
-            water = temp;
         }
 
         /// <summary>
@@ -94,9 +108,9 @@ namespace OpenSim.Terrain
         /// <param name="amount">Scale the height of the sphere by this amount (recommended 0..2)</param>
         public void raise(double rx, double ry, double size, double amount)
         {
-            lock (map)
+            lock (heightmap)
             {
-                RaiseLower.raiseSphere(this.map, rx, ry, size, amount);
+                heightmap.raise(rx, ry, size, amount);
             }
         }
 
@@ -109,9 +123,9 @@ namespace OpenSim.Terrain
         /// <param name="amount">Scale the height of the sphere by this amount (recommended 0..2)</param>
         public void lower(double rx, double ry, double size, double amount)
         {
-            lock (map)
+            lock (heightmap)
             {
-                RaiseLower.lowerSphere(this.map, rx, ry, size, amount);
+                heightmap.lower(rx, ry, size, amount);
             }
         }
 
@@ -120,12 +134,24 @@ namespace OpenSim.Terrain
         /// </summary>
         public void hills()
         {
-            lock (map)
+            lock (heightmap)
             {
-                Hills.hillsSpheres(this.map, 1337, 200, 20, 40, true, true, false);
-                Normalise.normalise(this.map,60);
+                heightmap.hillsSpheres(200, 20, 40, true, true, false);
+                heightmap.normalise();
+                heightmap *= 60.0; // Raise to 60m
             }
         }
 
+        public float this[int x, int y]
+        {
+            get
+            {
+                return (float)heightmap.get(x,y);
+            }
+            set
+            {
+                heightmap.set(x,y,(double)value);
+            }
+        }
     }
 }

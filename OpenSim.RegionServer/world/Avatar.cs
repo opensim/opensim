@@ -44,7 +44,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
-            Pos = new LLVector3(100.0f, 100.0f, m_world.Terrain.map[(int)Pos.X, (int)Pos.Y] + 1.0f);
+            Pos = new LLVector3(100.0f, 100.0f, m_world.Terrain[(int)Pos.X, (int)Pos.Y] + 1.0f);
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -332,7 +332,7 @@ namespace OpenSim.world
 
         public override void LandRenegerated()
         {
-            Pos = new LLVector3(100.0f, 100.0f, m_world.Terrain.map[(int)Pos.X, (int)Pos.Y] + 50.0f);
+            Pos = new LLVector3(100.0f, 100.0f, m_world.Terrain[(int)Pos.X, (int)Pos.Y] + 50.0f);
         }
     }
 

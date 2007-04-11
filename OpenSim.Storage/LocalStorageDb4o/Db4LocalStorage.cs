@@ -118,11 +118,11 @@ namespace OpenSim.Storage.LocalStorageDb4o
 			}
 		}
 
-        public float[,] LoadWorld()
+        public float[] LoadWorld()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - Loading world....");
             //World blank = new World();
-            float[,] heightmap = null;
+            float[] heightmap = null;
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - Looking for a heightmap in local DB");
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
@@ -150,7 +150,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
             return heightmap;
         }
 
-        public void SaveMap(float[,] heightmap)
+        public void SaveMap(float[] heightmap)
         {
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)

@@ -379,6 +379,7 @@
       </Configuration>
 
       <ReferencePath>../bin/</ReferencePath>
+      <Reference name="libTerrain-BSD.dll"/>
       <Reference name="System"/>
       <Reference name="System.Data"/>
       <Reference name="System.Xml"/>

@@ -198,7 +198,7 @@ namespace OpenSim.world
             {
                 this.phyScene.SetTerrain(Terrain.getHeights1D());
             }
-            this.localStorage.SaveMap(this.Terrain.map);
+            this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
             foreach (SimClient client in m_clientThreads.Values)
             {
@@ -213,12 +213,12 @@ namespace OpenSim.world
 
         public void RegenerateTerrain(float[,] newMap)
         {
-            this.Terrain.map = newMap;
+            this.Terrain.setHeights2D(newMap);
             lock (this.LockPhysicsEngine)
             {
                 this.phyScene.SetTerrain(this.Terrain.getHeights1D());
             }
-            this.localStorage.SaveMap(this.Terrain.map);
+            this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
             foreach (SimClient client in m_clientThreads.Values)
             {
@@ -239,7 +239,7 @@ namespace OpenSim.world
                 {
                     this.phyScene.SetTerrain(this.Terrain.getHeights1D());
                 }
-                this.localStorage.SaveMap(this.Terrain.map);
+                this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
                 foreach (SimClient client in m_clientThreads.Values)
                 {
@@ -252,7 +252,7 @@ namespace OpenSim.world
 
         public void LoadWorldMap()
         {
-            float[,] map = this.localStorage.LoadWorld();
+            float[] map = this.localStorage.LoadWorld();
             if (map == null)
             {
                 this.Terrain.hills();
@@ -260,7 +260,7 @@ namespace OpenSim.world
             }
             else
             {
-                this.Terrain.map = map;
+                this.Terrain.setHeights1D(map);
             }
         }
 

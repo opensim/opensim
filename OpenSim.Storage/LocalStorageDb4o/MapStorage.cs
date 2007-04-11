@@ -6,7 +6,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
 {
     public class MapStorage
     {
-        public float[,] Map;
+        public float[] Map;
 
         public MapStorage()
         {
