@@ -1,0 +1,22 @@
+<Script><ScriptEngine:OpenSimJVM,Test1>public class Test1 {
+    
+    public static void OnFrame()
+    {
+      int own = 0;
+      own = OpenSimAPI.GetEntityID();
+      int avid = OpenSimAPI.GetRandomAvatarID();
+      float x = OpenSimAPI.GetEntityPositionX(own);
+      float avx =  OpenSimAPI.GetEntityPositionX(avid);
+     
+     if(x> avx)
+     {
+     	x = x -1f;
+     }
+     else
+     {
+     	x = x+ 1f;
+     }
+     OpenSimAPI.SetEntityPosition(own, x, 0, 0);
+    }
+    
+}</Script>
