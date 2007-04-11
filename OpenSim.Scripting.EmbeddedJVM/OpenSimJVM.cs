@@ -66,10 +66,11 @@ namespace OpenSim.Scripting.EmbeddedJVM
                     tw.Close();
 
                     //now compile
-                    System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(@"C:\Program Files\Java\jdk1.6.0_01\bin\javac.exe", "*.java");
-                    psi.RedirectStandardOutput = true;
+                    System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("javac.exe", "*.java");
+                   // psi.RedirectStandardOutput = true;
                     psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
                     psi.UseShellExecute = false;
+
                     System.Diagnostics.Process javacomp;
                     javacomp = System.Diagnostics.Process.Start(psi);
                     javacomp.WaitForExit();
@@ -91,7 +92,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                     //now delete the created files
                     System.IO.File.Delete(scriptName + ".java");
                     System.IO.File.Delete(scriptName + ".class");
-                    this.OnFrame();
+                    //this.OnFrame();
                 }
                 catch (Exception e)
                 {

@@ -87,22 +87,22 @@ namespace OpenSim.world
             //Console.WriteLine("searching for script to add: " + substring);
 
             ScriptFactory scriptFactory;
-            Console.WriteLine("script string is " + substring);
+            //Console.WriteLine("script string is " + substring);
             if(substring.StartsWith("<ScriptEngine:"))
             {
                 string substring1 = "";
                 string script = "";
-                Console.WriteLine("searching for script engine");
+               // Console.WriteLine("searching for script engine");
                 substring1 = substring.Remove(0, 14);
                 int dev = substring1.IndexOf(',');
                 string sEngine = substring1.Substring(0, dev);
                 substring1 = substring1.Remove(0, dev+1);
                 int end = substring1.IndexOf('>');
                 string sName = substring1.Substring(0, end);
-                Console.WriteLine(" script info : " + sEngine + " , " + sName);
+                //Console.WriteLine(" script info : " + sEngine + " , " + sName);
                 int startscript = substring.IndexOf('>');
                 script = substring.Remove(0, startscript + 1);
-                Console.WriteLine("script data is " + script);
+               // Console.WriteLine("script data is " + script);
                 if (this.scriptEngines.ContainsKey(sEngine))
                 {
                     this.scriptEngines[sEngine].LoadScript(script, sName, entity.localid);
@@ -172,7 +172,7 @@ namespace OpenSim.world
             }
             foreach (IScriptEngine scripteng in this.scriptEngines.Values)
             {
-                //scripteng.OnFrame();
+                scripteng.OnFrame();
             }
             //backup world data
             this.storageCount++;

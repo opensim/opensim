@@ -71,11 +71,12 @@ namespace OpenSim.Scripting.EmbeddedJVM
                                             BaseType bs1 = this._mThread.currentFrame.OpStack.Pop();
                                             if (bs1 is Int)
                                             {
-                                                Console.WriteLine("get entity pos for " + ((Int)bs1).mValue);
+                                                //Console.WriteLine("get entity pos for " + ((Int)bs1).mValue);
                                                 //should get the position of the entity from the IScriptAPI
                                                 OSVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
                                                 Float pos = new Float();
                                                 pos.mValue = vec3.X;
+                                               // Console.WriteLine("returned x value " + vec3.X.ToString());
                                                 this._mThread.currentFrame.OpStack.Push(pos);
                                             }
                                             this._mThread.PC += 2;

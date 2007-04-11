@@ -274,11 +274,11 @@ namespace OpenSim.Scripting.EmbeddedJVM
                         if (flcom1 is Float && flcom2 is Float)
                         {
                             Int compres = new Int();
-                            if (((Float)flcom1).mValue > ((Float)flcom2).mValue)
+                            if (((Float)flcom1).mValue < ((Float)flcom2).mValue)
                             {
                                 compres.mValue = -1;
                             }
-                            else if (((Float)flcom1).mValue < ((Float)flcom2).mValue)
+                            else if (((Float)flcom1).mValue > ((Float)flcom2).mValue)
                             {
                                 compres.mValue = 1;
                             }

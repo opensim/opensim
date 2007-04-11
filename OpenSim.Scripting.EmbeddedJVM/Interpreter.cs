@@ -49,6 +49,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                         else
                         {
                           //  Console.WriteLine("No parent function so ending program");
+                            this._mThread.stack.StackFrames.Pop();
                             run = false;
                         }
                         handled = true;
@@ -71,6 +72,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                         else
                         {
                            // Console.WriteLine("No parent function so ending program");
+                            this._mThread.stack.StackFrames.Pop();
                             run = false;
                         }
                         handled = true;
@@ -88,6 +90,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                         else
                         {
                            // Console.WriteLine("No parent function so ending program");
+                            this._mThread.stack.StackFrames.Pop();
                             run = false;
                         }
                         handled = true;
