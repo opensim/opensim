@@ -38,16 +38,19 @@ using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Servers;
 
 namespace OpenGridServices.GridServer
 {
     /// <summary>
     /// </summary>
-    public class OpenGrid_Main : conscmd_callback
+    public class OpenGrid_Main : BaseServer, conscmd_callback
     {
-	private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
-	private GridConfig Cfg;
+        private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
+        private GridConfig Cfg;
+        
         public static OpenGrid_Main thegrid;
+        
         public string GridOwner;
         public string DefaultStartupMsg;
         public string DefaultAssetServer;
@@ -56,16 +59,14 @@ namespace OpenGridServices.GridServer
         public string DefaultUserServer;
         public string UserSendKey;
         public string UserRecvKey;
-	public string SimSendKey;
-	public string SimRecvKey;
-	public LLUUID highestUUID;
+        public string SimSendKey;
+        public string SimRecvKey;
+        //public LLUUID highestUUID;
 
-        public GridHTTPServer _httpd;
-        public SimProfileManager _regionmanager;
+        private SimProfileManager m_simProfileManager;
 
         private ConsoleBase m_console;
-	private Timer SimCheckTimer;
-        
+
         [STAThread]
         public static void Main(string[] args)
         {
@@ -92,29 +93,49 @@ namespace OpenGridServices.GridServer
             m_console = new ConsoleBase("opengrid-gridserver-console.log", "OpenGrid", this);
             MainConsole.Instance = m_console;
         }
-        
+
         public void Startup()
         {
             m_console.WriteLine("Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-	    m_console.WriteLine("Main.cs:Startup() - Loading sim profiles from database");
-	    this._regionmanager = new SimProfileManager();
-	    _regionmanager.LoadProfiles();
+            m_console.WriteLine("Main.cs:Startup() - Loading sim profiles from database");
+            m_simProfileManager = new SimProfileManager( this );
+            m_simProfileManager.LoadProfiles();
 
-	    m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
-            _httpd = new GridHTTPServer();
-            _httpd.Start();
+            m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
+            BaseHttpServer httpServer = new BaseHttpServer(8001);
 
-	    m_console.WriteLine("Main.cs:Startup() - Starting sim status checker");
-	    SimCheckTimer = new Timer();
-	    SimCheckTimer.Interval = 300000;		// 5 minutes
-	    SimCheckTimer.Elapsed+=new ElapsedEventHandler(CheckSims);
-	    SimCheckTimer.Enabled=true;
+            httpServer.AddXmlRPCHandler("simulator_login", m_simProfileManager.XmlRpcLoginToSimulatorMethod);
+
+            httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
+            httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
+
+            // lbsa71 : This code snippet taken from old http server.
+            // I have no idea what this was supposed to do - looks like an infinite recursion to me.
+            //        case "regions":
+            //// DIRTY HACK ALERT
+            //Console.WriteLine("/regions/ accessed");
+            //TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByHandle((ulong)Convert.ToUInt64(rest_params[1]));
+            //respstring = ParseREST("/regions/" + rest_params[1], requestBody, HTTPmethod);
+            //break;
+
+            // lbsa71 : I guess these were never used?
+            //Listener.Prefixes.Add("http://+:8001/gods/");
+            //Listener.Prefixes.Add("http://+:8001/highestuuid/");
+            //Listener.Prefixes.Add("http://+:8001/uuidblocks/");
+
+            httpServer.Start();
+
+            m_console.WriteLine("Main.cs:Startup() - Starting sim status checker");
+
+            Timer simCheckTimer = new Timer( 300000 ); // 5 minutes
+            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
+            simCheckTimer.Enabled = true;
         }
-	
-	private GridConfig LoadConfigDll(string dllName)
+
+        private GridConfig LoadConfigDll(string dllName)
         {
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
             GridConfig config = null;
@@ -142,33 +163,42 @@ namespace OpenGridServices.GridServer
             return config;
         }
 
-	public void CheckSims(object sender, ElapsedEventArgs e) {
-		foreach(SimProfileBase sim in _regionmanager.SimProfiles.Values) {
-			string SimResponse="";
-			try {
-				WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus/");
-		        	CheckSim.Method = "GET";
-            			CheckSim.ContentType = "text/plaintext";
-            			CheckSim.ContentLength = 0;
+        public void CheckSims(object sender, ElapsedEventArgs e)
+        {
+            foreach (SimProfileBase sim in m_simProfileManager.SimProfiles.Values)
+            {
+                string SimResponse = "";
+                try
+                {
+                    WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus/");
+                    CheckSim.Method = "GET";
+                    CheckSim.ContentType = "text/plaintext";
+                    CheckSim.ContentLength = 0;
 
-				StreamWriter stOut = new StreamWriter(CheckSim.GetRequestStream(), System.Text.Encoding.ASCII);
-        	    		stOut.Write("");
-	            		stOut.Close();
+                    StreamWriter stOut = new StreamWriter(CheckSim.GetRequestStream(), System.Text.Encoding.ASCII);
+                    stOut.Write("");
+                    stOut.Close();
 
-				StreamReader stIn = new StreamReader(CheckSim.GetResponse().GetResponseStream());
-            			SimResponse = stIn.ReadToEnd();
-            			stIn.Close();
-			} catch(Exception exception) {
-			}
-			if(SimResponse=="OK") {
-				_regionmanager.SimProfiles[sim.UUID].online=true;
-			} else {
-				_regionmanager.SimProfiles[sim.UUID].online=false;
-			}
-		}
-	}
+                    StreamReader stIn = new StreamReader(CheckSim.GetResponse().GetResponseStream());
+                    SimResponse = stIn.ReadToEnd();
+                    stIn.Close();
+                }
+                catch
+                {
+                }
+                
+                if (SimResponse == "OK")
+                {
+                    m_simProfileManager.SimProfiles[sim.UUID].online = true;
+                }
+                else
+                {
+                    m_simProfileManager.SimProfiles[sim.UUID].online = false;
+                }
+            }
+        }
 
-	public void RunCmd(string cmd, string[] cmdparams)
+        public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
             {

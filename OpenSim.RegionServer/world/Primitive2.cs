@@ -22,7 +22,6 @@ namespace OpenSim.world
         private bool physicsEnabled = false;
 
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
-        private string inventoryFileName = "";
 
         #region Properties
 

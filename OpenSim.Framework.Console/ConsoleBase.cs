@@ -84,14 +84,14 @@ namespace OpenSim.Framework.Console
         // Displays a command prompt and waits for the user to enter a string, then returns that string
         public string CmdPrompt(string prompt)
         {
-            this.Write(prompt);
+            this.Write(String.Format("{0}: ", prompt));
             return this.ReadLine();
         }
 
         // Displays a command prompt and returns a default value if the user simply presses enter
         public string CmdPrompt(string prompt, string defaultresponse)
         {
-            string temp = CmdPrompt(prompt);
+            string temp = CmdPrompt(String.Format( "{0} [{1}]", prompt, defaultresponse ));
             if (temp == "")
             {
                 return defaultresponse;

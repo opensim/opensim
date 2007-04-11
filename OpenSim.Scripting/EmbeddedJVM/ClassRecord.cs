@@ -17,8 +17,8 @@ namespace OpenSim.Scripting.EmbeddedJVM
         private ushort _interfaceCount;
         private ushort _fieldCount;
         private ushort _methodCount;
-        private ushort _attributeCount;
-        private string _name;
+        //private ushort _attributeCount;
+        //private string _name;
         public Dictionary<string, BaseType> StaticFields = new Dictionary<string, BaseType>();
         public PoolClass mClass;
 

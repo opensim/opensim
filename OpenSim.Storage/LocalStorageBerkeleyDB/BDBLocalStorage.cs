@@ -47,7 +47,7 @@ namespace OpenSim.Storage.LocalStorageBDB
 
         DbHash sim;
         Db DB;
-        BEFormatter formatter;
+        //BEFormatter formatter;
 
         public BDBLocalStorage()
         {

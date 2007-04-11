@@ -55,7 +55,6 @@ namespace OpenSim.UserServer
         public IPAddress clientAddress = IPAddress.Loopback;
         public IPAddress remoteAddress = IPAddress.Any;
         private int NumClients;
-        private string _defaultResponse;
         private bool userAccounts = false;
         private string _mpasswd;
         private bool _needPasswd = false;

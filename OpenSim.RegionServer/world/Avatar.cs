@@ -32,7 +32,7 @@ namespace OpenSim.world
         private ulong m_regionHandle;
         private Dictionary<uint, SimClient> m_clientThreads;
         private string m_regionName;
-        private bool childShadowAvatar = false;
+        //private bool childShadowAvatar = false;
 
         public Avatar(SimClient TheClient, World world, string regionName, Dictionary<uint, SimClient> clientThreads, ulong regionHandle)
         {

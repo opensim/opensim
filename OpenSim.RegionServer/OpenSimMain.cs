@@ -60,7 +60,6 @@ namespace OpenSim
         //private IGenericConfig remoteConfig;
         private PhysicsManager physManager;
         private Grid GridServers;
-        private BaseHttpServer _httpServer;
         private PacketServer _packetServer;
         private World LocalWorld;
         private AssetCache AssetCache;
@@ -175,12 +174,13 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:Startup() - Initialising HTTP server");
             // HttpServer = new SimCAPSHTTPServer(GridServers.GridServer, Cfg.IPListenPort);
-            _httpServer = new BaseHttpServer(regionData.IPListenPort);
+            
+            BaseHttpServer httpServer = new BaseHttpServer( regionData.IPListenPort );
 
             if (gridServer.GetName() == "Remote")
             {
                 //we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
-                _httpServer.AddXmlRPCHandler("expect_user",
+                httpServer.AddXmlRPCHandler("expect_user",
                     delegate(XmlRpcRequest request)
                     {
                         Hashtable requestData = (Hashtable)request.Params[0];
@@ -196,7 +196,7 @@ namespace OpenSim
 
                         return new XmlRpcResponse();
                     });
-                _httpServer.AddRestHandler("GET", "/simstatus/",
+                httpServer.AddRestHandler("GET", "/simstatus/",
                     delegate(string request, string path, string param )
                     {
                         return "OK";
@@ -218,20 +218,20 @@ namespace OpenSim
                     this.GridServers.UserServer = loginServer;
                     adminLoginServer = loginServer;
 
-                    _httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);
+                    httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);
                 }
                 else
                 {
                     //sandbox mode with loginserver not using accounts
-                    _httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
+                    httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
                 }
             }
 
             AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, InventoryCache, adminLoginServer);
-            adminWebFront.LoadMethods(_httpServer);
+            adminWebFront.LoadMethods(httpServer);
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
-            _httpServer.Start();
+            httpServer.Start();
 
             MainServerListener();
 

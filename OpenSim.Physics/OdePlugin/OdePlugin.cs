@@ -212,7 +212,7 @@ namespace OpenSim.Physics.OdePlugin
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
         private bool flying;
-        private float gravityAccel;
+        //private float gravityAccel;
         private IntPtr BoundingCapsule;
         IntPtr capsule_geom;
         d.Mass capsule_mass;

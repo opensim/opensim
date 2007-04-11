@@ -48,11 +48,11 @@ namespace OpenUser.Config.UserConfigDb4o
 		public void LoadDefaults() {
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 			
-			this.DefaultStartupMsg = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default startup message [Welcome to OGS]: ", "Welcome to OGS");
+			this.DefaultStartupMsg = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default startup message", "Welcome to OGS");
 
-			this.GridServerURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL: ");
-            		this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server: ");
-            		this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server: ");
+			this.GridServerURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL");
+            		this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server");
+            		this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server");
 		}
 
 		public override void InitConfig() {

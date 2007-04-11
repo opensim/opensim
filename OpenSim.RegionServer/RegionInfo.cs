@@ -94,7 +94,7 @@ namespace OpenSim
                 attri = configData.GetAttribute("SimName");
                 if (attri == "")
                 {
-                    this.RegionName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Name [OpenSim test]: ", "OpenSim test");
+                    this.RegionName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Name", "OpenSim test");
                     configData.SetAttribute("SimName", this.RegionName);
                 }
                 else
@@ -106,7 +106,7 @@ namespace OpenSim
                 attri = configData.GetAttribute("SimLocationX");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location X [997]: ", "997");
+                    string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location X", "997");
                     configData.SetAttribute("SimLocationX", location);
                     this.RegionLocX = (uint)Convert.ToUInt32(location);
                 }
@@ -119,7 +119,7 @@ namespace OpenSim
                 attri = configData.GetAttribute("SimLocationY");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location Y [996]: ", "996");
+                    string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location Y", "996");
                     configData.SetAttribute("SimLocationY", location);
                     this.RegionLocY = (uint)Convert.ToUInt32(location);
                 }
@@ -132,7 +132,7 @@ namespace OpenSim
                 attri = configData.GetAttribute("SimListenPort");
                 if (attri == "")
                 {
-                    string port = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("UDP port for client connections [9000]: ", "9000");
+                    string port = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("UDP port for client connections", "9000");
                     configData.SetAttribute("SimListenPort", port);
                     this.IPListenPort = Convert.ToInt32(port);
                 }
@@ -145,7 +145,7 @@ namespace OpenSim
                 attri = configData.GetAttribute("SimListenAddress");
                 if (attri == "")
                 {
-                    this.IPListenAddr = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("IP Address to listen on for client connections [127.0.0.1]: ", "127.0.0.1");
+                    this.IPListenAddr = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("IP Address to listen on for client connections", "127.0.0.1");
                     configData.SetAttribute("SimListenAddress", this.IPListenAddr);
                 }
                 else
@@ -162,7 +162,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridServerURL");
                     if (attri == "")
                     {
-                        this.GridURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL: ");
+                        this.GridURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL");
                         configData.SetAttribute("GridServerURL", this.GridURL);
                     }
                     else
@@ -175,7 +175,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridSendKey");
                     if (attri == "")
                     {
-                        this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server: ");
+                        this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server");
                         configData.SetAttribute("GridSendKey", this.GridSendKey);
                     }
                     else
@@ -188,7 +188,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridRecvKey");
                     if (attri == "")
                     {
-                        this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server: ");
+                        this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server");
                         configData.SetAttribute("GridRecvKey", this.GridRecvKey);
                     }
                     else

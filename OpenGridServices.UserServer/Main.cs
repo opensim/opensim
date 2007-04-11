@@ -39,104 +39,104 @@ using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
+using OpenSim.Servers;
 
 namespace OpenGridServices.UserServer
 {
-	/// <summary>
-	/// </summary>
-	public class OpenUser_Main : conscmd_callback
-	{
-		private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
-	        private UserConfig Cfg;
+    /// <summary>
+    /// </summary>
+    public class OpenUser_Main : BaseServer, conscmd_callback
+    {
+        private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
+        private UserConfig Cfg;
 
-		public static OpenUser_Main userserver;
-		
-		public UserHTTPServer _httpd;
-		public UserProfileManager _profilemanager;
+        private UserProfileManager m_userProfileManager;
 
-		public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
+        public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
-	        ConsoleBase m_console;
-	    
-		[STAThread]
-		public static void Main( string[] args )
-		{
-			Console.WriteLine("Starting...\n");
+        ConsoleBase m_console;
 
-			userserver = new OpenUser_Main();
-			userserver.Startup();	
-		    
-		    userserver.Work();
-		}
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            Console.WriteLine("Starting...\n");
 
-	    private OpenUser_Main()
-	    {
-        	m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this);
-            	MainConsole.Instance = m_console;
+            OpenUser_Main userserver = new OpenUser_Main();
+            userserver.Startup();
+            userserver.Work();
+        }
+
+        private OpenUser_Main()
+        {
+            m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this);
+            MainConsole.Instance = m_console;
+        }
+
+        private void Work()
+        {
+            m_console.WriteLine("\nEnter help for a list of commands\n");
+
+            while (true)
+            {
+                m_console.MainConsolePrompt();
             }
-	
-	    private void Work()
-	    {
-            	m_console.WriteLine("\nEnter help for a list of commands\n");
+        }
 
-	            while (true)
-        	    {
-                	m_console.MainConsolePrompt();
-            	    }
-	    }
-	    
-		public void Startup() {
-			MainConsole.Instance.WriteLine("Main.cs:Startup() - Loading configuration");
-            		Cfg = this.LoadConfigDll(this.ConfigDll);
-            		Cfg.InitConfig();
+        public void Startup()
+        {
+            MainConsole.Instance.WriteLine("Main.cs:Startup() - Loading configuration");
+            Cfg = this.LoadConfigDll(this.ConfigDll);
+            Cfg.InitConfig();
 
-			MainConsole.Instance.WriteLine("Main.cs:Startup() - Creating user profile manager");
-			_profilemanager = new UserProfileManager();
-			_profilemanager.InitUserProfiles();
-            		_profilemanager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
+            MainConsole.Instance.WriteLine("Main.cs:Startup() - Creating user profile manager");
+            m_userProfileManager = new UserProfileManager();
+            m_userProfileManager.InitUserProfiles();
+            m_userProfileManager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
 
-			MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
-			_httpd = new UserHTTPServer();
+            MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
+            BaseHttpServer httpServer = new BaseHttpServer(8002);
 
-            _httpd.AddXmlRPCHandler("login_to_simulator", _profilemanager.XmlRpcLoginMethod);
-            _httpd.AddRestHandler( "DELETE", "/usersessions/", _profilemanager.RestDeleteUserSessionMethod );
-            
-		    _httpd.Start();
+            httpServer.AddXmlRPCHandler("login_to_simulator", m_userProfileManager.XmlRpcLoginMethod);
+            httpServer.AddRestHandler("DELETE", "/usersessions/", m_userProfileManager.RestDeleteUserSessionMethod);
 
-		}
+            // I guess that this was never used?
+            //Listener.Prefixes.Add("http://+:8002/userserver/");
+
+            httpServer.Start();
+        }
 
 
-	public void do_create(string what)
-	{
-		switch(what)
-		{
-			case "user":
-			    m_console.WriteLine("Creating new user profile");
-			    string tempfirstname;
-			    string templastname;
-			    string tempMD5Passwd;
-	
-			    tempfirstname=m_console.CmdPrompt("First name: ");
-			    templastname=m_console.CmdPrompt("Last name: ");
-			    tempMD5Passwd=m_console.PasswdPrompt("Password: ");
-			
-			    System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
-			    byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
-			    bs = x.ComputeHash(bs);
-			    System.Text.StringBuilder s = new System.Text.StringBuilder();
-			    foreach (byte b in bs)
-			    {
-	 			s.Append(b.ToString("x2").ToLower());
-			    }
-			    tempMD5Passwd = s.ToString();
-	
-			    UserProfile newuser=_profilemanager.CreateNewProfile(tempfirstname,templastname,tempMD5Passwd);
-			    newuser.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
-			    newuser.homepos = new LLVector3(128f,128f,23f);
-			    _profilemanager.SaveUserProfiles();
-		    break;
-		}
-	}
+        public void do_create(string what)
+        {
+            switch (what)
+            {
+                case "user":
+                    m_console.WriteLine("Creating new user profile");
+                    string tempfirstname;
+                    string templastname;
+                    string tempMD5Passwd;
+
+                    tempfirstname = m_console.CmdPrompt("First name");
+                    templastname = m_console.CmdPrompt("Last name");
+                    tempMD5Passwd = m_console.PasswdPrompt("Password");
+
+                    System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
+                    byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
+                    bs = x.ComputeHash(bs);
+                    System.Text.StringBuilder s = new System.Text.StringBuilder();
+                    foreach (byte b in bs)
+                    {
+                        s.Append(b.ToString("x2").ToLower());
+                    }
+                    tempMD5Passwd = s.ToString();
+
+                    UserProfile newuser = m_userProfileManager.CreateNewProfile(tempfirstname, templastname, tempMD5Passwd);
+                    newuser.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
+                    newuser.homepos = new LLVector3(128f, 128f, 23f);
+                    m_userProfileManager.SaveUserProfiles();
+                    break;
+            }
+        }
 
         public void RunCmd(string cmd, string[] cmdparams)
         {
@@ -144,21 +144,21 @@ namespace OpenGridServices.UserServer
             {
                 case "help":
                     m_console.WriteLine("create user - create a new user");
-		    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "create":
-			do_create(cmdparams[0]);
-		break;
+                    do_create(cmdparams[0]);
+                    break;
 
-		case "shutdown":
+                case "shutdown":
                     m_console.Close();
-		    Environment.Exit(0);
+                    Environment.Exit(0);
                     break;
             }
         }
 
-	private UserConfig LoadConfigDll(string dllName)
+        private UserConfig LoadConfigDll(string dllName)
         {
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
             UserConfig config = null;
@@ -185,9 +185,9 @@ namespace OpenGridServices.UserServer
             pluginAssembly = null;
             return config;
         }
-	    
+
         public void Show(string ShowWhat)
         {
         }
-	}
+    }
 }

@@ -12,6 +12,7 @@
             </resources>
             <sources failonempty="true">
                 <include name="BaseHttpServer.cs" />
+                <include name="BaseServer.cs" />
                 <include name="IRestHandler.cs" />
                 <include name="LocalUserProfileManager.cs" />
                 <include name="LoginResponse.cs" />
