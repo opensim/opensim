@@ -90,6 +90,20 @@ namespace OpenSim.Scripting.EmbeddedJVM
                         this._mThread.PC += 2;
                         result = true;
                         break;
+                    case 23:
+                        short findex1 = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]));
+                        Float fload = new Float();
+                        if (this._mThread.currentFrame.LocalVariables[findex1] != null)
+                        {
+                            if (this._mThread.currentFrame.LocalVariables[findex1] is Float)
+                            {
+                                fload.mValue = ((Float)this._mThread.currentFrame.LocalVariables[findex1]).mValue;
+                                this._mThread.currentFrame.OpStack.Push(fload);
+                            }
+                        }
+                        this._mThread.PC++;
+                        result = true;
+                        break;
                     case 26:
                         if (this._mThread.currentFrame.LocalVariables[0] != null)
                         {
@@ -160,6 +174,16 @@ namespace OpenSim.Scripting.EmbeddedJVM
                                 this._mThread.currentFrame.OpStack.Push(newfloat);
                             }
                         }
+                        result = true;
+                        break;
+                    case 56:
+                        short findex = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] ));
+                        BaseType fstor = this._mThread.currentFrame.OpStack.Pop();
+                        if (fstor is Float)
+                        {
+                            this._mThread.currentFrame.LocalVariables[findex] = (Float)fstor;
+                        }
+                        this._mThread.PC++;
                         result = true;
                         break;
                     case 59:

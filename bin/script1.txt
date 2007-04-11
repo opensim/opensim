@@ -7,7 +7,9 @@
       int avid = OpenSimAPI.GetRandomAvatarID();
       float x = OpenSimAPI.GetEntityPositionX(own);
       float avx =  OpenSimAPI.GetEntityPositionX(avid);
-     
+      float y = OpenSimAPI.GetEntityPositionY(own);
+      float avy = OpenSimAPI.GetEntityPositionY(avid);
+      
      if(x> avx)
      {
      	x = x -1f;
@@ -16,7 +18,17 @@
      {
      	x = x+ 1f;
      }
-     OpenSimAPI.SetEntityPosition(own, x, 0, 0);
+     
+     if(y > avy)
+     {
+     	y= y -1f;
+     }
+     else
+     {
+     	y = y +1f;
+     }
+     
+     OpenSimAPI.SetEntityPosition(own, x, y, 0);
     }
     
 }</Script>

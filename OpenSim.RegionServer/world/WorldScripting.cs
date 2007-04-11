@@ -92,6 +92,7 @@ namespace OpenSim.world
                 {
                     LLVector3 pos = entity.Pos;
                     pos.X = x;
+                    pos.Y = y;
                    Primitive prim = entity as Primitive;
                     // Of course, we really should have asked the physEngine if this is possible, and if not, returned false.
                    prim.UpdatePosition(pos);
