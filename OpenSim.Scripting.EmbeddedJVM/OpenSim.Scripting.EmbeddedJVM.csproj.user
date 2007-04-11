@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ReferencePath>C:\New Folder\second-life-viewer\opensim-dailys2\opensim02-04\bin\</ReferencePath>
+    <ReferencePath>C:\Documents and Settings\Stefan\My Documents\source\opensim\trunk\bin\</ReferencePath>
     <LastOpenVersion>8.0.50727</LastOpenVersion>
     <ProjectView>ProjectFiles</ProjectView>
     <ProjectTrust>0</ProjectTrust>
