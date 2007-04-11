@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8ACA2445-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{97A82740-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.Framework</AssemblyName>
+    <AssemblyName>OpenSim.Scripting.EmbeddedJVM</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.Framework</RootNamespace>
+    <RootNamespace>OpenSim.Scripting.EmbeddedJVM</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\bin\ScriptEngines\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\bin\ScriptEngines\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -66,103 +66,80 @@
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\bin\libsecondlife.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+      <Name>OpenSim.Framework</Name>
+      <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentCiruitData.cs">
+    <Compile Include="ClassInstance.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AgentInventory.cs">
+    <Compile Include="ClassRecord.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AssetBase.cs">
+    <Compile Include="Heap.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BlockingQueue.cs">
+    <Compile Include="Interpreter.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HeightMapGenHills.cs">
+    <Compile Include="InterpreterLogic.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IAssetServer.cs">
+    <Compile Include="InterpreterMethods.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IConfig.cs">
+    <Compile Include="InterpreterReturn.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IGenericConfig.cs">
+    <Compile Include="MainMemory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IGridConfig.cs">
+    <Compile Include="MethodMemory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IGridServer.cs">
+    <Compile Include="Object.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ILocalStorage.cs">
+    <Compile Include="OpenSimJVM.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IScriptAPI.cs">
+    <Compile Include="Stack.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IScriptEngine.cs">
+    <Compile Include="StackFrame.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IUserConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="IUserServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LocalGridBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LoginService.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="NeighbourInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="OSVector3.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PrimData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="RemoteGridBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfileBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManagerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Util.cs">
+    <Compile Include="Thread.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ArrayReference.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\BaseType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ObjectReference.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\PrimitiveTypes\Byte.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\PrimitiveTypes\Char.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\PrimitiveTypes\Float.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\PrimitiveTypes\Int.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

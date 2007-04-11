@@ -7,7 +7,7 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
+        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
             <resources prefix="OpenSim.Framework" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
@@ -22,12 +22,15 @@
                 <include name="IGridConfig.cs" />
                 <include name="IGridServer.cs" />
                 <include name="ILocalStorage.cs" />
+                <include name="IScriptAPI.cs" />
+                <include name="IScriptEngine.cs" />
                 <include name="IUserConfig.cs" />
                 <include name="IUserServer.cs" />
                 <include name="LocalGridBase.cs" />
                 <include name="Login.cs" />
                 <include name="LoginService.cs" />
                 <include name="NeighbourInfo.cs" />
+                <include name="OSVector3.cs" />
                 <include name="PrimData.cs" />
                 <include name="RemoteGridBase.cs" />
                 <include name="SimProfile.cs" />

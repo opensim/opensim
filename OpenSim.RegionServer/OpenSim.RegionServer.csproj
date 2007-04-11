@@ -199,6 +199,9 @@
     <Compile Include="world\WorldPacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\WorldScripting.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="world\scripting\IScript.cs">
       <SubType>Code</SubType>
     </Compile>

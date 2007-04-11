@@ -18,7 +18,7 @@ using OpenSim.Terrain;
 
 namespace OpenSim.world
 {
-    public partial class World : ILocalStorageReceiver
+    public partial class World : ILocalStorageReceiver, IScriptAPI
     {
         public object LockPhysicsEngine = new object();
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
@@ -66,6 +66,7 @@ namespace OpenSim.world
             //	Scripts = new ScriptEngine(this);
             Avatar.LoadAnims();
             this.SetDefaultScripts();
+            this.LoadScriptEngines();
         }
 
         public void AddScript(Entity entity, Script script)
@@ -86,8 +87,28 @@ namespace OpenSim.world
             //Console.WriteLine("searching for script to add: " + substring);
 
             ScriptFactory scriptFactory;
-
-            if (this.m_scripts.TryGetValue(substring, out scriptFactory))
+            Console.WriteLine("script string is " + substring);
+            if(substring.StartsWith("<ScriptEngine:"))
+            {
+                string substring1 = "";
+                string script = "";
+                Console.WriteLine("searching for script engine");
+                substring1 = substring.Remove(0, 14);
+                int dev = substring1.IndexOf(',');
+                string sEngine = substring1.Substring(0, dev);
+                substring1 = substring1.Remove(0, dev+1);
+                int end = substring1.IndexOf('>');
+                string sName = substring1.Substring(0, end);
+                Console.WriteLine(" script info : " + sEngine + " , " + sName);
+                int startscript = substring.IndexOf('>');
+                script = substring.Remove(0, startscript + 1);
+                Console.WriteLine("script data is " + script);
+                if (this.scriptEngines.ContainsKey(sEngine))
+                {
+                    this.scriptEngines[sEngine].LoadScript(script, sName, entity.localid);
+                }
+            }
+            else if (this.m_scripts.TryGetValue(substring, out scriptFactory))
             {
                 //Console.WriteLine("added script");
                 this.AddScript(entity, scriptFactory());
@@ -149,7 +170,10 @@ namespace OpenSim.world
             {
                 scriptHandler.OnFrame();
             }
-
+            foreach (IScriptEngine scripteng in this.scriptEngines.Values)
+            {
+                //scripteng.OnFrame();
+            }
             //backup world data
             this.storageCount++;
             if (storageCount > 1200) //set to how often you want to backup 
@@ -255,7 +279,9 @@ namespace OpenSim.world
             float[] map = this.localStorage.LoadWorld();
             if (map == null)
             {
+                Console.WriteLine("creating new terrain");
                 this.Terrain.hills();
+               
                 //this.localStorage.SaveMap(this.Terrain.map);
             }
             else

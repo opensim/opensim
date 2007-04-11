@@ -31,11 +31,14 @@ namespace OpenSim.Terrain
         /// <returns>A float[65536] array containing the heightmap</returns>
         public float[] getHeights1D()
         {
-            float[] heights = new float[w*h];
+            float[] heights = new float[w * h];
             int i;
-            for(i=0;i<w*h;i++) {
+
+            for (i = 0; i < w * h; i++)
+            {
                 heights[i] = (float)heightmap.map[i / w, i % w];
             }
+
             return heights;
         }
 

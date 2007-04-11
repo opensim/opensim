@@ -12,4 +12,5 @@ obj\Debug\ResolveAssemblyReference.cache
 obj\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.dll
 obj\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.pdb
 ..\bin\OpenSim.Storage.LocalStorageBerkeleyDB.dll
-..\bin\OpenSim.Storage.LocalStorageBerkeleyDB.pdb
+obj\Release\ResolveAssemblyReference.cache
+obj\Release\OpenSim.Storage.LocalStorageBerkeleyDB.dll

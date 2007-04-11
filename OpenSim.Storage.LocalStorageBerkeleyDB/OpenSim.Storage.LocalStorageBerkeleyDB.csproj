@@ -74,8 +74,8 @@
       <HintPath>..\bin\Kds.Serialization.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libDB_dotNET43.dll" >
-      <HintPath>..\bin\libDB_dotNET43.dll</HintPath>
+    <Reference Include="libdb_dotNET43.dll" >
+      <HintPath>..\bin\libdb_dotNET43.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >

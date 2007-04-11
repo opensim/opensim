@@ -185,8 +185,6 @@ namespace OpenSim.Framework.User
                     response.Value = responseData;
  //                   TheUser.SendDataToSim(SimInfo);
 
-
-
                 }
                 catch (Exception E)
                 {
