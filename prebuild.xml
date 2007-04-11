@@ -368,19 +368,19 @@
     </Project>
 
 	<!-- Basic embedded JVM -->
-     <Project name="OpenSim.Scripting.EmbeddedJVM" path="OpenSim.Scripting.EmbeddedJVM" type="Library">
+     <Project name="OpenSim.Scripting.EmbeddedJVM" path="OpenSim.Scripting/EmbeddedJVM" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../bin/ScriptEngines/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../bin/ScriptEngines/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
      <Reference name="OpenSim.Framework"/>
@@ -500,19 +500,19 @@
       </Files>
     </Project>
     
-    <Project name="OpenSim.Storage.LocalStorageSQLite" path="OpenSim.Storage.LocalStorageSQLite" type="Library">
+    <Project name="OpenSim.Storage.LocalStorageSQLite" path="OpenSim.Storage/LocalStorageSQLite" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -525,19 +525,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Storage.LocalStorageBerkeleyDB" path="OpenSim.Storage.LocalStorageBerkeleyDB" type="Library">
+    <Project name="OpenSim.Storage.LocalStorageBerkeleyDB" path="OpenSim.Storage/LocalStorageBerkeleyDB" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>

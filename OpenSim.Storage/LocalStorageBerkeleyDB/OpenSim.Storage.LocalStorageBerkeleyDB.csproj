@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{97A82740-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{EE9E5D96-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.Scripting.EmbeddedJVM</AssemblyName>
+    <AssemblyName>OpenSim.Storage.LocalStorageBerkeleyDB</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.Scripting.EmbeddedJVM</RootNamespace>
+    <RootNamespace>OpenSim.Storage.LocalStorageBerkeleyDB</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\bin\ScriptEngines\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\bin\ScriptEngines\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -66,80 +66,39 @@
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Data" >
+      <HintPath>System.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kds.Serialization.dll" >
+      <HintPath>..\..\bin\Kds.Serialization.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="libdb_dotNET43.dll" >
+      <HintPath>..\..\bin\libdb_dotNET43.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+    <ProjectReference Include="..\..\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+      <Name>OpenSim.Framework.Console</Name>
+      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClassInstance.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClassRecord.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Heap.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interpreter.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InterpreterLogic.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InterpreterMethods.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InterpreterReturn.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="MainMemory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="MethodMemory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Object.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="OpenSimJVM.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Stack.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="StackFrame.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Thread.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\ArrayReference.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\BaseType.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\ObjectReference.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\PrimitiveTypes\Byte.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\PrimitiveTypes\Char.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\PrimitiveTypes\Float.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\PrimitiveTypes\Int.cs">
+    <Compile Include="BDBLocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

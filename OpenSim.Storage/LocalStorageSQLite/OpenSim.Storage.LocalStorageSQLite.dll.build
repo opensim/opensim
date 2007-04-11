@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="OpenSim.Storage.LocalStorageBerkeleyDB" default="build">
+<project name="OpenSim.Storage.LocalStorageSQLite" default="build">
     <target name="build">
         <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
         <mkdir dir="${project::get-base-directory()}/${build.dir}" />
@@ -8,10 +8,10 @@
             </fileset>
         </copy>
         <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
-            <resources prefix="OpenSim.Storage.LocalStorageBerkeleyDB" dynamicprefix="true" >
+            <resources prefix="OpenSim.Storage.LocalStorageSQLite" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="BDBLocalStorage.cs" />
+                <include name="SQLiteLocalStorage.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
@@ -22,16 +22,15 @@
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
                 <include name="System.Data.dll" />
-                <include name="../bin/Kds.Serialization.dll" />
-                <include name="../bin/libdb_dotNET43.dll" />
-                <include name="../bin/libsecondlife.dll" />
-                <include name="../bin/OpenSim.Framework.dll" />
-                <include name="../bin/OpenSim.Framework.Console.dll" />
+                <include name="../../bin/System.Data.SQLite.dll" />
+                <include name="../../bin/libsecondlife.dll" />
+                <include name="../../bin/OpenSim.Framework.dll" />
+                <include name="../../bin/OpenSim.Framework.Console.dll" />
             </references>
         </csc>
-        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/" />
-        <mkdir dir="${project::get-base-directory()}/../bin/"/>
-        <copy todir="${project::get-base-directory()}/../bin/">
+        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />
+        <mkdir dir="${project::get-base-directory()}/../../bin/"/>
+        <copy todir="${project::get-base-directory()}/../../bin/">
             <fileset basedir="${project::get-base-directory()}/${build.dir}/" >
                 <include name="*.dll"/>
                 <include name="*.exe"/>

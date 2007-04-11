@@ -41,12 +41,12 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
-                <include name="../bin/OpenSim.Framework.dll" />
+                <include name="../../bin/OpenSim.Framework.dll" />
             </references>
         </csc>
-        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/ScriptEngines/" />
-        <mkdir dir="${project::get-base-directory()}/../bin/ScriptEngines/"/>
-        <copy todir="${project::get-base-directory()}/../bin/ScriptEngines/">
+        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/ScriptEngines/" />
+        <mkdir dir="${project::get-base-directory()}/../../bin/ScriptEngines/"/>
+        <copy todir="${project::get-base-directory()}/../../bin/ScriptEngines/">
             <fileset basedir="${project::get-base-directory()}/${build.dir}/" >
                 <include name="*.dll"/>
                 <include name="*.exe"/>
