@@ -516,7 +516,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="Kds.Serialization.dll"/>
-      <Reference name="libDB_dotNET43.dll"/>
+      <Reference name="libdb_dotNET43.dll"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -524,7 +524,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-    
     
   </Solution>
   

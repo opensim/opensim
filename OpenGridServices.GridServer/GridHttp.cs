@@ -57,6 +57,7 @@ namespace OpenGridServices.GridServer
 			MainConsole.Instance.WriteLine("GridHttp.cs:StartHTTP() - Spawned main thread OK");
 			Listener = new HttpListener();
 
+			Listener.Prefixes.Add("http://+:8001/");			
 			Listener.Prefixes.Add("http://+:8001/sims/");
 			Listener.Prefixes.Add("http://+:8001/gods/");
 			Listener.Prefixes.Add("http://+:8001/highestuuid/");
@@ -79,23 +80,30 @@ namespace OpenGridServices.GridServer
 				Hashtable requestData = (Hashtable)request.Params[0];
 				switch(request.MethodName) {
 					case "simulator_login":
-						if(!(referrer=="simulator")) {
-							XmlRpcResponse ErrorResp = new XmlRpcResponse();
-							Hashtable ErrorRespData = new Hashtable();
-							ErrorRespData["error"]="Only simulators can login with this method";
-							ErrorResp.Value=ErrorRespData;
-							return(Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(ErrorResp),"utf-16","utf-8"));
-						}
-						
-						if(!((string)requestData["authkey"]==OpenGrid_Main.thegrid.SimRecvKey)) {
+					
+						/*if(!((string)requestData["authkey"]==OpenGrid_Main.thegrid.SimRecvKey)) {
 							XmlRpcResponse ErrorResp = new XmlRpcResponse();
 							Hashtable ErrorRespData = new Hashtable();
 							ErrorRespData["error"]="invalid key";
 							ErrorResp.Value=ErrorRespData;
 							return(Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(ErrorResp),"utf-16","utf-8"));
+						}*/
+						SimProfileBase TheSim = null;
+
+						if(requestData.ContainsKey("UUID")) {						
+							TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByLLUUID(new LLUUID((string)requestData["UUID"]));
+						} else if (requestData.ContainsKey("region_handle")){
+							TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByHandle((ulong)Convert.ToUInt64(requestData["region_handle"]));
+						}
+						
+						if(TheSim==null) {
+							XmlRpcResponse ErrorResp = new XmlRpcResponse();
+							Hashtable ErrorRespData = new Hashtable();
+							ErrorRespData["error"]="sim not found";
+							ErrorResp.Value=ErrorRespData;
+							return(Regex.Replace(XmlRpcResponseSerializer.Singleton.Serialize(ErrorResp),"utf-16","utf-8"));
 						}
 
-						SimProfileBase TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByLLUUID(new LLUUID((string)requestData["UUID"]));
 						XmlRpcResponse SimLoginResp = new XmlRpcResponse();
 						Hashtable SimLoginRespData = new Hashtable();
 						
@@ -116,6 +124,7 @@ namespace OpenGridServices.GridServer
 							}
 						}
 
+						SimLoginRespData["UUID"]=TheSim.UUID;	
 						SimLoginRespData["region_locx"]=TheSim.RegionLocX.ToString();
 						SimLoginRespData["region_locy"]=TheSim.RegionLocY.ToString();
 						SimLoginRespData["regionname"]=TheSim.regionname;
@@ -138,15 +147,24 @@ namespace OpenGridServices.GridServer
 			return "";
 		}
 		
-		static string ParseREST(string requestBody, string requestURL, string HTTPmethod) {
+		static string ParseREST(string requestURL, string requestBody, string HTTPmethod) {
 			char[] splitter  = {'/'};
                         string[] rest_params = requestURL.Split(splitter);
                         string req_type = rest_params[0];       // First part of the URL is the type of request - 
-                        string respstring;
+                        string respstring="";
+			SimProfileBase TheSim;
+			Console.WriteLine(req_type);
 			switch(req_type) {
-                                case "sims":
+				case "regions":
+					// DIRTY HACK ALERT
+					Console.WriteLine("/regions/ accessed");					
+					TheSim=OpenGrid_Main.thegrid._regionmanager.GetProfileByHandle((ulong)Convert.ToUInt64(rest_params[1]));
+					respstring=ParseREST("/regions/" + rest_params[1], requestBody, HTTPmethod);
+				break;
+                                
+				case "sims":
                                         LLUUID UUID = new LLUUID((string)rest_params[1]);
-					SimProfileBase TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByLLUUID(UUID);
+					TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByLLUUID(UUID);
 					if(!(TheSim==null)) {
 						switch(HTTPmethod) {
 							case "GET":
@@ -162,18 +180,67 @@ namespace OpenGridServices.GridServer
 								respstring+="</sim>";
 							break;
 							case "POST":
+								Console.WriteLine("Updating sim details.....");								
 								XmlDocument doc = new XmlDocument();
 								doc.LoadXml(requestBody);
 								XmlNode authkeynode = doc.FirstChild;
-                						if (authkeynode.Name != "authkey")
-                    							respstring = "<error>bad XML - expected authkey tag</error>";
+                						if (authkeynode.Name != "authkey") {
+                    							respstring = "ERROR! bad XML - expected authkey tag";
+									return respstring;	
+								}
 								XmlNode simnode = doc.ChildNodes[1];
-								if (simnode.Name != "sim")
-									respstring = "<error>bad XML - expected sim tag</error>";
+								if (simnode.Name != "sim") {
+									respstring = "ERROR! bad XML - expected sim tag";
+									return respstring;
+								}
+								if (authkeynode.Name != OpenGrid_Main.thegrid.SimRecvKey) {
+									respstring = "ERROR! invalid key";
+									return respstring;
+								}
+
+								if (TheSim==null) {
+									respstring="ERROR! sim not found";
+									return respstring;
+								} else {
+									for(int i=0; i<= simnode.ChildNodes.Count; i++) {
+										switch(simnode.ChildNodes[i].Name) {
+											case "uuid":
+												// should a sim be able to update it's own UUID? To be decided
+												// watch next week for the exciting conclusion in "the adventures of OpenGridServices.GridServer/GridHttp.cs:ParseREST() at line 190!
+											break;			// and line 190's arch-enemy - THE BREAK STATEMENT! OH NOES!!!!! (this code written at 6:57AM, no sleep, lots of caffeine)
+											
+											case "regionname":
+												TheSim.regionname=simnode.ChildNodes[i].InnerText;
+											break;
+
+											case "sim_ip":
+												TheSim.sim_ip=simnode.ChildNodes[i].InnerText;
+											break;
+											
+											case "sim_port":
+												TheSim.sim_port=Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
+											break;
+
+											case "region_locx":
+												TheSim.RegionLocX=Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+												TheSim.regionhandle=Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
+											break;
+											
+											case "region_locy":
+												TheSim.RegionLocY=Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+												TheSim.regionhandle=Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
+											break;
+										}
+									}
+									respstring="OK";																	
+								}
+								
+								
 
 							break;
 						}
 					}
+					return respstring;
 				break;
 			}
 			return "";
@@ -209,9 +276,14 @@ namespace OpenGridServices.GridServer
 					response.AddHeader("Content-type","text/xml");	
 				break;
                         	
+				case "text/plaintext":
+					// must be REST
+					responseString=ParseREST(request.RawUrl,requestBody,request.HttpMethod);
+				break;
+
 				case null:
 					// must be REST or invalid crap, so pass to the REST parser
-					responseString=ParseREST(request.Url.OriginalString,requestBody,request.HttpMethod);
+					responseString=ParseREST(request.RawUrl,requestBody,request.HttpMethod);
 				break;
 			}
 	

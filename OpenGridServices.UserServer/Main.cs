@@ -99,6 +99,39 @@ namespace OpenGridServices.UserServer
 			_httpd = new UserHTTPServer();
 		}
 
+
+	public void do_create(string what)
+	{
+		switch(what)
+		{
+			case "user":
+			    m_console.WriteLine("Creating new user profile");
+			    string tempfirstname;
+			    string templastname;
+			    string tempMD5Passwd;
+	
+			    tempfirstname=m_console.CmdPrompt("First name: ");
+			    templastname=m_console.CmdPrompt("Last name: ");
+			    tempMD5Passwd=m_console.PasswdPrompt("Password: ");
+			
+			    System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
+			    byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
+			    bs = x.ComputeHash(bs);
+			    System.Text.StringBuilder s = new System.Text.StringBuilder();
+			    foreach (byte b in bs)
+			    {
+	 			s.Append(b.ToString("x2").ToLower());
+			    }
+			    tempMD5Passwd = s.ToString();
+	
+			    UserProfile newuser=_profilemanager.CreateNewProfile(tempfirstname,templastname,tempMD5Passwd);
+			    newuser.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
+			    newuser.homepos = new LLVector3(128f,128f,23f);
+			    _profilemanager.SaveUserProfiles();
+		    break;
+		}
+	}
+
         public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
@@ -108,31 +141,9 @@ namespace OpenGridServices.UserServer
 		    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
-                case "create user":
-		    m_console.WriteLine("Creating new user profile");
-		    string tempfirstname;
-		    string templastname;
-		    string tempMD5Passwd;
-
-		    tempfirstname=m_console.CmdPrompt("First name: ");
-		    templastname=m_console.CmdPrompt("Last name: ");
-		    tempMD5Passwd=m_console.PasswdPrompt("Password: ");
-		
-		    System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
-		    byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
-		    bs = x.ComputeHash(bs);
-		    System.Text.StringBuilder s = new System.Text.StringBuilder();
-		    foreach (byte b in bs)
-		    {
- 			s.Append(b.ToString("x2").ToLower());
-		    }
-		    tempMD5Passwd = "$1$" + s.ToString();
-
-		    UserProfile newuser=_profilemanager.CreateNewProfile(tempfirstname,templastname,tempMD5Passwd);
-		    newuser.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
-		    newuser.homepos = new LLVector3(128f,128f,23f);
-		    _profilemanager.SaveUserProfiles();
-		    break;
+                case "create":
+			do_create(cmdparams[0]);
+		break;
 
 		case "shutdown":
                     m_console.Close();

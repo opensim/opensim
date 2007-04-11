@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
+using System.Web;
+using System.IO;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 using libsecondlife;
@@ -35,6 +38,36 @@ namespace OpenSim
         {
 
         }
+
+	public void SaveToGrid()
+	{
+		    string reqtext;
+		    reqtext="<authkey>" + this.GridSendKey + "</authkey>";
+		    reqtext+="<sim>";
+		    reqtext+="<uuid>" + this.SimUUID.ToString() + "</uuid>";
+	            reqtext+="<regionname>" + this.RegionName + "</regionname>";
+	    	    reqtext+="<sim_ip>" + this.IPListenAddr + "</sim_ip>";
+		    reqtext+="<sim_port>" + this.IPListenPort.ToString() + "</sim_port>";
+		    reqtext+="<region_locx>" + this.RegionLocX.ToString() + "</region_locx>";
+		    reqtext+="<region_locy>" + this.RegionLocY.ToString() + "</region_locy>";
+		    reqtext+="<estate_id>1</estate_id>";
+		    reqtext+="</sim>";
+
+		    WebRequest GridSaveReq = WebRequest.Create(this.GridURL + "sims/" + this.SimUUID.ToString());
+		    GridSaveReq.Method = "POST";
+            	    GridSaveReq.ContentType = "text/plaintext";
+        	    GridSaveReq.ContentLength = reqtext.Length;
+
+		    StreamWriter stOut = new StreamWriter(GridSaveReq.GetRequestStream(), System.Text.Encoding.ASCII);
+        	    stOut.Write(reqtext);
+	            stOut.Close();
+
+		    StreamReader stIn = new StreamReader(GridSaveReq.GetResponse().GetResponseStream());
+            	    string GridResponse = stIn.ReadToEnd();
+         	    stIn.Close();
+		    
+	     	    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
+	}
 
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
         {
@@ -122,31 +155,7 @@ namespace OpenSim
                 {
                     //shouldn't be reading this data in here, it should be up to the classes implementing the server interfaces to read what they need from the config object
 
-                    // Asset Server URL
-                    attri = "";
-                    attri = configData.GetAttribute("AssetServerURL");
-                    if (attri == "")
-                    {
-                        this.AssetURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Asset server URL: ");
-                        configData.SetAttribute("AssetServerURL", this.AssetURL);
-                    }
-                    else
-                    {
-                        this.AssetURL = attri;
-                    }
-                    //Asset Server key
-                    attri = "";
-                    attri = configData.GetAttribute("AssetServerKey");
-                    if (attri == "")
-                    {
-                        this.AssetSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Asset server key: ");
-                        configData.SetAttribute("AssetServerKey", this.AssetSendKey);
-                    }
-                    else
-                    {
-                        this.AssetSendKey = attri;
-                    }
-                    //Grid Sever URL
+                    //Grid Server URL
                     attri = "";
                     attri = configData.GetAttribute("GridServerURL");
                     if (attri == "")
@@ -158,6 +167,7 @@ namespace OpenSim
                     {
                         this.GridURL = attri;
                     }
+
                     //Grid Send Key
                     attri = "";
                     attri = configData.GetAttribute("GridSendKey");
@@ -170,6 +180,7 @@ namespace OpenSim
                     {
                         this.GridSendKey = attri;
                     }
+
                     //Grid Receive Key
                     attri = "";
                     attri = configData.GetAttribute("GridRecvKey");
@@ -182,44 +193,11 @@ namespace OpenSim
                     {
                         this.GridRecvKey = attri;
                     }
-                    //User Server URL
-                    attri = "";
-                    attri = configData.GetAttribute("UserServerURL");
-                    if (attri == "")
-                    {
-                        this.UserURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("User server URL: ");
-                        configData.SetAttribute("UserServerURL", this.UserURL);
-                    }
-                    else
-                    {
-                        this.UserURL = attri;
-                    }
-                    //User Send Key
-                    attri = "";
-                    attri = configData.GetAttribute("UserSendKey");
-                    if (attri == "")
-                    {
-                        this.UserSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to user server: ");
-                        configData.SetAttribute("UserSendKey", this.UserSendKey);
-                    }
-                    else
-                    {
-                        this.UserSendKey = attri;
-                    }
-                    //User Receive Key
-                    attri = "";
-                    attri = configData.GetAttribute("UserRecvKey");
-                    if (attri == "")
-                    {
-                        this.UserRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from user server: ");
-                        configData.SetAttribute("UserRecvKey", this.UserRecvKey);
-                    }
-                    else
-                    {
-                        this.UserRecvKey = attri;
-                    }
+
+
                 }
                 this.RegionHandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
+		this.SaveToGrid();
                 configData.Commit();
             }
             catch (Exception e)

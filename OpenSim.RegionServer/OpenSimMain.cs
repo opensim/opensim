@@ -114,7 +114,6 @@ namespace OpenSim
             }
             m_console.WriteLine("Main.cs:Startup() - Loading configuration");
             this.regionData.InitConfig(this.m_sandbox, this.localConfig);
-            //regionData.SimUUID = new LLUUID(localConfig.GetAttribute("SimUUID")); //don't need as regionData.SimUUID is already set through the above line
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
 
