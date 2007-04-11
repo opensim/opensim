@@ -75,7 +75,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers" path="Servers" type="Library">
+    <Project name="OpenSim.Servers" path="OpenSim.Servers" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
