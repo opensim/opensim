@@ -11,3 +11,5 @@ bin\Debug\OpenSim.Framework.Console.pdb
 obj\Debug\ResolveAssemblyReference.cache
 obj\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.dll
 obj\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.pdb
+..\bin\OpenSim.Storage.LocalStorageBerkeleyDB.dll
+..\bin\OpenSim.Storage.LocalStorageBerkeleyDB.pdb

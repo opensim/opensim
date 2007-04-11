@@ -46,9 +46,9 @@ using OpenSim.Assets;
 using OpenSim.CAPS;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
-using OpenSim.GenericConfig;
 using Nwc.XmlRpc;
 using OpenSim.Servers;
+using OpenSim.GenericConfig;
 
 namespace OpenSim
 {

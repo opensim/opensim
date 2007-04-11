@@ -70,8 +70,8 @@
       <HintPath>System.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data.SQLite.DLL" >
-      <HintPath>..\bin\System.Data.SQLite.DLL</HintPath>
+    <Reference Include="System.Data.SQLite.dll" >
+      <HintPath>..\bin\System.Data.SQLite.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >

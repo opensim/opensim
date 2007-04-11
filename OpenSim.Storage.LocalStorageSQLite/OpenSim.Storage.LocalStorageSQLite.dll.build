@@ -22,7 +22,7 @@
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
                 <include name="System.Data.dll" />
-                <include name="System.Data.SQLite.DLL.dll" />
+                <include name="../bin/System.Data.SQLite.dll" />
                 <include name="../bin/libsecondlife.dll" />
                 <include name="../bin/OpenSim.Framework.dll" />
                 <include name="../bin/OpenSim.Framework.Console.dll" />
