@@ -1,0 +1,13 @@
+bin\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.dll
+bin\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.pdb
+bin\Debug\Kds.Serialization.dll
+bin\Debug\libdb_dotNET43.dll
+bin\Debug\OpenSim.Framework.Console.dll
+bin\Debug\OpenSim.Framework.dll
+bin\Debug\Db4objects.Db4o.dll
+bin\Debug\libsecondlife.dll
+bin\Debug\OpenSim.Framework.pdb
+bin\Debug\OpenSim.Framework.Console.pdb
+obj\Debug\ResolveAssemblyReference.cache
+obj\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.dll
+obj\Debug\OpenSim.Storage.LocalStorageBerkeleyDB.pdb

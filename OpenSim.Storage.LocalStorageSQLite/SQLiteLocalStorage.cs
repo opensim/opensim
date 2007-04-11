@@ -47,7 +47,7 @@ namespace OpenSim.Storage.LocalStorageSQLite
         {
             try
             {
-                string connectionstring = "URI=file:localsim.db";
+                string connectionstring = "URI=file:localsim.sdb";
                 db = (IDbConnection)new SQLiteConnection(connectionstring);
                 db.Open();
             }
