@@ -62,7 +62,7 @@ namespace OpenSim.Storage.LocalStorageBDB
             DbEntry data = new DbEntry();
             lock (sim)
             {
-                sim.PutUnique(null, key, data, DbFile.WriteFlags.AutoCommit);
+                sim.PutUnique(null, ref key, ref data, DbFile.WriteFlags.AutoCommit);
             }
         }
         public void RemovePrim(LLUUID primID)
