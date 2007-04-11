@@ -41,15 +41,16 @@ using OpenSim.Framework.User;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Console;
+using OpenSim.Servers;
 
 namespace OpenGridServices.UserServer
 {
-    public class UserHTTPServer
+    public class UserHTTPServer : BaseHttpServer
     {
         public Thread HTTPD;
         public HttpListener Listener;
 
-        public UserHTTPServer()
+        public UserHTTPServer() : base( 8002 )
         {
             MainConsole.Instance.WriteLine("Starting up HTTP Server");
             HTTPD = new Thread(new ThreadStart(StartHTTP));

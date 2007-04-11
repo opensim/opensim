@@ -40,14 +40,15 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
+using OpenSim.Servers;
 
 namespace OpenGridServices.GridServer
 {
-	public class GridHTTPServer {
+	public class GridHTTPServer : BaseHttpServer {
 		public Thread HTTPD;
 		public HttpListener Listener;
 	
-		public GridHTTPServer() {
+		public GridHTTPServer() : base( 8001 ) {
 	 		MainConsole.Instance.WriteLine("Starting up HTTP Server");
 			HTTPD = new Thread(new ThreadStart(StartHTTP));
 			HTTPD.Start();
