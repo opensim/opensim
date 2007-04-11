@@ -90,8 +90,10 @@ namespace OpenSim.Framework.User
 
                     LLUUID AgentID = TheUser.UUID;
                     TheUser.InitSessionData();
-                    SimProfile SimInfo = new SimProfile();
-                    SimInfo = SimInfo.LoadFromGrid(TheUser.homeregionhandle, GridURL, GridSendKey, GridRecvKey);
+
+                    //for loading data from a grid server, make any changes in CustomiseResponse() (or create a sub class of this and override that method)
+                   //SimProfile SimInfo = new SimProfile();
+                    //SimInfo = SimInfo.LoadFromGrid(TheUser.homeregionhandle, GridURL, GridSendKey, GridRecvKey);
 
 
                     Hashtable GlobalT = new Hashtable();
@@ -146,7 +148,7 @@ namespace OpenSim.Framework.User
                     InitialOutfit.Add(InitialOutfitHash);
 
                     uint circode = (uint)(Util.RandomClass.Next());
-                    TheUser.AddSimCircuit(circode, SimInfo.UUID);
+                    //TheUser.AddSimCircuit(circode, SimInfo.UUID);
 
                     responseData["last_name"] = TheUser.lastname;
                     responseData["ui-config"] = ui_config;

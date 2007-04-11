@@ -39,35 +39,37 @@ namespace OpenSim
 
         }
 
-	public void SaveToGrid()
-	{
-		    string reqtext;
-		    reqtext="<authkey>" + this.GridSendKey + "</authkey>";
-		    reqtext+="<sim>";
-		    reqtext+="<uuid>" + this.SimUUID.ToString() + "</uuid>";
-	            reqtext+="<regionname>" + this.RegionName + "</regionname>";
-	    	    reqtext+="<sim_ip>" + this.IPListenAddr + "</sim_ip>";
-		    reqtext+="<sim_port>" + this.IPListenPort.ToString() + "</sim_port>";
-		    reqtext+="<region_locx>" + this.RegionLocX.ToString() + "</region_locx>";
-		    reqtext+="<region_locy>" + this.RegionLocY.ToString() + "</region_locy>";
-		    reqtext+="<estate_id>1</estate_id>";
-		    reqtext+="</sim>";
+        public void SaveToGrid()
+        {
+            //we really want to keep any server connection code out of here and out of the code code
+            // and put it in the server connection classes (those inheriting from IGridServer etc)
+            string reqtext;
+            reqtext = "<authkey>" + this.GridSendKey + "</authkey>";
+            reqtext += "<sim>";
+            reqtext += "<uuid>" + this.SimUUID.ToString() + "</uuid>";
+            reqtext += "<regionname>" + this.RegionName + "</regionname>";
+            reqtext += "<sim_ip>" + this.IPListenAddr + "</sim_ip>";
+            reqtext += "<sim_port>" + this.IPListenPort.ToString() + "</sim_port>";
+            reqtext += "<region_locx>" + this.RegionLocX.ToString() + "</region_locx>";
+            reqtext += "<region_locy>" + this.RegionLocY.ToString() + "</region_locy>";
+            reqtext += "<estate_id>1</estate_id>";
+            reqtext += "</sim>";
 
-		    WebRequest GridSaveReq = WebRequest.Create(this.GridURL + "sims/" + this.SimUUID.ToString());
-		    GridSaveReq.Method = "POST";
-            	    GridSaveReq.ContentType = "text/plaintext";
-        	    GridSaveReq.ContentLength = reqtext.Length;
+            WebRequest GridSaveReq = WebRequest.Create(this.GridURL + "sims/" + this.SimUUID.ToString());
+            GridSaveReq.Method = "POST";
+            GridSaveReq.ContentType = "text/plaintext";
+            GridSaveReq.ContentLength = reqtext.Length;
 
-		    StreamWriter stOut = new StreamWriter(GridSaveReq.GetRequestStream(), System.Text.Encoding.ASCII);
-        	    stOut.Write(reqtext);
-	            stOut.Close();
+            StreamWriter stOut = new StreamWriter(GridSaveReq.GetRequestStream(), System.Text.Encoding.ASCII);
+            stOut.Write(reqtext);
+            stOut.Close();
 
-		    StreamReader stIn = new StreamReader(GridSaveReq.GetResponse().GetResponseStream());
-            	    string GridResponse = stIn.ReadToEnd();
-         	    stIn.Close();
-		    
-	     	    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
-	}
+            StreamReader stIn = new StreamReader(GridSaveReq.GetResponse().GetResponseStream());
+            string GridResponse = stIn.ReadToEnd();
+            stIn.Close();
+
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
+        }
 
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
         {
@@ -197,7 +199,10 @@ namespace OpenSim
 
                 }
                 this.RegionHandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
-		this.SaveToGrid();
+                if (!this.isSandbox)
+                {
+                    this.SaveToGrid();
+                }
                 configData.Commit();
             }
             catch (Exception e)
