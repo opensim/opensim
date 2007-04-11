@@ -52,6 +52,10 @@ namespace OpenGridServices.UserServer
 
         public UserHTTPServer() : base( 8002 )
         {
+        }
+
+        public void Start()
+        {
             MainConsole.Instance.WriteLine("Starting up HTTP Server");
             HTTPD = new Thread(new ThreadStart(StartHTTP));
             HTTPD.Start();
@@ -89,21 +93,13 @@ namespace OpenGridServices.UserServer
             switch (req_type)
             {
                 case "usersessions":
-                    LLUUID sessionid = new LLUUID(rest_params[2]);	// get usersessions/sessionid
+                    string param = rest_params[2];
+                    string result = "";
                     if (www_req.HttpMethod == "DELETE")
                     {
-                        foreach (libsecondlife.LLUUID UUID in OpenUser_Main.userserver._profilemanager.UserProfiles.Keys)
-                        {
-                            if (OpenUser_Main.userserver._profilemanager.UserProfiles[UUID].CurrentSessionID == sessionid)
-                            {
-                                OpenUser_Main.userserver._profilemanager.UserProfiles[UUID].CurrentSessionID = null;
-                                OpenUser_Main.userserver._profilemanager.UserProfiles[UUID].CurrentSecureSessionID = null;
-                                OpenUser_Main.userserver._profilemanager.UserProfiles[UUID].Circuits.Clear();
-                            }
-                        }
-
+                       result = OpenUser_Main.userserver._profilemanager.RestDeleteUserSessionMethod( null, null, param );
                     }
-                    return "OK";
+                    return result;
             }
 
             return "";

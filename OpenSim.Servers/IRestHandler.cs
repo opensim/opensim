@@ -4,5 +4,5 @@ using System.Text;
 
 namespace OpenSim.Servers
 {
-    public delegate string RestMethod( string request, string path );
+    public delegate string RestMethod( string request, string path, string param );
 }

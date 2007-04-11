@@ -105,6 +105,7 @@ namespace OpenGridServices.GridServer
 
 	    m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
             _httpd = new GridHTTPServer();
+            _httpd.Start();
 
 	    m_console.WriteLine("Main.cs:Startup() - Starting sim status checker");
 	    SimCheckTimer = new Timer();

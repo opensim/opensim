@@ -12,9 +12,30 @@ namespace OpenSim.Servers
 {
     public class BaseHttpServer
     {
+        protected class RestMethodEntry
+        {
+            private string m_path;
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            private RestMethod m_restMethod;
+            public RestMethod RestMethod
+            {
+                get { return m_restMethod; }
+            }
+	
+            public RestMethodEntry( string path, RestMethod restMethod )
+            {
+                m_path = path;
+                m_restMethod = restMethod;
+            }
+        }
+        
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
-        protected Dictionary<string, RestMethod> m_restHandlers = new Dictionary<string, RestMethod>();
+        protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected int m_port;
 
@@ -29,7 +50,7 @@ namespace OpenSim.Servers
                 
             if (!this.m_restHandlers.ContainsKey(methodKey))
             {
-                this.m_restHandlers.Add(methodKey, handler);
+                this.m_restHandlers.Add(methodKey, new RestMethodEntry( path, handler ));
                 return true;
             }
 
@@ -74,7 +95,6 @@ namespace OpenSim.Servers
         protected virtual string ParseREST(string request, string path, string method)
         {
             string response;
-            RestMethod handler;
             
             string requestKey = String.Format("{0}: {1}", method, path);
                     
@@ -89,10 +109,14 @@ namespace OpenSim.Servers
                     }
                 }
             }
-            
-            if (m_restHandlers.TryGetValue(bestMatch, out handler))
+
+            RestMethodEntry restMethodEntry;
+            if (m_restHandlers.TryGetValue(bestMatch, out restMethodEntry))
             {
-                response = handler(request, path);
+                RestMethod restMethod = restMethodEntry.RestMethod;
+
+                string param = path.Substring( restMethodEntry.Path.Length );
+                response = restMethod(request, path, param);
             
             }
             else

@@ -48,7 +48,7 @@ namespace OpenSim.CAPS
             server.AddRestHandler("POST", "/Admin/Login", PostLogin );      
         }
 
-        private string GetWelcomePage(string request, string path)
+        private string GetWelcomePage(string request, string path, string param)
         {
             string responseString;
             responseString = "Welcome to the OpenSim Admin Page";
@@ -56,7 +56,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string PostLogin(string requestBody, string path)
+        private string PostLogin(string requestBody, string path, string param)
         {
             string responseString;
 // Console.WriteLine(requestBody);
@@ -73,7 +73,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string PostNewAccount(string requestBody, string path)
+        private string PostNewAccount(string requestBody, string path, string param)
         {
             string responseString;
             string firstName = "";
@@ -122,7 +122,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetConnectedClientsPage(string request, string path)
+        private string GetConnectedClientsPage(string request, string path, string param)
         {
             string responseString;
             responseString = " <p> Listing connected Clients </p>";
@@ -140,7 +140,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string AddTestScript(string request, string path)
+        private string AddTestScript(string request, string path, string param)
         {
             int index = path.LastIndexOf('/');
 
@@ -159,13 +159,13 @@ namespace OpenSim.CAPS
                 return String.Format("Couldn't parse [{0}]", lluidStr );
             }
         }
-        
-        private string GetScriptsPage(string request, string path)
+
+        private string GetScriptsPage(string request, string path, string param)
         {
             return String.Empty;
         }
-        
-        private string GetEntitiesPage(string request, string path)
+
+        private string GetEntitiesPage(string request, string path, string param)
         {
             string responseString;
             responseString = " <p> Listing current entities</p><ul>";
@@ -179,7 +179,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetClientsInventory(string request, string path)
+        private string GetClientsInventory(string request, string path, string param)
         {
             string[] line;
             string delimStr = "/";
@@ -208,12 +208,12 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetCachedAssets(string request, string path)
+        private string GetCachedAssets(string request, string path, string param)
         {
             return "";
         }
 
-        private string GetAccountsPage(string request, string path)
+        private string GetAccountsPage(string request, string path, string param)
         {
             string responseString;
             responseString = "<p> Account management </p>";
@@ -223,7 +223,7 @@ namespace OpenSim.CAPS
             return responseString;
         }
 
-        private string GetAdminPage(string request, string path)
+        private string GetAdminPage(string request, string path, string param)
         {
             return AdminPage;
         }

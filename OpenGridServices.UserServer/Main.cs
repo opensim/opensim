@@ -97,6 +97,12 @@ namespace OpenGridServices.UserServer
 
 			MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
 			_httpd = new UserHTTPServer();
+
+            _httpd.AddXmlRPCHandler("login_to_simulator", _profilemanager.XmlRpcLoginMethod);
+            _httpd.AddRestHandler( "DELETE", "/usersessions/", _profilemanager.RestDeleteUserSessionMethod );
+            
+		    _httpd.Start();
+
 		}
 
 

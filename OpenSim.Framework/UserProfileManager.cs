@@ -48,6 +48,22 @@ namespace OpenSim.Framework.User
             return "";
         }
 
+        public string RestDeleteUserSessionMethod( string request, string path, string param )
+        {
+            LLUUID sessionid = new LLUUID(param);	// get usersessions/sessionid
+            foreach (libsecondlife.LLUUID UUID in UserProfiles.Keys)
+            {
+                if ( UserProfiles[UUID].CurrentSessionID == sessionid)
+                {
+                     UserProfiles[UUID].CurrentSessionID = null;
+                     UserProfiles[UUID].CurrentSecureSessionID = null;
+                     UserProfiles[UUID].Circuits.Clear();
+                }
+            }
+
+            return "OK";
+        }
+
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();

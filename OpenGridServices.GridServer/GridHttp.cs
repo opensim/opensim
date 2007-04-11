@@ -49,12 +49,17 @@ namespace OpenGridServices.GridServer
 		public HttpListener Listener;
 	
 		public GridHTTPServer() : base( 8001 ) {
-	 		MainConsole.Instance.WriteLine("Starting up HTTP Server");
-			HTTPD = new Thread(new ThreadStart(StartHTTP));
-			HTTPD.Start();
+		    Start();
 		}
 
-		public void StartHTTP() {
+	    public void Start()
+	    {
+	        MainConsole.Instance.WriteLine("Starting up HTTP Server");
+	        HTTPD = new Thread(new ThreadStart(StartHTTP));
+	        HTTPD.Start();
+	    }
+
+	    public void StartHTTP() {
 			MainConsole.Instance.WriteLine("GridHttp.cs:StartHTTP() - Spawned main thread OK");
 			Listener = new HttpListener();
 
