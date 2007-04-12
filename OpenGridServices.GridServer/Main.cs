@@ -109,8 +109,11 @@ namespace OpenGridServices.GridServer
 
             httpServer.AddXmlRPCHandler("simulator_login", m_simProfileManager.XmlRpcLoginToSimulatorMethod);
 
-            httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
-            httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
+            httpServer.AddRestHandler("GET", "/sims", m_simProfileManager.RestGetSimMethod);
+            httpServer.AddRestHandler("POST", "/sims", m_simProfileManager.RestSetSimMethod);
+	    httpServer.AddRestHandler("GET", "/regions", m_simProfileManager.RestGetRegionMethod);
+	    httpServer.AddRestHandler("POST", "/regions", m_simProfileManager.RestSetRegionMethod);
+	    
 
             // lbsa71 : This code snippet taken from old http server.
             // I have no idea what this was supposed to do - looks like an infinite recursion to me.

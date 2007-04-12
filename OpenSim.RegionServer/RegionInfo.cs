@@ -55,18 +55,22 @@ namespace OpenSim
             reqtext += "<estate_id>1</estate_id>";
             reqtext += "</sim>";
 
+	    byte[] reqdata = (new System.Text.ASCIIEncoding()).GetBytes(reqtext);
+
             WebRequest GridSaveReq = WebRequest.Create(this.GridURL + "sims/" + this.SimUUID.ToString());
             GridSaveReq.Method = "POST";
-            GridSaveReq.ContentType = "text/plaintext";
-            GridSaveReq.ContentLength = reqtext.Length;
+            GridSaveReq.ContentType = "application/x-www-form-urlencoded";
+            GridSaveReq.ContentLength = reqdata.Length;
 
-            StreamWriter stOut = new StreamWriter(GridSaveReq.GetRequestStream(), System.Text.Encoding.ASCII);
-            stOut.Write(reqtext);
+            Stream stOut = GridSaveReq.GetRequestStream();
+            stOut.Write(reqdata,0,reqdata.Length);
             stOut.Close();
 
-            StreamReader stIn = new StreamReader(GridSaveReq.GetResponse().GetResponseStream());
+            WebResponse gridresp = GridSaveReq.GetResponse();
+	    StreamReader stIn = new StreamReader(gridresp.GetResponseStream());
             string GridResponse = stIn.ReadToEnd();
             stIn.Close();
+	    gridresp.Close();
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
         }

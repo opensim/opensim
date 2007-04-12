@@ -186,84 +186,70 @@ namespace OpenGridServices.GridServer
 
         public string RestSetSimMethod(string request, string path, string param)
         {
-            string respstring = String.Empty;
-
+	    Console.WriteLine("SimProfiles.cs:RestSetSimMethod() - processing request......");
             SimProfileBase TheSim;
             LLUUID UUID = new LLUUID(param);
             TheSim = GetProfileByLLUUID(UUID);
-            
-            if (!(TheSim == null))
-            {
-                Console.WriteLine("Updating sim details.....");
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(request);
-                XmlNode authkeynode = doc.FirstChild;
-                if (authkeynode.Name != "authkey")
+	    if ((TheSim) == null) TheSim = new SimProfileBase();
+           
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(request);
+            XmlNode authkeynode = doc.FirstChild;
+            if (authkeynode.Name != "authkey")
                 {
-                    respstring = "ERROR! bad XML - expected authkey tag";
+                    return "ERROR! bad XML - expected authkey tag";
                 }
-                else
+
+            XmlNode simnode = doc.ChildNodes[1];
+            if (simnode.Name != "sim")
                 {
-                    XmlNode simnode = doc.ChildNodes[1];
-                    if (simnode.Name != "sim")
-                    {
-                        respstring = "ERROR! bad XML - expected sim tag";
-                    }
-                    else
-                    {
-                        if (authkeynode.Name != m_gridManager.SimRecvKey)
-                        {
-                            respstring = "ERROR! invalid key";
-                        }
-                        else
-                        {
-                            if (TheSim == null)
-                            {
-                                respstring = "ERROR! sim not found";
-                            }
-                            else
-                            {
-                                for (int i = 0; i <= simnode.ChildNodes.Count; i++)
-                                {
-                                    switch (simnode.ChildNodes[i].Name)
-                                    {
-                                        case "uuid":
-                                            // should a sim be able to update it's own UUID? To be decided
-                                            // watch next week for the exciting conclusion in "the adventures of OpenGridServices.GridServer/GridHttp.cs:ParseREST() at line 190!
-                                            break;			// and line 190's arch-enemy - THE BREAK STATEMENT! OH NOES!!!!! (this code written at 6:57AM, no sleep, lots of caffeine)
-
-                                        case "regionname":
-                                            TheSim.regionname = simnode.ChildNodes[i].InnerText;
-                                            break;
-
-                                        case "sim_ip":
-                                            TheSim.sim_ip = simnode.ChildNodes[i].InnerText;
-                                            break;
-
-                                        case "sim_port":
-                                            TheSim.sim_port = Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
-                                            break;
-
-                                        case "region_locx":
-                                            TheSim.RegionLocX = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
-                                            TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
-                                            break;
-
-                                        case "region_locy":
-                                            TheSim.RegionLocY = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
-                                            TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
-                                            break;
-                                    }
-                                }
-                                respstring = "OK";
-                            }
-                        }
-                    }
+                    return "ERROR! bad XML - expected sim tag";
                 }
-            }
+        
+            if (authkeynode.InnerText != m_gridManager.SimRecvKey)
+                {
+                    return "ERROR! invalid key";
+                }
+        
+            for (int i = 0; i <= simnode.ChildNodes.Count; i++) {
+                  switch (simnode.ChildNodes[i].Name) {
+                      case "regionname":
+                          TheSim.regionname = simnode.ChildNodes[i].InnerText;
+                      break;
 
-            return respstring;
+                      case "sim_ip":
+                          TheSim.sim_ip = simnode.ChildNodes[i].InnerText;
+                      break;
+
+                      case "sim_port":
+                          TheSim.sim_port = Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
+                      break;
+
+                      case "region_locx":
+                          TheSim.RegionLocX = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+                          TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
+                      break;
+
+                      case "region_locy":
+                          TheSim.RegionLocY = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+                          TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
+                      break;
+                  }
+	    }
+	    return "OK";
         }
+
+        public string RestGetRegionMethod(string request, string path, string param )
+	{
+		SimProfileBase TheSim = GetProfileByHandle((ulong)Convert.ToUInt64(param));
+		return RestGetSimMethod("", "/sims/", param);
+	}
+
+        public string RestSetRegionMethod(string request, string path, string param )
+	{
+		SimProfileBase TheSim = GetProfileByHandle((ulong)Convert.ToUInt64(param));
+		return RestSetSimMethod("", "/sims/", param);
+	}
 
         public string RestGetSimMethod(string request, string path, string param )
         {
