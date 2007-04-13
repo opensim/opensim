@@ -47,20 +47,10 @@ namespace OpenGridServices.GridServer
     public class OpenGrid_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
-        private GridConfig Cfg;
+        public GridConfig Cfg;
         
         public static OpenGrid_Main thegrid;
         
-        public string GridOwner;
-        public string DefaultStartupMsg;
-        public string DefaultAssetServer;
-        public string AssetSendKey;
-        public string AssetRecvKey;
-        public string DefaultUserServer;
-        public string UserSendKey;
-        public string UserRecvKey;
-        public string SimSendKey;
-        public string SimRecvKey;
         //public LLUUID highestUUID;
 
         private SimProfileManager m_simProfileManager;
@@ -109,10 +99,10 @@ namespace OpenGridServices.GridServer
 
             httpServer.AddXmlRPCHandler("simulator_login", m_simProfileManager.XmlRpcLoginToSimulatorMethod);
 
-            httpServer.AddRestHandler("GET", "/sims", m_simProfileManager.RestGetSimMethod);
-            httpServer.AddRestHandler("POST", "/sims", m_simProfileManager.RestSetSimMethod);
-	    httpServer.AddRestHandler("GET", "/regions", m_simProfileManager.RestGetRegionMethod);
-	    httpServer.AddRestHandler("POST", "/regions", m_simProfileManager.RestSetRegionMethod);
+            httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
+            httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
+	    httpServer.AddRestHandler("GET", "/regions/", m_simProfileManager.RestGetRegionMethod);
+	    httpServer.AddRestHandler("POST", "/regions/", m_simProfileManager.RestSetRegionMethod);
 	    
 
             // lbsa71 : This code snippet taken from old http server.

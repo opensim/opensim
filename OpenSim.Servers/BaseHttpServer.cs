@@ -154,6 +154,7 @@ namespace OpenSim.Servers
 
         public virtual void HandleRequest(Object stateinfo)
         {
+	try {
             HttpListenerContext context = (HttpListenerContext)stateinfo;
 
             HttpListenerRequest request = context.Request;
@@ -211,6 +212,9 @@ namespace OpenSim.Servers
             response.ContentLength64 = buffer.Length;
             output.Write(buffer, 0, buffer.Length);
             output.Close();
+	} catch (Exception e) {
+		Console.WriteLine(e.ToString());
+	}
         }
 
         public void Start()

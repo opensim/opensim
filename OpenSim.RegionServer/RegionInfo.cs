@@ -44,7 +44,8 @@ namespace OpenSim
             //we really want to keep any server connection code out of here and out of the code code
             // and put it in the server connection classes (those inheriting from IGridServer etc)
             string reqtext;
-            reqtext = "<authkey>" + this.GridSendKey + "</authkey>";
+	    reqtext = "<Root>";
+            reqtext += "<authkey>" + this.GridSendKey + "</authkey>";
             reqtext += "<sim>";
             reqtext += "<uuid>" + this.SimUUID.ToString() + "</uuid>";
             reqtext += "<regionname>" + this.RegionName + "</regionname>";
@@ -54,6 +55,7 @@ namespace OpenSim
             reqtext += "<region_locy>" + this.RegionLocY.ToString() + "</region_locy>";
             reqtext += "<estate_id>1</estate_id>";
             reqtext += "</sim>";
+	    reqtext += "</Root>";
 
 	    byte[] reqdata = (new System.Text.ASCIIEncoding()).GetBytes(reqtext);
 
@@ -67,7 +69,7 @@ namespace OpenSim
             stOut.Close();
 
             WebResponse gridresp = GridSaveReq.GetResponse();
-	    StreamReader stIn = new StreamReader(gridresp.GetResponseStream());
+	    StreamReader stIn = new StreamReader(gridresp.GetResponseStream(), Encoding.ASCII);
             string GridResponse = stIn.ReadToEnd();
             stIn.Close();
 	    gridresp.Close();
