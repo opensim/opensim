@@ -138,11 +138,12 @@ namespace OpenSim.Framework.User
                     ArrayList ClassifiedCategories = new ArrayList();
                     ClassifiedCategories.Add(ClassifiedCategoriesHash);
 
-                    ArrayList AgentInventory = new ArrayList();
+		    ArrayList AgentInventory = new ArrayList();
                     Console.WriteLine("adding inventory to response");
+		    Hashtable TempHash;
                     foreach (InventoryFolder InvFolder in TheUser.Inventory.InventoryFolders.Values)
                     {
-                        Hashtable TempHash = new Hashtable();
+                        TempHash = new Hashtable();
                         Console.WriteLine("adding folder " + InvFolder.FolderName + ", ID: " + InvFolder.FolderID.ToStringHyphenated() + " with parent: " + InvFolder.ParentID.ToStringHyphenated()); 
                         TempHash["name"] = InvFolder.FolderName;
                         TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
@@ -192,7 +193,7 @@ namespace OpenSim.Framework.User
                     responseData["agent_id"] = AgentID.ToStringHyphenated();
                     responseData["region_y"] = (Int32)996 * 256; // (Int32)SimInfo.RegionLocY * 256;
                     responseData["region_x"] = (Int32)997 * 256;  //SimInfo.RegionLocX * 256;
-                    responseData["seed_capability"] = null;
+                    responseData["seed_capability"] = "";
                     responseData["agent_access"] = "M";
                     responseData["session_id"] = TheUser.CurrentSessionID.ToStringHyphenated();
                     responseData["login"] = "true";
@@ -200,6 +201,7 @@ namespace OpenSim.Framework.User
                     this.CustomiseResponse(ref responseData, TheUser);
                     response.Value = responseData;
  //                   TheUser.SendDataToSim(SimInfo);
+		    return response;
 
                 }
                 catch (Exception E)
@@ -209,6 +211,7 @@ namespace OpenSim.Framework.User
                 //}
             }
             return response;
+
         }
 
         private static XmlRpcResponse CreateErrorConnectingToGridResponse()
@@ -236,13 +239,13 @@ namespace OpenSim.Framework.User
         public virtual void CustomiseResponse(ref Hashtable response, UserProfile theUser)
         {
             //default method set up to act as ogs user server
-            SimProfile SimInfo = new SimProfile();
+            SimProfile SimInfo= new SimProfile();
             //get siminfo from grid server
             SimInfo = SimInfo.LoadFromGrid(theUser.homeregionhandle, GridURL, GridSendKey, GridRecvKey);
-            Int32 circode = (Int32)response["circuit_code"];
+            Int32 circode = (Int32)Convert.ToUInt32(response["circuit_code"]);
             theUser.AddSimCircuit((uint)circode, SimInfo.UUID);
             response["home"] = "{'region_handle':[r" + (SimInfo.RegionLocX * 256).ToString() + ",r" + (SimInfo.RegionLocY * 256).ToString() + "], 'position':[r" + theUser.homepos.X.ToString() + ",r" + theUser.homepos.Y.ToString() + ",r" + theUser.homepos.Z.ToString() + "], 'look_at':[r" + theUser.homelookat.X.ToString() + ",r" + theUser.homelookat.Y.ToString() + ",r" + theUser.homelookat.Z.ToString() + "]}";
-            response["sim_ip"] = SimInfo.sim_ip.ToString();
+            response["sim_ip"] = SimInfo.sim_ip;
             response["sim_port"] = (Int32)SimInfo.sim_port;
             response["region_y"] = (Int32)SimInfo.RegionLocY * 256;
             response["region_x"] = (Int32)SimInfo.RegionLocX * 256;
@@ -255,7 +258,7 @@ namespace OpenSim.Framework.User
             SimParams["firstname"] = theUser.firstname;
             SimParams["lastname"] = theUser.lastname;
             SimParams["agent_id"] = theUser.UUID.ToString();
-            SimParams["circuit_code"] = (Int32)theUser.Circuits[SimInfo.UUID];
+            SimParams["circuit_code"] = (Int32)circode;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(SimParams);
 

@@ -83,7 +83,7 @@ namespace OpenUser.Config.UserConfigDb4o
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Default startup message: " + this.DefaultStartupMsg);
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid server URL: " + this.GridServerURL);
 			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to send to grid: " + this.GridSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from sims: " + this.GridRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Key to expect from grid: " + this.GridRecvKey);
 		}
 	
 

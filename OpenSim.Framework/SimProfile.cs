@@ -25,15 +25,15 @@ namespace OpenSim.Framework.Sims
 
                 Hashtable RespData = (Hashtable)GridResp.Value;
                 this.UUID = new LLUUID((string)RespData["UUID"]);
-                this.regionhandle = (ulong)Convert.ToUInt64(RespData["regionhandle"]);
+                this.regionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
                 this.regionname = (string)RespData["regionname"];
                 this.sim_ip = (string)RespData["sim_ip"];
                 this.sim_port = (uint)Convert.ToUInt16(RespData["sim_port"]);
-                this.caps_url = (string)RespData["caps_url"];
-                this.RegionLocX = (uint)Convert.ToUInt32(RespData["RegionLocX"]);
-                this.RegionLocY = (uint)Convert.ToUInt32(RespData["RegionLocY"]);
-                this.sendkey = (string)RespData["sendkey"];
-                this.recvkey = (string)RespData["recvkey"];
+                this.caps_url = "http://" + ((string)RespData["sim_ip"]) + ":" + (string)RespData["sim_port"] + "/";
+                this.RegionLocX = (uint)Convert.ToUInt32(RespData["region_locx"]);
+                this.RegionLocY = (uint)Convert.ToUInt32(RespData["region_locy"]);
+                this.sendkey = SendKey;
+                this.recvkey = RecvKey;
             }
             catch (Exception e)
             {
@@ -48,7 +48,6 @@ namespace OpenSim.Framework.Sims
             {
                 Hashtable GridReqParams = new Hashtable();
                 GridReqParams["UUID"] = UUID.ToString();
-                GridReqParams["caller"] = "userserver";
                 GridReqParams["authkey"] = SendKey;
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(GridReqParams);
@@ -58,15 +57,15 @@ namespace OpenSim.Framework.Sims
 
                 Hashtable RespData = (Hashtable)GridResp.Value;
                 this.UUID = new LLUUID((string)RespData["UUID"]);
-                this.regionhandle = (ulong)Convert.ToUInt64(RespData["regionhandle"]);
+                this.regionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
                 this.regionname = (string)RespData["regionname"];
                 this.sim_ip = (string)RespData["sim_ip"];
                 this.sim_port = (uint)Convert.ToUInt16(RespData["sim_port"]);
-                this.caps_url = (string)RespData["caps_url"];
-                this.RegionLocX = (uint)Convert.ToUInt32(RespData["RegionLocX"]);
-                this.RegionLocY = (uint)Convert.ToUInt32(RespData["RegionLocY"]);
-                this.sendkey = (string)RespData["sendkey"];
-                this.recvkey = (string)RespData["recvkey"];
+                this.caps_url = "http://" + ((string)RespData["sim_ip"]) + ":" + (string)RespData["sim_port"] + "/";
+                this.RegionLocX = (uint)Convert.ToUInt32(RespData["region_locx"]);
+                this.RegionLocY = (uint)Convert.ToUInt32(RespData["region_locy"]);
+                this.sendkey = SendKey;
+                this.recvkey = RecvKey;
             }
             catch (Exception e)
             {

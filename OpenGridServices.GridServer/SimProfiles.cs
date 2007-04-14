@@ -168,13 +168,15 @@ namespace OpenGridServices.GridServer
                         }
                     }
 
-                responseData["UUID"] = TheSim.UUID;
+                responseData["UUID"] = TheSim.UUID.ToString();
                 responseData["region_locx"] = TheSim.RegionLocX.ToString();
                 responseData["region_locy"] = TheSim.RegionLocY.ToString();
                 responseData["regionname"] = TheSim.regionname;
                 responseData["estate_id"] = "1";
                 responseData["neighbours"] = SimNeighboursData;
 
+		responseData["sim_ip"] = TheSim.sim_ip;
+		responseData["sim_port"] = TheSim.sim_port.ToString();
                 responseData["asset_url"] = m_gridManager.Cfg.DefaultAssetServer;
                 responseData["asset_sendkey"] = m_gridManager.Cfg.AssetSendKey;
                 responseData["asset_recvkey"] = m_gridManager.Cfg.AssetRecvKey;

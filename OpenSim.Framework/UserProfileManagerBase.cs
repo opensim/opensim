@@ -52,7 +52,7 @@ namespace OpenSim.Framework.User
         {
             foreach (libsecondlife.LLUUID UUID in UserProfiles.Keys)
             {
-                if ((UserProfiles[UUID].firstname == firstname) && (UserProfiles[UUID].lastname == lastname))
+                if (UserProfiles[UUID].firstname.Equals(firstname)) if (UserProfiles[UUID].lastname.Equals(lastname))
                 {
                     return UserProfiles[UUID];
                 }
@@ -73,7 +73,7 @@ namespace OpenSim.Framework.User
             {
                 if (TheUser.MD5passwd == passwd)
                 {
-                    Console.WriteLine("UserProfile - authorised ");
+                    Console.WriteLine("UserProfile - authorised " + firstname + " " + lastname);
                     return true;
                 }
                 else
@@ -103,8 +103,7 @@ namespace OpenSim.Framework.User
             newprofile.firstname = firstname;
             newprofile.lastname = lastname;
             newprofile.MD5passwd = MD5passwd;
-            newprofile.UUID = LLUUID.Random();
-            newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
+            newprofile.UUID = LLUUID.Random();	    newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
             this.UserProfiles.Add(newprofile.UUID, newprofile);
             return newprofile;
         }

@@ -12,7 +12,7 @@ namespace OpenSim.Framework.Inventory
         //Holds the local copy of Inventory info for a agent
         public Dictionary<LLUUID, InventoryFolder> InventoryFolders;
         public Dictionary<LLUUID, InventoryItem> InventoryItems;
-        public InventoryFolder InventoryRoot = new InventoryFolder();
+        public InventoryFolder InventoryRoot;
         public int LastCached;  //maybe used by opensim app, time this was last stored/compared to user server
         public LLUUID AgentID;
         public AvatarWearable[] Wearables;
@@ -31,15 +31,7 @@ namespace OpenSim.Framework.Inventory
             {
                 Wearables[i] = new AvatarWearable();
             }
-
-            InventoryRoot = new InventoryFolder();
-            InventoryRoot.FolderID = LLUUID.Random();
-            InventoryRoot.ParentID = LLUUID.Zero;
-            InventoryRoot.Version = 1;
-            InventoryRoot.DefaultType = 8;
-            InventoryRoot.OwnerID = this.AgentID;
-            InventoryRoot.FolderName = "My Inventory";
-            InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);        
+      
         }
 
         public bool CreateNewFolder(LLUUID folderID, ushort type)
@@ -55,14 +47,14 @@ namespace OpenSim.Framework.Inventory
         public void CreateRootFolder(LLUUID newAgentID, bool createTextures)
         {
             this.AgentID = newAgentID;
-           /* InventoryRoot = new InventoryFolder();
+            InventoryRoot = new InventoryFolder();
             InventoryRoot.FolderID = LLUUID.Random();
             InventoryRoot.ParentID = new LLUUID();
             InventoryRoot.Version = 1;
             InventoryRoot.DefaultType = 8;
             InventoryRoot.OwnerID = this.AgentID;
             InventoryRoot.FolderName = "My Inventory-";
-            InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);*/
+            InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
             InventoryRoot.OwnerID = this.AgentID;
             if (createTextures)
             {
