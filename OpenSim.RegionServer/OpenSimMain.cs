@@ -173,9 +173,9 @@ namespace OpenSim
 			m_console.WriteLine("I LOST MY GRID!!!!!!!!!!!!! AAAAAAAARRRRRRRRGGGGGGGGHHHHHHHHHHHHHHHHHH!!!!!!!!!!!!!");
 			Shutdown();
 		    }
-	    }
 
-	    GridServers.AssetServer.SetServerInfo((string)((RemoteGridBase)GridServers.GridServer).GridData["asset_url"], (string)((RemoteGridBase)GridServers.GridServer).GridData["asset_sendkey"]); 
+		    GridServers.AssetServer.SetServerInfo((string)((RemoteGridBase)GridServers.GridServer).GridData["asset_url"], (string)((RemoteGridBase)GridServers.GridServer).GridData["asset_sendkey"]); 
+	    }
 
             LocalWorld.LoadPrimsFromStorage();
 
