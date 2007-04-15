@@ -44,12 +44,27 @@ namespace OpenSim.GridInterfaces.Remote
         private string GridSendKey;
         private string GridRecvKey;
         private Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
+	private ArrayList simneighbours = new ArrayList();
+	private Hashtable griddatahash;
 
         public override Dictionary<uint, AgentCircuitData> agentcircuits
         {
             get { return AgentCircuits; }
             set { AgentCircuits = value; }
         }
+
+        public override ArrayList neighbours
+        {
+            get { return simneighbours; }
+            set { simneighbours = value; }
+        }
+
+	public override Hashtable GridData
+        {
+            get { return griddatahash; }
+            set { griddatahash = value; }
+        }
+
 
         public RemoteGridServer()
         {
@@ -69,13 +84,16 @@ namespace OpenSim.GridInterfaces.Remote
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(this.GridServerUrl, 3000);
 	    Hashtable GridRespData = (Hashtable)GridResp.Value;
-            
+            this.griddatahash=GridRespData;
+
 	    if(GridRespData.ContainsKey("error")) {
 	    	string errorstring = (string)GridRespData["error"];
 		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Error connecting to grid:");
 		OpenSim.Framework.Console.MainConsole.Instance.WriteLine(errorstring);
 	    	return false;
 	    }
+	    this.neighbours = (ArrayList)GridRespData["neighbours"];
+	    Console.WriteLine(simneighbours.Count);
 	    return true;
 	}
 

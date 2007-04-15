@@ -89,7 +89,8 @@ namespace OpenSim.world
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
-            ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
+            
+	    ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = m_regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];

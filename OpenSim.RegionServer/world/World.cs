@@ -371,19 +371,22 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
             newAvatar.SendRegionHandshake(this);
-            PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-            lock (this.LockPhysicsEngine)
-            {
-                newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
-            }
-            lock (Entities)
-            {
-                this.Entities.Add(agentClient.AgentID, newAvatar);
-            }
-            lock (Avatars)
-            {
-                this.Avatars.Add(agentClient.AgentID, newAvatar);
-            }
+	    if(!agentClient.m_child) {
+	            PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
+	            lock (this.LockPhysicsEngine)
+	            {
+	                newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+	            }
+	    }
+	            lock (Entities)
+	            {
+	                this.Entities.Add(agentClient.AgentID, newAvatar);
+	            }
+	            lock (Avatars)
+	            {
+	                this.Avatars.Add(agentClient.AgentID, newAvatar);
+	            }
+
         }
 
         public void RemoveViewerAgent(SimClient agentClient)

@@ -65,7 +65,7 @@ namespace OpenSim.GridInterfaces.Remote
                 //we need to add support for the asset server not knowing about a requested asset
                 ARequest req = this._assetRequests.Dequeue();
                 LLUUID assetID = req.AssetID;
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(" RemoteAssetServer- Got a AssetServer request, processing it");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(" RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "getasset/" + AssetSendKey + "/" + assetID + "/data");
                 WebRequest AssetLoad = WebRequest.Create(this.AssetServerUrl + "getasset/" + AssetSendKey + "/" + assetID + "/data");
                 WebResponse AssetResponse = AssetLoad.GetResponse();
                 byte[] idata = new byte[(int)AssetResponse.ContentLength];

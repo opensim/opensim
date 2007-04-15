@@ -54,6 +54,7 @@ namespace OpenSim
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
+	public bool m_child;
         public uint CircuitCode;
         public world.Avatar ClientAvatar;
         private UseCircuitCodePacket cirpack;
@@ -94,7 +95,7 @@ namespace OpenSim
             }
         }
 
-        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode)
+        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child)
         {
             m_world = world;
             m_clientThreads = clientThreads;
@@ -103,6 +104,7 @@ namespace OpenSim
             m_application = application;
             m_inventoryCache = inventoryCache;
             m_sandboxMode = sandboxMode;
+	    m_child=child;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
@@ -228,8 +230,10 @@ namespace OpenSim
                 switch (Pack.Type)
                 {
                     case PacketType.CompleteAgentMovement:
-                        ClientAvatar.CompleteMovement(m_world);
-                        ClientAvatar.SendInitialPosition();
+			if(!m_child) {         
+				ClientAvatar.CompleteMovement(m_world);
+        	                ClientAvatar.SendInitialPosition();
+			}
                         break;
                     case PacketType.RegionHandshakeReply:
                         m_world.SendLayerData(this);
@@ -476,16 +480,18 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.AgentAnimation:
-                        AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
-                        for (int i = 0; i < AgentAni.AnimationList.Length; i++)
-                        {
-                            if (AgentAni.AnimationList[i].StartAnim)
-                            {
-                                ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
-                                ClientAvatar.anim_seq = 1;
-                                ClientAvatar.SendAnimPack();
-                            }
-                        }
+			if(!m_child) {          
+				AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+        	                for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+	                        {
+	                            if (AgentAni.AnimationList[i].StartAnim)
+	                            {
+	                                ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
+	                                ClientAvatar.anim_seq = 1;
+	                                ClientAvatar.SendAnimPack();
+	                            }
+	                        }
+			}
                         break;
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;

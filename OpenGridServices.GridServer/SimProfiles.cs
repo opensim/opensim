@@ -158,13 +158,15 @@ namespace OpenGridServices.GridServer
                         if (GetProfileByHandle(Helpers.UIntsToLong((uint)((TheSim.RegionLocX + x) * 256), (uint)(TheSim.RegionLocY + y) * 256)) != null)
                         {
                             neighbour = GetProfileByHandle(Helpers.UIntsToLong((uint)((TheSim.RegionLocX + x) * 256), (uint)(TheSim.RegionLocY + y) * 256));
+
                             NeighbourBlock = new Hashtable();
                             NeighbourBlock["sim_ip"] = neighbour.sim_ip;
                             NeighbourBlock["sim_port"] = neighbour.sim_port.ToString();
                             NeighbourBlock["region_locx"] = neighbour.RegionLocX.ToString();
                             NeighbourBlock["region_locy"] = neighbour.RegionLocY.ToString();
                             NeighbourBlock["UUID"] = neighbour.UUID.ToString();
-                            SimNeighboursData.Add(NeighbourBlock);
+
+			    if(neighbour.UUID!=TheSim.UUID) SimNeighboursData.Add(NeighbourBlock);
                         }
                     }
 
