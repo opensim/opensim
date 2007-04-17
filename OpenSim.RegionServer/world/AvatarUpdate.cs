@@ -60,22 +60,29 @@ namespace OpenSim.world
 
             }
             this.positionLastFrame = pos2;
-	    
-	    if(this._physActor.Position.X < 0) {
-		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
-	    }
 
-	    if(this._physActor.Position.Y < 0) {
-		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
-	    }
+            if (!this.ControllingClient.m_sandboxMode)
+            {
+                if (pos2.X < 0)
+                {
+                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                }
 
-	    if(this._physActor.Position.X > 255) {
-		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
-	    }
-	    
-	    if(this._physActor.Position.Y > 255) {
-		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
-	    }
+                if (pos2.Y < 0)
+                {
+                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                }
+
+                if (pos2.X > 255)
+                {
+                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                }
+
+                if (pos2.Y > 255)
+                {
+                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                }
+            }
 
         }
 
@@ -106,8 +113,8 @@ namespace OpenSim.world
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
-            
-	    ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
+
+            ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = m_regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];

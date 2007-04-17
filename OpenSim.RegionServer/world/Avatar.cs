@@ -44,7 +44,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
-	    Pos = ControllingClient.startpos;
+            Pos = ControllingClient.startpos;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -59,7 +59,7 @@ namespace OpenSim.world
             this.Wearables[0].ItemID = LLUUID.Random();
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-           
+
         }
 
         public PhysicsActor PhysActor
@@ -307,7 +307,7 @@ namespace OpenSim.world
             handshake.RegionInfo.TerrainStartHeight11 = 10;
             handshake.RegionInfo.SimAccess = 13;
             handshake.RegionInfo.WaterHeight = 20;
-            handshake.RegionInfo.RegionFlags = 72458694 -32;
+            handshake.RegionInfo.RegionFlags = 72458694 - 32;
             handshake.RegionInfo.SimName = _enc.GetBytes(m_regionName + "\0");
             handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");
             handshake.RegionInfo.TerrainBase0 = new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");

@@ -55,13 +55,13 @@ namespace OpenSim
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
-	public bool m_child;
+        public bool m_child;
         public uint CircuitCode;
         public world.Avatar ClientAvatar;
         private UseCircuitCodePacket cirpack;
         public Thread ClientThread;
         public EndPoint userEP;
-	public LLVector3 startpos;
+        public LLVector3 startpos;
         private BlockingQueue<QueItem> PacketQueue;
         private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
@@ -82,8 +82,9 @@ namespace OpenSim
         private IUserServer m_userServer = null;
         private OpenSimNetworkHandler m_application;
         private InventoryCache m_inventoryCache;
-        private bool m_sandboxMode;
+        public bool m_sandboxMode;
         private int cachedtextureserial = 0;
+        private RegionInfo m_regionData;
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
@@ -97,7 +98,7 @@ namespace OpenSim
             }
         }
 
-        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child)
+        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child, RegionInfo regionDat)
         {
             m_world = world;
             m_clientThreads = clientThreads;
@@ -106,16 +107,20 @@ namespace OpenSim
             m_application = application;
             m_inventoryCache = inventoryCache;
             m_sandboxMode = sandboxMode;
-	    m_child=child;
+            m_child = child;
+            m_regionData = regionDat;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
-	    if(m_gridServer.GetName() == "Remote") {
-		this.startpos=((RemoteGridBase)m_gridServer).agentcircuits[initialcirpack.CircuitCode.Code].startpos;
-	    } else {
-		this.startpos=new LLVector3(128.0f,128.0f,60f);
-	    }
+            if (m_gridServer.GetName() == "Remote")
+            {
+                this.startpos = ((RemoteGridBase)m_gridServer).agentcircuits[initialcirpack.CircuitCode.Code].startpos;
+            }
+            else
+            {
+                this.startpos = new LLVector3(128, 128, m_world.Terrain[(int)128, (int)128] + 1.0f); // new LLVector3(128.0f, 128.0f, 60f);
+            }
             PacketQueue = new BlockingQueue<QueItem>();
 
             this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
@@ -137,114 +142,127 @@ namespace OpenSim
             this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
         }
 
-	public void CrossSimBorder(LLVector3 avatarpos) {		// VERY VERY BASIC
-	    LLVector3 newpos = avatarpos;
-	    uint neighbourx=((OpenSimMain)m_application).regionData.RegionLocX;
-	    uint neighboury=((OpenSimMain)m_application).regionData.RegionLocY;
+        public void CrossSimBorder(LLVector3 avatarpos)
+        {		// VERY VERY BASIC
+            LLVector3 newpos = this.m_regionData.RegionLocX;
+            uint neighboury = this.m_regionData.RegionLocY;
 
-	    if(avatarpos.X<0) {
-		neighbourx-=1;
-		newpos.X=254;
-	    }
-	    if(avatarpos.X>255) {
-		neighbourx+=1;
-		newpos.X=1;
-	    }
-            if(avatarpos.Y<0) { 
-		neighboury-=1;
-		newpos.Y=254;
-	    }
-	    if(avatarpos.Y>255) {
-		neighbourx+=1;
-		newpos.Y=1;
-	    }
-	    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
+            if (avatarpos.X < 0)
+            {
+                neighbourx -= 1;
+                newpos.X = 254;
+            }
+            if (avatarpos.X > 255)
+            {
+                neighbourx += 1;
+                newpos.X = 1;
+            }
+            if (avatarpos.Y < 0)
+            {
+                neighboury -= 1;
+                newpos.Y = 254;
+            }
+            if (avatarpos.Y > 255)
+            {
+                neighbourx += 1;
+                newpos.Y = 1;
+            }
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
 
-	    Hashtable SimParams;
-	    ArrayList SendParams;
-	    XmlRpcRequest GridReq;
-	    XmlRpcResponse GridResp;
-	    foreach(Hashtable borderingSim in ((RemoteGridBase)m_gridServer).neighbours) {
-		if(((string)borderingSim["region_locx"]).Equals(neighbourx.ToString()) && ((string)borderingSim["region_locy"]).Equals(neighboury.ToString())) {
-			SimParams = new Hashtable();
-                        SimParams["firstname"] = this.ClientAvatar.firstname;
-                        SimParams["lastname"] = this.ClientAvatar.lastname;
-                        SimParams["circuit_code"] = this.CircuitCode.ToString();
-			SimParams["pos_x"] = newpos.X.ToString();
-			SimParams["pos_y"] = newpos.Y.ToString();
-			SimParams["pos_z"] = newpos.Z.ToString();
-                        SendParams = new ArrayList();
-                        SendParams.Add(SimParams);
+            Hashtable SimParams;
+            ArrayList SendParams;
+            XmlRpcRequest GridReq;
+            XmlRpcResponse GridResp;
+            foreach (Hashtable borderingSim in ((RemoteGridBase)m_gridServer).neighbours)
+            {
+                if (((string)borderingSim["region_locx"]).Equals(neighbourx.ToString()) && ((string)borderingSim["region_locy"]).Equals(neighboury.ToString()))
+                {
+                    SimParams = new Hashtable();
+                    SimParams["firstname"] = this.ClientAvatar.firstname;
+                    SimParams["lastname"] = this.ClientAvatar.lastname;
+                    SimParams["circuit_code"] = this.CircuitCode.ToString();
+                    SimParams["pos_x"] = newpos.X.ToString();
+                    SimParams["pos_y"] = newpos.Y.ToString();
+                    SimParams["pos_z"] = newpos.Z.ToString();
+                    SendParams = new ArrayList();
+                    SendParams.Add(SimParams);
 
-                        GridReq = new XmlRpcRequest("agent_crossing", SendParams);
-                        GridResp = GridReq.Send("http://" + borderingSim["sim_ip"] + ":" + borderingSim["sim_port"], 3000);
+                    GridReq = new XmlRpcRequest("agent_crossing", SendParams);
+                    GridResp = GridReq.Send("http://" + borderingSim["sim_ip"] + ":" + borderingSim["sim_port"], 3000);
 
-			CrossedRegionPacket NewSimPack = new CrossedRegionPacket();
-			NewSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
-			NewSimPack.AgentData.AgentID=this.AgentID;
-			NewSimPack.AgentData.SessionID=this.SessionID;
-			NewSimPack.Info = new CrossedRegionPacket.InfoBlock();
-			NewSimPack.Info.Position=newpos;
-			NewSimPack.Info.LookAt=new LLVector3(0.99f, 0.042f, 0);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
-			NewSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
-			NewSimPack.RegionData.RegionHandle=Helpers.UIntsToLong((uint)(Convert.ToInt32(borderingSim["region_locx"]) * 256), (uint)(Convert.ToInt32(borderingSim["region_locy"]) * 256));
+                    CrossedRegionPacket NewSimPack = new CrossedRegionPacket();
+                    NewSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
+                    NewSimPack.AgentData.AgentID = this.AgentID;
+                    NewSimPack.AgentData.SessionID = this.SessionID;
+                    NewSimPack.Info = new CrossedRegionPacket.InfoBlock();
+                    NewSimPack.Info.Position = newpos;
+                    NewSimPack.Info.LookAt = new LLVector3(0.99f, 0.042f, 0);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
+                    NewSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
+                    NewSimPack.RegionData.RegionHandle = Helpers.UIntsToLong((uint)(Convert.ToInt32(borderingSim["region_locx"]) * 256), (uint)(Convert.ToInt32(borderingSim["region_locy"]) * 256));
 
-                        System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse((string)borderingSim["sim_ip"]);
-                        byte[] byteIP = neighbourIP.GetAddressBytes();
-                        NewSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
-                        NewSimPack.RegionData.SimIP += (uint)byteIP[2] << 16;
-                        NewSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
-                        NewSimPack.RegionData.SimIP += (uint)byteIP[0];
-                        NewSimPack.RegionData.SimPort = (ushort)Convert.ToInt32(borderingSim["sim_port"]);
-			NewSimPack.RegionData.SeedCapability = new byte[0];
-			lock(PacketQueue) {
-				ProcessOutPacket(NewSimPack);
-				DowngradeClient();
-			}
-		}
-	    }
-	}
+                    System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse((string)borderingSim["sim_ip"]);
+                    byte[] byteIP = neighbourIP.GetAddressBytes();
+                    NewSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
+                    NewSimPack.RegionData.SimIP += (uint)byteIP[2] << 16;
+                    NewSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
+                    NewSimPack.RegionData.SimIP += (uint)byteIP[0];
+                    NewSimPack.RegionData.SimPort = (ushort)Convert.ToInt32(borderingSim["sim_port"]);
+                    NewSimPack.RegionData.SeedCapability = new byte[0];
+                    lock (PacketQueue)
+                    {
+                        ProcessOutPacket(NewSimPack);
+                        DowngradeClient();
+                    }
+                }
+            }
+        }
 
-	public void UpgradeClient() {
-	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - upgrading child to full agent");	
-		this.m_child=false;
-		this.m_world.RemoveViewerAgent(this);
-		this.startpos=((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].startpos;
-		((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].child=false;
-		this.InitNewClient();
-	}
+        public void UpgradeClient()
+        {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - upgrading child to full agent");
+            this.m_child = false;
+            this.m_world.RemoveViewerAgent(this);
+            if (!this.m_sandboxMode)
+            {
+                this.startpos = ((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].startpos;
+                ((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].child = false;
+            }
+            this.InitNewClient();
+        }
 
-	public void DowngradeClient() {
-	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - changing full agent to child");
-		this.m_child=true;
-		this.m_world.RemoveViewerAgent(this);
-		this.m_world.AddViewerAgent(this);
-	}
+        public void DowngradeClient()
+        {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - changing full agent to child");
+            this.m_child = true;
+            this.m_world.RemoveViewerAgent(this);
+            this.m_world.AddViewerAgent(this);
+        }
 
-	public void KillClient() {
-		KillObjectPacket kill = new KillObjectPacket();
-                kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-         	kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            	kill.ObjectData[0].ID = this.ClientAvatar.localid;
-	        foreach (SimClient client in m_clientThreads.Values)
-           		{
-		                client.OutPacket(kill);
-            		}
-	        if (this.m_userServer != null)
-            		{
-                		this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
-            		}
-         	else
-		        {
-                		this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-            		}
+        public void KillClient()
+        {
+            KillObjectPacket kill = new KillObjectPacket();
+            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+            kill.ObjectData[0].ID = this.ClientAvatar.localid;
+            foreach (SimClient client in m_clientThreads.Values)
+            {
+                client.OutPacket(kill);
+            }
+            if (this.m_userServer != null)
+            {
+                this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
+            }
+            else
+            {
+                this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+            }
 
-	        m_world.RemoveViewerAgent(this);
+            m_world.RemoveViewerAgent(this);
 
-            	m_clientThreads.Remove(this.CircuitCode);
-            	m_application.RemoveClientCircuit(this.CircuitCode);
-	        this.ClientThread.Abort();
-	}
+            m_clientThreads.Remove(this.CircuitCode);
+            m_application.RemoveClientCircuit(this.CircuitCode);
+            this.ClientThread.Abort();
+        }
 
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
         {
@@ -346,9 +364,9 @@ namespace OpenSim
                 switch (Pack.Type)
                 {
                     case PacketType.CompleteAgentMovement:
-			if(this.m_child) this.UpgradeClient();
-			ClientAvatar.CompleteMovement(m_world);
-       	                ClientAvatar.SendInitialPosition();
+                        if (this.m_child) this.UpgradeClient();
+                        ClientAvatar.CompleteMovement(m_world);
+                        ClientAvatar.SendInitialPosition();
                         break;
                     case PacketType.RegionHandshakeReply:
                         m_world.SendLayerData(this);
@@ -595,18 +613,19 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.AgentAnimation:
-			if(!m_child) {          
-				AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
-        	                for (int i = 0; i < AgentAni.AnimationList.Length; i++)
-	                        {
-	                            if (AgentAni.AnimationList[i].StartAnim)
-	                            {
-	                                ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
-	                                ClientAvatar.anim_seq = 1;
-	                                ClientAvatar.SendAnimPack();
-	                            }
-	                        }
-			}
+                        if (!m_child)
+                        {
+                            AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+                            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+                            {
+                                if (AgentAni.AnimationList[i].StartAnim)
+                                {
+                                    ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
+                                    ClientAvatar.anim_seq = 1;
+                                    ClientAvatar.SendAnimPack();
+                                }
+                            }
+                        }
                         break;
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
