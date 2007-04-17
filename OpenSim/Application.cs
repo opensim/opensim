@@ -19,6 +19,7 @@ namespace OpenSim
             string physicsEngine = "basicphysics";
             bool allowFlying = false;
             bool userAccounts = false;
+            bool gridLocalAsset = false;
             
             for (int i = 0; i < args.Length; i++)
             {
@@ -45,12 +46,17 @@ namespace OpenSim
                     physicsEngine = "OpenDynamicsEngine";
                     allowFlying = true;
                 }
+                if (args[i] == "-localasset")
+                {
+                    gridLocalAsset = true;
+                }
             }
 
             OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine );
            // OpenSimRoot.Instance.Application = sim;
             sim.m_sandbox = sandBoxMode;
             sim.user_accounts = userAccounts;
+            sim.gridLocalAsset = gridLocalAsset;
             OpenSim.world.Avatar.PhysicsEngineFlying = allowFlying;
 
             sim.StartUp();

@@ -201,7 +201,6 @@ namespace OpenSim
                     NewSimPack.Info.LookAt = new LLVector3(0.99f, 0.042f, 0);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
                     NewSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
                     NewSimPack.RegionData.RegionHandle = Helpers.UIntsToLong((uint)(Convert.ToInt32(borderingSim["region_locx"]) * 256), (uint)(Convert.ToInt32(borderingSim["region_locy"]) * 256));
-
                     System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse((string)borderingSim["sim_ip"]);
                     byte[] byteIP = neighbourIP.GetAddressBytes();
                     NewSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;

@@ -83,6 +83,7 @@ namespace OpenSim
         public bool m_sandbox = false;
         public bool m_loginserver;
         public bool user_accounts = false;
+        public bool gridLocalAsset = false;
 
         protected ConsoleBase m_console;
 
@@ -126,7 +127,14 @@ namespace OpenSim
             }
             else
             {
-                GridServers.AssetDll = "OpenSim.GridInterfaces.Remote.dll";
+                if (this.gridLocalAsset)
+                {
+                    GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
+                }
+                else
+                {
+                    GridServers.AssetDll = "OpenSim.GridInterfaces.Remote.dll";
+                }
                 GridServers.GridDll = "OpenSim.GridInterfaces.Remote.dll";
 
                 m_console.WriteLine("Starting in Grid mode");
