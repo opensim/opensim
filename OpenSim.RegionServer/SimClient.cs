@@ -144,19 +144,19 @@ namespace OpenSim
 
 	    if(avatarpos.X<0) {
 		neighbourx-=1;
-		newpos.X=0;
+		newpos.X=254;
 	    }
 	    if(avatarpos.X>255) {
 		neighbourx+=1;
-		newpos.X=255;
+		newpos.X=1;
 	    }
             if(avatarpos.Y<0) { 
 		neighboury-=1;
-		newpos.Y=0;
+		newpos.Y=254;
 	    }
 	    if(avatarpos.Y>255) {
 		neighbourx+=1;
-		newpos.Y=255;
+		newpos.Y=1;
 	    }
 	    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
 
@@ -166,6 +166,19 @@ namespace OpenSim
 	    XmlRpcResponse GridResp;
 	    foreach(Hashtable borderingSim in ((RemoteGridBase)m_gridServer).neighbours) {
 		if(((string)borderingSim["region_locx"]).Equals(neighbourx.ToString()) && ((string)borderingSim["region_locy"]).Equals(neighboury.ToString())) {
+			SimParams = new Hashtable();
+                        SimParams["firstname"] = this.ClientAvatar.firstname;
+                        SimParams["lastname"] = this.ClientAvatar.lastname;
+                        SimParams["circuit_code"] = this.CircuitCode.ToString();
+			SimParams["pos_x"] = newpos.X.ToString();
+			SimParams["pos_y"] = newpos.Y.ToString();
+			SimParams["pos_z"] = newpos.Z.ToString();
+                        SendParams = new ArrayList();
+                        SendParams.Add(SimParams);
+
+                        GridReq = new XmlRpcRequest("agent_crossing", SendParams);
+                        GridResp = GridReq.Send("http://" + borderingSim["sim_ip"] + ":" + borderingSim["sim_port"], 3000);
+
 			CrossedRegionPacket NewSimPack = new CrossedRegionPacket();
 			NewSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
 			NewSimPack.AgentData.AgentID=this.AgentID;
@@ -196,6 +209,8 @@ namespace OpenSim
 	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - upgrading child to full agent");	
 		this.m_child=false;
 		this.m_world.RemoveViewerAgent(this);
+		this.startpos=((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].startpos;
+		((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].child=false;
 		this.InitNewClient();
 	}
 

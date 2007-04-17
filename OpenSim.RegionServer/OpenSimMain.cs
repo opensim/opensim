@@ -222,6 +222,26 @@ namespace OpenSim
 
                         return new XmlRpcResponse();
                     });
+
+                httpServer.AddXmlRPCHandler("agent_crossing",
+                    delegate(XmlRpcRequest request)
+                    {
+                        Hashtable requestData = (Hashtable)request.Params[0];
+                        AgentCircuitData agent_data = new AgentCircuitData();
+                        agent_data.firstname = (string)requestData["firstname"];
+                        agent_data.lastname = (string)requestData["lastname"];
+                        agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+			agent_data.startpos = new LLVector3(Single.Parse((string)requestData["pos_x"]),Single.Parse((string)requestData["pos_y"]),Single.Parse((string)requestData["pos_z"]));
+	                
+			if(((RemoteGridBase)gridServer).agentcircuits.ContainsKey((uint)agent_data.circuitcode)) {
+				((RemoteGridBase)gridServer).agentcircuits[(uint)agent_data.circuitcode].firstname = agent_data.firstname;
+				((RemoteGridBase)gridServer).agentcircuits[(uint)agent_data.circuitcode].lastname  = agent_data.lastname;
+				((RemoteGridBase)gridServer).agentcircuits[(uint)agent_data.circuitcode].startpos  = agent_data.startpos;
+			}
+
+                        return new XmlRpcResponse();
+                    });
+
                 httpServer.AddRestHandler("GET", "/simstatus/",
                     delegate(string request, string path, string param)
                     {
