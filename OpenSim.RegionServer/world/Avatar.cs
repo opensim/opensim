@@ -44,7 +44,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
-            Pos = new LLVector3(100.0f, 100.0f, m_world.Terrain[(int)Pos.X, (int)Pos.Y] + 1.0f);
+	    Pos = ControllingClient.startpos;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -131,7 +131,7 @@ namespace OpenSim.world
             mov.Data.RegionHandle = this.m_regionHandle;
             // TODO - dynamicalise this stuff
             mov.Data.Timestamp = 1172750370;
-            mov.Data.Position = new LLVector3(100f, 100f, 23f);
+            mov.Data.Position = this.ControllingClient.startpos;
             mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 
             ControllingClient.OutPacket(mov);

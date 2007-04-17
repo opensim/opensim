@@ -67,7 +67,7 @@ namespace OpenSim
         //private Dictionary<uint, SimClient> ClientThreads = new Dictionary<uint, SimClient>();
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         private DateTime startuptime;
-        private RegionInfo regionData;
+        public RegionInfo regionData;
 
         public Socket Server;
         private IPEndPoint ServerIncoming;
@@ -207,11 +207,18 @@ namespace OpenSim
                         agent_data.lastname = (string)requestData["lastname"];
                         agent_data.AgentID = new LLUUID((string)requestData["agent_id"]);
                         agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-                        if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
-                        {
-                            agent_data.child = true;
-                        }
-                        ((RemoteGridBase)gridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
+			if(requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1")) {
+				agent_data.child=true;
+			} else {
+				agent_data.startpos = new LLVector3(Convert.ToUInt32(requestData["startpos_x"]),Convert.ToUInt32(requestData["startpos_y"]),Convert.ToUInt32(requestData["startpos_z"]));
+				agent_data.child=false;
+			}
+	                
+			if(((RemoteGridBase)gridServer).agentcircuits.ContainsKey((uint)agent_data.circuitcode)) {
+				((RemoteGridBase)gridServer).agentcircuits[(uint)agent_data.circuitcode]=agent_data;
+			} else {
+				((RemoteGridBase)gridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
+			}
 
                         return new XmlRpcResponse();
                     });

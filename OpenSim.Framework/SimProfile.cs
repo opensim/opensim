@@ -25,7 +25,7 @@ namespace OpenSim.Framework.Sims
 
                 Hashtable RespData = (Hashtable)GridResp.Value;
                 this.UUID = new LLUUID((string)RespData["UUID"]);
-                this.regionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
+                this.regionhandle = Helpers.UIntsToLong(((uint)Convert.ToUInt32(RespData["region_locx"]) * 256), ((uint)Convert.ToUInt32(RespData["region_locy"]) * 256));
                 this.regionname = (string)RespData["regionname"];
                 this.sim_ip = (string)RespData["sim_ip"];
                 this.sim_port = (uint)Convert.ToUInt16(RespData["sim_port"]);
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Sims
 
                 Hashtable RespData = (Hashtable)GridResp.Value;
                 this.UUID = new LLUUID((string)RespData["UUID"]);
-                this.regionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
+                this.regionhandle = Helpers.UIntsToLong(((uint)Convert.ToUInt32(RespData["region_locx"]) * 256), ((uint)Convert.ToUInt32(RespData["region_locy"]) * 256));
                 this.regionname = (string)RespData["regionname"];
                 this.sim_ip = (string)RespData["sim_ip"];
                 this.sim_port = (uint)Convert.ToUInt16(RespData["sim_port"]);

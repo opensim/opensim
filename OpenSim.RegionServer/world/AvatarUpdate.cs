@@ -60,6 +60,23 @@ namespace OpenSim.world
 
             }
             this.positionLastFrame = pos2;
+	    
+	    if(this._physActor.Position.X < 0) {
+		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
+	    }
+
+	    if(this._physActor.Position.Y < 0) {
+		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
+	    }
+
+	    if(this._physActor.Position.X > 255) {
+		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
+	    }
+	    
+	    if(this._physActor.Position.Y > 255) {
+		ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X,this._physActor.Position.Y,this._physActor.Position.Z));
+	    }
+
         }
 
         public ObjectUpdatePacket CreateUpdatePacket()

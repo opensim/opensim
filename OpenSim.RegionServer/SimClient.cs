@@ -29,6 +29,7 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
+using Nwc.XmlRpc;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
@@ -58,8 +59,9 @@ namespace OpenSim
         public uint CircuitCode;
         public world.Avatar ClientAvatar;
         private UseCircuitCodePacket cirpack;
-        private Thread ClientThread;
+        public Thread ClientThread;
         public EndPoint userEP;
+	public LLVector3 startpos;
         private BlockingQueue<QueItem> PacketQueue;
         private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
@@ -109,6 +111,11 @@ namespace OpenSim
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
+	    if(m_gridServer.GetName() == "Remote") {
+		this.startpos=((RemoteGridBase)m_gridServer).agentcircuits[initialcirpack.CircuitCode.Code].startpos;
+	    } else {
+		this.startpos=new LLVector3(128.0f,128.0f,60f);
+	    }
             PacketQueue = new BlockingQueue<QueItem>();
 
             this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
@@ -129,6 +136,100 @@ namespace OpenSim
             this.AddLocalPacketHandler(PacketType.AgentCachedTexture, this.AgentTextureCached);
             this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
         }
+
+	public void CrossSimBorder(LLVector3 avatarpos) {		// VERY VERY BASIC
+	    LLVector3 newpos = avatarpos;
+	    uint neighbourx=((OpenSimMain)m_application).regionData.RegionLocX;
+	    uint neighboury=((OpenSimMain)m_application).regionData.RegionLocY;
+
+	    if(avatarpos.X<0) {
+		neighbourx-=1;
+		newpos.X=0;
+	    }
+	    if(avatarpos.X>255) {
+		neighbourx+=1;
+		newpos.X=255;
+	    }
+            if(avatarpos.Y<0) { 
+		neighboury-=1;
+		newpos.Y=0;
+	    }
+	    if(avatarpos.Y>255) {
+		neighbourx+=1;
+		newpos.Y=255;
+	    }
+	    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
+
+	    Hashtable SimParams;
+	    ArrayList SendParams;
+	    XmlRpcRequest GridReq;
+	    XmlRpcResponse GridResp;
+	    foreach(Hashtable borderingSim in ((RemoteGridBase)m_gridServer).neighbours) {
+		if(((string)borderingSim["region_locx"]).Equals(neighbourx.ToString()) && ((string)borderingSim["region_locy"]).Equals(neighboury.ToString())) {
+			CrossedRegionPacket NewSimPack = new CrossedRegionPacket();
+			NewSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
+			NewSimPack.AgentData.AgentID=this.AgentID;
+			NewSimPack.AgentData.SessionID=this.SessionID;
+			NewSimPack.Info = new CrossedRegionPacket.InfoBlock();
+			NewSimPack.Info.Position=newpos;
+			NewSimPack.Info.LookAt=new LLVector3(0.99f, 0.042f, 0);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
+			NewSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
+			NewSimPack.RegionData.RegionHandle=Helpers.UIntsToLong((uint)(Convert.ToInt32(borderingSim["region_locx"]) * 256), (uint)(Convert.ToInt32(borderingSim["region_locy"]) * 256));
+
+                        System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse((string)borderingSim["sim_ip"]);
+                        byte[] byteIP = neighbourIP.GetAddressBytes();
+                        NewSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
+                        NewSimPack.RegionData.SimIP += (uint)byteIP[2] << 16;
+                        NewSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
+                        NewSimPack.RegionData.SimIP += (uint)byteIP[0];
+                        NewSimPack.RegionData.SimPort = (ushort)Convert.ToInt32(borderingSim["sim_port"]);
+			NewSimPack.RegionData.SeedCapability = new byte[0];
+			lock(PacketQueue) {
+				ProcessOutPacket(NewSimPack);
+				DowngradeClient();
+			}
+		}
+	    }
+	}
+
+	public void UpgradeClient() {
+	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - upgrading child to full agent");	
+		this.m_child=false;
+		this.m_world.RemoveViewerAgent(this);
+		this.InitNewClient();
+	}
+
+	public void DowngradeClient() {
+	        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - changing full agent to child");
+		this.m_child=true;
+		this.m_world.RemoveViewerAgent(this);
+		this.m_world.AddViewerAgent(this);
+	}
+
+	public void KillClient() {
+		KillObjectPacket kill = new KillObjectPacket();
+                kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+         	kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+            	kill.ObjectData[0].ID = this.ClientAvatar.localid;
+	        foreach (SimClient client in m_clientThreads.Values)
+           		{
+		                client.OutPacket(kill);
+            		}
+	        if (this.m_userServer != null)
+            		{
+                		this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
+            		}
+         	else
+		        {
+                		this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+            		}
+
+	        m_world.RemoveViewerAgent(this);
+
+            	m_clientThreads.Remove(this.CircuitCode);
+            	m_application.RemoveClientCircuit(this.CircuitCode);
+	        this.ClientThread.Abort();
+	}
 
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
         {
@@ -230,10 +331,9 @@ namespace OpenSim
                 switch (Pack.Type)
                 {
                     case PacketType.CompleteAgentMovement:
-			if(!m_child) {         
-				ClientAvatar.CompleteMovement(m_world);
-        	                ClientAvatar.SendInitialPosition();
-			}
+			if(this.m_child) this.UpgradeClient();
+			ClientAvatar.CompleteMovement(m_world);
+       	                ClientAvatar.SendInitialPosition();
                         break;
                     case PacketType.RegionHandshakeReply:
                         m_world.SendLayerData(this);

@@ -11,6 +11,7 @@ namespace OpenSim.Framework.Interfaces
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID;
+	public LLVector3 startpos;
         public string firstname;
         public string lastname;
         public uint circuitcode;

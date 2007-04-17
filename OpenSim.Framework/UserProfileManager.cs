@@ -259,6 +259,9 @@ namespace OpenSim.Framework.User
             SimParams["lastname"] = theUser.lastname;
             SimParams["agent_id"] = theUser.UUID.ToString();
             SimParams["circuit_code"] = (Int32)circode;
+	    SimParams["startpos_x"] = theUser.homepos.X.ToString();
+	    SimParams["startpos_y"] = theUser.homepos.Y.ToString();
+	    SimParams["startpos_z"] = theUser.homepos.Z.ToString();
             ArrayList SendParams = new ArrayList();
             SendParams.Add(SimParams);
 

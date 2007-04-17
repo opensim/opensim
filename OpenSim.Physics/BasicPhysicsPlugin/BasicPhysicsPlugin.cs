@@ -109,26 +109,34 @@ namespace OpenSim.Physics.BasicPhysicsPlugin
 				{*/
 					actor.Position.Z = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1;
 				//}
-				if(actor.Position.X<0)
+
+
+
+				// This code needs sorting out - border crossings etc
+/*				if(actor.Position.X<0)
 				{
+					ControllingClient.CrossSimBorder(new LLVector3(this.Position.X,this.Position.Y,this.Position.Z));
 					actor.Position.X = 0;
 					actor.Velocity.X = 0;
 				}
 				if(actor.Position.Y < 0)
 				{
+					ControllingClient.CrossSimBorder(new LLVector3(this.Position.X,this.Position.Y,this.Position.Z));
 					actor.Position.Y = 0;
 					actor.Velocity.Y = 0;
 				}
 				if(actor.Position.X > 255)
 				{
+					ControllingClient.CrossSimBorder(new LLVector3(this.Position.X,this.Position.Y,this.Position.Z));
 					actor.Position.X = 255;
 					actor.Velocity.X = 0;
 				}
 				if(actor.Position.Y > 255) 
 				{
+					ControllingClient.CrossSimBorder(new LLVector3(this.Position.X,this.Position.Y,this.Position.Z));
 					actor.Position.Y = 255;
 					actor.Velocity.X = 0;
-				}
+				}*/
 			}
 		}
 		
