@@ -24,7 +24,7 @@ namespace OpenSim.world
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
-//        public float[] LandMap;
+        //        public float[] LandMap;
         public ScriptEngine Scripts;
         public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         public uint _localNumber = 0;
@@ -88,21 +88,21 @@ namespace OpenSim.world
 
             ScriptFactory scriptFactory;
             //Console.WriteLine("script string is " + substring);
-            if(substring.StartsWith("<ScriptEngine:"))
+            if (substring.StartsWith("<ScriptEngine:"))
             {
                 string substring1 = "";
                 string script = "";
-               // Console.WriteLine("searching for script engine");
+                // Console.WriteLine("searching for script engine");
                 substring1 = substring.Remove(0, 14);
                 int dev = substring1.IndexOf(',');
                 string sEngine = substring1.Substring(0, dev);
-                substring1 = substring1.Remove(0, dev+1);
+                substring1 = substring1.Remove(0, dev + 1);
                 int end = substring1.IndexOf('>');
                 string sName = substring1.Substring(0, end);
                 //Console.WriteLine(" script info : " + sEngine + " , " + sName);
                 int startscript = substring.IndexOf('>');
                 script = substring.Remove(0, startscript + 1);
-               // Console.WriteLine("script data is " + script);
+                // Console.WriteLine("script data is " + script);
                 if (this.scriptEngines.ContainsKey(sEngine))
                 {
                     this.scriptEngines[sEngine].LoadScript(script, sName, entity.localid);
@@ -281,7 +281,7 @@ namespace OpenSim.world
             {
                 Console.WriteLine("creating new terrain");
                 this.Terrain.hills();
-               
+
                 //this.localStorage.SaveMap(this.Terrain.map);
             }
             else
@@ -371,21 +371,22 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
             newAvatar.SendRegionHandshake(this);
-	    if(!agentClient.m_child) {
-	            PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-	            lock (this.LockPhysicsEngine)
-	            {
-	                newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
-	            }
-	    }
-	            lock (Entities)
-	            {
-	                this.Entities.Add(agentClient.AgentID, newAvatar);
-	            }
-	            lock (Avatars)
-	            {
-	                this.Avatars.Add(agentClient.AgentID, newAvatar);
-	            }
+            if (!agentClient.m_child)
+            {
+                PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
+                lock (this.LockPhysicsEngine)
+                {
+                    newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+                }
+            }
+            lock (Entities)
+            {
+                this.Entities.Add(agentClient.AgentID, newAvatar);
+            }
+            lock (Avatars)
+            {
+                this.Avatars.Add(agentClient.AgentID, newAvatar);
+            }
 
         }
 

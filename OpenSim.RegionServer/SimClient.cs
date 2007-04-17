@@ -144,7 +144,9 @@ namespace OpenSim
 
         public void CrossSimBorder(LLVector3 avatarpos)
         {		// VERY VERY BASIC
-            LLVector3 newpos = this.m_regionData.RegionLocX;
+           
+            LLVector3 newpos = avatarpos;
+            uint neighbourx = this.m_regionData.RegionLocX;
             uint neighboury = this.m_regionData.RegionLocY;
 
             if (avatarpos.X < 0)
