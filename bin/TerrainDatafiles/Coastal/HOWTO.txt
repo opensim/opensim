@@ -1,9 +1,9 @@
 Use the "terrain load" command to import these datafiles.
 They are stored as Float-32 arrays, use the F32 import type.
 
-These files are formatted on a scale of 0 to 1, they are designed for a range of 0..108
-use the 'multiply' command to multiply them by 108 to achieve correct height values.
+These files are formatted on a scale of 0 to 1, they are designed for a range of 0..77.14
+use the 'multiply' command to multiply them by 77.14 to achieve correct height values.
 
 Example ------------------
 Region# : terrain load f32 c:\opensim\datafiles\output_x0_y0.r32
-Region# : terrain multiply 108
+Region# : terrain multiply 77.14
