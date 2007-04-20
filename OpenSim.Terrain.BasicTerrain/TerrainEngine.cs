@@ -103,6 +103,63 @@ namespace OpenSim.Terrain
         }
 
         /// <summary>
+        /// Loads a file consisting of 256x256 floats and imports it as an array into the map.
+        /// </summary>
+        /// <remarks>TODO: Move this to libTerrain itself</remarks>
+        /// <param name="filename">The filename of the float array to import</param>
+        public void loadFromFileF32(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            System.IO.BinaryReader bs = new System.IO.BinaryReader(s);
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    heightmap.map[x, y] = (double)bs.ReadSingle();
+                }
+            }
+        }
+
+        public void writeToFileF64(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
+            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    bs.Write(heightmap.get(x,y));
+                }
+            }
+        }
+
+        public void writeToFileF32(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
+            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    bs.Write((float)heightmap.get(x, y));
+                }
+            }
+        }
+
+        public void setSeed(int val)
+        {
+            heightmap.seed = val;
+        }
+
+        /// <summary>
         /// Raises land in a sphere around the specified coordinates
         /// </summary>
         /// <param name="rx">Center of the sphere on the X axis</param>
