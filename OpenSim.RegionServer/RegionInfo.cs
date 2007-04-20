@@ -44,7 +44,7 @@ namespace OpenSim
             //we really want to keep any server connection code out of here and out of the code code
             // and put it in the server connection classes (those inheriting from IGridServer etc)
             string reqtext;
-	    reqtext = "<Root>";
+            reqtext = "<Root>";
             reqtext += "<authkey>" + this.GridSendKey + "</authkey>";
             reqtext += "<sim>";
             reqtext += "<uuid>" + this.SimUUID.ToString() + "</uuid>";
@@ -55,24 +55,33 @@ namespace OpenSim
             reqtext += "<region_locy>" + this.RegionLocY.ToString() + "</region_locy>";
             reqtext += "<estate_id>1</estate_id>";
             reqtext += "</sim>";
-	    reqtext += "</Root>";
+            reqtext += "</Root>";
 
-	    byte[] reqdata = (new System.Text.ASCIIEncoding()).GetBytes(reqtext);
+            byte[] reqdata = (new System.Text.ASCIIEncoding()).GetBytes(reqtext);
+            string newpath = "";
+            if (this.GridURL.EndsWith("/"))
+            {
+                newpath = this.GridURL + "sims/";
+            }
+            else
+            {
+                newpath = this.GridURL + "/sims/";
+            }
 
-            WebRequest GridSaveReq = WebRequest.Create(this.GridURL + "sims/" + this.SimUUID.ToString());
+            WebRequest GridSaveReq = WebRequest.Create(newpath + this.SimUUID.ToString());
             GridSaveReq.Method = "POST";
             GridSaveReq.ContentType = "application/x-www-form-urlencoded";
             GridSaveReq.ContentLength = reqdata.Length;
 
             Stream stOut = GridSaveReq.GetRequestStream();
-            stOut.Write(reqdata,0,reqdata.Length);
+            stOut.Write(reqdata, 0, reqdata.Length);
             stOut.Close();
 
             WebResponse gridresp = GridSaveReq.GetResponse();
-	    StreamReader stIn = new StreamReader(gridresp.GetResponseStream(), Encoding.ASCII);
+            StreamReader stIn = new StreamReader(gridresp.GetResponseStream(), Encoding.ASCII);
             string GridResponse = stIn.ReadToEnd();
             stIn.Close();
-	    gridresp.Close();
+            gridresp.Close();
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
         }
