@@ -82,6 +82,11 @@ namespace OpenSim.Terrain
             return heights;
         }
 
+        public void setRange(float min, float max)
+        {
+            heightmap.normalise((double)min, (double)max);
+        }
+
         /// <summary>
         /// Loads a file consisting of 256x256 doubles and imports it as an array into the map.
         /// </summary>

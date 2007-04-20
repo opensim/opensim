@@ -540,6 +540,7 @@ namespace OpenSim
                     m_console.WriteLine("terrain seed <seed> - sets the random seed value to <seed>");
                     m_console.WriteLine("terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64' or 'IMG'");
                     m_console.WriteLine("terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'");
+                    m_console.WriteLine("terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high");
                     break;
 
                 case "seed":
@@ -548,6 +549,10 @@ namespace OpenSim
 
                 case "regenerate":
                     LocalWorld.Terrain.hills();
+                    break;
+
+                case "rescale":
+                    LocalWorld.Terrain.setRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
                     break;
 
                 case "load":
