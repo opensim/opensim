@@ -541,6 +541,7 @@ namespace OpenSim
                     m_console.WriteLine("terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64' or 'IMG'");
                     m_console.WriteLine("terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'");
                     m_console.WriteLine("terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high");
+                    m_console.WriteLine("terrain multiply <val> - multiplies a terrain by <val>");
                     break;
 
                 case "seed":
@@ -553,6 +554,10 @@ namespace OpenSim
 
                 case "rescale":
                     LocalWorld.Terrain.setRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
+                    break;
+
+                case "multiply":
+                    LocalWorld.Terrain *= Convert.ToDouble(args[1]);
                     break;
 
                 case "load":

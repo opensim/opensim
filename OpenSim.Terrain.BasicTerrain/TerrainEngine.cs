@@ -219,6 +219,11 @@ namespace OpenSim.Terrain
             }
         }
 
+        public static TerrainEngine operator *(TerrainEngine meep, Double val) {
+            meep.heightmap *= val;
+            return meep;
+        }
+
         public float this[int x, int y]
         {
             get
