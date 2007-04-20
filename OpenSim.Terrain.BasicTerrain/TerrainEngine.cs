@@ -100,6 +100,9 @@ namespace OpenSim.Terrain
                     heightmap.map[x, y] = bs.ReadDouble();
                 }
             }
+
+            bs.Close();
+            s.Close();
         }
 
         /// <summary>
@@ -120,6 +123,9 @@ namespace OpenSim.Terrain
                     heightmap.map[x, y] = (double)bs.ReadSingle();
                 }
             }
+
+            bs.Close();
+            s.Close();
         }
 
         public void writeToFileF64(string filename)
@@ -136,6 +142,9 @@ namespace OpenSim.Terrain
                     bs.Write(heightmap.get(x,y));
                 }
             }
+
+            bs.Close();
+            s.Close();
         }
 
         public void writeToFileF32(string filename)
@@ -152,6 +161,9 @@ namespace OpenSim.Terrain
                     bs.Write((float)heightmap.get(x, y));
                 }
             }
+
+            bs.Close();
+            s.Close();
         }
 
         public void setSeed(int val)
