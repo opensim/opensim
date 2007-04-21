@@ -177,7 +177,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridServerURL");
                     if (attri == "")
                     {
-                        this.GridURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL");
+                        this.GridURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL","http://127.0.0.1:8001/");
                         configData.SetAttribute("GridServerURL", this.GridURL);
                     }
                     else
@@ -190,7 +190,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridSendKey");
                     if (attri == "")
                     {
-                        this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server");
+                        this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server","null");
                         configData.SetAttribute("GridSendKey", this.GridSendKey);
                     }
                     else
@@ -203,7 +203,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridRecvKey");
                     if (attri == "")
                     {
-                        this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server");
+                        this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server","null");
                         configData.SetAttribute("GridRecvKey", this.GridRecvKey);
                     }
                     else

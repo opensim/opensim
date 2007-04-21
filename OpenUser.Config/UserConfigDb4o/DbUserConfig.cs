@@ -50,9 +50,9 @@ namespace OpenUser.Config.UserConfigDb4o
 			
 			this.DefaultStartupMsg = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default startup message", "Welcome to OGS");
 
-			this.GridServerURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL");
-            		this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server");
-            		this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server");
+			this.GridServerURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL","http://127.0.0.1:8001/");
+            		this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server","null");
+            		this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server","null");
 		}
 
 		public override void InitConfig() {

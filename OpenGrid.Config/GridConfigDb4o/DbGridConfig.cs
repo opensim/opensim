@@ -50,16 +50,16 @@ namespace OpenGrid.Config.GridConfigDb4o
 			
 			this.GridOwner = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid owner", "OGS development team");
 
-			this.DefaultAssetServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default asset server");
-            		this.AssetSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to asset server");
-            		this.AssetRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from asset server");
+			this.DefaultAssetServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default asset server","http://127.0.0.1:8003/");
+            		this.AssetSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to asset server","null");
+            		this.AssetRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from asset server","null");
 
-		        this.DefaultUserServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default user server");
-            		this.UserSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to user server");
-            		this.UserRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from user server");
+		        this.DefaultUserServer = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Default user server","http://127.0.0.1:8002/");
+            		this.UserSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to user server","null");
+            		this.UserRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from user server","null");
 
-            		this.SimSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to sims");
-            		this.SimRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from sims");
+            		this.SimSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to sims","null");
+            		this.SimRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from sims","null");
 		}
 
 		public override void InitConfig() {
