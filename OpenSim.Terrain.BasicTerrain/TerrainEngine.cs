@@ -11,6 +11,11 @@ namespace OpenSim.Terrain
         /// A [normally] 256x256 heightmap
         /// </summary>
         public Channel heightmap;
+
+        /// <summary>
+        /// Whether or not the terrain has been modified since it was last saved and sent to the Physics engine.
+        /// Counts the number of modifications since the last save. (0 = Untainted)
+        /// </summary>
         public int tainted;
 
         int w, h;
@@ -44,6 +49,10 @@ namespace OpenSim.Terrain
             return heights;
         }
 
+        /// <summary>
+        /// Converts the heightmap to a 256x256 value 2D floating point array.
+        /// </summary>
+        /// <returns>An array of 256,256 values containing the heightmap</returns>
         public float[,] getHeights2D()
         {
             float[,] heights = new float[w, h];
@@ -73,6 +82,10 @@ namespace OpenSim.Terrain
             tainted++;
         }
 
+        /// <summary>
+        /// Loads a 2D array of values into the heightmap
+        /// </summary>
+        /// <param name="heights">An array of 256,256 float values</param>
         public void setHeights2D(float[,] heights)
         {
             int x, y;
@@ -86,6 +99,11 @@ namespace OpenSim.Terrain
             tainted++;
         }
 
+        /// <summary>
+        /// Renormalises the array between min and max
+        /// </summary>
+        /// <param name="min">Minimum value of the new array</param>
+        /// <param name="max">Maximum value of the new array</param>
         public void setRange(float min, float max)
         {
             heightmap.normalise((double)min, (double)max);
