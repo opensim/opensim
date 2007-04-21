@@ -282,7 +282,7 @@ namespace OpenSim.world
                 Console.WriteLine("creating new terrain");
                 this.Terrain.hills();
 
-                //this.localStorage.SaveMap(this.Terrain.map);
+                this.localStorage.SaveMap(this.Terrain.getHeights1D());
             }
             else
             {
@@ -423,7 +423,14 @@ namespace OpenSim.world
 
         public bool Backup()
         {
-
+            if (Terrain.tainted > 0)
+            {
+                Terrain.tainted = 0;
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Terrain tainted, saving.");
+                localStorage.SaveMap(Terrain.getHeights1D());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Terrain saved, informing Physics.");
+                phyScene.SetTerrain(Terrain.getHeights1D());
+            }
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Backing up Primitives");
             foreach (libsecondlife.LLUUID UUID in Entities.Keys)
             {
