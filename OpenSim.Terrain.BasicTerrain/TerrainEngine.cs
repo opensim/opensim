@@ -11,6 +11,7 @@ namespace OpenSim.Terrain
         /// A [normally] 256x256 heightmap
         /// </summary>
         public Channel heightmap;
+        public int tainted;
 
         int w, h;
 
@@ -23,6 +24,7 @@ namespace OpenSim.Terrain
             h = 256;
             heightmap = new Channel(w, h);
 
+            tainted++;
         }
 
         /// <summary>
@@ -67,9 +69,11 @@ namespace OpenSim.Terrain
             {
                 heightmap.map[i / w, i % w] = heights[i];
             }
+
+            tainted++;
         }
 
-        public float[,] setHeights2D(float[,] heights)
+        public void setHeights2D(float[,] heights)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -79,12 +83,13 @@ namespace OpenSim.Terrain
                     heightmap.set(x,y,(double)heights[x,y]);
                 }
             }
-            return heights;
+            tainted++;
         }
 
         public void setRange(float min, float max)
         {
             heightmap.normalise((double)min, (double)max);
+            tainted++;
         }
 
         /// <summary>
@@ -108,6 +113,8 @@ namespace OpenSim.Terrain
 
             bs.Close();
             s.Close();
+
+            tainted++;
         }
 
         /// <summary>
@@ -131,6 +138,8 @@ namespace OpenSim.Terrain
 
             bs.Close();
             s.Close();
+
+            tainted++;
         }
 
         public void writeToFileF64(string filename)
@@ -189,6 +198,8 @@ namespace OpenSim.Terrain
             {
                 heightmap.raise(rx, ry, size, amount);
             }
+
+            tainted++;
         }
 
         /// <summary>
@@ -204,6 +215,8 @@ namespace OpenSim.Terrain
             {
                 heightmap.lower(rx, ry, size, amount);
             }
+
+            tainted++;
         }
 
         /// <summary>
@@ -217,10 +230,13 @@ namespace OpenSim.Terrain
                 heightmap.normalise();
                 heightmap *= 60.0; // Raise to 60m
             }
+
+            tainted++;
         }
 
         public static TerrainEngine operator *(TerrainEngine meep, Double val) {
             meep.heightmap *= val;
+            meep.tainted++;
             return meep;
         }
 
@@ -232,6 +248,7 @@ namespace OpenSim.Terrain
             }
             set
             {
+                tainted++;
                 heightmap.set(x,y,(double)value);
             }
         }
