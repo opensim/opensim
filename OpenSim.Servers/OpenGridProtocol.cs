@@ -14,15 +14,17 @@ namespace OpenSim.Servers
     {
         
         private Thread m_workerThread;
-        private TcpListener m_tcpListener;
+        private Socket m_listenerSocket;
+	private IPEndPoint m_IPendpoint;
+
 	private int m_port;
 	private ArrayList m_clients;
 
 	private class ClientHandler {
 		private Thread m_clientThread;
-		private TcpClient m_socketHandle;
+		private Socket m_socketHandle;
 
-		public ClientHandler(TcpClient clientSocketHandle) {
+		public ClientHandler(Socket clientSocketHandle) {
 			m_socketHandle=clientSocketHandle;
 			m_clientThread = new Thread(new ThreadStart(DoWork));
 			m_clientThread.IsBackground = true;
@@ -31,6 +33,12 @@ namespace OpenSim.Servers
 		
 		private void DoWork() {
                 	OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: ClientHandler.DoWork() - Got new client");
+			
+		}
+
+		private void WriteLine(string theline) {
+			byte[] thelinebuffer = System.Text.Encoding.ASCII.GetBytes(theline.ToCharArray());
+			m_socketHandle.Send(thelinebuffer,theline.Length,0);
 		}
 	}
 
@@ -55,13 +63,15 @@ namespace OpenSim.Servers
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: StartServerSocket() - Spawned main thread OK");
                 
 
-		m_tcpListener = new TcpListener(m_port);
-                m_tcpListener.Start();
+		m_IPendpoint = new IPEndPoint(IPAddress.Any, m_port);
+		m_listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+		m_listenerSocket.Bind(m_IPendpoint);
+		m_listenerSocket.Listen(4);
 
-		TcpClient sockethandle;
+		Socket sockethandle;
                 while (true)
                 {
-                    sockethandle = m_tcpListener.AcceptTcpClient();
+                    sockethandle = m_listenerSocket.Accept();
 		    m_clients.Add(new OpenGridProtocolServer.ClientHandler(sockethandle));
                 }
             }
