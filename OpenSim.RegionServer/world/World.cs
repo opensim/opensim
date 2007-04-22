@@ -45,75 +45,95 @@ namespace OpenSim.world
 
         public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName)
         {
-            m_clientThreads = clientThreads;
-            m_regionHandle = regionHandle;
-            m_regionName = regionName;
+            try
+            {
+                m_clientThreads = clientThreads;
+                m_regionHandle = regionHandle;
+                m_regionName = regionName;
 
-            m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
-            m_scripts = new Dictionary<string, ScriptFactory>();
+                m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
+                m_scripts = new Dictionary<string, ScriptFactory>();
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
-            Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
-            Avatars = new Dictionary<LLUUID, Avatar>();
-            Prims = new Dictionary<LLUUID, Primitive>();
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating new entitities instance");
+                Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
+                Avatars = new Dictionary<LLUUID, Avatar>();
+                Prims = new Dictionary<LLUUID, Primitive>();
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
-            TerrainManager = new TerrainManager(new SecondLife());
-            Terrain = new TerrainEngine();
-            Avatar.SetupTemplate("avatar-template.dat");
-            //	MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
-            // Initialise this only after the world has loaded
-            //	Scripts = new ScriptEngine(this);
-            Avatar.LoadAnims();
-            this.SetDefaultScripts();
-            this.LoadScriptEngines();
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
+                TerrainManager = new TerrainManager(new SecondLife());
+                Terrain = new TerrainEngine();
+                Avatar.SetupTemplate("avatar-template.dat");
+                //	MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
+                // Initialise this only after the world has loaded
+                //	Scripts = new ScriptEngine(this);
+                Avatar.LoadAnims();
+                this.SetDefaultScripts();
+                this.LoadScriptEngines();
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Constructor failed with exception " + e.ToString());
+            }
         }
 
         public void AddScript(Entity entity, Script script)
         {
-            ScriptHandler scriptHandler = new ScriptHandler(script, entity, this);
-            m_scriptHandlers.Add(scriptHandler.ScriptId, scriptHandler);
+            try
+            {
+                ScriptHandler scriptHandler = new ScriptHandler(script, entity, this);
+                m_scriptHandlers.Add(scriptHandler.ScriptId, scriptHandler);
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddScript() - Failed with exception " + e.ToString());
+            }
         }
 
         public void AddScript(Entity entity, string scriptData)
         {
-            int scriptstart = 0;
-            int scriptend = 0;
-            string substring;
-            scriptstart = scriptData.LastIndexOf("<Script>");
-            scriptend = scriptData.LastIndexOf("</Script>");
-            substring = scriptData.Substring(scriptstart + 8, scriptend - scriptstart - 8);
-            substring = substring.Trim();
-            //Console.WriteLine("searching for script to add: " + substring);
-
-            ScriptFactory scriptFactory;
-            //Console.WriteLine("script string is " + substring);
-            if (substring.StartsWith("<ScriptEngine:"))
+            try
             {
-                string substring1 = "";
-                string script = "";
-                // Console.WriteLine("searching for script engine");
-                substring1 = substring.Remove(0, 14);
-                int dev = substring1.IndexOf(',');
-                string sEngine = substring1.Substring(0, dev);
-                substring1 = substring1.Remove(0, dev + 1);
-                int end = substring1.IndexOf('>');
-                string sName = substring1.Substring(0, end);
-                //Console.WriteLine(" script info : " + sEngine + " , " + sName);
-                int startscript = substring.IndexOf('>');
-                script = substring.Remove(0, startscript + 1);
-                // Console.WriteLine("script data is " + script);
-                if (this.scriptEngines.ContainsKey(sEngine))
+                int scriptstart = 0;
+                int scriptend = 0;
+                string substring;
+                scriptstart = scriptData.LastIndexOf("<Script>");
+                scriptend = scriptData.LastIndexOf("</Script>");
+                substring = scriptData.Substring(scriptstart + 8, scriptend - scriptstart - 8);
+                substring = substring.Trim();
+                //Console.WriteLine("searching for script to add: " + substring);
+
+                ScriptFactory scriptFactory;
+                //Console.WriteLine("script string is " + substring);
+                if (substring.StartsWith("<ScriptEngine:"))
                 {
-                    this.scriptEngines[sEngine].LoadScript(script, sName, entity.localid);
+                    string substring1 = "";
+                    string script = "";
+                    // Console.WriteLine("searching for script engine");
+                    substring1 = substring.Remove(0, 14);
+                    int dev = substring1.IndexOf(',');
+                    string sEngine = substring1.Substring(0, dev);
+                    substring1 = substring1.Remove(0, dev + 1);
+                    int end = substring1.IndexOf('>');
+                    string sName = substring1.Substring(0, end);
+                    //Console.WriteLine(" script info : " + sEngine + " , " + sName);
+                    int startscript = substring.IndexOf('>');
+                    script = substring.Remove(0, startscript + 1);
+                    // Console.WriteLine("script data is " + script);
+                    if (this.scriptEngines.ContainsKey(sEngine))
+                    {
+                        this.scriptEngines[sEngine].LoadScript(script, sName, entity.localid);
+                    }
+                }
+                else if (this.m_scripts.TryGetValue(substring, out scriptFactory))
+                {
+                    //Console.WriteLine("added script");
+                    this.AddScript(entity, scriptFactory());
                 }
             }
-            else if (this.m_scripts.TryGetValue(substring, out scriptFactory))
+            catch (Exception e)
             {
-                //Console.WriteLine("added script");
-                this.AddScript(entity, scriptFactory());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddScript() - Failed with exception " + e.ToString());
             }
-
         }
 
         public InventoryCache InventoryCache
@@ -145,120 +165,122 @@ namespace OpenSim.world
 
         public void Update()
         {
-            if (this.phyScene.IsThreaded)
+            try
             {
-                this.phyScene.GetResults();
+                if (this.phyScene.IsThreaded)
+                {
+                    this.phyScene.GetResults();
 
-            }
+                }
 
-            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].addForces();
-            }
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    Entities[UUID].addForces();
+                }
 
-            lock (this.LockPhysicsEngine)
-            {
-                this.phyScene.Simulate(timeStep);
-            }
+                lock (this.LockPhysicsEngine)
+                {
+                    this.phyScene.Simulate(timeStep);
+                }
 
-            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].update();
-            }
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    Entities[UUID].update();
+                }
 
-            foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
-            {
-                scriptHandler.OnFrame();
+                foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
+                {
+                    scriptHandler.OnFrame();
+                }
+                foreach (IScriptEngine scripteng in this.scriptEngines.Values)
+                {
+                    scripteng.OnFrame();
+                }
+                //backup world data
+                this.storageCount++;
+                if (storageCount > 1200) //set to how often you want to backup 
+                {
+                    this.Backup();
+                    storageCount = 0;
+                }
             }
-            foreach (IScriptEngine scripteng in this.scriptEngines.Values)
+            catch (Exception e)
             {
-                scripteng.OnFrame();
-            }
-            //backup world data
-            this.storageCount++;
-            if (storageCount > 1200) //set to how often you want to backup 
-            {
-                this.Backup();
-                storageCount = 0;
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Update() - Failed with exception " + e.ToString());
             }
         }
 
         public bool LoadStorageDLL(string dllName)
         {
-            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-            ILocalStorage store = null;
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            try
             {
-                if (pluginType.IsPublic)
+                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+                ILocalStorage store = null;
+
+                foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
-                    if (!pluginType.IsAbstract)
+                    if (pluginType.IsPublic)
                     {
-                        Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
-
-                        if (typeInterface != null)
+                        if (!pluginType.IsAbstract)
                         {
-                            ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            store = plug;
-                            break;
-                        }
+                            Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
 
-                        typeInterface = null;
+                            if (typeInterface != null)
+                            {
+                                ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                store = plug;
+                                break;
+                            }
+
+                            typeInterface = null;
+                        }
                     }
                 }
+                pluginAssembly = null;
+                this.localStorage = store;
+                return (store == null);
             }
-            pluginAssembly = null;
-            this.localStorage = store;
-            return (store == null);
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
+            }
         }
 
         #region Regenerate Terrain
 
         public void RegenerateTerrain()
         {
-            Terrain.hills();
-
-            lock (this.LockPhysicsEngine)
+            try
             {
-                this.phyScene.SetTerrain(Terrain.getHeights1D());
+                Terrain.hills();
+
+                lock (this.LockPhysicsEngine)
+                {
+                    this.phyScene.SetTerrain(Terrain.getHeights1D());
+                }
+                this.localStorage.SaveMap(this.Terrain.getHeights1D());
+
+                foreach (SimClient client in m_clientThreads.Values)
+                {
+                    this.SendLayerData(client);
+                }
+
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    Entities[UUID].LandRenegerated();
+                }
             }
-            this.localStorage.SaveMap(this.Terrain.getHeights1D());
-
-            foreach (SimClient client in m_clientThreads.Values)
+            catch (Exception e)
             {
-                this.SendLayerData(client);
-            }
-
-            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].LandRenegerated();
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
         public void RegenerateTerrain(float[,] newMap)
         {
-            this.Terrain.setHeights2D(newMap);
-            lock (this.LockPhysicsEngine)
+            try
             {
-                this.phyScene.SetTerrain(this.Terrain.getHeights1D());
-            }
-            this.localStorage.SaveMap(this.Terrain.getHeights1D());
-
-            foreach (SimClient client in m_clientThreads.Values)
-            {
-                this.SendLayerData(client);
-            }
-
-            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].LandRenegerated();
-            }
-        }
-
-        public void RegenerateTerrain(bool changes, int pointx, int pointy)
-        {
-            if (changes)
-            {
+                this.Terrain.setHeights2D(newMap);
                 lock (this.LockPhysicsEngine)
                 {
                     this.phyScene.SetTerrain(this.Terrain.getHeights1D());
@@ -267,8 +289,41 @@ namespace OpenSim.world
 
                 foreach (SimClient client in m_clientThreads.Values)
                 {
-                    this.SendLayerData(pointx, pointy, client);
+                    this.SendLayerData(client);
                 }
+
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    Entities[UUID].LandRenegerated();
+                }
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+            }
+        }
+
+        public void RegenerateTerrain(bool changes, int pointx, int pointy)
+        {
+            try
+            {
+                if (changes)
+                {
+                    lock (this.LockPhysicsEngine)
+                    {
+                        this.phyScene.SetTerrain(this.Terrain.getHeights1D());
+                    }
+                    this.localStorage.SaveMap(this.Terrain.getHeights1D());
+
+                    foreach (SimClient client in m_clientThreads.Values)
+                    {
+                        this.SendLayerData(pointx, pointy, client);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -276,175 +331,265 @@ namespace OpenSim.world
 
         public void LoadWorldMap()
         {
-            float[] map = this.localStorage.LoadWorld();
-            if (map == null)
+            try
             {
-                Console.WriteLine("creating new terrain");
-                this.Terrain.hills();
+                float[] map = this.localStorage.LoadWorld();
+                if (map == null)
+                {
+                    Console.WriteLine("creating new terrain");
+                    this.Terrain.hills();
 
-                this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                    this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                }
+                else
+                {
+                    this.Terrain.setHeights1D(map);
+                }
             }
-            else
+            catch (Exception e)
             {
-                this.Terrain.setHeights1D(map);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
         public void LoadPrimsFromStorage()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadPrimsFromStorage() - Loading primitives");
-            this.localStorage.LoadPrimitives(this);
+            try
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadPrimsFromStorage() - Loading primitives");
+                this.localStorage.LoadPrimitives(this);
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadPrimsFromStorage() - Failed with exception " + e.ToString());
+            }
         }
 
         public void PrimFromStorage(PrimData prim)
         {
-            if (prim.LocalID >= this._primCount)
+            try
             {
-                _primCount = prim.LocalID + 1;
+                if (prim.LocalID >= this._primCount)
+                {
+                    _primCount = prim.LocalID + 1;
+                }
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: PrimFromStorage() - Reloading prim (localId " + prim.LocalID + " ) from storage");
+                Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
+                nPrim.CreateFromStorage(prim);
+                this.Entities.Add(nPrim.uuid, nPrim);
             }
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: PrimFromStorage() - Reloading prim (localId " + prim.LocalID + " ) from storage");
-            Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
-            nPrim.CreateFromStorage(prim);
-            this.Entities.Add(nPrim.uuid, nPrim);
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: PrimFromStorage() - Failed with exception " + e.ToString());
+            }
         }
 
         public void Close()
         {
-            this.localStorage.ShutDown();
+            try
+            {
+                this.localStorage.ShutDown();
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Close() - Failed with exception " + e.ToString());
+            }
         }
 
         public void SendLayerData(SimClient RemoteClient)
         {
-            int[] patches = new int[4];
-
-            for (int y = 0; y < 16; y++)
+            try
             {
-                for (int x = 0; x < 16; x = x + 4)
-                {
-                    patches[0] = x + 0 + y * 16;
-                    patches[1] = x + 1 + y * 16;
-                    patches[2] = x + 2 + y * 16;
-                    patches[3] = x + 3 + y * 16;
+                int[] patches = new int[4];
 
-                    Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
-                    RemoteClient.OutPacket(layerpack);
+                for (int y = 0; y < 16; y++)
+                {
+                    for (int x = 0; x < 16; x = x + 4)
+                    {
+                        patches[0] = x + 0 + y * 16;
+                        patches[1] = x + 1 + y * 16;
+                        patches[2] = x + 2 + y * 16;
+                        patches[3] = x + 3 + y * 16;
+
+                        Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
+                        RemoteClient.OutPacket(layerpack);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
         public void SendLayerData(int px, int py, SimClient RemoteClient)
         {
-            int[] patches = new int[1];
-            int patchx, patchy;
-            patchx = px / 16;
-            /* if (patchx > 12)
-             {
-                 patchx = 12;
-             }*/
-            patchy = py / 16;
+            try
+            {
+                int[] patches = new int[1];
+                int patchx, patchy;
+                patchx = px / 16;
+                /* if (patchx > 12)
+                 {
+                     patchx = 12;
+                 }*/
+                patchy = py / 16;
 
-            patches[0] = patchx + 0 + patchy * 16;
-            //patches[1] = patchx + 1 + patchy * 16;
-            //patches[2] = patchx + 2 + patchy * 16;
-            //patches[3] = patchx + 3 + patchy * 16;
+                patches[0] = patchx + 0 + patchy * 16;
+                //patches[1] = patchx + 1 + patchy * 16;
+                //patches[2] = patchx + 2 + patchy * 16;
+                //patches[3] = patchx + 3 + patchy * 16;
 
-            Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
-            RemoteClient.OutPacket(layerpack);
+                Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
+                RemoteClient.OutPacket(layerpack);
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: SendLayerData() - Failed with exception " + e.ToString());
+            }
         }
 
         public void GetInitialPrims(SimClient RemoteClient)
         {
-            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+            try
             {
-                if (Entities[UUID] is Primitive)
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
                 {
-                    Primitive primitive = Entities[UUID] as Primitive;
-                    primitive.UpdateClient(RemoteClient);
+                    if (Entities[UUID] is Primitive)
+                    {
+                        Primitive primitive = Entities[UUID] as Primitive;
+                        primitive.UpdateClient(RemoteClient);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: GetInitialPrims() - Failed with exception " + e.ToString());
             }
         }
 
         public void AddViewerAgent(SimClient agentClient)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-            Avatar newAvatar = new Avatar(agentClient, this, m_regionName, m_clientThreads, m_regionHandle);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
-            newAvatar.SendRegionHandshake(this);
-            if (!agentClient.m_child)
+            try
             {
-                PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-                lock (this.LockPhysicsEngine)
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
+                Avatar newAvatar = new Avatar(agentClient, this, m_regionName, m_clientThreads, m_regionHandle);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Adding new avatar to world");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs:AddViewerAgent() - Starting RegionHandshake ");
+                newAvatar.SendRegionHandshake(this);
+                if (!agentClient.m_child)
                 {
-                    newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+                    PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
+                    lock (this.LockPhysicsEngine)
+                    {
+                        newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+                    }
+                }
+                lock (Entities)
+                {
+                    this.Entities.Add(agentClient.AgentID, newAvatar);
+                }
+                lock (Avatars)
+                {
+                    this.Avatars.Add(agentClient.AgentID, newAvatar);
                 }
             }
-            lock (Entities)
+            catch (Exception e)
             {
-                this.Entities.Add(agentClient.AgentID, newAvatar);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
             }
-            lock (Avatars)
-            {
-                this.Avatars.Add(agentClient.AgentID, newAvatar);
-            }
-
         }
 
         public void RemoveViewerAgent(SimClient agentClient)
         {
-            lock (Entities)
+            try
             {
-                Entities.Remove(agentClient.AgentID);
+                lock (Entities)
+                {
+                    Entities.Remove(agentClient.AgentID);
+                }
+                lock (Avatars)
+                {
+                    Avatars.Remove(agentClient.AgentID);
+                }
             }
-            lock (Avatars)
+            catch (Exception e)
             {
-                Avatars.Remove(agentClient.AgentID);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: RemoveViewerAgent() - Failed with exception " + e.ToString());
             }
         }
 
         public void AddNewPrim(ObjectAddPacket addPacket, SimClient AgentClient)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Creating new prim");
-            Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
-            prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
-            PhysicsVector pVec = new PhysicsVector(prim.Pos.X, prim.Pos.Y, prim.Pos.Z);
-            PhysicsVector pSize = new PhysicsVector(0.255f, 0.255f, 0.255f);
-            if (OpenSim.world.Avatar.PhysicsEngineFlying)
+            try
             {
-                lock (this.LockPhysicsEngine)
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Creating new prim");
+                Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
+                prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
+                PhysicsVector pVec = new PhysicsVector(prim.Pos.X, prim.Pos.Y, prim.Pos.Z);
+                PhysicsVector pSize = new PhysicsVector(0.255f, 0.255f, 0.255f);
+                if (OpenSim.world.Avatar.PhysicsEngineFlying)
                 {
-                    prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
+                    lock (this.LockPhysicsEngine)
+                    {
+                        prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
+                    }
                 }
-            }
 
-            this.Entities.Add(prim.uuid, prim);
-            this._primCount++;
+                this.Entities.Add(prim.uuid, prim);
+                this._primCount++;
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
+            }
         }
 
         public bool Backup()
         {
-            if (Terrain.tainted > 0)
+            try
             {
-                Terrain.tainted = 0;
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Terrain tainted, saving.");
-                localStorage.SaveMap(Terrain.getHeights1D());
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Terrain saved, informing Physics.");
-                phyScene.SetTerrain(Terrain.getHeights1D());
+                // Terrain backup routines
+                if (Terrain.tainted > 0)
+                {
+                    Terrain.tainted = 0;
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Terrain tainted, saving.");
+                    localStorage.SaveMap(Terrain.getHeights1D());
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Terrain saved, informing Physics.");
+                    phyScene.SetTerrain(Terrain.getHeights1D());
+                }
+
+                // Primitive backup routines
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Backing up Primitives");
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    Entities[UUID].BackUp();
+                }
+
+                // Backup successful
+                return true;
             }
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Backing up Primitives");
-            foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+            catch (Exception e)
             {
-                Entities[UUID].BackUp();
+                // Backup failed
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Backup() - Backup Failed with exception " + e.ToString());
+                return false;
             }
-            return true;
         }
 
         public void SetDefaultScripts()
         {
-            this.m_scripts.Add("FollowRandomAvatar", delegate()
-                                                             {
-                                                                 return new FollowRandomAvatar();
-                                                             });
+            try
+            {
+                this.m_scripts.Add("FollowRandomAvatar", delegate()
+                                                                 {
+                                                                     return new FollowRandomAvatar();
+                                                                 });
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: SetDefaultScripts() - Failed with exception " + e.ToString());
+            }
         }
 
     }
