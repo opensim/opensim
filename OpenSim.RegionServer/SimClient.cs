@@ -731,7 +731,17 @@ namespace OpenSim
                     {
                         if (!NeedAck.ContainsKey(Pack.Header.Sequence))
                         {
-                            NeedAck.Add(Pack.Header.Sequence, Pack);
+                            try
+                            {
+                                NeedAck.Add(Pack.Header.Sequence, Pack);
+                            }
+                            catch (Exception e)
+                            {
+                                // Ignore
+                                // Seems to throw a exception here occasionally
+                                // of 'duplicate key' despite being locked.
+                                // !?!?!?
+                            }
                         }
                         else
                         {

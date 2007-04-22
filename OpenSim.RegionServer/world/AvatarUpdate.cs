@@ -10,6 +10,12 @@ namespace OpenSim.world
     {
         public override void update()
         {
+            if (this._physActor == null)
+            {
+                //HACKHACK: Note to work out why this entity does not have a physics actor
+                //          and prehaps create one.
+                return;
+            }
             libsecondlife.LLVector3 pos2 = new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z);
             if (this.updateflag)
             {
