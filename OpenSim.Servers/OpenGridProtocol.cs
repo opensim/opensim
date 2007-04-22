@@ -33,10 +33,12 @@ namespace OpenSim.Servers
 		
 		private void DoWork() {
                 	OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: ClientHandler.DoWork() - Got new client");
+			this.WriteLine("OpenSim 0.1, running OGS protocol 1.0");
 			
 		}
 
 		private void WriteLine(string theline) {
+			theline+="\n";
 			byte[] thelinebuffer = System.Text.Encoding.ASCII.GetBytes(theline.ToCharArray());
 			m_socketHandle.Send(thelinebuffer,theline.Length,0);
 		}
@@ -51,6 +53,7 @@ namespace OpenSim.Servers
         {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: Start() - Opening server socket");
 
+		m_clients = new ArrayList();
                 m_workerThread = new Thread(new ThreadStart(StartServerSocket));
                 m_workerThread.IsBackground = true;
                 m_workerThread.Start();
@@ -72,7 +75,9 @@ namespace OpenSim.Servers
                 while (true)
                 {
                     sockethandle = m_listenerSocket.Accept();
-		    m_clients.Add(new OpenGridProtocolServer.ClientHandler(sockethandle));
+		    lock(m_clients.SyncRoot) { 
+			m_clients.Add(new OpenGridProtocolServer.ClientHandler(sockethandle));
+		    }
                 }
             }
             catch (Exception e)

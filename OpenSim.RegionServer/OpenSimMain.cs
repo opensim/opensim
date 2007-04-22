@@ -82,8 +82,10 @@ namespace OpenSim
         public string m_physicsEngine;
         public bool m_sandbox = false;
         public bool m_loginserver;
+	public OpenGridProtocolServer OGSServer;
         public bool user_accounts = false;
         public bool gridLocalAsset = false;
+
 
         protected ConsoleBase m_console;
 
@@ -203,7 +205,10 @@ namespace OpenSim
 
             if (gridServer.GetName() == "Remote")
             {
-                //we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
+		// should startup the OGS protocol server here
+		OGSServer = new OpenGridProtocolServer(8500);
+
+                // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
                 httpServer.AddXmlRPCHandler("expect_user",
                     delegate(XmlRpcRequest request)
                     {
@@ -293,7 +298,12 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();
-
+	    
+	    if(gridServer.GetName() == "Remote") {
+	    	m_console.WriteLine("Main.cs:Startup() - Starting up OGS protocol server");
+		OGSServer.Start();
+	    }
+	    
             MainServerListener();
 
             m_heartbeatTimer.Enabled = true;
