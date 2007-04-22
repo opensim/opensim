@@ -243,6 +243,7 @@ namespace OpenSim.world
             catch (Exception e)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
+                return false;
             }
         }
 
