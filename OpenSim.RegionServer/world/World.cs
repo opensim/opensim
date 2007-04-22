@@ -41,7 +41,7 @@ namespace OpenSim.world
         private string m_regionName;
         private InventoryCache _inventoryCache;
         private AssetCache _assetCache;
-        private int updateLock;
+        private Object updateLock;
 
         /// <summary>
         /// Creates a new World class, and a region to go with it.
@@ -53,7 +53,7 @@ namespace OpenSim.world
         {
             try
             {
-                updateLock = 0;
+                updateLock = null;
                 m_clientThreads = clientThreads;
                 m_regionHandle = regionHandle;
                 m_regionName = regionName;

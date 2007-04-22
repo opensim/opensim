@@ -735,8 +735,9 @@ namespace OpenSim
                             {
                                 NeedAck.Add(Pack.Header.Sequence, Pack);
                             }
-                            catch (Exception e)
+                            catch (Exception e) // HACKY
                             {
+                                e.ToString();
                                 // Ignore
                                 // Seems to throw a exception here occasionally
                                 // of 'duplicate key' despite being locked.

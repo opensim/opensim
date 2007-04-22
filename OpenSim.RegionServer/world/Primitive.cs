@@ -52,7 +52,14 @@ namespace OpenSim.world
         {
             set
             {
+                LLVector3 offset = (value - primData.Scale);
+                offset.X /= 2;
+                offset.Y /= 2;
+                offset.Z /= 2;
+
+                this.primData.Position += offset;
                 this.primData.Scale = value;
+                
                 this.dirtyFlag = true;
             }
             get
