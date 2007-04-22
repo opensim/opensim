@@ -160,6 +160,10 @@ namespace OpenSim.Terrain
             tainted++;
         }
 
+        /// <summary>
+        /// Writes the current terrain heightmap to disk, in the format of a 65536 entry double[] array.
+        /// </summary>
+        /// <param name="filename">The desired output filename</param>
         public void writeToFileF64(string filename)
         {
             System.IO.FileInfo file = new System.IO.FileInfo(filename);
@@ -179,6 +183,10 @@ namespace OpenSim.Terrain
             s.Close();
         }
 
+        /// <summary>
+        /// Writes the current terrain heightmap to disk, in the format of a 65536 entry float[] array
+        /// </summary>
+        /// <param name="filename">The desired output filename</param>
         public void writeToFileF32(string filename)
         {
             System.IO.FileInfo file = new System.IO.FileInfo(filename);
@@ -198,6 +206,10 @@ namespace OpenSim.Terrain
             s.Close();
         }
 
+        /// <summary>
+        /// Sets the random seed to be used by procedural functions which involve random numbers.
+        /// </summary>
+        /// <param name="val">The desired seed</param>
         public void setSeed(int val)
         {
             heightmap.seed = val;
@@ -252,12 +264,24 @@ namespace OpenSim.Terrain
             tainted++;
         }
 
+        /// <summary>
+        /// Multiplies the heightfield by val
+        /// </summary>
+        /// <param name="meep">The heightfield</param>
+        /// <param name="val">The multiplier</param>
+        /// <returns></returns>
         public static TerrainEngine operator *(TerrainEngine meep, Double val) {
             meep.heightmap *= val;
             meep.tainted++;
             return meep;
         }
 
+        /// <summary>
+        /// Returns the height at the coordinates x,y
+        /// </summary>
+        /// <param name="x">X Coordinate</param>
+        /// <param name="y">Y Coordinate</param>
+        /// <returns></returns>
         public float this[int x, int y]
         {
             get
