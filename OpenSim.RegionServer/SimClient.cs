@@ -119,7 +119,7 @@ namespace OpenSim
             }
             else
             {
-                this.startpos = new LLVector3(128, 128, m_world.Terrain[(int)128, (int)128] + 1.0f); // new LLVector3(128.0f, 128.0f, 60f);
+                this.startpos = new LLVector3(128, 128, m_world.Terrain[(int)128, (int)128] + 15.0f); // new LLVector3(128.0f, 128.0f, 60f);
             }
             PacketQueue = new BlockingQueue<QueItem>();
 
