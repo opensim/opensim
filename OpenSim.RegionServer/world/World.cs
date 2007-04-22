@@ -41,6 +41,7 @@ namespace OpenSim.world
         private string m_regionName;
         private InventoryCache _inventoryCache;
         private AssetCache _assetCache;
+        private int updateLock;
 
         /// <summary>
         /// Creates a new World class, and a region to go with it.
@@ -52,6 +53,7 @@ namespace OpenSim.world
         {
             try
             {
+                updateLock = 0;
                 m_clientThreads = clientThreads;
                 m_regionHandle = regionHandle;
                 m_regionName = regionName;
@@ -183,48 +185,51 @@ namespace OpenSim.world
         /// </summary>
         public void Update()
         {
-            try
+            lock (updateLock)
             {
-                if (this.phyScene.IsThreaded)
+                try
                 {
-                    this.phyScene.GetResults();
+                    if (this.phyScene.IsThreaded)
+                    {
+                        this.phyScene.GetResults();
 
-                }
+                    }
 
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-                {
-                    Entities[UUID].addForces();
-                }
+                    foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                    {
+                        Entities[UUID].addForces();
+                    }
 
-                lock (this.LockPhysicsEngine)
-                {
-                    this.phyScene.Simulate(timeStep);
-                }
+                    lock (this.LockPhysicsEngine)
+                    {
+                        this.phyScene.Simulate(timeStep);
+                    }
 
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-                {
-                    Entities[UUID].update();
-                }
+                    foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                    {
+                        Entities[UUID].update();
+                    }
 
-                foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
-                {
-                    scriptHandler.OnFrame();
+                    foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
+                    {
+                        scriptHandler.OnFrame();
+                    }
+                    foreach (IScriptEngine scripteng in this.scriptEngines.Values)
+                    {
+                        scripteng.OnFrame();
+                    }
+                    //backup world data
+                    this.storageCount++;
+                    if (storageCount > 1200) //set to how often you want to backup 
+                    {
+                        this.Backup();
+                        storageCount = 0;
+                    }
                 }
-                foreach (IScriptEngine scripteng in this.scriptEngines.Values)
+                catch (Exception e)
                 {
-                    scripteng.OnFrame();
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Update() - Failed with exception " + e.ToString());
                 }
-                //backup world data
-                this.storageCount++;
-                if (storageCount > 1200) //set to how often you want to backup 
-                {
-                    this.Backup();
-                    storageCount = 0;
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs: Update() - Failed with exception " + e.ToString());
             }
         }
 
