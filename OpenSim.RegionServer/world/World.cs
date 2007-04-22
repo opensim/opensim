@@ -24,13 +24,12 @@ namespace OpenSim.world
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
-        //        public float[] LandMap;
         public ScriptEngine Scripts;
         public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         public uint _localNumber = 0;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
-        private libsecondlife.TerrainManager TerrainManager;
+        private libsecondlife.TerrainManager TerrainManager; // To be referenced via TerrainEngine
         public ILocalStorage localStorage;
         private Random Rand = new Random();
         private uint _primCount = 702000;
