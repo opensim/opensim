@@ -43,6 +43,12 @@ namespace OpenSim.world
         private InventoryCache _inventoryCache;
         private AssetCache _assetCache;
 
+        /// <summary>
+        /// Creates a new World class, and a region to go with it.
+        /// </summary>
+        /// <param name="clientThreads">Dictionary to contain client threads</param>
+        /// <param name="regionHandle">Region Handle for this region</param>
+        /// <param name="regionName">Region Name for this region</param>
         public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName)
         {
             try
@@ -76,6 +82,11 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Loads a new script into the specified entity
+        /// </summary>
+        /// <param name="entity">Entity to be scripted</param>
+        /// <param name="script">The script to load</param>
         public void AddScript(Entity entity, Script script)
         {
             try
@@ -89,6 +100,11 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Loads a new script into the specified entity, using a script loaded from a string.
+        /// </summary>
+        /// <param name="entity">The entity to be scripted</param>
+        /// <param name="scriptData">The string containing the script</param>
         public void AddScript(Entity entity, string scriptData)
         {
             try
@@ -163,6 +179,9 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Performs per-frame updates on the world, this should be the central world loop
+        /// </summary>
         public void Update()
         {
             try
@@ -210,6 +229,11 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Loads a new storage subsystem from a named library
+        /// </summary>
+        /// <param name="dllName">Storage Library</param>
+        /// <returns>Successful or not</returns>
         public bool LoadStorageDLL(string dllName)
         {
             try
@@ -249,6 +273,9 @@ namespace OpenSim.world
 
         #region Regenerate Terrain
 
+        /// <summary>
+        /// Rebuilds the terrain using a procedural algorithm
+        /// </summary>
         public void RegenerateTerrain()
         {
             try
@@ -277,6 +304,10 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Rebuilds the terrain using a 2D float array
+        /// </summary>
+        /// <param name="newMap">256,256 float array containing heights</param>
         public void RegenerateTerrain(float[,] newMap)
         {
             try
@@ -304,6 +335,12 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Rebuilds the terrain assuming changes occured at a specified point[?]
+        /// </summary>
+        /// <param name="changes">???</param>
+        /// <param name="pointx">???</param>
+        /// <param name="pointy">???</param>
         public void RegenerateTerrain(bool changes, int pointx, int pointy)
         {
             try
@@ -330,6 +367,9 @@ namespace OpenSim.world
 
         #endregion
 
+        /// <summary>
+        /// Loads the World heightmap
+        /// </summary>
         public void LoadWorldMap()
         {
             try
@@ -353,6 +393,9 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Loads the World's objects
+        /// </summary>
         public void LoadPrimsFromStorage()
         {
             try
@@ -366,6 +409,10 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Loads a specific object from storage
+        /// </summary>
+        /// <param name="prim">The object to load</param>
         public void PrimFromStorage(PrimData prim)
         {
             try
@@ -385,6 +432,9 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Tidy before shutdown
+        /// </summary>
         public void Close()
         {
             try
@@ -397,6 +447,10 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Send the region heightmap to the client
+        /// </summary>
+        /// <param name="RemoteClient">Client to send to</param>
         public void SendLayerData(SimClient RemoteClient)
         {
             try
@@ -423,6 +477,12 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Sends a specified patch to a client
+        /// </summary>
+        /// <param name="px">Patch coordinate (x) 0..16</param>
+        /// <param name="py">Patch coordinate (y) 0..16</param>
+        /// <param name="RemoteClient">The client to send to</param>
         public void SendLayerData(int px, int py, SimClient RemoteClient)
         {
             try
@@ -450,6 +510,10 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// Sends prims to a client
+        /// </summary>
+        /// <param name="RemoteClient">Client to send to</param>
         public void GetInitialPrims(SimClient RemoteClient)
         {
             try
