@@ -522,7 +522,11 @@ namespace OpenSim
                     break;
 
                 case "terrain":
-                    RunTerrainCmd(cmdparams);
+                    string result = "";
+                    if (!LocalWorld.Terrain.RunTerrainCmd(cmdparams,ref result))
+                    {
+                        m_console.WriteLine(result);
+                    }
                     break;
 
                 case "shutdown":
@@ -531,85 +535,6 @@ namespace OpenSim
 
                 default:
                     m_console.WriteLine("Unknown command");
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Processes a terrain-specific command
-        /// </summary>
-        /// <remarks>TODO: Move this into BasicTerrain directly (no need to hard limit what each terrain engine can support)</remarks>
-        /// <param name="args"></param>
-        public void RunTerrainCmd(string[] args)
-        {
-            string command = args[0];
-            switch (command)
-            {
-                case "help":
-                    m_console.WriteLine("terrain regenerate - rebuilds the sims terrain using a default algorithm");
-                    m_console.WriteLine("terrain seed <seed> - sets the random seed value to <seed>");
-                    m_console.WriteLine("terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64' or 'IMG'");
-                    m_console.WriteLine("terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'");
-                    m_console.WriteLine("terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high");
-                    m_console.WriteLine("terrain multiply <val> - multiplies a terrain by <val>");
-                    break;
-
-                case "seed":
-                    LocalWorld.Terrain.setSeed(Convert.ToInt32(args[1]));
-                    break;
-
-                case "regenerate":
-                    LocalWorld.Terrain.hills();
-                    break;
-
-                case "rescale":
-                    LocalWorld.Terrain.setRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
-                    break;
-
-                case "multiply":
-                    LocalWorld.Terrain *= Convert.ToDouble(args[1]);
-                    break;
-
-                case "load":
-                    switch (args[1].ToLower())
-                    {
-                        case "f32":
-                            LocalWorld.Terrain.loadFromFileF32(args[2]);
-                            break;
-
-                        case "f64":
-                            LocalWorld.Terrain.loadFromFileF64(args[2]);
-                            break;
-
-                        case "img":
-                            m_console.WriteLine("Error - IMG mode is presently unsupported.");
-                            break;
-
-                        default:
-                            m_console.WriteLine("Unknown image or data format");
-                            break;
-                    }
-                    break;
-
-                case "save":
-                    switch (args[1].ToLower())
-                    {
-                        case "f32":
-                            LocalWorld.Terrain.writeToFileF32(args[2]);
-                            break;
-
-                        case "f64":
-                            LocalWorld.Terrain.writeToFileF64(args[2]);
-                            break;
-
-                        default:
-                            m_console.WriteLine("Unknown image or data format");
-                            break;
-                    }
-                    break;
-
-                default:
-                    m_console.WriteLine("Unknown terrain command");
                     break;
             }
         }
