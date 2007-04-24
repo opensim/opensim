@@ -102,81 +102,110 @@ namespace OpenSim.Terrain
         /// <summary>
         /// Processes a terrain-specific command
         /// </summary>
-        /// <remarks>TODO: Move this into BasicTerrain directly (no need to hard limit what each terrain engine can support)</remarks>
-        /// <param name="args"></param>
+        /// <param name="args">Commandline arguments (space seperated)</param>
+        /// <param name="resultText">Reference that returns error or help text if returning false</param>
+        /// <returns>If the operation was successful (if not, the error is placed into resultText)</returns>
         public bool RunTerrainCmd(string[] args, ref string resultText)
         {
             string command = args[0];
-            switch (command)
+
+            try
             {
-                case "help":
-                    resultText += "terrain regenerate - rebuilds the sims terrain using a default algorithm\n";
-                    resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
-                    resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64' or 'IMG'\n";
-                    resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'\n";
-                    resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
-                    resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
-                    return false;
 
-                case "seed":
-                    setSeed(Convert.ToInt32(args[1]));
-                    break;
+                switch (command)
+                {
+                    case "help":
+                        resultText += "terrain regenerate - rebuilds the sims terrain using a default algorithm\n";
+                        resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
+                        resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64' or 'IMG'\n";
+                        resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'\n";
+                        resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
+                        resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
+                        resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
+                        resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
+                        return false;
 
-                case "regenerate":
-                    hills();
-                    break;
+                    case "seed":
+                        setSeed(Convert.ToInt32(args[1]));
+                        break;
 
-                case "rescale":
-                    setRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
-                    break;
+                    case "erode":
+                        switch (args[1].ToLower())
+                        {
+                            case "aerobic":
+                                // WindSpeed, PickupMinimum,DropMinimum,Carry,Rounds,Lowest
+                                heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]));
+                                break;
+                            case "thermal":
+                                heightmap.thermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
+                                break;
+                            default:
+                                resultText = "Unknown erosion type";
+                                return false;
+                        }
+                        break;
 
-                case "multiply":
-                    heightmap *= Convert.ToDouble(args[1]);
-                    break;
+                    case "regenerate":
+                        hills();
+                        break;
 
-                case "load":
-                    switch (args[1].ToLower())
-                    {
-                        case "f32":
-                            loadFromFileF32(args[2]);
-                            break;
+                    case "rescale":
+                        setRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
+                        break;
 
-                        case "f64":
-                            loadFromFileF64(args[2]);
-                            break;
+                    case "multiply":
+                        heightmap *= Convert.ToDouble(args[1]);
+                        break;
 
-                        case "img":
-                            resultText = "Error - IMG mode is presently unsupported.";
-                            return false;
+                    case "load":
+                        switch (args[1].ToLower())
+                        {
+                            case "f32":
+                                loadFromFileF32(args[2]);
+                                break;
 
-                        default:
-                            resultText = "Unknown image or data format";
-                            return false;
-                    }
-                    break;
+                            case "f64":
+                                loadFromFileF64(args[2]);
+                                break;
 
-                case "save":
-                    switch (args[1].ToLower())
-                    {
-                        case "f32":
-                            writeToFileF32(args[2]);
-                            break;
+                            case "img":
+                                resultText = "Error - IMG mode is presently unsupported.";
+                                return false;
 
-                        case "f64":
-                            writeToFileF64(args[2]);
-                            break;
+                            default:
+                                resultText = "Unknown image or data format";
+                                return false;
+                        }
+                        break;
 
-                        default:
-                            resultText = "Unknown image or data format";
-                            return false;
-                    }
-                    break;
+                    case "save":
+                        switch (args[1].ToLower())
+                        {
+                            case "f32":
+                                writeToFileF32(args[2]);
+                                break;
 
-                default:
-                    resultText = "Unknown terrain command";
-                    return false;
+                            case "f64":
+                                writeToFileF64(args[2]);
+                                break;
+
+                            default:
+                                resultText = "Unknown image or data format";
+                                return false;
+                        }
+                        break;
+
+                    default:
+                        resultText = "Unknown terrain command";
+                        return false;
+                }
+                return true;
             }
-            return true;
+            catch (Exception e)
+            {
+                resultText = "Error running terrain command: " + e.ToString();
+                return false;
+            }
         }
 
         /// <summary>
