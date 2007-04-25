@@ -17,6 +17,8 @@ namespace OpenSim
         public uint RegionLocX;
         public uint RegionLocY;
         public ulong RegionHandle;
+        public ushort RegionWaterHeight = 20;
+        public bool RegionTerraform = true;
 
         public int IPListenPort;
         public string IPListenAddr;

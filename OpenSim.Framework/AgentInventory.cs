@@ -4,6 +4,7 @@ using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Inventory
 {
@@ -114,9 +115,9 @@ namespace OpenSim.Framework.Inventory
             Console.WriteLine("updating inventory item details");
             if (this.InventoryItems.ContainsKey(itemID))
             {
-                Console.WriteLine("changing name to "+ Helpers.FieldToString(packet.Name));
+                Console.WriteLine("changing name to "+ Util.FieldToString(packet.Name));
                 InventoryItem Item = this.InventoryItems[itemID];
-                Item.Name = Helpers.FieldToString(packet.Name);
+                Item.Name = Util.FieldToString(packet.Name);
                 Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated());
                 //TODO need to update the rest of the info
             }

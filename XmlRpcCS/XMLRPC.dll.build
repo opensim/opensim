@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="OpenSim.Servers" default="build">
+<project name="XMLRPC" default="build">
     <target name="build">
         <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
         <mkdir dir="${project::get-base-directory()}/${build.dir}" />
@@ -8,17 +8,28 @@
             </fileset>
         </copy>
         <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
-            <resources prefix="OpenSim.Servers" dynamicprefix="true" >
+            <resources prefix="XMLRPC" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="BaseHttpServer.cs" />
-                <include name="BaseServer.cs" />
-                <include name="IRestHandler.cs" />
-                <include name="LocalUserProfileManager.cs" />
-                <include name="LoginResponse.cs" />
-                <include name="LoginServer.cs" />
-                <include name="OpenGridProtocol.cs" />
-                <include name="XmlRpcMethod.cs" />
+                <include name="Logger.cs" />
+                <include name="SimpleHttpRequest.cs" />
+                <include name="XmlRpcBoxcarRequest.cs" />
+                <include name="XmlRpcClientProxy.cs" />
+                <include name="XmlRpcDeserializer.cs" />
+                <include name="XmlRpcErrorCodes.cs" />
+                <include name="XmlRpcException.cs" />
+                <include name="XmlRpcExposedAttribute.cs" />
+                <include name="XmlRpcRequest.cs" />
+                <include name="XmlRpcRequestDeserializer.cs" />
+                <include name="XmlRpcRequestSerializer.cs" />
+                <include name="XmlRpcResponder.cs" />
+                <include name="XmlRpcResponse.cs" />
+                <include name="XmlRpcResponseDeserializer.cs" />
+                <include name="XmlRpcResponseSerializer.cs" />
+                <include name="XmlRpcSerializer.cs" />
+                <include name="XmlRpcServer.cs" />
+                <include name="XmlRpcSystemObject.cs" />
+                <include name="XmlRpcXmlTokens.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -27,10 +38,6 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
-                <include name="../bin/OpenSim.Framework.dll" />
-                <include name="../bin/OpenSim.Framework.Console.dll" />
-                <include name="../bin/libsecondlife.dll" />
-                <include name="../bin/XMLRPC.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/" />

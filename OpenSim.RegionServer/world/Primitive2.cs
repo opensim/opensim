@@ -272,7 +272,7 @@ namespace OpenSim.world
             PData.PathTwist = objupdate.ObjectData[0].PathTwist = addPacket.ObjectData.PathTwist;
             PData.PathTwistBegin = objupdate.ObjectData[0].PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             objupdate.ObjectData[0].ID = (uint)(localID);
-            objupdate.ObjectData[0].FullID = new LLUUID("edba7151-5857-acc5-b30b-f01efef" + (localID - 702000).ToString("00000"));
+            objupdate.ObjectData[0].FullID = LLUUID.Random();
             LLVector3 pos1 = addPacket.ObjectData.RayEnd;
             //update position
             byte[] pb = pos1.GetBytes();

@@ -374,7 +374,7 @@ namespace OpenSim
                     this.gridLocalAsset = Convert.ToBoolean(attri);
                 }
 
-                 // Grid mode hack to use local asset server
+                // Grid mode hack to use local asset server
                 attri = "";
                 attri = configData.GetAttribute("PhysicsEngine");
                 if (attri == "")
@@ -437,6 +437,7 @@ namespace OpenSim
             Packet packet = null;
             int numBytes = Server.EndReceiveFrom(result, ref epSender);
             int packetEnd = numBytes - 1;
+
             packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
 
             // This is either a new client or a packet to send to an old one
@@ -509,6 +510,7 @@ namespace OpenSim
             { // invalid client
                 Console.Error.WriteLine("Main.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
             }
+
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
         }
 

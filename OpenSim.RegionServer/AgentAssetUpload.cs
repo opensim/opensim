@@ -196,8 +196,8 @@ namespace OpenSim
             if (this.transactions.ContainsKey(packet.InventoryBlock.TransactionID))
             {
                 AssetTransaction trans = this.transactions[packet.InventoryBlock.TransactionID];
-                trans.Asset.Description = Helpers.FieldToString(packet.InventoryBlock.Description);
-                trans.Asset.Name = Helpers.FieldToString(packet.InventoryBlock.Name);
+                trans.Asset.Description = Util.FieldToString(packet.InventoryBlock.Description);
+                trans.Asset.Name = Util.FieldToString(packet.InventoryBlock.Name);
                 trans.Asset.Type = packet.InventoryBlock.Type;
                 trans.Asset.InvType = packet.InventoryBlock.InvType;
                 if (trans.UploadComplete)

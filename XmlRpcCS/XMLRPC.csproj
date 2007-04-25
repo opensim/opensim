@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8ACA2445-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{8E81D43C-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.Framework</AssemblyName>
+    <AssemblyName>XMLRPC</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.Framework</RootNamespace>
+    <RootNamespace>XMLRPC</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -66,109 +66,65 @@
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\bin\libsecondlife.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\XmlRpcCS\XMLRPC.csproj">
-      <Name>XMLRPC</Name>
-      <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentInventory.cs">
+    <Compile Include="Logger.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BlockingQueue.cs">
+    <Compile Include="SimpleHttpRequest.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HeightMapGenHills.cs">
+    <Compile Include="XmlRpcBoxcarRequest.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LoginService.cs">
+    <Compile Include="XmlRpcClientProxy.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SimProfile.cs">
+    <Compile Include="XmlRpcDeserializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SimProfileBase.cs">
+    <Compile Include="XmlRpcErrorCodes.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserProfile.cs">
+    <Compile Include="XmlRpcException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserProfileManager.cs">
+    <Compile Include="XmlRpcExposedAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserProfileManagerBase.cs">
+    <Compile Include="XmlRpcRequest.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Util.cs">
+    <Compile Include="XmlRpcRequestDeserializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IAssetServer.cs">
+    <Compile Include="XmlRpcRequestSerializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IConfig.cs">
+    <Compile Include="XmlRpcResponder.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IGenericConfig.cs">
+    <Compile Include="XmlRpcResponse.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IGridConfig.cs">
+    <Compile Include="XmlRpcResponseDeserializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IGridServer.cs">
+    <Compile Include="XmlRpcResponseSerializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\ILocalStorage.cs">
+    <Compile Include="XmlRpcSerializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IScriptAPI.cs">
+    <Compile Include="XmlRpcServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IScriptEngine.cs">
+    <Compile Include="XmlRpcSystemObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IUserConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IUserServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\LocalGridBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\RemoteGridBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AgentCiruitData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\NeighbourInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\OSVector3.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\PrimData.cs">
+    <Compile Include="XmlRpcXmlTokens.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

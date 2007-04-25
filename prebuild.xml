@@ -32,6 +32,28 @@
       </Options>
     </Configuration>
 
+    <!-- XML-RPC -->
+     <Project name="XMLRPC" path="XmlRpcCS" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <!-- Core OpenSim Projects -->
 
     <Project name="OpenSim.Framework" path="OpenSim.Framework" type="Library">
@@ -51,6 +73,7 @@
       <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="XMLRPC"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -93,6 +116,7 @@
      <Reference name="OpenSim.Framework"/>
      <Reference name="OpenSim.Framework.Console"/>
      <Reference name="libsecondlife.dll"/>
+     <Reference name="XMLRPC"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -122,6 +146,7 @@
       <Reference name="OpenSim.Servers"/>
       <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>
+     <Reference name="XMLRPC"/>
 
      <Files>
        <Match pattern="*.cs" recurse="true"/>
@@ -149,6 +174,7 @@
       <Reference name="OpenSim.Servers"/>
       <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>
+     <Reference name="XMLRPC"/>
 
      <Files>
        <Match pattern="*.cs" recurse="true"/>
@@ -272,6 +298,7 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="XMLRPC"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -439,6 +466,7 @@
       <Reference name="OpenSim.GenericConfig.Xml"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
+      <Reference name="XMLRPC"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

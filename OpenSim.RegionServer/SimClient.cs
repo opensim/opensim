@@ -491,7 +491,7 @@ namespace OpenSim
                         break;
                     case PacketType.CreateInventoryFolder:
                         CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
-                        m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Helpers.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
+                        m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
                         //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.CreateInventoryItem:
@@ -603,7 +603,7 @@ namespace OpenSim
                                                 {
                                                     if (ent is OpenSim.world.Primitive)
                                                     {
-                                                        this.m_world.AddScript(ent, Helpers.FieldToString(assBase.Data));
+                                                        this.m_world.AddScript(ent, Util.FieldToString(assBase.Data));
                                                     }
                                                 }
                                             }
@@ -1081,8 +1081,8 @@ namespace OpenSim
             {
                 //lets try this out with creating a notecard
                 AssetBase asset = new AssetBase();
-                asset.Name = Helpers.FieldToString(packet.InventoryBlock.Name);
-                asset.Description = Helpers.FieldToString(packet.InventoryBlock.Description);
+                asset.Name = Util.FieldToString(packet.InventoryBlock.Name);
+                asset.Description = Util.FieldToString(packet.InventoryBlock.Description);
                 asset.InvType = packet.InventoryBlock.InvType;
                 asset.Type = packet.InventoryBlock.Type;
                 asset.FullID = LLUUID.Random();

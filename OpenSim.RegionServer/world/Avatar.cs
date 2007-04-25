@@ -32,14 +32,18 @@ namespace OpenSim.world
         private ulong m_regionHandle;
         private Dictionary<uint, SimClient> m_clientThreads;
         private string m_regionName;
+        private ushort m_regionWaterHeight;
+        private bool m_regionTerraform;
         //private bool childShadowAvatar = false;
 
-        public Avatar(SimClient TheClient, World world, string regionName, Dictionary<uint, SimClient> clientThreads, ulong regionHandle)
+        public Avatar(SimClient TheClient, World world, string regionName, Dictionary<uint, SimClient> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
         {
             m_world = world;
             m_clientThreads = clientThreads;
             m_regionName = regionName;
             m_regionHandle = regionHandle;
+            m_regionTerraform = regionTerraform;
+            m_regionWaterHeight = regionWater;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
@@ -139,7 +143,7 @@ namespace OpenSim.world
 
         public void HandleUpdate(AgentUpdatePacket pack)
         {
-            if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_FLY) != 0)
+            if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0)
             {
                 if (this._physActor.Flying == false)
                 {
@@ -160,7 +164,7 @@ namespace OpenSim.world
                 }
                 this._physActor.Flying = false;
             }
-            if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_POS) != 0)
+            if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
             {
                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
                 if (((movementflag & 1) == 0) || (q != this.bodyRot))
@@ -194,7 +198,7 @@ namespace OpenSim.world
                     this.bodyRot = q;
                 }
             }
-            else if ((((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_UP_POS) != 0) && (PhysicsEngineFlying))
+            else if ((((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS) != 0) && (PhysicsEngineFlying))
             {
                 if (((movementflag & 2) == 0) && this._physActor.Flying)
                 {
@@ -214,7 +218,7 @@ namespace OpenSim.world
                     movementflag = 2;
                 }
             }
-            else if ((((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_UP_NEG) != 0) && (PhysicsEngineFlying))
+            else if ((((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) && (PhysicsEngineFlying))
             {
                 if (((movementflag & 4) == 0) && this._physActor.Flying)
                 {
@@ -235,7 +239,7 @@ namespace OpenSim.world
                     movementflag = 4;
                 }
             }
-            else if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.AgentUpdateFlags.AGENT_CONTROL_AT_NEG) != 0)
+            else if (((uint)pack.AgentData.ControlFlags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
             {
                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(pack.AgentData.BodyRotation.W, pack.AgentData.BodyRotation.X, pack.AgentData.BodyRotation.Y, pack.AgentData.BodyRotation.Z);
                 if (((movementflag & 8) == 0) || (q != this.bodyRot))
@@ -287,7 +291,7 @@ namespace OpenSim.world
             }
         }
 
-        //really really should be moved somewhere else
+        //really really should be moved somewhere else (RegionInfo.cs ?)
         public void SendRegionHandshake(World RegionInfo)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
@@ -306,8 +310,13 @@ namespace OpenSim.world
             handshake.RegionInfo.TerrainStartHeight10 = 10;
             handshake.RegionInfo.TerrainStartHeight11 = 10;
             handshake.RegionInfo.SimAccess = 13;
-            handshake.RegionInfo.WaterHeight = 20;
-            handshake.RegionInfo.RegionFlags = 72458694 - 32;
+            handshake.RegionInfo.WaterHeight = m_regionWaterHeight;
+            uint regionFlags = 72458694;
+            if (this.m_regionTerraform)
+            {
+                regionFlags -= 64;
+            }
+            handshake.RegionInfo.RegionFlags = regionFlags;
             handshake.RegionInfo.SimName = _enc.GetBytes(m_regionName + "\0");
             handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");
             handshake.RegionInfo.TerrainBase0 = new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");

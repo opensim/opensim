@@ -8,6 +8,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Terrain;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Utilities;
 using OpenSim.Assets;
 
 namespace OpenSim.world
@@ -44,7 +45,7 @@ namespace OpenSim.world
         {
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
             ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)packet;
-            if (Helpers.FieldToString(inchatpack.ChatData.Message) == "")
+            if (Util.FieldToString(inchatpack.ChatData.Message) == "")
             {
                 //empty message so don't bother with it
                 return true;
@@ -53,7 +54,7 @@ namespace OpenSim.world
             libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
             reply.ChatData.Audible = 1;
             reply.ChatData.Message = inchatpack.ChatData.Message;
-            reply.ChatData.ChatType = 1;
+            reply.ChatData.ChatType = inchatpack.ChatData.Type;
             reply.ChatData.SourceType = 1;
             reply.ChatData.Position = simClient.ClientAvatar.Pos;
             reply.ChatData.FromName = enc.GetBytes(simClient.ClientAvatar.firstname + " " + simClient.ClientAvatar.lastname + "\0");
@@ -61,7 +62,31 @@ namespace OpenSim.world
             reply.ChatData.SourceID = simClient.AgentID;
             foreach (SimClient client in m_clientThreads.Values)
             {
-                client.OutPacket(reply);
+                switch (inchatpack.ChatData.Type)
+                {
+                    case 0:
+                        int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X),(int)( client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                        if ((dis < 10) && (dis > -10))
+                        {
+                            client.OutPacket(reply);
+                        }
+                        break;
+                    case 1:
+                         dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                        if ((dis < 30) && (dis > -30))
+                        {
+                            client.OutPacket(reply);
+                        }
+                        break;
+                    case 2:
+                        dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X),(int)( client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                        if ((dis < 100) && (dis > -100))
+                        {
+                            client.OutPacket(reply);
+                        }
+                        break;
+                }
+                
             }
             return true;
         }
