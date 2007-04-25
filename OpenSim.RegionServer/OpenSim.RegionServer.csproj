@@ -121,9 +121,6 @@
     <Compile Include="AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ConsoleCmds.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Grid.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -143,9 +140,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SimClient.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimConsole.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="VersionInfo.cs">
@@ -187,12 +181,6 @@
     <Compile Include="world\Primitive2.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="world\ScriptEngine.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\SurfacePatch.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="world\World.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -200,9 +188,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="world\WorldScripting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\IScript.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="world\scripting\IScriptContext.cs">

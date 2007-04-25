@@ -103,7 +103,8 @@ namespace OpenSim.Framework.User
             newprofile.firstname = firstname;
             newprofile.lastname = lastname;
             newprofile.MD5passwd = MD5passwd;
-            newprofile.UUID = LLUUID.Random();	    newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
+            newprofile.UUID = LLUUID.Random();
+	    newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
             this.UserProfiles.Add(newprofile.UUID, newprofile);
             return newprofile;
         }

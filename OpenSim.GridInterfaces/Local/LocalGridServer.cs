@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.IO;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using libsecondlife;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;

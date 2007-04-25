@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 
-namespace OpenSim.Framework.Assets
+namespace OpenSim.Framework.Types
 {
     public class AssetBase
     {

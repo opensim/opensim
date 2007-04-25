@@ -25,55 +25,29 @@
 * 
 */
 
-
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
 using libsecondlife;
-using OpenSim;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {
     /// <summary>
-    /// Handles connection to Grid Servers.
-    /// also Sim to Sim connections?
+    /// ILocalStorage. Really hacked together right now needs cleaning up
     /// </summary>
-
-    public interface IGridServer
+    public interface ILocalStorage
     {
-        UUIDBlock RequestUUIDBlock();
-        NeighbourInfo[] RequestNeighbours(); //should return a array of neighbouring regions
-        AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
-        bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
-        string GetName();
-        bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port);
-        void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
-        void Close();
-    }
-    
-    public struct UUIDBlock
-    {
-        public LLUUID BlockStart;
-        public LLUUID BlockEnd;
+        void StorePrim(PrimData prim);
+        void RemovePrim(LLUUID primID);
+        void LoadPrimitives(ILocalStorageReceiver receiver);
+        float[] LoadWorld();
+        void SaveMap(float[] heightmap);
+        void ShutDown();
     }
 
-    public class AuthenticateResponse
+    public interface ILocalStorageReceiver
     {
-        public bool Authorised;
-        public Login LoginInfo;
-
-        public AuthenticateResponse()
-        {
-
-        }
-
+        void PrimFromStorage(PrimData prim);
     }
 
-    public interface IGridPlugin
-    {
-        IGridServer GetGridServer();
-    }
 }
+

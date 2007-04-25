@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Assets;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using libsecondlife;
 using libsecondlife.Packets;

@@ -41,88 +41,105 @@ using System.Xml;
 
 namespace OpenGridServices.GridServer
 {
-	/// <summary>
-	/// </summary>
-	public class SimProfileManager {
-	
-		public Dictionary<LLUUID, SimProfileBase> SimProfiles = new Dictionary<LLUUID, SimProfileBase>();
-	    private OpenGrid_Main m_gridManager;
+    /// <summary>
+    /// </summary>
+    public class SimProfileManager
+    {
 
-	    public SimProfileManager(OpenGrid_Main gridManager) {
-	        m_gridManager = gridManager;
-	    }
-		
-		public void LoadProfiles() {		// should abstract this out
-			IObjectContainer db;
-			db = Db4oFactory.OpenFile("simprofiles.yap");
-                        IObjectSet result = db.Get(typeof(SimProfileBase));
-			foreach (SimProfileBase simprof in result) {
-				SimProfiles.Add(simprof.UUID, simprof);
-			}
-			MainConsole.Instance.WriteLine("SimProfiles.Cs:LoadProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
-			db.Close();
-		}
+        public Dictionary<LLUUID, SimProfileBase> SimProfiles = new Dictionary<LLUUID, SimProfileBase>();
+        private OpenGrid_Main m_gridManager;
 
-		public SimProfileBase GetProfileByHandle(ulong reqhandle) {
-			foreach (libsecondlife.LLUUID UUID in SimProfiles.Keys) {
-				if(SimProfiles[UUID].regionhandle==reqhandle) return SimProfiles[UUID];
-			}
-			return null;
-		}
+        public SimProfileManager(OpenGrid_Main gridManager)
+        {
+            m_gridManager = gridManager;
+        }
 
-		public SimProfileBase GetProfileByLLUUID(LLUUID ProfileLLUUID) {
-			foreach (libsecondlife.LLUUID UUID in SimProfiles.Keys) {
-				if(SimProfiles[UUID].UUID==ProfileLLUUID) return SimProfiles[UUID];
-			}
-			return null;
-		}
-	
-		public bool AuthenticateSim(LLUUID RegionUUID, uint regionhandle, string simrecvkey) {
-			SimProfileBase TheSim=GetProfileByHandle(regionhandle);
-			if(TheSim != null) 
-			if(TheSim.recvkey==simrecvkey) {
-				return true;
-			} else {
-				return false;
-			} else return false;
-			
-		}
+        public void LoadProfiles()
+        {		// should abstract this out
+            IObjectContainer db;
+            db = Db4oFactory.OpenFile("simprofiles.yap");
+            IObjectSet result = db.Get(typeof(SimProfileBase));
+            foreach (SimProfileBase simprof in result)
+            {
+                SimProfiles.Add(simprof.UUID, simprof);
+            }
+            MainConsole.Instance.WriteLine("SimProfiles.Cs:LoadProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
+            db.Close();
+        }
 
-		public string GetXMLNeighbours(ulong reqhandle) {
-			string response="";
-			SimProfileBase central_region = GetProfileByHandle(reqhandle);
-			SimProfileBase neighbour;
-			for(int x=-1; x<2; x++) for(int y=-1; y<2; y++) {
-				if(GetProfileByHandle(Util.UIntsToLong((uint)((central_region.RegionLocX+x)*256), (uint)(central_region.RegionLocY+y)*256))!=null) {
-					neighbour=GetProfileByHandle(Util.UIntsToLong((uint)((central_region.RegionLocX+x)*256), (uint)(central_region.RegionLocY+y)*256));
-					response+="<neighbour>";
-					response+="<sim_ip>" + neighbour.sim_ip + "</sim_ip>";
-					response+="<sim_port>" + neighbour.sim_port.ToString() + "</sim_port>";
-					response+="<locx>" + neighbour.RegionLocX.ToString() + "</locx>";
-					response+="<locy>" + neighbour.RegionLocY.ToString() + "</locy>";
-					response+="<regionhandle>" + neighbour.regionhandle.ToString() + "</regionhandle>";
-					response+="</neighbour>";
+        public SimProfileBase GetProfileByHandle(ulong reqhandle)
+        {
+            foreach (libsecondlife.LLUUID UUID in SimProfiles.Keys)
+            {
+                if (SimProfiles[UUID].regionhandle == reqhandle) return SimProfiles[UUID];
+            }
+            return null;
+        }
 
-				}
-			}
-			return response;
-		}
+        public SimProfileBase GetProfileByLLUUID(LLUUID ProfileLLUUID)
+        {
+            foreach (libsecondlife.LLUUID UUID in SimProfiles.Keys)
+            {
+                if (SimProfiles[UUID].UUID == ProfileLLUUID) return SimProfiles[UUID];
+            }
+            return null;
+        }
 
-		public SimProfileBase CreateNewProfile(string regionname, string caps_url, string sim_ip, uint sim_port, uint RegionLocX, uint RegionLocY, string sendkey, string recvkey) {
-			SimProfileBase newprofile = new SimProfileBase();
-			newprofile.regionname=regionname;
-			newprofile.sim_ip=sim_ip;
-			newprofile.sim_port=sim_port;
-			newprofile.RegionLocX=RegionLocX;
-			newprofile.RegionLocY=RegionLocY;
-			newprofile.caps_url="http://" + sim_ip + ":9000/";
-			newprofile.sendkey=sendkey;
-			newprofile.recvkey=recvkey;
-			newprofile.regionhandle=Util.UIntsToLong((RegionLocX*256), (RegionLocY*256));
-			newprofile.UUID=LLUUID.Random();
-			this.SimProfiles.Add(newprofile.UUID,newprofile);
-			return newprofile;
-		}
+        public bool AuthenticateSim(LLUUID RegionUUID, uint regionhandle, string simrecvkey)
+        {
+            SimProfileBase TheSim = GetProfileByHandle(regionhandle);
+            if (TheSim != null)
+                if (TheSim.recvkey == simrecvkey)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            else return false;
+
+        }
+
+        public string GetXMLNeighbours(ulong reqhandle)
+        {
+            string response = "";
+            SimProfileBase central_region = GetProfileByHandle(reqhandle);
+            SimProfileBase neighbour;
+            for (int x = -1; x < 2; x++) for (int y = -1; y < 2; y++)
+                {
+                    if (GetProfileByHandle(Util.UIntsToLong((uint)((central_region.RegionLocX + x) * 256), (uint)(central_region.RegionLocY + y) * 256)) != null)
+                    {
+                        neighbour = GetProfileByHandle(Util.UIntsToLong((uint)((central_region.RegionLocX + x) * 256), (uint)(central_region.RegionLocY + y) * 256));
+                        response += "<neighbour>";
+                        response += "<sim_ip>" + neighbour.sim_ip + "</sim_ip>";
+                        response += "<sim_port>" + neighbour.sim_port.ToString() + "</sim_port>";
+                        response += "<locx>" + neighbour.RegionLocX.ToString() + "</locx>";
+                        response += "<locy>" + neighbour.RegionLocY.ToString() + "</locy>";
+                        response += "<regionhandle>" + neighbour.regionhandle.ToString() + "</regionhandle>";
+                        response += "</neighbour>";
+
+                    }
+                }
+            return response;
+        }
+
+        public SimProfileBase CreateNewProfile(string regionname, string caps_url, string sim_ip, uint sim_port, uint RegionLocX, uint RegionLocY, string sendkey, string recvkey)
+        {
+            SimProfileBase newprofile = new SimProfileBase();
+            newprofile.regionname = regionname;
+            newprofile.sim_ip = sim_ip;
+            newprofile.sim_port = sim_port;
+            newprofile.RegionLocX = RegionLocX;
+            newprofile.RegionLocY = RegionLocY;
+            newprofile.caps_url = "http://" + sim_ip + ":9000/";
+            newprofile.sendkey = sendkey;
+            newprofile.recvkey = recvkey;
+            newprofile.regionhandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
+            newprofile.UUID = LLUUID.Random();
+            this.SimProfiles.Add(newprofile.UUID, newprofile);
+            return newprofile;
+        }
 
         public XmlRpcResponse XmlRpcLoginToSimulatorMethod(XmlRpcRequest request)
         {
@@ -166,7 +183,7 @@ namespace OpenGridServices.GridServer
                             NeighbourBlock["region_locy"] = neighbour.RegionLocY.ToString();
                             NeighbourBlock["UUID"] = neighbour.UUID.ToString();
 
-			    if(neighbour.UUID!=TheSim.UUID) SimNeighboursData.Add(NeighbourBlock);
+                            if (neighbour.UUID != TheSim.UUID) SimNeighboursData.Add(NeighbourBlock);
                         }
                     }
 
@@ -177,8 +194,8 @@ namespace OpenGridServices.GridServer
                 responseData["estate_id"] = "1";
                 responseData["neighbours"] = SimNeighboursData;
 
-		responseData["sim_ip"] = TheSim.sim_ip;
-		responseData["sim_port"] = TheSim.sim_port.ToString();
+                responseData["sim_ip"] = TheSim.sim_ip;
+                responseData["sim_port"] = TheSim.sim_port.ToString();
                 responseData["asset_url"] = m_gridManager.Cfg.DefaultAssetServer;
                 responseData["asset_sendkey"] = m_gridManager.Cfg.AssetSendKey;
                 responseData["asset_recvkey"] = m_gridManager.Cfg.AssetRecvKey;
@@ -193,97 +210,103 @@ namespace OpenGridServices.GridServer
 
         public string RestSetSimMethod(string request, string path, string param)
         {
-	    Console.WriteLine("SimProfiles.cs:RestSetSimMethod() - processing request......");
+            Console.WriteLine("SimProfiles.cs:RestSetSimMethod() - processing request......");
             SimProfileBase TheSim;
             TheSim = GetProfileByLLUUID(new LLUUID(param));
-	    if ((TheSim) == null) {
-		TheSim = new SimProfileBase();
-	        LLUUID UUID = new LLUUID(param);
-	        TheSim.UUID=UUID;
-	    }
-         
+            if ((TheSim) == null)
+            {
+                TheSim = new SimProfileBase();
+                LLUUID UUID = new LLUUID(param);
+                TheSim.UUID = UUID;
+            }
+
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(request);
-	    XmlNode rootnode=doc.FirstChild;
+            XmlNode rootnode = doc.FirstChild;
             XmlNode authkeynode = rootnode.ChildNodes[0];
             if (authkeynode.Name != "authkey")
-                {
-                    return "ERROR! bad XML - expected authkey tag";
-                }
+            {
+                return "ERROR! bad XML - expected authkey tag";
+            }
 
             XmlNode simnode = rootnode.ChildNodes[1];
             if (simnode.Name != "sim")
-                {
-                    return "ERROR! bad XML - expected sim tag";
-                }
-        
+            {
+                return "ERROR! bad XML - expected sim tag";
+            }
+
             if (authkeynode.InnerText != m_gridManager.Cfg.SimRecvKey)
+            {
+                return "ERROR! invalid key";
+            }
+            for (int i = 0; i < simnode.ChildNodes.Count; i++)
+            {
+                switch (simnode.ChildNodes[i].Name)
                 {
-                    return "ERROR! invalid key";
-                }
-            for (int i = 0; i < simnode.ChildNodes.Count; i++) {
-                  switch (simnode.ChildNodes[i].Name) {
-                      case "regionname":
-                          TheSim.regionname = simnode.ChildNodes[i].InnerText;
-                      break;
+                    case "regionname":
+                        TheSim.regionname = simnode.ChildNodes[i].InnerText;
+                        break;
 
-                      case "sim_ip":
-                          TheSim.sim_ip = simnode.ChildNodes[i].InnerText;
-                      break;
+                    case "sim_ip":
+                        TheSim.sim_ip = simnode.ChildNodes[i].InnerText;
+                        break;
 
-                      case "sim_port":
-                          TheSim.sim_port = Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
-                      break;
+                    case "sim_port":
+                        TheSim.sim_port = Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
+                        break;
 
-                      case "region_locx":
-                          TheSim.RegionLocX = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
-                          TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
-                      break;
+                    case "region_locx":
+                        TheSim.RegionLocX = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+                        TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
+                        break;
 
-                      case "region_locy":
+                    case "region_locy":
                         TheSim.RegionLocY = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
                         TheSim.regionhandle = Helpers.UIntsToLong((TheSim.RegionLocX * 256), (TheSim.RegionLocY * 256));
-                      break;
-                   }
-	    }
-	    
-	    try {
-		    SimProfiles.Add(TheSim.UUID, TheSim);
-	            IObjectContainer db;
-	            db = Db4oFactory.OpenFile("simprofiles.yap");
-		    db.Set(TheSim);
-	            db.Close();
-	    	    return "OK";
-	    } catch(Exception e) {
-		    return "ERROR! could not save to database!";
-	    }
+                        break;
+                }
+            }
+
+            try
+            {
+                SimProfiles.Add(TheSim.UUID, TheSim);
+                IObjectContainer db;
+                db = Db4oFactory.OpenFile("simprofiles.yap");
+                db.Set(TheSim);
+                db.Close();
+                return "OK";
+            }
+            catch (Exception e)
+            {
+                return "ERROR! could not save to database!";
+            }
 
         }
 
-        public string RestGetRegionMethod(string request, string path, string param )
-	{
-		SimProfileBase TheSim = GetProfileByHandle((ulong)Convert.ToUInt64(param));
-		return RestGetSimMethod("", "/sims/", param);
-	}
+        public string RestGetRegionMethod(string request, string path, string param)
+        {
+            SimProfileBase TheSim = GetProfileByHandle((ulong)Convert.ToUInt64(param));
+            return RestGetSimMethod("", "/sims/", param);
+        }
 
-        public string RestSetRegionMethod(string request, string path, string param )
-	{
-		SimProfileBase TheSim = GetProfileByHandle((ulong)Convert.ToUInt64(param));
-		return RestSetSimMethod("", "/sims/", param);
-	}
+        public string RestSetRegionMethod(string request, string path, string param)
+        {
+            SimProfileBase TheSim = GetProfileByHandle((ulong)Convert.ToUInt64(param));
+            return RestSetSimMethod("", "/sims/", param);
+        }
 
-        public string RestGetSimMethod(string request, string path, string param )
+        public string RestGetSimMethod(string request, string path, string param)
         {
             string respstring = String.Empty;
 
             SimProfileBase TheSim;
             LLUUID UUID = new LLUUID(param);
             TheSim = GetProfileByLLUUID(UUID);
-            
+
             if (!(TheSim == null))
             {
-		respstring = "<Root>";                
-		respstring += "<authkey>" + m_gridManager.Cfg.SimSendKey + "</authkey>";
+                respstring = "<Root>";
+                respstring += "<authkey>" + m_gridManager.Cfg.SimSendKey + "</authkey>";
                 respstring += "<sim>";
                 respstring += "<uuid>" + TheSim.UUID.ToString() + "</uuid>";
                 respstring += "<regionname>" + TheSim.regionname + "</regionname>";
@@ -293,13 +316,13 @@ namespace OpenGridServices.GridServer
                 respstring += "<region_locy>" + TheSim.RegionLocY.ToString() + "</region_locy>";
                 respstring += "<estate_id>1</estate_id>";
                 respstring += "</sim>";
-		respstring += "</Root>";
+                respstring += "</Root>";
             }
-            
+
             return respstring;
         }
 
-	}
+    }
 
 
 }

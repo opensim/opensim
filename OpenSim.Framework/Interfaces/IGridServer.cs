@@ -24,45 +24,57 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
+
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-using System.Threading;
 using libsecondlife;
-using OpenSim.Framework.Assets;
+using OpenSim;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {
     /// <summary>
-    /// Description of IAssetServer.
+    /// Handles connection to Grid Servers.
+    /// also Sim to Sim connections?
     /// </summary>
 
-    public interface IAssetServer
+    public interface IGridServer
     {
-        void SetReceiver(IAssetReceiver receiver);
-        void RequestAsset(LLUUID assetID, bool isTexture);
-        void UpdateAsset(AssetBase asset);
-        void UploadNewAsset(AssetBase asset);
-        void SetServerInfo(string ServerUrl, string ServerKey);
+        UUIDBlock RequestUUIDBlock();
+        NeighbourInfo[] RequestNeighbours(); //should return a array of neighbouring regions
+        AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+        bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+        string GetName();
+        bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port);
+        void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
         void Close();
     }
-
-    // could change to delegate?
-    public interface IAssetReceiver
+    
+    public struct UUIDBlock
     {
-        void AssetReceived(AssetBase asset, bool IsTexture);
-        void AssetNotFound(AssetBase asset);
+        public LLUUID BlockStart;
+        public LLUUID BlockEnd;
     }
 
-    public interface IAssetPlugin
+    public class AuthenticateResponse
     {
-        IAssetServer GetAssetServer();
+        public bool Authorised;
+        public Login LoginInfo;
+
+        public AuthenticateResponse()
+        {
+
+        }
+
     }
 
-    public struct ARequest
+    public interface IGridPlugin
     {
-        public LLUUID AssetID;
-        public bool IsTexture;
+        IGridServer GetGridServer();
     }
 }

@@ -33,6 +33,7 @@ using OpenSim.Framework.User;
 using OpenSim.Framework.Grid;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
 using libsecondlife;
 
 namespace OpenSim.UserServer

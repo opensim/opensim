@@ -43,6 +43,7 @@ using OpenSim.Framework.Grid;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.User;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.UserServer
 {

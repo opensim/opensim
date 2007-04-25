@@ -33,7 +33,7 @@ using System.Collections.Generic;
 using System.Data;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Terrain;
 using BerkeleyDb;
 using Kds.Serialization;

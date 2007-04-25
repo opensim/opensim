@@ -5,7 +5,7 @@ using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Storage.LocalStorageDb4o
 {

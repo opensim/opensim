@@ -34,7 +34,7 @@ using System.IO;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.GridInterfaces.Remote
 {

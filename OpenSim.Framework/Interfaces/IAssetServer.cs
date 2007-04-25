@@ -24,30 +24,45 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-
 using System;
+using System.Net;
+using System.Net.Sockets;
+using System.IO;
+using System.Threading;
 using libsecondlife;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {
     /// <summary>
-    /// ILocalStorage. Really hacked together right now needs cleaning up
+    /// Description of IAssetServer.
     /// </summary>
-    public interface ILocalStorage
+
+    public interface IAssetServer
     {
-        void StorePrim(PrimData prim);
-        void RemovePrim(LLUUID primID);
-        void LoadPrimitives(ILocalStorageReceiver receiver);
-        float[] LoadWorld();
-        void SaveMap(float[] heightmap);
-        void ShutDown();
+        void SetReceiver(IAssetReceiver receiver);
+        void RequestAsset(LLUUID assetID, bool isTexture);
+        void UpdateAsset(AssetBase asset);
+        void UploadNewAsset(AssetBase asset);
+        void SetServerInfo(string ServerUrl, string ServerKey);
+        void Close();
     }
 
-    public interface ILocalStorageReceiver
+    // could change to delegate?
+    public interface IAssetReceiver
     {
-        void PrimFromStorage(PrimData prim);
+        void AssetReceived(AssetBase asset, bool IsTexture);
+        void AssetNotFound(AssetBase asset);
     }
 
+    public interface IAssetPlugin
+    {
+        IAssetServer GetAssetServer();
+    }
+
+    public struct ARequest
+    {
+        public LLUUID AssetID;
+        public bool IsTexture;
+    }
 }
-

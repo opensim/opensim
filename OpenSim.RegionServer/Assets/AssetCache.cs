@@ -32,7 +32,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Assets

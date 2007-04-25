@@ -6,7 +6,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Physics.Manager;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 
 namespace OpenSim.world

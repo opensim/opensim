@@ -12,7 +12,6 @@
             </resources>
             <sources failonempty="true">
                 <include name="AgentAssetUpload.cs" />
-                <include name="ConsoleCmds.cs" />
                 <include name="Grid.cs" />
                 <include name="OpenSimMain.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
@@ -20,7 +19,6 @@
                 <include name="QueItem.cs" />
                 <include name="RegionInfo.cs" />
                 <include name="SimClient.cs" />
-                <include name="SimConsole.cs" />
                 <include name="VersionInfo.cs" />
                 <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />
@@ -34,12 +32,9 @@
                 <include name="world/Entity.cs" />
                 <include name="world/Primitive.cs" />
                 <include name="world/Primitive2.cs" />
-                <include name="world/ScriptEngine.cs" />
-                <include name="world/SurfacePatch.cs" />
                 <include name="world/World.cs" />
                 <include name="world/WorldPacketHandlers.cs" />
                 <include name="world/WorldScripting.cs" />
-                <include name="world/scripting/IScript.cs" />
                 <include name="world/scripting/IScriptContext.cs" />
                 <include name="world/scripting/IScriptEntity.cs" />
                 <include name="world/scripting/IScriptHandler.cs" />

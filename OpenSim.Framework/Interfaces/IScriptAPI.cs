@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {

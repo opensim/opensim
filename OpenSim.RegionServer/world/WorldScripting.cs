@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
 using libsecondlife;
 
 namespace OpenSim.world

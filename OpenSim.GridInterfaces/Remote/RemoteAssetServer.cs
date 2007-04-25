@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.IO;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
 namespace OpenSim.GridInterfaces.Remote

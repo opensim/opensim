@@ -41,6 +41,7 @@ using libsecondlife.Packets;
 using OpenSim.world;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
 using OpenSim.UserServer;
 using OpenSim.Assets;
 using OpenSim.CAPS;
@@ -82,7 +83,7 @@ namespace OpenSim
         public string m_physicsEngine;
         public bool m_sandbox = false;
         public bool m_loginserver;
-	public OpenGridProtocolServer OGSServer;
+        public OpenGridProtocolServer OGSServer;
         public bool user_accounts = false;
         public bool gridLocalAsset = false;
 
@@ -205,8 +206,8 @@ namespace OpenSim
 
             if (gridServer.GetName() == "Remote")
             {
-		// should startup the OGS protocol server here
-		OGSServer = new OpenGridProtocolServer(8500);
+                // should startup the OGS protocol server here
+                //OGSServer = new OpenGridProtocolServer(8500);
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
                 httpServer.AddXmlRPCHandler("expect_user",
@@ -298,12 +299,13 @@ namespace OpenSim
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();
-	    
-	    if(gridServer.GetName() == "Remote") {
-	    	m_console.WriteLine("Main.cs:Startup() - Starting up OGS protocol server");
-		OGSServer.Start();
-	    }
-	    
+
+            if (gridServer.GetName() == "Remote")
+            {
+                m_console.WriteLine("Main.cs:Startup() - Starting up OGS protocol server");
+                OGSServer.Start();
+            }
+
             MainServerListener();
 
             m_heartbeatTimer.Enabled = true;
@@ -523,7 +525,7 @@ namespace OpenSim
 
                 case "terrain":
                     string result = "";
-                    if (!LocalWorld.Terrain.RunTerrainCmd(cmdparams,ref result))
+                    if (!LocalWorld.Terrain.RunTerrainCmd(cmdparams, ref result))
                     {
                         m_console.WriteLine(result);
                     }

@@ -8,11 +8,11 @@ using System.IO;
 using System.Threading;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Terrain;
 using OpenSim.Framework.Inventory;
 using OpenSim.Assets;
-using OpenSim.world.scripting;
+//using OpenSim.world.scripting;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.RegionServer.world.scripting.Scripts;
 using OpenSim.Terrain;
@@ -25,7 +25,7 @@ namespace OpenSim.world
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
-        public ScriptEngine Scripts;
+        //public ScriptEngine Scripts;
         public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         public uint _localNumber = 0;
         private PhysicsScene phyScene;

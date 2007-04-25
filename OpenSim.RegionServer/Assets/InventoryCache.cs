@@ -32,7 +32,7 @@ using OpenSim;
 using libsecondlife.Packets;
 //using OpenSim.GridServers;
 using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Assets
@@ -125,7 +125,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public LLUUID AddNewInventoryItem(SimClient remoteClient, LLUUID folderID, OpenSim.Framework.Assets.AssetBase asset)
+        public LLUUID AddNewInventoryItem(SimClient remoteClient, LLUUID folderID, OpenSim.Framework.Types.AssetBase asset)
         {
             LLUUID newItem = null;
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
@@ -161,7 +161,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public bool UpdateInventoryItemAsset(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Assets.AssetBase asset)
+        public bool UpdateInventoryItemAsset(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Types.AssetBase asset)
         {
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
             {

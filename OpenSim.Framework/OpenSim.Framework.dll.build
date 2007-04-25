@@ -11,35 +11,35 @@
             <resources prefix="OpenSim.Framework" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="AgentCiruitData.cs" />
                 <include name="AgentInventory.cs" />
-                <include name="AssetBase.cs" />
                 <include name="BlockingQueue.cs" />
                 <include name="HeightMapGenHills.cs" />
-                <include name="IAssetServer.cs" />
-                <include name="IConfig.cs" />
-                <include name="IGenericConfig.cs" />
-                <include name="IGridConfig.cs" />
-                <include name="IGridServer.cs" />
-                <include name="ILocalStorage.cs" />
-                <include name="IScriptAPI.cs" />
-                <include name="IScriptEngine.cs" />
-                <include name="IUserConfig.cs" />
-                <include name="IUserServer.cs" />
-                <include name="LocalGridBase.cs" />
-                <include name="Login.cs" />
                 <include name="LoginService.cs" />
-                <include name="NeighbourInfo.cs" />
-                <include name="OSVector3.cs" />
-                <include name="PrimData.cs" />
-                <include name="RemoteGridBase.cs" />
                 <include name="SimProfile.cs" />
                 <include name="SimProfileBase.cs" />
                 <include name="UserProfile.cs" />
                 <include name="UserProfileManager.cs" />
                 <include name="UserProfileManagerBase.cs" />
                 <include name="Util.cs" />
+                <include name="Interfaces/IAssetServer.cs" />
+                <include name="Interfaces/IConfig.cs" />
+                <include name="Interfaces/IGenericConfig.cs" />
+                <include name="Interfaces/IGridConfig.cs" />
+                <include name="Interfaces/IGridServer.cs" />
+                <include name="Interfaces/ILocalStorage.cs" />
+                <include name="Interfaces/IScriptAPI.cs" />
+                <include name="Interfaces/IScriptEngine.cs" />
+                <include name="Interfaces/IUserConfig.cs" />
+                <include name="Interfaces/IUserServer.cs" />
+                <include name="Interfaces/LocalGridBase.cs" />
+                <include name="Interfaces/RemoteGridBase.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
+                <include name="Types/AgentCiruitData.cs" />
+                <include name="Types/AssetBase.cs" />
+                <include name="Types/Login.cs" />
+                <include name="Types/NeighbourInfo.cs" />
+                <include name="Types/OSVector3.cs" />
+                <include name="Types/PrimData.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

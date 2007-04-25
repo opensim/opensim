@@ -36,7 +36,7 @@ using System.IO;
 using System.Threading;
 using System.Timers;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.world;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Inventory
 {

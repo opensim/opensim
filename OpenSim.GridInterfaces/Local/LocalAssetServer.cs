@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.IO;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Assets;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using libsecondlife;
 using Db4objects.Db4o;

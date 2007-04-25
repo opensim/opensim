@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Framework
+namespace OpenSim.Framework.Types
 {
     public class OSVector3
     {
