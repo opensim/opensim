@@ -212,7 +212,7 @@ namespace OpenSim
             if (gridServer.GetName() == "Remote")
             {
                 // should startup the OGS protocol server here
-                //OGSServer = new OpenGridProtocolServer(8500);
+                OGSServer = new OpenGridProtocolServer(8500);
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
                 httpServer.AddXmlRPCHandler("expect_user",
