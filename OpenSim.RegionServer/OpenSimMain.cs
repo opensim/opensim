@@ -86,12 +86,13 @@ namespace OpenSim
         public OpenGridProtocolServer OGSServer;
         public bool user_accounts = false;
         public bool gridLocalAsset = false;
-
+        private bool configFileSetup = false;
 
         protected ConsoleBase m_console;
 
-        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine)
+        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile)
         {
+            this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;
             m_loginserver = startLoginServer;
             m_physicsEngine = physicsEngine;
@@ -114,6 +115,10 @@ namespace OpenSim
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+            if (this.configFileSetup)
+            {
+                this.SetupFromConfigFile(this.localConfig);
             }
             m_console.WriteLine("Main.cs:Startup() - Loading configuration");
             this.regionData.InitConfig(this.m_sandbox, this.localConfig);
@@ -311,6 +316,90 @@ namespace OpenSim
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = 100;
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
+        }
+
+        private void SetupFromConfigFile(IGenericConfig configData)
+        {
+            try
+            {
+                // SandBoxMode
+                string attri = "";
+                attri = configData.GetAttribute("SandBox");
+                if (attri == "")
+                {
+                    this.m_sandbox = false;
+                    configData.SetAttribute("SandBox", "false");
+                }
+                else
+                {
+                    this.m_sandbox = Convert.ToBoolean(attri);
+                }
+
+                // LoginServer
+                attri = "";
+                attri = configData.GetAttribute("LoginServer");
+                if (attri == "")
+                {
+                    this.m_loginserver = false;
+                    configData.SetAttribute("LoginServer", "false");
+                }
+                else
+                {
+                    this.m_loginserver = Convert.ToBoolean(attri);
+                }
+
+                // Sandbox User accounts
+                attri = "";
+                attri = configData.GetAttribute("UserAccount");
+                if (attri == "")
+                {
+                    this.user_accounts = false;
+                    configData.SetAttribute("UserAccounts", "false");
+                }
+                else
+                {
+                    this.user_accounts = Convert.ToBoolean(attri);
+                }
+
+                // Grid mode hack to use local asset server
+                attri = "";
+                attri = configData.GetAttribute("LocalAssets");
+                if (attri == "")
+                {
+                    this.gridLocalAsset = false;
+                    configData.SetAttribute("LocalAssets", "false");
+                }
+                else
+                {
+                    this.gridLocalAsset = Convert.ToBoolean(attri);
+                }
+
+                 // Grid mode hack to use local asset server
+                attri = "";
+                attri = configData.GetAttribute("PhysicsEngine");
+                if (attri == "")
+                {
+                    this.m_physicsEngine = "basicphysics";
+                    configData.SetAttribute("PhysicsEngine", "basicphysics");
+                }
+                else
+                {
+                    this.m_physicsEngine = attri;
+                    if ((attri == "RealPhysX") || (attri == "OpenDynamicsEngine"))
+                    {
+                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                    }
+                    else
+                    {
+                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                    }
+                }
+                configData.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private SimConfig LoadConfigDll(string dllName)

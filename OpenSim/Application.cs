@@ -20,6 +20,7 @@ namespace OpenSim
             bool allowFlying = false;
             bool userAccounts = false;
             bool gridLocalAsset = false;
+            bool useConfigFile = false;
             
             for (int i = 0; i < args.Length; i++)
             {
@@ -50,9 +51,13 @@ namespace OpenSim
                 {
                     gridLocalAsset = true;
                 }
+                if (args[i] == "-configfile")
+                {
+                    useConfigFile = true;
+                }
             }
 
-            OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine );
+            OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine, useConfigFile);
            // OpenSimRoot.Instance.Application = sim;
             sim.m_sandbox = sandBoxMode;
             sim.user_accounts = userAccounts;
