@@ -70,7 +70,7 @@ namespace OpenSim.world
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine("World.cs - creating LandMap");
                 TerrainManager = new TerrainManager(new SecondLife());
                 Terrain = new TerrainEngine();
-                Avatar.SetupTemplate("avatar-template.dat");
+                Avatar.SetupTemplate("avatar-template2.dat");
                 //	MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
                 // Initialise this only after the world has loaded
                 //	Scripts = new ScriptEngine(this);

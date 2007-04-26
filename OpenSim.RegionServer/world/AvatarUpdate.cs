@@ -124,9 +124,9 @@ namespace OpenSim.world
             objupdate.RegionData.RegionHandle = m_regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
-
             objupdate.ObjectData[0] = AvatarTemplate;
             //give this avatar object a local id and assign the user a name
+
             objupdate.ObjectData[0].ID = this.localid;
             this.uuid = objupdate.ObjectData[0].FullID = ControllingClient.AgentID;
             objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstname + "\nLastName STRING RW SV " + lastname + " \0");
@@ -134,7 +134,6 @@ namespace OpenSim.world
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
             m_world._localNumber++;
-
             foreach (SimClient client in m_clientThreads.Values)
             {
                 client.OutPacket(objupdate);

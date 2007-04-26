@@ -102,7 +102,7 @@ namespace OpenSim.world
 
         public static void SetupTemplate(string name)
         {
-            int i = 0;
+           int i = 0;
             FileInfo fInfo = new FileInfo(name);
             long numBytes = fInfo.Length;
             FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
@@ -111,8 +111,19 @@ namespace OpenSim.world
             br.Close();
             fStream.Close();
 
-            libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
+            libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
+            SetDefaultPacketValues(objdata);
+            objdata.ObjectData = data1;
+            objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);
+            objdata.PathCurve = 16;
+            objdata.ProfileCurve = 1;
+            objdata.PathScaleX = 100;
+            objdata.PathScaleY = 100;
+            objdata.ParentID = 0;
+            objdata.OwnerID = LLUUID.Zero;
+            objdata.Scale = new LLVector3(1, 1, 1);
+            objdata.PCode = 47;
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
             libsecondlife.LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
             pos.X = 100f;
@@ -124,6 +135,29 @@ namespace OpenSim.world
             Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);
 
             Avatar.AvatarTemplate = objdata;
+        }
+
+        protected static void SetDefaultPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
+        {
+            objdata.PSBlock = new byte[0];
+            objdata.ExtraParams = new byte[1];
+            objdata.MediaURL = new byte[0];
+            objdata.NameValue = new byte[0];
+            objdata.Text = new byte[0];
+            objdata.TextColor = new byte[4];
+            objdata.JointAxisOrAnchor = new LLVector3(0, 0, 0);
+            objdata.JointPivot = new LLVector3(0, 0, 0);
+            objdata.Material = 4;
+            objdata.TextureAnim = new byte[0];
+            objdata.Sound = LLUUID.Zero;
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+            objdata.TextureEntry = ntex.ToBytes();
+            objdata.State = 0;
+            objdata.Data = new byte[0];
+
+            objdata.ObjectData = new byte[60];
+            objdata.ObjectData[46] = 128;
+            objdata.ObjectData[47] = 63;
         }
 
         public void CompleteMovement(World RegionInfo)
