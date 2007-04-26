@@ -8,6 +8,7 @@ namespace OpenSim.Framework.Console
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
+        private bool disableOutput;
 
         // STUPID HACK ALERT!!!! STUPID HACK ALERT!!!!!
         // constype - the type of console to use (see enum ConsoleType)
@@ -21,11 +22,11 @@ namespace OpenSim.Framework.Console
         // componentname - which component of the OGS system? (user, asset etc)
         // cmdparser - a reference to a conscmd_callback object
 
-        public ConsoleBase(string LogFile, string componentname, conscmd_callback cmdparser)
+        public ConsoleBase(string LogFile, string componentname, conscmd_callback cmdparser, bool disableSystemConsole )
         {
             this.componentname = componentname;
             this.cmdparser = cmdparser;
-
+            this.disableOutput = disableSystemConsole;
             System.Console.WriteLine("ServerConsole.cs - creating new local console");
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
             Log = File.AppendText(LogFile);
@@ -42,14 +43,20 @@ namespace OpenSim.Framework.Console
         public void Write(string format, params object[] args)
         {
             Log.Write(format, args);
+            if(!disableOutput)
+            {
             System.Console.Write(format, args);
+            }
             return;
         }
 
         public void WriteLine(string format, params object[] args)
         {
             Log.WriteLine(format, args);
+            if(!disableOutput)
+            {
             System.Console.WriteLine(format, args);
+            }
             return;
         }
 

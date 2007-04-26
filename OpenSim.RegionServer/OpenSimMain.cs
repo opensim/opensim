@@ -90,14 +90,14 @@ namespace OpenSim
 
         protected ConsoleBase m_console;
 
-        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile)
+        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool verbose)
         {
             this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;
             m_loginserver = startLoginServer;
             m_physicsEngine = physicsEngine;
 
-            m_console = new ConsoleBase("region-console.log", "Region", this);
+            m_console = new ConsoleBase("region-console.log", "Region", this, verbose);
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
         }
 

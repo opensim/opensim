@@ -68,7 +68,7 @@ namespace OpenGridServices.UserServer
 
         private OpenUser_Main()
         {
-            m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this);
+            m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this , false);
             MainConsole.Instance = m_console;
         }
 
