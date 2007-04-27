@@ -97,6 +97,7 @@ namespace OpenSim
             m_sandbox = sandBoxMode;
             m_loginserver = startLoginServer;
             m_physicsEngine = physicsEngine;
+            m_config = configFile;
 
             m_console = new ConsoleBase("region-console.log", "Region", this, verbose);
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
