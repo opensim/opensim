@@ -170,6 +170,8 @@ namespace OpenSim
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();
 
+            LocalWorld.m_datastore = this.regionData.DataStore;
+
             LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
             LocalWorld.LoadWorldMap();
 

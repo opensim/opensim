@@ -70,7 +70,7 @@ namespace OpenSim
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("-config: Please specify a config file.");
+                        Console.WriteLine("-config: Please specify a config file. (" + e.ToString() + ")");
                     }
                 }
             }

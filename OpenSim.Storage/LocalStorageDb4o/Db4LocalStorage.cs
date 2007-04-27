@@ -50,6 +50,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public void Initialise(string dfile)
         {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4LocalStorage Opening " + dfile);
             datastore = dfile;
             try
             {
