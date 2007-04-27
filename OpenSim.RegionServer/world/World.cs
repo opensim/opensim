@@ -44,6 +44,8 @@ namespace OpenSim.world
         private AssetCache _assetCache;
         private Mutex updateLock;
 
+        public string m_datastore;
+
         /// <summary>
         /// Creates a new World class, and a region to go with it.
         /// </summary>
@@ -257,6 +259,8 @@ namespace OpenSim.world
                             {
                                 ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                                 store = plug;
+
+                                store.Initialise(this.m_datastore);
                                 break;
                             }
 

@@ -59,6 +59,11 @@ namespace OpenSim.Storage.LocalStorageSQLite
             }
         }
 
+        public void Initialise(string file)
+        {
+            // Blank
+        }
+
         public void StorePrim(PrimData prim)
         {
             IDbCommand cmd = db.CreateCommand();

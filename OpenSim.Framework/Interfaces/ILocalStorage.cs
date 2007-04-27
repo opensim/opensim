@@ -36,6 +36,7 @@ namespace OpenSim.Framework.Interfaces
     /// </summary>
     public interface ILocalStorage
     {
+        void Initialise(string datastore);
         void StorePrim(PrimData prim);
         void RemovePrim(LLUUID primID);
         void LoadPrimitives(ILocalStorageReceiver receiver);

@@ -36,6 +36,8 @@ namespace OpenSim
         public string UserRecvKey = "";
         private bool isSandbox;
 
+        public string DataStore;
+
         public RegionInfo()
         {
 
@@ -144,6 +146,17 @@ namespace OpenSim
                 {
                     this.RegionLocY = (uint)Convert.ToUInt32(attri);
                 }
+
+                // Local storage datastore
+                attri = "";
+                attri = configData.GetAttribute("Datastore");
+                if (attri == "")
+                {
+                    string datastore = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Filename for local storage", "localworld.yap");
+                    configData.SetAttribute("Datastore", datastore);
+                    this.DataStore = datastore;
+                }
+
                 //Sim Listen Port
                 attri = "";
                 attri = configData.GetAttribute("SimListenPort");

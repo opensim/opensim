@@ -56,6 +56,11 @@ namespace OpenSim.Storage.LocalStorageBDB
             //vendorDb = (DbBTree)db.Open(null, VendorDbName, null, DbType.BTree, Db.OpenFlags.Create, 0);
         }
 
+        public void Initialise(string file)
+        {
+            // Blank
+        }
+
         public void StorePrim(PrimData prim)
         {
             DbEntry key = new DbEntry();

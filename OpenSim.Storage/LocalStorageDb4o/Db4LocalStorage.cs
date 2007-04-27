@@ -41,21 +41,28 @@ namespace OpenSim.Storage.LocalStorageDb4o
 	public class Db4LocalStorage : ILocalStorage
 	{
 		private IObjectContainer db;
+        private string datastore;
 		
 		public Db4LocalStorage()
 		{
-			try 
-			{
-				db = Db4oFactory.OpenFile("localworld.yap");
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4LocalStorage creation");
-			}
-			catch(Exception e) 
-			{
-				db.Close();
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4LocalStorage :Constructor - Exception occured");
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
-			}
+			
 		}
+
+        public void Initialise(string dfile)
+        {
+            datastore = dfile;
+            try
+            {
+                db = Db4oFactory.OpenFile(datastore);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4LocalStorage creation");
+            }
+            catch (Exception e)
+            {
+                db.Close();
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4LocalStorage :Constructor - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+            }
+        }
 		
 		public void StorePrim(PrimData prim)
 		{
