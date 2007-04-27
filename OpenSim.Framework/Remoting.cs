@@ -73,7 +73,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Generates a new challenge string to be issued to a foreign host. Challenges are 1024-bit messages generated using the Crytographic Random Number Generator.
+        /// Generates a new challenge string to be issued to a foreign host. Challenges are 1024-bit (effective strength of less than 512-bits) messages generated using the Crytographic Random Number Generator.
         /// </summary>
         /// <returns>A 128-character hexadecimal string containing the challenge.</returns>
         public static string GenerateChallenge()
