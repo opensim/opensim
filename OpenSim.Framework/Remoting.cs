@@ -73,8 +73,27 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Generates a new challenge string to be issued to a foreign host. Challenges are 1024-bit messages generated using the Crytographic Random Number Generator.
+        /// </summary>
+        /// <returns>A 128-character hexadecimal string containing the challenge.</returns>
+        public static string GenerateChallenge()
+        {
+            RNGCryptoServiceProvider RNG = new RNGCryptoServiceProvider();
+            byte[] bytes = new byte[64];
+            RNG.GetBytes(bytes);
+
+            StringBuilder sb = new StringBuilder(bytes.Length * 2);
+            foreach (byte b in bytes)
+            {
+                sb.AppendFormat("{0:x2}", b);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Helper function, merges two byte arrays
         /// </summary>
+        /// <remarks>Sourced from MSDN Forum</remarks>
         /// <param name="a">A</param>
         /// <param name="b">B</param>
         /// <returns>C</returns>
