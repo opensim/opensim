@@ -87,10 +87,11 @@ namespace OpenSim
         public bool user_accounts = false;
         public bool gridLocalAsset = false;
         private bool configFileSetup = false;
+        public string m_config;
 
         protected ConsoleBase m_console;
 
-        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool verbose)
+        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool verbose, string configFile)
         {
             this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;
@@ -109,7 +110,7 @@ namespace OpenSim
             this.regionData = new RegionInfo();
             try
             {
-                this.localConfig = new XmlConfig("simconfig.xml");
+                this.localConfig = new XmlConfig(m_config);
                 this.localConfig.LoadData();
             }
             catch (Exception e)

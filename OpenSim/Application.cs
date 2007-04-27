@@ -22,6 +22,7 @@ namespace OpenSim
             bool gridLocalAsset = false;
             bool useConfigFile = false;
             bool noverbose = false;
+            string configFile = "simconfig.xml";
             
             for (int i = 0; i < args.Length; i++)
             {
@@ -60,9 +61,21 @@ namespace OpenSim
                 {
                     noverbose = true;
                 }
+                if (args[i] == "-config")
+                {
+                    try
+                    {
+                        i++;
+                        configFile = args[i];
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("-config: Please specify a config file.");
+                    }
+                }
             }
 
-            OpenSimMain sim = new OpenSimMain( sandBoxMode, startLoginServer, physicsEngine, useConfigFile, noverbose);
+            OpenSimMain sim = new OpenSimMain(sandBoxMode, startLoginServer, physicsEngine, useConfigFile, noverbose, configFile);
            // OpenSimRoot.Instance.Application = sim;
             sim.m_sandbox = sandBoxMode;
             sim.user_accounts = userAccounts;
