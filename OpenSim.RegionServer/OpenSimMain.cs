@@ -99,7 +99,7 @@ namespace OpenSim
             m_physicsEngine = physicsEngine;
             m_config = configFile;
 
-            m_console = new ConsoleBase("region-console.log", "Region", this, verbose);
+            m_console = new ConsoleBase("region-console" + m_config + ".log", "Region", this, verbose);
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
         }
 

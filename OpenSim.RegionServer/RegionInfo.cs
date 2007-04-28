@@ -156,6 +156,10 @@ namespace OpenSim
                     configData.SetAttribute("Datastore", datastore);
                     this.DataStore = datastore;
                 }
+                else
+                {
+                    this.DataStore = attri;
+                }
 
                 //Sim Listen Port
                 attri = "";
