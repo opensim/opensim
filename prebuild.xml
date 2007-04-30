@@ -153,6 +153,35 @@
      </Files>
     </Project>
 
+ <Project name="OpenGridServices.AssetServer" path="OpenGridServices.AssetServer" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+     <ReferencePath>../bin/</ReferencePath>
+     <Reference name="System" localCopy="false"/>
+     <Reference name="System.Data" localCopy="false"/>
+     <Reference name="System.Xml" localCopy="false"/>
+     <Reference name="OpenSim.Framework"/>
+     <Reference name="OpenSim.Framework.Console"/>
+     <Reference name="OpenSim.GridInterfaces.Local"/>
+     <Reference name="OpenSim.Servers"/>
+     <Reference name="libsecondlife.dll"/>
+     <Reference name="Db4objects.Db4o.dll"/>
+     <Reference name="XMLRPC"/>
+
+     <Files>
+       <Match pattern="*.cs" recurse="true"/>
+     </Files>
+    </Project>
+
     <Project name="OpenGridServices.UserServer" path="OpenGridServices.UserServer" type="Exe">
       <Configuration name="Debug">
         <Options>

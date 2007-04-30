@@ -37,6 +37,7 @@
                 <include name="Properties/AssemblyInfo.cs" />
                 <include name="Types/AgentCiruitData.cs" />
                 <include name="Types/AssetBase.cs" />
+                <include name="Types/AssetStorage.cs" />
                 <include name="Types/Login.cs" />
                 <include name="Types/NeighbourInfo.cs" />
                 <include name="Types/OSVector3.cs" />

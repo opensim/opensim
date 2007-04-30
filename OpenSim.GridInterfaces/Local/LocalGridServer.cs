@@ -145,12 +145,5 @@ namespace OpenSim.GridInterfaces.Local
 			return (asset.UUID == _findID);
 		}
 	}
-	
-	public class AssetStorage
-	{
-		public byte[] Data;
-		public sbyte Type;
-		public string Name;
-		public LLUUID UUID;
-	}
+		
 }

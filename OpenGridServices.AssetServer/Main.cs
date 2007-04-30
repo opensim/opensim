@@ -38,22 +38,18 @@ using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.GridInterfaces.Local;		// REFACTORING IS NEEDED!!!!!!!!!!!
 using OpenSim.Servers;
 
-namespace OpenGridServices.GridServer
+namespace OpenGridServices.AssetServer
 {
     /// <summary>
     /// </summary>
-    public class OpenGrid_Main : BaseServer, conscmd_callback
+    public class OpenAsset_Main : BaseServer, conscmd_callback
     {
-        private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
-        public GridConfig Cfg;
+        private IObjectContainer db;
         
-        public static OpenGrid_Main thegrid;
-        
-        //public LLUUID highestUUID;
-
-        private SimProfileManager m_simProfileManager;
+        public static OpenAsset_Main assetserver;
 
         private ConsoleBase m_console;
 
@@ -62,10 +58,10 @@ namespace OpenGridServices.GridServer
         {
             Console.WriteLine("Starting...\n");
 
-            thegrid = new OpenGrid_Main();
-            thegrid.Startup();
+            assetserver = new OpenAsset_Main();
+            assetserver.Startup();
 
-            thegrid.Work();
+            assetserver.Work();
         }
 
         private void Work()
@@ -78,57 +74,34 @@ namespace OpenGridServices.GridServer
             }
         }
 
-        private OpenGrid_Main()
+        private OpenAsset_Main()
         {
-            m_console = new ConsoleBase("opengrid-gridserver-console.log", "OpenGrid", this, false);
+            m_console = new ConsoleBase("opengrid-AssetServer-console.log", "OpenGrid", this, false);
             MainConsole.Instance = m_console;
         }
 
         public void Startup()
         {
-            m_console.WriteLine("Main.cs:Startup() - Loading configuration");
+            /*m_console.WriteLine("Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
-            Cfg.InitConfig();
+            Cfg.InitConfig();*/
 
-            m_console.WriteLine("Main.cs:Startup() - Loading sim profiles from database");
-            m_simProfileManager = new SimProfileManager( this );
-            m_simProfileManager.LoadProfiles();
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(8001);
+            BaseHttpServer httpServer = new BaseHttpServer(8003);
 
-            httpServer.AddXmlRPCHandler("simulator_login", m_simProfileManager.XmlRpcLoginToSimulatorMethod);
-
-            httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
+            /*httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
             httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
 	    httpServer.AddRestHandler("GET", "/regions/", m_simProfileManager.RestGetRegionMethod);
-	    httpServer.AddRestHandler("POST", "/regions/", m_simProfileManager.RestSetRegionMethod);
-	    
+	    httpServer.AddRestHandler("POST", "/regions/", m_simProfileManager.RestSetRegionMethod);*/
+	    httpServer.AddRestHAndler("GET", "/assets/", this.assetGetMethod);
 
-            // lbsa71 : This code snippet taken from old http server.
-            // I have no idea what this was supposed to do - looks like an infinite recursion to me.
-            //        case "regions":
-            //// DIRTY HACK ALERT
-            //Console.WriteLine("/regions/ accessed");
-            //TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByHandle((ulong)Convert.ToUInt64(rest_params[1]));
-            //respstring = ParseREST("/regions/" + rest_params[1], requestBody, HTTPmethod);
-            //break;
-
-            // lbsa71 : I guess these were never used?
-            //Listener.Prefixes.Add("http://+:8001/gods/");
-            //Listener.Prefixes.Add("http://+:8001/highestuuid/");
-            //Listener.Prefixes.Add("http://+:8001/uuidblocks/");
 
             httpServer.Start();
 
-            m_console.WriteLine("Main.cs:Startup() - Starting sim status checker");
-
-            Timer simCheckTimer = new Timer( 300000 ); // 5 minutes
-            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
-            simCheckTimer.Enabled = true;
         }
 
-        private GridConfig LoadConfigDll(string dllName)
+        /*private GridConfig LoadConfigDll(string dllName)
         {
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
             GridConfig config = null;
@@ -154,49 +127,14 @@ namespace OpenGridServices.GridServer
             }
             pluginAssembly = null;
             return config;
-        }
-
-        public void CheckSims(object sender, ElapsedEventArgs e)
-        {
-            foreach (SimProfileBase sim in m_simProfileManager.SimProfiles.Values)
-            {
-                string SimResponse = "";
-                try
-                {
-                    WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus/");
-                    CheckSim.Method = "GET";
-                    CheckSim.ContentType = "text/plaintext";
-                    CheckSim.ContentLength = 0;
-
-                    StreamWriter stOut = new StreamWriter(CheckSim.GetRequestStream(), System.Text.Encoding.ASCII);
-                    stOut.Write("");
-                    stOut.Close();
-
-                    StreamReader stIn = new StreamReader(CheckSim.GetResponse().GetResponseStream());
-                    SimResponse = stIn.ReadToEnd();
-                    stIn.Close();
-                }
-                catch
-                {
-                }
-                
-                if (SimResponse == "OK")
-                {
-                    m_simProfileManager.SimProfiles[sim.UUID].online = true;
-                }
-                else
-                {
-                    m_simProfileManager.SimProfiles[sim.UUID].online = false;
-                }
-            }
-        }
+        }*/
 
         public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.WriteLine("shutdown - shutdown this asset server (USE CAUTION!)");
                     break;
 
                 case "shutdown":
