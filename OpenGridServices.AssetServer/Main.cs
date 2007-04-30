@@ -100,7 +100,35 @@ namespace OpenGridServices.AssetServer
         }
 
 	public string assetGetMethod(string request, string path, string param) {
-		return "";
+		byte[] assetdata=getAssetData(new LLUUID(param),false);
+		if(assetdata!=null) {
+			return System.Text.Encoding.ASCII.GetString(assetdata);
+		} else {
+			return "";
+		}
+
+	}
+
+	public byte[] getAssetData(LLUUID assetID, bool isTexture) {
+		byte[] idata = null;
+                bool found = false;
+                AssetStorage foundAsset = null;
+
+                IObjectSet result = db.Get(new AssetStorage(assetID));
+                if (result.Count > 0)
+                {
+                    foundAsset = (AssetStorage)result.Next();
+                    found = true;
+                }
+
+                if (found)
+                {
+                    return foundAsset.Data;
+                }
+                else
+                {
+                    return null;
+                }
 	}
 
 	public void setupDB() {

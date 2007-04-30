@@ -66,8 +66,8 @@ namespace OpenSim.GridInterfaces.Remote
 		// 404... THE MAGIC FILE NOT FOUND ERROR, very useful for telling you things such as a file (or asset ;) ) not being found!!!!!!!!!!! it's 2:22AM
                 ARequest req = this._assetRequests.Dequeue();
                 LLUUID assetID = req.AssetID;
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(" RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "assets/" + assetID + "/data");
-                WebRequest AssetLoad = WebRequest.Create(this.AssetServerUrl + "assets/" + assetID + "/data");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(" RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "assets/" + assetID);
+                WebRequest AssetLoad = WebRequest.Create(this.AssetServerUrl + "assets/" + assetID);
                 WebResponse AssetResponse = AssetLoad.GetResponse();
                 byte[] idata = new byte[(int)AssetResponse.ContentLength];
                 BinaryReader br = new BinaryReader(AssetResponse.GetResponseStream());
