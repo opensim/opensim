@@ -33,10 +33,12 @@ using System.Text;
 using System.Timers;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
 using OpenSim.GridInterfaces.Local;		// REFACTORING IS NEEDED!!!!!!!!!!!
 using OpenSim.Servers;
@@ -83,19 +85,13 @@ namespace OpenGridServices.AssetServer
         }
 
         public void Startup()
-        {
-            /*m_console.WriteLine("Main.cs:Startup() - Loading configuration");
-            Cfg = this.LoadConfigDll(this.ConfigDll);
-            Cfg.InitConfig();*/
-
+        {	    m_console.WriteLine("Main.cs:Startup() - Setting up asset DB");
+ 	    setupDB();	   
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8003);
 
-            /*httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
-            httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
-	    httpServer.AddRestHandler("GET", "/regions/", m_simProfileManager.RestGetRegionMethod);
-	    httpServer.AddRestHandler("POST", "/regions/", m_simProfileManager.RestSetRegionMethod);*/
+
 	    httpServer.AddRestHandler("GET", "/assets/", this.assetGetMethod);
 
 
@@ -106,6 +102,132 @@ namespace OpenGridServices.AssetServer
 	public string assetGetMethod(string request, string path, string param) {
 		return "";
 	}
+
+	public void setupDB() {
+		bool yapfile=System.IO.File.Exists("assets.yap");
+		try
+	            {
+	                db = Db4oFactory.OpenFile("assets.yap");
+	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:setupDB() - creation");
+	            }
+	        catch (Exception e)
+	            {
+	                db.Close();
+	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:setupDB() - Exception occured");
+	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+	            }
+	        if (!yapfile)
+	            {
+	                this.LoadDB();
+	            }
+	}
+
+	public void LoadDB() {
+		try
+	            {
+
+	                Console.WriteLine("setting up Asset database");
+	
+	                AssetBase Image = new AssetBase();
+	                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
+	                Image.Name = "Bricks";
+	                this.LoadAsset(Image, true, "bricks.jp2");
+	                AssetStorage store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+
+	                Image = new AssetBase();
+                	Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000002");
+	                Image.Name = "Plywood";
+	                this.LoadAsset(Image, true, "plywood.jp2");
+	                store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+
+	                Image = new AssetBase();
+	                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000003");
+	                Image.Name = "Rocks";
+	                this.LoadAsset(Image, true, "rocks.jp2");
+	                store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+
+	                Image = new AssetBase();
+	                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000004");
+                	Image.Name = "Granite";
+	                this.LoadAsset(Image, true, "granite.jp2");
+	                store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+
+	                Image = new AssetBase();
+	                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000005");
+	                Image.Name = "Hardwood";
+	                this.LoadAsset(Image, true, "hardwood.jp2");
+	                store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+
+	                Image = new AssetBase();
+	                Image.FullID = new LLUUID("00000000-0000-0000-5005-000000000005");
+	                Image.Name = "Prim Base Texture";
+	                this.LoadAsset(Image, true, "plywood.jp2");
+	                store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+
+        	        Image = new AssetBase();
+	                Image.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+	                Image.Name = "Shape";
+	                this.LoadAsset(Image, false, "base_shape.dat");
+	                store = new AssetStorage();
+	                store.Data = Image.Data;
+	                store.Name = Image.Name;
+	                store.UUID = Image.FullID;
+	                db.Set(store);
+	                db.Commit();
+	            }
+	            catch (Exception e)
+	            {
+	                Console.WriteLine(e.Message);
+	            }
+	}
+
+ 	private void LoadAsset(AssetBase info, bool image, string filename)
+        {
+
+
+            string dataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
+            string fileName = Path.Combine(dataPath, filename);
+            FileInfo fInfo = new FileInfo(fileName);
+            long numBytes = fInfo.Length;
+            FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            byte[] idata = new byte[numBytes];
+            BinaryReader br = new BinaryReader(fStream);
+            idata = br.ReadBytes((int)numBytes);
+            br.Close();
+            fStream.Close();
+            info.Data = idata;
+            //info.loaded=true;
+        }
 
         /*private GridConfig LoadConfigDll(string dllName)
         {
