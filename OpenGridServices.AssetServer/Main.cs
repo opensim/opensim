@@ -40,6 +40,8 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.GridInterfaces.Local;		// REFACTORING IS NEEDED!!!!!!!!!!!
 using OpenSim.Servers;
+using Db4objects.Db4o;
+using Db4objects.Db4o.Query;
 
 namespace OpenGridServices.AssetServer
 {
@@ -94,12 +96,16 @@ namespace OpenGridServices.AssetServer
             httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
 	    httpServer.AddRestHandler("GET", "/regions/", m_simProfileManager.RestGetRegionMethod);
 	    httpServer.AddRestHandler("POST", "/regions/", m_simProfileManager.RestSetRegionMethod);*/
-	    httpServer.AddRestHAndler("GET", "/assets/", this.assetGetMethod);
+	    httpServer.AddRestHandler("GET", "/assets/", this.assetGetMethod);
 
 
             httpServer.Start();
 
         }
+
+	public string assetGetMethod(string request, string path, string param) {
+		return "";
+	}
 
         /*private GridConfig LoadConfigDll(string dllName)
         {
