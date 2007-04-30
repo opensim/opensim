@@ -102,7 +102,7 @@ namespace OpenSim.world
 
         public static void SetupTemplate(string name)
         {
-           /*int i = 0;
+           int i = 0;
             FileInfo fInfo = new FileInfo(name);
             long numBytes = fInfo.Length;
             FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
@@ -110,12 +110,11 @@ namespace OpenSim.world
             byte[] data1 = br.ReadBytes((int)numBytes);
             br.Close();
             fStream.Close();
-            * */
-
+           
             libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
             SetDefaultPacketValues(objdata);
-            //objdata.ObjectData = data1;
+            objdata.TextureEntry = data1;
             objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);
             objdata.PathCurve = 16;
             objdata.ProfileCurve = 1;

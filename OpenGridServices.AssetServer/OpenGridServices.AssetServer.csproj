@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8ACA2445-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{0021261B-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.Framework</AssemblyName>
+    <AssemblyName>OpenGridServices.AssetServer</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.Framework</RootNamespace>
+    <RootNamespace>OpenGridServices.AssetServer</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -62,6 +62,10 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Data" >
+      <HintPath>System.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
@@ -76,6 +80,30 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+      <Name>OpenSim.Framework</Name>
+      <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+      <Name>OpenSim.Framework.Console</Name>
+      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenSim.GridInterfaces\Local\OpenSim.GridInterfaces.Local.csproj">
+      <Name>OpenSim.GridInterfaces.Local</Name>
+      <Project>{546099CD-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Servers\OpenSim.Servers.csproj">
+      <Name>OpenSim.Servers</Name>
+      <Project>{8BB20F0A-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
@@ -84,97 +112,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentInventory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="BlockingQueue.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HeightMapGenHills.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LoginService.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Remoting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfileBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManagerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Util.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IAssetServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IGenericConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IGridConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IGridServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\ILocalStorage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IScriptAPI.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IScriptEngine.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IUserConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IUserServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\LocalGridBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\RemoteGridBase.cs">
+    <Compile Include="Main.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AgentCiruitData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetStorage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\NeighbourInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\OSVector3.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\PrimData.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

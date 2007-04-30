@@ -85,7 +85,8 @@ namespace OpenGridServices.AssetServer
         }
 
         public void Startup()
-        {	    m_console.WriteLine("Main.cs:Startup() - Setting up asset DB");
+        {
+	    m_console.WriteLine("Main.cs:Startup() - Setting up asset DB");
  	    setupDB();	   
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
