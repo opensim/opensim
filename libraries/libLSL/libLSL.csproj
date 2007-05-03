@@ -33,6 +33,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="lsl.cs" />
     <Compile Include="lslscript.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
