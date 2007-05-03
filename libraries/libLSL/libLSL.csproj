@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="lsl.cs" />
+    <Compile Include="lslByteCode.cs" />
     <Compile Include="lslscript.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

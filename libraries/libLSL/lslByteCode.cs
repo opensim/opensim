@@ -74,6 +74,10 @@ namespace libLSL
                     pushBytes(getBytes(16));
                     break;
 
+                case lslOpcodes.OP_STORE:
+                    // Somefin.
+                    break;
+
                 default:
                     break;
             }
