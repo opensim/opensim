@@ -6,7 +6,7 @@ namespace libLSL
 {
     
 
-    enum lslVarType
+    enum lslVarType : byte
     {
         VARTYPE_VOID = 0,
         VARTYPE_INTEGER = 1,
@@ -18,7 +18,7 @@ namespace libLSL
         VARTYPE_LIST = 7
     }
 
-    enum lslEventType
+    enum lslEventType : byte
     {
         EVENT_STATE_ENTRY = 0,
         EVENT_STATE_EXIT = 1,
@@ -55,7 +55,7 @@ namespace libLSL
         EVENT_HTTP_RESPONSE = 32
     }
 
-    enum lslOpcodes
+    enum lslOpcodes : byte
     {
         // No Operation
         OP_NOOP = 0x00,
@@ -319,7 +319,7 @@ namespace libLSL
     class lslCodeChunk
     {
         lslCodeChunkHeader header;
-        byte[] bytecode;
+        lslByteCode bytecode;
 
         public void readFromBytes(byte[] data)
         {
