@@ -13,8 +13,8 @@ namespace libLSL
             byte ins = nextInstruction();
             lslOpcodes code = (lslOpcodes)ins;
 
-            Object arg1;
-            Object arg2;
+            Object arg1 = (Object)32;
+            Object arg2 = (Object)32;
 
             switch (code)
             {
@@ -117,7 +117,7 @@ namespace libLSL
         /// <returns>Ze bytes!</returns>
         byte[] getBytes(int num)
         {
-
+            return new byte[1];
         }
 
         /// <summary>
