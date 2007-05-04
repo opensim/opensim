@@ -184,6 +184,16 @@ namespace OpenSim
                 {
                     this.LocalWorld.m_datastore = ((string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"]);
                 }
+
+                if (((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString() != "")
+                {
+                    // The grid server has told us who we are
+                    // We must obey the grid server.
+                    regionData.RegionLocX = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locx"].ToString());
+                    regionData.RegionLocY = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locy"].ToString());
+                    regionData.RegionName = ((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString();
+                }
+
             }
 
 
@@ -224,7 +234,7 @@ namespace OpenSim
             if (gridServer.GetName() == "Remote")
             {
                 // should startup the OGS protocol server here
-                OGSServer = new OpenGridProtocolServer(8500);
+                OGSServer = new OpenGridProtocolServer(this.regionData.IPListenPort - 500); // Changed so we can have more than one OGSServer per machine.
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
                 httpServer.AddXmlRPCHandler("expect_user",

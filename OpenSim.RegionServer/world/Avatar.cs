@@ -102,7 +102,6 @@ namespace OpenSim.world
 
         public static void SetupTemplate(string name)
         {
-           int i = 0;
             FileInfo fInfo = new FileInfo(name);
             long numBytes = fInfo.Length;
             FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
