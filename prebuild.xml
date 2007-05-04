@@ -199,7 +199,6 @@
       </Files>
     </Project>
 
-
     <!-- Grid Server Plug-ins -->
     <Project name="OpenSim.GridInterfaces.Local" path="OpenSim.GridInterfaces/Local" type="Library">
       <Configuration name="Debug">
@@ -250,8 +249,55 @@
     </Project>
 
 
-    <!-- OGS projects -->
+    <!-- OpenGrid Data Services -->
+    <Project name="OpenGrid.Framework.Data" path="OpenGrid.FrameWork.Data" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
 
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="libsecondlife.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenGrid.Framework.Data.MySQL" path="OpenGrid.FrameWork.Data.MySQL" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="OpenGrid.Framework.Data"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="MySql.Data.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!-- OGS projects -->    
+    
     <Project name="OpenGridServices.GridServer" path="OpenGridServices.GridServer" type="Exe">
       <Configuration name="Debug">
         <Options>
@@ -269,9 +315,10 @@
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Servers"/>
-      <Reference name="libsecondlife.dll"/>
+     <Reference name="OpenSim.Framework.Console"/>
+     <Reference name="OpenSim.Servers"/>
+     <Reference name="OpenGrid.Framework.Data"/>
+     <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>
      <Reference name="XMLRPC"/>
 
