@@ -159,6 +159,34 @@ namespace OpenSim
 
             PacketServer packetServer = new PacketServer(this);
 
+
+            //should be passing a IGenericConfig object to these so they can read the config data they want from it
+            GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
+            IGridServer gridServer = GridServers.GridServer;
+            gridServer.SetServerInfo(regionData.GridURL, regionData.GridSendKey, regionData.GridRecvKey);
+
+            if (!m_sandbox)
+            {
+                if (GridServers.GridServer.RequestConnection(regionData.SimUUID, regionData.IPListenAddr, (uint)regionData.IPListenPort))
+                {
+                    m_console.WriteLine("Main.cs:Startup() - Success: Got a grid connection OK!");
+                }
+                else
+                {
+                    m_console.WriteLine("Main.cs:Startup() - FAILED: Unable to get connection to grid. Shutting down.");
+                    Shutdown();
+                }
+
+                GridServers.AssetServer.SetServerInfo((string)((RemoteGridBase)GridServers.GridServer).GridData["asset_url"], (string)((RemoteGridBase)GridServers.GridServer).GridData["asset_sendkey"]);
+
+                // If we are being told to load a file, load it.
+                if (((string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"]) != "")
+                {
+                    this.LocalWorld.m_datastore = ((string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"]);
+                }
+            }
+
+
             m_console.WriteLine("Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
             m_console.WriteLine("Initialising world");
             LocalWorld = new World(this._packetServer.ClientThreads, regionData.RegionHandle, regionData.RegionName);
@@ -180,26 +208,6 @@ namespace OpenSim
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); //should be reading from the config file what physics engine to use
             LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
 
-            //should be passing a IGenericConfig object to these so they can read the config data they want from it
-            GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
-            IGridServer gridServer = GridServers.GridServer;
-            gridServer.SetServerInfo(regionData.GridURL, regionData.GridSendKey, regionData.GridRecvKey);
-
-            if (!m_sandbox)
-            {
-                if (GridServers.GridServer.RequestConnection(regionData.SimUUID, regionData.IPListenAddr, (uint)regionData.IPListenPort))
-                {
-                    m_console.WriteLine("Main.cs:Startup() - Got a grid connection OK!");
-                }
-                else
-                {
-                    m_console.WriteLine("AAAAAAAAAAAAARRRRRRRRRRGGGGGGGGGGGGHHHHHHHHHHHHHHHHHHHHH!!!!!!!!!!!!!!!!!!!!");
-                    m_console.WriteLine("I LOST MY GRID!!!!!!!!!!!!! AAAAAAAARRRRRRRRGGGGGGGGHHHHHHHHHHHHHHHHHH!!!!!!!!!!!!!");
-                    Shutdown();
-                }
-
-                GridServers.AssetServer.SetServerInfo((string)((RemoteGridBase)GridServers.GridServer).GridData["asset_url"], (string)((RemoteGridBase)GridServers.GridServer).GridData["asset_sendkey"]);
-            }
 
             LocalWorld.LoadPrimsFromStorage();
 
