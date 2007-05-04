@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Types
         public byte[] ToBytes()
         {
             int i = 0;
-            byte[] bytes = new byte[121 + Texture.Length];
+            byte[] bytes = new byte[126 + Texture.Length];
             Array.Copy(OwnerID.GetBytes(), 0, bytes, i, 16); i += 16;
             bytes[i++] = this.PCode;
             bytes[i++] = (byte)(this.PathBegin % 256);
