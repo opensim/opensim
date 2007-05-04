@@ -166,6 +166,9 @@ namespace OpenGridServices.GridServer
                 responseData["user_sendkey"] = TheSim.regionUserSendKey;
                 responseData["user_recvkey"] = TheSim.regionUserRecvKey;
                 responseData["authkey"] = TheSim.regionSecret;
+
+                // New! If set, use as URL to local sim storage (ie http://remotehost/region.yap)
+                responseData["datauri"] = TheSim.regionDataURI;
             }
 
             return response;
