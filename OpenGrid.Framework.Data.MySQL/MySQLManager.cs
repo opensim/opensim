@@ -73,9 +73,33 @@ namespace OpenGrid.Framework.Data.MySQL
 
             if (reader.Read())
             {
-                retval.regionLocX = (uint)reader["locX"];
+                // Region Main
+                retval.regionHandle = (ulong)reader["regionHandle"];
+                retval.regionName = (string)reader["regionName"];
+                retval.UUID = new libsecondlife.LLUUID((string)reader["uuid"]);
+
+                // Secrets
+                retval.regionRecvKey = (string)reader["regionRecvKey"];
+                retval.regionSecret = (string)reader["regionSecret"];
+                retval.regionSendKey = (string)reader["regionSendKey"];
+
+                // Region Server
                 retval.regionDataURI = (string)reader["regionDataURI"];
-                
+                retval.regionOnline = false;
+                retval.serverIP = "";
+                retval.serverPort = 0;
+                retval.serverURI = "";
+
+                // Location
+                retval.regionLocX = (uint)((int)reader["locX"]);
+                retval.regionLocY = (uint)((int)reader["locY"]);
+                retval.regionLocZ = (uint)((int)reader["locZ"]);
+
+                // Neighbours - 0 = No Override
+                retval.regionEastOverrideHandle = (ulong)reader["eastOverrideHandle"];
+                retval.regionWestOverrideHandle = (ulong)reader["westOverrideHandle"];
+                retval.regionSouthOverrideHandle = (ulong)reader["southOverrideHandle"];
+                retval.regionNorthOverrideHandle = (ulong)reader["northOverrideHandle"];
             }
             else
             {
