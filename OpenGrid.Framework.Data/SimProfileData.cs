@@ -61,5 +61,13 @@ namespace OpenGrid.Framework.Data
         /// </summary>
         /// <remarks>Used for floating sim pools where the region data is not nessecarily coupled to a specific server</remarks>
         public string regionDataURI;
+
+        public string regionAssetURI;
+        public string regionAssetSendKey;
+        public string regionAssetRecvKey;
+
+        public string regionUserURI;
+        public string regionUserSendKey;
+        public string regionUserRecvKey;
     }
 }

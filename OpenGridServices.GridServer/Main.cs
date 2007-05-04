@@ -53,7 +53,9 @@ namespace OpenGridServices.GridServer
         
         //public LLUUID highestUUID;
 
-        private SimProfileManager m_simProfileManager;
+//        private SimProfileManager m_simProfileManager;
+
+        private GridManager m_gridManager;
 
         private ConsoleBase m_console;
 
@@ -82,6 +84,8 @@ namespace OpenGridServices.GridServer
         {
             m_console = new ConsoleBase("opengrid-gridserver-console.log", "OpenGrid", this, false);
             MainConsole.Instance = m_console;
+
+
         }
 
         public void Startup()
@@ -90,19 +94,19 @@ namespace OpenGridServices.GridServer
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            m_console.WriteLine("Main.cs:Startup() - Loading sim profiles from database");
-            m_simProfileManager = new SimProfileManager( this );
-            m_simProfileManager.LoadProfiles();
+            m_console.WriteLine("Main.cs:Startup() - Connecting to MySql Server");
+            m_gridManager = new GridManager();
+            m_gridManager.AddPlugin("OpenGrid.Framework.Data.MySQL.dll"); // Made of win
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);
 
-            httpServer.AddXmlRPCHandler("simulator_login", m_simProfileManager.XmlRpcLoginToSimulatorMethod);
+            httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
 
-            httpServer.AddRestHandler("GET", "/sims/", m_simProfileManager.RestGetSimMethod);
-            httpServer.AddRestHandler("POST", "/sims/", m_simProfileManager.RestSetSimMethod);
-	    httpServer.AddRestHandler("GET", "/regions/", m_simProfileManager.RestGetRegionMethod);
-	    httpServer.AddRestHandler("POST", "/regions/", m_simProfileManager.RestSetRegionMethod);
+            httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
+            httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);
+            httpServer.AddRestHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod);
+            httpServer.AddRestHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod);
 	    
 
             // lbsa71 : This code snippet taken from old http server.
@@ -158,6 +162,7 @@ namespace OpenGridServices.GridServer
 
         public void CheckSims(object sender, ElapsedEventArgs e)
         {
+            /*
             foreach (SimProfileBase sim in m_simProfileManager.SimProfiles.Values)
             {
                 string SimResponse = "";
@@ -189,6 +194,7 @@ namespace OpenGridServices.GridServer
                     m_simProfileManager.SimProfiles[sim.UUID].online = false;
                 }
             }
+            */
         }
 
         public void RunCmd(string cmd, string[] cmdparams)

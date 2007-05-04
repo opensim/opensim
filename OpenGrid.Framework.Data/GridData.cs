@@ -11,5 +11,7 @@ namespace OpenGrid.Framework.Data
         bool AuthenticateSim(libsecondlife.LLUUID UUID, ulong regionHandle, string simrecvkey);
         void Initialise();
         void Close();
+        string getName();
+        string getVersion();
     }
 }

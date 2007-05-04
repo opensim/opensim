@@ -25,6 +25,16 @@ namespace OpenGrid.Framework.Data.MySQL
             database.Close();
         }
 
+        public string getName()
+        {
+            return "MySql OpenGridData";
+        }
+
+        public string getVersion()
+        {
+            return "0.1";
+        }
+
         /// <summary>
         /// Returns a sim profile from it's location
         /// </summary>

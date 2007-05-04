@@ -5,6 +5,9 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Sims
 {
+    /// <summary>
+    /// Depreciated
+    /// </summary>
     public class SimProfileBase
     {
         public LLUUID UUID;
