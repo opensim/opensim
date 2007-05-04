@@ -7,12 +7,29 @@ namespace OpenGrid.Framework.Data.MySQL
 {
     public class MySQLGridData : IGridData
     {
-        MySQLManager database;
+        private MySQLManager database;
 
+        /// <summary>
+        /// Initialises the Grid Interface
+        /// </summary>
         public void Initialise()
         {
             database = new MySQLManager("localhost", "db", "user", "password", "false");
         }
+
+        /// <summary>
+        /// Shuts down the grid interface
+        /// </summary>
+        public void Close()
+        {
+            database.Close();
+        }
+
+        /// <summary>
+        /// Returns a sim profile from it's location
+        /// </summary>
+        /// <param name="handle">Region location handle</param>
+        /// <returns>Sim profile</returns>
         public SimProfileData GetProfileByHandle(ulong handle)
         {
             Dictionary<string,string> param = new Dictionary<string,string>();
@@ -27,6 +44,12 @@ namespace OpenGrid.Framework.Data.MySQL
 
             return row;
         }
+
+        /// <summary>
+        /// Returns a sim profile from it's UUID
+        /// </summary>
+        /// <param name="uuid">The region UUID</param>
+        /// <returns>The sim profile</returns>
         public SimProfileData GetProfileByLLUUID(libsecondlife.LLUUID uuid)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
@@ -41,6 +64,14 @@ namespace OpenGrid.Framework.Data.MySQL
 
             return row;
         }
+
+        /// <summary>
+        /// DEPRECIATED. Attempts to authenticate a region by comparing a shared secret.
+        /// </summary>
+        /// <param name="uuid">The UUID of the challenger</param>
+        /// <param name="handle">The attempted regionHandle of the challenger</param>
+        /// <param name="authkey">The secret</param>
+        /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
         public bool AuthenticateSim(libsecondlife.LLUUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
@@ -54,7 +85,7 @@ namespace OpenGrid.Framework.Data.MySQL
         }
 
         /// <summary>
-        /// Provides a cryptographic authentication of a region
+        /// NOT YET FUNCTIONAL. Provides a cryptographic authentication of a region
         /// </summary>
         /// <remarks>This requires a security audit.</remarks>
         /// <param name="uuid"></param>
