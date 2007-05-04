@@ -100,6 +100,16 @@ namespace OpenGrid.Framework.Data.MySQL
                 retval.regionWestOverrideHandle = (ulong)reader["westOverrideHandle"];
                 retval.regionSouthOverrideHandle = (ulong)reader["southOverrideHandle"];
                 retval.regionNorthOverrideHandle = (ulong)reader["northOverrideHandle"];
+
+                // Assets
+                retval.regionAssetURI = (string)reader["regionAssetURI"];
+                retval.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
+                retval.regionAssetSendKey = (string)reader["regionAssetSendKey"];
+
+                // Userserver
+                retval.regionUserURI = (string)reader["regionUserURI"];
+                retval.regionUserRecvKey = (string)reader["regionUserRecvKey"];
+                retval.regionUserSendKey = (string)reader["regionUserSendKey"];
             }
             else
             {
