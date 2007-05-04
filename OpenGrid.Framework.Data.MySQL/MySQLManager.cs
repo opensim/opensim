@@ -85,10 +85,10 @@ namespace OpenGrid.Framework.Data.MySQL
 
                 // Region Server
                 retval.regionDataURI = (string)reader["regionDataURI"];
-                retval.regionOnline = false;
-                retval.serverIP = "";
-                retval.serverPort = 0;
-                retval.serverURI = "";
+                retval.regionOnline = false; // Needs to be pinged before this can be set.
+                retval.serverIP = (string)reader["serverIP"];
+                retval.serverPort = (uint)reader["serverPort"];
+                retval.serverURI = (string)reader["serverURI"];
 
                 // Location
                 retval.regionLocX = (uint)((int)reader["locX"]);
@@ -103,7 +103,7 @@ namespace OpenGrid.Framework.Data.MySQL
             }
             else
             {
-                return null;
+                throw new Exception("No rows to return");
             }
             return retval;
         }

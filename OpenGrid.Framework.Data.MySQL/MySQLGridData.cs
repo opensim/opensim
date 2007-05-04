@@ -48,7 +48,9 @@ namespace OpenGrid.Framework.Data.MySQL
             if (throwHissyFit)
                 throw new Exception("CRYPTOWEAK AUTHENTICATE: Refusing to authenticate due to replay potential.");
 
-            return true;
+            SimProfileData data = GetProfileByLLUUID(uuid);
+
+            return (handle == data.regionHandle && authkey == data.regionSecret);
         }
 
         /// <summary>
