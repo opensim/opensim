@@ -278,7 +278,7 @@ namespace OpenGridServices.GridServer
             }
             catch (Exception e)
             {
-                return "ERROR! could not save to database!";
+                return "ERROR! could not save to database! (" + e.ToString() + ")";
             }
 
         }
