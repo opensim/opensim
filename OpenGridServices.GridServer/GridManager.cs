@@ -17,6 +17,10 @@ namespace OpenGridServices.GridServer
     {
         Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
 
+        /// <summary>
+        /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
+        /// </summary>
+        /// <param name="FileName">The filename to the grid server plugin DLL</param>
         public void AddPlugin(string FileName)
 		{
 			Assembly pluginAssembly = Assembly.LoadFrom(FileName);
@@ -44,7 +48,12 @@ namespace OpenGridServices.GridServer
 			
 			pluginAssembly = null; 
         }
-
+        
+        /// <summary>
+        /// Returns a region by argument
+        /// </summary>
+        /// <param name="uuid">A UUID key of the region to return</param>
+        /// <returns>A SimProfileData for the region</returns>
         public SimProfileData getRegion(libsecondlife.LLUUID uuid)
         {
             foreach(KeyValuePair<string,IGridData> kvp in _plugins) {
@@ -60,6 +69,11 @@ namespace OpenGridServices.GridServer
             return null;
         }
 
+        /// <summary>
+        /// Returns a region by argument
+        /// </summary>
+        /// <param name="uuid">A regionHandle of the region to return</param>
+        /// <returns>A SimProfileData for the region</returns>
         public SimProfileData getRegion(ulong handle)
         {
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
@@ -104,6 +118,11 @@ namespace OpenGridServices.GridServer
             return response;
         }
 
+        /// <summary>
+        /// Performed when a region connects to the grid server initially.
+        /// </summary>
+        /// <param name="request">The XMLRPC Request</param>
+        /// <returns>Startup parameters</returns>
         public XmlRpcResponse XmlRpcLoginToSimulatorMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -174,18 +193,37 @@ namespace OpenGridServices.GridServer
             return response;
         }
 
-
+        /// <summary>
+        /// Performs a REST Get Operation
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string RestGetRegionMethod(string request, string path, string param)
         {
             return RestGetSimMethod("", "/sims/", param);
         }
 
+        /// <summary>
+        /// Performs a REST Set Operation
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string RestSetRegionMethod(string request, string path, string param)
         {
             return RestSetSimMethod("", "/sims/", param);
         }
 
-
+        /// <summary>
+        /// Returns information about a sim via a REST Request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns>Information about the sim in XML</returns>
         public string RestGetSimMethod(string request, string path, string param)
         {
             string respstring = String.Empty;
@@ -213,7 +251,14 @@ namespace OpenGridServices.GridServer
             return respstring;
         }
 
-
+        /// <summary>
+        /// Creates or updates a sim via a REST Method Request
+        /// BROKEN with SQL Update
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns>"OK" or an error</returns>
         public string RestSetSimMethod(string request, string path, string param)
         {
             Console.WriteLine("SimProfiles.cs:RestSetSimMethod() - processing request......");
