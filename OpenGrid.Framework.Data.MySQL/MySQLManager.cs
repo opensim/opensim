@@ -9,6 +9,8 @@ using MySql.Data;
 using MySql.Data.Types;
 using MySql.Data.MySqlClient;
 
+using OpenGrid.Framework.Data;
+
 namespace OpenGrid.Framework.Data.MySQL
 {
     class MySQLManager
@@ -71,7 +73,8 @@ namespace OpenGrid.Framework.Data.MySQL
 
             if (reader.Read())
             {
-                //retval.regionDataURI = reader["regionDataURI"];
+                retval.regionLocX = (uint)reader["locX"];
+                retval.regionDataURI = (string)reader["regionDataURI"];
                 
             }
             else

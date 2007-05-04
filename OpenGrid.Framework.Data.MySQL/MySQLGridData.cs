@@ -15,15 +15,40 @@ namespace OpenGrid.Framework.Data.MySQL
         }
         public SimProfileData GetProfileByHandle(ulong handle)
         {
-            return new SimProfileData();
+            Dictionary<string,string> param = new Dictionary<string,string>();
+            param["handle"] = handle.ToString();
+
+            System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE handle = @handle", param);
+            System.Data.IDataReader reader = result.ExecuteReader();
+
+            SimProfileData row = database.getRow( reader );
+            reader.Close();
+            result.Dispose();
+
+            return row;
         }
         public SimProfileData GetProfileByLLUUID(libsecondlife.LLUUID uuid)
         {
-            return new SimProfileData();
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["uuid"] = uuid.ToStringHyphenated();
+
+            System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = @uuid", param);
+            System.Data.IDataReader reader = result.ExecuteReader();
+
+            SimProfileData row = database.getRow(reader);
+            reader.Close();
+            result.Dispose();
+
+            return row;
         }
         public bool AuthenticateSim(libsecondlife.LLUUID uuid, ulong handle, string authkey)
         {
-            throw new Exception("CRYPTOWEAK AUTHENTICATE: Refusing to authenticate due to replay potential.");
+            bool throwHissyFit = false; // Should be true by 1.0
+
+            if (throwHissyFit)
+                throw new Exception("CRYPTOWEAK AUTHENTICATE: Refusing to authenticate due to replay potential.");
+
+            return true;
         }
 
         /// <summary>
