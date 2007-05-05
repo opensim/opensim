@@ -1,0 +1,70 @@
+For installation notes, please read INSTALL
+
+RUNNING SANDBOX MODE (the standard way)
+
+To get up and running in sandbox mode, please start up opensim like this from the command line:
+
+(first ensure you are in the right directory)
+
+OpenSim.exe -sandbox (windows)
+
+mono OpenSim.exe -sandbox (linux/BSD/MacOS X)
+
+Then startup your second life viewer with the following parameters:
+
+-loginuri http://yourserver:9000/
+
+The method to do this is dependent upon your OS. "yourserver" will be 127.0.0.1 if you accept the defaults when starting opensim.
+
+
+RUNNING SANDBOX WITH USER ACCOUNTS
+
+* open cmd window, go to /bin and launch 
+OpenSim.exe -sandbox -loginserver -useraccounts
+
+* launch web browser, go to
+http://localhost:9000/Admin
+enter password 'Admin'
+
+* Select 'Accounts', enter credentials, press 'Create'
+
+* Now, log on thru your viewer (see above) with your newly created credentials.
+
+* Have Fun!
+
+
+PREBUILD
+
+We use Prebuild to generate vs2005 solutions and nant build scripts.
+
+=== Building Prebuild ===
+
+At the moment, the Prebuild exe is shipped as /bin/Prebuild.exe so you shouldn't really have to build it.
+
+But here's the instructions anyway :
+
+The Prebuild master project is /prebuild.xml
+
+To build it with vs2005 :
+
+* build the solution /Prebuild/Prebuild.sln
+
+To build it with nant :
+
+* cd to /Prebuild/
+* type 'nant'
+
+After you've built it, it will land in the root /bin/ directory,
+
+=== Modyfying the OpenSim solution ===
+
+When adding or changing projects, modify the prebuild.xml and then execute
+
+bin/Prebuild.exe /target {target}
+
+where target is either 
+vs2005 - to generate new vs2005 solutions and projects
+nant - to generate new nant build scripts
+
+Remember to run prebuild whenever you've added or removed files as well.
+
