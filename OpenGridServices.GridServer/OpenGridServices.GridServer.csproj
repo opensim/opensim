@@ -98,6 +98,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\OpenGrid.Framework.Data\OpenGrid.Framework.Data.csproj">
+      <Name>OpenGrid.Framework.Data</Name>
+      <Project>{62CDF671-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
@@ -106,10 +112,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.cs">
+    <Compile Include="GridManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SimProfiles.cs">
+    <Compile Include="Main.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
