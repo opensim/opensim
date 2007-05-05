@@ -39,6 +39,11 @@ namespace OpenGrid.Framework.Data.DB4o
             throw new Exception("Unable to find profile with UUID (" + uuid.ToStringHyphenated() + ")");
         }
 
+        public DataResponse AddProfile(SimProfileData profile)
+        {
+            return DataResponse.RESPONSE_OK;
+        }
+
         public bool AuthenticateSim(LLUUID uuid, ulong handle, string key) {
             if (manager.profiles[uuid].regionRecvKey == key)
                 return true;

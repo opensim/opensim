@@ -117,5 +117,58 @@ namespace OpenGrid.Framework.Data.MySQL
             }
             return retval;
         }
+
+        public bool insertRow(SimProfileData profile) {
+            string sql = "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
+            sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
+            sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey) VALUES ";
+
+            sql += "(@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, ";
+            sql += "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
+            sql += "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey);";
+
+            Dictionary<string, string> parameters = new Dictionary<string,string>();
+
+            parameters["regionHandle"] = profile.regionHandle.ToString();
+            parameters["regionName"] = profile.regionName;
+            parameters["uuid"] = profile.UUID.ToString();
+            parameters["regionRecvKey"] = profile.regionRecvKey;
+            parameters["regionSendKey"] = profile.regionSendKey;
+            parameters["regionDataURI"] = profile.regionDataURI;
+            parameters["serverIP"] = profile.serverIP;
+            parameters["serverPort"] = profile.serverPort.ToString();
+            parameters["serverURI"] = profile.serverURI;
+            parameters["locX"] = profile.regionLocX.ToString();
+            parameters["locY"] = profile.regionLocY.ToString();
+            parameters["locZ"] = profile.regionLocZ.ToString();
+            parameters["eastOverrideHandle"] = profile.regionEastOverrideHandle.ToString();
+            parameters["westOverrideHandle"] = profile.regionWestOverrideHandle.ToString();
+            parameters["northOverrideHandle"] = profile.regionNorthOverrideHandle.ToString();
+            parameters["southOverrideHandle"] = profile.regionSouthOverrideHandle.ToString();
+            parameters["regionAssetURI"] = profile.regionAssetURI;
+            parameters["regionAssetRecvKey"] = profile.regionAssetRecvKey;
+            parameters["regionAssetSendKey"] = profile.regionAssetSendKey;
+            parameters["regionUserURI"] = profile.regionUserURI;
+            parameters["regionUserRecvKey"] = profile.regionUserRecvKey;
+            parameters["regionUserSendKey"] = profile.regionUserSendKey;
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
+            return returnval;
+        }
     }
 }

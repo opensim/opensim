@@ -4,6 +4,14 @@ using System.Text;
 
 namespace OpenGrid.Framework.Data
 {
+    public enum DataResponse
+    {
+        RESPONSE_OK,
+        RESPONSE_AUTHREQUIRED,
+        RESPONSE_INVALIDCREDENTIALS,
+        RESPONSE_ERROR
+    }
+
     /// <summary>
     /// A standard grid interface
     /// </summary>
@@ -54,5 +62,12 @@ namespace OpenGrid.Framework.Data
         /// </summary>
         /// <returns>A string containing the plugin version</returns>
         string getVersion();
+
+        /// <summary>
+        /// Adds a new profile to the database
+        /// </summary>
+        /// <param name="profile">The profile to add</param>
+        /// <returns>RESPONSE_OK if successful, error if not.</returns>
+        DataResponse AddProfile(SimProfileData profile);
     }
 }

@@ -75,6 +75,18 @@ namespace OpenGrid.Framework.Data.MySQL
             return row;
         }
 
+        public DataResponse AddProfile(SimProfileData profile)
+        {
+            if (database.insertRow(profile))
+            {
+                return DataResponse.RESPONSE_OK;
+            }
+            else
+            {
+                return DataResponse.RESPONSE_ERROR;
+            }
+        }
+
         /// <summary>
         /// DEPRECIATED. Attempts to authenticate a region by comparing a shared secret.
         /// </summary>

@@ -320,7 +320,17 @@ namespace OpenGridServices.GridServer
 
             try
             {
-                // NEEDS IMPLEMENTATION.
+                foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+                {
+                    try
+                    {
+                        kvp.Value.AddProfile(TheSim);
+                    }
+                    catch (Exception e)
+                    {
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " + e.ToString());
+                    }
+                }
                 return "OK";
             }
             catch (Exception e)
