@@ -70,10 +70,6 @@
       <HintPath>System.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data.SqlClient" >
-      <HintPath>System.Data.SqlClient.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="libsecondlife.dll" >
       <HintPath>..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>

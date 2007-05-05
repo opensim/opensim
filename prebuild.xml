@@ -336,7 +336,6 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="System.Data.SqlClient"/>
       <Reference name="OpenGrid.Framework.Data"/>
       <Reference name="libsecondlife.dll"/>
       <Files>
