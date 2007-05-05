@@ -250,7 +250,7 @@
 
 
     <!-- OpenGrid Data Services -->
-    <Project name="OpenGrid.Framework.Data" path="OpenGrid.FrameWork.Data" type="Library">
+    <Project name="OpenGrid.Framework.Data" path="OpenGrid.Framework.Data" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>
@@ -272,7 +272,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenGrid.Framework.Data.MySQL" path="OpenGrid.FrameWork.Data.MySQL" type="Library">
+    <Project name="OpenGrid.Framework.Data.MySQL" path="OpenGrid.Framework.Data.MySQL" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../bin/</OutputPath>

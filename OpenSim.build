@@ -49,7 +49,9 @@
         <nant buildfile="OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="clean" />
         <nant buildfile="OpenSim.Scripting/EmbeddedJVM/OpenSim.Scripting.EmbeddedJVM.dll.build" target="clean" />
         <nant buildfile="OpenSim.Framework/OpenSim.Framework.dll.build" target="clean" />
+        <nant buildfile="OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="clean" />
         <nant buildfile="OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="clean" />
+        <nant buildfile="OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="clean" />
         <nant buildfile="XmlRpcCS/XMLRPC.dll.build" target="clean" />
         <nant buildfile="OpenSim.Servers/OpenSim.Servers.dll.build" target="clean" />
         <nant buildfile="OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="clean" />
@@ -81,6 +83,8 @@
         <nant buildfile="OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="build" />
         <nant buildfile="OpenSim.GridInterfaces/Local/OpenSim.GridInterfaces.Local.dll.build" target="build" />
         <nant buildfile="OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="build" />
+        <nant buildfile="OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="build" />
+        <nant buildfile="OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="build" />
         <nant buildfile="OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="build" />
@@ -108,7 +112,9 @@
         <nant buildfile="OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="doc" />
         <nant buildfile="OpenSim.Scripting/EmbeddedJVM/OpenSim.Scripting.EmbeddedJVM.dll.build" target="doc" />
         <nant buildfile="OpenSim.Framework/OpenSim.Framework.dll.build" target="doc" />
+        <nant buildfile="OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="doc" />
         <nant buildfile="OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="doc" />
+        <nant buildfile="OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="doc" />
         <nant buildfile="XmlRpcCS/XMLRPC.dll.build" target="doc" />
         <nant buildfile="OpenSim.Servers/OpenSim.Servers.dll.build" target="doc" />
         <nant buildfile="OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="doc" />

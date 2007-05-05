@@ -19,7 +19,6 @@
                 <include name="QueItem.cs" />
                 <include name="RegionInfo.cs" />
                 <include name="SimClient.cs" />
-                <include name="VersionInfo.cs" />
                 <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />
                 <include name="CAPS/AdminWebFront.cs" />
