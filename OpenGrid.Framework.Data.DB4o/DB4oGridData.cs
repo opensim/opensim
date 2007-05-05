@@ -41,7 +41,14 @@ namespace OpenGrid.Framework.Data.DB4o
 
         public DataResponse AddProfile(SimProfileData profile)
         {
-            return DataResponse.RESPONSE_OK;
+            if (manager.AddRow(profile))
+            {
+                return DataResponse.RESPONSE_OK;
+            }
+            else
+            {
+                return DataResponse.RESPONSE_ERROR;
+            }
         }
 
         public bool AuthenticateSim(LLUUID uuid, ulong handle, string key) {
