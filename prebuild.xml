@@ -343,6 +343,30 @@
       </Files>
     </Project>
 
+    <Project name="OpenGrid.Framework.Data.SQLite" path="OpenGrid.Framework.Data.SQLite" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Data.SQLite.dll"/>
+      <Reference name="OpenGrid.Framework.Data"/>
+      <Reference name="libsecondlife.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <!-- OGS projects -->    
     
     <Project name="OpenGridServices.GridServer" path="OpenGridServices.GridServer" type="Exe">
