@@ -41,13 +41,16 @@ namespace OpenGrid.Framework.Data.DB4o
 
         public DataResponse AddProfile(SimProfileData profile)
         {
-            if (manager.AddRow(profile))
+            lock (manager.profiles)
             {
-                return DataResponse.RESPONSE_OK;
-            }
-            else
-            {
-                return DataResponse.RESPONSE_ERROR;
+                if (manager.AddRow(profile))
+                {
+                    return DataResponse.RESPONSE_OK;
+                }
+                else
+                {
+                    return DataResponse.RESPONSE_ERROR;
+                }
             }
         }
 
