@@ -4,6 +4,7 @@
 
 export OPENSIMMAJOR=0
 export OPENSIMMINOR=1
+export BUILD=`date +%s`
 export BRANCH=DEVEL
 export SVNURL=svn://openmetaverse.org/opensim/trunk
 
@@ -17,8 +18,8 @@ export SVNURL=svn://openmetaverse.org/opensim/trunk
 ./createreldir.sh
 rm -rf build
 
-tar cvf opensim-$OPENSIMMAJOR.$OPENSIMMINOR-`date +%s`-$BRANCH.tar opensim-$OPENSIMMAJOR.$OPENSIMMINOR/*
-gzip opensim-$OPENSIMMAJOR.$OPENSIMMINOR-`date +%s`-$BRANCH.tar
+tar cvf opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar opensim-$OPENSIMMAJOR.$OPENSIMMINOR/*
+gzip opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar
 
 echo "Produced binary tarball ready for distribution."
 
