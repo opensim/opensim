@@ -188,7 +188,7 @@ namespace OpenSim.UserServer
             this.globalTexturesHash["moon_texture_id"]      = this.MoonTexture;
             this.globalTextures.Add(this.globalTexturesHash);
 
-            responseData["sim_port"]                 = this.SimPort;
+            responseData["sim_port"]                 = Int32.Parse(this.SimPort);
             responseData["sim_ip"]                   = this.SimAddress;
             responseData["agent_id"]                 = this.AgentID;
             responseData["session_id"]               = this.SessionID;
