@@ -15,6 +15,7 @@ export SVNURL=svn://openmetaverse.org/opensim/trunk
 
 ./dobuild.sh $SVNURL
 ./createreldir.sh
+rm -rf build
 
 tar cvf opensim-$OPENSIMMAJOR.$OPENSIMMINOR-`date +%s`-$BRANCH.tar opensim-$OPENSIMMAJOR.$OPENSIMMINOR/*
 gzip opensim-$OPENSIMMAJOR.$OPENSIMMINOR-`date +%s`-$BRANCH.tar
