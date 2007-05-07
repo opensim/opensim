@@ -5,8 +5,8 @@
 export OPENSIMMAJOR=0
 export OPENSIMMINOR=1
 export BUILD=`date +%s`
-export BRANCH=PRESTABLE
-export SVNURL=svn://openmetaverse.org/opensim/branches/0.1-prestable
+export BRANCH=DEVEL
+export SVNURL=svn://openmetaverse.org/opensim/trunk
 
 
 
