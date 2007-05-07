@@ -9,20 +9,20 @@ namespace OpenGrid.Framework.Data.DB4o
 {
     class DB4oGridData : IGridData
     {
-        DB4oManager manager;
+        DB4oGridManager manager;
 
         public void Initialise() {
-             manager = new DB4oManager("gridserver.yap");
+             manager = new DB4oGridManager("gridserver.yap");
         }
 
         public SimProfileData GetProfileByHandle(ulong handle) {
-            lock (manager.profiles)
+            lock (manager.simProfiles)
             {
-                foreach (LLUUID UUID in manager.profiles.Keys)
+                foreach (LLUUID UUID in manager.simProfiles.Keys)
                 {
-                    if (manager.profiles[UUID].regionHandle == handle)
+                    if (manager.simProfiles[UUID].regionHandle == handle)
                     {
-                        return manager.profiles[UUID];
+                        return manager.simProfiles[UUID];
                     }
                 }
             }
@@ -31,17 +31,17 @@ namespace OpenGrid.Framework.Data.DB4o
 
         public SimProfileData GetProfileByLLUUID(LLUUID uuid)
         {
-            lock (manager.profiles)
+            lock (manager.simProfiles)
             {
-                if (manager.profiles.ContainsKey(uuid))
-                    return manager.profiles[uuid];
+                if (manager.simProfiles.ContainsKey(uuid))
+                    return manager.simProfiles[uuid];
             }
             throw new Exception("Unable to find profile with UUID (" + uuid.ToStringHyphenated() + ")");
         }
 
         public DataResponse AddProfile(SimProfileData profile)
         {
-            lock (manager.profiles)
+            lock (manager.simProfiles)
             {
                 if (manager.AddRow(profile))
                 {
@@ -55,7 +55,7 @@ namespace OpenGrid.Framework.Data.DB4o
         }
 
         public bool AuthenticateSim(LLUUID uuid, ulong handle, string key) {
-            if (manager.profiles[uuid].regionRecvKey == key)
+            if (manager.simProfiles[uuid].regionRecvKey == key)
                 return true;
             return false;
         }

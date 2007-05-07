@@ -16,6 +16,7 @@ namespace OpenGridServices.GridServer
     class GridManager
     {
         Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
+        public string defaultRecvKey;
 
         /// <summary>
         /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
@@ -23,27 +24,26 @@ namespace OpenGridServices.GridServer
         /// <param name="FileName">The filename to the grid server plugin DLL</param>
         public void AddPlugin(string FileName)
 		{
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Attempting to load " + FileName);
 			Assembly pluginAssembly = Assembly.LoadFrom(FileName);
-			
+
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
 			foreach (Type pluginType in pluginAssembly.GetTypes())
 			{
-				if (pluginType.IsPublic) 
-				{
-					if (!pluginType.IsAbstract)  
-					{
-                        Type typeInterface = pluginType.GetInterface("IGridData", true);
-						
-						if (typeInterface != null)
-						{
-                            IGridData plug = (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            plug.Initialise();
-							this._plugins.Add(plug.getName(),plug);
-							
-						}	
-						
-						typeInterface = null; 			
-					}				
-				}			
+                if (!pluginType.IsAbstract)
+                {
+                    Type typeInterface = pluginType.GetInterface("IGridData", true);
+
+                    if (typeInterface != null)
+                    {
+                        IGridData plug = (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        plug.Initialise();
+                        this._plugins.Add(plug.getName(), plug);
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Added IGridData Interface");
+                    }
+
+                    typeInterface = null;
+                }
 			}
 			
 			pluginAssembly = null; 
@@ -63,7 +63,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("getRegionPlugin UUID " + kvp.Key + " is made of fail: " + e.ToString());
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -84,7 +84,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("getRegionPlugin Handle " + kvp.Key + " is made of fail: " + e.ToString());
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -269,6 +269,7 @@ namespace OpenGridServices.GridServer
                 TheSim = new SimProfileData();
                 LLUUID UUID = new LLUUID(param);
                 TheSim.UUID = UUID;
+                TheSim.regionRecvKey = defaultRecvKey;
             }
 
             XmlDocument doc = new XmlDocument();
@@ -320,11 +321,13 @@ namespace OpenGridServices.GridServer
 
             try
             {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Attempting to add a new region to the grid - " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
                     try
                     {
                         kvp.Value.AddProfile(TheSim);
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("New sim added to grid (" + TheSim.regionName + ")");
                     }
                     catch (Exception e)
                     {

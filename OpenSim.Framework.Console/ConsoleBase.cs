@@ -43,6 +43,7 @@ namespace OpenSim.Framework.Console
         public void Write(string format, params object[] args)
         {
             Log.Write(format, args);
+	    Log.Flush();
             if(!disableOutput)
             {
             System.Console.Write(format, args);
@@ -53,7 +54,8 @@ namespace OpenSim.Framework.Console
         public void WriteLine(string format, params object[] args)
         {
             Log.WriteLine(format, args);
-            if(!disableOutput)
+            Log.Flush();
+	    if(!disableOutput)
             {
             System.Console.WriteLine(format, args);
             }

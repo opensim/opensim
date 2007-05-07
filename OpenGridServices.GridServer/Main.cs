@@ -47,6 +47,7 @@ namespace OpenGridServices.GridServer
     public class OpenGrid_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
+        private string GridDll = "OpenGrid.Framework.Data.DB4o.dll";
         public GridConfig Cfg;
         
         public static OpenGrid_Main thegrid;
@@ -94,9 +95,10 @@ namespace OpenGridServices.GridServer
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            m_console.WriteLine("Main.cs:Startup() - Connecting to MySql Server");
+            m_console.WriteLine("Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
-            m_gridManager.AddPlugin("OpenGrid.Framework.Data.MySQL.dll"); // Made of win
+            m_gridManager.AddPlugin(GridDll); // Made of win
+            m_gridManager.defaultRecvKey = Cfg.SimRecvKey;
 
             m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);

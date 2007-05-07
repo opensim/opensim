@@ -150,12 +150,28 @@ namespace OpenSim
                 m_console.WriteLine("Starting in Grid mode");
             }
 
-            GridServers.Initialise();
+            try
+            {
+                GridServers.Initialise();
+            }
+            catch (Exception e)
+            {
+                m_console.WriteLine(e.Message + "\nSorry, could not setup the grid interface");
+                Environment.Exit(1);
+            }
 
             startuptime = DateTime.Now;
 
-            AssetCache = new AssetCache(GridServers.AssetServer);
-            InventoryCache = new InventoryCache();
+            try
+            {
+                AssetCache = new AssetCache(GridServers.AssetServer);
+                InventoryCache = new InventoryCache();
+            }
+            catch (Exception e)
+            {
+                m_console.WriteLine(e.Message + "\nSorry, could not setup local cache");
+                Environment.Exit(1);
+            }
 
             PacketServer packetServer = new PacketServer(this);
 
@@ -189,9 +205,17 @@ namespace OpenSim
                 {
                     // The grid server has told us who we are
                     // We must obey the grid server.
-                    regionData.RegionLocX = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locx"].ToString());
-                    regionData.RegionLocY = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locy"].ToString());
-                    regionData.RegionName = ((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString();
+                    try
+                    {
+                        regionData.RegionLocX = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locx"].ToString());
+                        regionData.RegionLocY = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locy"].ToString());
+                        regionData.RegionName = ((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString();
+                    }
+                    catch (Exception e)
+                    {
+                        m_console.WriteLine(e.Message + "\nBAD ERROR! THIS SHOULD NOT HAPPEN! Bad GridData from the grid interface!!!! ZOMG!!!");
+                        Environment.Exit(1);
+                    }
                 }
 
             }
@@ -234,6 +258,7 @@ namespace OpenSim
             if (gridServer.GetName() == "Remote")
             {
                 // should startup the OGS protocol server here
+                // Are we actually using this?
                 OGSServer = new OpenGridProtocolServer(this.regionData.IPListenPort - 500); // Changed so we can have more than one OGSServer per machine.
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
@@ -347,7 +372,7 @@ namespace OpenSim
                 // SandBoxMode
                 string attri = "";
                 attri = configData.GetAttribute("SandBox");
-                if (attri == "")
+                if ((attri == "") || ((attri != "false") && (attri != "true")))
                 {
                     this.m_sandbox = false;
                     configData.SetAttribute("SandBox", "false");
@@ -360,7 +385,7 @@ namespace OpenSim
                 // LoginServer
                 attri = "";
                 attri = configData.GetAttribute("LoginServer");
-                if (attri == "")
+                if ((attri == "") || ((attri != "false") && (attri != "true")))
                 {
                     this.m_loginserver = false;
                     configData.SetAttribute("LoginServer", "false");
@@ -373,12 +398,12 @@ namespace OpenSim
                 // Sandbox User accounts
                 attri = "";
                 attri = configData.GetAttribute("UserAccount");
-                if (attri == "")
+                if ((attri == "") || ((attri != "false") && (attri != "true")))
                 {
                     this.user_accounts = false;
                     configData.SetAttribute("UserAccounts", "false");
                 }
-                else
+                else if (attri == "true")
                 {
                     this.user_accounts = Convert.ToBoolean(attri);
                 }
@@ -386,70 +411,96 @@ namespace OpenSim
                 // Grid mode hack to use local asset server
                 attri = "";
                 attri = configData.GetAttribute("LocalAssets");
-                if (attri == "")
+                if ((attri == "") || ((attri != "false") && (attri != "true")))
                 {
                     this.gridLocalAsset = false;
                     configData.SetAttribute("LocalAssets", "false");
                 }
-                else
+                else if (attri == "true")
                 {
                     this.gridLocalAsset = Convert.ToBoolean(attri);
                 }
 
-                // Grid mode hack to use local asset server
+
                 attri = "";
                 attri = configData.GetAttribute("PhysicsEngine");
-                if (attri == "")
+                switch (attri)
                 {
-                    this.m_physicsEngine = "basicphysics";
-                    configData.SetAttribute("PhysicsEngine", "basicphysics");
-                }
-                else
-                {
-                    this.m_physicsEngine = attri;
-                    if ((attri == "RealPhysX") || (attri == "OpenDynamicsEngine"))
-                    {
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
-                    }
-                    else
-                    {
+                    default:
+                        m_console.WriteLine("Main.cs: SetupFromConfig() - Invalid value for PhysicsEngine attribute, terminating");
+                        Environment.Exit(1);
+                        break;
+
+                    case "":
+                        this.m_physicsEngine = "basicphysics";
+                        configData.SetAttribute("PhysicsEngine", "basicphysics");
                         OpenSim.world.Avatar.PhysicsEngineFlying = false;
-                    }
+                        break;
+
+                    case "basicphysics":
+                        this.m_physicsEngine = "basicphysics";
+                        configData.SetAttribute("PhysicsEngine", "basicphysics");
+                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        break;
+
+                    case "RealPhysX":
+                        this.m_physicsEngine = "RealPhysX";
+                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        break;
+
+                    case "OpenDynamicsEngine":
+                        this.m_physicsEngine = "OpenDynamicsEngine";
+                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        break;
                 }
+
                 configData.Commit();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+                Console.WriteLine("\nSorry, a fatal error occurred while trying to initialise the configuration data");
+                Console.WriteLine("Can not continue starting up");
+                Environment.Exit(1);
             }
         }
 
         private SimConfig LoadConfigDll(string dllName)
         {
-            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-            SimConfig config = null;
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            try
             {
-                if (pluginType.IsPublic)
+                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+                SimConfig config = null;
+
+                foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
-                    if (!pluginType.IsAbstract)
+                    if (pluginType.IsPublic)
                     {
-                        Type typeInterface = pluginType.GetInterface("ISimConfig", true);
-
-                        if (typeInterface != null)
+                        if (!pluginType.IsAbstract)
                         {
-                            ISimConfig plug = (ISimConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            config = plug.GetConfigObject();
-                            break;
-                        }
+                            Type typeInterface = pluginType.GetInterface("ISimConfig", true);
 
-                        typeInterface = null;
+                            if (typeInterface != null)
+                            {
+                                ISimConfig plug = (ISimConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                config = plug.GetConfigObject();
+                                break;
+                            }
+
+                            typeInterface = null;
+                        }
                     }
                 }
+                pluginAssembly = null;
+                return config;
             }
-            pluginAssembly = null;
-            return config;
+            catch (Exception e)
+            {
+                m_console.WriteLine(e.Message + "\nSorry, a fatal error occurred while trying to load the config DLL");
+                m_console.WriteLine("Can not continue starting up");
+                Environment.Exit(1);
+                return null;
+            }
         }
 
         private void OnReceivedData(IAsyncResult result)
