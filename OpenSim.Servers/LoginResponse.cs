@@ -87,11 +87,16 @@ namespace OpenSim.UserServer
         private XmlRpcResponse defaultXmlRpcResponse;
         private string defaultTextResponse;
 
-        public LoginResponse()
+        private uint regionX;
+        private uint regionY;
+
+        public LoginResponse(uint regX, uint regY)
         {
             this.loginFlags = new ArrayList();
             this.globalTextures = new ArrayList();
             this.SetDefaultValues();
+            regionX = regX;
+            regionY = regY;
         } // LoginServer
 
         // This will go away as we replace new-login.dat:
@@ -197,6 +202,8 @@ namespace OpenSim.UserServer
             responseData["seconds_since_epoch"]      = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             responseData["login-flags"]              = this.loginFlags;
             responseData["global-textures"]          = this.globalTextures;
+            responseData["region_y"] = (Int32)regionY * 256;
+            responseData["region_x"] = (Int32)regionX * 256;
 
             return (this.xmlRpcResponse);
 

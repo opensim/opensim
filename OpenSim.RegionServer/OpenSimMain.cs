@@ -330,7 +330,7 @@ namespace OpenSim
             bool sandBoxWithLoginServer = m_loginserver && m_sandbox;
             if (sandBoxWithLoginServer)
             {
-                loginServer = new LoginServer(gridServer, regionData.IPListenAddr, regionData.IPListenPort, this.user_accounts);
+                loginServer = new LoginServer(gridServer, regionData.IPListenAddr, regionData.IPListenPort,regionData.RegionLocX, regionData.RegionLocY, this.user_accounts);
                 loginServer.Startup();
 
                 if (user_accounts)

@@ -62,6 +62,8 @@ namespace OpenSim.UserServer
         private LocalUserProfileManager userManager;
         private int m_simPort;
         private string m_simAddr;
+        private uint regionX;
+        private uint regionY;
 
         public LocalUserProfileManager LocalUserManager
         {
@@ -71,11 +73,13 @@ namespace OpenSim.UserServer
             }
         }
 
-        public LoginServer(IGridServer gridServer, string simAddr, int simPort, bool useAccounts)
+        public LoginServer(IGridServer gridServer, string simAddr, int simPort, uint regX, uint regY, bool useAccounts)
         {
             m_gridServer = gridServer;
             m_simPort = simPort;
             m_simAddr = simAddr;
+            regionX = regX;
+            regionY = regY;
             this.userAccounts = useAccounts;
         }
 
@@ -97,7 +101,7 @@ namespace OpenSim.UserServer
 
             this._mpasswd = EncodePassword("testpass");
 
-            userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr);
+            userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr, regionX, regionY);
             //userManager.InitUserProfiles();
             userManager.SetKeys("", "", "", "Welcome to OpenSim");
         }
@@ -112,7 +116,7 @@ namespace OpenSim.UserServer
             LLUUID Agent;
             LLUUID Session;
 
-            LoginResponse loginResponse = new LoginResponse();
+            LoginResponse loginResponse = new LoginResponse(regionX, regionY);
 
             //get login name
             if (requestData.Contains("first"))

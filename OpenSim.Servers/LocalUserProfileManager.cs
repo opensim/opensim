@@ -43,12 +43,16 @@ namespace OpenSim.UserServer
         private IGridServer m_gridServer;
         private int m_port;
         private string m_ipAddr;
+        private uint regionX;
+        private uint regionY;
 
-        public LocalUserProfileManager(IGridServer gridServer, int simPort, string ipAddr)
+        public LocalUserProfileManager(IGridServer gridServer, int simPort, string ipAddr , uint regX, uint regY)
 		{
 			m_gridServer = gridServer;
             m_port = simPort;
             m_ipAddr = ipAddr;
+            regionX = regX;
+            regionY = regY;
 		}
 
         public override void InitUserProfiles()
@@ -63,8 +67,8 @@ namespace OpenSim.UserServer
             response["home"] = "{'region_handle':[r" + (997 * 256).ToString() + ",r" + (996 * 256).ToString() + "], 'position':[r" + theUser.homepos.X.ToString() + ",r" + theUser.homepos.Y.ToString() + ",r" + theUser.homepos.Z.ToString() + "], 'look_at':[r" + theUser.homelookat.X.ToString() + ",r" + theUser.homelookat.Y.ToString() + ",r" + theUser.homelookat.Z.ToString() + "]}";
             response["sim_port"] = m_port;
             response["sim_ip"] = m_ipAddr;
-            response["region_y"] = (Int32)996 * 256;
-            response["region_x"] = (Int32)997* 256;
+            response["region_y"] = (Int32)regionY* 256;
+            response["region_x"] = (Int32)regionX* 256;
 
             string first;
             string last;
