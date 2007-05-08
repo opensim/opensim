@@ -1,0 +1,120 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B87682F6-B2D7-4C4D-A529-400C24FD4880}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>libsecondlife.TestClient</RootNamespace>
+    <AssemblyName>TestClient</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Speech, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Arguments.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="Commands\AppearanceCommand.cs" />
+    <Compile Include="Commands\CloneProfileCommand.cs" />
+    <Compile Include="Commands\DebugCommand.cs" />
+    <Compile Include="Commands\DumpOutfitCommand.cs" />
+    <Compile Include="Commands\ExportParticlesCommand.cs" />
+    <Compile Include="Commands\Inventory\BalanceCommand.cs" />
+    <Compile Include="Commands\Inventory\DeleteFolderCommand.cs" />
+    <Compile Include="Commands\Inventory\GiveAllCommand.cs" />
+    <Compile Include="Commands\Inventory\WearCommand.cs" />
+    <Compile Include="Commands\Inventory\InventoryCommand.cs" />
+    <Compile Include="Commands\ExportOutfitCommand.cs" />
+    <Compile Include="Commands\FindSimCommand.cs" />
+    <Compile Include="Commands\ImportOutfitCommand.cs" />
+    <Compile Include="Commands\LoginCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Commands\LogoutCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Commands\Communication\EchoMasterCommand.cs" />
+    <Compile Include="Commands\Communication\IMCommand.cs" />
+    <Compile Include="Commands\Communication\SayCommand.cs" />
+    <Compile Include="Commands\Communication\ShoutCommand.cs" />
+    <Compile Include="Commands\Communication\WhisperCommand.cs" />
+    <Compile Include="Commands\MD5Command.cs" />
+    <Compile Include="Commands\Movement\FollowCommand.cs" />
+    <Compile Include="Commands\Movement\GotoCommand.cs" />
+    <Compile Include="Commands\Movement\JumpCommand.cs" />
+    <Compile Include="Commands\Movement\LocationCommand.cs" />
+    <Compile Include="Commands\Movement\SitCommand.cs" />
+    <Compile Include="Commands\PacketLogCommand.cs" />
+    <Compile Include="Commands\ParcelInfoCommand.cs" />
+    <Compile Include="Commands\QuitCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Commands\RegionInfoCommand.cs" />
+    <Compile Include="Commands\SetMasterCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Commands\ExportCommand.cs" />
+    <Compile Include="Commands\ImportCommand.cs" />
+    <Compile Include="Commands\LoadCommand.cs" />
+    <Compile Include="Commands\PrimCountCommand.cs" />
+    <Compile Include="Commands\SetMasterKeyCommand.cs" />
+    <Compile Include="Commands\ShowEffectsCommand.cs" />
+    <Compile Include="Commands\StatsCommand.cs" />
+    <Compile Include="Commands\TouchCommand.cs" />
+    <Compile Include="Commands\TreeCommand.cs" />
+    <Compile Include="Commands\UptimeCommand.cs" />
+    <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="ClientManager.cs" />
+    <Compile Include="Commands\WhoCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parsing.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="TestClient.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\openjpegnet\openjpegnet.csproj">
+      <Project>{D0DCFDCB-71FA-4343-A8D1-24D4665A94A4}</Project>
+      <Name>openjpegnet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libsecondlife.csproj">
+      <Project>{D9CDEDFB-8169-4B03-B57F-0DF638F044EC}</Project>
+      <Name>libsecondlife</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libsecondlife.Utilities\libsecondlife.Utilities.csproj">
+      <Project>{CE5E06C2-2428-416B-ADC1-F1FE16A0FB27}</Project>
+      <Name>libsecondlife.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,5 @@
+This is a fork of TestClient from the main libsl project, it is not built as a normal part of the opensim release and is designed to allow migration of avatars from the main LL grid to an OGS system.
+
+It's essentially a "good CopyBot" - before an avatar is copied consent is taken and the avatar data is exported out to the remote grid via a web service. The bot is designed to be evoked remotely via an LSL script in-world.
+
+THE AUTHOR ACCEPTS NO RESPONSIBILITY WHATSOEVER FOR ANY POTENTIALLY INFRINGING USES OF THIS CODE.
