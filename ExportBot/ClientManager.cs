@@ -70,6 +70,18 @@ namespace libsecondlife.TestClient
                 Login(account);
             }
         }
+
+	public string ExportAvatarRestMethod( string request, string path, string param )
+        {
+		Console.WriteLine("Got a request to export an avatar!");
+		Console.WriteLine("Executing cloneprofile " + param);
+		DoCommandAll("cloneprofile " + param, null, null);
+		DoCommandAll("say copied avatar, preparing to upload to remote server...", null, null);
+		return "OK";
+		
+	}
+
+
         /// <summary>
         /// 
         /// </summary>

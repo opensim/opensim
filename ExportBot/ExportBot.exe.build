@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<project name="ExportBot" default="build">
+    <target name="build">
+        <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
+        <mkdir dir="${project::get-base-directory()}/${build.dir}" />
+        <copy todir="${project::get-base-directory()}/${build.dir}">
+            <fileset basedir="${project::get-base-directory()}">
+            </fileset>
+        </copy>
+        <csc target="exe" debug="${build.debug}" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.exe">
+            <resources prefix="ExportBot" dynamicprefix="true" >
+            </resources>
+            <sources failonempty="true">
+                <include name="Arguments.cs" />
+                <include name="ClientManager.cs" />
+                <include name="Command.cs" />
+                <include name="Parsing.cs" />
+                <include name="Program.cs" />
+                <include name="TestClient.cs" />
+                <include name="Commands/AppearanceCommand.cs" />
+                <include name="Commands/CloneProfileCommand.cs" />
+                <include name="Commands/DebugCommand.cs" />
+                <include name="Commands/DilationCommand.cs" />
+                <include name="Commands/DumpOutfitCommand.cs" />
+                <include name="Commands/ExportCommand.cs" />
+                <include name="Commands/ExportOutfitCommand.cs" />
+                <include name="Commands/ExportParticlesCommand.cs" />
+                <include name="Commands/FindSimCommand.cs" />
+                <include name="Commands/HelpCommand.cs" />
+                <include name="Commands/ImportCommand.cs" />
+                <include name="Commands/ImportOutfitCommand.cs" />
+                <include name="Commands/LoadCommand.cs" />
+                <include name="Commands/LoginCommand.cs" />
+                <include name="Commands/LogoutCommand.cs" />
+                <include name="Commands/MD5Command.cs" />
+                <include name="Commands/PacketLogCommand.cs" />
+                <include name="Commands/ParcelInfoCommand.cs" />
+                <include name="Commands/PrimCountCommand.cs" />
+                <include name="Commands/QuitCommand.cs" />
+                <include name="Commands/RegionInfoCommand.cs" />
+                <include name="Commands/SetMasterCommand.cs" />
+                <include name="Commands/SetMasterKeyCommand.cs" />
+                <include name="Commands/ShowEffectsCommand.cs" />
+                <include name="Commands/StatsCommand.cs" />
+                <include name="Commands/TouchCommand.cs" />
+                <include name="Commands/TreeCommand.cs" />
+                <include name="Commands/UptimeCommand.cs" />
+                <include name="Commands/WhoCommand.cs" />
+                <include name="Commands/Communication/EchoMasterCommand.cs" />
+                <include name="Commands/Communication/IMCommand.cs" />
+                <include name="Commands/Communication/SayCommand.cs" />
+                <include name="Commands/Communication/ShoutCommand.cs" />
+                <include name="Commands/Communication/WhisperCommand.cs" />
+                <include name="Commands/Inventory/BalanceCommand.cs" />
+                <include name="Commands/Inventory/DeleteFolderCommand.cs" />
+                <include name="Commands/Inventory/GiveAllCommand.cs" />
+                <include name="Commands/Inventory/InventoryCommand.cs" />
+                <include name="Commands/Inventory/WearCommand.cs" />
+                <include name="Commands/Movement/FollowCommand.cs" />
+                <include name="Commands/Movement/GotoCommand.cs" />
+                <include name="Commands/Movement/JumpCommand.cs" />
+                <include name="Commands/Movement/LocationCommand.cs" />
+                <include name="Commands/Movement/MoveToCommand.cs" />
+                <include name="Commands/Movement/SitCommand.cs" />
+                <include name="Commands/Movement/SitOnCommand.cs" />
+                <include name="Commands/Movement/StandCommand.cs" />
+                <include name="Properties/AssemblyInfo.cs" />
+            </sources>
+            <references basedir="${project::get-base-directory()}">
+                <lib>
+                    <include name="${project::get-base-directory()}" />
+                    <include name="${project::get-base-directory()}/${build.dir}" />
+                </lib>
+                <include name="System.dll" />
+                <include name="System.Xml.dll" />
+                <include name="../bin/libsecondlife.dll" />
+                <include name="../bin/openjpegnet.dll" />
+                <include name="../bin/OpenSim.Framework.dll" />
+                <include name="../bin/OpenSim.Framework.Console.dll" />
+                <include name="../bin/OpenSim.Servers.dll" />
+            </references>
+        </csc>
+        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/" />
+        <mkdir dir="${project::get-base-directory()}/../bin/"/>
+        <copy todir="${project::get-base-directory()}/../bin/">
+            <fileset basedir="${project::get-base-directory()}/${build.dir}/" >
+                <include name="*.dll"/>
+                <include name="*.exe"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="${bin.dir}" failonerror="false" />
+        <delete dir="${obj.dir}" failonerror="false" />
+    </target>
+    <target name="doc" description="Creates documentation.">
+    </target>
+</project>

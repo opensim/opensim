@@ -10,6 +10,7 @@ namespace libsecondlife.TestClient
     {
         Avatar.AvatarProperties Properties;
         Avatar.Interests Interests;
+	private Dictionary<LLUUID,ulong> Avatars = new Dictionary<LLUUID,ulong>();
         List<LLUUID> Groups = new List<LLUUID>();
         bool ReceivedProperties = false;
         bool ReceivedInterests = false;
@@ -23,12 +24,22 @@ namespace libsecondlife.TestClient
             testClient.Avatars.OnAvatarGroups += new AvatarManager.AvatarGroupsCallback(Avatars_OnAvatarGroups);
             testClient.Self.OnJoinGroup += new MainAvatar.JoinGroupCallback(Self_OnJoinGroup);
 
+	    testClient.Self.Objects.OnNewAvatar += new ObjectManager.NewAvatarCallback(AvatarSeen);
+
             Name = "cloneprofile";
             Description = "Clones another avatars profile as closely as possible. WARNING: This command will " +
                 "destroy your existing profile! Usage: cloneprofile [targetuuid]";
         }
 
-        public override string Execute(string[] args, LLUUID fromAgentID)
+        void AvatarSeen(Simulator simulator, Avatar avatar, ulong regionHandle, ushort timeDilation)
+        {
+            lock (Avatars)
+            {
+                Avatars.Add(avatar.UUID,avatar.LocalID);
+            }
+        }
+ 
+	public override string Execute(string[] args, LLUUID fromAgentID)
         {
             if (args.Length != 1)
                 return Description;
@@ -58,19 +69,7 @@ namespace libsecondlife.TestClient
             if (!ReceivedInterests || !ReceivedProperties || !ReceivedGroups)
                 return "Failed to retrieve a complete profile for that UUID";
 
-            // Synchronize our profile
-            Client.Self.ProfileInterests = Interests;
-            Client.Self.ProfileProperties = Properties;
             Client.Self.SetAvatarInformation();
-
-            // TODO: Leave all the groups we're currently a member of? This could
-            // break TestClient connectivity that might be relying on group authentication
-
-            // Attempt to join all the groups
-            foreach (LLUUID groupID in Groups)
-            {
-                Client.Self.RequestJoinGroup(groupID);
-            }
 
             return "Synchronized our profile to the profile of " + targetID.ToStringHyphenated();
         }

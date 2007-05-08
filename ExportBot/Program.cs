@@ -1,21 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using CommandLine.Utility;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Servers;
 
 namespace libsecondlife.TestClient
 {
-    public class Program
+    public class Program : conscmd_callback
     {
         private static void Usage()
         {
-            Console.WriteLine("Usage: " + Environment.NewLine +
-                    "TestClient.exe --first firstname --last lastname --pass password --contact \"youremail\" [--startpos \"sim/x/y/z\"] [--master \"master name\"] [--masterkey \"master uuid\"]" +
-                    Environment.NewLine + "TestClient.exe --file filename --contact \"youremail\" [--master \"master name\"] [--masterkey \"master uuid\"]");
         }
+
+	public void RunCmd(string cmd, string[] cmdparams) {}
+	public void Show(string ShowWhat) {}
 
         static void Main(string[] args)
         {
+            ConsoleBase m_console = new ConsoleBase("exportbot-console.log", "ExportBot", new Program() , false);
+            MainConsole.Instance = m_console;
+
             Arguments arguments = new Arguments(args);
 
             ClientManager manager;
@@ -115,13 +122,20 @@ namespace libsecondlife.TestClient
                 }
 
             // Login the accounts and run the input loop
-			if ( arguments["start"] != null ) {
+			manager = new ClientManager(accounts, contact, "Theta/16/229/25");
+/*			if ( arguments["start"] != null ) {
 				manager = new ClientManager(accounts, contact, arguments["start"]);
 			} else { 
 				manager = new ClientManager(accounts, contact);
-			}
+			}*/
+
+			Console.WriteLine("Starting the HTTP listener");
+			BaseHttpServer httpServer = new BaseHttpServer(12035);
+			httpServer.AddRestHandler("GET", "/exportaccount/", manager.ExportAvatarRestMethod);
+			httpServer.Start();			
+			
 			manager.Run();
-				
+			
         }
     }
 }

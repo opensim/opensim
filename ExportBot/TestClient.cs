@@ -18,12 +18,12 @@ namespace libsecondlife.TestClient
         public LLUUID GroupID = LLUUID.Zero;
         public Dictionary<LLUUID, GroupMember> GroupMembers;
         public Dictionary<uint, Avatar> AvatarList = new Dictionary<uint,Avatar>();
-		public Dictionary<LLUUID, AvatarAppearancePacket> Appearances = new Dictionary<LLUUID, AvatarAppearancePacket>();
-		public Dictionary<string, Command> Commands = new Dictionary<string,Command>();
-		public bool Running = true;
+	public Dictionary<LLUUID, AvatarAppearancePacket> Appearances = new Dictionary<LLUUID, AvatarAppearancePacket>();
+	public Dictionary<string, Command> Commands = new Dictionary<string,Command>();
+	public bool Running = true;
         public string MasterName = String.Empty;
         public LLUUID MasterKey = LLUUID.Zero;
-		public ClientManager ClientManager;
+	public ClientManager ClientManager;
         public int regionX;
         public int regionY;
 
@@ -41,7 +41,7 @@ namespace libsecondlife.TestClient
         /// </summary>
         public TestClient(ClientManager manager)
         {
-			ClientManager = manager;
+            ClientManager = manager;
 
             updateTimer = new System.Timers.Timer(1000);
             updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
@@ -57,7 +57,7 @@ namespace libsecondlife.TestClient
             Objects.OnNewPrim += new ObjectManager.NewPrimCallback(Objects_OnNewPrim);
             Objects.OnObjectUpdated += new ObjectManager.ObjectUpdatedCallback(Objects_OnObjectUpdated);
             Objects.OnObjectKilled += new ObjectManager.KillObjectCallback(Objects_OnObjectKilled);
-			Objects.OnNewAvatar += new ObjectManager.NewAvatarCallback(Objects_OnNewAvatar);
+	    Objects.OnNewAvatar += new ObjectManager.NewAvatarCallback(Objects_OnNewAvatar);
             Self.OnInstantMessage += new MainAvatar.InstantMessageCallback(Self_OnInstantMessage);
             Groups.OnGroupMembers += new GroupManager.GroupMembersCallback(GroupMembersHandler);
             this.OnLogMessage += new LogCallback(TestClient_OnLogMessage);
