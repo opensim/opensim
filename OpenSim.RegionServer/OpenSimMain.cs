@@ -196,9 +196,11 @@ namespace OpenSim
                 GridServers.AssetServer.SetServerInfo((string)((RemoteGridBase)GridServers.GridServer).GridData["asset_url"], (string)((RemoteGridBase)GridServers.GridServer).GridData["asset_sendkey"]);
 
                 // If we are being told to load a file, load it.
-                if (((string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"]) != "")
+                string dataUri = (string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"];
+                
+                if ( !String.IsNullOrEmpty( dataUri ) )
                 {
-                    this.LocalWorld.m_datastore = ((string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"]);
+                    this.LocalWorld.m_datastore = dataUri;
                 }
 
                 if (((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString() != "")
