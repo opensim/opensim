@@ -11,10 +11,10 @@ using OpenSim.Framework.Inventory;
 
 namespace OpenSim.world
 {
-    public class Primitive2 :Entity
+    public class Primitive2 : Entity
     {
         protected PrimData primData;
-        private ObjectUpdatePacket OurPacket;
+        //private ObjectUpdatePacket OurPacket;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private Dictionary<uint, SimClient> m_clientThreads;
         private ulong m_regionHandle;
@@ -130,7 +130,6 @@ namespace OpenSim.world
 
         public void UpdateTexture(byte[] tex)
         {
-            this.OurPacket.ObjectData[0].TextureEntry = tex;
             this.primData.Texture = tex;
             //this.dirtyFlag = true;
         }
@@ -243,11 +242,14 @@ namespace OpenSim.world
             {
                 lPos = this.Pos;
             }
-            byte[] pb = lPos.GetBytes();
-            Array.Copy(pb, 0, OurPacket.ObjectData[0].ObjectData, 0, pb.Length);
 
-            this.UpdatePacketShapeData();
-            remoteClient.OutPacket(OurPacket);
+            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            outPacket.ObjectData[0] = this.CreateUpdateBlock();
+            byte[] pb = lPos.GetBytes();
+            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
+
+            remoteClient.OutPacket(outPacket);
         }
 
         public void SendTerseUpdateToClient(SimClient RemoteClient)
@@ -266,51 +268,36 @@ namespace OpenSim.world
 
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
-            ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
-            objupdate.RegionData.RegionHandle = m_regionHandle;
-            objupdate.RegionData.TimeDilation = 64096;
-            objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
             PrimData PData = new PrimData();
             this.primData = PData;
             this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            objupdate.ObjectData[0] = new ObjectUpdatePacket.ObjectDataBlock();
-            this.SetDefaultPacketValues(objupdate.ObjectData[0]);
-
-            objupdate.ObjectData[0].UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
-            PData.OwnerID = objupdate.ObjectData[0].OwnerID = agentID;
-            PData.PCode = objupdate.ObjectData[0].PCode = addPacket.ObjectData.PCode;
-            PData.PathBegin = objupdate.ObjectData[0].PathBegin = addPacket.ObjectData.PathBegin;
-            PData.PathEnd = objupdate.ObjectData[0].PathEnd = addPacket.ObjectData.PathEnd;
-            PData.PathScaleX = objupdate.ObjectData[0].PathScaleX = addPacket.ObjectData.PathScaleX;
-            PData.PathScaleY = objupdate.ObjectData[0].PathScaleY = addPacket.ObjectData.PathScaleY;
-            PData.PathShearX = objupdate.ObjectData[0].PathShearX = addPacket.ObjectData.PathShearX;
-            PData.PathShearY = objupdate.ObjectData[0].PathShearY = addPacket.ObjectData.PathShearY;
-            PData.PathSkew = objupdate.ObjectData[0].PathSkew = addPacket.ObjectData.PathSkew;
-            PData.ProfileBegin = objupdate.ObjectData[0].ProfileBegin = addPacket.ObjectData.ProfileBegin;
-            PData.ProfileEnd = objupdate.ObjectData[0].ProfileEnd = addPacket.ObjectData.ProfileEnd;
-            PData.Scale = objupdate.ObjectData[0].Scale = addPacket.ObjectData.Scale;
-            PData.PathCurve = objupdate.ObjectData[0].PathCurve = addPacket.ObjectData.PathCurve;
-            PData.ProfileCurve = objupdate.ObjectData[0].ProfileCurve = addPacket.ObjectData.ProfileCurve;
-            PData.ParentID = objupdate.ObjectData[0].ParentID = 0;
-            PData.ProfileHollow = objupdate.ObjectData[0].ProfileHollow = addPacket.ObjectData.ProfileHollow;
-            PData.PathRadiusOffset = objupdate.ObjectData[0].PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
-            PData.PathRevolutions = objupdate.ObjectData[0].PathRevolutions = addPacket.ObjectData.PathRevolutions;
-            PData.PathTaperX = objupdate.ObjectData[0].PathTaperX = addPacket.ObjectData.PathTaperX;
-            PData.PathTaperY = objupdate.ObjectData[0].PathTaperY = addPacket.ObjectData.PathTaperY;
-            PData.PathTwist = objupdate.ObjectData[0].PathTwist = addPacket.ObjectData.PathTwist;
-            PData.PathTwistBegin = objupdate.ObjectData[0].PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-            objupdate.ObjectData[0].ID = (uint)(localID);
-            objupdate.ObjectData[0].FullID = LLUUID.Random();
+            PData.OwnerID = agentID;
+            PData.PCode = addPacket.ObjectData.PCode;
+            PData.PathBegin = addPacket.ObjectData.PathBegin;
+            PData.PathEnd = addPacket.ObjectData.PathEnd;
+            PData.PathScaleX = addPacket.ObjectData.PathScaleX;
+            PData.PathScaleY = addPacket.ObjectData.PathScaleY;
+            PData.PathShearX = addPacket.ObjectData.PathShearX;
+            PData.PathShearY = addPacket.ObjectData.PathShearY;
+            PData.PathSkew = addPacket.ObjectData.PathSkew;
+            PData.ProfileBegin = addPacket.ObjectData.ProfileBegin;
+            PData.ProfileEnd = addPacket.ObjectData.ProfileEnd;
+            PData.Scale = addPacket.ObjectData.Scale;
+            PData.PathCurve = addPacket.ObjectData.PathCurve;
+            PData.ProfileCurve = addPacket.ObjectData.ProfileCurve;
+            PData.ParentID = 0;
+            PData.ProfileHollow = addPacket.ObjectData.ProfileHollow;
+            PData.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
+            PData.PathRevolutions = addPacket.ObjectData.PathRevolutions;
+            PData.PathTaperX = addPacket.ObjectData.PathTaperX;
+            PData.PathTaperY = addPacket.ObjectData.PathTaperY;
+            PData.PathTwist = addPacket.ObjectData.PathTwist;
+            PData.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             LLVector3 pos1 = addPacket.ObjectData.RayEnd;
-            //update position
-            byte[] pb = pos1.GetBytes();
-            Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 0, pb.Length);
-            //this.newPrimFlag = true;
-            this.primData.FullID = this.uuid = objupdate.ObjectData[0].FullID;
-            this.localid = objupdate.ObjectData[0].ID;
+            this.primData.FullID = this.uuid  = LLUUID.Random();
+            this.localid = (uint)(localID);
             this.primData.Position = this.Pos = pos1;
-            this.OurPacket = objupdate;
         }
 
         public void CreateFromBytes(byte[] data)
@@ -354,33 +341,43 @@ namespace OpenSim.world
             objdata.ObjectData[47] = 63;
         }
 
-        protected void UpdatePacketShapeData()
+        protected void UpdatePacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData)
         {
-            OurPacket.ObjectData[0].OwnerID = this.primData.OwnerID;
-            OurPacket.ObjectData[0].PCode = this.primData.PCode;
-            OurPacket.ObjectData[0].PathBegin = this.primData.PathBegin;
-            OurPacket.ObjectData[0].PathEnd = this.primData.PathEnd;
-            OurPacket.ObjectData[0].PathScaleX = this.primData.PathScaleX;
-            OurPacket.ObjectData[0].PathScaleY = this.primData.PathScaleY;
-            OurPacket.ObjectData[0].PathShearX = this.primData.PathShearX;
-            OurPacket.ObjectData[0].PathShearY = this.primData.PathShearY;
-            OurPacket.ObjectData[0].PathSkew = this.primData.PathSkew;
-            OurPacket.ObjectData[0].ProfileBegin = this.primData.ProfileBegin;
-            OurPacket.ObjectData[0].ProfileEnd = this.primData.ProfileEnd;
-            OurPacket.ObjectData[0].Scale = this.primData.Scale;
-            OurPacket.ObjectData[0].PathCurve = this.primData.PathCurve;
-            OurPacket.ObjectData[0].ProfileCurve = this.primData.ProfileCurve;
-            OurPacket.ObjectData[0].ParentID = this.primData.ParentID;
-            OurPacket.ObjectData[0].ProfileHollow = this.primData.ProfileHollow;
-            OurPacket.ObjectData[0].PathRadiusOffset = this.primData.PathRadiusOffset;
-            OurPacket.ObjectData[0].PathRevolutions = this.primData.PathRevolutions;
-            OurPacket.ObjectData[0].PathTaperX = this.primData.PathTaperX;
-            OurPacket.ObjectData[0].PathTaperY = this.primData.PathTaperY;
-            OurPacket.ObjectData[0].PathTwist = this.primData.PathTwist;
-            OurPacket.ObjectData[0].PathTwistBegin = this.primData.PathTwistBegin;
+            objectData.OwnerID = this.primData.OwnerID;
+            objectData.PCode = this.primData.PCode;
+            objectData.PathBegin = this.primData.PathBegin;
+            objectData.PathEnd = this.primData.PathEnd;
+            objectData.PathScaleX = this.primData.PathScaleX;
+            objectData.PathScaleY = this.primData.PathScaleY;
+            objectData.PathShearX = this.primData.PathShearX;
+            objectData.PathShearY = this.primData.PathShearY;
+            objectData.PathSkew = this.primData.PathSkew;
+            objectData.ProfileBegin = this.primData.ProfileBegin;
+            objectData.ProfileEnd = this.primData.ProfileEnd;
+            objectData.Scale = this.primData.Scale;
+            objectData.PathCurve = this.primData.PathCurve;
+            objectData.ProfileCurve = this.primData.ProfileCurve;
+            objectData.ParentID = this.primData.ParentID;
+            objectData.ProfileHollow = this.primData.ProfileHollow;
+            objectData.PathRadiusOffset = this.primData.PathRadiusOffset;
+            objectData.PathRevolutions = this.primData.PathRevolutions;
+            objectData.PathTaperX = this.primData.PathTaperX;
+            objectData.PathTaperY = this.primData.PathTaperY;
+            objectData.PathTwist = this.primData.PathTwist;
+            objectData.PathTwistBegin = this.primData.PathTwistBegin;
         }
 
         #endregion
+        protected ObjectUpdatePacket.ObjectDataBlock CreateUpdateBlock()
+        {
+            ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
+            this.SetDefaultPacketValues(objupdate);
+            objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
+            this.UpdatePacketShapeData(objupdate);
+            byte[] pb = this.Pos.GetBytes();
+            Array.Copy(pb, 0, objupdate.ObjectData, 0, pb.Length);
+            return objupdate;
+        }
 
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
         {
