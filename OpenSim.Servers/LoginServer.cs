@@ -113,10 +113,10 @@ namespace OpenSim.UserServer
             string first;
             string last;
             string passwd;
-            LLUUID Agent;
-            LLUUID Session;
 
-            LoginResponse loginResponse = new LoginResponse(regionX, regionY);
+            LoginResponse loginResponse = new LoginResponse();
+            loginResponse.RegionX = regionX;
+            loginResponse.RegionY = regionY;
 
             //get login name
             if (requestData.Contains("first"))
@@ -154,34 +154,34 @@ namespace OpenSim.UserServer
             NumClients++;
 
             // Create a agent and session LLUUID
-            Agent = GetAgentId(first, last);
-            int SessionRand = Util.RandomClass.Next(1, 999);
-            Session = new LLUUID("aaaabbbb-0200-" + SessionRand.ToString("0000") + "-8664-58f53e442797");
-            LLUUID secureSess = LLUUID.Random();            
+            // Agent = GetAgentId(first, last);
+            // int SessionRand = Util.RandomClass.Next(1, 999);
+            // Session = new LLUUID("aaaabbbb-0200-" + SessionRand.ToString("0000") + "-8664-58f53e442797");
+            // LLUUID secureSess = LLUUID.Random();            
 
             loginResponse.SimPort = m_simPort.ToString();
             loginResponse.SimAddress = m_simAddr.ToString();
-            loginResponse.AgentID = Agent.ToStringHyphenated();
-            loginResponse.SessionID = Session.ToStringHyphenated();
-            loginResponse.SecureSessionID = secureSess.ToStringHyphenated();
+            // loginResponse.AgentID = Agent.ToStringHyphenated();
+            // loginResponse.SessionID = Session.ToStringHyphenated();
+            // loginResponse.SecureSessionID = secureSess.ToStringHyphenated();
             loginResponse.CircuitCode = (Int32)(Util.RandomClass.Next());
             XmlRpcResponse response = loginResponse.ToXmlRpcResponse();
             Hashtable responseData = (Hashtable)response.Value;
 
             // inventory
-            ArrayList InventoryList = (ArrayList)responseData["inventory-skeleton"];
-            Hashtable Inventory1 = (Hashtable)InventoryList[0];
-            Hashtable Inventory2 = (Hashtable)InventoryList[1];
-            LLUUID BaseFolderID = LLUUID.Random();
-            LLUUID InventoryFolderID = LLUUID.Random();
-            Inventory2["name"] = "Textures";
-            Inventory2["folder_id"] = BaseFolderID.ToStringHyphenated();
-            Inventory2["type_default"] = 0;
-            Inventory1["folder_id"] = InventoryFolderID.ToStringHyphenated();
+            // ArrayList InventoryList = (ArrayList)responseData["inventory-skeleton"];
+            // Hashtable Inventory1 = (Hashtable)InventoryList[0];
+            // Hashtable Inventory2 = (Hashtable)InventoryList[1];
+            // LLUUID BaseFolderID = LLUUID.Random();
+            // LLUUID InventoryFolderID = LLUUID.Random();
+            // Inventory2["name"] = "Textures";
+            // Inventory2["folder_id"] = BaseFolderID.ToStringHyphenated();
+            // Inventory2["type_default"] = 0;
+            // Inventory1["folder_id"] = InventoryFolderID.ToStringHyphenated();
 
-            ArrayList InventoryRoot = (ArrayList)responseData["inventory-root"];
-            Hashtable Inventoryroot = (Hashtable)InventoryRoot[0];
-            Inventoryroot["folder_id"] = InventoryFolderID.ToStringHyphenated();
+            // ArrayList InventoryRoot = (ArrayList)responseData["inventory-root"];
+            // Hashtable Inventoryroot = (Hashtable)InventoryRoot[0];
+            // Inventoryroot["folder_id"] = InventoryFolderID.ToStringHyphenated();
 
             CustomiseLoginResponse(responseData, first, last);
 
@@ -189,11 +189,11 @@ namespace OpenSim.UserServer
             //copy data to login object
             _login.First = first;
             _login.Last = last;
-            _login.Agent = Agent;
-            _login.Session = Session;
-            _login.SecureSession = secureSess;
-            _login.BaseFolder = BaseFolderID;
-            _login.InventoryFolder = InventoryFolderID;
+            _login.Agent = loginResponse.AgentID;
+            _login.Session = loginResponse.SessionID;
+            _login.SecureSession = loginResponse.SecureSessionID;
+            _login.BaseFolder = loginResponse.BaseFolderID;
+            _login.InventoryFolder = loginResponse.InventoryFolderID;
 
             //working on local computer if so lets add to the gridserver's list of sessions?
             if (m_gridServer.GetName() == "Local")
