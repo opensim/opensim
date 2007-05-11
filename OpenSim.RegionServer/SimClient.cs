@@ -642,6 +642,7 @@ namespace OpenSim
                             }
                         }
                         break;
+
                 }
             }
         }
@@ -1077,20 +1078,43 @@ namespace OpenSim
 
         private void CreateInventoryItem(CreateInventoryItemPacket packet)
         {
-            if (packet.InventoryBlock.Type == 7)
+            if (!(packet.InventoryBlock.Type == 3 || packet.InventoryBlock.Type == 7))
             {
-                //lets try this out with creating a notecard
-                AssetBase asset = new AssetBase();
-                asset.Name = Util.FieldToString(packet.InventoryBlock.Name);
-                asset.Description = Util.FieldToString(packet.InventoryBlock.Description);
-                asset.InvType = packet.InventoryBlock.InvType;
-                asset.Type = packet.InventoryBlock.Type;
-                asset.FullID = LLUUID.Random();
-                asset.Data = new byte[0];
-
-                m_assetCache.AddAsset(asset);
-                m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
+                System.Console.WriteLine("Attempted to create " + Util.FieldToString(packet.InventoryBlock.Name) + " in inventory.  Unsupported type");
+                return;
             }
+
+            //lets try this out with creating a notecard
+            AssetBase asset = new AssetBase();
+
+            asset.Name = Util.FieldToString(packet.InventoryBlock.Name);
+            asset.Description = Util.FieldToString(packet.InventoryBlock.Description);
+            asset.InvType = packet.InventoryBlock.InvType;
+            asset.Type = packet.InventoryBlock.Type;
+            asset.FullID = LLUUID.Random();
+
+            switch (packet.InventoryBlock.Type)
+            {
+                case 7: // Notecard
+                    asset.Data = new byte[0];
+                    break;
+
+                case 3: // Landmark
+                    String content;
+                    content =  "Landmark version 2\n";
+                    content += "region_id " + m_regionData.SimUUID + "\n";
+                    String strPos = String.Format("%.2f %.2f %.2f>",
+                                                    this.ClientAvatar.Pos.X,
+                                                    this.ClientAvatar.Pos.Y,
+                                                    this.ClientAvatar.Pos.Z);
+                    content += "local_pos " + strPos + "\n";
+                    asset.Data = (new System.Text.ASCIIEncoding()).GetBytes(content);
+                    break;
+                default:
+                    break;
+            }
+            m_assetCache.AddAsset(asset);
+            m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
         }
     }
 }
