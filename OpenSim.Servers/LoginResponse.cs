@@ -302,17 +302,11 @@ namespace OpenSim.UserServer
             responseData["home"] = this.home;
             responseData["look_at"] = this.lookAt;
             responseData["message"] = this.welcomeMessage;
-            responseData["region_x"] = this.regionX;
-            responseData["region_y"] = this.regionY;
+            responseData["region_x"] = (Int32)this.RegionX * 256;
+            responseData["region_y"] = (Int32)this.RegionY * 256;
 
             responseData["login"] = "true";
-            this.xmlRpcResponse.Value = responseData;
-            
-            // differential debuggery
-            // FileStream fs = new FileStream("loginresponse.xml", FileMode.OpenOrCreate);
-            // StreamWriter SW = new StreamWriter(fs);
-            // SW.Write(this.xmlRpcResponse.ToString());
-            // SW.Close();
+            this.xmlRpcResponse.Value = responseData;          
 
             return (this.xmlRpcResponse);
 
