@@ -77,14 +77,17 @@ namespace OpenSim.Framework.Inventory
 
         public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName, LLUUID parent)
         {
-            Console.WriteLine("creating new folder called " + folderName + " in agents inventory");
-            InventoryFolder Folder = new InventoryFolder();
-            Folder.FolderID = folderID;
-            Folder.OwnerID = this.AgentID;
-            Folder.DefaultType = type;
-            Folder.FolderName = folderName;
-            Folder.ParentID = parent;
-            this.InventoryFolders.Add(Folder.FolderID, Folder);
+            if (!this.InventoryFolders.ContainsKey(folderID))
+            {
+                Console.WriteLine("creating new folder called " + folderName + " in agents inventory");
+                InventoryFolder Folder = new InventoryFolder();
+                Folder.FolderID = folderID;
+                Folder.OwnerID = this.AgentID;
+                Folder.DefaultType = type;
+                Folder.FolderName = folderName;
+                Folder.ParentID = parent;
+                this.InventoryFolders.Add(Folder.FolderID, Folder);
+            }
 
             return (true);
         }
