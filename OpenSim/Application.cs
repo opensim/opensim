@@ -29,6 +29,7 @@ namespace OpenSim
                 if (args[i] == "-sandbox")
                 {
                     sandBoxMode = true;
+                    startLoginServer = true;
                 }
 
                 if (args[i] == "-loginserver")
