@@ -68,7 +68,7 @@ namespace OpenSim.GridInterfaces.Remote
 
         public RemoteGridServer()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Remote Grid Server class created");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Remote Grid Server class created");
         }
 
         public override bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port)
@@ -88,8 +88,8 @@ namespace OpenSim.GridInterfaces.Remote
 
 	    if(GridRespData.ContainsKey("error")) {
 	    	string errorstring = (string)GridRespData["error"];
-		OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Error connecting to grid:");
-		OpenSim.Framework.Console.MainConsole.Instance.WriteLine(errorstring);
+		OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Error connecting to grid:");
+        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,errorstring);
 	    	return false;
 	    }
 	    this.neighbours = (ArrayList)GridRespData["neighbours"];

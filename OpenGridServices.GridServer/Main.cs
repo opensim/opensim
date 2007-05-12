@@ -73,7 +73,7 @@ namespace OpenGridServices.GridServer
 
         private void Work()
         {
-            m_console.WriteLine("\nEnter help for a list of commands\n");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"\nEnter help for a list of commands\n");
 
             while (true)
             {
@@ -91,16 +91,16 @@ namespace OpenGridServices.GridServer
 
         public void Startup()
         {
-            m_console.WriteLine("Main.cs:Startup() - Loading configuration");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            m_console.WriteLine("Main.cs:Startup() - Connecting to Storage Server");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(GridDll); // Made of win
             m_gridManager.defaultRecvKey = Cfg.SimRecvKey;
 
-            m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
@@ -127,7 +127,7 @@ namespace OpenGridServices.GridServer
 
             httpServer.Start();
 
-            m_console.WriteLine("Main.cs:Startup() - Starting sim status checker");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting sim status checker");
 
             Timer simCheckTimer = new Timer( 300000 ); // 5 minutes
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
@@ -204,7 +204,7 @@ namespace OpenGridServices.GridServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "shutdown":

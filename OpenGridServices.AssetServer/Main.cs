@@ -70,7 +70,7 @@ namespace OpenGridServices.AssetServer
 
         private void Work()
         {
-            m_console.WriteLine("\nEnter help for a list of commands\n");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"\nEnter help for a list of commands\n");
 
             while (true)
             {
@@ -86,10 +86,10 @@ namespace OpenGridServices.AssetServer
 
         public void Startup()
         {
-	    m_console.WriteLine("Main.cs:Startup() - Setting up asset DB");
+	    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Setting up asset DB");
  	    setupDB();	   
 
-            m_console.WriteLine("Main.cs:Startup() - Starting HTTP process");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8003);
 
 
@@ -137,13 +137,13 @@ namespace OpenGridServices.AssetServer
 		try
 	            {
 	                db = Db4oFactory.OpenFile("assets.yap");
-	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:setupDB() - creation");
+	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:setupDB() - creation");
 	            }
 	        catch (Exception e)
 	            {
 	                db.Close();
-	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Main.cs:setupDB() - Exception occured");
-	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+	                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Main.cs:setupDB() - Exception occured");
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
 	            }
 	        if (!yapfile)
 	            {
@@ -291,7 +291,7 @@ namespace OpenGridServices.AssetServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine("shutdown - shutdown this asset server (USE CAUTION!)");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"shutdown - shutdown this asset server (USE CAUTION!)");
                     break;
 
                 case "shutdown":

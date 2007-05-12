@@ -49,7 +49,7 @@ namespace OpenSim.GridInterfaces.Local
             {
                 db.Close();
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM,"Db4 Asset server :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, e.ToString());
             }
             if (!yapfile)
             {

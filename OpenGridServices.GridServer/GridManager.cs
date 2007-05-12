@@ -24,10 +24,10 @@ namespace OpenGridServices.GridServer
         /// <param name="FileName">The filename to the grid server plugin DLL</param>
         public void AddPlugin(string FileName)
 		{
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Attempting to load " + FileName);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Storage: Attempting to load " + FileName);
 			Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Storage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
 			foreach (Type pluginType in pluginAssembly.GetTypes())
 			{
                 if (!pluginType.IsAbstract)
@@ -39,7 +39,7 @@ namespace OpenGridServices.GridServer
                         IGridData plug = (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         this._plugins.Add(plug.getName(), plug);
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Added IGridData Interface");
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Storage: Added IGridData Interface");
                     }
 
                     typeInterface = null;
@@ -63,7 +63,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -84,7 +84,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -321,17 +321,17 @@ namespace OpenGridServices.GridServer
 
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Attempting to add a new region to the grid - " + _plugins.Count + " storage provider(s) registered.");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Attempting to add a new region to the grid - " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
                     try
                     {
                         kvp.Value.AddProfile(TheSim);
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("New sim added to grid (" + TheSim.regionName + ")");
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"New sim added to grid (" + TheSim.regionName + ")");
                     }
                     catch (Exception e)
                     {
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " + e.ToString());
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " + e.ToString());
                     }
                 }
                 return "OK";

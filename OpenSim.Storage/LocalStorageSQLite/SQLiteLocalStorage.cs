@@ -54,8 +54,8 @@ namespace OpenSim.Storage.LocalStorageSQLite
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SQLiteLocalStorage :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"SQLiteLocalStorage :Constructor - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
             }
         }
 
@@ -117,8 +117,8 @@ namespace OpenSim.Storage.LocalStorageSQLite
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SQLiteLocalStorage :StorePrim - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"SQLiteLocalStorage :StorePrim - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
             }
 
             cmd.Dispose();
@@ -144,8 +144,8 @@ namespace OpenSim.Storage.LocalStorageSQLite
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SQLiteLocalStorage :RemovePrim - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"SQLiteLocalStorage :RemovePrim - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
             }
 
             cmd.Dispose();

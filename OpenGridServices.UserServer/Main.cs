@@ -74,7 +74,7 @@ namespace OpenGridServices.UserServer
 
         private void Work()
         {
-            m_console.WriteLine("\nEnter help for a list of commands\n");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"\nEnter help for a list of commands\n");
 
             while (true)
             {
@@ -84,23 +84,20 @@ namespace OpenGridServices.UserServer
 
         public void Startup()
         {
-            MainConsole.Instance.WriteLine("Main.cs:Startup() - Loading configuration");
+            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            MainConsole.Instance.WriteLine("Main.cs:Startup() - Creating user profile manager");
+            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Creating user profile manager");
             m_userProfileManager = new UserProfileManager();
             m_userProfileManager.InitUserProfiles();
             m_userProfileManager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
 
-            MainConsole.Instance.WriteLine("Main.cs:Startup() - Starting HTTP process");
+            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userProfileManager.XmlRpcLoginMethod);
             httpServer.AddRestHandler("DELETE", "/usersessions/", m_userProfileManager.RestDeleteUserSessionMethod);
-
-            // I guess that this was never used?
-            //Listener.Prefixes.Add("http://+:8002/userserver/");
 
             httpServer.Start();
         }
@@ -111,7 +108,7 @@ namespace OpenGridServices.UserServer
             switch (what)
             {
                 case "user":
-                    m_console.WriteLine("Creating new user profile");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"Creating new user profile");
                     string tempfirstname;
                     string templastname;
                     string tempMD5Passwd;
@@ -143,8 +140,8 @@ namespace OpenGridServices.UserServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine("create user - create a new user");
-                    m_console.WriteLine("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"create user - create a new user");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "create":
