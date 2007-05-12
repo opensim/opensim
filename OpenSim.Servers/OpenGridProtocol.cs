@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Nwc.XmlRpc;
 using System.Collections;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Servers
 {
@@ -35,8 +36,8 @@ namespace OpenSim.Servers
 
             private void DoWork()
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: ClientHandler.DoWork() - Got new client");
-                this.WriteLine("OpenSim 0.1, running OGS protocol 1.0");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"OpenGridProtocol.cs: ClientHandler.DoWork() - Got new client");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.NORMAL, "OpenSim 0.1, running OGS protocol 1.0");
 
             }
 
@@ -55,7 +56,7 @@ namespace OpenSim.Servers
 
         public void Start()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: Start() - Opening server socket");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"OpenGridProtocol.cs: Start() - Opening server socket");
 
             m_clients = new ArrayList();
             m_workerThread = new Thread(new ThreadStart(StartServerSocket));
@@ -67,7 +68,7 @@ namespace OpenSim.Servers
         {
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenGridProtocol.cs: StartServerSocket() - Spawned main thread OK");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"OpenGridProtocol.cs: StartServerSocket() - Spawned main thread OK");
 
 
                 m_IPendpoint = new IPEndPoint(IPAddress.Any, m_port);
@@ -87,7 +88,7 @@ namespace OpenSim.Servers
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.Message);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM,e.Message);
             }
         }
     }

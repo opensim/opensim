@@ -30,6 +30,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using Axiom.MathLib;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Physics.Manager
 {
@@ -54,14 +55,13 @@ namespace OpenSim.Physics.Manager
 
 			if(_plugins.ContainsKey(engineName))
 			{
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine("creating "+engineName);
+				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"creating "+engineName);
 				return _plugins[engineName].GetScene();
 			}
 			else
             {
-                string error = String.Format("couldn't find physicsEngine: {0}", engineName);
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(error);
-                throw new ArgumentException(error);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM,"couldn't find physicsEngine: {0}",engineName);
+                throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}",engineName));
 			}
 		}
 		

@@ -3,19 +3,19 @@ using System.IO;
 
 namespace OpenSim.Framework.Console
 {
+    public enum LogPriority : int
+    {
+        CRITICAL,
+        HIGH,
+        MEDIUM,
+        NORMAL,
+        LOW,
+        VERBOSE,
+        EXTRAVERBOSE
+    }
+
     public class ConsoleBase
     {
-        public enum LogPriority : int
-        {
-            CRITICAL,
-            HIGH,
-            MEDIUM,
-            NORMAL,
-            LOW,
-            VERBOSE,
-            EXTRAVERBOSE
-        }
-
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
@@ -142,7 +142,7 @@ namespace OpenSim.Framework.Console
                 }
                 else
                 {
-                    this.WriteLine("Valid options are " + OptionA + " or " + OptionB);
+                    this.WriteLine(LogPriority.MEDIUM,"Valid options are " + OptionA + " or " + OptionB);
                     temp = CmdPrompt(prompt, defaultresponse);
                 }
             }

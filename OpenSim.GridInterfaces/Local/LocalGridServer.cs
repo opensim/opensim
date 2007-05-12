@@ -30,6 +30,7 @@ using System.Threading;
 using System.IO;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
 using libsecondlife;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
@@ -60,7 +61,7 @@ namespace OpenSim.GridInterfaces.Local
 		public LocalGridServer()
 		{
 			Sessions = new List<Login>();
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Local Grid Server class created");
+			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE,"Local Grid Server class created");
 		}
 		
 		public override bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port)

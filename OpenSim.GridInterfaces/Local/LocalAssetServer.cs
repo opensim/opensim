@@ -6,6 +6,7 @@ using System.IO;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 using libsecondlife;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
@@ -38,16 +39,16 @@ namespace OpenSim.GridInterfaces.Local
             this._assetRequests = new BlockingQueue<ARequest>();
             yapfile = System.IO.File.Exists("assets.yap");
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Local Asset Server class created");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE,"Local Asset Server class created");
             try
             {
                 db = Db4oFactory.OpenFile("assets.yap");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4 Asset database  creation");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE,"Db4 Asset database  creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Db4 Asset server :Constructor - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM,"Db4 Asset server :Constructor - Exception occured");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
             }
             if (!yapfile)
@@ -96,7 +97,7 @@ namespace OpenSim.GridInterfaces.Local
         {
             if (db != null)
             {
-                Console.WriteLine("Closing local Asset server database");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE, "Closing local asset server database");
                 db.Close();
             }
         }
@@ -140,7 +141,7 @@ namespace OpenSim.GridInterfaces.Local
             try
             {
 
-                Console.WriteLine("setting up Asset database");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE, "Setting up asset database");
 
                 AssetBase Image = new AssetBase();
                 Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
