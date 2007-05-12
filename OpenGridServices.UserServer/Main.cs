@@ -132,7 +132,7 @@ namespace OpenGridServices.UserServer
 
                     UserProfile newuser = m_userProfileManager.CreateNewProfile(tempfirstname, templastname, tempMD5Passwd);
                     newuser.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
-                    newuser.homepos = new LLVector3(128f, 128f, 23f);
+                    newuser.homepos = new LLVector3(128f, 128f, 150f);
                     m_userProfileManager.SaveUserProfiles();
                     break;
             }
