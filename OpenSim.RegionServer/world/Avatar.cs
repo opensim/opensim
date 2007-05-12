@@ -228,7 +228,7 @@ namespace OpenSim.world
                     //work out velocity for sim physics system
                     direc = direc * ((0.03f) * 128f);
                     if (this._physActor.Flying)
-                        direc *= 2;
+                        direc *= 4;
 
                     newVelocity.X = direc.x;
                     newVelocity.Y = direc.y;

@@ -252,6 +252,11 @@ namespace OpenSim.world
             remoteClient.OutPacket(outPacket);
         }
 
+        public void SendFullUpdateToAllClients()
+        {
+
+        }
+
         public void SendTerseUpdateToClient(SimClient RemoteClient)
         {
 
