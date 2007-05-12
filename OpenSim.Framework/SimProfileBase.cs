@@ -5,9 +5,7 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Sims
 {
-    /// <summary>
-    /// Depreciated
-    /// </summary>
+    [System.Obsolete("Depreciated, use SimProfileData instead")]
     public class SimProfileBase
     {
         public LLUUID UUID;
