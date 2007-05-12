@@ -5,6 +5,17 @@ namespace OpenSim.Framework.Console
 {
     public class ConsoleBase
     {
+        public enum LogPriority : int
+        {
+            CRITICAL,
+            HIGH,
+            MEDIUM,
+            NORMAL,
+            LOW,
+            VERBOSE,
+            EXTRAVERBOSE
+        }
+
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
@@ -42,15 +53,11 @@ namespace OpenSim.Framework.Console
 
         public void Write(string format, params object[] args)
         {
-            Log.Write(format, args);
-	    Log.Flush();
-            if(!disableOutput)
-            {
-            System.Console.Write(format, args);
-            }
+            WriteLine(LogPriority.NORMAL,format,args);
             return;
         }
 
+        [Obsolete("WriteLine(msg,args) has been depreciated, use WriteLine(priority,msg,args) instead.")]
         public void WriteLine(string format, params object[] args)
         {
             Log.WriteLine(format, args);
@@ -58,6 +65,17 @@ namespace OpenSim.Framework.Console
 	    if(!disableOutput)
             {
             System.Console.WriteLine(format, args);
+            }
+            return;
+        }
+
+        public void WriteLine(LogPriority importance, string format, params object[] args)
+        {
+            Log.WriteLine(format, args);
+            Log.Flush();
+            if (!disableOutput)
+            {
+                System.Console.WriteLine(format, args);
             }
             return;
         }
