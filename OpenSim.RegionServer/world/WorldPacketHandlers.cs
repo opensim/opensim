@@ -147,7 +147,7 @@ namespace OpenSim.world
                             //Uncomment when prim/object UUIDs are random or such
                             //2007-03-22 - Randomskk
                             //this._primCount--;
-                            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Deleted UUID " + ent.uuid);
+                            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Deleted UUID " + ent.uuid);
                         }
                     }
                 }

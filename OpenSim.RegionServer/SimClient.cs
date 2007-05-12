@@ -110,7 +110,7 @@ namespace OpenSim
             m_child = child;
             m_regionData = regionDat;
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs - Started up new client thread to handle incoming request");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
             if (m_gridServer.GetName() == "Remote")
@@ -169,7 +169,7 @@ namespace OpenSim
                 neighbourx += 1;
                 newpos.Y = 1;
             }
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
 
             Hashtable SimParams;
             ArrayList SendParams;
@@ -220,7 +220,7 @@ namespace OpenSim
 
         public void UpgradeClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - upgrading child to full agent");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
             this.m_world.RemoveViewerAgent(this);
             if (!this.m_sandboxMode)
@@ -233,7 +233,7 @@ namespace OpenSim
 
         public void DowngradeClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("SimClient.cs:UpgradeClient() - changing full agent to child");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"SimClient.cs:UpgradeClient() - changing full agent to child");
             this.m_child = true;
             this.m_world.RemoveViewerAgent(this);
             this.m_world.AddViewerAgent(this);
@@ -398,7 +398,7 @@ namespace OpenSim
                         m_world.AddNewPrim((ObjectAddPacket)Pack, this);
                         break;
                     case PacketType.ObjectLink:
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket)Pack;
                         uint parentprimid = 0;
                         OpenSim.world.Primitive parentprim = null;
@@ -426,7 +426,7 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.ObjectScale:
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(Pack.ToString());
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,Pack.ToString());
                         break;
                     case PacketType.ObjectShape:
                         ObjectShapePacket shape = (ObjectShapePacket)Pack;
@@ -657,7 +657,7 @@ namespace OpenSim
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Resending " + packet.Type.ToString() + " packet, " +
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Resending " + packet.Type.ToString() + " packet, " +
                          (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
@@ -676,7 +676,7 @@ namespace OpenSim
                     if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Too many ACKs queued up!");
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Too many ACKs queued up!");
                         return;
                     }
 
@@ -799,7 +799,7 @@ namespace OpenSim
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
                 ClientThread.Abort();
             }
 
@@ -860,7 +860,7 @@ namespace OpenSim
 
         protected virtual void ClientLoop()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ClientLoop() - Entered loop");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs:ClientLoop() - Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
@@ -879,7 +879,7 @@ namespace OpenSim
 
         protected virtual void InitNewClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
 
             m_world.AddViewerAgent(this);
             world.Entity tempent = m_world.Entities[this.AgentID];
@@ -893,12 +893,12 @@ namespace OpenSim
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
                 ClientThread.Abort();
             }
             else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;
@@ -947,7 +947,7 @@ namespace OpenSim
 
         protected virtual bool Logout(SimClient simClient, Packet packet)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs:ProcessInPacket() - Got a logout request");
             //send reply to let the client logout
             LogoutReplyPacket logReply = new LogoutReplyPacket();
             logReply.AgentData.AgentID = this.AgentID;

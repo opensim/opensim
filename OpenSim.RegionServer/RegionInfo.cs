@@ -87,7 +87,7 @@ namespace OpenSim
             stIn.Close();
             gridresp.Close();
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
         }
 
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
@@ -241,21 +241,21 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Config.cs:InitConfig() - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Config.cs:InitConfig() - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
             }
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sim settings loaded:");
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("UUID: " + this.SimUUID.ToStringHyphenated());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Name: " + this.RegionName);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Region Handle: " + this.RegionHandle.ToString());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sandbox Mode? " + isSandbox.ToString());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Asset URL: " + this.AssetURL);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Asset key: " + this.AssetSendKey);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid URL: " + this.GridURL);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Grid key: " + this.GridSendKey);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Sim settings loaded:");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "UUID: " + this.SimUUID.ToStringHyphenated());
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Name: " + this.RegionName);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Region Handle: " + this.RegionHandle.ToString());
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sandbox Mode? " + isSandbox.ToString());
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Asset URL: " + this.AssetURL);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Asset key: " + this.AssetSendKey);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Grid URL: " + this.GridURL);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Grid key: " + this.GridSendKey);
         }
     }
 }

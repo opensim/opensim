@@ -17,7 +17,7 @@ namespace OpenSim.world
 
         public void LoadAnims()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Avatar.cs:LoadAnims() - Loading avatar animations");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs:LoadAnims() - Loading avatar animations");
             AnimsLLUUID.Add("ANIM_AGENT_AFRAID", new LLUUID("6b61c8e8-4747-0d75-12d7-e49ff207a4ca"));
             AnimsLLUUID.Add("ANIM_AGENT_AIM_BAZOOKA_R", new LLUUID("b5b4a67d-0aee-30d2-72cd-77b333e932ef"));
             AnimsLLUUID.Add("ANIM_AGENT_AIM_BOW_L", new LLUUID("46bb4359-de38-4ed8-6a22-f1f52fe8f506"));
