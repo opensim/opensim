@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Inventory;
+using System.Security.Cryptography;
 
 namespace OpenSim.Framework.User
 {
@@ -38,8 +39,15 @@ namespace OpenSim.Framework.User
 
         public void InitSessionData()
         {
-            CurrentSessionID = LLUUID.Random();
-            CurrentSecureSessionID = LLUUID.Random();
+
+            System.Security.Cryptography.Rfc2898DeriveBytes b = new Rfc2898DeriveBytes(MD5passwd, 128);
+
+            RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
+
+            CurrentSessionID = new LLUUID();
+            CurrentSecureSessionID = new LLUUID();
+            rand.GetBytes(CurrentSecureSessionID.Data);
+            rand.GetBytes(CurrentSessionID.Data);
         }
 
         public void AddSimCircuit(uint circuitCode, LLUUID regionUUID)
