@@ -192,6 +192,7 @@ namespace OpenSim.UserServer
             _login.Agent = loginResponse.AgentID;
             _login.Session = loginResponse.SessionID;
             _login.SecureSession = loginResponse.SecureSessionID;
+
             _login.BaseFolder = loginResponse.BaseFolderID;
             _login.InventoryFolder = loginResponse.InventoryFolderID;
 

@@ -183,6 +183,8 @@ namespace OpenSim.UserServer
             this.SecureSessionID = LLUUID.Random();
 
             this.userProfile.Inventory.CreateRootFolder(this.userProfile.UUID, true);
+            this.baseFolderID = this.userProfile.Inventory.GetFolderID("Textures");
+            this.inventoryFolderID = this.userProfile.Inventory.GetFolderID("My Inventory-");
             Hashtable InventoryRootHash = new Hashtable();
             InventoryRootHash["folder_id"] = this.userProfile.Inventory.InventoryRoot.FolderID.ToStringHyphenated();
             this.inventoryRoot.Add(InventoryRootHash);

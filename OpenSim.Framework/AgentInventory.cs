@@ -101,6 +101,19 @@ namespace OpenSim.Framework.Inventory
             return false;
         }
 
+        public LLUUID GetFolderID(string folderName)
+        {
+            foreach (InventoryFolder inv in this.InventoryFolders.Values)
+            {
+                if (inv.FolderName == folderName)
+                {
+                    return inv.FolderID;
+                }
+            }
+
+            return LLUUID.Zero;
+        }
+
         public bool UpdateItemAsset(LLUUID itemID, AssetBase asset)
         {
             if(this.InventoryItems.ContainsKey(itemID))
