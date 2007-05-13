@@ -42,6 +42,8 @@ namespace libsecondlife.TestClient
 
         public bool Running = true;
 
+	public static SecondLife MainClient;
+
         string contactPerson = String.Empty;
         private LLUUID resolvedMasterKey = LLUUID.Zero;
         private ManualResetEvent keyResolution = new ManualResetEvent(false);
@@ -71,14 +73,14 @@ namespace libsecondlife.TestClient
             }
         }
 
-	public string ExportAvatarRestMethod( string request, string path, string param )
+        public string ExportAvatarRestMethod( string request, string path, string param )
         {
 		Console.WriteLine("Got a request to export an avatar!");
-		Console.WriteLine("Executing cloneprofile " + param);
-		DoCommandAll("cloneprofile " + param, null, null);
-		DoCommandAll("say copied avatar, preparing to upload to remote server...", null, null);
-		return "OK";
+		DoCommandAll("Executing exportoutfitcommand " + param + " " + param + ".xml", null, null);
 		
+		MainClient.Self.InstantMessage(new LLUUID(param), "(automated bot message) Your avatar has been copied OK, if you wish to use it to create your account please type yes, otherwise ignore this message. Note that you are responsible for obtaining all copyright permissions for textures etc on your avatar", new LLUUID(param));
+		
+		return "OK";
 	}
 
 
@@ -156,7 +158,8 @@ namespace libsecondlife.TestClient
 
                 Clients[client.Network.AgentID] = client;
 
-                Console.WriteLine("Logged in " + client.ToString());
+        	MainClient = client;
+	        Console.WriteLine("Logged in " + client.ToString());
             }
 
             return client;

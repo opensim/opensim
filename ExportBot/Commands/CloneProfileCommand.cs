@@ -24,20 +24,20 @@ namespace libsecondlife.TestClient
             testClient.Avatars.OnAvatarGroups += new AvatarManager.AvatarGroupsCallback(Avatars_OnAvatarGroups);
             testClient.Self.OnJoinGroup += new MainAvatar.JoinGroupCallback(Self_OnJoinGroup);
 
-	    testClient.Self.Objects.OnNewAvatar += new ObjectManager.NewAvatarCallback(AvatarSeen);
+//	    testClient.Self.Objects.OnNewAvatar += new ObjectManager.NewAvatarCallback(AvatarSeen);
 
             Name = "cloneprofile";
             Description = "Clones another avatars profile as closely as possible. WARNING: This command will " +
                 "destroy your existing profile! Usage: cloneprofile [targetuuid]";
         }
 
-        void AvatarSeen(Simulator simulator, Avatar avatar, ulong regionHandle, ushort timeDilation)
+      /*  void AvatarSeen(Simulator simulator, Avatar avatar, ulong regionHandle, ushort timeDilation)
         {
             lock (Avatars)
             {
                 Avatars.Add(avatar.UUID,avatar.LocalID);
             }
-        }
+        }*/
  
 	public override string Execute(string[] args, LLUUID fromAgentID)
         {
