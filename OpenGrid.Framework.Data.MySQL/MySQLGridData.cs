@@ -14,7 +14,7 @@ namespace OpenGrid.Framework.Data.MySQL
         /// </summary>
         public void Initialise()
         {
-            database = new MySQLManager("localhost", "db", "user", "password", "false");
+            database = new MySQLManager("server", "database", "username", "password", "false");
         }
 
         /// <summary>
@@ -42,17 +42,28 @@ namespace OpenGrid.Framework.Data.MySQL
         /// <returns>Sim profile</returns>
         public SimProfileData GetProfileByHandle(ulong handle)
         {
-            Dictionary<string,string> param = new Dictionary<string,string>();
-            param["handle"] = handle.ToString();
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?handle"] = handle.ToString();
 
-            System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE handle = @handle", param);
-            System.Data.IDataReader reader = result.ExecuteReader();
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
 
-            SimProfileData row = database.getRow( reader );
-            reader.Close();
-            result.Dispose();
+                    SimProfileData row = database.getSimRow(reader);
+                    reader.Close();
+                    result.Dispose();
 
-            return row;
+                    return row;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         /// <summary>
@@ -62,28 +73,42 @@ namespace OpenGrid.Framework.Data.MySQL
         /// <returns>The sim profile</returns>
         public SimProfileData GetProfileByLLUUID(libsecondlife.LLUUID uuid)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["uuid"] = uuid.ToStringHyphenated();
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = uuid.ToStringHyphenated();
 
-            System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = @uuid", param);
-            System.Data.IDataReader reader = result.ExecuteReader();
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
 
-            SimProfileData row = database.getRow(reader);
-            reader.Close();
-            result.Dispose();
+                    SimProfileData row = database.getSimRow(reader);
+                    reader.Close();
+                    result.Dispose();
 
-            return row;
+                    return row;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public DataResponse AddProfile(SimProfileData profile)
         {
-            if (database.insertRow(profile))
+            lock (database)
             {
-                return DataResponse.RESPONSE_OK;
-            }
-            else
-            {
-                return DataResponse.RESPONSE_ERROR;
+                if (database.insertRow(profile))
+                {
+                    return DataResponse.RESPONSE_OK;
+                }
+                else
+                {
+                    return DataResponse.RESPONSE_ERROR;
+                }
             }
         }
 

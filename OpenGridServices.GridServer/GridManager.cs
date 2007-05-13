@@ -16,7 +16,7 @@ namespace OpenGridServices.GridServer
     class GridManager
     {
         Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
-        public string defaultRecvKey;
+        public OpenSim.Framework.Interfaces.GridConfig config;
 
         /// <summary>
         /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
@@ -269,7 +269,7 @@ namespace OpenGridServices.GridServer
                 TheSim = new SimProfileData();
                 LLUUID UUID = new LLUUID(param);
                 TheSim.UUID = UUID;
-                TheSim.regionRecvKey = defaultRecvKey;
+                TheSim.regionRecvKey = config.SimRecvKey;
             }
 
             XmlDocument doc = new XmlDocument();
@@ -291,6 +291,20 @@ namespace OpenGridServices.GridServer
             {
                 return "ERROR! invalid key";
             }
+
+            //TheSim.regionSendKey = Cfg;
+            TheSim.regionRecvKey = config.SimRecvKey;
+            TheSim.regionSendKey = config.SimSendKey;
+            TheSim.regionSecret = config.SimRecvKey;
+            TheSim.regionDataURI = "";
+            TheSim.regionAssetURI = config.DefaultAssetServer;
+            TheSim.regionAssetRecvKey = config.AssetRecvKey;
+            TheSim.regionAssetSendKey = config.AssetSendKey;
+            TheSim.regionUserURI = config.DefaultUserServer;
+            TheSim.regionUserSendKey = config.UserSendKey;
+            TheSim.regionUserRecvKey = config.UserRecvKey;
+
+
             for (int i = 0; i < simnode.ChildNodes.Count; i++)
             {
                 switch (simnode.ChildNodes[i].Name)
@@ -318,6 +332,8 @@ namespace OpenGridServices.GridServer
                         break;
                 }
             }
+
+            TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
             try
             {

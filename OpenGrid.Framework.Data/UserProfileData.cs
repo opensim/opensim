@@ -15,6 +15,8 @@ namespace OpenGrid.Framework.Data
 
         public ulong homeRegion;       // RegionHandle of home
         public LLVector3 homeLocation; // Home Location inside the sim
+        public LLVector3 homeLookAt;   // Coordinates where the user is looking
+
 
         public int created;    // UNIX Epoch Timestamp (User Creation)
         public int lastLogin;  // UNIX Epoch Timestamp (Last Login Time)
