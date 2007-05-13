@@ -368,7 +368,29 @@
     </Project>
 
     <!-- OGS projects -->    
-    
+   
+   <Project name="ServiceManager" path="ServiceManager" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+     <ReferencePath>../bin/</ReferencePath>
+     <Reference name="System" localCopy="false"/>
+     <Reference name="System.ServiceProcess" localCopy="false"/>
+
+     <Files>
+       <Match pattern="*.cs" recurse="true"/>
+     </Files>
+    </Project>
+
+ 
     <Project name="OpenGridServices.GridServer" path="OpenGridServices.GridServer" type="Exe">
       <Configuration name="Debug">
         <Options>
