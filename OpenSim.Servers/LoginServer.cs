@@ -168,21 +168,21 @@ namespace OpenSim.UserServer
             XmlRpcResponse response = loginResponse.ToXmlRpcResponse();
             Hashtable responseData = (Hashtable)response.Value;
 
-            // inventory
-            // ArrayList InventoryList = (ArrayList)responseData["inventory-skeleton"];
-            // Hashtable Inventory1 = (Hashtable)InventoryList[0];
-            // Hashtable Inventory2 = (Hashtable)InventoryList[1];
-            // LLUUID BaseFolderID = LLUUID.Random();
-            // LLUUID InventoryFolderID = LLUUID.Random();
-            // Inventory2["name"] = "Textures";
-            // Inventory2["folder_id"] = BaseFolderID.ToStringHyphenated();
-            // Inventory2["type_default"] = 0;
-            // Inventory1["folder_id"] = InventoryFolderID.ToStringHyphenated();
+            //inventory
+            /* ArrayList InventoryList = (ArrayList)responseData["inventory-skeleton"];
+             Hashtable Inventory1 = (Hashtable)InventoryList[0];
+            Hashtable Inventory2 = (Hashtable)InventoryList[1];
+            LLUUID BaseFolderID = LLUUID.Random();
+             LLUUID InventoryFolderID = LLUUID.Random();
+             Inventory2["name"] = "Textures";
+             Inventory2["folder_id"] = BaseFolderID.ToStringHyphenated();
+             Inventory2["type_default"] = 0;
+             Inventory1["folder_id"] = InventoryFolderID.ToStringHyphenated();
 
-            // ArrayList InventoryRoot = (ArrayList)responseData["inventory-root"];
-            // Hashtable Inventoryroot = (Hashtable)InventoryRoot[0];
-            // Inventoryroot["folder_id"] = InventoryFolderID.ToStringHyphenated();
-
+             ArrayList InventoryRoot = (ArrayList)responseData["inventory-root"];
+             Hashtable Inventoryroot = (Hashtable)InventoryRoot[0];
+             Inventoryroot["folder_id"] = InventoryFolderID.ToStringHyphenated();
+            */
             CustomiseLoginResponse(responseData, first, last);
 
             Login _login = new Login();

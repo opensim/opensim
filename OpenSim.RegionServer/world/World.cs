@@ -43,7 +43,7 @@ namespace OpenSim.world
         private InventoryCache _inventoryCache;
         private AssetCache _assetCache;
         private Mutex updateLock;
-
+        private RegionInfo m_regInfo;
         public string m_datastore;
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace OpenSim.world
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, string regionName)
+        public World(Dictionary<uint, SimClient> clientThreads, RegionInfo regInfo, ulong regionHandle, string regionName)
         {
             try
             {
@@ -60,6 +60,7 @@ namespace OpenSim.world
                 m_clientThreads = clientThreads;
                 m_regionHandle = regionHandle;
                 m_regionName = regionName;
+                m_regInfo = regInfo;
 
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();

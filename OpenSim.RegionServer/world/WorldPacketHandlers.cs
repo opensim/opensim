@@ -65,28 +65,28 @@ namespace OpenSim.world
                 switch (inchatpack.ChatData.Type)
                 {
                     case 0:
-                        int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X),(int)( client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                        int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
                         if ((dis < 10) && (dis > -10))
                         {
                             client.OutPacket(reply);
                         }
                         break;
                     case 1:
-                         dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                        dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
                         if ((dis < 30) && (dis > -30))
                         {
                             client.OutPacket(reply);
                         }
                         break;
                     case 2:
-                        dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X),(int)( client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                        dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
                         if ((dis < 100) && (dis > -100))
                         {
                             client.OutPacket(reply);
                         }
                         break;
                 }
-                
+
             }
             return true;
         }
@@ -201,6 +201,28 @@ namespace OpenSim.world
                 }
             }
             return true;
+        }
+
+        public void RequestMapBlock(SimClient simClient, int minX, int minY, int maxX, int maxY)
+        {
+            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+            if (((m_regInfo.RegionLocX > minX) && (m_regInfo.RegionLocX < maxX)) && ((m_regInfo.RegionLocY > minY) && (m_regInfo.RegionLocY < maxY)))
+            {
+                MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
+                mapReply.AgentData.AgentID = simClient.AgentID;
+                mapReply.AgentData.Flags = 0;
+                mapReply.Data = new MapBlockReplyPacket.DataBlock[1];
+                mapReply.Data[0] = new MapBlockReplyPacket.DataBlock();
+                mapReply.Data[0].MapImageID = new LLUUID("00000000-0000-0000-9999-000000000002");
+                mapReply.Data[0].X = (ushort)m_regInfo.RegionLocX;
+                mapReply.Data[0].Y = (ushort)m_regInfo.RegionLocY;
+                mapReply.Data[0].WaterHeight =(byte) m_regInfo.RegionWaterHeight;
+                mapReply.Data[0].Name = _enc.GetBytes(this.m_regionName);
+                mapReply.Data[0].RegionFlags = 72458694;
+                mapReply.Data[0].Access = 13;
+                mapReply.Data[0].Agents = 1; //should send number of clients connected
+                simClient.OutPacket(mapReply);
+            }
         }
 
     }

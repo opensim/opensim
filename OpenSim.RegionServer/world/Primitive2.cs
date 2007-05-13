@@ -45,7 +45,17 @@ namespace OpenSim.world
                 this._physActor = value;
             }
         }
-
+        public override LLVector3 Pos
+        {
+            get
+            {
+                return base.Pos;
+            }
+            set
+            {
+                base.Pos = value;
+            }
+        }
         #endregion
 
         public Primitive2(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, World world)
@@ -105,6 +115,11 @@ namespace OpenSim.world
         #endregion
 
         #region Packet handlers
+
+        public void UpdatePosition(LLVector3 pos)
+        {
+
+        }
 
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock addPacket)
         {
@@ -230,6 +245,7 @@ namespace OpenSim.world
 
         #region Update viewers Methods
 
+        //should change these mehtods, so that outgoing packets are sent through the avatar class
         public void SendFullUpdateToClient(SimClient remoteClient)
         {
             LLVector3 lPos;
@@ -346,7 +362,7 @@ namespace OpenSim.world
             objdata.ObjectData[47] = 63;
         }
 
-        protected void UpdatePacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData)
+        protected void SetPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData)
         {
             objectData.OwnerID = this.primData.OwnerID;
             objectData.PCode = this.primData.PCode;
@@ -378,7 +394,7 @@ namespace OpenSim.world
             ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
             this.SetDefaultPacketValues(objupdate);
             objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
-            this.UpdatePacketShapeData(objupdate);
+            this.SetPacketShapeData(objupdate);
             byte[] pb = this.Pos.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData, 0, pb.Length);
             return objupdate;

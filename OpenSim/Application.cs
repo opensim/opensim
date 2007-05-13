@@ -31,11 +31,11 @@ namespace OpenSim
                     sandBoxMode = true;
                     startLoginServer = true;
                 }
-
+                /*
                 if (args[i] == "-loginserver")
                 {
                     startLoginServer = true;
-                }
+                }*/
                 if (args[i] == "-accounts")
                 {
                     userAccounts = true;

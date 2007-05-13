@@ -225,7 +225,7 @@ namespace OpenSim
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Initialising world");
-            LocalWorld = new World(this._packetServer.ClientThreads, regionData.RegionHandle, regionData.RegionName);
+            LocalWorld = new World(this._packetServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
             LocalWorld.InventoryCache = InventoryCache;
             LocalWorld.AssetCache = AssetCache;
 

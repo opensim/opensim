@@ -144,7 +144,7 @@ namespace OpenSim
 
         public void CrossSimBorder(LLVector3 avatarpos)
         {		// VERY VERY BASIC
-           
+
             LLVector3 newpos = avatarpos;
             uint neighbourx = this.m_regionData.RegionLocX;
             uint neighboury = this.m_regionData.RegionLocY;
@@ -642,6 +642,13 @@ namespace OpenSim
                             }
                         }
                         break;
+                    case PacketType.MapLayerRequest:
+                        this.RequestMapLayer();
+                        break;
+                    case PacketType.MapBlockRequest:
+                        MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
+                        this.RequestMapBlock( MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+                        break;
 
                 }
             }
@@ -1101,7 +1108,7 @@ namespace OpenSim
 
                 case 3: // Landmark
                     String content;
-                    content =  "Landmark version 2\n";
+                    content = "Landmark version 2\n";
                     content += "region_id " + m_regionData.SimUUID + "\n";
                     String strPos = String.Format("%.2f %.2f %.2f>",
                                                     this.ClientAvatar.Pos.X,
@@ -1115,6 +1122,30 @@ namespace OpenSim
             }
             m_assetCache.AddAsset(asset);
             m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
+        }
+
+        public void RequestMapLayer() //should be getting the map layer from the grid server
+        {
+            //send a layer covering the 800,800 - 1200,1200 area (should be covering the requested area)
+            MapLayerReplyPacket mapReply = new MapLayerReplyPacket();
+            mapReply.AgentData.AgentID = this.AgentID;
+            mapReply.AgentData.Flags = 0;
+            mapReply.LayerData = new MapLayerReplyPacket.LayerDataBlock[1];
+            mapReply.LayerData[0] = new MapLayerReplyPacket.LayerDataBlock();
+            mapReply.LayerData[0].Bottom = 800;
+            mapReply.LayerData[0].Left = 800;
+            mapReply.LayerData[0].Top = 1200;
+            mapReply.LayerData[0].Right = 1200;
+            mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000001");
+            this.OutPacket(mapReply);
+        }
+
+        public void RequestMapBlock( int minX, int minY, int maxX, int maxY)
+        {
+            //check if our own map was requested
+            this.m_world.RequestMapBlock(this,  minX,  minY,  maxX, maxY);
+
+            //now should get other regions maps from gridserver
         }
     }
 }
