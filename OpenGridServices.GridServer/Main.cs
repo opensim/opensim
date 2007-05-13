@@ -47,7 +47,7 @@ namespace OpenGridServices.GridServer
     public class OpenGrid_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
-        private string GridDll = "OpenGrid.Framework.Data.MySQL.dll";
+        private string GridDll = "OpenGrid.Framework.Data.DB4o.dll";
         public GridConfig Cfg;
         
         public static OpenGrid_Main thegrid;
