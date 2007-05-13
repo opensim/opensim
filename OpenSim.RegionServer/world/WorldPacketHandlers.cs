@@ -213,7 +213,7 @@ namespace OpenSim.world
                 mapReply.AgentData.Flags = 0;
                 mapReply.Data = new MapBlockReplyPacket.DataBlock[1];
                 mapReply.Data[0] = new MapBlockReplyPacket.DataBlock();
-                mapReply.Data[0].MapImageID = new LLUUID("00000000-0000-0000-9999-000000000002");
+                mapReply.Data[0].MapImageID = new LLUUID("00000000-0000-0000-9999-000000000007");
                 mapReply.Data[0].X = (ushort)m_regInfo.RegionLocX;
                 mapReply.Data[0].Y = (ushort)m_regInfo.RegionLocY;
                 mapReply.Data[0].WaterHeight =(byte) m_regInfo.RegionWaterHeight;
