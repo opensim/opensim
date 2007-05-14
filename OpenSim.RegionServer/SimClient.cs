@@ -368,6 +368,7 @@ namespace OpenSim
                         if (this.m_child) this.UpgradeClient();
                         ClientAvatar.CompleteMovement(m_world);
                         ClientAvatar.SendInitialPosition();
+                        this.EnableNeighbours();
                         break;
                     case PacketType.RegionHandshakeReply:
                         m_world.SendLayerData(this);
@@ -1146,6 +1147,46 @@ namespace OpenSim
             this.m_world.RequestMapBlock(this,  minX,  minY,  maxX, maxY);
 
             //now should get other regions maps from gridserver
+        }
+
+        public void EnableNeighbours()
+        {
+            if ((this.m_gridServer.GetName() == "Remote") && (!this.m_child))
+            {
+                Hashtable SimParams;
+                ArrayList SendParams;
+                XmlRpcRequest GridReq;
+                XmlRpcResponse GridResp;
+                foreach (Hashtable neighbour in ((RemoteGridBase)this.m_gridServer).neighbours)
+                {
+                    Console.WriteLine( "http://" + neighbour["sim_ip"] + ":" + neighbour["sim_port"]);
+                    SimParams = new Hashtable();
+                    SimParams["session_id"] = ((RemoteGridBase)this.m_gridServer).agentcircuits[CircuitCode].SessionID.ToString();
+                    SimParams["secure_session_id"] = ((RemoteGridBase)this.m_gridServer).agentcircuits[CircuitCode].SecureSessionID.ToString();
+                    SimParams["firstname"] = ((RemoteGridBase)this.m_gridServer).agentcircuits[CircuitCode].firstname;
+                    SimParams["lastname"] = ((RemoteGridBase)this.m_gridServer).agentcircuits[CircuitCode].lastname;
+                    SimParams["agent_id"] = ((RemoteGridBase)this.m_gridServer).agentcircuits[CircuitCode].AgentID.ToString();
+                    SimParams["circuit_code"] = (Int32)this.CircuitCode;
+                    SimParams["child_agent"] = "1";
+                    SendParams = new ArrayList();
+                    SendParams.Add(SimParams);
+
+                    GridReq = new XmlRpcRequest("expect_user", SendParams);
+                    GridResp = GridReq.Send("http://" + neighbour["sim_ip"] + ":" + neighbour["sim_port"], 3000);
+                    EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
+                    enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
+                    enablesimpacket.SimulatorInfo.Handle = Helpers.UIntsToLong((uint)(Convert.ToInt32(neighbour["region_locx"]) * 256), (uint)(Convert.ToInt32(neighbour["region_locy"]) * 256));
+                    System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse((string)neighbour["sim_ip"]);
+                    byte[] byteIP = neighbourIP.GetAddressBytes();
+                    enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
+                    enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
+                    enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
+                    enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
+                    enablesimpacket.SimulatorInfo.Port = (ushort)Convert.ToInt32(neighbour["sim_port"]);
+                    Thread.Sleep(3000);
+                    this.OutPacket(enablesimpacket);
+                }
+            }
         }
     }
 }

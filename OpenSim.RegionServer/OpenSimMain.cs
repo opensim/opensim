@@ -543,42 +543,7 @@ namespace OpenSim
                 this._packetServer.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
 
                 //if (!((RemoteGridBase)GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].child)
-                if ((this.GridServers.GridServer.GetName() == "Remote") && (!isChildAgent))
-                {
-                    Hashtable SimParams;
-                    ArrayList SendParams;
-                    XmlRpcRequest GridReq;
-                    XmlRpcResponse GridResp;
-                    foreach (Hashtable neighbour in ((RemoteGridBase)this.GridServers.GridServer).neighbours)
-                    {
-                        m_console.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"http://" + neighbour["sim_ip"] + ":" + neighbour["sim_port"]);
-                        SimParams = new Hashtable();
-                        SimParams["session_id"] = ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].SessionID.ToString();
-                        SimParams["secure_session_id"] = ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].SecureSessionID.ToString();
-                        SimParams["firstname"] = ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].firstname;
-                        SimParams["lastname"] = ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].lastname;
-                        SimParams["agent_id"] = ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].AgentID.ToString();
-                        SimParams["circuit_code"] = (Int32)useCircuit.CircuitCode.Code;
-                        SimParams["child_agent"] = "1";
-                        SendParams = new ArrayList();
-                        SendParams.Add(SimParams);
-
-                        GridReq = new XmlRpcRequest("expect_user", SendParams);
-                        GridResp = GridReq.Send("http://" + neighbour["sim_ip"] + ":" + neighbour["sim_port"], 3000);
-                        EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
-                        enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
-                        enablesimpacket.SimulatorInfo.Handle = Helpers.UIntsToLong((uint)(Convert.ToInt32(neighbour["region_locx"]) * 256), (uint)(Convert.ToInt32(neighbour["region_locy"]) * 256));
-                        System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse((string)neighbour["sim_ip"]);
-                        byte[] byteIP = neighbourIP.GetAddressBytes();
-                        enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
-                        enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
-                        enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
-                        enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
-                        enablesimpacket.SimulatorInfo.Port = (ushort)Convert.ToInt32(neighbour["sim_port"]);
-                        Thread.Sleep(3000);
-                        _packetServer.ClientThreads[useCircuit.CircuitCode.Code].OutPacket(enablesimpacket);
-                    }
-                }
+              
 
             }
             else
