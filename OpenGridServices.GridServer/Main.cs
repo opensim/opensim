@@ -35,7 +35,7 @@ using System.Net;
 using System.Threading;
 using System.Reflection;
 using libsecondlife;
-using OpenGrid.Framework.Manager;
+//using OpenGrid.Framework.Manager;
 using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
