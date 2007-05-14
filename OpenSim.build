@@ -49,6 +49,7 @@
         <nant buildfile="OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.exe.build" target="clean" />
         <nant buildfile="OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="clean" />
+        <nant buildfile="OpenGrid.Framework.Manager/OpenGrid.Framework.Manager.dll.build" target="clean" />
         <nant buildfile="OpenSim.Servers/OpenSim.Servers.dll.build" target="clean" />
         <nant buildfile="OpenGrid.Framework.Data.SQLite/OpenGrid.Framework.Data.SQLite.dll.build" target="clean" />
         <nant buildfile="OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="clean" />
@@ -92,6 +93,7 @@
         <nant buildfile="OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="build" />
         <nant buildfile="OpenGrid.Framework.Data.MSSQL/OpenGrid.Framework.Data.MSSQL.dll.build" target="build" />
         <nant buildfile="OpenGrid.Framework.Data.SQLite/OpenGrid.Framework.Data.SQLite.dll.build" target="build" />
+        <nant buildfile="OpenGrid.Framework.Manager/OpenGrid.Framework.Manager.dll.build" target="build" />
         <nant buildfile="ServiceManager/ServiceManager.exe.build" target="build" />
         <nant buildfile="OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="build" />
@@ -120,6 +122,7 @@
         <nant buildfile="OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.exe.build" target="doc" />
         <nant buildfile="OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="doc" />
+        <nant buildfile="OpenGrid.Framework.Manager/OpenGrid.Framework.Manager.dll.build" target="doc" />
         <nant buildfile="OpenSim.Servers/OpenSim.Servers.dll.build" target="doc" />
         <nant buildfile="OpenGrid.Framework.Data.SQLite/OpenGrid.Framework.Data.SQLite.dll.build" target="doc" />
         <nant buildfile="OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="doc" />
