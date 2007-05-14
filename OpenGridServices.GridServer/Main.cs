@@ -66,7 +66,10 @@ namespace OpenGridServices.GridServer
         [STAThread]
         public static void Main(string[] args)
         {
-            if(args[0]=="-setuponly") setuponly=true;
+            if (args.Length > 0)
+            {
+                if (args[0] == "-setuponly") setuponly = true;
+            }
 	    Console.WriteLine("Starting...\n");
 
             thegrid = new OpenGrid_Main();
