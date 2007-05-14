@@ -62,9 +62,37 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	
 	}
 
+	private static string SetupGrid()
+	{
+		Console.WriteLine("Running external program (OpenGridServices.GridServer.exe) to configure the grid server");
+		// TODO: Drop the console! and then configure using CLI params and/or XML files
+		return "<grid></grid>";
+	}
+
+	private static string SetupUser()
+	{
+		return "<user></user>";
+	}
+
+	private static string SetupAsset()
+	{
+		return "<asset></asset>";
+	}
+
+	private static string SetupRegion()
+	{
+		return "<regions></regions>";
+	}
+
 	public static void InitSetup()
 	{
 		string choice="";
+		
+		string GridInfo;
+		string UserInfo;
+		string AssetInfo;
+		string RegionInfo;
+
 		bool grid=false;
 		bool user=false;
 		bool asset=false;
@@ -101,6 +129,11 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 				break;
 			}
 		}
+
+		if(grid) GridInfo     = SetupGrid();
+		if(user) UserInfo     = SetupUser();
+		if(asset) AssetInfo   = SetupAsset();
+		if(region) RegionInfo = SetupRegion();
 	}	
 
 	public static void Main()
