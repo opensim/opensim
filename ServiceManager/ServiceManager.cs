@@ -62,8 +62,54 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	
 	}
 
+	public static void InitSetup()
+	{
+		string choice="";
+		bool grid=false;
+		bool user=false;
+		bool asset=false;
+		bool region=false;
+		while(choice!="OK")
+		{
+	                Console.Clear();
+        	        Console.WriteLine("Please select the components you would like to run on this server:\n");
+
+	                Console.WriteLine("1 - [" + (grid ? "X" : " ") + "] Grid server   - this service handles co-ordinates of regions/sims on the grid");
+        	        Console.WriteLine("2 - [" + (user ? "X" : " ") + "] User server   - this service handles user login, profiles, inventory and IM");
+                	Console.WriteLine("3 - [" + (asset ? "X" : " ") + "] Asset server  - this service handles storage of assets such as textures, objects, sounds, scripts");
+                	Console.WriteLine("4 - [" + (region ? "X" : " ") + "] Region server - this is the main opensim server and can run without the above services, it handles physics simulation, terrain, building and other such features");
+		
+
+			Console.Write("Type a number to toggle a choice or type OK to accept your current choices: ");
+			choice = Console.ReadLine();
+			switch(choice)
+			{
+				case "1":
+					grid = (!grid);
+				break;
+
+				case "2":
+					user = (!user);
+				break;
+
+				case "3":
+					asset = (!asset);
+				break;
+
+				case "4":
+					region = (!region);
+				break;
+			}
+		}
+	}	
+
 	public static void Main()
 	{
+	        if(!File.Exists("opengrid-master-cfg.xml")) 
+		{
+			Console.WriteLine("Could not find a config file, running initial setup");
+			InitSetup();
+		}
 		Console.WriteLine("Starting up OGS master service");
 		try {
 			ServiceBase.Run(new OpenGridMasterService());
