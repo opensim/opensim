@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.ServiceProcess;
 using System.Xml;
@@ -65,8 +66,13 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	private static string SetupGrid()
 	{
 		Console.WriteLine("Running external program (OpenGridServices.GridServer.exe) to configure the grid server");
-		// TODO: Drop the console! and then configure using CLI params and/or XML files
-		return "<grid></grid>";
+ 		Process p = new Process();
+
+		p.StartInfo.Arguments = "-setuponly"; 
+		p.StartInfo.FileName  = "OpenGridServices.GridServer.exe";
+ 		p.Start();
+
+		return "<gridserver />";	// we let the gridserver handle it's own setup
 	}
 
 	private static string SetupUser()

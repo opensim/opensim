@@ -32,6 +32,7 @@ using System.IO;
 using System.Text;
 using System.Timers;
 using System.Net;
+using System.Threading;
 using System.Reflection;
 using libsecondlife;
 using OpenSim.Framework;
@@ -51,6 +52,7 @@ namespace OpenGridServices.GridServer
         public GridConfig Cfg;
         
         public static OpenGrid_Main thegrid;
+	public static bool setuponly;
         
         //public LLUUID highestUUID;
 
@@ -63,7 +65,8 @@ namespace OpenGridServices.GridServer
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.WriteLine("Starting...\n");
+            if(args[0]=="-setuponly") setuponly=true;
+	    Console.WriteLine("Starting...\n");
 
             thegrid = new OpenGrid_Main();
             thegrid.Startup();
@@ -73,11 +76,10 @@ namespace OpenGridServices.GridServer
 
         private void Work()
         {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"\nEnter help for a list of commands\n");
-
             while (true)
             {
-                m_console.MainConsolePrompt();
+		Thread.Sleep(5000);
+		// should flush the DB etc here
             }
         }
 
@@ -94,6 +96,7 @@ namespace OpenGridServices.GridServer
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
+	    if(setuponly) Environment.Exit(0);
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
@@ -129,7 +132,7 @@ namespace OpenGridServices.GridServer
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting sim status checker");
 
-            Timer simCheckTimer = new Timer( 300000 ); // 5 minutes
+            System.Timers.Timer simCheckTimer = new System.Timers.Timer( 300000 ); // 5 minutes
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }
