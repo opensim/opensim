@@ -32,6 +32,16 @@ namespace OpenGrid.Framework.Data
         SimProfileData GetProfileByLLUUID(libsecondlife.LLUUID UUID);
 
         /// <summary>
+        /// Returns all profiles within the specified range
+        /// </summary>
+        /// <param name="Xmin">Minimum sim coordinate (X)</param>
+        /// <param name="Ymin">Minimum sim coordinate (Y)</param>
+        /// <param name="Xmax">Maximum sim coordinate (X)</param>
+        /// <param name="Ymin">Maximum sim coordinate (Y)</param>
+        /// <returns>An array containing all the sim profiles in the specified range</returns>
+        SimProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
+
+        /// <summary>
         /// Authenticates a sim by use of it's recv key. 
         /// WARNING: Insecure
         /// </summary>

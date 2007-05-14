@@ -15,6 +15,11 @@ namespace OpenGrid.Framework.Data.DB4o
              manager = new DB4oGridManager("gridserver.yap");
         }
 
+        public SimProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        {
+            return null;
+        }
+
         public SimProfileData GetProfileByHandle(ulong handle) {
             lock (manager.simProfiles)
             {

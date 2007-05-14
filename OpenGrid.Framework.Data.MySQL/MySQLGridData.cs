@@ -14,7 +14,7 @@ namespace OpenGrid.Framework.Data.MySQL
         /// </summary>
         public void Initialise()
         {
-            database = new MySQLManager("server", "database", "username", "password", "false");
+            database = new MySQLManager("localhost", "database", "username", "password", "false");
         }
 
         /// <summary>
@@ -33,6 +33,43 @@ namespace OpenGrid.Framework.Data.MySQL
         public string getVersion()
         {
             return "0.1";
+        }
+
+        public SimProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
+        {
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?xmin"] = xmin.ToString();
+                    param["?ymin"] = ymin.ToString();
+                    param["?xmax"] = xmax.ToString();
+                    param["?ymax"] = ymax.ToString();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    SimProfileData row;
+
+                    List<SimProfileData> rows = new List<SimProfileData>();
+
+                    while ((row = database.getSimRow(reader)) != null)
+                    {
+                        rows.Add(row);
+                    }
+                    reader.Close();
+                    result.Dispose();
+
+                    return rows.ToArray();
+
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         /// <summary>

@@ -35,6 +35,11 @@ namespace OpenGrid.Framework.Data.SQLite
             return "0.1";
         }
 
+        public SimProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Returns a sim profile from it's location
         /// </summary>

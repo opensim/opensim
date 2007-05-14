@@ -121,7 +121,6 @@ namespace OpenGrid.Framework.Data.MySQL
             }
             else
             {
-                throw new Exception("Unable to find region at coordinates");
                 return null;
             }
             return retval;
