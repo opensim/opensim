@@ -436,6 +436,7 @@
      <Reference name="OpenSim.Framework.Console"/>
      <Reference name="OpenSim.Servers"/>
      <Reference name="OpenGrid.Framework.Data"/>
+     <Reference name="OpenGrid.Framework.Manager"/>
      <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>
      <Reference name="XMLRPC"/>

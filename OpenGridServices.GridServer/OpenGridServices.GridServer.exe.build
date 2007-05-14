@@ -27,6 +27,7 @@
                 <include name="../bin/OpenSim.Framework.Console.dll" />
                 <include name="../bin/OpenSim.Servers.dll" />
                 <include name="../bin/OpenGrid.Framework.Data.dll" />
+                <include name="../bin/OpenGrid.Framework.Manager.dll" />
                 <include name="../bin/libsecondlife.dll" />
                 <include name="../bin/Db4objects.Db4o.dll" />
                 <include name="../bin/XMLRPC.dll" />

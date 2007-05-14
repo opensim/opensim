@@ -12,6 +12,7 @@
             </resources>
             <sources failonempty="true">
                 <include name="GridManagementAgent.cs" />
+                <include name="GridServerManager.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
