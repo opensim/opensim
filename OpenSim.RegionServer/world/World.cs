@@ -561,11 +561,25 @@ namespace OpenSim.world
                 }
                 lock (Entities)
                 {
-                    this.Entities.Add(agentClient.AgentID, newAvatar);
+                    if (!Entities.ContainsKey(agentClient.AgentID))
+                    {
+                        this.Entities.Add(agentClient.AgentID, newAvatar);
+                    }
+                    else
+                    {
+                        Entities[agentClient.AgentID] = newAvatar;
+                    }
                 }
                 lock (Avatars)
                 {
-                    this.Avatars.Add(agentClient.AgentID, newAvatar);
+                    if (Avatars.ContainsKey(agentClient.AgentID))
+                    {
+                        Avatars[agentClient.AgentID] = newAvatar;
+                    }
+                    else
+                    {
+                        this.Avatars.Add(agentClient.AgentID, newAvatar);
+                    }
                 }
             }
             catch (Exception e)
