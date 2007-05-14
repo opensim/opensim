@@ -65,6 +65,11 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	public static void Main()
 	{
 		Console.WriteLine("Starting up OGS master service");
-		ServiceBase.Run(new OpenGridMasterService());
+		try {
+			ServiceBase.Run(new OpenGridMasterService());
+		} catch(Exception e) {
+			Console.WriteLine("THIS SHOULD NEVER HAPPEN!!!!!!!!!!!!!!!!!!!!!");
+			Console.WriteLine(e.ToString());
+		}
 	}
 }
