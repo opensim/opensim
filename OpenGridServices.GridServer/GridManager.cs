@@ -182,7 +182,7 @@ namespace OpenGridServices.GridServer
 
                 if (fastMode)
                 {
-                    Dictionary<ulong, SimProfileData> neighbours = getRegions(TheSim.regionLocX - 256, TheSim.regionLocY - 256, TheSim.regionLocX + 256, TheSim.regionLocY + 256);
+                    Dictionary<ulong, SimProfileData> neighbours = getRegions(TheSim.regionLocX - 1, TheSim.regionLocY - 1, TheSim.regionLocX + 1, TheSim.regionLocY + 1);
 
                     foreach (KeyValuePair<ulong, SimProfileData> aSim in neighbours)
                     {
