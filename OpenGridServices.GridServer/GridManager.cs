@@ -90,6 +90,31 @@ namespace OpenGridServices.GridServer
             return null;
         }
 
+        public Dictionary<ulong, SimProfileData> getRegions(uint xmin, uint ymin, uint xmax, uint ymax)
+        {
+            Dictionary<ulong, SimProfileData> regions = new Dictionary<ulong, SimProfileData>();
+
+            SimProfileData[] neighbours;
+
+            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            {
+                try
+                {
+                    neighbours = kvp.Value.GetProfilesInRange(xmin, ymin, xmax, ymax);
+                    foreach (SimProfileData neighbour in neighbours)
+                    {
+                        regions[neighbour.regionHandle] = neighbour;
+                    }
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Storage: Unable to query regionblock via " + kvp.Key);
+                }
+            }
+
+            return regions;
+        }
+
         /// <summary>
         /// Returns a XML String containing a list of the neighbouring regions
         /// </summary>
@@ -152,22 +177,45 @@ namespace OpenGridServices.GridServer
 
                 SimProfileData neighbour;
                 Hashtable NeighbourBlock;
-                for (int x = -1; x < 2; x++) for (int y = -1; y < 2; y++)
+
+                bool fastMode = false; // Only compatible with MySQL right now
+
+                if (fastMode)
+                {
+                    Dictionary<ulong, SimProfileData> neighbours = getRegions(TheSim.regionLocX - 256, TheSim.regionLocY - 256, TheSim.regionLocX + 256, TheSim.regionLocY + 256);
+
+                    foreach (KeyValuePair<ulong, SimProfileData> aSim in neighbours)
                     {
-                        if (getRegion(Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * 256), (uint)(TheSim.regionLocY + y) * 256)) != null)
-                        {
-                            neighbour = getRegion(Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * 256), (uint)(TheSim.regionLocY + y) * 256));
+                        NeighbourBlock = new Hashtable();
+                        NeighbourBlock["sim_ip"] = aSim.Value.serverIP.ToString();
+                        NeighbourBlock["sim_port"] = aSim.Value.serverPort.ToString();
+                        NeighbourBlock["region_locx"] = aSim.Value.regionLocX.ToString();
+                        NeighbourBlock["region_locy"] = aSim.Value.regionLocY.ToString();
+                        NeighbourBlock["UUID"] = aSim.Value.UUID.ToString();
 
-                            NeighbourBlock = new Hashtable();
-                            NeighbourBlock["sim_ip"] = neighbour.serverIP;
-                            NeighbourBlock["sim_port"] = neighbour.serverPort.ToString();
-                            NeighbourBlock["region_locx"] = neighbour.regionLocX.ToString();
-                            NeighbourBlock["region_locy"] = neighbour.regionLocY.ToString();
-                            NeighbourBlock["UUID"] = neighbour.UUID.ToString();
-
-                            if (neighbour.UUID != TheSim.UUID) SimNeighboursData.Add(NeighbourBlock);
-                        }
+                        if (aSim.Value.UUID != TheSim.UUID)
+                            SimNeighboursData.Add(NeighbourBlock);
                     }
+                }
+                else
+                {
+                    for (int x = -1; x < 2; x++) for (int y = -1; y < 2; y++)
+                        {
+                            if (getRegion(Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * 256), (uint)(TheSim.regionLocY + y) * 256)) != null)
+                            {
+                                neighbour = getRegion(Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * 256), (uint)(TheSim.regionLocY + y) * 256));
+
+                                NeighbourBlock = new Hashtable();
+                                NeighbourBlock["sim_ip"] = neighbour.serverIP;
+                                NeighbourBlock["sim_port"] = neighbour.serverPort.ToString();
+                                NeighbourBlock["region_locx"] = neighbour.regionLocX.ToString();
+                                NeighbourBlock["region_locy"] = neighbour.regionLocY.ToString();
+                                NeighbourBlock["UUID"] = neighbour.UUID.ToString();
+
+                                if (neighbour.UUID != TheSim.UUID) SimNeighboursData.Add(NeighbourBlock);
+                            }
+                        }
+                }
 
                 responseData["UUID"] = TheSim.UUID.ToString();
                 responseData["region_locx"] = TheSim.regionLocX.ToString();
