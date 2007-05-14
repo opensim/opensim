@@ -143,69 +143,78 @@ namespace OpenSim.UserServer
 
         public void SetDefaultValues()
         {
-            this.DST = "N";
-            this.StipendSinceLogin = "N";
-            this.Gendered = "Y";
-            this.EverLoggedIn = "Y";
-            this.login = "false";
-            this.firstname = "Test";
-            this.lastname = "User";
-            this.agentAccess = "M";
-            this.startLocation = "last";
-            this.allowFirstLife = "Y";
-
-            this.SunTexture = "cce0f112-878f-4586-a2e2-a8f104bba271";
-            this.CloudTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-            this.MoonTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-
-            this.ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
-            this.ErrorReason = "key";
-            this.welcomeMessage = "Welcome to OpenSim!";
-            this.seedCapability = "";
-            this.home = "{'region_handle':[r" + (997 * 256).ToString() + ",r" + (996 * 256).ToString() + "], 'position':[r" + this.userProfile.homepos.X.ToString() + ",r" + this.userProfile.homepos.Y.ToString() + ",r" + this.userProfile.homepos.Z.ToString() + "], 'look_at':[r" + this.userProfile.homelookat.X.ToString() + ",r" + this.userProfile.homelookat.Y.ToString() + ",r" + this.userProfile.homelookat.Z.ToString() + "]}";
-            this.lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
-            this.RegionX = (uint)255232;
-            this.RegionY = (uint)254976;
-
-            // Classifieds;
-            this.AddClassifiedCategory((Int32)1, "Shopping");
-            this.AddClassifiedCategory((Int32)2, "Land Rental");
-            this.AddClassifiedCategory((Int32)3, "Property Rental");
-            this.AddClassifiedCategory((Int32)4, "Special Attraction");
-            this.AddClassifiedCategory((Int32)5, "New Products");
-            this.AddClassifiedCategory((Int32)6, "Employment");
-            this.AddClassifiedCategory((Int32)7, "Wanted");
-            this.AddClassifiedCategory((Int32)8, "Service");
-            this.AddClassifiedCategory((Int32)9, "Personal");
-
-            int SessionRand = Util.RandomClass.Next(1, 999);
-            this.SessionID = new LLUUID("aaaabbbb-0200-" + SessionRand.ToString("0000") + "-8664-58f53e442797");
-            this.SecureSessionID = LLUUID.Random();
-
-            this.userProfile.Inventory.CreateRootFolder(this.userProfile.UUID, true);
-            this.baseFolderID = this.userProfile.Inventory.GetFolderID("Textures");
-            this.inventoryFolderID = this.userProfile.Inventory.GetFolderID("My Inventory-");
-            Hashtable InventoryRootHash = new Hashtable();
-            InventoryRootHash["folder_id"] = this.userProfile.Inventory.InventoryRoot.FolderID.ToStringHyphenated();
-            this.inventoryRoot.Add(InventoryRootHash);
-
-            Hashtable TempHash;
-            foreach (InventoryFolder InvFolder in this.userProfile.Inventory.InventoryFolders.Values)
+            try
             {
-                TempHash = new Hashtable();
-                TempHash["name"] = InvFolder.FolderName;
-                TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
-                TempHash["version"] = (Int32)InvFolder.Version;
-                TempHash["type_default"] = (Int32)InvFolder.DefaultType;
-                TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
-                this.agentInventory.Add(TempHash);
+                this.DST = "N";
+                this.StipendSinceLogin = "N";
+                this.Gendered = "Y";
+                this.EverLoggedIn = "Y";
+                this.login = "false";
+                this.firstname = "Test";
+                this.lastname = "User";
+                this.agentAccess = "M";
+                this.startLocation = "last";
+                this.allowFirstLife = "Y";
+
+                this.SunTexture = "cce0f112-878f-4586-a2e2-a8f104bba271";
+                this.CloudTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+                this.MoonTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+
+                this.ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
+                this.ErrorReason = "key";
+                this.welcomeMessage = "Welcome to OpenSim!";
+                this.seedCapability = "";
+                this.home = "{'region_handle':[r" + (997 * 256).ToString() + ",r" + (996 * 256).ToString() + "], 'position':[r" + this.userProfile.homepos.X.ToString() + ",r" + this.userProfile.homepos.Y.ToString() + ",r" + this.userProfile.homepos.Z.ToString() + "], 'look_at':[r" + this.userProfile.homelookat.X.ToString() + ",r" + this.userProfile.homelookat.Y.ToString() + ",r" + this.userProfile.homelookat.Z.ToString() + "]}";
+                this.lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
+                this.RegionX = (uint)255232;
+                this.RegionY = (uint)254976;
+
+                // Classifieds;
+                this.AddClassifiedCategory((Int32)1, "Shopping");
+                this.AddClassifiedCategory((Int32)2, "Land Rental");
+                this.AddClassifiedCategory((Int32)3, "Property Rental");
+                this.AddClassifiedCategory((Int32)4, "Special Attraction");
+                this.AddClassifiedCategory((Int32)5, "New Products");
+                this.AddClassifiedCategory((Int32)6, "Employment");
+                this.AddClassifiedCategory((Int32)7, "Wanted");
+                this.AddClassifiedCategory((Int32)8, "Service");
+                this.AddClassifiedCategory((Int32)9, "Personal");
+
+                int SessionRand = Util.RandomClass.Next(1, 999);
+                this.SessionID = new LLUUID("aaaabbbb-0200-" + SessionRand.ToString("0000") + "-8664-58f53e442797");
+                this.SecureSessionID = LLUUID.Random();
+
+                this.userProfile.Inventory.CreateRootFolder(this.userProfile.UUID, true);
+                this.baseFolderID = this.userProfile.Inventory.GetFolderID("Textures");
+                this.inventoryFolderID = this.userProfile.Inventory.GetFolderID("My Inventory-");
+                Hashtable InventoryRootHash = new Hashtable();
+                InventoryRootHash["folder_id"] = this.userProfile.Inventory.InventoryRoot.FolderID.ToStringHyphenated();
+                this.inventoryRoot.Add(InventoryRootHash);
+
+                Hashtable TempHash;
+                foreach (InventoryFolder InvFolder in this.userProfile.Inventory.InventoryFolders.Values)
+                {
+                    TempHash = new Hashtable();
+                    TempHash["name"] = InvFolder.FolderName;
+                    TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
+                    TempHash["version"] = (Int32)InvFolder.Version;
+                    TempHash["type_default"] = (Int32)InvFolder.DefaultType;
+                    TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
+                    this.agentInventory.Add(TempHash);
+                }
+
+                Hashtable InitialOutfitHash = new Hashtable();
+                InitialOutfitHash["folder_name"] = "Nightclub Female";
+                InitialOutfitHash["gender"] = "female";
+                this.initialOutfit.Add(InitialOutfitHash);
             }
-
-
-            Hashtable InitialOutfitHash = new Hashtable();
-            InitialOutfitHash["folder_name"] = "Nightclub Female";
-            InitialOutfitHash["gender"] = "female";
-            this.initialOutfit.Add(InitialOutfitHash);
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(
+                    OpenSim.Framework.Console.LogPriority.LOW, 
+                    "LoginResponse: Unable to set default values: " + e.Message
+                );
+            }
 
         } // SetDefaultValues
 
@@ -251,66 +260,79 @@ namespace OpenSim.UserServer
 
         public XmlRpcResponse ToXmlRpcResponse()
         {
-            Hashtable responseData = new Hashtable();
+            try
+            {
 
-            this.loginFlagsHash = new Hashtable();
-            this.loginFlagsHash["daylight_savings"] = this.DST;
-            this.loginFlagsHash["stipend_since_login"] = this.StipendSinceLogin;
-            this.loginFlagsHash["gendered"] = this.Gendered;
-            this.loginFlagsHash["ever_logged_in"] = this.EverLoggedIn;
-            this.loginFlags.Add(this.loginFlagsHash);
+                Hashtable responseData = new Hashtable();
 
-            responseData["first_name"] = this.Firstname;
-            responseData["last_name"] = this.Lastname;
-            responseData["agent_access"] = this.agentAccess;
+                this.loginFlagsHash = new Hashtable();
+                this.loginFlagsHash["daylight_savings"] = this.DST;
+                this.loginFlagsHash["stipend_since_login"] = this.StipendSinceLogin;
+                this.loginFlagsHash["gendered"] = this.Gendered;
+                this.loginFlagsHash["ever_logged_in"] = this.EverLoggedIn;
+                this.loginFlags.Add(this.loginFlagsHash);
 
-            this.globalTexturesHash = new Hashtable();
-            this.globalTexturesHash["sun_texture_id"] = this.SunTexture;
-            this.globalTexturesHash["cloud_texture_id"] = this.CloudTexture;
-            this.globalTexturesHash["moon_texture_id"] = this.MoonTexture;
-            this.globalTextures.Add(this.globalTexturesHash);
-            this.eventCategories.Add(this.eventCategoriesHash);
+                responseData["first_name"] = this.Firstname;
+                responseData["last_name"] = this.Lastname;
+                responseData["agent_access"] = this.agentAccess;
 
-            this.AddToUIConfig("allow_first_life", this.allowFirstLife);
-            this.uiConfig.Add(this.uiConfigHash);
+                this.globalTexturesHash = new Hashtable();
+                this.globalTexturesHash["sun_texture_id"] = this.SunTexture;
+                this.globalTexturesHash["cloud_texture_id"] = this.CloudTexture;
+                this.globalTexturesHash["moon_texture_id"] = this.MoonTexture;
+                this.globalTextures.Add(this.globalTexturesHash);
+                this.eventCategories.Add(this.eventCategoriesHash);
 
-            // Create a agent and session LLUUID
-            this.agentID = this.GetAgentId();
+                this.AddToUIConfig("allow_first_life", this.allowFirstLife);
+                this.uiConfig.Add(this.uiConfigHash);
 
-            responseData["sim_port"] = this.SimPort;
-            responseData["sim_ip"] = this.SimAddress;
-            responseData["agent_id"] = this.AgentID.ToStringHyphenated();
-            responseData["session_id"] = this.SessionID.ToStringHyphenated();
-            responseData["secure_session_id"] = this.SecureSessionID.ToStringHyphenated();
-            responseData["circuit_code"] = this.CircuitCode;
-            responseData["seconds_since_epoch"] = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            responseData["login-flags"] = this.loginFlags;
-            responseData["global-textures"] = this.globalTextures;
-            responseData["seed_capability"] = this.seedCapability;
+                // Create a agent and session LLUUID
+                this.agentID = this.GetAgentId();
 
-            responseData["event_categories"] = this.eventCategories;
-            responseData["event_notifications"] = new ArrayList(); // todo
-            responseData["classified_categories"] = this.classifiedCategories;
-            responseData["ui-config"] = this.uiConfig;
+                responseData["sim_port"] = this.SimPort;
+                responseData["sim_ip"] = this.SimAddress;
+                responseData["agent_id"] = this.AgentID.ToStringHyphenated();
+                responseData["session_id"] = this.SessionID.ToStringHyphenated();
+                responseData["secure_session_id"] = this.SecureSessionID.ToStringHyphenated();
+                responseData["circuit_code"] = this.CircuitCode;
+                responseData["seconds_since_epoch"] = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+                responseData["login-flags"] = this.loginFlags;
+                responseData["global-textures"] = this.globalTextures;
+                responseData["seed_capability"] = this.seedCapability;
 
-            responseData["inventory-skeleton"] = this.agentInventory;
-            responseData["inventory-skel-lib"] = new ArrayList(); // todo
-            responseData["inventory-root"] = this.inventoryRoot;
-            responseData["gestures"] = new ArrayList(); // todo
-            responseData["inventory-lib-owner"] = new ArrayList(); // todo
-            responseData["initial-outfit"] = this.initialOutfit;
-            responseData["start_location"] = this.startLocation;
-            responseData["seed_capability"] = this.seedCapability;
-            responseData["home"] = this.home;
-            responseData["look_at"] = this.lookAt;
-            responseData["message"] = this.welcomeMessage;
-            responseData["region_x"] = (Int32)this.RegionX * 256;
-            responseData["region_y"] = (Int32)this.RegionY * 256;
+                responseData["event_categories"] = this.eventCategories;
+                responseData["event_notifications"] = new ArrayList(); // todo
+                responseData["classified_categories"] = this.classifiedCategories;
+                responseData["ui-config"] = this.uiConfig;
 
-            responseData["login"] = "true";
-            this.xmlRpcResponse.Value = responseData;          
+                responseData["inventory-skeleton"] = this.agentInventory;
+                responseData["inventory-skel-lib"] = new ArrayList(); // todo
+                responseData["inventory-root"] = this.inventoryRoot;
+                responseData["gestures"] = new ArrayList(); // todo
+                responseData["inventory-lib-owner"] = new ArrayList(); // todo
+                responseData["initial-outfit"] = this.initialOutfit;
+                responseData["start_location"] = this.startLocation;
+                responseData["seed_capability"] = this.seedCapability;
+                responseData["home"] = this.home;
+                responseData["look_at"] = this.lookAt;
+                responseData["message"] = this.welcomeMessage;
+                responseData["region_x"] = (Int32)this.RegionX * 256;
+                responseData["region_y"] = (Int32)this.RegionY * 256;
 
-            return (this.xmlRpcResponse);
+                responseData["login"] = "true";
+                this.xmlRpcResponse.Value = responseData;
+
+                return (this.xmlRpcResponse);
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(
+                    OpenSim.Framework.Console.LogPriority.LOW,
+                    "LoginResponse: Error creating XML-RPC Response: " + e.Message
+                );
+                return (this.GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));
+
+            }
 
         } // ToXmlRpcResponse
 
