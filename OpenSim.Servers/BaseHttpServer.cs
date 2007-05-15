@@ -26,14 +26,14 @@ namespace OpenSim.Servers
             {
                 get { return m_restMethod; }
             }
-	
-            public RestMethodEntry( string path, RestMethod restMethod )
+
+            public RestMethodEntry(string path, RestMethod restMethod)
             {
                 m_path = path;
                 m_restMethod = restMethod;
             }
         }
-        
+
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
         protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
@@ -48,10 +48,10 @@ namespace OpenSim.Servers
         public bool AddRestHandler(string method, string path, RestMethod handler)
         {
             string methodKey = String.Format("{0}: {1}", method, path);
-                
+
             if (!this.m_restHandlers.ContainsKey(methodKey))
             {
-                this.m_restHandlers.Add(methodKey, new RestMethodEntry( path, handler ));
+                this.m_restHandlers.Add(methodKey, new RestMethodEntry(path, handler));
                 return true;
             }
 
@@ -74,9 +74,9 @@ namespace OpenSim.Servers
         protected virtual string ProcessXMLRPCMethod(string methodName, XmlRpcRequest request)
         {
             XmlRpcResponse response;
-            
+
             XmlRpcMethod method;
-            if( this.m_rpcHandlers.TryGetValue( methodName, out method ) )
+            if (this.m_rpcHandlers.TryGetValue(methodName, out method))
             {
                 response = method(request);
             }
@@ -96,15 +96,15 @@ namespace OpenSim.Servers
         protected virtual string ParseREST(string request, string path, string method)
         {
             string response;
-            
+
             string requestKey = String.Format("{0}: {1}", method, path);
-                    
+
             string bestMatch = String.Empty;
-            foreach( string currentKey in m_restHandlers.Keys )
+            foreach (string currentKey in m_restHandlers.Keys)
             {
-                if( requestKey.StartsWith( currentKey ))
+                if (requestKey.StartsWith(currentKey))
                 {
-                    if(currentKey.Length > bestMatch.Length )
+                    if (currentKey.Length > bestMatch.Length)
                     {
                         bestMatch = currentKey;
                     }
@@ -116,9 +116,9 @@ namespace OpenSim.Servers
             {
                 RestMethod restMethod = restMethodEntry.RestMethod;
 
-                string param = path.Substring( restMethodEntry.Path.Length );
+                string param = path.Substring(restMethodEntry.Path.Length);
                 response = restMethod(request, path, param);
-            
+
             }
             else
             {
@@ -144,7 +144,7 @@ namespace OpenSim.Servers
 
                 string methodName = request.MethodName;
 
-                responseString = ProcessXMLRPCMethod(methodName, request );
+                responseString = ProcessXMLRPCMethod(methodName, request);
             }
             catch (Exception e)
             {
@@ -155,83 +155,86 @@ namespace OpenSim.Servers
 
         public virtual void HandleRequest(Object stateinfo)
         {
-	try {
-            HttpListenerContext context = (HttpListenerContext)stateinfo;
-
-            HttpListenerRequest request = context.Request;
-            HttpListenerResponse response = context.Response;
-
-            response.KeepAlive = false;
-            response.SendChunked = false;
-
-            System.IO.Stream body = request.InputStream;
-            System.Text.Encoding encoding = System.Text.Encoding.UTF8;
-            System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
-
-            string requestBody = reader.ReadToEnd();
-            body.Close();
-            reader.Close();
-
-            //Console.WriteLine(request.HttpMethod + " " + request.RawUrl + " Http/" + request.ProtocolVersion.ToString() + " content type: " + request.ContentType);
-            //Console.WriteLine(requestBody);
-
-            string responseString = "";
-            switch (request.ContentType)
+            try
             {
-                case "text/xml":
-                    // must be XML-RPC, so pass to the XML-RPC parser
+                HttpListenerContext context = (HttpListenerContext)stateinfo;
 
-                    responseString = ParseXMLRPC(requestBody);
-                    responseString = Regex.Replace(responseString, "utf-16", "utf-8");
-                    
-                    response.AddHeader("Content-type", "text/xml");
-                    break;
+                HttpListenerRequest request = context.Request;
+                HttpListenerResponse response = context.Response;
 
-                case "application/xml":
-                    // probably LLSD we hope, otherwise it should be ignored by the parser
-                    responseString = ParseLLSDXML(requestBody);
-                    response.AddHeader("Content-type", "application/xml");
-                    break;
+                response.KeepAlive = false;
+                response.SendChunked = false;
 
-                case "application/x-www-form-urlencoded":
-                    // a form data POST so send to the REST parser
-                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                    response.AddHeader("Content-type", "text/html");
-                    break;
+                System.IO.Stream body = request.InputStream;
+                System.Text.Encoding encoding = System.Text.Encoding.UTF8;
+                System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
 
-                case null:
-                    // must be REST or invalid crap, so pass to the REST parser
-                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                    response.AddHeader("Content-type", "text/html");
-                    break;
+                string requestBody = reader.ReadToEnd();
+                body.Close();
+                reader.Close();
 
+                //Console.WriteLine(request.HttpMethod + " " + request.RawUrl + " Http/" + request.ProtocolVersion.ToString() + " content type: " + request.ContentType);
+                //Console.WriteLine(requestBody);
+
+                string responseString = "";
+                switch (request.ContentType)
+                {
+                    case "text/xml":
+                        // must be XML-RPC, so pass to the XML-RPC parser
+
+                        responseString = ParseXMLRPC(requestBody);
+                        responseString = Regex.Replace(responseString, "utf-16", "utf-8");
+
+                        response.AddHeader("Content-type", "text/xml");
+                        break;
+
+                    case "application/xml":
+                        // probably LLSD we hope, otherwise it should be ignored by the parser
+                        responseString = ParseLLSDXML(requestBody);
+                        response.AddHeader("Content-type", "application/xml");
+                        break;
+
+                    case "application/x-www-form-urlencoded":
+                        // a form data POST so send to the REST parser
+                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                        response.AddHeader("Content-type", "text/html");
+                        break;
+
+                    case null:
+                        // must be REST or invalid crap, so pass to the REST parser
+                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                        response.AddHeader("Content-type", "text/html");
+                        break;
+
+                }
+
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                System.IO.Stream output = response.OutputStream;
+                response.SendChunked = false;
+                response.ContentLength64 = buffer.Length;
+                output.Write(buffer, 0, buffer.Length);
+                output.Close();
             }
-
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-            System.IO.Stream output = response.OutputStream;
-            response.SendChunked = false;
-            response.ContentLength64 = buffer.Length;
-            output.Write(buffer, 0, buffer.Length);
-            output.Close();
-	} catch (Exception e) {
-		Console.WriteLine(e.ToString());
-	}
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
 
         public void Start()
         {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"BaseHttpServer.cs: Starting up HTTP Server");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: Starting up HTTP Server");
 
-                m_workerThread = new Thread(new ThreadStart(StartHTTP));
-                m_workerThread.IsBackground = true;
-                m_workerThread.Start();
+            m_workerThread = new Thread(new ThreadStart(StartHTTP));
+            m_workerThread.IsBackground = true;
+            m_workerThread.Start();
         }
 
         private void StartHTTP()
         {
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
                 m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
@@ -246,7 +249,7 @@ namespace OpenSim.Servers
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM,e.Message);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
             }
         }
     }

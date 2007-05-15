@@ -96,7 +96,7 @@ namespace OpenSim.Assets
         {
             //hack: so we can give each user a set of textures
             textureList[0] = new LLUUID("00000000-0000-0000-9999-000000000001");
-            textureList[1] = new LLUUID("00000000-0000-0000-9999-000000000002");
+           textureList[1] = new LLUUID("00000000-0000-0000-9999-000000000002");
             textureList[2] = new LLUUID("00000000-0000-0000-9999-000000000003");
             textureList[3] = new LLUUID("00000000-0000-0000-9999-000000000004");
             textureList[4] = new LLUUID("00000000-0000-0000-9999-000000000005");

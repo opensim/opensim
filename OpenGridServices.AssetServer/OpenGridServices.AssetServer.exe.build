@@ -11,6 +11,7 @@
             <resources prefix="OpenGridServices.AssetServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="AssetHttpServer.cs" />
                 <include name="Main.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>

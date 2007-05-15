@@ -112,6 +112,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssetHttpServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Main.cs">
       <SubType>Code</SubType>
     </Compile>

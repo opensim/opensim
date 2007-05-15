@@ -25,7 +25,7 @@ namespace OpenSim
 
         //following should be removed and the GenericConfig object passed around,
         //so each class (AssetServer, GridServer etc) can access what config data they want 
-        public string AssetURL = "";
+        public string AssetURL = "http://127.0.0.1:8003/";
         public string AssetSendKey = "";
 
         public string GridURL = "";
@@ -230,6 +230,17 @@ namespace OpenSim
                         this.GridRecvKey = attri;
                     }
 
+                    attri = "";
+                    attri = configData.GetAttribute("AssetServerURL");
+                    if (attri == "")
+                    {
+                        this.AssetURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Asset server URL", "http://127.0.0.1:8003/");
+                        configData.SetAttribute("AssetServerURL", this.GridURL);
+                    }
+                    else
+                    {
+                        this.AssetURL = attri;
+                    }
 
                 }
                 this.RegionHandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));

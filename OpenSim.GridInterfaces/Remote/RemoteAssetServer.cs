@@ -49,6 +49,11 @@ namespace OpenSim.GridInterfaces.Remote
 
         public void UploadNewAsset(AssetBase asset)
         {
+            Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
+            string ret = Windows1252Encoding.GetString(asset.Data);
+            byte[] buffer = Windows1252Encoding.GetBytes(ret);
+            WebClient client = new WebClient();
+            client.UploadData(this.AssetServerUrl + "assets/" + asset.FullID, buffer);
 
         }
 
@@ -66,14 +71,14 @@ namespace OpenSim.GridInterfaces.Remote
 		// 404... THE MAGIC FILE NOT FOUND ERROR, very useful for telling you things such as a file (or asset ;) ) not being found!!!!!!!!!!! it's 2:22AM
                 ARequest req = this._assetRequests.Dequeue();
                 LLUUID assetID = req.AssetID;
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW," RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "assets/" + assetID);
+              //  OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW," RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "assets/" + assetID);
                 WebRequest AssetLoad = WebRequest.Create(this.AssetServerUrl + "assets/" + assetID);
                 WebResponse AssetResponse = AssetLoad.GetResponse();
                 byte[] idata = new byte[(int)AssetResponse.ContentLength];
                 BinaryReader br = new BinaryReader(AssetResponse.GetResponseStream());
                 idata = br.ReadBytes((int)AssetResponse.ContentLength);
                 br.Close();
-
+                
                 AssetBase asset = new AssetBase();
                 asset.FullID = assetID;
                 asset.Data = idata;

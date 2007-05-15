@@ -130,7 +130,7 @@ namespace OpenSim
             GridServers = new Grid();
             if (m_sandbox)
             {
-                GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
+                GridServers.AssetDll =  "OpenSim.GridInterfaces.Local.dll";
                 GridServers.GridDll = "OpenSim.GridInterfaces.Local.dll";
 
                 m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Starting in Sandbox mode");
@@ -177,7 +177,7 @@ namespace OpenSim
 
 
             //should be passing a IGenericConfig object to these so they can read the config data they want from it
-            GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
+           GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
             IGridServer gridServer = GridServers.GridServer;
             gridServer.SetServerInfo(regionData.GridURL, regionData.GridSendKey, regionData.GridRecvKey);
 
