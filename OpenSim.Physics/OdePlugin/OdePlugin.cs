@@ -131,6 +131,11 @@ namespace OpenSim.Physics.OdePlugin
             return newAv;
         }
 
+        public override void RemoveAvatar(PhysicsActor actor)
+        {
+
+        }
+
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
         {
             PhysicsVector pos = new PhysicsVector();

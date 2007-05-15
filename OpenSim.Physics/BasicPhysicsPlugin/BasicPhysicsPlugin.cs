@@ -84,7 +84,17 @@ namespace OpenSim.Physics.BasicPhysicsPlugin
 			_actors.Add(act);
 			return act;
 		}
-		
+
+        public override void RemoveAvatar(PhysicsActor actor)
+        {
+            BasicActor act = (BasicActor)actor;
+            if(_actors.Contains(act))
+            {
+                _actors.Remove(act);
+            }
+
+        }
+
 		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
 		{
 			return null;

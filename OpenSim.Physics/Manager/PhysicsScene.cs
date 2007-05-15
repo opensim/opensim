@@ -44,6 +44,8 @@ namespace OpenSim.Physics.Manager
 
         public abstract PhysicsActor AddAvatar(PhysicsVector position);
 
+        public abstract void RemoveAvatar(PhysicsActor actor);
+
         public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size);
 
         public abstract void Simulate(float timeStep);
@@ -68,6 +70,11 @@ namespace OpenSim.Physics.Manager
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE,"NullPhysicsScene : AddAvatar({0})", position);
             return PhysicsActor.Null;
+        }
+
+        public override void RemoveAvatar(PhysicsActor actor)
+        {
+
         }
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)

@@ -600,6 +600,10 @@ namespace OpenSim.world
                 {
                     Avatars.Remove(agentClient.AgentID);
                 }
+                if (agentClient.ClientAvatar.PhysActor != null)
+                {
+                    this.phyScene.RemoveAvatar(agentClient.ClientAvatar.PhysActor);
+                }
             }
             catch (Exception e)
             {

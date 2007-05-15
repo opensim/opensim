@@ -121,6 +121,11 @@ namespace OpenSim.Physics.PhysXPlugin
 			_characters.Add(act);
 			return act;
 		}
+
+        public override void RemoveAvatar(PhysicsActor actor)
+        {
+
+        }
 		
 		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
 		{

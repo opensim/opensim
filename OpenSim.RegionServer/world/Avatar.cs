@@ -72,6 +72,10 @@ namespace OpenSim.world
             {
                 this._physActor = value;
             }
+            get
+            {
+                return _physActor;
+            }
         }
 
         public override void addForces()
