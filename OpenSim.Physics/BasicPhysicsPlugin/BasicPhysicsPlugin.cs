@@ -107,7 +107,10 @@ namespace OpenSim.Physics.BasicPhysicsPlugin
 				}
 				if(actor.Position.Z < (_heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1))
 				{*/
-					actor.Position.Z = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1;
+                if (actor.Position.Y > 0 && actor.Position.Y < 256 && actor.Position.X > 0 && actor.Position.X < 256)
+                {
+                    actor.Position.Z = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1;
+                }
 				//}
 
 
