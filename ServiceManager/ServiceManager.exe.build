@@ -20,6 +20,7 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="System.ServiceProcess.dll" />
+                <include name="System.Xml.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/" />
