@@ -39,15 +39,16 @@ namespace OpenSim.Framework.User
 
         public void InitSessionData()
         {
-
-            System.Security.Cryptography.Rfc2898DeriveBytes b = new Rfc2898DeriveBytes(MD5passwd, 128);
-
             RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
 
-            CurrentSessionID = new LLUUID();
-            CurrentSecureSessionID = new LLUUID();
-            rand.GetBytes(CurrentSecureSessionID.Data);
-            rand.GetBytes(CurrentSessionID.Data);
+            byte[] randDataS = new byte[16];
+            byte[] randDataSS = new byte[16];
+
+            rand.GetBytes(randDataS);
+            rand.GetBytes(randDataSS);
+
+            CurrentSecureSessionID = new LLUUID(randDataSS,0);
+            CurrentSessionID = new LLUUID(randDataS,0);
         }
 
         public void AddSimCircuit(uint circuitCode, LLUUID regionUUID)
