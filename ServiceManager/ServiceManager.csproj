@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{21BFC8E2-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{E141F4EE-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenGridServices.GridServer</AssemblyName>
+    <AssemblyName>ServiceManager</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenGridServices.GridServer</RootNamespace>
+    <RootNamespace>ServiceManager</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -62,69 +62,15 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data" >
-      <HintPath>System.Data.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\bin\libsecondlife.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
+    <Reference Include="System.ServiceProcess" >
+      <HintPath>System.ServiceProcess.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
-      <Name>OpenSim.Framework</Name>
-      <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
-      <Name>OpenSim.Framework.Console</Name>
-      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Servers\OpenSim.Servers.csproj">
-      <Name>OpenSim.Servers</Name>
-      <Project>{8BB20F0A-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenGrid.Framework.Data\OpenGrid.Framework.Data.csproj">
-      <Name>OpenGrid.Framework.Data</Name>
-      <Project>{62CDF671-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenGrid.Framework.Manager\OpenGrid.Framework.Manager.csproj">
-      <Name>OpenGrid.Framework.Manager</Name>
-      <Project>{7924FD35-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\XmlRpcCS\XMLRPC.csproj">
-      <Name>XMLRPC</Name>
-      <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GridManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Main.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs">
+    <Compile Include="ServiceManager.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

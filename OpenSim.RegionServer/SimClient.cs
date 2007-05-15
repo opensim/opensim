@@ -1236,6 +1236,7 @@ namespace OpenSim
                 ArrayList SendParams;
                 XmlRpcRequest GridReq;
                 XmlRpcResponse GridResp;
+                List<Packet> enablePackets = new List<Packet>();
                 foreach (Hashtable neighbour in ((RemoteGridBase)this.m_gridServer).neighbours)
                 {
                     Console.WriteLine( "http://" + neighbour["sim_ip"] + ":" + neighbour["sim_port"]);
@@ -1262,9 +1263,14 @@ namespace OpenSim
                     enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
                     enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
                     enablesimpacket.SimulatorInfo.Port = (ushort)Convert.ToInt32(neighbour["sim_port"]);
-                    Thread.Sleep(3000);
-                    this.OutPacket(enablesimpacket);
+                    enablePackets.Add(enablesimpacket);
                 }
+                Thread.Sleep(3000);
+                foreach (Packet enable in enablePackets)
+                {
+                    this.OutPacket(enable);
+                }
+                enablePackets.Clear();
             }
         }
     }

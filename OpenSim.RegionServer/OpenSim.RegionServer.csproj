@@ -187,6 +187,9 @@
     <Compile Include="world\Primitive2.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="world\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="world\World.cs">
       <SubType>Code</SubType>
     </Compile>
