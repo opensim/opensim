@@ -651,6 +651,86 @@ namespace OpenSim
                         this.RequestMapBlock( MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         break;
 
+                    case PacketType.TeleportLandmarkRequest:
+                        TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
+
+                        TeleportStartPacket tpStart = new TeleportStartPacket();
+                        tpStart.Info.TeleportFlags = 8; // tp via lm
+                        this.OutPacket(tpStart);
+
+                        TeleportProgressPacket tpProgress = new TeleportProgressPacket();
+                        tpProgress.Info.Message = (new System.Text.ASCIIEncoding()).GetBytes("sending_landmark");
+                        tpProgress.Info.TeleportFlags = 8;
+                        tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
+                        this.OutPacket(tpProgress);
+
+                        // Fetch landmark
+                        LLUUID lmid = tpReq.Info.LandmarkID;
+                        AssetBase lma = this.m_assetCache.GetAsset(lmid);
+                        if (lma != null)
+                        {
+                            AssetLandmark lm = new AssetLandmark(lma);
+
+                            if (lm.RegionID == m_regionData.SimUUID)
+                            {
+                                TeleportLocalPacket tpLocal = new TeleportLocalPacket();
+
+                                tpLocal.Info.AgentID = tpReq.Info.AgentID;
+                                tpLocal.Info.TeleportFlags = 8;  // Teleport via landmark
+                                tpLocal.Info.LocationID = 2;
+                                tpLocal.Info.Position = lm.Position;
+                                OutPacket(tpLocal);
+                            }
+                            else
+                            {
+                                TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                                tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                                tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                                OutPacket(tpCancel);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Cancelling Teleport - fetch asset not yet implemented");
+
+                            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                            tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                            tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                            OutPacket(tpCancel);
+                        }
+                        break;
+
+                    case PacketType.TeleportLocationRequest:
+                        TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
+                        Console.WriteLine(tpLocReq.ToString());
+
+                        tpStart = new TeleportStartPacket();
+                        tpStart.Info.TeleportFlags = 16; // Teleport via location
+                        Console.WriteLine(tpStart.ToString());
+                        OutPacket(tpStart);
+
+                        if (m_regionData.RegionHandle != tpLocReq.Info.RegionHandle)
+                        {
+                            /* m_gridServer.getRegion(tpLocReq.Info.RegionHandle); */
+                            Console.WriteLine("Inter-sim teleport not yet implemented");
+                            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                            tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
+                            tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
+
+                            OutPacket(tpCancel);
+                        }
+                        else {
+                            Console.WriteLine("Local teleport");
+                            TeleportLocalPacket tpLocal = new TeleportLocalPacket();
+                            tpLocal.Info.AgentID = tpLocReq.AgentData.AgentID;
+                            tpLocal.Info.TeleportFlags = tpStart.Info.TeleportFlags;
+                            tpLocal.Info.LocationID = 2;
+                            tpLocal.Info.LookAt = tpLocReq.Info.LookAt;
+                            tpLocal.Info.Position = tpLocReq.Info.Position;
+                            OutPacket(tpLocal);
+                        }
+
+                        break;
                 }
             }
         }
@@ -718,7 +798,6 @@ namespace OpenSim
 
         protected virtual void ProcessOutPacket(Packet Pack)
         {
-
             // Keep track of when this packet was sent out
             Pack.TickCount = Environment.TickCount;
 
