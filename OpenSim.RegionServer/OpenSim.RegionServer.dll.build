@@ -20,6 +20,7 @@
                 <include name="RegionInfo.cs" />
                 <include name="SimClient(Grid).cs" />
                 <include name="SimClient.cs" />
+                <include name="SimClientPacketHandlers.cs" />
                 <include name="VersionInfo.cs" />
                 <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />

@@ -151,6 +151,9 @@
     <Compile Include="SimClient.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SimClientPacketHandlers.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
