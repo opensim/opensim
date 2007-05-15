@@ -5,6 +5,7 @@ using libsecondlife.Packets;
 
 namespace OpenSim
 {
+    /*
     public class QueItem
     {
         public QueItem()
@@ -13,6 +14,6 @@ namespace OpenSim
 
         public Packet Packet;
         public bool Incoming;
-    }
+    }*/
 
 }

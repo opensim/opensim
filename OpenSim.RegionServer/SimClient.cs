@@ -1015,5 +1015,15 @@ namespace OpenSim
             m_assetCache.AddAsset(asset);
             m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
         }
+
+        public class QueItem
+        {
+            public QueItem()
+            {
+            }
+
+            public Packet Packet;
+            public bool Incoming;
+        }
     }
 }
