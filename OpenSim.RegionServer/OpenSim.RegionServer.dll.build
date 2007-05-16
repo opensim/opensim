@@ -16,12 +16,12 @@
                 <include name="AuthenticateSessionsLocal.cs" />
                 <include name="AuthenticateSessionsRemote.cs" />
                 <include name="Grid.cs" />
-                <include name="OpenSimApplicationBase.cs" />
                 <include name="OpenSimMain.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
                 <include name="PacketServer.cs" />
                 <include name="RegionInfo.cs" />
                 <include name="RegionInfoBase.cs" />
+                <include name="RegionServerBase.cs" />
                 <include name="SimClient.cs" />
                 <include name="SimClient.Grid.cs" />
                 <include name="SimClient.PacketHandlers.cs" />

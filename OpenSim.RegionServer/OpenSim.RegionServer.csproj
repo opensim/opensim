@@ -141,7 +141,7 @@
     <Compile Include="Grid.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimApplicationBase.cs" />
+    <Compile Include="RegionServerBase.cs" />
     <Compile Include="OpenSimMain.cs">
       <SubType>Code</SubType>
     </Compile>

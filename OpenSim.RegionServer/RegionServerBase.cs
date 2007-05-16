@@ -25,7 +25,7 @@ using OpenSim.GenericConfig;
 
 namespace OpenSim
 {
-    public class OpenSimApplicationBase
+    public class RegionServerBase
     {
         protected IGenericConfig localConfig;
         protected PhysicsManager physManager;
@@ -51,12 +51,12 @@ namespace OpenSim
 
         protected ConsoleBase m_console;
 
-        public OpenSimApplicationBase()
+        public RegionServerBase()
         {
 
         }
 
-        public OpenSimApplicationBase(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
+        public RegionServerBase(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
             this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;
@@ -76,6 +76,28 @@ namespace OpenSim
         /// </summary>
         public virtual void StartUp()
         {
+        }
+
+        protected virtual void SetupLocalGridServers()
+        {
+        }
+
+        protected virtual void SetupRemoteGridServers()
+        {
+
+        }
+
+        protected virtual void SetupLocalWorld()
+        {
+        }
+
+        protected virtual void SetupHttpListener()
+        {
+        }
+
+        protected virtual void ConnectToRemoteGridServer()
+        {
+
         }
     }
 }

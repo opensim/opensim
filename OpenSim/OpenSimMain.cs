@@ -54,7 +54,7 @@ using OpenSim.GenericConfig;
 namespace OpenSim
 {
 
-    public class OpenSimMain : OpenSimApplicationBase, conscmd_callback
+    public class OpenSimMain : RegionServerBase, conscmd_callback
     {
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
@@ -184,7 +184,7 @@ namespace OpenSim
         }
 
         # region Setup methods
-        protected virtual void SetupLocalGridServers()
+        protected override void SetupLocalGridServers()
         {
             GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
             GridServers.GridDll = "OpenSim.GridInterfaces.Local.dll";
@@ -202,7 +202,7 @@ namespace OpenSim
             }
         }
 
-        protected virtual void SetupRemoteGridServers()
+        protected override void SetupRemoteGridServers()
         {
             if (this.gridLocalAsset)
             {
@@ -227,7 +227,7 @@ namespace OpenSim
             }
         }
 
-        protected virtual void SetupLocalWorld()
+        protected override void SetupLocalWorld()
         {
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Initialising world");
@@ -254,7 +254,7 @@ namespace OpenSim
             LocalWorld.LoadPrimsFromStorage();
         }
 
-        protected virtual void SetupHttpListener()
+        protected override void SetupHttpListener()
         {
             httpServer = new BaseHttpServer(regionData.IPListenPort);
 
@@ -292,7 +292,7 @@ namespace OpenSim
             }
         }
 
-        protected virtual void ConnectToRemoteGridServer()
+        protected override void ConnectToRemoteGridServer()
         {
             if (GridServers.GridServer.RequestConnection(regionData.SimUUID, regionData.IPListenAddr, (uint)regionData.IPListenPort))
             {
