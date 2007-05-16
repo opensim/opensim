@@ -47,6 +47,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.UserServer
 {
+    public delegate void AddNewSessionHandler(Login loginData);
     /// <summary>
     /// When running in local (default) mode , handles client logins.
     /// </summary>
@@ -64,6 +65,7 @@ namespace OpenSim.UserServer
         private string m_simAddr;
         private uint regionX;
         private uint regionY;
+        private AddNewSessionHandler AddSession;
 
         public LocalUserProfileManager LocalUserManager
         {
@@ -73,14 +75,19 @@ namespace OpenSim.UserServer
             }
         }
 
-        public LoginServer(IGridServer gridServer, string simAddr, int simPort, uint regX, uint regY, bool useAccounts)
+        public LoginServer( string simAddr, int simPort, uint regX, uint regY, bool useAccounts)
         {
-            m_gridServer = gridServer;
             m_simPort = simPort;
             m_simAddr = simAddr;
             regionX = regX;
             regionY = regY;
             this.userAccounts = useAccounts;
+        }
+
+        public void SetSessionHandler(AddNewSessionHandler sessionHandler)
+        {
+            this.AddSession = sessionHandler;
+            this.userManager.SetSessionHandler(sessionHandler);
         }
 
         public void Startup()
@@ -180,15 +187,16 @@ namespace OpenSim.UserServer
             _login.Agent = loginResponse.AgentID;
             _login.Session = loginResponse.SessionID;
             _login.SecureSession = loginResponse.SecureSessionID;
-
+            _login.CircuitCode = (uint) loginResponse.CircuitCode;
             _login.BaseFolder = loginResponse.BaseFolderID;
             _login.InventoryFolder = loginResponse.InventoryFolderID;
 
             //working on local computer if so lets add to the gridserver's list of sessions?
-            if (m_gridServer.GetName() == "Local")
+           /* if (m_gridServer.GetName() == "Local")
             {
                 ((LocalGridBase)m_gridServer).AddNewSession(_login);
-            }
+            }*/
+            AddSession(_login);
 
             return response;
         }

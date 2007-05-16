@@ -47,6 +47,8 @@ namespace OpenSim
         private bool m_sandbox = false;
         private bool user_accounts = false;
         private ConsoleBase m_console;
+        private AuthenticateSessionsBase m_authenticateSessionsClass;
+
         public AuthenticateSessionHandler AuthenticateHandler;
 
         public PacketServer PacketServer
@@ -70,7 +72,7 @@ namespace OpenSim
             }
         }
 
-        public UDPServer(int port, Grid gridServers, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console)
+        public UDPServer(int port, Grid gridServers, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console , AuthenticateSessionsBase authenticateClass)
         {
             listenPort = port;
             this.m_gridServers = gridServers;
@@ -80,10 +82,11 @@ namespace OpenSim
             this.m_sandbox = sandbox;
             this.user_accounts = accounts;
             this.m_console = console;
+            this.m_authenticateSessionsClass = authenticateClass;
             PacketServer packetServer = new PacketServer(this);
             
             //set up delegate for authenticate sessions
-            this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_gridServers.GridServer.AuthenticateSession);
+            this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_authenticateSessionsClass.AuthenticateSession);
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)

@@ -77,6 +77,7 @@ namespace OpenSim
 
         private UDPServer m_udpServer;
         protected BaseHttpServer httpServer;
+        private AuthenticateSessionsBase AuthenticateSessionsHandler;
 
         protected ConsoleBase m_console;
 
@@ -144,8 +145,19 @@ namespace OpenSim
                 Environment.Exit(1);
             }
 
-            //PacketServer packetServer = new PacketServer(this);
-            m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console);
+            //Authenticate Session Handler
+            if (m_sandbox)
+            {
+                AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
+                this.AuthenticateSessionsHandler = authen;
+            }
+            else
+            {
+                AuthenticateSessionsRemote authen = new AuthenticateSessionsRemote();
+                this.AuthenticateSessionsHandler = authen;
+            }
+
+            m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console, this.AuthenticateSessionsHandler);
             
             //should be passing a IGenericConfig object to these so they can read the config data they want from it
             GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
@@ -174,8 +186,9 @@ namespace OpenSim
             bool sandBoxWithLoginServer = m_loginserver && m_sandbox;
             if (sandBoxWithLoginServer)
             {
-                loginServer = new LoginServer(gridServer, regionData.IPListenAddr, regionData.IPListenPort, regionData.RegionLocX, regionData.RegionLocY, this.user_accounts);
+                loginServer = new LoginServer( regionData.IPListenAddr, regionData.IPListenPort, regionData.RegionLocX, regionData.RegionLocY, this.user_accounts);
                 loginServer.Startup();
+                loginServer.SetSessionHandler(((AuthenticateSessionsLocal) this.AuthenticateSessionsHandler).AddNewSession);
 
                 if (user_accounts)
                 {
@@ -285,38 +298,7 @@ namespace OpenSim
             {
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
-                httpServer.AddXmlRPCHandler("expect_user",
-                    delegate(XmlRpcRequest request)
-                    {
-                        Hashtable requestData = (Hashtable)request.Params[0];
-                        AgentCircuitData agent_data = new AgentCircuitData();
-                        agent_data.SessionID = new LLUUID((string)requestData["session_id"]);
-                        agent_data.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
-                        agent_data.firstname = (string)requestData["firstname"];
-                        agent_data.lastname = (string)requestData["lastname"];
-                        agent_data.AgentID = new LLUUID((string)requestData["agent_id"]);
-                        agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-                        if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
-                        {
-                            agent_data.child = true;
-                        }
-                        else
-                        {
-                            agent_data.startpos = new LLVector3(Convert.ToUInt32(requestData["startpos_x"]), Convert.ToUInt32(requestData["startpos_y"]), Convert.ToUInt32(requestData["startpos_z"]));
-                            agent_data.child = false;
-                        }
-
-                        if (((RemoteGridBase)this.GridServers.GridServer).agentcircuits.ContainsKey((uint)agent_data.circuitcode))
-                        {
-                            ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[(uint)agent_data.circuitcode] = agent_data;
-                        }
-                        else
-                        {
-                            ((RemoteGridBase)this.GridServers.GridServer).agentcircuits.Add((uint)agent_data.circuitcode, agent_data);
-                        }
-
-                        return new XmlRpcResponse();
-                    });
+                httpServer.AddXmlRPCHandler("expect_user", ((AuthenticateSessionsRemote)this.AuthenticateSessionsHandler).ExpectUser  );
 
                 httpServer.AddXmlRPCHandler("agent_crossing",
                     delegate(XmlRpcRequest request)

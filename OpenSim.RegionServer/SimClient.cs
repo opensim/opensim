@@ -113,14 +113,14 @@ namespace OpenSim
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
-            if (m_gridServer.GetName() == "Remote")
+           /* if (m_gridServer.GetName() == "Remote")
             {
                 this.startpos = ((RemoteGridBase)m_gridServer).agentcircuits[initialcirpack.CircuitCode.Code].startpos;
             }
             else
-            {
+            {*/
                 this.startpos = new LLVector3(128, 128, m_world.Terrain[(int)128, (int)128] + 15.0f); // new LLVector3(128.0f, 128.0f, 60f);
-            }
+            //}
             PacketQueue = new BlockingQueue<QueItem>();
 
             this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);

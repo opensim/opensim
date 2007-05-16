@@ -44,8 +44,8 @@ namespace OpenSim.GridInterfaces.Remote
         private string GridSendKey;
         private string GridRecvKey;
         private Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
-	private ArrayList simneighbours = new ArrayList();
-	private Hashtable griddatahash;
+        private ArrayList simneighbours = new ArrayList();
+        private Hashtable griddatahash;
 
         public override Dictionary<uint, AgentCircuitData> agentcircuits
         {
@@ -59,7 +59,7 @@ namespace OpenSim.GridInterfaces.Remote
             set { simneighbours = value; }
         }
 
-	public override Hashtable GridData
+        public override Hashtable GridData
         {
             get { return griddatahash; }
             set { griddatahash = value; }
@@ -68,34 +68,35 @@ namespace OpenSim.GridInterfaces.Remote
 
         public RemoteGridServer()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Remote Grid Server class created");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Remote Grid Server class created");
         }
 
         public override bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port)
         {
-	    Hashtable GridParams = new Hashtable();
-            GridParams["authkey"]=GridSendKey;
-	    GridParams["UUID"]=SimUUID.ToString();
-	    GridParams["sim_ip"]=sim_ip;
-	    GridParams["sim_port"]=sim_port.ToString();
-	    ArrayList SendParams = new ArrayList();
+            Hashtable GridParams = new Hashtable();
+            GridParams["authkey"] = GridSendKey;
+            GridParams["UUID"] = SimUUID.ToString();
+            GridParams["sim_ip"] = sim_ip;
+            GridParams["sim_port"] = sim_port.ToString();
+            ArrayList SendParams = new ArrayList();
             SendParams.Add(GridParams);
 
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(this.GridServerUrl, 3000);
-	    Hashtable GridRespData = (Hashtable)GridResp.Value;
-            this.griddatahash=GridRespData;
+            Hashtable GridRespData = (Hashtable)GridResp.Value;
+            this.griddatahash = GridRespData;
 
-	    if(GridRespData.ContainsKey("error")) {
-	    	string errorstring = (string)GridRespData["error"];
-		OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Error connecting to grid:");
-        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,errorstring);
-	    	return false;
-	    }
-	    this.neighbours = (ArrayList)GridRespData["neighbours"];
-	    Console.WriteLine(simneighbours.Count);
-	    return true;
-	}
+            if (GridRespData.ContainsKey("error"))
+            {
+                string errorstring = (string)GridRespData["error"];
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "Error connecting to grid:");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, errorstring);
+                return false;
+            }
+            this.neighbours = (ArrayList)GridRespData["neighbours"];
+            Console.WriteLine(simneighbours.Count);
+            return true;
+        }
 
         public override AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
         {
@@ -120,7 +121,7 @@ namespace OpenSim.GridInterfaces.Remote
                 user.LoginInfo.Agent = agentID;
                 user.LoginInfo.Session = sessionID;
                 user.LoginInfo.SecureSession = validcircuit.SecureSessionID;
-             	user.LoginInfo.First = validcircuit.firstname;
+                user.LoginInfo.First = validcircuit.firstname;
                 user.LoginInfo.Last = validcircuit.lastname;
             }
             else

@@ -45,6 +45,7 @@ namespace OpenSim.UserServer
         private string m_ipAddr;
         private uint regionX;
         private uint regionY;
+        private AddNewSessionHandler AddSession;
 
         public LocalUserProfileManager(IGridServer gridServer, int simPort, string ipAddr , uint regX, uint regY)
 		{
@@ -54,6 +55,11 @@ namespace OpenSim.UserServer
             regionX = regX;
             regionY = regY;
 		}
+
+        public void SetSessionHandler(AddNewSessionHandler sessionHandler)
+        {
+            this.AddSession = sessionHandler;
+        }
 
         public override void InitUserProfiles()
         {
@@ -100,15 +106,18 @@ namespace OpenSim.UserServer
             _login.Agent = new LLUUID((string)response["agent_id"]) ;
             _login.Session = new LLUUID((string)response["session_id"]);
             _login.SecureSession = new LLUUID((string)response["secure_session_id"]);
+            _login.CircuitCode =(uint) circode;
             _login.BaseFolder = null;
             _login.InventoryFolder = new LLUUID((string)Inventory1["folder_id"]);
 
             //working on local computer if so lets add to the gridserver's list of sessions?
-            if (m_gridServer.GetName() == "Local")
+            /*if (m_gridServer.GetName() == "Local")
             {
                 Console.WriteLine("adding login data to gridserver");
                 ((LocalGridBase)this.m_gridServer).AddNewSession(_login);
-            }
+            }*/
+
+            this.AddSession(_login);
         }
     }
 }

@@ -12,6 +12,8 @@
             </resources>
             <sources failonempty="true">
                 <include name="AgentAssetUpload.cs" />
+                <include name="AuthenticateSessionsBase.cs" />
+                <include name="AuthenticateSessionsLocal.cs" />
                 <include name="Grid.cs" />
                 <include name="OpenSimMain.cs" />
                 <include name="OpenSimNetworkHandler.cs" />

@@ -14,6 +14,8 @@ namespace OpenSim.Framework.Types
         public LLUUID SecureSession = LLUUID.Zero;
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
+        public uint CircuitCode;
+
         public Login()
         {
 

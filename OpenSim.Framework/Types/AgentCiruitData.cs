@@ -11,10 +11,12 @@ namespace OpenSim.Framework.Types
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID;
-	public LLVector3 startpos;
+        public LLVector3 startpos;
         public string firstname;
         public string lastname;
         public uint circuitcode;
-    	public bool child;
+        public bool child;
+        public LLUUID InventoryFolder;
+        public LLUUID BaseFolder;
     }
 }
