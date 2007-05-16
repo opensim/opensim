@@ -671,7 +671,7 @@ namespace OpenSim.world
 
         public void SetDefaultScripts()
         {
-            try
+            /*try
             {
                 this.m_scripts.Add("FollowRandomAvatar", delegate()
                                                                  {
@@ -681,7 +681,7 @@ namespace OpenSim.world
             catch (Exception e)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: SetDefaultScripts() - Failed with exception " + e.ToString());
-            }
+            }*/
         }
 
     }
