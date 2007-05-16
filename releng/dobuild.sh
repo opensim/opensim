@@ -15,6 +15,6 @@ printf "Running prebuild..."
 cd build
 mono bin/Prebuild.exe /target nant
 
-print "Doing the build..."
+printf "Doing the build..."
 nant
 
