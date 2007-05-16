@@ -54,32 +54,8 @@ using OpenSim.GenericConfig;
 namespace OpenSim
 {
 
-    public class OpenSimMain : conscmd_callback
+    public class OpenSimMain : OpenSimApplication , conscmd_callback
     {
-        private IGenericConfig localConfig;
-        //private IGenericConfig remoteConfig;
-        private PhysicsManager physManager;
-        private Grid GridServers;
-        private AssetCache AssetCache;
-        private InventoryCache InventoryCache;
-        private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-        private DateTime startuptime;
-        private RegionInfo regionData;
-
-        private System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
-        public string m_physicsEngine;
-        public bool m_sandbox = false;
-        public bool m_loginserver;
-        public bool user_accounts = false;
-        public bool gridLocalAsset = false;
-        private bool configFileSetup = false;
-        public string m_config;
-
-        private UDPServer m_udpServer;
-        protected BaseHttpServer httpServer;
-        private AuthenticateSessionsBase AuthenticateSessionsHandler;
-
-        protected ConsoleBase m_console;
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
@@ -93,16 +69,10 @@ namespace OpenSim
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
         }
 
-        private World m_localWorld;
-        public World LocalWorld
-        {
-            get { return m_localWorld; }
-        }
-
         /// <summary>
         /// Performs initialisation of the world, such as loading configuration from disk.
         /// </summary>
-        public virtual void StartUp()
+        public override void StartUp()
         {
             this.regionData = new RegionInfo();
             try
