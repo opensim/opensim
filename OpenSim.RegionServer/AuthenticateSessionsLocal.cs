@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using libsecondlife;
 using OpenSim.Framework.Types;
 
 namespace OpenSim
@@ -23,7 +24,7 @@ namespace OpenSim
             agent.circuitcode = loginData.CircuitCode;
             agent.BaseFolder = loginData.BaseFolder;
             agent.InventoryFolder = loginData.InventoryFolder;
-
+            agent.startpos = new LLVector3(128,128,70);
             this.AddNewCircuit(agent.circuitcode, agent);
         }
     }

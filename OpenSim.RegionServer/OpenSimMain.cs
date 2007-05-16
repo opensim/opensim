@@ -126,10 +126,16 @@ namespace OpenSim
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
+                //Authenticate Session Handler
+                AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
+                this.AuthenticateSessionsHandler = authen;
             }
             else
             {
                 this.SetupRemoteGridServers();
+                //Authenticate Session Handler
+                AuthenticateSessionsRemote authen = new AuthenticateSessionsRemote();
+                this.AuthenticateSessionsHandler = authen;
             }
 
             startuptime = DateTime.Now;
@@ -143,18 +149,6 @@ namespace OpenSim
             {
                 m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup local cache");
                 Environment.Exit(1);
-            }
-
-            //Authenticate Session Handler
-            if (m_sandbox)
-            {
-                AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
-                this.AuthenticateSessionsHandler = authen;
-            }
-            else
-            {
-                AuthenticateSessionsRemote authen = new AuthenticateSessionsRemote();
-                this.AuthenticateSessionsHandler = authen;
             }
 
             m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console, this.AuthenticateSessionsHandler);

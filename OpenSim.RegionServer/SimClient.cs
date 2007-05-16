@@ -113,6 +113,8 @@ namespace OpenSim
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
+
+            //currently not working due to changes in progress to the authenticating system.
            /* if (m_gridServer.GetName() == "Remote")
             {
                 this.startpos = ((RemoteGridBase)m_gridServer).agentcircuits[initialcirpack.CircuitCode.Code].startpos;

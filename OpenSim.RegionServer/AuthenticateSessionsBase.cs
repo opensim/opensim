@@ -63,5 +63,15 @@ namespace OpenSim
                 this.AgentCircuits.Add(circuitCode, agentData);
             }
         }
+
+        public LLVector3 GetPosition(uint circuitCode)
+        {
+            LLVector3 vec = new LLVector3();
+            if (this.AgentCircuits.ContainsKey(circuitCode))
+            {
+                vec = this.AgentCircuits[circuitCode].startpos;
+            }
+            return vec;
+        }
     }
 }
