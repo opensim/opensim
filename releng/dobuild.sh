@@ -14,7 +14,14 @@ printf "Updating templates..."
 printf "Running prebuild..."
 cd build
 mono bin/Prebuild.exe /target nant
-
-printf "Doing the build..."
-nant
+if [ $? -eq 0 ]
+  if [ $? -eq 0 ]
+    printf "Doing the build..."
+    nant
+  else
+    exit 1
+  fi
+else
+  exit 1
+fi
 
