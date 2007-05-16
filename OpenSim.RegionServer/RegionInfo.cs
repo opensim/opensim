@@ -10,19 +10,8 @@ using libsecondlife;
 
 namespace OpenSim
 {
-    public class RegionInfo  // could inherit from SimProfileBase
+    public class RegionInfo : RegionInfoBase
     {
-        public LLUUID SimUUID;
-        public string RegionName;
-        public uint RegionLocX;
-        public uint RegionLocY;
-        public ulong RegionHandle;
-        public ushort RegionWaterHeight = 20;
-        public bool RegionTerraform = true;
-
-        public int IPListenPort;
-        public string IPListenAddr;
-
         //following should be removed and the GenericConfig object passed around,
         //so each class (AssetServer, GridServer etc) can access what config data they want 
         public string AssetURL = "http://127.0.0.1:8003/";
