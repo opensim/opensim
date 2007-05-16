@@ -10,7 +10,6 @@ using OpenSim.Framework.Inventory;
 using libsecondlife;
 using OpenSim.RegionServer.world.scripting;
 using Avatar=libsecondlife.Avatar;
-using OpenSim.RegionServer.world.scripting.Scripts;
 
 namespace OpenSim.CAPS
 {

@@ -14,7 +14,6 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Assets;
 //using OpenSim.world.scripting;
 using OpenSim.RegionServer.world.scripting;
-using OpenSim.RegionServer.world.scripting.Scripts;
 using OpenSim.Terrain;
 
 namespace OpenSim.world
@@ -673,7 +672,7 @@ namespace OpenSim.world
         {
                 this.m_scripts.Add("FollowRandomAvatar", delegate()
                                                                  {
-                                                                     return new FollowRandomAvatar();
+                                                                     return new OpenSim.RegionServer.world.scripting.FollowRandomAvatar();
                                                                  });
         }
 
