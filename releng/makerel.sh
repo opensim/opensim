@@ -21,5 +21,6 @@ rm -rf build
 tar cvf opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar opensim-$OPENSIMMAJOR.$OPENSIMMINOR/*
 gzip opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar
 
+rm -rf opensim-$OPENSIMMAJOR.$OPENSIMMINOR
 echo "Produced binary tarball ready for distribution."
 
