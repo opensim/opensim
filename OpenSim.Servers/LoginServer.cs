@@ -86,18 +86,6 @@ namespace OpenSim.UserServer
         public void Startup()
         {
             this._needPasswd = false;
-            // read in default response string
-           /* StreamReader SR;
-            string lines;
-            SR = File.OpenText("new-login.dat");
-
-            while (!SR.EndOfStream)
-            {
-                lines = SR.ReadLine();
-                _defaultResponse += lines;
-            }
-            SR.Close();
-            * */
 
             this._mpasswd = EncodePassword("testpass");
 

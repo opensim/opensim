@@ -51,39 +51,50 @@ namespace OpenSim.world
                 return true;
             }
 
+            string fromName = simClient.ClientAvatar.firstname + " " + simClient.ClientAvatar.lastname;
+            byte[] message = inchatpack.ChatData.Message;
+            byte type = inchatpack.ChatData.Type;
+            LLVector3 fromPos = simClient.ClientAvatar.Pos;
+            LLUUID fromAgentID = simClient.AgentID;
+
             libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
             reply.ChatData.Audible = 1;
-            reply.ChatData.Message = inchatpack.ChatData.Message;
-            reply.ChatData.ChatType = inchatpack.ChatData.Type;
+            reply.ChatData.Message = message;
+            reply.ChatData.ChatType = type;
             reply.ChatData.SourceType = 1;
-            reply.ChatData.Position = simClient.ClientAvatar.Pos;
-            reply.ChatData.FromName = enc.GetBytes(simClient.ClientAvatar.firstname + " " + simClient.ClientAvatar.lastname + "\0");
-            reply.ChatData.OwnerID = simClient.AgentID;
-            reply.ChatData.SourceID = simClient.AgentID;
+            reply.ChatData.Position = fromPos;
+            reply.ChatData.FromName = enc.GetBytes(fromName + "\0");
+            reply.ChatData.OwnerID = fromAgentID;
+            reply.ChatData.SourceID = fromAgentID;
+
             foreach (SimClient client in m_clientThreads.Values)
             {
+                // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                int dis = (int)client.ClientAvatar.Pos.GetDistanceTo(simClient.ClientAvatar.Pos);
+                
                 switch (inchatpack.ChatData.Type)
                 {
-                    case 0:
-                        int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                    case 0: // Whisper
                         if ((dis < 10) && (dis > -10))
                         {
                             client.OutPacket(reply);
                         }
                         break;
-                    case 1:
-                        dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                    case 1: // Say
                         if ((dis < 30) && (dis > -30))
                         {
                             client.OutPacket(reply);
                         }
                         break;
-                    case 2:
-                        dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                    case 2: // Shout
                         if ((dis < 100) && (dis > -100))
                         {
                             client.OutPacket(reply);
                         }
+                        break;
+                        
+                    case 0xff: // Broadcast
+                        client.OutPacket(reply);
                         break;
                 }
 
@@ -147,7 +158,7 @@ namespace OpenSim.world
                             //Uncomment when prim/object UUIDs are random or such
                             //2007-03-22 - Randomskk
                             //this._primCount--;
-                            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Deleted UUID " + ent.uuid);
+                            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Deleted UUID " + ent.uuid);
                         }
                     }
                 }
@@ -216,7 +227,7 @@ namespace OpenSim.world
                 mapReply.Data[0].MapImageID = new LLUUID("00000000-0000-0000-9999-000000000007");
                 mapReply.Data[0].X = (ushort)m_regInfo.RegionLocX;
                 mapReply.Data[0].Y = (ushort)m_regInfo.RegionLocY;
-                mapReply.Data[0].WaterHeight =(byte) m_regInfo.RegionWaterHeight;
+                mapReply.Data[0].WaterHeight = (byte)m_regInfo.RegionWaterHeight;
                 mapReply.Data[0].Name = _enc.GetBytes(this.m_regionName);
                 mapReply.Data[0].RegionFlags = 72458694;
                 mapReply.Data[0].Access = 13;

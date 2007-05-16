@@ -19,25 +19,13 @@ namespace OpenSim.Framework.Console
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
-        private bool disableOutput;
+        private bool m_silent;
 
-        // STUPID HACK ALERT!!!! STUPID HACK ALERT!!!!!
-        // constype - the type of console to use (see enum ConsoleType)
-        // sparam - depending on the console type:
-        //		TCP - the IP to bind to (127.0.0.1 if blank)
-        //		Local - param ignored
-        // and for the iparam:
-        //		TCP - the port to bind to
-        //		Local - param ignored
-        // LogFile - duh
-        // componentname - which component of the OGS system? (user, asset etc)
-        // cmdparser - a reference to a conscmd_callback object
-
-        public ConsoleBase(string LogFile, string componentname, conscmd_callback cmdparser, bool disableSystemConsole )
+        public ConsoleBase(string LogFile, string componentname, conscmd_callback cmdparser, bool silent )
         {
             this.componentname = componentname;
             this.cmdparser = cmdparser;
-            this.disableOutput = disableSystemConsole;
+            this.m_silent = silent;
             System.Console.WriteLine("ServerConsole.cs - creating new local console");
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
             Log = File.AppendText(LogFile);
@@ -62,7 +50,7 @@ namespace OpenSim.Framework.Console
         {
             Log.WriteLine(format, args);
             Log.Flush();
-	    if(!disableOutput)
+	    if(!m_silent)
             {
             System.Console.WriteLine(format, args);
             }
@@ -73,7 +61,7 @@ namespace OpenSim.Framework.Console
         {
             Log.WriteLine(format, args);
             Log.Flush();
-            if (!disableOutput)
+            if (!m_silent)
             {
                 System.Console.WriteLine(format, args);
             }

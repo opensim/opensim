@@ -150,24 +150,19 @@
     </Compile>
     <Compile Include="SimClient.Grid.cs">
       <SubType>Code</SubType>
-	<DependentUpon>SimClient.cs</DependentUpon>
     </Compile>
     <Compile Include="SimClient.PacketHandlers.cs">
       <SubType>Code</SubType>
-	<DependentUpon>SimClient.cs</DependentUpon>
     </Compile>
     <Compile Include="SimClient.ProcessPackets.cs">
-	<SubType>Code</SubType>
-      <DependentUpon>SimClient.cs</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
-
     <Compile Include="SimClientBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UDPServer.cs">
       <SubType>Code</SubType>
     </Compile>
-
     <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -188,14 +183,12 @@
     </Compile>
     <Compile Include="world\Avatar.Client.cs">
       <SubType>Code</SubType>
-	<DependentUpon>Avatar.cs</DependentUpon>
     </Compile>
     <Compile Include="world\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="world\Avatar.Update.cs">
       <SubType>Code</SubType>
-	<DependentUpon>Avatar.cs</DependentUpon>
     </Compile>
     <Compile Include="world\AvatarAnimations.cs">
       <SubType>Code</SubType>
@@ -217,11 +210,9 @@
     </Compile>
     <Compile Include="world\World.PacketHandlers.cs">
       <SubType>Code</SubType>
-	<DependentUpon>World.cs</DependentUpon>
     </Compile>
     <Compile Include="world\World.Scripting.cs">
       <SubType>Code</SubType>
-	<DependentUpon>World.cs</DependentUpon>
     </Compile>
     <Compile Include="world\scripting\IScriptContext.cs">
       <SubType>Code</SubType>

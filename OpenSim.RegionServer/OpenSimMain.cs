@@ -60,7 +60,6 @@ namespace OpenSim
         //private IGenericConfig remoteConfig;
         private PhysicsManager physManager;
         private Grid GridServers;
-        private World LocalWorld;
         private AssetCache AssetCache;
         private InventoryCache InventoryCache;
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
@@ -81,7 +80,7 @@ namespace OpenSim
 
         protected ConsoleBase m_console;
 
-        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool verbose, string configFile)
+        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
             this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;
@@ -89,8 +88,14 @@ namespace OpenSim
             m_physicsEngine = physicsEngine;
             m_config = configFile;
 
-            m_console = new ConsoleBase("region-console-" + Guid.NewGuid().ToString() + ".log", "Region", this, verbose);
+            m_console = new ConsoleBase("region-console-" + Guid.NewGuid().ToString() + ".log", "Region", this, silent);
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
+        }
+
+        private World m_localWorld;
+        public World LocalWorld
+        {
+            get { return m_localWorld; }
         }
 
         /// <summary>
@@ -251,7 +256,7 @@ namespace OpenSim
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Initialising world");
             m_console.componentname = "Region " + regionData.RegionName;
 
-            LocalWorld = new World(this.m_udpServer.PacketServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
+            m_localWorld = new World(this.m_udpServer.PacketServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
             LocalWorld.InventoryCache = InventoryCache;
             LocalWorld.AssetCache = AssetCache;
 
