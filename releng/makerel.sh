@@ -14,12 +14,16 @@ export SVNURL=svn://openmetaverse.org/opensim/trunk
 
 # shouldn't have to change anything below here
 
-./dobuild.sh $SVNURL
-./createreldir.sh
-rm -rf build
-
-tar cvf opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar opensim-$OPENSIMMAJOR.$OPENSIMMINOR/*
-gzip opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar
+script dobuild.log -c ./dobuild.sh $SVNURL
+if [ ! $? -eq 0 ]
+then
+  echo "Build failed!"
+else
+  script createrel.log -c ./createreldir.sh
+  rm -rf build
+  tar cvf opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar opensim-$OPENSIMMAJOR.$OPENSIMMINOR/*
+  gzip opensim-$OPENSIMMAJOR.$OPENSIMMINOR-$BUILD-$BRANCH.tar
+fi
 
 rm -rf opensim-$OPENSIMMAJOR.$OPENSIMMINOR
 echo "Produced binary tarball ready for distribution."
