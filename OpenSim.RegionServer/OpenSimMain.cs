@@ -267,7 +267,7 @@ namespace OpenSim
             LocalWorld.LoadWorldMap();
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
-            LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); //should be reading from the config file what physics engine to use
+            LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); 
             LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
             LocalWorld.LoadPrimsFromStorage();
         }

@@ -24,6 +24,8 @@ using OpenSim.GenericConfig;
 
 namespace OpenSim
 {
+    public delegate AuthenticateResponse AuthenticateSessionHandler(LLUUID sessionID, LLUUID agentID, uint circuitCode);
+
     public class UDPServer : OpenSimNetworkHandler
     {
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
@@ -45,6 +47,7 @@ namespace OpenSim
         private bool m_sandbox = false;
         private bool user_accounts = false;
         private ConsoleBase m_console;
+        public AuthenticateSessionHandler AuthenticateHandler;
 
         public PacketServer PacketServer
         {
@@ -78,6 +81,7 @@ namespace OpenSim
             this.user_accounts = accounts;
             this.m_console = console;
             PacketServer packetServer = new PacketServer(this);
+            this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_gridServers.GridServer.AuthenticateSession);
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)
@@ -177,6 +181,11 @@ namespace OpenSim
                     break;
                 }
             }
+        }
+
+        public virtual AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
+        {
+           return this.AuthenticateHandler(sessionID, agentID, circuitCode);
         }
     }
 }

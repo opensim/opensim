@@ -57,7 +57,7 @@ namespace OpenSim
             m_world.RemoveViewerAgent(this);
             //need to do other cleaning up here too
             m_clientThreads.Remove(this.CircuitCode);
-            m_application.RemoveClientCircuit(this.CircuitCode);
+            m_networkServer.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
             return true;
         }

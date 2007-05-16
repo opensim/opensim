@@ -17,7 +17,6 @@
                 <include name="LocalUserProfileManager.cs" />
                 <include name="LoginResponse.cs" />
                 <include name="LoginServer.cs" />
-                <include name="OpenGridProtocol.cs" />
                 <include name="XmlRpcMethod.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

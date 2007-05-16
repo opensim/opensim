@@ -21,6 +21,7 @@
                 <include name="SimClient.cs" />
                 <include name="SimClient.Grid.cs" />
                 <include name="SimClient.PacketHandlers.cs" />
+                <include name="SimClient.ProcessPackets.cs" />
                 <include name="SimClientBase.cs" />
                 <include name="UDPServer.cs" />
                 <include name="VersionInfo.cs" />
