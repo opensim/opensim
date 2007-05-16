@@ -1,0 +1,16 @@
+<Combine name="OpenGridServices.Manager.Gtk" fileversion="2.0">
+  <Configurations active="Debug">
+    <Configuration name="Debug" ctype="CombineConfiguration">
+      <Entry build="True" name="OpenGridServices.Manager.Gtk" configuration="Debug" />
+    </Configuration>
+    <Configuration name="Release" ctype="CombineConfiguration">
+      <Entry build="True" name="OpenGridServices.Manager.Gtk" configuration="Release" />
+    </Configuration>
+  </Configurations>
+  <StartMode startupentry="OpenGridServices.Manager.Gtk" single="True">
+    <Execute type="None" entry="OpenGridServices.Manager.Gtk" />
+  </StartMode>
+  <Entries>
+    <Entry filename="./OpenGridServices.Manager.Gtk/OpenGridServices.Manager.Gtk.mdp" />
+  </Entries>
+</Combine>

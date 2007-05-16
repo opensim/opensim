@@ -14,7 +14,7 @@ export SVNURL=svn://openmetaverse.org/opensim/trunk
 
 # shouldn't have to change anything below here
 
-script dobuild.log -c ./dobuild.sh $SVNURL
+script dobuild.log -c "./dobuild.sh $SVNURL"
 if [ ! $? -eq 0 ]
 then
   echo "Build failed!"
