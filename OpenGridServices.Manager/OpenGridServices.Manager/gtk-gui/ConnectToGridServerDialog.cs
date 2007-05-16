@@ -28,6 +28,8 @@ public partial class ConnectToGridServerDialog {
         this.Events = ((Gdk.EventMask)(256));
         this.Name = "ConnectToGridServerDialog";
         this.Title = Mono.Unix.Catalog.GetString("Connect to Grid server");
+        this.WindowPosition = ((Gtk.WindowPosition)(4));
+        this.HasSeparator = false;
         // Internal child ConnectToGridServerDialog.VBox
         Gtk.VBox w1 = this.VBox;
         w1.Events = ((Gdk.EventMask)(256));
@@ -85,7 +87,7 @@ public partial class ConnectToGridServerDialog {
         w7.Spacing = 2;
         // Container child GtkHBox.Gtk.Container+ContainerChild
         Gtk.Image w8 = new Gtk.Image();
-        w8.Name = "image11";
+        w8.Name = "image1";
         w8.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-apply", 16, 0);
         w7.Add(w8);
         // Container child GtkHBox.Gtk.Container+ContainerChild
@@ -115,7 +117,7 @@ public partial class ConnectToGridServerDialog {
         w16.Spacing = 2;
         // Container child GtkHBox1.Gtk.Container+ContainerChild
         Gtk.Image w17 = new Gtk.Image();
-        w17.Name = "image12";
+        w17.Name = "image2";
         w17.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-cancel", 16, 0);
         w16.Add(w17);
         // Container child GtkHBox1.Gtk.Container+ContainerChild
@@ -137,5 +139,7 @@ public partial class ConnectToGridServerDialog {
         this.DefaultWidth = 476;
         this.DefaultHeight = 107;
         this.Show();
+        this.button2.Activated += new System.EventHandler(this.ConnectBtn);
+        this.button8.Activated += new System.EventHandler(this.CancelBtn);
     }
 }

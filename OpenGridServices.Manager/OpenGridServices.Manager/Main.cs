@@ -6,6 +6,7 @@ namespace OpenGridServices.Manager
 {
 	class MainClass
 	{
+				
 		public static void Main (string[] args)
 		{
 			Application.Init ();

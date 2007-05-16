@@ -196,10 +196,11 @@ public partial class MainWindow {
         w2.Add(this.CustomAssetServer, null);
         w1.InsertActionGroup(w2, 0);
         this.AddAccelGroup(w1.AccelGroup);
-        this.WidthRequest = 600;
-        this.HeightRequest = 800;
+        this.WidthRequest = 800;
+        this.HeightRequest = 600;
         this.Name = "MainWindow";
         this.Title = Mono.Unix.Catalog.GetString("Open Grid Services Manager");
+        this.Icon = Gtk.IconTheme.Default.LoadIcon("gtk-network", 48, 0);
         // Container child MainWindow.Gtk.Container+ContainerChild
         this.vbox1 = new Gtk.VBox();
         this.vbox1.Name = "vbox1";
