@@ -12,6 +12,7 @@
             </resources>
             <sources failonempty="true">
                 <include name="Main.cs" />
+                <include name="UserManager.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
@@ -24,6 +25,7 @@
                 <include name="System.Xml.dll" />
                 <include name="../bin/OpenSim.Framework.dll" />
                 <include name="../bin/OpenSim.Framework.Console.dll" />
+                <include name="../bin/OpenGrid.Framework.Data.dll" />
                 <include name="../bin/OpenSim.Servers.dll" />
                 <include name="../bin/libsecondlife.dll" />
                 <include name="../bin/Db4objects.Db4o.dll" />

@@ -13,6 +13,7 @@
             <sources failonempty="true">
                 <include name="MySQLGridData.cs" />
                 <include name="MySQLManager.cs" />
+                <include name="MySQLUserData.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
