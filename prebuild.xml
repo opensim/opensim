@@ -494,8 +494,9 @@
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="OpenSim.Framework"/>
      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Servers"/>
-      <Reference name="libsecondlife.dll"/>
+     <Reference name="OpenGrid.Framework.Data"/>
+     <Reference name="OpenSim.Servers"/>
+     <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>
      <Reference name="XMLRPC"/>
 

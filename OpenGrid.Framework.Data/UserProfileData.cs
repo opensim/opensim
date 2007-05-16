@@ -12,6 +12,7 @@ namespace OpenGrid.Framework.Data
         public string surname;     // The users surname (can be used to indicate user class - eg 'Test User' or 'Test Admin')
 
         public string passwordHash; // Hash of the users password
+        public string passwordSalt; // Salt for the users password
 
         public ulong homeRegion;       // RegionHandle of home
         public LLVector3 homeLocation; // Home Location inside the sim

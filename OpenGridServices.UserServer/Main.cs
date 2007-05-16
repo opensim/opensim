@@ -50,6 +50,8 @@ namespace OpenGridServices.UserServer
         private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
         private UserConfig Cfg;
 
+        public UserManager m_userManager; // Replaces below.
+
         private UserProfileManager m_userProfileManager;
 
         public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
@@ -62,6 +64,7 @@ namespace OpenGridServices.UserServer
             Console.WriteLine("Starting...\n");
 
             OpenUser_Main userserver = new OpenUser_Main();
+
             userserver.Startup();
             userserver.Work();
         }
@@ -87,6 +90,9 @@ namespace OpenGridServices.UserServer
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
+
+            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Establishing data connection");
+            m_userManager = new UserManager();
 
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Creating user profile manager");
             m_userProfileManager = new UserProfileManager();

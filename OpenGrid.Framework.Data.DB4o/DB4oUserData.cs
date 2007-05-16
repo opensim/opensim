@@ -8,7 +8,12 @@ namespace OpenGrid.Framework.Data.DB4o
 {
     public class DB4oUserData : IUserData
     {
-        DB4oUserManager manager = new DB4oUserManager("userprofiles.yap");
+        DB4oUserManager manager;
+
+        public void Initialise()
+        {
+            manager = new DB4oUserManager("userprofiles.yap");
+        }
 
         public UserProfileData getUserByUUID(LLUUID uuid)
         {
@@ -33,7 +38,7 @@ namespace OpenGrid.Framework.Data.DB4o
         }
 
         public UserAgentData getAgentByUUID(LLUUID uuid)
-        {
+        {   
             try
             {
                 return getUserByUUID(uuid).currentAgent;
@@ -71,5 +76,15 @@ namespace OpenGrid.Framework.Data.DB4o
             return true;
         }
 
+
+        public string getName()
+        {
+            return "DB4o Userdata";
+        }
+
+        public string getVersion()
+        {
+            return "0.1";
+        }
     }
 }
