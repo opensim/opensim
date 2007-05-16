@@ -16,7 +16,7 @@
                 <include name="AuthenticateSessionsLocal.cs" />
                 <include name="AuthenticateSessionsRemote.cs" />
                 <include name="Grid.cs" />
-                <include name="OpenSimApplication.cs" />
+                <include name="OpenSimApplicationBase.cs" />
                 <include name="OpenSimMain.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
                 <include name="PacketServer.cs" />

@@ -12,6 +12,7 @@
             </resources>
             <sources failonempty="true">
                 <include name="Application.cs" />
+                <include name="OpenSimMain.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -23,11 +24,14 @@
                 <include name="../bin/libsecondlife.dll" />
                 <include name="../bin/Axiom.MathLib.dll" />
                 <include name="../bin/Db4objects.Db4o.dll" />
+                <include name="../bin/OpenSim.Terrain.BasicTerrain.dll" />
                 <include name="../bin/OpenSim.Framework.dll" />
                 <include name="../bin/OpenSim.Framework.Console.dll" />
                 <include name="../bin/OpenSim.Physics.Manager.dll" />
                 <include name="../bin/OpenSim.Servers.dll" />
                 <include name="../bin/OpenSim.RegionServer.dll" />
+                <include name="../bin/OpenSim.GenericConfig.Xml.dll" />
+                <include name="../bin/XMLRPC.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../bin/" />

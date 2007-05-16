@@ -7,7 +7,8 @@ using OpenSim.Framework.Console;
 namespace OpenSim
 {
     public class Application
-    {        
+    {   
+        //could move our main function into OpenSimMain and kill this class
         [STAThread]
         public static void Main(string[] args)
         {

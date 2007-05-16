@@ -53,9 +53,8 @@ using OpenSim.GenericConfig;
 
 namespace OpenSim
 {
-    //moved to the opensim main application project (do we want it there or here?)
-/*
-    public class OpenSimMain : OpenSimApplicationBase , conscmd_callback
+
+    public class OpenSimMain : OpenSimApplicationBase, conscmd_callback
     {
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
@@ -123,7 +122,7 @@ namespace OpenSim
             }
 
             m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console, this.AuthenticateSessionsHandler);
-            
+
             //should be passing a IGenericConfig object to these so they can read the config data they want from it
             GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
             IGridServer gridServer = GridServers.GridServer;
@@ -151,9 +150,9 @@ namespace OpenSim
             bool sandBoxWithLoginServer = m_loginserver && m_sandbox;
             if (sandBoxWithLoginServer)
             {
-                loginServer = new LoginServer( regionData.IPListenAddr, regionData.IPListenPort, regionData.RegionLocX, regionData.RegionLocY, this.user_accounts);
+                loginServer = new LoginServer(regionData.IPListenAddr, regionData.IPListenPort, regionData.RegionLocX, regionData.RegionLocY, this.user_accounts);
                 loginServer.Startup();
-                loginServer.SetSessionHandler(((AuthenticateSessionsLocal) this.AuthenticateSessionsHandler).AddNewSession);
+                loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler).AddNewSession);
 
                 if (user_accounts)
                 {
@@ -250,7 +249,7 @@ namespace OpenSim
             LocalWorld.LoadWorldMap();
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
-            LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); 
+            LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
             LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
             LocalWorld.LoadPrimsFromStorage();
         }
@@ -263,7 +262,7 @@ namespace OpenSim
             {
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
-                httpServer.AddXmlRPCHandler("expect_user", ((AuthenticateSessionsRemote)this.AuthenticateSessionsHandler).ExpectUser  );
+                httpServer.AddXmlRPCHandler("expect_user", ((AuthenticateSessionsRemote)this.AuthenticateSessionsHandler).ExpectUser);
 
                 httpServer.AddXmlRPCHandler("agent_crossing",
                     delegate(XmlRpcRequest request)
@@ -527,5 +526,5 @@ namespace OpenSim
         #endregion
     }
 
-    */
+
 }
