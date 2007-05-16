@@ -13,7 +13,7 @@ using OpenSim.Assets;
 
 namespace OpenSim.world
 {
-    partial class World
+    public partial class World
     {
         public bool ModifyTerrain(SimClient simClient, Packet packet)
         {
