@@ -671,17 +671,10 @@ namespace OpenSim.world
 
         public void SetDefaultScripts()
         {
-            /*try
-            {
                 this.m_scripts.Add("FollowRandomAvatar", delegate()
                                                                  {
                                                                      return new FollowRandomAvatar();
                                                                  });
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: SetDefaultScripts() - Failed with exception " + e.ToString());
-            }*/
         }
 
     }
