@@ -46,11 +46,31 @@ namespace OpenSim
         private bool user_accounts = false;
         private ConsoleBase m_console;
 
-        public UDPServer(int port, Grid gridServers, World localWorld, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console)
+        public PacketServer PacketServer
+        {
+            get
+            {
+                return _packetServer;
+            }
+            set
+            {
+                _packetServer = value;
+            }
+        }
+
+        public World LocalWorld
+        {
+            set
+            {
+                this.m_localWorld = value;
+                this._packetServer.LocalWorld = this.m_localWorld;
+            }
+        }
+
+        public UDPServer(int port, Grid gridServers, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console)
         {
             listenPort = port;
             this.m_gridServers = gridServers;
-            this.m_localWorld = localWorld;
             this.m_assetCache = assetCache;
             this.m_inventoryCache = inventoryCache;
             this.m_regionData = _regionData;
@@ -58,8 +78,6 @@ namespace OpenSim
             this.user_accounts = accounts;
             this.m_console = console;
             PacketServer packetServer = new PacketServer(this);
-            this._packetServer.LocalWorld = m_localWorld;
-            this._packetServer.RegisterClientPacketHandlers();
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)
@@ -85,7 +103,7 @@ namespace OpenSim
             }
             else
             { // invalid client
-                Console.Error.WriteLine("Main.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
+                Console.Error.WriteLine("UDPServer.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
@@ -106,22 +124,22 @@ namespace OpenSim
             this._packetServer.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
         }
 
-        private void ServerListener()
+        public void ServerListener()
         {
-            m_console.WriteLine("Main.cs:MainServerListener() - Opening UDP socket on " + listenPort);
+            m_console.WriteLine("UDPServer.cs:ServerListener() - Opening UDP socket on " + listenPort);
 
             ServerIncoming = new IPEndPoint(IPAddress.Any, listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
 
-            m_console.WriteLine("Main.cs:MainServerListener() - UDP socket bound, getting ready to listen");
+            m_console.WriteLine("UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(IPAddress.Any, 0);
             epSender = (EndPoint)ipeSender;
             ReceivedData = new AsyncCallback(this.OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-            m_console.WriteLine("Main.cs:MainServerListener() - Listening...");
+            m_console.WriteLine("UDPServer.cs:ServerListener() - Listening...");
 
         }
 

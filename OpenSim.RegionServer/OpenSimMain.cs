@@ -54,27 +54,18 @@ using OpenSim.GenericConfig;
 namespace OpenSim
 {
 
-    public class OpenSimMain : OpenSimNetworkHandler, conscmd_callback
+    public class OpenSimMain : conscmd_callback
     {
         private IGenericConfig localConfig;
         //private IGenericConfig remoteConfig;
         private PhysicsManager physManager;
         private Grid GridServers;
-        private PacketServer _packetServer;
         private World LocalWorld;
         private AssetCache AssetCache;
         private InventoryCache InventoryCache;
         private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         private DateTime startuptime;
         private RegionInfo regionData;
-
-        public Socket Server;
-        private IPEndPoint ServerIncoming;
-        private byte[] RecvBuffer = new byte[4096];
-        private byte[] ZeroBuffer = new byte[8192];
-        private IPEndPoint ipeSender;
-        private EndPoint epSender;
-        private AsyncCallback ReceivedData;
 
         private System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         public string m_physicsEngine;
@@ -85,6 +76,7 @@ namespace OpenSim
         private bool configFileSetup = false;
         public string m_config;
 
+        private UDPServer m_udpServer;
         protected BaseHttpServer httpServer;
 
         protected ConsoleBase m_console;
@@ -147,8 +139,9 @@ namespace OpenSim
                 Environment.Exit(1);
             }
 
-            PacketServer packetServer = new PacketServer(this);
-
+            //PacketServer packetServer = new PacketServer(this);
+            m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console);
+            
             //should be passing a IGenericConfig object to these so they can read the config data they want from it
             GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
             IGridServer gridServer = GridServers.GridServer;
@@ -200,7 +193,8 @@ namespace OpenSim
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();
 
-            MainServerListener();
+            //MainServerListener();
+            this.m_udpServer.ServerListener();
 
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = 100;
@@ -257,12 +251,12 @@ namespace OpenSim
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Initialising world");
             m_console.componentname = "Region " + regionData.RegionName;
 
-            LocalWorld = new World(this._packetServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
+            LocalWorld = new World(this.m_udpServer.PacketServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
             LocalWorld.InventoryCache = InventoryCache;
             LocalWorld.AssetCache = AssetCache;
 
-            this._packetServer.LocalWorld = LocalWorld;
-            this._packetServer.RegisterClientPacketHandlers();
+            this.m_udpServer.LocalWorld = LocalWorld;
+            this.m_udpServer.PacketServer.RegisterClientPacketHandlers();
 
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();
@@ -488,114 +482,6 @@ namespace OpenSim
                 Environment.Exit(1);
             }
         }
-
-        # region UDP
-        private void OnReceivedData(IAsyncResult result)
-        {
-            ipeSender = new IPEndPoint(IPAddress.Any, 0);
-            epSender = (EndPoint)ipeSender;
-            Packet packet = null;
-            int numBytes = Server.EndReceiveFrom(result, ref epSender);
-            int packetEnd = numBytes - 1;
-
-            packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-
-            // This is either a new client or a packet to send to an old one
-            // if (OpenSimRoot.Instance.ClientThreads.ContainsKey(epSender))
-
-            // do we already have a circuit for this endpoint
-            if (this.clientCircuits.ContainsKey(epSender))
-            {
-                //ClientThreads[this.clientCircuits[epSender]].InPacket(packet);
-                this._packetServer.ClientInPacket(this.clientCircuits[epSender], packet);
-            }
-            else if (packet.Type == PacketType.UseCircuitCode)
-            { // new client
-
-                UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
-                this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-                bool isChildAgent = false;
-                if (this.GridServers.GridServer.GetName() == "Remote")
-                {
-                    isChildAgent = ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].child;
-                }
-                SimClient newuser = new SimClient(epSender, useCircuit, LocalWorld, _packetServer.ClientThreads, AssetCache, GridServers.GridServer, this, InventoryCache, m_sandbox, isChildAgent, this.regionData);
-                if ((this.GridServers.UserServer != null) && (user_accounts))
-                {
-                    newuser.UserServer = this.GridServers.UserServer;
-                }
-                //OpenSimRoot.Instance.ClientThreads.Add(epSender, newuser);
-                this._packetServer.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
-
-                //if (!((RemoteGridBase)GridServers.GridServer).agentcircuits[useCircuit.CircuitCode.Code].child)
-
-
-            }
-            else
-            { // invalid client
-                Console.Error.WriteLine("Main.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
-            }
-
-            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
-        }
-
-        private void MainServerListener()
-        {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:MainServerListener() - New thread started");
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:MainServerListener() - Opening UDP socket on " + regionData.IPListenAddr + ":" + regionData.IPListenPort);
-
-            ServerIncoming = new IPEndPoint(IPAddress.Any, regionData.IPListenPort);
-            Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            Server.Bind(ServerIncoming);
-
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:MainServerListener() - UDP socket bound, getting ready to listen");
-
-            ipeSender = new IPEndPoint(IPAddress.Any, 0);
-            epSender = (EndPoint)ipeSender;
-            ReceivedData = new AsyncCallback(this.OnReceivedData);
-            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
-
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:MainServerListener() - Listening...");
-
-        }
-
-        public void RegisterPacketServer(PacketServer server)
-        {
-            this._packetServer = server;
-        }
-
-        public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)//EndPoint packetSender)
-        {
-            // find the endpoint for this circuit
-            EndPoint sendto = null;
-            foreach (KeyValuePair<EndPoint, uint> p in this.clientCircuits)
-            {
-                if (p.Value == circuitcode)
-                {
-                    sendto = p.Key;
-                    break;
-                }
-            }
-            if (sendto != null)
-            {
-                //we found the endpoint so send the packet to it
-                this.Server.SendTo(buffer, size, flags, sendto);
-            }
-        }
-
-        public virtual void RemoveClientCircuit(uint circuitcode)
-        {
-            foreach (KeyValuePair<EndPoint, uint> p in this.clientCircuits)
-            {
-                if (p.Value == circuitcode)
-                {
-                    this.clientCircuits.Remove(p.Key);
-                    break;
-                }
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
