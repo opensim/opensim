@@ -81,6 +81,8 @@ namespace OpenSim
             this.user_accounts = accounts;
             this.m_console = console;
             PacketServer packetServer = new PacketServer(this);
+            
+            //set up delegate for authenticate sessions
             this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_gridServers.GridServer.AuthenticateSession);
         }
 

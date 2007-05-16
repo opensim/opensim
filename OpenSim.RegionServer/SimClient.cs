@@ -109,8 +109,8 @@ namespace OpenSim
             m_sandboxMode = sandboxMode;
             m_child = child;
             m_regionData = regionDat;
-           
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs - Started up new client thread to handle incoming request");
+
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
             if (m_gridServer.GetName() == "Remote")
@@ -135,16 +135,10 @@ namespace OpenSim
             ClientThread.Start();
         }
 
-        protected virtual void RegisterLocalPacketHandlers()
-        {
-            this.AddLocalPacketHandler(PacketType.LogoutRequest, this.Logout);
-            this.AddLocalPacketHandler(PacketType.AgentCachedTexture, this.AgentTextureCached);
-            this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
-        }
-
+        # region Client Methods
         public void UpgradeClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"SimClient.cs:UpgradeClient() - upgrading child to full agent");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
             this.m_world.RemoveViewerAgent(this);
             if (!this.m_sandboxMode)
@@ -157,7 +151,7 @@ namespace OpenSim
 
         public void DowngradeClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"SimClient.cs:UpgradeClient() - changing full agent to child");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - changing full agent to child");
             this.m_child = true;
             this.m_world.RemoveViewerAgent(this);
             this.m_world.AddViewerAgent(this);
@@ -188,7 +182,9 @@ namespace OpenSim
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
         }
+        #endregion
 
+        # region Packet Handling
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
         {
             bool result = false;
@@ -242,6 +238,10 @@ namespace OpenSim
             return result;
         }
 
+        # endregion
+
+        # region Low Level Packet Methods
+
         private void ack_pack(Packet Pack)
         {
             if (Pack.Header.Reliable)
@@ -276,7 +276,7 @@ namespace OpenSim
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Resending " + packet.Type.ToString() + " packet, " +
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Resending " + packet.Type.ToString() + " packet, " +
                          (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
@@ -295,7 +295,7 @@ namespace OpenSim
                     if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Too many ACKs queued up!");
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Too many ACKs queued up!");
                         return;
                     }
 
@@ -326,6 +326,10 @@ namespace OpenSim
             SendAcks();
             ResendUnacked();
         }
+
+        # endregion
+
+        #region Packet Queue Processing
 
         protected virtual void ProcessOutPacket(Packet Pack)
         {
@@ -417,7 +421,7 @@ namespace OpenSim
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
                 ClientThread.Abort();
             }
 
@@ -478,7 +482,7 @@ namespace OpenSim
 
         protected virtual void ClientLoop()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs:ClientLoop() - Entered loop");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ClientLoop() - Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
@@ -495,9 +499,13 @@ namespace OpenSim
             }
         }
 
+        #endregion
+
+        # region Setup
+
         protected virtual void InitNewClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
 
             m_world.AddViewerAgent(this);
             world.Entity tempent = m_world.Entities[this.AgentID];
@@ -507,17 +515,17 @@ namespace OpenSim
 
         protected virtual void AuthUser()
         {
-           // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
+            // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
             AuthenticateResponse sessionInfo = this.m_networkServer.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
                 ClientThread.Abort();
             }
             else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL,"OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;
@@ -539,9 +547,10 @@ namespace OpenSim
                 ClientLoop();
             }
         }
+        # endregion
 
         #region Inventory Creation
-        private void SetupInventory(AuthenticateResponse  sessionInfo)
+        private void SetupInventory(AuthenticateResponse sessionInfo)
         {
             AgentInventory inventory = null;
             if (sessionInfo.LoginInfo.InventoryFolder != null)
@@ -630,6 +639,8 @@ namespace OpenSim
         }
         #endregion
 
+        #region Nested Classes
+
         public class QueItem
         {
             public QueItem()
@@ -639,5 +650,6 @@ namespace OpenSim
             public Packet Packet;
             public bool Incoming;
         }
+        #endregion
     }
 }

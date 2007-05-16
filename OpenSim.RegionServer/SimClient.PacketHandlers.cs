@@ -20,6 +20,13 @@ namespace OpenSim
 {
     public partial class SimClient
     {
+        protected virtual void RegisterLocalPacketHandlers()
+        {
+            this.AddLocalPacketHandler(PacketType.LogoutRequest, this.Logout);
+            this.AddLocalPacketHandler(PacketType.AgentCachedTexture, this.AgentTextureCached);
+            this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
+        }
+
         protected virtual bool Logout(SimClient simClient, Packet packet)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
