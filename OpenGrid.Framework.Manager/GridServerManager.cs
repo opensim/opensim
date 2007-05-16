@@ -19,7 +19,7 @@ namespace OpenGrid.Framework.Manager {
             		Hashtable requestData = (Hashtable)request.Params[0];
 	    		Hashtable responseData = new Hashtable();
            
-	    		if(requestData["authkey"]!=recvkey) {
+	    		if((string)requestData["authkey"] != recvkey) {
 	    			responseData["error"]="INVALID KEY";
 	    		} else {
 				responseData["msg"]="Shutdown command accepted";

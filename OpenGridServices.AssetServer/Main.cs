@@ -140,7 +140,6 @@ namespace OpenGridServices.AssetServer
 
         public byte[] getAssetData(LLUUID assetID, bool isTexture)
         {
-            byte[] idata = null;
             bool found = false;
             AssetStorage foundAsset = null;
 

@@ -74,7 +74,7 @@ namespace OpenSim.Physics.OdePlugin
         static public IntPtr space;
         static private IntPtr contactgroup;
         static private IntPtr LandGeom;
-        static private IntPtr Land;
+        //static private IntPtr Land;
         private double[] _heightmap;
         static private d.NearCallback nearCallback = near;
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
