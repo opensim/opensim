@@ -35,7 +35,7 @@ using System.Net;
 using System.Threading;
 using System.Reflection;
 using libsecondlife;
-//using OpenGrid.Framework.Manager;
+using OpenGrid.Framework.Manager;
 using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
@@ -118,7 +118,7 @@ namespace OpenGridServices.GridServer
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);
-	        //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer,"gridserver",Cfg.SimSendKey,Cfg.SimRecvKey,managercallback);
+	    GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer,"gridserver",Cfg.SimSendKey,Cfg.SimRecvKey,managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
 
