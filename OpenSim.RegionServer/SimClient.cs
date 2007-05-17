@@ -119,12 +119,12 @@ namespace OpenSim
             //currently not working due to changes in progress to the authenticating system.
            /* if (m_gridServer.GetName() == "Remote")
             {
-                this.startpos = ((RemoteGridBase)m_gridServer).agentcircuits[initialcirpack.CircuitCode.Code].startpos;
+                this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
             }
             else
             {*/
                 this.startpos = new LLVector3(128, 128, m_world.Terrain[(int)128, (int)128] + 15.0f); // new LLVector3(128.0f, 128.0f, 60f);
-            //}
+           // }
             PacketQueue = new BlockingQueue<QueItem>();
 
             this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);

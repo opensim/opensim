@@ -33,12 +33,6 @@ namespace OpenSim
 
                 RemoteGridBase gridServer = (RemoteGridBase)this.m_gridServer;
 
-                Dictionary<uint, AgentCircuitData> agentCircuits = this.m_authenticateSessionsHandler.AgentCircuits;
-                AgentCircuitData agentCircuit;
-
-                if (agentCircuits.TryGetValue(CircuitCode, out agentCircuit))
-                {
-
                     foreach (Hashtable neighbour in gridServer.neighbours)
                     {
                         string neighbourIPStr = (string)neighbour["sim_ip"];
@@ -49,11 +43,11 @@ namespace OpenSim
                         Console.WriteLine(reqUrl);
                         
                         SimParams = new Hashtable();
-                        SimParams["session_id"] = agentCircuit.SessionID.ToString();
-                        SimParams["secure_session_id"] = agentCircuit.SecureSessionID.ToString();
-                        SimParams["firstname"] = agentCircuit.firstname;
-                        SimParams["lastname"] = agentCircuit.lastname;
-                        SimParams["agent_id"] = agentCircuit.AgentID.ToString();
+                        SimParams["session_id"] = this.SessionID.ToString();
+                        SimParams["secure_session_id"] = this.SecureSessionID.ToString();
+                        SimParams["firstname"] = this.ClientAvatar.firstname;
+                        SimParams["lastname"] = this.ClientAvatar.lastname;
+                        SimParams["agent_id"] = this.AgentID;
                         SimParams["circuit_code"] = (Int32)this.CircuitCode;
                         SimParams["child_agent"] = "1";
                         SendParams = new ArrayList();
@@ -80,11 +74,7 @@ namespace OpenSim
                         this.OutPacket(enable);
                     }
                     enablePackets.Clear();
-                }
-                else
-                {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.CRITICAL, "SimClient.cs: Couldn't find AgentCircuit for CircuitCode {0}.", CircuitCode);
-                }
+                
             }
         }
 
