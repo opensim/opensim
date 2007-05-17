@@ -7,3 +7,13 @@ use the 'multiply' command to multiply them by 58.81 to achieve correct height v
 Example ------------------
 Region# : terrain load f32 c:\opensim\datafiles\output_x0_y0.r32
 Region# : terrain multiply 58.81
+
+
+
+	<AdamZaius>	0,0 - 1,0 - 2,0
+	<AdamZaius>	0,1 - 1,1 - 2,1
+	<AdamZaius>	0,2 - 1,2, 2,2
+
+
+for a 3x3 area on the grid
+
