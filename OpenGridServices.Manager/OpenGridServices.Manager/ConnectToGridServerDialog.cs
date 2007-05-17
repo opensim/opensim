@@ -14,7 +14,7 @@ namespace OpenGridServices.Manager {
 		{
 			switch(args.ResponseId) {
 				case Gtk.ResponseType.Ok:
-					MainClass.PendingOperations.Enqueue("connect_to_gridserver " + this.entry1.Text);
+					MainClass.PendingOperations.Enqueue("connect_to_gridserver " + this.entry1.Text + " " + this.entry2.Text + " " + this.entry3.Text);
 				break;
 				
 				case Gtk.ResponseType.Cancel:

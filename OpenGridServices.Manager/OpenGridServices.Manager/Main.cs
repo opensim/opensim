@@ -12,6 +12,9 @@ namespace OpenGridServices.Manager
 		public static BlockingQueue<string> PendingOperations = new BlockingQueue<string>();
 
 		private static Thread OperationsRunner;
+		
+		private static GridServerConnectionManager gridserverConn;
+		
 		private static MainWindow win;
 
 		public static void DoMainLoop()
@@ -36,7 +39,7 @@ namespace OpenGridServices.Manager
 				switch(cmd) {
 					case "connect_to_gridserver":
 						win.SetStatus("Connecting to grid server...");						
-
+						gridserverConn.Connect(operation.Split(sep)[1],operation.Split(sep)[2],operation.Split(sep)[3]);
 					break;
 				}
 			}
@@ -44,6 +47,7 @@ namespace OpenGridServices.Manager
 
 		public static void Main (string[] args)
 		{
+			gridserverConn = new GridServerConnectionManager();
 			Application.Init ();
 			win = new MainWindow ();
 			win.Show ();

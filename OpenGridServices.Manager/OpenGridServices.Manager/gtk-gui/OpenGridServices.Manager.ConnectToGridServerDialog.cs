@@ -15,9 +15,25 @@ namespace OpenGridServices.Manager {
         
         private Gtk.VBox vbox2;
         
+        private Gtk.VBox vbox3;
+        
+        private Gtk.HBox hbox1;
+        
         private Gtk.Label label1;
         
         private Gtk.Entry entry1;
+        
+        private Gtk.HBox hbox2;
+        
+        private Gtk.Label label2;
+        
+        private Gtk.Entry entry2;
+        
+        private Gtk.HBox hbox3;
+        
+        private Gtk.Label label3;
+        
+        private Gtk.Entry entry3;
         
         private Gtk.Button button2;
         
@@ -38,17 +54,21 @@ namespace OpenGridServices.Manager {
             this.vbox2 = new Gtk.VBox();
             this.vbox2.Name = "vbox2";
             // Container child vbox2.Gtk.Box+BoxChild
+            this.vbox3 = new Gtk.VBox();
+            this.vbox3.Name = "vbox3";
+            // Container child vbox3.Gtk.Box+BoxChild
+            this.hbox1 = new Gtk.HBox();
+            this.hbox1.Name = "hbox1";
+            // Container child hbox1.Gtk.Box+BoxChild
             this.label1 = new Gtk.Label();
             this.label1.Name = "label1";
-            this.label1.LabelProp = Mono.Unix.Catalog.GetString("Please type in the grid server management interface URL:");
-            this.label1.Wrap = true;
-            this.label1.Justify = ((Gtk.Justification)(2));
-            this.vbox2.Add(this.label1);
-            Gtk.Box.BoxChild w2 = ((Gtk.Box.BoxChild)(this.vbox2[this.label1]));
+            this.label1.Xalign = 1F;
+            this.label1.LabelProp = Mono.Unix.Catalog.GetString("Grid server URL: ");
+            this.label1.Justify = ((Gtk.Justification)(1));
+            this.hbox1.Add(this.label1);
+            Gtk.Box.BoxChild w2 = ((Gtk.Box.BoxChild)(this.hbox1[this.label1]));
             w2.Position = 0;
-            w2.Expand = false;
-            w2.Fill = false;
-            // Container child vbox2.Gtk.Box+BoxChild
+            // Container child hbox1.Gtk.Box+BoxChild
             this.entry1 = new Gtk.Entry();
             this.entry1.CanFocus = true;
             this.entry1.Name = "entry1";
@@ -56,21 +76,81 @@ namespace OpenGridServices.Manager {
             this.entry1.IsEditable = true;
             this.entry1.MaxLength = 255;
             this.entry1.InvisibleChar = '•';
-            this.vbox2.Add(this.entry1);
-            Gtk.Box.BoxChild w3 = ((Gtk.Box.BoxChild)(this.vbox2[this.entry1]));
+            this.hbox1.Add(this.entry1);
+            Gtk.Box.BoxChild w3 = ((Gtk.Box.BoxChild)(this.hbox1[this.entry1]));
             w3.Position = 1;
-            w3.Expand = false;
-            w3.Fill = false;
-            w1.Add(this.vbox2);
-            Gtk.Box.BoxChild w4 = ((Gtk.Box.BoxChild)(w1[this.vbox2]));
+            this.vbox3.Add(this.hbox1);
+            Gtk.Box.BoxChild w4 = ((Gtk.Box.BoxChild)(this.vbox3[this.hbox1]));
             w4.Position = 0;
+            w4.Expand = false;
+            w4.Fill = false;
+            // Container child vbox3.Gtk.Box+BoxChild
+            this.hbox2 = new Gtk.HBox();
+            this.hbox2.Name = "hbox2";
+            // Container child hbox2.Gtk.Box+BoxChild
+            this.label2 = new Gtk.Label();
+            this.label2.Name = "label2";
+            this.label2.Xalign = 1F;
+            this.label2.LabelProp = Mono.Unix.Catalog.GetString("Username:");
+            this.label2.Justify = ((Gtk.Justification)(1));
+            this.hbox2.Add(this.label2);
+            Gtk.Box.BoxChild w5 = ((Gtk.Box.BoxChild)(this.hbox2[this.label2]));
+            w5.Position = 0;
+            // Container child hbox2.Gtk.Box+BoxChild
+            this.entry2 = new Gtk.Entry();
+            this.entry2.CanFocus = true;
+            this.entry2.Name = "entry2";
+            this.entry2.IsEditable = true;
+            this.entry2.InvisibleChar = '•';
+            this.hbox2.Add(this.entry2);
+            Gtk.Box.BoxChild w6 = ((Gtk.Box.BoxChild)(this.hbox2[this.entry2]));
+            w6.Position = 1;
+            this.vbox3.Add(this.hbox2);
+            Gtk.Box.BoxChild w7 = ((Gtk.Box.BoxChild)(this.vbox3[this.hbox2]));
+            w7.Position = 1;
+            w7.Expand = false;
+            w7.Fill = false;
+            // Container child vbox3.Gtk.Box+BoxChild
+            this.hbox3 = new Gtk.HBox();
+            this.hbox3.Name = "hbox3";
+            // Container child hbox3.Gtk.Box+BoxChild
+            this.label3 = new Gtk.Label();
+            this.label3.Name = "label3";
+            this.label3.Xalign = 1F;
+            this.label3.LabelProp = Mono.Unix.Catalog.GetString("Password:");
+            this.label3.Justify = ((Gtk.Justification)(1));
+            this.hbox3.Add(this.label3);
+            Gtk.Box.BoxChild w8 = ((Gtk.Box.BoxChild)(this.hbox3[this.label3]));
+            w8.Position = 0;
+            // Container child hbox3.Gtk.Box+BoxChild
+            this.entry3 = new Gtk.Entry();
+            this.entry3.CanFocus = true;
+            this.entry3.Name = "entry3";
+            this.entry3.IsEditable = true;
+            this.entry3.InvisibleChar = '•';
+            this.hbox3.Add(this.entry3);
+            Gtk.Box.BoxChild w9 = ((Gtk.Box.BoxChild)(this.hbox3[this.entry3]));
+            w9.Position = 1;
+            this.vbox3.Add(this.hbox3);
+            Gtk.Box.BoxChild w10 = ((Gtk.Box.BoxChild)(this.vbox3[this.hbox3]));
+            w10.Position = 2;
+            w10.Expand = false;
+            w10.Fill = false;
+            this.vbox2.Add(this.vbox3);
+            Gtk.Box.BoxChild w11 = ((Gtk.Box.BoxChild)(this.vbox2[this.vbox3]));
+            w11.Position = 2;
+            w11.Expand = false;
+            w11.Fill = false;
+            w1.Add(this.vbox2);
+            Gtk.Box.BoxChild w12 = ((Gtk.Box.BoxChild)(w1[this.vbox2]));
+            w12.Position = 0;
             // Internal child OpenGridServices.Manager.ConnectToGridServerDialog.ActionArea
-            Gtk.HButtonBox w5 = this.ActionArea;
-            w5.Events = ((Gdk.EventMask)(256));
-            w5.Name = "OpenGridServices.Manager.ConnectToGridServerDialog_ActionArea";
-            w5.Spacing = 6;
-            w5.BorderWidth = ((uint)(5));
-            w5.LayoutStyle = ((Gtk.ButtonBoxStyle)(4));
+            Gtk.HButtonBox w13 = this.ActionArea;
+            w13.Events = ((Gdk.EventMask)(256));
+            w13.Name = "OpenGridServices.Manager.ConnectToGridServerDialog_ActionArea";
+            w13.Spacing = 6;
+            w13.BorderWidth = ((uint)(5));
+            w13.LayoutStyle = ((Gtk.ButtonBoxStyle)(4));
             // Container child OpenGridServices.Manager.ConnectToGridServerDialog_ActionArea.Gtk.ButtonBox+ButtonBoxChild
             this.button2 = new Gtk.Button();
             this.button2.CanDefault = true;
@@ -78,29 +158,29 @@ namespace OpenGridServices.Manager {
             this.button2.Name = "button2";
             this.button2.UseUnderline = true;
             // Container child button2.Gtk.Container+ContainerChild
-            Gtk.Alignment w6 = new Gtk.Alignment(0.5F, 0.5F, 0F, 0F);
-            w6.Name = "GtkAlignment";
+            Gtk.Alignment w14 = new Gtk.Alignment(0.5F, 0.5F, 0F, 0F);
+            w14.Name = "GtkAlignment";
             // Container child GtkAlignment.Gtk.Container+ContainerChild
-            Gtk.HBox w7 = new Gtk.HBox();
-            w7.Name = "GtkHBox";
-            w7.Spacing = 2;
+            Gtk.HBox w15 = new Gtk.HBox();
+            w15.Name = "GtkHBox";
+            w15.Spacing = 2;
             // Container child GtkHBox.Gtk.Container+ContainerChild
-            Gtk.Image w8 = new Gtk.Image();
-            w8.Name = "image37";
-            w8.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-apply", 16, 0);
-            w7.Add(w8);
+            Gtk.Image w16 = new Gtk.Image();
+            w16.Name = "image39";
+            w16.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-apply", 16, 0);
+            w15.Add(w16);
             // Container child GtkHBox.Gtk.Container+ContainerChild
-            Gtk.Label w10 = new Gtk.Label();
-            w10.Name = "GtkLabel";
-            w10.LabelProp = Mono.Unix.Catalog.GetString("Connect");
-            w10.UseUnderline = true;
-            w7.Add(w10);
-            w6.Add(w7);
-            this.button2.Add(w6);
+            Gtk.Label w18 = new Gtk.Label();
+            w18.Name = "GtkLabel";
+            w18.LabelProp = Mono.Unix.Catalog.GetString("Connect");
+            w18.UseUnderline = true;
+            w15.Add(w18);
+            w14.Add(w15);
+            this.button2.Add(w14);
             this.AddActionWidget(this.button2, -5);
-            Gtk.ButtonBox.ButtonBoxChild w14 = ((Gtk.ButtonBox.ButtonBoxChild)(w5[this.button2]));
-            w14.Expand = false;
-            w14.Fill = false;
+            Gtk.ButtonBox.ButtonBoxChild w22 = ((Gtk.ButtonBox.ButtonBoxChild)(w13[this.button2]));
+            w22.Expand = false;
+            w22.Fill = false;
             // Container child OpenGridServices.Manager.ConnectToGridServerDialog_ActionArea.Gtk.ButtonBox+ButtonBoxChild
             this.button8 = new Gtk.Button();
             this.button8.CanDefault = true;
@@ -108,35 +188,35 @@ namespace OpenGridServices.Manager {
             this.button8.Name = "button8";
             this.button8.UseUnderline = true;
             // Container child button8.Gtk.Container+ContainerChild
-            Gtk.Alignment w15 = new Gtk.Alignment(0.5F, 0.5F, 0F, 0F);
-            w15.Name = "GtkAlignment1";
+            Gtk.Alignment w23 = new Gtk.Alignment(0.5F, 0.5F, 0F, 0F);
+            w23.Name = "GtkAlignment1";
             // Container child GtkAlignment1.Gtk.Container+ContainerChild
-            Gtk.HBox w16 = new Gtk.HBox();
-            w16.Name = "GtkHBox1";
-            w16.Spacing = 2;
+            Gtk.HBox w24 = new Gtk.HBox();
+            w24.Name = "GtkHBox1";
+            w24.Spacing = 2;
             // Container child GtkHBox1.Gtk.Container+ContainerChild
-            Gtk.Image w17 = new Gtk.Image();
-            w17.Name = "image38";
-            w17.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-cancel", 16, 0);
-            w16.Add(w17);
+            Gtk.Image w25 = new Gtk.Image();
+            w25.Name = "image40";
+            w25.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-cancel", 16, 0);
+            w24.Add(w25);
             // Container child GtkHBox1.Gtk.Container+ContainerChild
-            Gtk.Label w19 = new Gtk.Label();
-            w19.Name = "GtkLabel1";
-            w19.LabelProp = Mono.Unix.Catalog.GetString("Cancel");
-            w19.UseUnderline = true;
-            w16.Add(w19);
-            w15.Add(w16);
-            this.button8.Add(w15);
+            Gtk.Label w27 = new Gtk.Label();
+            w27.Name = "GtkLabel1";
+            w27.LabelProp = Mono.Unix.Catalog.GetString("Cancel");
+            w27.UseUnderline = true;
+            w24.Add(w27);
+            w23.Add(w24);
+            this.button8.Add(w23);
             this.AddActionWidget(this.button8, -6);
-            Gtk.ButtonBox.ButtonBoxChild w23 = ((Gtk.ButtonBox.ButtonBoxChild)(w5[this.button8]));
-            w23.Position = 1;
-            w23.Expand = false;
-            w23.Fill = false;
+            Gtk.ButtonBox.ButtonBoxChild w31 = ((Gtk.ButtonBox.ButtonBoxChild)(w13[this.button8]));
+            w31.Position = 1;
+            w31.Expand = false;
+            w31.Fill = false;
             if ((this.Child != null)) {
                 this.Child.ShowAll();
             }
             this.DefaultWidth = 476;
-            this.DefaultHeight = 107;
+            this.DefaultHeight = 137;
             this.Show();
             this.Response += new Gtk.ResponseHandler(this.OnResponse);
         }
