@@ -277,11 +277,16 @@ namespace OpenSim
                         agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
                         agent_data.startpos = new LLVector3(Single.Parse((string)requestData["pos_x"]), Single.Parse((string)requestData["pos_y"]), Single.Parse((string)requestData["pos_z"]));
 
-                        if (((RemoteGridBase)this.GridServers.GridServer).agentcircuits.ContainsKey((uint)agent_data.circuitcode))
+                        uint circuitcode = (uint)agent_data.circuitcode;
+                        RemoteGridBase gridServer = (RemoteGridBase)this.GridServers.GridServer;
+
+                        AgentCircuitData agentCircuit;
+
+                        if (gridServer.agentcircuits.TryGetValue(circuitcode, out agentCircuit))
                         {
-                            ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[(uint)agent_data.circuitcode].firstname = agent_data.firstname;
-                            ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[(uint)agent_data.circuitcode].lastname = agent_data.lastname;
-                            ((RemoteGridBase)this.GridServers.GridServer).agentcircuits[(uint)agent_data.circuitcode].startpos = agent_data.startpos;
+                            agentCircuit.firstname = agent_data.firstname;
+                            agentCircuit.lastname = agent_data.lastname;
+                            agentCircuit.startpos = agent_data.startpos;
                         }
 
                         return new XmlRpcResponse();
