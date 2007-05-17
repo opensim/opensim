@@ -13,6 +13,9 @@ namespace OpenSim.world
 {
     public class SceneObject : Entity
     {
+        private LLUUID rootUUID;
+        private Dictionary<LLUUID, Primitive2> ChildPrimitives = new Dictionary<LLUUID, Primitive2>();
+        private Dictionary<uint, SimClient> m_clientThreads;
 
         public SceneObject()
         {
@@ -40,6 +43,7 @@ namespace OpenSim.world
 
         public void GetProperites(SimClient client)
         {
+            /*
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
             proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
@@ -65,6 +69,7 @@ namespace OpenSim.world
             proper.ObjectData[0].BaseMask = this.primData.BaseMask;
 
             client.OutPacket(proper);
+             * */
         }
 
     }
