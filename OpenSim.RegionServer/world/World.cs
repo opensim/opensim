@@ -18,33 +18,39 @@ using OpenSim.Terrain;
 
 namespace OpenSim.world
 {
-    public partial class World : ILocalStorageReceiver, IScriptAPI
+    public partial class World : WorldBase, ILocalStorageReceiver, IScriptAPI
     {
         public object LockPhysicsEngine = new object();
-        public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
         //public ScriptEngine Scripts;
-        public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         public uint _localNumber = 0;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
-        private libsecondlife.TerrainManager TerrainManager; // To be referenced via TerrainEngine
         public ILocalStorage localStorage;
         private Random Rand = new Random();
         private uint _primCount = 702000;
         private int storageCount;
-        private Dictionary<uint, SimClient> m_clientThreads;
         private Dictionary<LLUUID, ScriptHandler> m_scriptHandlers;
         private Dictionary<string, ScriptFactory> m_scripts;
-        private ulong m_regionHandle;
-        private string m_regionName;
-        private InventoryCache _inventoryCache;
-        private AssetCache _assetCache;
         private Mutex updateLock;
-        private RegionInfo m_regInfo;
         public string m_datastore;
 
+        #region Properties
+        public PhysicsScene PhysScene
+        {
+            set
+            {
+                this.phyScene = value;
+            }
+            get
+            {
+                return (this.phyScene);
+            }
+        }
+        #endregion
+
+        #region Constructors
         /// <summary>
         /// Creates a new World class, and a region to go with it.
         /// </summary>
@@ -85,7 +91,9 @@ namespace OpenSim.world
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.CRITICAL,"World.cs: Constructor failed with exception " + e.ToString());
             }
         }
+        #endregion
 
+        #region Script Methods
         /// <summary>
         /// Loads a new script into the specified entity
         /// </summary>
@@ -156,37 +164,13 @@ namespace OpenSim.world
             }
         }
 
-        public InventoryCache InventoryCache
-        {
-            set
-            {
-                this._inventoryCache = value;
-            }
-        }
+        #endregion
 
-        public AssetCache AssetCache
-        {
-            set
-            {
-                this._assetCache = value;
-            }
-        }
-        public PhysicsScene PhysScene
-        {
-            set
-            {
-                this.phyScene = value;
-            }
-            get
-            {
-                return (this.phyScene);
-            }
-        }
-
+        #region Update Methods
         /// <summary>
         /// Performs per-frame updates on the world, this should be the central world loop
         /// </summary>
-        public void Update()
+        public override void Update()
         {
             updateLock.WaitOne();
             try
@@ -235,6 +219,40 @@ namespace OpenSim.world
             updateLock.ReleaseMutex();
         }
 
+        public bool Backup()
+        {
+            try
+            {
+                // Terrain backup routines
+                if (Terrain.tainted > 0)
+                {
+                    Terrain.tainted = 0;
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain tainted, saving.");
+                    localStorage.SaveMap(Terrain.getHeights1D());
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain saved, informing Physics.");
+                    phyScene.SetTerrain(Terrain.getHeights1D());
+                }
+
+                // Primitive backup routines
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Backing up Primitives");
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    Entities[UUID].BackUp();
+                }
+
+                // Backup successful
+                return true;
+            }
+            catch (Exception e)
+            {
+                // Backup failed
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Backup() - Backup Failed with exception " + e.ToString());
+                return false;
+            }
+        }
+        #endregion
+
+        #region Setup Methods
         /// <summary>
         /// Loads a new storage subsystem from a named library
         /// </summary>
@@ -278,6 +296,16 @@ namespace OpenSim.world
                 return false;
             }
         }
+
+        public void SetDefaultScripts()
+        {
+            this.m_scripts.Add("FollowRandomAvatar", delegate()
+                                                             {
+                                                                 return new OpenSim.RegionServer.world.scripting.FollowRandomAvatar();
+                                                             });
+        }
+
+        #endregion
 
         #region Regenerate Terrain
 
@@ -375,10 +403,11 @@ namespace OpenSim.world
 
         #endregion
 
+        #region Load Terrain
         /// <summary>
         /// Loads the World heightmap
         /// </summary>
-        public void LoadWorldMap()
+        public override void LoadWorldMap()
         {
             try
             {
@@ -398,6 +427,32 @@ namespace OpenSim.world
             catch (Exception e)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+            }
+        }
+        #endregion
+
+        #region Primitives Methods
+
+        /// <summary>
+        /// Sends prims to a client
+        /// </summary>
+        /// <param name="RemoteClient">Client to send to</param>
+        public void GetInitialPrims(SimClient RemoteClient)
+        {
+            try
+            {
+                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                {
+                    if (Entities[UUID] is Primitive)
+                    {
+                        Primitive primitive = Entities[UUID] as Primitive;
+                        primitive.UpdateClient(RemoteClient);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: GetInitialPrims() - Failed with exception " + e.ToString());
             }
         }
 
@@ -440,108 +495,37 @@ namespace OpenSim.world
             }
         }
 
-        /// <summary>
-        /// Tidy before shutdown
-        /// </summary>
-        public void Close()
+        public void AddNewPrim(ObjectAddPacket addPacket, SimClient AgentClient)
         {
             try
             {
-                this.localStorage.ShutDown();
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"World.cs: Close() - Failed with exception " + e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Send the region heightmap to the client
-        /// </summary>
-        /// <param name="RemoteClient">Client to send to</param>
-        public void SendLayerData(SimClient RemoteClient)
-        {
-            try
-            {
-                int[] patches = new int[4];
-
-                for (int y = 0; y < 16; y++)
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: AddNewPrim() - Creating new prim");
+                Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
+                prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
+                PhysicsVector pVec = new PhysicsVector(prim.Pos.X, prim.Pos.Y, prim.Pos.Z);
+                PhysicsVector pSize = new PhysicsVector(0.255f, 0.255f, 0.255f);
+                if (OpenSim.world.Avatar.PhysicsEngineFlying)
                 {
-                    for (int x = 0; x < 16; x = x + 4)
+                    lock (this.LockPhysicsEngine)
                     {
-                        patches[0] = x + 0 + y * 16;
-                        patches[1] = x + 1 + y * 16;
-                        patches[2] = x + 2 + y * 16;
-                        patches[3] = x + 3 + y * 16;
-
-                        Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
-                        RemoteClient.OutPacket(layerpack);
+                        prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
                     }
                 }
+
+                this.Entities.Add(prim.uuid, prim);
+                this._primCount++;
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: SendLayerData() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddNewPrim() - Failed with exception " + e.ToString());
             }
         }
 
-        /// <summary>
-        /// Sends a specified patch to a client
-        /// </summary>
-        /// <param name="px">Patch coordinate (x) 0..16</param>
-        /// <param name="py">Patch coordinate (y) 0..16</param>
-        /// <param name="RemoteClient">The client to send to</param>
-        public void SendLayerData(int px, int py, SimClient RemoteClient)
-        {
-            try
-            {
-                int[] patches = new int[1];
-                int patchx, patchy;
-                patchx = px / 16;
-                /* if (patchx > 12)
-                 {
-                     patchx = 12;
-                 }*/
-                patchy = py / 16;
+        #endregion
 
-                patches[0] = patchx + 0 + patchy * 16;
-                //patches[1] = patchx + 1 + patchy * 16;
-                //patches[2] = patchx + 2 + patchy * 16;
-                //patches[3] = patchx + 3 + patchy * 16;
+        #region Add/Remove Avatar Methods
 
-                Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
-                RemoteClient.OutPacket(layerpack);
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: SendLayerData() - Failed with exception " + e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Sends prims to a client
-        /// </summary>
-        /// <param name="RemoteClient">Client to send to</param>
-        public void GetInitialPrims(SimClient RemoteClient)
-        {
-            try
-            {
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-                {
-                    if (Entities[UUID] is Primitive)
-                    {
-                        Primitive primitive = Entities[UUID] as Primitive;
-                        primitive.UpdateClient(RemoteClient);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: GetInitialPrims() - Failed with exception " + e.ToString());
-            }
-        }
-
-        public void AddViewerAgent(SimClient agentClient)
+        public override void AddViewerAgent(SimClient agentClient)
         {
             try
             {
@@ -587,7 +571,7 @@ namespace OpenSim.world
             }
         }
 
-        public void RemoveViewerAgent(SimClient agentClient)
+        public override void RemoveViewerAgent(SimClient agentClient)
         {
             try
             {
@@ -609,72 +593,24 @@ namespace OpenSim.world
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: RemoveViewerAgent() - Failed with exception " + e.ToString());
             }
         }
+        #endregion
 
-        public void AddNewPrim(ObjectAddPacket addPacket, SimClient AgentClient)
+        #region ShutDown
+        /// <summary>
+        /// Tidy before shutdown
+        /// </summary>
+        public override void Close()
         {
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"World.cs: AddNewPrim() - Creating new prim");
-                Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
-                prim.CreateFromPacket(addPacket, AgentClient.AgentID, this._primCount);
-                PhysicsVector pVec = new PhysicsVector(prim.Pos.X, prim.Pos.Y, prim.Pos.Z);
-                PhysicsVector pSize = new PhysicsVector(0.255f, 0.255f, 0.255f);
-                if (OpenSim.world.Avatar.PhysicsEngineFlying)
-                {
-                    lock (this.LockPhysicsEngine)
-                    {
-                        prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
-                    }
-                }
-
-                this.Entities.Add(prim.uuid, prim);
-                this._primCount++;
+                this.localStorage.ShutDown();
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"World.cs: AddNewPrim() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
             }
         }
-
-        public bool Backup()
-        {
-            try
-            {
-                // Terrain backup routines
-                if (Terrain.tainted > 0)
-                {
-                    Terrain.tainted = 0;
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"World.cs: Backup() - Terrain tainted, saving.");
-                    localStorage.SaveMap(Terrain.getHeights1D());
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"World.cs: Backup() - Terrain saved, informing Physics.");
-                    phyScene.SetTerrain(Terrain.getHeights1D());
-                }
-
-                // Primitive backup routines
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"World.cs: Backup() - Backing up Primitives");
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-                {
-                    Entities[UUID].BackUp();
-                }
-
-                // Backup successful
-                return true;
-            }
-            catch (Exception e)
-            {
-                // Backup failed
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"World.cs: Backup() - Backup Failed with exception " + e.ToString());
-                return false;
-            }
-        }
-
-        public void SetDefaultScripts()
-        {
-                this.m_scripts.Add("FollowRandomAvatar", delegate()
-                                                                 {
-                                                                     return new OpenSim.RegionServer.world.scripting.FollowRandomAvatar();
-                                                                 });
-        }
+        #endregion
 
     }
 }

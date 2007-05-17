@@ -49,6 +49,11 @@ namespace OpenSim
 
         }
 
+        public virtual void AddClientPacketHanlder(PacketType packetType, PacketMethod handler)
+        {
+
+        }
+
         public virtual void RegisterClientPacketHandlers()
         {
             if (this._localWorld != null)

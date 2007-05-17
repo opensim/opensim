@@ -144,6 +144,7 @@ namespace OpenSim
 
             this.SetupHttpListener();
 
+            //Login server setup
             LoginServer loginServer = null;
             LoginServer adminLoginServer = null;
 
@@ -169,13 +170,15 @@ namespace OpenSim
                 }
             }
 
+            //Web front end setup
             AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, InventoryCache, adminLoginServer);
             adminWebFront.LoadMethods(httpServer);
 
+            //Start http server
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();
 
-            //MainServerListener();
+            // Start UDP server
             this.m_udpServer.ServerListener();
 
             m_heartbeatTimer.Enabled = true;
