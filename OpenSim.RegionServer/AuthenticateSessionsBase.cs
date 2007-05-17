@@ -73,5 +73,15 @@ namespace OpenSim
             }
             return vec;
         }
+
+        public void UpdateAgentData(AgentCircuitData agentData)
+        {
+            if (this.AgentCircuits.ContainsKey((uint)agentData.circuitcode))
+            {
+                this.AgentCircuits[(uint)agentData.circuitcode].firstname = agentData.firstname;
+                this.AgentCircuits[(uint)agentData.circuitcode].lastname = agentData.lastname;
+                this.AgentCircuits[(uint)agentData.circuitcode].startpos = agentData.startpos;
+            }
+        }
     }
 }

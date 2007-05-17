@@ -281,14 +281,7 @@ namespace OpenSim
 
                         RemoteGridBase gridServer = (RemoteGridBase)this.GridServers.GridServer;
 
-                        AgentCircuitData agentCircuit;
-
-                        if (gridServer.agentcircuits.TryGetValue(circuitcode, out agentCircuit))
-                        {
-                            agentCircuit.firstname = agent_data.firstname;
-                            agentCircuit.lastname = agent_data.lastname;
-                            agentCircuit.startpos = agent_data.startpos;
-                        }
+                        AuthenticateSessionsHandler.UpdateAgentData(agent_data);
 
                         return new XmlRpcResponse();
                     });
