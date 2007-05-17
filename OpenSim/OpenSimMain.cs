@@ -271,13 +271,14 @@ namespace OpenSim
                     delegate(XmlRpcRequest request)
                     {
                         Hashtable requestData = (Hashtable)request.Params[0];
+                        uint circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+                            
                         AgentCircuitData agent_data = new AgentCircuitData();
                         agent_data.firstname = (string)requestData["firstname"];
                         agent_data.lastname = (string)requestData["lastname"];
-                        agent_data.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+                        agent_data.circuitcode = circuitcode;
                         agent_data.startpos = new LLVector3(Single.Parse((string)requestData["pos_x"]), Single.Parse((string)requestData["pos_y"]), Single.Parse((string)requestData["pos_z"]));
 
-                        uint circuitcode = (uint)agent_data.circuitcode;
                         RemoteGridBase gridServer = (RemoteGridBase)this.GridServers.GridServer;
 
                         AgentCircuitData agentCircuit;
