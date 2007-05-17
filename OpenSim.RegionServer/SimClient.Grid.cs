@@ -47,7 +47,7 @@ namespace OpenSim
                         SimParams["secure_session_id"] = this.SecureSessionID.ToString();
                         SimParams["firstname"] = this.ClientAvatar.firstname;
                         SimParams["lastname"] = this.ClientAvatar.lastname;
-                        SimParams["agent_id"] = this.AgentID;
+                        SimParams["agent_id"] = this.AgentID.ToString();
                         SimParams["circuit_code"] = (Int32)this.CircuitCode;
                         SimParams["child_agent"] = "1";
                         SendParams = new ArrayList();
