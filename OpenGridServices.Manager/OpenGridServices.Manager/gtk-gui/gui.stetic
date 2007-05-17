@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <stetic-interface>
-  <widget class="Gtk.Window" id="MainWindow" design-size="668 800">
+  <widget class="Gtk.Window" id="OpenGridServices.Manager.MainWindow" design-size="800 800">
     <action-group name="Default">
       <action id="Grid">
         <property name="Type">Action</property>
@@ -169,6 +169,7 @@
     <property name="HeightRequest">600</property>
     <property name="Title" translatable="yes">Open Grid Services Manager</property>
     <property name="Icon">stock:gtk-network Dialog</property>
+    <property name="WindowPosition">None</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
       <widget class="Gtk.VBox" id="vbox1">
@@ -462,14 +463,13 @@
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Dialog" id="ConnectToGridServerDialog" design-size="476 107">
+  <widget class="Gtk.Dialog" id="OpenGridServices.Manager.ConnectToGridServerDialog" design-size="476 107">
     <property name="MemberName" />
     <property name="Events">ButtonPressMask</property>
     <property name="Title" translatable="yes">Connect to Grid server</property>
-    <property name="WindowPosition">CenterOnParent</property>
     <property name="Buttons">2</property>
     <property name="HelpButton">False</property>
-    <property name="HasSeparator">False</property>
+    <signal name="Response" handler="OnResponse" />
     <child internal-child="VBox">
       <widget class="Gtk.VBox" id="dialog_VBox">
         <property name="MemberName" />
@@ -481,7 +481,7 @@
             <child>
               <widget class="Gtk.Label" id="label1">
                 <property name="MemberName" />
-                <property name="LabelProp" translatable="yes">Please type in the grid server IP/hostname and management interface port:</property>
+                <property name="LabelProp" translatable="yes">Please type in the grid server management interface URL:</property>
                 <property name="Wrap">True</property>
                 <property name="Justify">Center</property>
               </widget>
@@ -496,7 +496,7 @@
               <widget class="Gtk.Entry" id="entry1">
                 <property name="MemberName" />
                 <property name="CanFocus">True</property>
-                <property name="Text" translatable="yes">gridserver:8001</property>
+                <property name="Text" translatable="yes">http://gridserver:8001</property>
                 <property name="IsEditable">True</property>
                 <property name="MaxLength">255</property>
                 <property name="InvisibleChar">•</property>
@@ -537,8 +537,7 @@
             <property name="Label" translatable="yes">Connect</property>
             <property name="UseUnderline">True</property>
             <property name="IsDialogButton">True</property>
-            <property name="ResponseId">0</property>
-            <signal name="Activated" handler="ConnectBtn" />
+            <property name="ResponseId">-5</property>
           </widget>
           <packing>
             <property name="Expand">False</property>
@@ -555,8 +554,7 @@
             <property name="Label" translatable="yes">Cancel</property>
             <property name="UseUnderline">True</property>
             <property name="IsDialogButton">True</property>
-            <property name="ResponseId">0</property>
-            <signal name="Activated" handler="CancelBtn" />
+            <property name="ResponseId">-6</property>
           </widget>
           <packing>
             <property name="Position">1</property>

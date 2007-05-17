@@ -1,6 +1,7 @@
 using Gtk;
 using System;
-	
+
+namespace OpenGridServices.Manager {
 	public partial class ConnectToGridServerDialog : Gtk.Dialog
 	{
 		
@@ -9,15 +10,20 @@ using System;
 			this.Build();
 		}
 
-		protected virtual void ConnectBtn(object sender, System.EventArgs e)
+		protected virtual void OnResponse(object o, Gtk.ResponseArgs args)
 		{
+			switch(args.ResponseId) {
+				case Gtk.ResponseType.Ok:
+					MainClass.PendingOperations.Enqueue("connect_to_gridserver " + this.entry1.Text);
+				break;
+				
+				case Gtk.ResponseType.Cancel:
+				break;
+			}
 			this.Hide();
-		}
-
-		protected virtual void CancelBtn(object sender, System.EventArgs e)
-		{
-			this.Hide();
+			
 		}
 
 	}
 
+}
