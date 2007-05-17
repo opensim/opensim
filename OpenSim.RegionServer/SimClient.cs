@@ -85,6 +85,7 @@ namespace OpenSim
         public bool m_sandboxMode;
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
+        protected AuthenticateSessionsBase m_authenticateSessionsHandler;
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
@@ -98,7 +99,7 @@ namespace OpenSim
             }
         }
 
-        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child, RegionInfo regionDat)
+        public SimClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, SimClient> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child, RegionInfo regionDat, AuthenticateSessionsBase authenSessions)
         {
             m_world = world;
             m_clientThreads = clientThreads;
@@ -109,6 +110,7 @@ namespace OpenSim
             m_sandboxMode = sandboxMode;
             m_child = child;
             m_regionData = regionDat;
+            m_authenticateSessionsHandler = authenSessions;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;

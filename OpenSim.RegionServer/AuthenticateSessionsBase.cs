@@ -9,7 +9,7 @@ namespace OpenSim
 {
     public class AuthenticateSessionsBase
     {
-        private Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
+        public Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
 
         public AuthenticateSessionsBase()
         {

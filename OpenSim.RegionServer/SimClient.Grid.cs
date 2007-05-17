@@ -33,7 +33,7 @@ namespace OpenSim
 
                 RemoteGridBase gridServer = (RemoteGridBase)this.m_gridServer;
 
-                Dictionary<uint, AgentCircuitData> agentCircuits = gridServer.agentcircuits;
+                Dictionary<uint, AgentCircuitData> agentCircuits = this.m_authenticateSessionsHandler.AgentCircuits;
                 AgentCircuitData agentCircuit;
 
                 if (agentCircuits.TryGetValue(CircuitCode, out agentCircuit))
