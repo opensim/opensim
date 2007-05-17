@@ -39,7 +39,11 @@ namespace OpenGridServices.Manager
 				switch(cmd) {
 					case "connect_to_gridserver":
 						win.SetStatus("Connecting to grid server...");						
-						gridserverConn.Connect(operation.Split(sep)[1],operation.Split(sep)[2],operation.Split(sep)[3]);
+						if(gridserverConn.Connect(operation.Split(sep)[1],operation.Split(sep)[2],operation.Split(sep)[3])) {
+							win.SetStatus("Connected OK");
+						} else {
+							win.SetStatus("Could not connect");
+						}
 					break;
 				}
 			}
