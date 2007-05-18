@@ -102,7 +102,7 @@ namespace OpenSim
             }
             if (avatarpos.Y > 255)
             {
-                neighbourx += 1;
+                neighboury += 1;
                 newpos.Y = 1;
             }
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
@@ -153,5 +153,5 @@ namespace OpenSim
                 }
             }
         }
-    }
+   }
 }
