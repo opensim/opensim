@@ -3,6 +3,7 @@ using OpenSim.Framework;
 using OpenSim.Servers;
 using System.Collections;
 using System.Collections.Generic;
+using libsecondlife;
 
 namespace OpenGrid.Framework.Manager {
 
@@ -44,6 +45,7 @@ namespace OpenGrid.Framework.Manager {
 			// TODO: Switch this over to using OpenGrid.Framework.Data
 			if( requestData["username"].Equals("admin") && requestData["password"].Equals("supersecret")) {
 				response.IsFault=false;
+				responseData["session_id"]=(LLUUID.Random()).ToString();
 				responseData["msg"]="Login OK";
 			} else {
 				response.IsFault=true;

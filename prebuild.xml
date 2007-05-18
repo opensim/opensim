@@ -385,6 +385,7 @@
      <Reference name="System" localCopy="false"/>
      <Reference name="OpenSim.Framework"/>
      <Reference name="OpenSim.Servers"/>
+     <Reference name="libsecondlife.dll"/>
      <Reference name="XMLRPC"/>
 
 
