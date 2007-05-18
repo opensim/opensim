@@ -383,7 +383,9 @@ namespace OpenGridServices.GridServer
 
             TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
-            if (TheSim.serverIP.StartsWith("172.16") || TheSim.serverIP.StartsWith("192.168") || TheSim.serverIP.StartsWith("10.") || TheSim.serverIP.StartsWith("0.") || TheSim.serverIP.StartsWith("255."))
+            bool requirePublic = false;
+
+            if (requirePublic && (TheSim.serverIP.StartsWith("172.16") || TheSim.serverIP.StartsWith("192.168") || TheSim.serverIP.StartsWith("10.") || TheSim.serverIP.StartsWith("0.") || TheSim.serverIP.StartsWith("255.")))
             {
                 return "ERROR! Servers must register with public addresses.";
             }
