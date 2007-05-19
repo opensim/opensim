@@ -15,6 +15,11 @@ namespace OpenGridServices.Manager {
 			this.statusbar1.Push(0,statustext);
 		}
 
+		public void DrawGrid(RegionBlock[][] regions)
+		{
+			
+		}
+		
 		public void SetGridServerConnected(bool connected)
 		{
 			if(connected) {

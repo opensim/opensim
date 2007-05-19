@@ -77,25 +77,7 @@ namespace OpenGridServices.Manager {
         
         private Gtk.ScrolledWindow scrolledwindow1;
         
-        private Gtk.Table table1;
-        
-        private Gtk.Image image1;
-        
-        private Gtk.Image image2;
-        
-        private Gtk.Image image3;
-        
-        private Gtk.Image image4;
-        
-        private Gtk.Image image5;
-        
-        private Gtk.Image image6;
-        
-        private Gtk.Image image7;
-        
-        private Gtk.Image image8;
-        
-        private Gtk.Image image9;
+        private Gtk.DrawingArea drawingarea1;
         
         private Gtk.TreeView treeview1;
         
@@ -229,120 +211,33 @@ namespace OpenGridServices.Manager {
             w4.Name = "GtkViewport";
             w4.ShadowType = ((Gtk.ShadowType)(0));
             // Container child GtkViewport.Gtk.Container+ContainerChild
-            this.table1 = new Gtk.Table(((uint)(3)), ((uint)(3)), false);
-            this.table1.Name = "table1";
-            // Container child table1.Gtk.Table+TableChild
-            this.image1 = new Gtk.Image();
-            this.image1.Name = "image1";
-            this.table1.Add(this.image1);
-            Gtk.Table.TableChild w5 = ((Gtk.Table.TableChild)(this.table1[this.image1]));
-            w5.XOptions = ((Gtk.AttachOptions)(4));
-            w5.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image2 = new Gtk.Image();
-            this.image2.Name = "image2";
-            this.table1.Add(this.image2);
-            Gtk.Table.TableChild w6 = ((Gtk.Table.TableChild)(this.table1[this.image2]));
-            w6.LeftAttach = ((uint)(1));
-            w6.RightAttach = ((uint)(2));
-            w6.XOptions = ((Gtk.AttachOptions)(4));
-            w6.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image3 = new Gtk.Image();
-            this.image3.Name = "image3";
-            this.table1.Add(this.image3);
-            Gtk.Table.TableChild w7 = ((Gtk.Table.TableChild)(this.table1[this.image3]));
-            w7.LeftAttach = ((uint)(2));
-            w7.RightAttach = ((uint)(3));
-            w7.XOptions = ((Gtk.AttachOptions)(4));
-            w7.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image4 = new Gtk.Image();
-            this.image4.Name = "image4";
-            this.table1.Add(this.image4);
-            Gtk.Table.TableChild w8 = ((Gtk.Table.TableChild)(this.table1[this.image4]));
-            w8.TopAttach = ((uint)(1));
-            w8.BottomAttach = ((uint)(2));
-            w8.XOptions = ((Gtk.AttachOptions)(4));
-            w8.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image5 = new Gtk.Image();
-            this.image5.Name = "image5";
-            this.table1.Add(this.image5);
-            Gtk.Table.TableChild w9 = ((Gtk.Table.TableChild)(this.table1[this.image5]));
-            w9.TopAttach = ((uint)(1));
-            w9.BottomAttach = ((uint)(2));
-            w9.LeftAttach = ((uint)(1));
-            w9.RightAttach = ((uint)(2));
-            w9.XOptions = ((Gtk.AttachOptions)(4));
-            w9.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image6 = new Gtk.Image();
-            this.image6.Name = "image6";
-            this.table1.Add(this.image6);
-            Gtk.Table.TableChild w10 = ((Gtk.Table.TableChild)(this.table1[this.image6]));
-            w10.TopAttach = ((uint)(1));
-            w10.BottomAttach = ((uint)(2));
-            w10.LeftAttach = ((uint)(2));
-            w10.RightAttach = ((uint)(3));
-            w10.XOptions = ((Gtk.AttachOptions)(4));
-            w10.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image7 = new Gtk.Image();
-            this.image7.Name = "image7";
-            this.table1.Add(this.image7);
-            Gtk.Table.TableChild w11 = ((Gtk.Table.TableChild)(this.table1[this.image7]));
-            w11.TopAttach = ((uint)(2));
-            w11.BottomAttach = ((uint)(3));
-            w11.XOptions = ((Gtk.AttachOptions)(4));
-            w11.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image8 = new Gtk.Image();
-            this.image8.Name = "image8";
-            this.table1.Add(this.image8);
-            Gtk.Table.TableChild w12 = ((Gtk.Table.TableChild)(this.table1[this.image8]));
-            w12.TopAttach = ((uint)(2));
-            w12.BottomAttach = ((uint)(3));
-            w12.LeftAttach = ((uint)(1));
-            w12.RightAttach = ((uint)(2));
-            w12.XOptions = ((Gtk.AttachOptions)(4));
-            w12.YOptions = ((Gtk.AttachOptions)(4));
-            // Container child table1.Gtk.Table+TableChild
-            this.image9 = new Gtk.Image();
-            this.image9.Name = "image9";
-            this.table1.Add(this.image9);
-            Gtk.Table.TableChild w13 = ((Gtk.Table.TableChild)(this.table1[this.image9]));
-            w13.TopAttach = ((uint)(2));
-            w13.BottomAttach = ((uint)(3));
-            w13.LeftAttach = ((uint)(2));
-            w13.RightAttach = ((uint)(3));
-            w13.XOptions = ((Gtk.AttachOptions)(4));
-            w13.YOptions = ((Gtk.AttachOptions)(4));
-            w4.Add(this.table1);
+            this.drawingarea1 = new Gtk.DrawingArea();
+            this.drawingarea1.Name = "drawingarea1";
+            w4.Add(this.drawingarea1);
             this.scrolledwindow1.Add(w4);
             this.hbox1.Add(this.scrolledwindow1);
-            Gtk.Box.BoxChild w16 = ((Gtk.Box.BoxChild)(this.hbox1[this.scrolledwindow1]));
-            w16.Position = 1;
+            Gtk.Box.BoxChild w7 = ((Gtk.Box.BoxChild)(this.hbox1[this.scrolledwindow1]));
+            w7.Position = 1;
             // Container child hbox1.Gtk.Box+BoxChild
             this.treeview1 = new Gtk.TreeView();
             this.treeview1.CanFocus = true;
             this.treeview1.Name = "treeview1";
             this.hbox1.Add(this.treeview1);
-            Gtk.Box.BoxChild w17 = ((Gtk.Box.BoxChild)(this.hbox1[this.treeview1]));
-            w17.Position = 2;
+            Gtk.Box.BoxChild w8 = ((Gtk.Box.BoxChild)(this.hbox1[this.treeview1]));
+            w8.Position = 2;
             this.vbox1.Add(this.hbox1);
-            Gtk.Box.BoxChild w18 = ((Gtk.Box.BoxChild)(this.vbox1[this.hbox1]));
-            w18.Position = 1;
+            Gtk.Box.BoxChild w9 = ((Gtk.Box.BoxChild)(this.vbox1[this.hbox1]));
+            w9.Position = 1;
             // Container child vbox1.Gtk.Box+BoxChild
             this.statusbar1 = new Gtk.Statusbar();
             this.statusbar1.Name = "statusbar1";
             this.statusbar1.Spacing = 5;
             this.vbox1.Add(this.statusbar1);
-            Gtk.Box.BoxChild w19 = ((Gtk.Box.BoxChild)(this.vbox1[this.statusbar1]));
-            w19.PackType = ((Gtk.PackType)(1));
-            w19.Position = 2;
-            w19.Expand = false;
-            w19.Fill = false;
+            Gtk.Box.BoxChild w10 = ((Gtk.Box.BoxChild)(this.vbox1[this.statusbar1]));
+            w10.PackType = ((Gtk.PackType)(1));
+            w10.Position = 2;
+            w10.Expand = false;
+            w10.Fill = false;
             this.Add(this.vbox1);
             if ((this.Child != null)) {
                 this.Child.ShowAll();
