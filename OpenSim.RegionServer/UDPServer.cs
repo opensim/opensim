@@ -28,26 +28,26 @@ namespace OpenSim
 
     public class UDPServer : OpenSimNetworkHandler
     {
-        private Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
+        protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         public Socket Server;
-        private IPEndPoint ServerIncoming;
-        private byte[] RecvBuffer = new byte[4096];
-        private byte[] ZeroBuffer = new byte[8192];
-        private IPEndPoint ipeSender;
-        private EndPoint epSender;
-        private AsyncCallback ReceivedData;
-        private PacketServer _packetServer;
-       
-        private int listenPort;
-        private Grid m_gridServers;
-        private World m_localWorld;
-        private AssetCache m_assetCache;
-        private InventoryCache m_inventoryCache;
-        private RegionInfo m_regionData;
-        private bool m_sandbox = false;
-        private bool user_accounts = false;
-        private ConsoleBase m_console;
-        private AuthenticateSessionsBase m_authenticateSessionsClass;
+        protected IPEndPoint ServerIncoming;
+        protected byte[] RecvBuffer = new byte[4096];
+        protected byte[] ZeroBuffer = new byte[8192];
+        protected IPEndPoint ipeSender;
+        protected EndPoint epSender;
+        protected AsyncCallback ReceivedData;
+        protected PacketServer _packetServer;
+
+        protected int listenPort;
+        protected Grid m_gridServers;
+        protected World m_localWorld;
+        protected AssetCache m_assetCache;
+        protected InventoryCache m_inventoryCache;
+        protected RegionInfo m_regionData;
+        protected bool m_sandbox = false;
+        protected bool user_accounts = false;
+        protected ConsoleBase m_console;
+        protected AuthenticateSessionsBase m_authenticateSessionsClass;
 
         public AuthenticateSessionHandler AuthenticateHandler;
 
@@ -83,10 +83,15 @@ namespace OpenSim
             this.user_accounts = accounts;
             this.m_console = console;
             this.m_authenticateSessionsClass = authenticateClass;
-            PacketServer packetServer = new PacketServer(this);
+            this.CreatePacketServer();
             
             //set up delegate for authenticate sessions
             this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_authenticateSessionsClass.AuthenticateSession);
+        }
+
+        protected virtual void CreatePacketServer()
+        {
+            PacketServer packetServer = new PacketServer(this);
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)
@@ -152,7 +157,7 @@ namespace OpenSim
 
         }
 
-        public void RegisterPacketServer(PacketServer server)
+        public virtual void RegisterPacketServer(PacketServer server)
         {
             this._packetServer = server;
         }

@@ -279,8 +279,6 @@ namespace OpenSim
                         agent_data.circuitcode = circuitcode;
                         agent_data.startpos = new LLVector3(Single.Parse((string)requestData["pos_x"]), Single.Parse((string)requestData["pos_y"]), Single.Parse((string)requestData["pos_z"]));
 
-                        RemoteGridBase gridServer = (RemoteGridBase)this.GridServers.GridServer;
-
                         AuthenticateSessionsHandler.UpdateAgentData(agent_data);
 
                         return new XmlRpcResponse();

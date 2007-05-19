@@ -82,6 +82,7 @@ namespace OpenSim
                 this.AgentCircuits[(uint)agentData.circuitcode].lastname = agentData.lastname;
                 this.AgentCircuits[(uint)agentData.circuitcode].startpos = agentData.startpos;
             }
+           
         }
     }
 }

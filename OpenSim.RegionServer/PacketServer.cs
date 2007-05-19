@@ -26,7 +26,7 @@ namespace OpenSim
             }
         }
 
-        public void ClientInPacket(uint circuitCode, Packet packet)
+        public virtual void ClientInPacket(uint circuitCode, Packet packet)
         {
             if (this.ClientThreads.ContainsKey(circuitCode))
             {
@@ -34,22 +34,22 @@ namespace OpenSim
             }
         }
 
-        public bool AddNewCircuitCodeClient(uint circuitCode)
+        public virtual bool AddNewCircuitCodeClient(uint circuitCode)
         {
             return false;
         }
 
-        public void SendPacketToAllClients(Packet packet)
+        public virtual void SendPacketToAllClients(Packet packet)
         {
 
         }
 
-        public void SendPacketToAllExcept(Packet packet, SimClient simClient)
+        public virtual void SendPacketToAllExcept(Packet packet, SimClient simClient)
         {
 
         }
 
-        public virtual void AddClientPacketHanlder(PacketType packetType, PacketMethod handler)
+        public virtual void AddClientPacketHandler(PacketType packetType, PacketMethod handler)
         {
 
         }
