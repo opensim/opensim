@@ -144,7 +144,6 @@
     <Compile Include="AuthenticateSessionsRemote.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CheckSumServer.cs" />
     <Compile Include="Grid.cs">
       <SubType>Code</SubType>
     </Compile>
