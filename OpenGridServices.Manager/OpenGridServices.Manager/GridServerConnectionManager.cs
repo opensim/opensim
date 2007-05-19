@@ -45,6 +45,7 @@ namespace OpenGridServices.Manager
 			try {
 				Hashtable ShutdownParamsHT = new Hashtable();
 				ArrayList ShutdownParams = new ArrayList();
+				ShutdownParamsHT["session_id"]=this.SessionID.ToString();
 				ShutdownParams.Add(ShutdownParamsHT);
 				XmlRpcRequest GridShutdownReq = new XmlRpcRequest("shutdown",ShutdownParams);
 				XmlRpcResponse GridResp = GridShutdownReq.Send(this.ServerURL,3000);
