@@ -15,6 +15,17 @@ namespace OpenGridServices.Manager {
 			this.statusbar1.Push(0,statustext);
 		}
 
+		public void SetGridServerConnected(bool connected)
+		{
+			if(connected) {
+				this.ConnectToGridserver.Visible=false;
+				this.DisconnectFromGridServer.Visible=true;
+			} else {
+				this.ConnectToGridserver.Visible=true;
+				this.DisconnectFromGridServer.Visible=false;
+			}
+		}
+		
 		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
 		{
 			Application.Quit ();
@@ -32,7 +43,6 @@ namespace OpenGridServices.Manager {
 		{
 			ConnectToGridServerDialog griddialog = new ConnectToGridServerDialog ();
 			griddialog.Show();
-
 		}
 
 		protected virtual void RestartGridserverMenu(object sender, System.EventArgs e)
@@ -43,6 +53,11 @@ namespace OpenGridServices.Manager {
 		protected virtual void ShutdownGridserverMenu(object sender, System.EventArgs e)
 		{
 			MainClass.PendingOperations.Enqueue("shutdown_gridserver");
+		}
+
+		protected virtual void DisconnectGridServerMenu(object sender, System.EventArgs e)
+		{
+			MainClass.PendingOperations.Enqueue("disconnect_gridserver");
 		}
 
 	}

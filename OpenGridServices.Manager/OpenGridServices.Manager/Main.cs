@@ -41,6 +41,7 @@ namespace OpenGridServices.Manager
 						win.SetStatus("Connecting to grid server...");						
 						if(gridserverConn.Connect(operation.Split(sep)[1],operation.Split(sep)[2],operation.Split(sep)[3])) {
 							win.SetStatus("Connected OK with session ID:" + gridserverConn.SessionID);
+							win.SetGridServerConnected(true);
 							Thread.Sleep(3000);
 							win.SetStatus("");
 						} else {
@@ -63,11 +64,17 @@ namespace OpenGridServices.Manager
 						win.SetStatus("Shutting down grid server...");
 						if(gridserverConn.ShutdownServer()) {
 							win.SetStatus("Grid server shutdown");
+							win.SetGridServerConnected(false);
 							Thread.Sleep(3000);
 							win.SetStatus("");
 						} else {
 							win.SetStatus("Could not shutdown grid server!!!");
 						}
+					break;
+					
+					case "disconnect_gridserver":
+						gridserverConn.DisconnectServer();
+						win.SetGridServerConnected(false);
 					break;
 				}
 			}

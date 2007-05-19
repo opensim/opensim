@@ -129,6 +129,7 @@
         <property name="ShortLabel" translatable="yes">Disconnect from grid server</property>
         <property name="StockId">gtk-disconnect</property>
         <property name="Visible">False</property>
+        <signal name="Activated" handler="DisconnectGridServerMenu" after="yes" />
       </action>
       <action id="UploadAsset">
         <property name="Type">Action</property>

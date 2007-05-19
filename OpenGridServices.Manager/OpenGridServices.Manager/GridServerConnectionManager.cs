@@ -10,6 +10,7 @@ namespace OpenGridServices.Manager
 	{
 		private string ServerURL;
 		public LLUUID SessionID;
+		public bool connected=false;
 		
 		public bool Connect(string GridServerURL, string username, string password)
 		{
@@ -23,14 +24,17 @@ namespace OpenGridServices.Manager
 				XmlRpcRequest GridLoginReq = new XmlRpcRequest("manager_login",LoginParams);
 				XmlRpcResponse GridResp = GridLoginReq.Send(ServerURL,3000);
 				if(GridResp.IsFault) {
+					connected=false;
 					return false;
 				} else {
 					Hashtable gridrespData = (Hashtable)GridResp.Value;
 					this.SessionID = new LLUUID((string)gridrespData["session_id"]);
+					connected=true;
 					return true;
 				}
 			} catch(Exception e) {
 				Console.WriteLine(e.ToString());
+				connected=false;
 				return false;
 			}
 		}
@@ -52,6 +56,7 @@ namespace OpenGridServices.Manager
 				if(GridResp.IsFault) {
 					return false;
 				} else {
+					connected=false;
 					return true;
 				}
 			} catch(Exception e) {
@@ -60,5 +65,9 @@ namespace OpenGridServices.Manager
 			}
 		}
 	
+		public void DisconnectServer()
+		{
+			this.connected=false;
+		}
 	}
 }

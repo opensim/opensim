@@ -355,6 +355,7 @@ namespace OpenGridServices.Manager {
             this.ExitGridManager.Activated += new System.EventHandler(this.QuitMenu);
             this.ShutdownGridserverOnly.Activated += new System.EventHandler(this.ShutdownGridserverMenu);
             this.RestartGridserverOnly.Activated += new System.EventHandler(this.RestartGridserverMenu);
+            this.DisconnectFromGridServer.Activated += new System.EventHandler(this.DisconnectGridServerMenu);
         }
     }
 }
