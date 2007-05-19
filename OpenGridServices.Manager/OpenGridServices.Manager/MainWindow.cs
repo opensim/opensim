@@ -40,6 +40,11 @@ namespace OpenGridServices.Manager {
 			MainClass.PendingOperations.Enqueue("restart_gridserver");
 		}
 
+		protected virtual void ShutdownGridserverMenu(object sender, System.EventArgs e)
+		{
+			MainClass.PendingOperations.Enqueue("shutdown_gridserver");
+		}
+
 	}
 }
 

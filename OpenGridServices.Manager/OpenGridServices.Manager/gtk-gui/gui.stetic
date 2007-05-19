@@ -99,6 +99,7 @@
         <property name="Label" translatable="yes">Shutdown gridserver only</property>
         <property name="ShortLabel" translatable="yes">Shutdown gridserver only</property>
         <property name="StockId">gtk-stop</property>
+        <signal name="Activated" handler="ShutdownGridserverMenu" after="yes" />
       </action>
       <action id="RestartGridserverOnly">
         <property name="Type">Action</property>

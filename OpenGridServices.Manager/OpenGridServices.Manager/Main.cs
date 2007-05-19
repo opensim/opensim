@@ -58,6 +58,17 @@ namespace OpenGridServices.Manager
 							win.SetStatus("Error restarting grid server!!!");
 						}
 					break;
+					
+					case "shutdown_gridserver":
+						win.SetStatus("Shutting down grid server...");
+						if(gridserverConn.ShutdownServer()) {
+							win.SetStatus("Grid server shutdown");
+							Thread.Sleep(3000);
+							win.SetStatus("");
+						} else {
+							win.SetStatus("Could not shutdown grid server!!!");
+						}
+					break;
 				}
 			}
 		}

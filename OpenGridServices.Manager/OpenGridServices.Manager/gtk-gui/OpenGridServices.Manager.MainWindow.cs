@@ -353,6 +353,7 @@ namespace OpenGridServices.Manager {
             this.DeleteEvent += new Gtk.DeleteEventHandler(this.OnDeleteEvent);
             this.ConnectToGridserver.Activated += new System.EventHandler(this.ConnectToGridServerMenu);
             this.ExitGridManager.Activated += new System.EventHandler(this.QuitMenu);
+            this.ShutdownGridserverOnly.Activated += new System.EventHandler(this.ShutdownGridserverMenu);
             this.RestartGridserverOnly.Activated += new System.EventHandler(this.RestartGridserverMenu);
         }
     }
