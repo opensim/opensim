@@ -411,7 +411,6 @@ namespace OpenGridServices.GridServer
             {
                 return "ERROR! Could not save to database! (" + e.ToString() + ")";
             }
-
         }
 
     }

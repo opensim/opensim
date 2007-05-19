@@ -7,7 +7,7 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="exe" debug="${build.debug}" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.exe">
+        <csc target="exe" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.exe">
             <resources prefix="ServiceManager" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">

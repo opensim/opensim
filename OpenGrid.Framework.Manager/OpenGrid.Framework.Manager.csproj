@@ -62,6 +62,10 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
