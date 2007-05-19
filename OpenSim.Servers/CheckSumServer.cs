@@ -38,9 +38,9 @@ namespace OpenSim.Servers
             // do we already have a circuit for this endpoint
             if (packet.Type == PacketType.SecuredTemplateChecksumRequest)
             {
-               
+
                 SecuredTemplateChecksumRequestPacket checksum = (SecuredTemplateChecksumRequestPacket)packet;
-               TemplateChecksumReplyPacket checkreply = new TemplateChecksumReplyPacket();
+                TemplateChecksumReplyPacket checkreply = new TemplateChecksumReplyPacket();
                 checkreply.DataBlock.Checksum = 180572585;
                 checkreply.DataBlock.Flags = 0;
                 checkreply.DataBlock.MajorVersion = 1;
@@ -56,10 +56,11 @@ namespace OpenSim.Servers
                 checkrequest.TokenBlock.Token = checksum.TokenBlock.Token;
                 this.SendPacket(checkrequest, epSender);
                  */
-                 
+
             }
             else if (packet.Type == PacketType.TemplateChecksumReply)
             {
+                //echo back the client checksum reply (Hegemon's method)
                 TemplateChecksumReplyPacket checksum = (TemplateChecksumReplyPacket)packet;
                 TemplateChecksumReplyPacket checkreply2 = new TemplateChecksumReplyPacket();
                 checkreply2.DataBlock.Checksum = checksum.DataBlock.Checksum;
@@ -70,10 +71,10 @@ namespace OpenSim.Servers
                 checkreply2.DataBlock.ServerVersion = checksum.DataBlock.ServerVersion;
                 checkreply2.TokenBlock.Token = checksum.TokenBlock.Token;
                 this.SendPacket(checkreply2, epSender);
-                
+
             }
             else
-            { 
+            {
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
