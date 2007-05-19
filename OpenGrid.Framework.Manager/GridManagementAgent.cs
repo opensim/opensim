@@ -16,6 +16,8 @@ namespace OpenGrid.Framework.Manager {
 		private string recvkey;
 		private string component_type;
 
+		private static ArrayList Sessions;
+
 		public GridManagementAgent(BaseHttpServer app_httpd, string component_type, string sendkey, string recvkey, GridManagerCallback thecallback)
 		{
 			this.sendkey=sendkey;
@@ -36,6 +38,11 @@ namespace OpenGrid.Framework.Manager {
 			}
 		}
 
+		public static bool SessionExists(LLUUID sessionID)
+		{
+			return Sessions.Contains(sessionID);
+		}
+
 		public static XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
                 {
                         XmlRpcResponse response = new XmlRpcResponse();
@@ -45,7 +52,9 @@ namespace OpenGrid.Framework.Manager {
 			// TODO: Switch this over to using OpenGrid.Framework.Data
 			if( requestData["username"].Equals("admin") && requestData["password"].Equals("supersecret")) {
 				response.IsFault=false;
-				responseData["session_id"]=(LLUUID.Random()).ToString();
+				LLUUID new_session=LLUUID.Random();
+				Sessions.Add(new_session);
+				responseData["session_id"]=new_session.ToString();
 				responseData["msg"]="Login OK";
 			} else {
 				response.IsFault=true;
