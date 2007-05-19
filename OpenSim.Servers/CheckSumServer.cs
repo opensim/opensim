@@ -38,21 +38,42 @@ namespace OpenSim.Servers
             // do we already have a circuit for this endpoint
             if (packet.Type == PacketType.SecuredTemplateChecksumRequest)
             {
+               
                 SecuredTemplateChecksumRequestPacket checksum = (SecuredTemplateChecksumRequestPacket)packet;
-                TemplateChecksumReplyPacket checkreply = new TemplateChecksumReplyPacket();
+               TemplateChecksumReplyPacket checkreply = new TemplateChecksumReplyPacket();
                 checkreply.DataBlock.Checksum = 180572585;
                 checkreply.DataBlock.Flags = 0;
                 checkreply.DataBlock.MajorVersion = 1;
                 checkreply.DataBlock.MinorVersion = 15;
                 checkreply.DataBlock.PatchVersion = 0;
-                checkreply.DataBlock.ServerVersion = 2;
+                checkreply.DataBlock.ServerVersion = 0;
                 checkreply.TokenBlock.Token = checksum.TokenBlock.Token;
                 this.SendPacket(checkreply, epSender);
 
+                /*
+                //if we wanted to echo the the checksum/ version from the client (so that any client worked)
+                SecuredTemplateChecksumRequestPacket checkrequest = new SecuredTemplateChecksumRequestPacket();
+                checkrequest.TokenBlock.Token = checksum.TokenBlock.Token;
+                this.SendPacket(checkrequest, epSender);
+                 */
+                 
+            }
+            else if (packet.Type == PacketType.TemplateChecksumReply)
+            {
+                TemplateChecksumReplyPacket checksum = (TemplateChecksumReplyPacket)packet;
+                TemplateChecksumReplyPacket checkreply2 = new TemplateChecksumReplyPacket();
+                checkreply2.DataBlock.Checksum = checksum.DataBlock.Checksum;
+                checkreply2.DataBlock.Flags = checksum.DataBlock.Flags;
+                checkreply2.DataBlock.MajorVersion = checksum.DataBlock.MajorVersion;
+                checkreply2.DataBlock.MinorVersion = checksum.DataBlock.MinorVersion;
+                checkreply2.DataBlock.PatchVersion = checksum.DataBlock.PatchVersion;
+                checkreply2.DataBlock.ServerVersion = checksum.DataBlock.ServerVersion;
+                checkreply2.TokenBlock.Token = checksum.TokenBlock.Token;
+                this.SendPacket(checkreply2, epSender);
+                
             }
             else
-            { // invalid client
-                //  Console.Error.WriteLine("CheckSumServer.cs:OnReceivedData() - WARNING: Got a invalid packet from an invalid client - " + epSender.ToString());
+            { 
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);

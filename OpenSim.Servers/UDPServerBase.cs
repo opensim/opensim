@@ -15,7 +15,6 @@ namespace OpenSim.Servers
 {
     public class UDPServerBase
     {
-
         public Socket Server;
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];
@@ -48,7 +47,7 @@ namespace OpenSim.Servers
         {
         }
 
-        public void ServerListener()
+        public virtual void ServerListener()
         {
 
             ServerIncoming = new IPEndPoint(IPAddress.Any, listenPort);
