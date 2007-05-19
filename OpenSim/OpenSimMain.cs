@@ -56,6 +56,7 @@ namespace OpenSim
 
     public class OpenSimMain : RegionServerBase, conscmd_callback
     {
+        private CheckSumServer checkServer;
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
@@ -99,6 +100,8 @@ namespace OpenSim
                 //Authenticate Session Handler
                 AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
                 this.AuthenticateSessionsHandler = authen;
+                this.checkServer = new CheckSumServer(12036, m_console);
+                this.checkServer.ServerListener();
             }
             else
             {

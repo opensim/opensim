@@ -72,7 +72,11 @@ namespace OpenSim
             }
         }
 
-        public UDPServer(int port, Grid gridServers, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console , AuthenticateSessionsBase authenticateClass)
+        public UDPServer()
+        {
+        }
+
+        public UDPServer(int port, Grid gridServers, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console, AuthenticateSessionsBase authenticateClass)
         {
             listenPort = port;
             this.m_gridServers = gridServers;
@@ -84,7 +88,7 @@ namespace OpenSim
             this.m_console = console;
             this.m_authenticateSessionsClass = authenticateClass;
             this.CreatePacketServer();
-            
+
             //set up delegate for authenticate sessions
             this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_authenticateSessionsClass.AuthenticateSession);
         }
@@ -145,7 +149,7 @@ namespace OpenSim
             ServerIncoming = new IPEndPoint(IPAddress.Any, listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
-
+ 
             m_console.WriteLine("UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(IPAddress.Any, 0);
@@ -195,7 +199,7 @@ namespace OpenSim
 
         public virtual AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
         {
-           return this.AuthenticateHandler(sessionID, agentID, circuitCode);
+            return this.AuthenticateHandler(sessionID, agentID, circuitCode);
         }
     }
 }
