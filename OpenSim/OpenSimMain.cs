@@ -100,7 +100,7 @@ namespace OpenSim
                 //Authenticate Session Handler
                 AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
                 this.AuthenticateSessionsHandler = authen;
-                this.checkServer = new CheckSumServer(12036, m_console);
+                this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
             }
             else

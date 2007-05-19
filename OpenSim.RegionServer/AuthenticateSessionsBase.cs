@@ -81,8 +81,29 @@ namespace OpenSim
                 this.AgentCircuits[(uint)agentData.circuitcode].firstname = agentData.firstname;
                 this.AgentCircuits[(uint)agentData.circuitcode].lastname = agentData.lastname;
                 this.AgentCircuits[(uint)agentData.circuitcode].startpos = agentData.startpos;
+               // Console.WriteLine("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
+
             }
-           
+
+        }
+
+        public void UpdateAgentChildStatus(uint circuitcode, bool childstatus)
+        {
+            if (this.AgentCircuits.ContainsKey(circuitcode))
+            {
+                this.AgentCircuits[circuitcode].child = childstatus;
+
+            }
+        }
+
+        public bool GetAgentChildStatus(uint circuitcode)
+        {
+            if (this.AgentCircuits.ContainsKey(circuitcode))
+            {
+                return this.AgentCircuits[circuitcode].child;
+
+            }
+            return false;
         }
     }
 }

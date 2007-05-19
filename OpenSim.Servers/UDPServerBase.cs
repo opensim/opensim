@@ -24,8 +24,9 @@ namespace OpenSim.Servers
         protected AsyncCallback ReceivedData;
         protected int listenPort;
 
-        public UDPServerBase()
+        public UDPServerBase(int port)
         {
+            listenPort = port;
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)
@@ -37,8 +38,6 @@ namespace OpenSim.Servers
             int packetEnd = numBytes - 1;
 
             packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-
-
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
         }
@@ -60,14 +59,10 @@ namespace OpenSim.Servers
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
         }
 
-
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
         {
-            // find the endpoint for this circuit
 
         }
-
-
     }
 }
 

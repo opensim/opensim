@@ -585,7 +585,7 @@ namespace OpenSim.world
                 }
                 if (agentClient.ClientAvatar.PhysActor != null)
                 {
-                    this.phyScene.RemoveAvatar(agentClient.ClientAvatar.PhysActor);
+                    //this.phyScene.RemoveAvatar(agentClient.ClientAvatar.PhysActor);
                 }
             }
             catch (Exception e)

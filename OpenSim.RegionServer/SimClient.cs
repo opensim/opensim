@@ -118,7 +118,9 @@ namespace OpenSim
 
             if (m_gridServer.GetName() == "Remote")
             {
+                this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
                 this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
+                //Console.WriteLine("start pos is " + this.startpos.X + " , " + this.startpos.Y + " , " + this.startpos.Z);
             }
             else
             {
@@ -142,13 +144,15 @@ namespace OpenSim
         # region Client Methods
         public void UpgradeClient()
         {
+            Console.WriteLine("updateclient being called");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
             this.m_world.RemoveViewerAgent(this);
             if (!this.m_sandboxMode)
             {
-                this.startpos = ((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].startpos;
-                ((RemoteGridBase)m_gridServer).agentcircuits[CircuitCode].child = false;
+                this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
+                m_authenticateSessionsHandler.UpdateAgentChildStatus(CircuitCode, false);
+                //Console.WriteLine("upgrade start pos is " + this.startpos.X + " , " + this.startpos.Y + " , " + this.startpos.Z);
             }
             this.InitNewClient();
         }
