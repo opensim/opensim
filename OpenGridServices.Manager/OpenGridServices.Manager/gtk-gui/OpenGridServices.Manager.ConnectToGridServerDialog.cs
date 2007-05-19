@@ -45,6 +45,8 @@ namespace OpenGridServices.Manager {
             this.Events = ((Gdk.EventMask)(256));
             this.Name = "OpenGridServices.Manager.ConnectToGridServerDialog";
             this.Title = Mono.Unix.Catalog.GetString("Connect to Grid server");
+            this.WindowPosition = ((Gtk.WindowPosition)(4));
+            this.HasSeparator = false;
             // Internal child OpenGridServices.Manager.ConnectToGridServerDialog.VBox
             Gtk.VBox w1 = this.VBox;
             w1.Events = ((Gdk.EventMask)(256));
@@ -166,7 +168,7 @@ namespace OpenGridServices.Manager {
             w15.Spacing = 2;
             // Container child GtkHBox.Gtk.Container+ContainerChild
             Gtk.Image w16 = new Gtk.Image();
-            w16.Name = "image39";
+            w16.Name = "image1";
             w16.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-apply", 16, 0);
             w15.Add(w16);
             // Container child GtkHBox.Gtk.Container+ContainerChild
@@ -196,7 +198,7 @@ namespace OpenGridServices.Manager {
             w24.Spacing = 2;
             // Container child GtkHBox1.Gtk.Container+ContainerChild
             Gtk.Image w25 = new Gtk.Image();
-            w25.Name = "image40";
+            w25.Name = "image2";
             w25.Pixbuf = Gtk.IconTheme.Default.LoadIcon("gtk-cancel", 16, 0);
             w24.Add(w25);
             // Container child GtkHBox1.Gtk.Container+ContainerChild

@@ -35,6 +35,11 @@ namespace OpenGridServices.Manager {
 
 		}
 
+		protected virtual void RestartGridserverMenu(object sender, System.EventArgs e)
+		{
+			MainClass.PendingOperations.Enqueue("restart_gridserver");
+		}
+
 	}
 }
 

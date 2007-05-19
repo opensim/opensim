@@ -40,9 +40,22 @@ namespace OpenGridServices.Manager
 					case "connect_to_gridserver":
 						win.SetStatus("Connecting to grid server...");						
 						if(gridserverConn.Connect(operation.Split(sep)[1],operation.Split(sep)[2],operation.Split(sep)[3])) {
-							win.SetStatus("Connected OK");
+							win.SetStatus("Connected OK with session ID:" + gridserverConn.SessionID);
+							Thread.Sleep(3000);
+							win.SetStatus("");
 						} else {
 							win.SetStatus("Could not connect");
+						}
+					break;
+					
+					case "restart_gridserver":
+						win.SetStatus("Restarting grid server...");
+						if(gridserverConn.RestartServer()) {
+							win.SetStatus("Restarted server OK");
+							Thread.Sleep(3000);
+							win.SetStatus("");
+						} else {
+							win.SetStatus("Error restarting grid server!!!");
 						}
 					break;
 				}

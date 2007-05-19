@@ -2,12 +2,14 @@ using Nwc.XmlRpc;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using libsecondlife;
 
 namespace OpenGridServices.Manager
 {
 	public class GridServerConnectionManager
 	{
 		private string ServerURL;
+		public LLUUID SessionID;
 		
 		public bool Connect(string GridServerURL, string username, string password)
 		{
@@ -23,12 +25,19 @@ namespace OpenGridServices.Manager
 				if(GridResp.IsFault) {
 					return false;
 				} else {
+					Hashtable gridrespData = (Hashtable)GridResp.Value;
+					this.SessionID = new LLUUID((string)gridrespData["session_id"]);
 					return true;
 				}
 			} catch(Exception e) {
 				Console.WriteLine(e.ToString());
 				return false;
 			}
+		}
+		
+		public bool RestartServer()
+		{
+			return true;
 		}
 	}
 }

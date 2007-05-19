@@ -105,6 +105,7 @@
         <property name="Label" translatable="yes">Restart gridserver only</property>
         <property name="ShortLabel" translatable="yes">Restart gridserver only</property>
         <property name="StockId">gtk-refresh</property>
+        <signal name="Activated" handler="RestartGridserverMenu" after="yes" />
       </action>
       <action id="DefaultLocalGridUserserver">
         <property name="Type">Action</property>
@@ -169,7 +170,6 @@
     <property name="HeightRequest">600</property>
     <property name="Title" translatable="yes">Open Grid Services Manager</property>
     <property name="Icon">stock:gtk-network Dialog</property>
-    <property name="WindowPosition">None</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
       <widget class="Gtk.VBox" id="vbox1">
@@ -467,8 +467,10 @@
     <property name="MemberName" />
     <property name="Events">ButtonPressMask</property>
     <property name="Title" translatable="yes">Connect to Grid server</property>
+    <property name="WindowPosition">CenterOnParent</property>
     <property name="Buttons">2</property>
     <property name="HelpButton">False</property>
+    <property name="HasSeparator">False</property>
     <signal name="Response" handler="OnResponse" />
     <child internal-child="VBox">
       <widget class="Gtk.VBox" id="dialog_VBox">

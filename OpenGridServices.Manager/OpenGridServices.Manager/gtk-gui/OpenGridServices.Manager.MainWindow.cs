@@ -202,7 +202,6 @@ namespace OpenGridServices.Manager {
             this.Name = "OpenGridServices.Manager.MainWindow";
             this.Title = Mono.Unix.Catalog.GetString("Open Grid Services Manager");
             this.Icon = Gtk.IconTheme.Default.LoadIcon("gtk-network", 48, 0);
-            this.WindowPosition = ((Gtk.WindowPosition)(0));
             // Container child OpenGridServices.Manager.MainWindow.Gtk.Container+ContainerChild
             this.vbox1 = new Gtk.VBox();
             this.vbox1.Name = "vbox1";
@@ -354,6 +353,7 @@ namespace OpenGridServices.Manager {
             this.DeleteEvent += new Gtk.DeleteEventHandler(this.OnDeleteEvent);
             this.ConnectToGridserver.Activated += new System.EventHandler(this.ConnectToGridServerMenu);
             this.ExitGridManager.Activated += new System.EventHandler(this.QuitMenu);
+            this.RestartGridserverOnly.Activated += new System.EventHandler(this.RestartGridserverMenu);
         }
     }
 }
