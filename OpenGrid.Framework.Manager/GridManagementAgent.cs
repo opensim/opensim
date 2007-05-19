@@ -24,6 +24,7 @@ namespace OpenGrid.Framework.Manager {
 			this.recvkey=recvkey;
 			this.component_type=component_type;
 			this.thecallback=thecallback;
+			Sessions = new ArrayList();
 
 			app_httpd.AddXmlRPCHandler("manager_login",XmlRpcLoginMethod);
 	
