@@ -126,6 +126,11 @@ namespace OpenGridServices.UserServer
             return null;
         }
 
+        /// <summary>
+        /// Loads a user agent by uuid (not called directly)
+        /// </summary>
+        /// <param name="uuid">The agents UUID</param>
+        /// <returns>Agent profiles</returns>
         public UserAgentData getUserAgent(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -143,6 +148,11 @@ namespace OpenGridServices.UserServer
             return null;
         }
 
+        /// <summary>
+        /// Loads a user agent by name (not called directly)
+        /// </summary>
+        /// <param name="name">The agents name</param>
+        /// <returns>A user agent</returns>
         public UserAgentData getUserAgent(string name)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -160,6 +170,12 @@ namespace OpenGridServices.UserServer
             return null;
         }
 
+        /// <summary>
+        /// Loads a user agent by name (not called directly)
+        /// </summary>
+        /// <param name="fname">The agents firstname</param>
+        /// <param name="lname">The agents lastname</param>
+        /// <returns>A user agent</returns>
         public UserAgentData getUserAgent(string fname, string lname)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -177,6 +193,10 @@ namespace OpenGridServices.UserServer
             return null;
         }
 
+        /// <summary>
+        /// Creates a error response caused by invalid XML
+        /// </summary>
+        /// <returns>An XMLRPC response</returns>
         private static XmlRpcResponse CreateErrorConnectingToGridResponse()
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -188,6 +208,10 @@ namespace OpenGridServices.UserServer
             return response;
         }
 
+        /// <summary>
+        /// Creates an error response caused by bad login credentials
+        /// </summary>
+        /// <returns>An XMLRPC response</returns>
         private static XmlRpcResponse CreateLoginErrorResponse()
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -199,6 +223,10 @@ namespace OpenGridServices.UserServer
             return response;
         }
 
+        /// <summary>
+        /// Creates an error response caused by being logged in already
+        /// </summary>
+        /// <returns>An XMLRPC Response</returns>
         private static XmlRpcResponse CreateAlreadyLoggedInResponse()
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -210,6 +238,11 @@ namespace OpenGridServices.UserServer
             return response;
         }
 
+        /// <summary>
+        /// Customises the login response and fills in missing values.
+        /// </summary>
+        /// <param name="response">The existing response</param>
+        /// <param name="theUser">The user profile</param>
         public virtual void CustomiseResponse(ref Hashtable response, ref UserProfileData theUser)
         {
             // Load information from the gridserver
@@ -254,6 +287,12 @@ namespace OpenGridServices.UserServer
             XmlRpcResponse GridResp = GridReq.Send(SimInfo.caps_url, 3000);
         }
 
+        /// <summary>
+        /// Checks a user against it's password hash
+        /// </summary>
+        /// <param name="profile">The users profile</param>
+        /// <param name="password">The supplied password</param>
+        /// <returns>Authenticated?</returns>
         public bool AuthenticateUser(ref UserProfileData profile, string password)
         {
             password = password.Remove(0, 3); //remove $1$
@@ -272,6 +311,11 @@ namespace OpenGridServices.UserServer
             return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
 
+        /// <summary>
+        /// Creates and initialises a new user agent - make sure to use CommitAgent when done to submit to the DB
+        /// </summary>
+        /// <param name="profile">The users profile</param>
+        /// <param name="request">The users loginrequest</param>
         public void CreateAgent(ref UserProfileData profile, XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -319,12 +363,22 @@ namespace OpenGridServices.UserServer
             agent.currentRegion = "";      // Fill in later
         }
 
+        /// <summary>
+        /// Saves a target agent to the database
+        /// </summary>
+        /// <param name="profile">The users profile</param>
+        /// <returns>Successful?</returns>
         public bool CommitAgent(ref UserProfileData profile)
         {
             // Saves the agent to database
             return true;
         }
 
+        /// <summary>
+        /// Main user login function
+        /// </summary>
+        /// <param name="request">The XMLRPC request</param>
+        /// <returns>The response to send</returns>
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -487,6 +541,13 @@ namespace OpenGridServices.UserServer
 
         }
 
+        /// <summary>
+        /// Deletes an active agent session
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="path">The path (eg /bork/narf/test)</param>
+        /// <param name="param">Parameters sent</param>
+        /// <returns>Success "OK" else error</returns>
         public string RestDeleteUserSessionMethod(string request, string path, string param)
         {
             // TODO! Important!
