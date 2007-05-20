@@ -49,9 +49,11 @@ namespace OpenGridServices.Manager
 			System.Net.WebClient mapdownloader = new WebClient();
 			Stream regionliststream = mapdownloader.OpenRead(ServerURL + "/regionlist");
 			
+			RegionBlock TempRegionData;
 			
 			XmlDocument doc = new XmlDocument();
             doc.Load(regionliststream);
+            regionliststream.Close();
             XmlNode rootnode = doc.FirstChild;
             if (rootnode.Name != "regions")
             {
@@ -63,6 +65,9 @@ namespace OpenGridServices.Manager
                 if(rootnode.ChildNodes.Item(i).Name != "region") {
                 	// TODO - ERROR!
                 } else {
+					TempRegionData = new RegionBlock();
+
+					
                 }
 			}
 		}
