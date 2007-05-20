@@ -34,6 +34,7 @@ using OpenSim.Framework.Console;
 using libsecondlife;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
+using System.Collections;
 
 namespace OpenSim.GridInterfaces.Local
 {
@@ -114,6 +115,12 @@ namespace OpenSim.GridInterfaces.Local
 		{
 			
 		}
+
+        public override IList RequestMapBlocks(int minX, int minY, int maxX, int maxY)
+        {
+            return new ArrayList();
+        }
+
 		
 		public override void Close()
 		{

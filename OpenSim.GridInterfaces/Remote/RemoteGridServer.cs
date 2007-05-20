@@ -161,6 +161,21 @@ namespace OpenSim.GridInterfaces.Remote
             return null;
         }
 
+        public override IList RequestMapBlocks(int minX, int minY, int maxX, int maxY)
+        {
+            Hashtable param = new Hashtable();
+            param["xmin"] = minX;
+            param["ymin"] = minY;
+            param["xmax"] = maxX;
+            param["ymax"] = maxY;
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
+            XmlRpcResponse resp = req.Send(GridServerUrl, 3000);
+            Hashtable respData = (Hashtable)resp.Value;
+            return (IList)respData["sim-profiles"];
+        }
+
         public override void SetServerInfo(string ServerUrl, string SendKey, string RecvKey)
         {
             this.GridServerUrl = ServerUrl;
