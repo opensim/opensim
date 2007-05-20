@@ -121,6 +121,7 @@ namespace OpenGridServices.GridServer
 	    GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer,"gridserver",Cfg.SimSendKey,Cfg.SimRecvKey,managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
+            httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
 
             httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
             httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);

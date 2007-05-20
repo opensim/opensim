@@ -241,6 +241,63 @@ namespace OpenGridServices.GridServer
             return response;
         }
 
+        public XmlRpcResponse XmlRpcMapBlockMethod(XmlRpcRequest request)
+        {
+            int xmin=980, ymin=980, xmax=1020, ymax=1020;
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            if (requestData.ContainsKey("xmin"))
+            {
+                xmin = (Int32)requestData["xmin"];
+            }
+            if (requestData.ContainsKey("ymin"))
+            {
+                ymin = (Int32)requestData["ymin"];
+            }
+            if (requestData.ContainsKey("xmax"))
+            {
+                xmax = (Int32)requestData["xmax"];
+            }
+            if (requestData.ContainsKey("ymax"))
+            {
+                ymax = (Int32)requestData["ymax"];
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            response.Value = responseData;
+            IList simProfileList = new ArrayList();
+
+            SimProfileData simProfile;
+            for (int x = xmin; x < xmax; x++)
+            {
+                for (int y = ymin; y < ymax; y++)
+                {
+                    simProfile = getRegion(Helpers.UIntsToLong((uint)(x * 256), (uint)(y * 256)));
+                    if (simProfile != null)
+                    {
+                        Hashtable simProfileBlock = new Hashtable();
+                        simProfileBlock["x"] = x;
+                        simProfileBlock["y"] = y;
+                        simProfileBlock["name"] = simProfile.regionName;
+                        simProfileBlock["access"] = 0;
+                        simProfileBlock["region-flags"] = 0;
+                        simProfileBlock["water-height"] = 20;
+                        simProfileBlock["agents"] = 1;
+                        simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
+
+                        simProfileList.Add(simProfileBlock);
+                    }
+                }
+            }
+
+            responseData["sim-profiles"] = simProfileList;
+
+            return response;
+        }
+
+
+
         /// <summary>
         /// Performs a REST Get Operation
         /// </summary>
