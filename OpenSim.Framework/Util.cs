@@ -36,6 +36,13 @@ namespace OpenSim.Framework.Utilities
             return id;
         }
 
+        public static int UnixTimeSinceEpoch()
+        {
+            TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
+            int timestamp = (int)t.TotalSeconds;
+            return timestamp;
+        }
+
         //public static int fast_distance2d(int x, int y)
         //{
         //    x = System.Math.Abs(x);
