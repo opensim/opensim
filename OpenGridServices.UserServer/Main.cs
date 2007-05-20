@@ -94,11 +94,7 @@ namespace OpenGridServices.UserServer
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
-
-            //MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Creating user profile manager");
-            //m_userProfileManager = new UserProfileManager();
-            //m_userProfileManager.InitUserProfiles();
-            //m_userProfileManager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
+            m_userManager.AddPlugin("OpenGrid.Framework.Data.MySQL.dll");
 
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
