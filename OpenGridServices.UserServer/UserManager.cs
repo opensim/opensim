@@ -98,5 +98,56 @@ namespace OpenGridServices.UserServer
 
             return null;
         }
+
+        public UserAgentData getUserAgent(LLUUID uuid)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.getAgentByUUID(uuid);
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+            return null;
+        }
+
+        public UserAgentData getUserAgent(string name)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.getAgentByName(name);
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+            return null;
+        }
+
+        public UserAgentData getUserAgent(string fname, string lname)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.getAgentByName(fname,lname);
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+            return null;
+        }
     }
 }

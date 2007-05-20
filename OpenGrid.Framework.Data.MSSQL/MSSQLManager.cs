@@ -57,7 +57,7 @@ namespace OpenGrid.Framework.Data.MSSQL
             dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
-                dbcommand.Parameters.Add(param.Key, param.Value);
+                dbcommand.Parameters.AddWithValue(param.Key, param.Value);
             }
 
             return (IDbCommand)dbcommand;
