@@ -114,7 +114,14 @@ namespace OpenGridServices.UserServer
                 try
                 {
                     UserProfileData profile = plugin.Value.getUserByName(fname,lname);
-                    profile.currentAgent = getUserAgent(profile.UUID);
+                    try
+                    {
+                        profile.currentAgent = getUserAgent(profile.UUID);
+                    }
+                    catch (Exception e)
+                    {
+                        // Ignore
+                    }
                     return profile;
                 }
                 catch (Exception e)
@@ -295,18 +302,13 @@ namespace OpenGridServices.UserServer
         /// <returns>Authenticated?</returns>
         public bool AuthenticateUser(ref UserProfileData profile, string password)
         {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(
+                OpenSim.Framework.Console.LogPriority.LOW, 
+                "Authenticating " + profile.username + " " + profile.surname);
+
             password = password.Remove(0, 3); //remove $1$
 
-            MD5CryptoServiceProvider MD5summer = new MD5CryptoServiceProvider();
-
-            byte[] byteString = System.Text.Encoding.ASCII.GetBytes(password + ":" + profile.passwordSalt);
-
-            byteString = MD5summer.ComputeHash(byteString);
-            System.Text.StringBuilder s = new System.Text.StringBuilder();
-            foreach (byte b in byteString)
-            {
-                s.Append(b.ToString("x2").ToLower());
-            }
+            string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
 
             return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
@@ -360,7 +362,9 @@ namespace OpenGridServices.UserServer
 
             // Current location
             agent.regionID = new LLUUID(); // Fill in later
-            agent.currentRegion = "";      // Fill in later
+            agent.currentRegion = new LLUUID();      // Fill in later
+
+            profile.currentAgent = agent;
         }
 
         /// <summary>
@@ -399,6 +403,9 @@ namespace OpenGridServices.UserServer
                 passwd = (string)requestData["passwd"];
 
                 TheUser = getUserProfile(firstname, lastname);
+                if (TheUser == null)
+                    return CreateLoginErrorResponse();
+
                 GoodLogin = AuthenticateUser(ref TheUser, passwd);
             }
             else

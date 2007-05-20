@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
@@ -41,6 +42,16 @@ namespace OpenSim.Framework.Utilities
             TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
             int timestamp = (int)t.TotalSeconds;
             return timestamp;
+        }
+
+        public static string Md5Hash(string pass)
+        {
+            MD5 md5 = MD5CryptoServiceProvider.Create();
+            byte[] dataMd5 = md5.ComputeHash(Encoding.Default.GetBytes(pass));
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < dataMd5.Length; i++)
+                sb.AppendFormat("{0:x2}", dataMd5[i]);
+            return sb.ToString();
         }
 
         //public static int fast_distance2d(int x, int y)
