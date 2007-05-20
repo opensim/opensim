@@ -43,7 +43,8 @@ namespace OpenGridServices.Manager
 							win.SetStatus("Connected OK with session ID:" + gridserverConn.SessionID);
 							win.SetGridServerConnected(true);
 							Thread.Sleep(3000);
-							win.SetStatus("");
+							win.SetStatus("Downloading region maps...");
+							gridserverConn.DownloadMap();
 						} else {
 							win.SetStatus("Could not connect");
 						}

@@ -1,5 +1,8 @@
 using Nwc.XmlRpc;
 using System;
+using System.Net;
+using System.IO;
+using System.Xml;
 using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
@@ -11,6 +14,8 @@ namespace OpenGridServices.Manager
 		private string ServerURL;
 		public LLUUID SessionID;
 		public bool connected=false;
+		
+		public RegionBlock[][] WorldMap;
 		
 		public bool Connect(string GridServerURL, string username, string password)
 		{
@@ -36,6 +41,29 @@ namespace OpenGridServices.Manager
 				Console.WriteLine(e.ToString());
 				connected=false;
 				return false;
+			}
+		}
+		
+		public void DownloadMap()
+		{
+			System.Net.WebClient mapdownloader = new WebClient();
+			Stream regionliststream = mapdownloader.OpenRead(ServerURL + "/regionlist");
+			
+			
+			XmlDocument doc = new XmlDocument();
+            doc.Load(regionliststream);
+            XmlNode rootnode = doc.FirstChild;
+            if (rootnode.Name != "regions")
+            {
+				// TODO - ERROR!
+            }
+
+            for(int i=0; i<=rootnode.ChildNodes.Count; i++)
+            {
+                if(rootnode.ChildNodes.Item(i).Name != "region") {
+                	// TODO - ERROR!
+                } else {
+                }
 			}
 		}
 		

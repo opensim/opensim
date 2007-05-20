@@ -17,7 +17,12 @@ namespace OpenGridServices.Manager {
 
 		public void DrawGrid(RegionBlock[][] regions)
 		{
-			
+			for(int x=0; x<=regions.GetUpperBound(0); x++) {
+			 for(int y=0; y<=regions.GetUpperBound(1); y++) {
+				Gdk.Image themap = new Gdk.Image(Gdk.ImageType.Fastest,Gdk.Visual.System,256,256);
+				this.drawingarea1.GdkWindow.DrawImage(new Gdk.GC(this.drawingarea1.GdkWindow),themap,0,0,x*256,y*256,256,256);
+			 }
+			}
 		}
 		
 		public void SetGridServerConnected(bool connected)
