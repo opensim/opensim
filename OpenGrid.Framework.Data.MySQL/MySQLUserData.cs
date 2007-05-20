@@ -8,11 +8,11 @@ namespace OpenGrid.Framework.Data.MySQL
 {
     class MySQLUserData : IUserData
     {
-        public MySQLManager manager;
+        public MySQLManager database;
 
         public void Initialise()
         {
-            manager = new MySQLManager("host", "database", "user", "password", "false");
+            database = new MySQLManager("host", "database", "user", "password", "false");
         }
 
         public UserProfileData getUserByName(string name)
@@ -22,12 +22,57 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public UserProfileData getUserByName(string user, string last)
         {
-            return new UserProfileData();
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?first"] = user;
+                    param["?second"] = last;
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM users WHERE username = ?first AND lastname = ?second", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    UserProfileData row = database.getUserRow(reader);
+                    
+                    reader.Close();
+                    result.Dispose();
+
+                    return row;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public UserProfileData getUserByUUID(LLUUID uuid)
         {
-            return new UserProfileData();
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = uuid.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    UserProfileData row = database.getUserRow(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    return row;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public UserAgentData getAgentByName(string name)
