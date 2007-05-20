@@ -52,6 +52,7 @@ namespace OpenSim.Framework.Interfaces
         string GetName();
         bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port);
         void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
+        IList RequestMapBlocks(int minX, int minY, int maxX, int maxY);
         void Close();
     }
     

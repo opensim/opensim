@@ -22,6 +22,7 @@ namespace OpenSim.Framework.Interfaces
         public abstract string GetName();
         public abstract bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port);
         public abstract void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
+        public abstract IList RequestMapBlocks(int minX, int minY, int maxX, int maxY);
         public abstract void Close();
 	public abstract Hashtable GridData {
 		get;
