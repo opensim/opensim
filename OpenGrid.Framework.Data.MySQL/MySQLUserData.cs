@@ -82,12 +82,35 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public UserAgentData getAgentByName(string user, string last)
         {
-            return new UserAgentData();
+            UserProfileData profile = getUserByName(user, last);
+            return getAgentByUUID(profile.UUID);
         }
 
         public UserAgentData getAgentByUUID(LLUUID uuid)
         {
-            return new UserAgentData();
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = uuid.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    UserAgentData row = database.getAgentRow(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    return row;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)

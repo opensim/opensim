@@ -38,7 +38,7 @@ namespace OpenGrid.Framework.Data
 
     public class UserAgentData
     {
-        public LLUUID UUID;             // Internal session ID
+        public LLUUID UUID;             // Account ID
         public string agentIP;          // The IP of the agent
         public uint agentPort;          // The port of the agent
         public bool agentOnline;        // The online status of the agent
