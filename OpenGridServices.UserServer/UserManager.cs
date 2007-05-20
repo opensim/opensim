@@ -52,6 +52,11 @@ namespace OpenGridServices.UserServer
             pluginAssembly = null;
         }
 
+        /// <summary>
+        /// Loads a user profile from a database by UUID
+        /// </summary>
+        /// <param name="uuid">The target UUID</param>
+        /// <returns>A user profile</returns>
         public UserProfileData getUserProfile(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -71,6 +76,12 @@ namespace OpenGridServices.UserServer
             return null;
         }
 
+
+        /// <summary>
+        /// Loads a user profile by name
+        /// </summary>
+        /// <param name="name">The target name</param>
+        /// <returns>A user profile</returns>
         public UserProfileData getUserProfile(string name)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -90,6 +101,12 @@ namespace OpenGridServices.UserServer
             return null;
         }
 
+        /// <summary>
+        /// Loads a user profile by name
+        /// </summary>
+        /// <param name="fname">First name</param>
+        /// <param name="lname">Last name</param>
+        /// <returns>A user profile</returns>
         public UserProfileData getUserProfile(string fname, string lname)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
