@@ -52,7 +52,7 @@ namespace OpenGridServices.UserServer
 
         public UserManager m_userManager; // Replaces below.
 
-        private UserProfileManager m_userProfileManager;
+        //private UserProfileManager m_userProfileManager; // Depreciated
 
         public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
@@ -93,17 +93,18 @@ namespace OpenGridServices.UserServer
 
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
+            m_userManager._config = Cfg;
 
-            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Creating user profile manager");
-            m_userProfileManager = new UserProfileManager();
-            m_userProfileManager.InitUserProfiles();
-            m_userProfileManager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
+            //MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Creating user profile manager");
+            //m_userProfileManager = new UserProfileManager();
+            //m_userProfileManager.InitUserProfiles();
+            //m_userProfileManager.SetKeys(Cfg.GridSendKey, Cfg.GridRecvKey, Cfg.GridServerURL, Cfg.DefaultStartupMsg);
 
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
-            httpServer.AddXmlRPCHandler("login_to_simulator", m_userProfileManager.XmlRpcLoginMethod);
-            httpServer.AddRestHandler("DELETE", "/usersessions/", m_userProfileManager.RestDeleteUserSessionMethod);
+            httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
+            httpServer.AddRestHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod);
 
             httpServer.Start();
         }
@@ -114,7 +115,9 @@ namespace OpenGridServices.UserServer
             switch (what)
             {
                 case "user":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"Creating new user profile");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"Commandline user creation is currently disabled.");
+                    break;
+                    /*
                     string tempfirstname;
                     string templastname;
                     string tempMD5Passwd;
@@ -138,6 +141,7 @@ namespace OpenGridServices.UserServer
                     newuser.homepos = new LLVector3(128f, 128f, 150f);
                     m_userProfileManager.SaveUserProfiles();
                     break;
+                    */
             }
         }
 

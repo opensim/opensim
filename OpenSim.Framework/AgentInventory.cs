@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Inventory
             InventoryRoot.Version = 1;
             InventoryRoot.DefaultType = 8;
             InventoryRoot.OwnerID = this.AgentID;
-            InventoryRoot.FolderName = "My Inventory-";
+            InventoryRoot.FolderName = "My Inventory";
             InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
             InventoryRoot.OwnerID = this.AgentID;
             if (createTextures)
