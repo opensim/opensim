@@ -152,12 +152,33 @@ namespace OpenSim
             this.OutPacket(mapReply);
         }
 
-        public void RequestMapBlock(int minX, int minY, int maxX, int maxY)
+        public void RequestMapBlocks(int minX, int minY, int maxX, int maxY)
         {
-            //check if our own map was requested
-            this.m_world.RequestMapBlock(this, minX, minY, maxX, maxY);
+            IList simMapProfiles = m_gridServer.RequestMapBlocks(minX, minY, maxX, maxY);
+            MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
+            mbReply.AgentData.AgentID = this.AgentID;
+            int len;
+            if (simMapProfiles == null)
+                len = 0;
+            else
+                len = simMapProfiles.Count;
 
-            //now should get other regions maps from gridserver
+            mbReply.Data = new MapBlockReplyPacket.DataBlock[len];
+            int iii;
+            for (iii = 0; iii < len; iii++)
+            {
+                Hashtable mp = (Hashtable)simMapProfiles[iii];
+                mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
+                mbReply.Data[iii].Name = System.Text.Encoding.UTF8.GetBytes((string)mp["name"]);
+                mbReply.Data[iii].Access = System.Convert.ToByte(mp["access"]);
+                mbReply.Data[iii].Agents = System.Convert.ToByte(mp["agents"]);
+                mbReply.Data[iii].MapImageID = new LLUUID((string)mp["map-image-id"]);
+                mbReply.Data[iii].RegionFlags = System.Convert.ToUInt32(mp["region-flags"]);
+                mbReply.Data[iii].WaterHeight = System.Convert.ToByte(mp["water-height"]);
+                mbReply.Data[iii].X = System.Convert.ToUInt16(mp["x"]);
+                mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
+            }
+            this.OutPacket(mbReply);
         }
     }
 }
