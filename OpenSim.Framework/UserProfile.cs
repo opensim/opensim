@@ -49,6 +49,7 @@ namespace OpenSim.Framework.User
 
             CurrentSecureSessionID = new LLUUID(randDataSS,0);
             CurrentSessionID = new LLUUID(randDataS,0);
+            
         }
 
         public void AddSimCircuit(uint circuitCode, LLUUID regionUUID)

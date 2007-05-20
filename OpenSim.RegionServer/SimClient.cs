@@ -144,7 +144,6 @@ namespace OpenSim
         # region Client Methods
         public void UpgradeClient()
         {
-            Console.WriteLine("updateclient being called");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
             this.m_world.RemoveViewerAgent(this);
