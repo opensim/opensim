@@ -48,6 +48,7 @@ namespace OpenGridServices.UserServer
     public class OpenUser_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
+        private string StorageDll = "OpenGrid.Framework.Data.MySQL.dll";
         private UserConfig Cfg;
 
         public UserManager m_userManager; // Replaces below.
@@ -94,7 +95,7 @@ namespace OpenGridServices.UserServer
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
-            m_userManager.AddPlugin("OpenGrid.Framework.Data.DB4o.dll");
+            m_userManager.AddPlugin(StorageDll);
 
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
