@@ -75,5 +75,10 @@ namespace OpenGrid.Framework.Data
         public string regionUserURI = "";
         public string regionUserSendKey = "";
         public string regionUserRecvKey = "";
+
+        /// <summary>
+        /// Region Map Texture Asset
+        /// </summary>
+        public libsecondlife.LLUUID regionMapTextureID = new libsecondlife.LLUUID("00000000-0000-0000-9999-000000000006");
     }
 }
