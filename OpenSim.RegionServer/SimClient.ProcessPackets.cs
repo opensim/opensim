@@ -326,7 +326,8 @@ namespace OpenSim
                         break;
                     case PacketType.MapBlockRequest:
                         MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
-                        this.RequestMapBlock(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+
+                        this.RequestMapBlocks(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         break;
 
                     case PacketType.TeleportLandmarkRequest:
@@ -407,6 +408,7 @@ namespace OpenSim
                             tpLocal.Info.LookAt = tpLocReq.Info.LookAt;
                             tpLocal.Info.Position = tpLocReq.Info.Position;
                             OutPacket(tpLocal);
+
                         }
 
                         break;
