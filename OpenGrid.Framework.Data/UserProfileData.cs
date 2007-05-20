@@ -38,14 +38,17 @@ namespace OpenGrid.Framework.Data
 
     public class UserAgentData
     {
+        public LLUUID UUID;             // Internal session ID
         public string agentIP;          // The IP of the agent
         public uint agentPort;          // The port of the agent
         public bool agentOnline;        // The online status of the agent
-        public LLUUID sessionID;        // The session ID for the agent
-        public LLUUID secureSessionID;  // The secure session ID for the agent
+        public LLUUID sessionID;        // The session ID for the agent (used by client)
+        public LLUUID secureSessionID;  // The secure session ID for the agent (used by client)
         public LLUUID regionID;         // The region ID the agent occupies
-        public uint loginTime;          // EPOCH based Timestamp
-        public uint logoutTime;         // Timestamp or 0 if N/A
-
+        public int loginTime;          // EPOCH based Timestamp
+        public int logoutTime;         // Timestamp or 0 if N/A
+        public LLUUID currentRegion;    // UUID of the users current region
+        public ulong currentHandle;     // RegionHandle of the users current region
+        public LLVector3 currentPos;    // Current position in the region
     }
 }

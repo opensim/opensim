@@ -118,6 +118,87 @@ namespace OpenGrid.Framework.Data.MySQL
                 retval.regionUserURI = (string)reader["regionUserURI"];
                 retval.regionUserRecvKey = (string)reader["regionUserRecvKey"];
                 retval.regionUserSendKey = (string)reader["regionUserSendKey"];
+
+                // World Map Addition
+                retval.regionMapTextureID = new libsecondlife.LLUUID((string)reader["regionMapTexture"]);
+            }
+            else
+            {
+                return null;
+            }
+            return retval;
+        }
+
+        public UserAgentData getAgentRow(IDataReader reader)
+        {
+            UserAgentData retval = new UserAgentData();
+
+            if (reader.Read())
+            {
+                // Agent IDs
+                retval.UUID = new libsecondlife.LLUUID((string)reader["UUID"]);
+                retval.sessionID = new libsecondlife.LLUUID((string)reader["sessionID"]);
+                retval.secureSessionID = new libsecondlife.LLUUID((string)reader["secureSessionID"]);
+
+                // Agent Who?
+                retval.agentIP = (string)reader["agentIP"];
+                retval.agentPort = Convert.ToUInt32(reader["agentPort"].ToString());
+                retval.agentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
+
+                // Login/Logout times (UNIX Epoch)
+                retval.loginTime = Convert.ToInt32(reader["loginTime"].ToString());
+                retval.logoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
+
+                // Current position
+                retval.currentRegion = (string)reader["currentRegion"];
+                retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
+                libsecondlife.LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
+            }
+            else
+            {
+                return null;
+            }
+            return retval;
+        }
+
+        public UserProfileData getUserRow(IDataReader reader)
+        {
+            UserProfileData retval = new UserProfileData();
+
+            if (reader.Read())
+            {
+                retval.UUID = new libsecondlife.LLUUID((string)reader["UUID"]);
+                retval.username = (string)reader["username"];
+                retval.surname = (string)reader["lastname"];
+
+                retval.passwordHash = (string)reader["passwordHash"];
+                retval.passwordSalt = (string)reader["passwordSalt"];
+
+                retval.homeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
+                retval.homeLocation = new libsecondlife.LLVector3(
+                    Convert.ToSingle(reader["homeLocationX"].ToString()),
+                    Convert.ToSingle(reader["homeLocationY"].ToString()),
+                    Convert.ToSingle(reader["homeLocationZ"].ToString()));
+                retval.homeLookAt = new libsecondlife.LLVector3(
+                    Convert.ToSingle(reader["homeLookAtX"].ToString()),
+                    Convert.ToSingle(reader["homeLookAtY"].ToString()),
+                    Convert.ToSingle(reader["homeLookAtZ"].ToString()));
+
+                retval.created = Convert.ToInt32(reader["created"].ToString());
+                retval.lastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
+
+                retval.userInventoryURI = (string)reader["userInventoryURI"];
+                retval.userAssetURI = (string)reader["userAssetURI"];
+
+                retval.profileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
+                retval.profileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
+
+                retval.profileAboutText = (string)reader["profileAboutText"];
+                retval.profileFirstText = (string)reader["profileFirstText"];
+
+                retval.profileImage = new libsecondlife.LLUUID((string)reader["profileImage"]);
+                retval.profileFirstImage = new libsecondlife.LLUUID((string)reader["profileFirstImage"]);
+
             }
             else
             {
