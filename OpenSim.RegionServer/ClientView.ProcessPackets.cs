@@ -21,9 +21,23 @@ namespace OpenSim
     public partial class ClientView
     {
         public delegate void ChatFromViewer(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
-
+        public delegate void RezObject(AssetBase primasset, LLVector3 pos);
+        public delegate void ModifyTerrain(byte Action, float North, float West);
+        public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
+        public delegate void StartAnim(LLUUID animID, int seq);
+        public delegate void GenericCall(ClientView RemoteClient);
+        public delegate void GenericCall2();
+        public delegate void GenericCall3(Packet packet); // really don't want to be passing packets in these events, so this is very temporary.
 
         public event ChatFromViewer OnChatFromViewer;
+        public event RezObject OnRezObject;
+        public event ModifyTerrain OnModifyTerrain;
+        public event GenericCall OnRegionHandShakeReply;
+        public event GenericCall OnRequestWearables;
+        public event SetAppearance OnSetAppearance;
+        public event GenericCall2 OnCompleteMovementToRegion;
+        public event GenericCall3 OnAgentUpdate;
+        public event StartAnim OnStartAnim;
 
         protected override void ProcessInPacket(Packet Pack)
         {
@@ -62,40 +76,81 @@ namespace OpenSim
                         LLUUID fromAgentID = AgentID;
                         this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
                         break;
-                    #endregion
-
-                    #region World/Avatar/Primitive related packets
-                    case PacketType.CompleteAgentMovement:
-                        if (this.m_child) this.UpgradeClient();
-                        ClientAvatar.CompleteMovement(m_world);
-                        ClientAvatar.SendInitialPosition();
-                        this.EnableNeighbours();
-                        break;
-                    case PacketType.RegionHandshakeReply:
-                        m_world.SendLayerData(this);
-                        break;
-                    case PacketType.AgentWearablesRequest:
-                        ClientAvatar.SendInitialAppearance();
-                        foreach (ClientView client in m_clientThreads.Values)
+                    case PacketType.RezObject:
+                        RezObjectPacket rezPacket = (RezObjectPacket)Pack;
+                        AgentInventory inven = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
+                        if (inven != null)
                         {
-                            if (client.AgentID != this.AgentID)
+                            if (inven.InventoryItems.ContainsKey(rezPacket.InventoryData.ItemID))
                             {
-                                ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
-                                this.OutPacket(objupdate);
-                                client.ClientAvatar.SendAppearanceToOtherAgent(this.ClientAvatar);
+                                AssetBase asset = this.m_assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
+                                if (asset != null)
+                                {
+                                    this.OnRezObject(asset, rezPacket.RezData.RayEnd);
+                                    this.m_inventoryCache.DeleteInventoryItem(this, rezPacket.InventoryData.ItemID);
+                                }
                             }
                         }
-                        m_world.GetInitialPrims(this);
                         break;
-                    case PacketType.AgentIsNowWearing:
-                        AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
-                        //Console.WriteLine(Pack.ToString());
-                        break;
-                    case PacketType.AgentSetAppearance:
-                        AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
-                        // Console.WriteLine(appear.ToString());
-                        this.ClientAvatar.SetAppearance(appear);
-                        break;
+                    case PacketType.ModifyLand:
+                         ModifyLandPacket modify = (ModifyLandPacket)Pack;
+                         if (modify.ParcelData.Length > 0)
+                         {
+                             OnModifyTerrain(modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West);
+                         }
+                         break;
+
+                     case PacketType.RegionHandshakeReply:
+                         m_world.SendLayerData(this);
+                         OnRegionHandShakeReply(this);
+                         break;
+                     case PacketType.AgentWearablesRequest:
+                         OnRequestWearables(this);
+                        //need to move the follow to a event system
+                         foreach (ClientView client in m_clientThreads.Values)
+                         {
+                             if (client.AgentID != this.AgentID)
+                             {
+                                 ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
+                                 this.OutPacket(objupdate);
+                                 client.ClientAvatar.SendAppearanceToOtherAgent(this.ClientAvatar);
+                             }
+                         }
+                         break;
+                     case PacketType.AgentSetAppearance:
+                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
+                         // Console.WriteLine(appear.ToString());
+                         OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
+                         break;
+                     case PacketType.CompleteAgentMovement:
+                         if (this.m_child) this.UpgradeClient();
+                         OnCompleteMovementToRegion();
+                         this.EnableNeighbours();
+                         break;
+                     case PacketType.AgentUpdate:
+                         OnAgentUpdate(Pack);
+                         break;
+                     case PacketType.AgentAnimation:
+                         if (!m_child)
+                         {
+                             AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+                             for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+                             {
+                                 if (AgentAni.AnimationList[i].StartAnim)
+                                 {
+                                     OnStartAnim(AgentAni.AnimationList[i].AnimID, 1);
+                                 }
+                             }
+                         }
+                         break;
+                     case PacketType.AgentIsNowWearing:
+                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
+                         //Console.WriteLine(Pack.ToString());
+                         break;
+                    #endregion
+
+                        //old handling, should move most to a event based system.
+                    #region World/Avatar/Primitive related packets
                     case PacketType.ObjectAdd:
                         m_world.AddNewPrim((ObjectAddPacket)Pack, this);
                         break;
@@ -143,8 +198,19 @@ namespace OpenSim
                             }
                         }
                         break;
-                    case PacketType.AgentUpdate:
-                        ClientAvatar.HandleUpdate((AgentUpdatePacket)Pack);
+                    case PacketType.ObjectSelect:
+                        ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
+                        for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+                        {
+                            foreach (Entity ent in m_world.Entities.Values)
+                            {
+                                if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
+                                {
+                                    ((OpenSim.world.Primitive)ent).GetProperites(this);
+                                    break;
+                                }
+                            }
+                        }
                         break;
                     case PacketType.ObjectImage:
                         ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
@@ -169,35 +235,7 @@ namespace OpenSim
                             }
                         }
                         break;
-                    case PacketType.AgentAnimation:
-                        if (!m_child)
-                        {
-                            AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
-                            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
-                            {
-                                if (AgentAni.AnimationList[i].StartAnim)
-                                {
-                                    ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
-                                    ClientAvatar.anim_seq = 1;
-                                    ClientAvatar.SendAnimPack();
-                                }
-                            }
-                        }
-                        break;
-                    case PacketType.ObjectSelect:
-                        ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
-                        for (int i = 0; i < incomingselect.ObjectData.Length; i++)
-                        {
-                            foreach (Entity ent in m_world.Entities.Values)
-                            {
-                                if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
-                                {
-                                    ((OpenSim.world.Primitive)ent).GetProperites(this);
-                                    break;
-                                }
-                            }
-                        }
-                        break;
+                   
                     case PacketType.ViewerEffect:
                         ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
                         foreach (ClientView client in m_clientThreads.Values)

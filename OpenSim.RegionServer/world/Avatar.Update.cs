@@ -148,25 +148,15 @@ namespace OpenSim.world
             }
         }
 
-        public void SendInitialAppearance()
+        public void SendOurAppearance()
         {
-            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
-            aw.AgentData.AgentID = this.ControllingClient.AgentID;
-            aw.AgentData.SerialNum = 0;
-            aw.AgentData.SessionID = ControllingClient.SessionID;
+            ControllingClient.SendAppearance(this.Wearables);
+        }
 
-            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
-            AgentWearablesUpdatePacket.WearableDataBlock awb;
-            for (int i = 0; i < 13; i++)
-            {
-                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                awb.WearableType = (byte)i;
-                awb.AssetID = this.Wearables[i].AssetID;
-                awb.ItemID = this.Wearables[i].ItemID;
-                aw.WearableData[i] = awb;
-            }
-
-            ControllingClient.OutPacket(aw);
+        public void SendOurAppearance(ClientView OurClient)
+        {
+            //event handler for wearables request
+            this.SendOurAppearance();
         }
 
         public void SendAppearanceToOtherAgent(Avatar avatarInfo)
@@ -188,13 +178,14 @@ namespace OpenSim.world
             avatarInfo.SendPacketToViewer(avp);
         }
 
-        public void SetAppearance(AgentSetAppearancePacket appear)
+        public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(texture, 0, texture.Length);
             this.avatarAppearanceTexture = tex;
-            for (int i = 0; i < appear.VisualParam.Length; i++)
+
+            for (int i = 0; i < visualParam.Length; i++)
             {
-                this.visualParams[i] = appear.VisualParam[i].ParamValue;
+                this.visualParams[i] = visualParam[i].ParamValue;
             }
 
             List<Avatar> avList = this.m_world.RequestAvatarList();
@@ -291,7 +282,7 @@ namespace OpenSim.world
         }
 
         // Sends animation update
-        public void SendAnimPack()
+        public void SendAnimPack(LLUUID animID, int seq)
         {
             AvatarAnimationPacket ani = new AvatarAnimationPacket();
             ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
@@ -301,8 +292,8 @@ namespace OpenSim.world
             ani.Sender.ID = ControllingClient.AgentID;
             ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
             ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
-            ani.AnimationList[0].AnimID = this.current_anim;
-            ani.AnimationList[0].AnimSequenceID = this.anim_seq;
+            ani.AnimationList[0].AnimID = this.current_anim = animID;
+            ani.AnimationList[0].AnimSequenceID = this.anim_seq = seq;
 
             List<Avatar> avList = this.m_world.RequestAvatarList();
             foreach (Avatar client in avList)
@@ -310,6 +301,11 @@ namespace OpenSim.world
                 client.SendPacketToViewer(ani);
             }
           
+        }
+
+        public void SendAnimPack()
+        {
+            this.SendAnimPack(this.current_anim, this.anim_seq);
         }
 
     }

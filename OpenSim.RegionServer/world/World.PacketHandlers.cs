@@ -15,31 +15,22 @@ namespace OpenSim.world
 {
     public partial class World
     {
-
-        public bool ModifyTerrain(ClientView simClient, Packet packet)
+        public void ModifyTerrain(byte Action, float North, float West)
         {
-            ModifyLandPacket modify = (ModifyLandPacket)packet;
-
-            switch (modify.ModifyBlock.Action)
+            switch (Action)
             {
                 case 1:
                     // raise terrain
-                    if (modify.ParcelData.Length > 0)
-                    {
-                        Terrain.raise(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
-                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
-                    }
+                        Terrain.raise(North, West, 10.0, 0.1);
+                        RegenerateTerrain(true, (int)North, (int)West);
                     break;
                 case 2:
                     //lower terrain
-                    if (modify.ParcelData.Length > 0)
-                    {
-                        Terrain.lower(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
-                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
-                    }
+                        Terrain.lower(North, West, 10.0, 0.1);
+                        RegenerateTerrain(true, (int)North, (int)West);
                     break;
             }
-            return true;
+            return;
         }
 
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
@@ -79,27 +70,13 @@ namespace OpenSim.world
             }
         }
 
-        public bool RezObject(ClientView simClient, Packet packet)
+        public void RezObject(AssetBase primasset, LLVector3 pos)
         {
-            RezObjectPacket rezPacket = (RezObjectPacket)packet;
-            AgentInventory inven = this._inventoryCache.GetAgentsInventory(simClient.AgentID);
-            if (inven != null)
-            {
-                if (inven.InventoryItems.ContainsKey(rezPacket.InventoryData.ItemID))
-                {
-                    AssetBase asset = this._assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
-                    if (asset != null)
-                    {
-                        PrimData primd = new PrimData(asset.Data);
-                        Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
-                        nPrim.CreateFromStorage(primd, rezPacket.RezData.RayEnd, this._primCount, true);
-                        this.Entities.Add(nPrim.uuid, nPrim);
-                        this._primCount++;
-                        this._inventoryCache.DeleteInventoryItem(simClient, rezPacket.InventoryData.ItemID);
-                    }
-                }
-            }
-            return true;
+            PrimData primd = new PrimData(primasset.Data);
+            Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
+            nPrim.CreateFromStorage(primd, pos, this._primCount, true);
+            this.Entities.Add(nPrim.uuid, nPrim);
+            this._primCount++;
         }
 
         public bool DeRezObject(ClientView simClient, Packet packet)
@@ -191,6 +168,7 @@ namespace OpenSim.world
             return true;
         }
 
+        /*
         public void RequestMapBlock(ClientView simClient, int minX, int minY, int maxX, int maxY)
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
@@ -212,6 +190,54 @@ namespace OpenSim.world
                 simClient.OutPacket(mapReply);
             }
         }
+         public bool RezObjectHandler(ClientView simClient, Packet packet)
+        {
+            RezObjectPacket rezPacket = (RezObjectPacket)packet;
+            AgentInventory inven = this._inventoryCache.GetAgentsInventory(simClient.AgentID);
+            if (inven != null)
+            {
+                if (inven.InventoryItems.ContainsKey(rezPacket.InventoryData.ItemID))
+                {
+                    AssetBase asset = this._assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
+                    if (asset != null)
+                    {
+                        PrimData primd = new PrimData(asset.Data);
+                        Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
+                        nPrim.CreateFromStorage(primd, rezPacket.RezData.RayEnd, this._primCount, true);
+                        this.Entities.Add(nPrim.uuid, nPrim);
+                        this._primCount++;
+                        this._inventoryCache.DeleteInventoryItem(simClient, rezPacket.InventoryData.ItemID);
+                    }
+                }
+            }
+            return true;
+        }
+         public bool ModifyTerrain(ClientView simClient, Packet packet)
+        {
+            ModifyLandPacket modify = (ModifyLandPacket)packet;
+
+            switch (modify.ModifyBlock.Action)
+            {
+                case 1:
+                    // raise terrain
+                    if (modify.ParcelData.Length > 0)
+                    {
+                        Terrain.raise(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
+                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
+                    }
+                    break;
+                case 2:
+                    //lower terrain
+                    if (modify.ParcelData.Length > 0)
+                    {
+                        Terrain.lower(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
+                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
+                    }
+                    break;
+            }
+            return true;
+        }
+         */
 
     }
 }

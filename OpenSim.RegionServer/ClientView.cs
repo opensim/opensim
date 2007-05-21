@@ -325,6 +325,27 @@ namespace OpenSim
 
             this.OutPacket(reply);
         }
+
+        public void SendAppearance(AvatarWearable[] wearables)
+        {
+            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
+            aw.AgentData.AgentID = this.AgentID;
+            aw.AgentData.SerialNum = 0;
+            aw.AgentData.SessionID = this.SessionID;
+
+            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
+            AgentWearablesUpdatePacket.WearableDataBlock awb;
+            for (int i = 0; i < wearables.Length; i++)
+            {
+                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+                awb.WearableType = (byte)i;
+                awb.AssetID = wearables[i].AssetID;
+                awb.ItemID = wearables[i].ItemID;
+                aw.WearableData[i] = awb;
+            }
+
+            this.OutPacket(aw);
+        }
         #endregion
 
         #region Inventory Creation

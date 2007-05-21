@@ -64,6 +64,14 @@ namespace OpenSim.world
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
 
+            //register for events
+            ControllingClient.OnRequestWearables += new ClientView.GenericCall(this.SendOurAppearance);
+            ControllingClient.OnSetAppearance += new ClientView.SetAppearance(this.SetAppearance);
+            ControllingClient.OnCompleteMovementToRegion += new ClientView.GenericCall2(this.CompleteMovement);
+            ControllingClient.OnCompleteMovementToRegion += new ClientView.GenericCall2(this.SendInitialPosition);
+            ControllingClient.OnAgentUpdate += new ClientView.GenericCall3(this.HandleAgentUpdate);
+            ControllingClient.OnStartAnim += new ClientView.StartAnim(this.SendAnimPack);
+
         }
 
         public PhysicsActor PhysActor
@@ -170,7 +178,7 @@ namespace OpenSim.world
 
         }
 
-        public void CompleteMovement(World RegionInfo)
+        public void CompleteMovement()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Avatar.cs:CompleteMovement() - Constructing AgentMovementComplete packet");
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
@@ -183,6 +191,11 @@ namespace OpenSim.world
             mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 
             ControllingClient.OutPacket(mov);
+        }
+
+        public void HandleAgentUpdate(Packet pack)
+        {
+            this.HandleUpdate((AgentUpdatePacket)pack);
         }
 
         public void HandleUpdate(AgentUpdatePacket pack)
