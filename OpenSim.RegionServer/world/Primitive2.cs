@@ -287,13 +287,13 @@ namespace OpenSim.world
 
         #region Create Methods
 
-        public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
+        public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
         {
             PrimData PData = new PrimData();
             this.primData = PData;
             this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            PData.OwnerID = agentID;
+            PData.OwnerID = ownerID;
             PData.PCode = addPacket.ObjectData.PCode;
             PData.PathBegin = addPacket.ObjectData.PathBegin;
             PData.PathEnd = addPacket.ObjectData.PathEnd;

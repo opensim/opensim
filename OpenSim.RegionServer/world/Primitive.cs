@@ -328,7 +328,7 @@ namespace OpenSim.world
             this.dirtyFlag = true;
         }
 
-        public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
+        public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
         {
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = m_regionHandle;
@@ -356,7 +356,7 @@ namespace OpenSim.world
             this.primData.Texture = objupdate.ObjectData[0].TextureEntry = ntex.ToBytes();
             objupdate.ObjectData[0].State = 0;
             objupdate.ObjectData[0].Data = new byte[0];
-            PData.OwnerID = objupdate.ObjectData[0].OwnerID = agentID;
+            PData.OwnerID = objupdate.ObjectData[0].OwnerID = ownerID;
             PData.PCode = objupdate.ObjectData[0].PCode = addPacket.ObjectData.PCode;
             PData.PathBegin = objupdate.ObjectData[0].PathBegin = addPacket.ObjectData.PathBegin;
             PData.PathEnd = objupdate.ObjectData[0].PathEnd = addPacket.ObjectData.PathEnd;
