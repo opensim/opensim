@@ -57,7 +57,7 @@ namespace OpenSim.world
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, SimClient> clientThreads, RegionInfo regInfo, ulong regionHandle, string regionName)
+        public World(Dictionary<uint, ClientView> clientThreads, RegionInfo regInfo, ulong regionHandle, string regionName)
         {
             try
             {
@@ -324,7 +324,7 @@ namespace OpenSim.world
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                foreach (SimClient client in m_clientThreads.Values)
+                foreach (ClientView client in m_clientThreads.Values)
                 {
                     this.SendLayerData(client);
                 }
@@ -355,7 +355,7 @@ namespace OpenSim.world
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                foreach (SimClient client in m_clientThreads.Values)
+                foreach (ClientView client in m_clientThreads.Values)
                 {
                     this.SendLayerData(client);
                 }
@@ -389,7 +389,7 @@ namespace OpenSim.world
                     }
                     this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                    foreach (SimClient client in m_clientThreads.Values)
+                    foreach (ClientView client in m_clientThreads.Values)
                     {
                         this.SendLayerData(pointx, pointy, client);
                     }
@@ -437,7 +437,7 @@ namespace OpenSim.world
         /// Sends prims to a client
         /// </summary>
         /// <param name="RemoteClient">Client to send to</param>
-        public void GetInitialPrims(SimClient RemoteClient)
+        public void GetInitialPrims(ClientView RemoteClient)
         {
             try
             {
@@ -495,7 +495,7 @@ namespace OpenSim.world
             }
         }
 
-        public void AddNewPrim(ObjectAddPacket addPacket, SimClient AgentClient)
+        public void AddNewPrim(ObjectAddPacket addPacket, ClientView AgentClient)
         {
             AddNewPrim(addPacket, AgentClient.AgentID);
         }
@@ -530,8 +530,9 @@ namespace OpenSim.world
 
         #region Add/Remove Avatar Methods
 
-        public override void AddViewerAgent(SimClient agentClient)
+        public override void AddViewerAgent(ClientView agentClient)
         {
+            agentClient.OnChatFromViewer += new ClientView.ChatFromViewer(this.SimChat);
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
@@ -576,7 +577,7 @@ namespace OpenSim.world
             }
         }
 
-        public override void RemoveViewerAgent(SimClient agentClient)
+        public override void RemoveViewerAgent(ClientView agentClient)
         {
             try
             {
@@ -597,6 +598,23 @@ namespace OpenSim.world
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: RemoveViewerAgent() - Failed with exception " + e.ToString());
             }
+        }
+        #endregion
+
+        #region Request Avatars List Methods
+        //The idea is to have a group of method that return a list of avatars meeting some requirement
+        // ie it could be all Avatars within a certain range of the calling prim/avatar. 
+
+        public List<Avatar> RequestAvatarList()
+        {
+            List<Avatar> result = new List<Avatar>();
+
+            foreach (Avatar avatar in Avatars.Values)
+            {
+                result.Add(avatar);
+            }
+
+            return result;
         }
         #endregion
 

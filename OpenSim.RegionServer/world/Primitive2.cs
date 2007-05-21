@@ -16,7 +16,7 @@ namespace OpenSim.world
         protected PrimData primData;
         //private ObjectUpdatePacket OurPacket;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
-        private Dictionary<uint, SimClient> m_clientThreads;
+        private Dictionary<uint, ClientView> m_clientThreads;
         private ulong m_regionHandle;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
         private bool physicsEnabled = false;
@@ -58,12 +58,23 @@ namespace OpenSim.world
         }
         #endregion
 
-        public Primitive2(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, World world)
+        public Primitive2(Dictionary<uint, ClientView> clientThreads, ulong regionHandle, World world)
         {
             m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_world = world;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
+        }
+
+        public Primitive2(Dictionary<uint, ClientView> clientThreads, ulong regionHandle, World world, LLUUID owner)
+        {
+            m_clientThreads = clientThreads;
+            m_regionHandle = regionHandle;
+            m_world = world;
+            inventoryItems = new Dictionary<LLUUID, InventoryItem>();
+            this.primData = new PrimData();
+            this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            this.primData.OwnerID = owner;
         }
 
         public byte[] GetByteArray()
@@ -159,7 +170,7 @@ namespace OpenSim.world
 
         }
 
-        public void GetProperites(SimClient client)
+        public void GetProperites(ClientView client)
         {
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
@@ -202,12 +213,12 @@ namespace OpenSim.world
             return null;
         }
 
-        public void RequestInventoryInfo(SimClient simClient, RequestTaskInventoryPacket packet)
+        public void RequestInventoryInfo(ClientView simClient, RequestTaskInventoryPacket packet)
         {
 
         }
 
-        public void RequestXferInventory(SimClient simClient, ulong xferID)
+        public void RequestXferInventory(ClientView simClient, ulong xferID)
         {
             //will only currently work if the total size of the inventory data array is under about 1000 bytes
             SendXferPacketPacket send = new SendXferPacketPacket();
@@ -246,7 +257,7 @@ namespace OpenSim.world
         #region Update viewers Methods
 
         //should change these mehtods, so that outgoing packets are sent through the avatar class
-        public void SendFullUpdateToClient(SimClient remoteClient)
+        public void SendFullUpdateToClient(ClientView remoteClient)
         {
             LLVector3 lPos;
             if (this._physActor != null && this.physicsEnabled)
@@ -273,7 +284,7 @@ namespace OpenSim.world
 
         }
 
-        public void SendTerseUpdateToClient(SimClient RemoteClient)
+        public void SendTerseUpdateToClient(ClientView RemoteClient)
         {
 
         }
@@ -316,7 +327,7 @@ namespace OpenSim.world
             PData.PathTwist = addPacket.ObjectData.PathTwist;
             PData.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             LLVector3 pos1 = addPacket.ObjectData.RayEnd;
-            this.primData.FullID = this.uuid  = LLUUID.Random();
+            this.primData.FullID = this.uuid = LLUUID.Random();
             this.localid = (uint)(localID);
             this.primData.Position = this.Pos = pos1;
         }

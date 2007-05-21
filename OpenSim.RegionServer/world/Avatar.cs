@@ -16,7 +16,7 @@ namespace OpenSim.world
         public static AvatarAnimations Animations;
         public string firstname;
         public string lastname;
-        public SimClient ControllingClient;
+        public ClientView ControllingClient;
         public LLUUID current_anim;
         public int anim_seq;
         private static libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
@@ -30,16 +30,16 @@ namespace OpenSim.world
         private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private ulong m_regionHandle;
-        private Dictionary<uint, SimClient> m_clientThreads;
+        //private Dictionary<uint, ClientView> m_clientThreads;
         private string m_regionName;
         private ushort m_regionWaterHeight;
         private bool m_regionTerraform;
         //private bool childShadowAvatar = false;
 
-        public Avatar(SimClient TheClient, World world, string regionName, Dictionary<uint, SimClient> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
+        public Avatar(ClientView TheClient, World world, string regionName, Dictionary<uint, ClientView> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
         {
             m_world = world;
-            m_clientThreads = clientThreads;
+           // m_clientThreads = clientThreads;
             m_regionName = regionName;
             m_regionHandle = regionHandle;
             m_regionTerraform = regionTerraform;

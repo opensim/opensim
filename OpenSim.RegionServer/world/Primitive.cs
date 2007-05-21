@@ -22,7 +22,7 @@ namespace OpenSim.world
         private bool physicsEnabled = false;
         private bool physicstest = false;  
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
-        private Dictionary<uint, SimClient> m_clientThreads;
+        private Dictionary<uint, ClientView> m_clientThreads;
         private ulong m_regionHandle;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
@@ -75,7 +75,7 @@ namespace OpenSim.world
             }
         }
 
-        public Primitive(Dictionary<uint, SimClient> clientThreads, ulong regionHandle, World world)
+        public Primitive(Dictionary<uint, ClientView> clientThreads, ulong regionHandle, World world)
         {
             mesh_cutbegin = 0.0f;
             mesh_cutend = 1.0f;
@@ -104,7 +104,7 @@ namespace OpenSim.world
             return this.primData.ToBytes();
         }
 
-        public void GetProperites(SimClient client)
+        public void GetProperites(ClientView client)
         {
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
@@ -164,7 +164,7 @@ namespace OpenSim.world
             }
             if (this.newPrimFlag)
             {   
-                foreach (SimClient client in m_clientThreads.Values)
+                foreach (ClientView client in m_clientThreads.Values)
                 {
                     client.OutPacket(OurPacket);
                 }
@@ -177,7 +177,7 @@ namespace OpenSim.world
                 terse.RegionData.TimeDilation = 64096;
                 terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                 terse.ObjectData[0] = this.CreateImprovedBlock();
-                foreach (SimClient client in m_clientThreads.Values)
+                foreach (ClientView client in m_clientThreads.Values)
                 {
                     client.OutPacket(terse);
                 }
@@ -185,7 +185,7 @@ namespace OpenSim.world
             }
             else if (this.dirtyFlag)
             {
-                foreach (SimClient client in m_clientThreads.Values)
+                foreach (ClientView client in m_clientThreads.Values)
                 {
                     UpdateClient(client);
                 }
@@ -202,7 +202,7 @@ namespace OpenSim.world
                         terse.RegionData.TimeDilation = 64096;
                         terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                         terse.ObjectData[0] = this.CreateImprovedBlock();
-                        foreach (SimClient client in m_clientThreads.Values)
+                        foreach (ClientView client in m_clientThreads.Values)
                         {
                             client.OutPacket(terse);
                         }
@@ -220,7 +220,7 @@ namespace OpenSim.world
             }
         }
 
-        public void UpdateClient(SimClient RemoteClient)
+        public void UpdateClient(ClientView RemoteClient)
         {
 
             LLVector3 lPos;

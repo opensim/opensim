@@ -15,6 +15,11 @@
                 <include name="AuthenticateSessionsBase.cs" />
                 <include name="AuthenticateSessionsLocal.cs" />
                 <include name="AuthenticateSessionsRemote.cs" />
+                <include name="ClientView.cs" />
+                <include name="ClientView.Grid.cs" />
+                <include name="ClientView.PacketHandlers.cs" />
+                <include name="ClientView.ProcessPackets.cs" />
+                <include name="ClientViewBase.cs" />
                 <include name="Grid.cs" />
                 <include name="OpenSimMain.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
@@ -22,11 +27,6 @@
                 <include name="RegionInfo.cs" />
                 <include name="RegionInfoBase.cs" />
                 <include name="RegionServerBase.cs" />
-                <include name="SimClient.cs" />
-                <include name="SimClient.Grid.cs" />
-                <include name="SimClient.PacketHandlers.cs" />
-                <include name="SimClient.ProcessPackets.cs" />
-                <include name="SimClientBase.cs" />
                 <include name="UDPServer.cs" />
                 <include name="VersionInfo.cs" />
                 <include name="Assets/AssetCache.cs" />

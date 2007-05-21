@@ -133,7 +133,7 @@ namespace OpenSim
             this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
             bool isChildAgent = false;
 
-            SimClient newuser = new SimClient(epSender, useCircuit, m_localWorld, _packetServer.ClientThreads, m_assetCache, m_gridServers.GridServer, this, m_inventoryCache, m_sandbox, isChildAgent, this.m_regionData, m_authenticateSessionsClass);
+            ClientView newuser = new ClientView(epSender, useCircuit, m_localWorld, _packetServer.ClientThreads, m_assetCache, m_gridServers.GridServer, this, m_inventoryCache, m_sandbox, isChildAgent, this.m_regionData, m_authenticateSessionsClass);
             if ((this.m_gridServers.UserServer != null) && (user_accounts))
             {
                 newuser.UserServer = this.m_gridServers.UserServer;

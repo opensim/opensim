@@ -12,11 +12,11 @@ namespace OpenSim
     public class AgentAssetUpload
     {
         private Dictionary<LLUUID, AssetTransaction> transactions = new Dictionary<LLUUID, AssetTransaction>();
-        private SimClient ourClient;
+        private ClientView ourClient;
         private AssetCache m_assetCache;
         private InventoryCache m_inventoryCache;
 
-        public AgentAssetUpload(SimClient client, AssetCache assetCache, InventoryCache inventoryCache)
+        public AgentAssetUpload(ClientView client, AssetCache assetCache, InventoryCache inventoryCache)
         {
             this.ourClient = client;
             m_assetCache = assetCache;

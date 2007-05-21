@@ -94,12 +94,12 @@ namespace OpenSim.Assets
             }
         }
 
-        public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID)
+        public bool CreateNewInventoryFolder(ClientView remoteClient, LLUUID folderID)
         {
             return this.CreateNewInventoryFolder(remoteClient, folderID, 0);
         }
 
-        public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID, ushort type)
+        public bool CreateNewInventoryFolder(ClientView remoteClient, LLUUID folderID, ushort type)
         {
             bool res = false;
             if (folderID != LLUUID.Zero)  //don't create a folder with a zero id
@@ -112,7 +112,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public bool CreateNewInventoryFolder(SimClient remoteClient, LLUUID folderID, ushort type, string folderName, LLUUID parent)
+        public bool CreateNewInventoryFolder(ClientView remoteClient, LLUUID folderID, ushort type, string folderName, LLUUID parent)
         {
             bool res = false;
             if (folderID != LLUUID.Zero)  //don't create a folder with a zero id
@@ -125,7 +125,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public LLUUID AddNewInventoryItem(SimClient remoteClient, LLUUID folderID, OpenSim.Framework.Types.AssetBase asset)
+        public LLUUID AddNewInventoryItem(ClientView remoteClient, LLUUID folderID, OpenSim.Framework.Types.AssetBase asset)
         {
             LLUUID newItem = null;
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
@@ -140,7 +140,7 @@ namespace OpenSim.Assets
 
             return newItem;
         }
-        public bool DeleteInventoryItem(SimClient remoteClient, LLUUID itemID)
+        public bool DeleteInventoryItem(ClientView remoteClient, LLUUID itemID)
         {
             bool res = false;
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
@@ -161,7 +161,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public bool UpdateInventoryItemAsset(SimClient remoteClient, LLUUID itemID, OpenSim.Framework.Types.AssetBase asset)
+        public bool UpdateInventoryItemAsset(ClientView remoteClient, LLUUID itemID, OpenSim.Framework.Types.AssetBase asset)
         {
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
             {
@@ -177,7 +177,7 @@ namespace OpenSim.Assets
             return false;
         }
 
-        public bool UpdateInventoryItemDetails(SimClient remoteClient, LLUUID itemID, UpdateInventoryItemPacket.InventoryDataBlock packet)
+        public bool UpdateInventoryItemDetails(ClientView remoteClient, LLUUID itemID, UpdateInventoryItemPacket.InventoryDataBlock packet)
         {
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
             {
@@ -193,7 +193,7 @@ namespace OpenSim.Assets
             return false;
         }
 
-        public void FetchInventoryDescendents(SimClient userInfo, FetchInventoryDescendentsPacket FetchDescend)
+        public void FetchInventoryDescendents(ClientView userInfo, FetchInventoryDescendentsPacket FetchDescend)
         {
             if (this._agentsInventory.ContainsKey(userInfo.AgentID))
             {
@@ -250,7 +250,7 @@ namespace OpenSim.Assets
             }
         }
 
-        public void FetchInventory(SimClient userInfo, FetchInventoryPacket FetchItems)
+        public void FetchInventory(ClientView userInfo, FetchInventoryPacket FetchItems)
         {
             if (this._agentsInventory.ContainsKey(userInfo.AgentID))
             {
@@ -291,7 +291,7 @@ namespace OpenSim.Assets
             }
         }
 
-        private void SendItemUpdateCreate(SimClient remoteClient, InventoryItem Item)
+        private void SendItemUpdateCreate(ClientView remoteClient, InventoryItem Item)
         {
 
             UpdateCreateInventoryItemPacket InventoryReply = new UpdateCreateInventoryItemPacket();

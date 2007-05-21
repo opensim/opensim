@@ -16,7 +16,7 @@ namespace OpenSim.world
     public partial class World
     {
 
-        public bool ModifyTerrain(SimClient simClient, Packet packet)
+        public bool ModifyTerrain(ClientView simClient, Packet packet)
         {
             ModifyLandPacket modify = (ModifyLandPacket)packet;
 
@@ -42,68 +42,44 @@ namespace OpenSim.world
             return true;
         }
 
-        public bool SimChat(SimClient simClient, Packet packet)
-        {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
-            ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)packet;
-            if (Util.FieldToString(inchatpack.ChatData.Message) == "")
-            {
-                //empty message so don't bother with it
-                return true;
-            }
-
-            string fromName = simClient.ClientAvatar.firstname + " " + simClient.ClientAvatar.lastname;
-            byte[] message = inchatpack.ChatData.Message;
-            byte type = inchatpack.ChatData.Type;
-            LLVector3 fromPos = simClient.ClientAvatar.Pos;
-            LLUUID fromAgentID = simClient.AgentID;
-
-            libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
-            reply.ChatData.Audible = 1;
-            reply.ChatData.Message = message;
-            reply.ChatData.ChatType = type;
-            reply.ChatData.SourceType = 1;
-            reply.ChatData.Position = fromPos;
-            reply.ChatData.FromName = enc.GetBytes(fromName + "\0");
-            reply.ChatData.OwnerID = fromAgentID;
-            reply.ChatData.SourceID = fromAgentID;
-
-            foreach (SimClient client in m_clientThreads.Values)
+        public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
+        {  
+            foreach (ClientView client in m_clientThreads.Values)
             {
                 // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
-                int dis = (int)client.ClientAvatar.Pos.GetDistanceTo(simClient.ClientAvatar.Pos);
+                int dis = (int)client.ClientAvatar.Pos.GetDistanceTo(fromPos);
                 
-                switch (inchatpack.ChatData.Type)
+                switch (type)
                 {
                     case 0: // Whisper
                         if ((dis < 10) && (dis > -10))
                         {
-                            client.OutPacket(reply);
+                            //should change so the message is sent through the avatar rather than direct to the ClientView
+                            client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
                         }
                         break;
                     case 1: // Say
                         if ((dis < 30) && (dis > -30))
                         {
-                            client.OutPacket(reply);
+                            client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
                         }
                         break;
                     case 2: // Shout
                         if ((dis < 100) && (dis > -100))
                         {
-                            client.OutPacket(reply);
+                            client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
                         }
                         break;
                         
                     case 0xff: // Broadcast
-                        client.OutPacket(reply);
+                        client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
                         break;
                 }
 
             }
-            return true;
         }
 
-        public bool RezObject(SimClient simClient, Packet packet)
+        public bool RezObject(ClientView simClient, Packet packet)
         {
             RezObjectPacket rezPacket = (RezObjectPacket)packet;
             AgentInventory inven = this._inventoryCache.GetAgentsInventory(simClient.AgentID);
@@ -126,7 +102,7 @@ namespace OpenSim.world
             return true;
         }
 
-        public bool DeRezObject(SimClient simClient, Packet packet)
+        public bool DeRezObject(ClientView simClient, Packet packet)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
 
@@ -151,7 +127,7 @@ namespace OpenSim.world
                             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
                             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
                             kill.ObjectData[0].ID = ent.localid;
-                            foreach (SimClient client in m_clientThreads.Values)
+                            foreach (ClientView client in m_clientThreads.Values)
                             {
                                 client.OutPacket(kill);
                             }
@@ -201,7 +177,7 @@ namespace OpenSim.world
                         kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
                         kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
                         kill.ObjectData[0].ID = selectedEnt.localid;
-                        foreach (SimClient client in m_clientThreads.Values)
+                        foreach (ClientView client in m_clientThreads.Values)
                         {
                             client.OutPacket(kill);
                         }
@@ -215,7 +191,7 @@ namespace OpenSim.world
             return true;
         }
 
-        public void RequestMapBlock(SimClient simClient, int minX, int minY, int maxX, int maxY)
+        public void RequestMapBlock(ClientView simClient, int minX, int minY, int maxX, int maxY)
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             if (((m_regInfo.RegionLocX > minX) && (m_regInfo.RegionLocX < maxX)) && ((m_regInfo.RegionLocY > minY) && (m_regInfo.RegionLocY < maxY)))

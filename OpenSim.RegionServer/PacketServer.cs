@@ -10,7 +10,7 @@ namespace OpenSim
     {
         private OpenSimNetworkHandler _networkHandler;
         private World _localWorld;
-        public Dictionary<uint, SimClient> ClientThreads = new Dictionary<uint, SimClient>();
+        public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
 
         public PacketServer(OpenSimNetworkHandler networkHandler)
         {
@@ -44,7 +44,7 @@ namespace OpenSim
 
         }
 
-        public virtual void SendPacketToAllExcept(Packet packet, SimClient simClient)
+        public virtual void SendPacketToAllExcept(Packet packet, ClientView simClient)
         {
 
         }
@@ -58,17 +58,16 @@ namespace OpenSim
         {
             if (this._localWorld != null)
             {
-                SimClient.AddPacketHandler(PacketType.ModifyLand, _localWorld.ModifyTerrain);
-                SimClient.AddPacketHandler(PacketType.ChatFromViewer, _localWorld.SimChat);
-                SimClient.AddPacketHandler(PacketType.RezObject, _localWorld.RezObject);
-                SimClient.AddPacketHandler(PacketType.DeRezObject, _localWorld.DeRezObject);
-                SimClient.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
+                ClientView.AddPacketHandler(PacketType.ModifyLand, _localWorld.ModifyTerrain);
+                ClientView.AddPacketHandler(PacketType.RezObject, _localWorld.RezObject);
+                ClientView.AddPacketHandler(PacketType.DeRezObject, _localWorld.DeRezObject);
+                ClientView.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
             }
         }
 
         #region Client Packet Handlers
 
-        public bool RequestUUIDName(SimClient simClient, Packet packet)
+        public bool RequestUUIDName(ClientView simClient, Packet packet)
         {
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
             Console.WriteLine(packet.ToString());

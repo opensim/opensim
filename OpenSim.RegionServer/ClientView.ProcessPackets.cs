@@ -18,9 +18,14 @@ using OpenSim.Assets;
 
 namespace OpenSim
 {
-    public partial class SimClient
+    public partial class ClientView
     {
-        protected virtual void ProcessInPacket(Packet Pack)
+        public delegate void ChatFromViewer(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
+
+
+        public event ChatFromViewer OnChatFromViewer;
+
+        protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
             if (debug)
@@ -42,6 +47,24 @@ namespace OpenSim
 
                 switch (Pack.Type)
                 {
+                    #region New Event system
+                    case PacketType.ChatFromViewer:
+                        ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
+                        if (Util.FieldToString(inchatpack.ChatData.Message) == "")
+                        {
+                            //empty message so don't bother with it
+                            break;
+                        }
+                        string fromName = ClientAvatar.firstname + " " + ClientAvatar.lastname;
+                        byte[] message = inchatpack.ChatData.Message;
+                        byte type = inchatpack.ChatData.Type;
+                        LLVector3 fromPos = ClientAvatar.Pos;
+                        LLUUID fromAgentID = AgentID;
+                        this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
+                        break;
+                    #endregion
+
+                    #region World/Avatar/Primitive related packets
                     case PacketType.CompleteAgentMovement:
                         if (this.m_child) this.UpgradeClient();
                         ClientAvatar.CompleteMovement(m_world);
@@ -53,13 +76,13 @@ namespace OpenSim
                         break;
                     case PacketType.AgentWearablesRequest:
                         ClientAvatar.SendInitialAppearance();
-                        foreach (SimClient client in m_clientThreads.Values)
+                        foreach (ClientView client in m_clientThreads.Values)
                         {
                             if (client.AgentID != this.AgentID)
                             {
                                 ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
                                 this.OutPacket(objupdate);
-                                client.ClientAvatar.SendAppearanceToOtherAgent(this);
+                                client.ClientAvatar.SendAppearanceToOtherAgent(this.ClientAvatar);
                             }
                         }
                         m_world.GetInitialPrims(this);
@@ -120,18 +143,6 @@ namespace OpenSim
                             }
                         }
                         break;
-                    case PacketType.RequestImage:
-                        RequestImagePacket imageRequest = (RequestImagePacket)Pack;
-                        for (int i = 0; i < imageRequest.RequestImage.Length; i++)
-                        {
-                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image);
-                        }
-                        break;
-                    case PacketType.TransferRequest:
-                        //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
-                        TransferRequestPacket transfer = (TransferRequestPacket)Pack;
-                        m_assetCache.AddAssetRequest(this, transfer);
-                        break;
                     case PacketType.AgentUpdate:
                         ClientAvatar.HandleUpdate((AgentUpdatePacket)Pack);
                         break;
@@ -157,6 +168,62 @@ namespace OpenSim
                                 ((OpenSim.world.Primitive)ent).UpdateObjectFlags(flags);
                             }
                         }
+                        break;
+                    case PacketType.AgentAnimation:
+                        if (!m_child)
+                        {
+                            AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+                            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+                            {
+                                if (AgentAni.AnimationList[i].StartAnim)
+                                {
+                                    ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
+                                    ClientAvatar.anim_seq = 1;
+                                    ClientAvatar.SendAnimPack();
+                                }
+                            }
+                        }
+                        break;
+                    case PacketType.ObjectSelect:
+                        ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
+                        for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+                        {
+                            foreach (Entity ent in m_world.Entities.Values)
+                            {
+                                if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
+                                {
+                                    ((OpenSim.world.Primitive)ent).GetProperites(this);
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    case PacketType.ViewerEffect:
+                        ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
+                        foreach (ClientView client in m_clientThreads.Values)
+                        {
+                            if (client.AgentID != this.AgentID)
+                            {
+                                viewer.AgentData.AgentID = client.AgentID;
+                                viewer.AgentData.SessionID = client.SessionID;
+                                client.OutPacket(viewer);
+                            }
+                        }
+                        break;
+                    #endregion
+
+                    #region Inventory/Asset/Other related packets
+                    case PacketType.RequestImage:
+                        RequestImagePacket imageRequest = (RequestImagePacket)Pack;
+                        for (int i = 0; i < imageRequest.RequestImage.Length; i++)
+                        {
+                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image);
+                        }
+                        break;
+                    case PacketType.TransferRequest:
+                        //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
+                        TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+                        m_assetCache.AddAssetRequest(this, transfer);
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
@@ -228,18 +295,6 @@ namespace OpenSim
                             }
                         }
                         break;
-                    case PacketType.ViewerEffect:
-                        ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
-                        foreach (SimClient client in m_clientThreads.Values)
-                        {
-                            if (client.AgentID != this.AgentID)
-                            {
-                                viewer.AgentData.AgentID = client.AgentID;
-                                viewer.AgentData.SessionID = client.SessionID;
-                                client.OutPacket(viewer);
-                            }
-                        }
-                        break;
                     case PacketType.RequestTaskInventory:
                         // Console.WriteLine(Pack.ToString());
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
@@ -292,35 +347,6 @@ namespace OpenSim
                             }
                         }
                         break;
-                    case PacketType.AgentAnimation:
-                        if (!m_child)
-                        {
-                            AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
-                            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
-                            {
-                                if (AgentAni.AnimationList[i].StartAnim)
-                                {
-                                    ClientAvatar.current_anim = AgentAni.AnimationList[i].AnimID;
-                                    ClientAvatar.anim_seq = 1;
-                                    ClientAvatar.SendAnimPack();
-                                }
-                            }
-                        }
-                        break;
-                    case PacketType.ObjectSelect:
-                        ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
-                        for (int i = 0; i < incomingselect.ObjectData.Length; i++)
-                        {
-                            foreach (Entity ent in m_world.Entities.Values)
-                            {
-                                if (ent.localid == incomingselect.ObjectData[i].ObjectLocalID)
-                                {
-                                    ((OpenSim.world.Primitive)ent).GetProperites(this);
-                                    break;
-                                }
-                            }
-                        }
-                        break;
                     case PacketType.MapLayerRequest:
                         this.RequestMapLayer();
                         break;
@@ -329,7 +355,6 @@ namespace OpenSim
 
                         this.RequestMapBlocks(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         break;
-
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
 
@@ -378,7 +403,6 @@ namespace OpenSim
                             OutPacket(tpCancel);
                         }
                         break;
-
                     case PacketType.TeleportLocationRequest:
                         TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
                         Console.WriteLine(tpLocReq.ToString());
@@ -410,8 +434,8 @@ namespace OpenSim
                             OutPacket(tpLocal);
 
                         }
-
                         break;
+                    #endregion
                 }
             }
         }

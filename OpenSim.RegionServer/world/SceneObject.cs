@@ -15,7 +15,7 @@ namespace OpenSim.world
     {
         private LLUUID rootUUID;
         private Dictionary<LLUUID, Primitive2> ChildPrimitives = new Dictionary<LLUUID, Primitive2>();
-        private Dictionary<uint, SimClient> m_clientThreads;
+        private Dictionary<uint, ClientView> m_clientThreads;
         private World m_world;
 
         public SceneObject()
@@ -42,7 +42,7 @@ namespace OpenSim.world
 
         }
 
-        public void GetProperites(SimClient client)
+        public void GetProperites(ClientView client)
         {
             /*
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();

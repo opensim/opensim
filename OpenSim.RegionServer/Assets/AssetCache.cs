@@ -324,7 +324,7 @@ namespace OpenSim.Assets
         /// </summary>
         /// <param name="userInfo"></param>
         /// <param name="transferRequest"></param>
-        public void AddAssetRequest(SimClient userInfo, TransferRequestPacket transferRequest)
+        public void AddAssetRequest(ClientView userInfo, TransferRequestPacket transferRequest)
         {
             LLUUID requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
             //check to see if asset is in local cache, if not we need to request it from asset server.
@@ -464,7 +464,7 @@ namespace OpenSim.Assets
         /// </summary>
         /// <param name="userInfo"></param>
         /// <param name="imageID"></param>
-        public void AddTextureRequest(SimClient userInfo, LLUUID imageID)
+        public void AddTextureRequest(ClientView userInfo, LLUUID imageID)
         {
             //check to see if texture is in local cache, if not request from asset server
             if (!this.Textures.ContainsKey(imageID))
@@ -517,7 +517,7 @@ namespace OpenSim.Assets
 
     public class AssetRequest
     {
-        public SimClient RequestUser;
+        public ClientView RequestUser;
         public LLUUID RequestAssetID;
         public AssetInfo AssetInf;
         public TextureImage ImageInfo;

@@ -28,9 +28,10 @@ namespace OpenSim.world
                 terse.RegionData.TimeDilation = 64096;
                 terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                 terse.ObjectData[0] = terseBlock;
-                foreach (SimClient client in m_clientThreads.Values)
+                List<Avatar> avList = this.m_world.RequestAvatarList();
+                foreach (Avatar client in avList)
                 {
-                    client.OutPacket(terse);
+                    client.SendPacketToViewer(terse);
                 }
 
                 updateflag = false;
@@ -51,9 +52,10 @@ namespace OpenSim.world
                         terse.RegionData.TimeDilation = 64096;
                         terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                         terse.ObjectData[0] = terseBlock;
-                        foreach (SimClient client in m_clientThreads.Values)
+                        List<Avatar> avList = this.m_world.RequestAvatarList();
+                        foreach (Avatar client in avList)
                         {
-                            client.OutPacket(terse);
+                            client.SendPacketToViewer(terse);
                         }
                         _updateCount = 0;
                     }
@@ -134,15 +136,13 @@ namespace OpenSim.world
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
             m_world._localNumber++;
-            foreach (SimClient client in m_clientThreads.Values)
-            {
-                client.OutPacket(objupdate);
-                if (client.AgentID != ControllingClient.AgentID)
-                {
-                    //the below line is already in Simclient.cs at line number 245 , directly below the call to this method
-                    //if there is a problem/bug with that , then lets fix it there rather than duplicating it here
-                    //client.ClientAvatar.SendAppearanceToOtherAgent(this.ControllingClient);
 
+            List<Avatar> avList = this.m_world.RequestAvatarList();
+            foreach (Avatar client in avList)
+            {
+                client.SendPacketToViewer(objupdate);
+                if (client.ControllingClient.AgentID != this.ControllingClient.AgentID)
+                {
                     SendAppearanceToOtherAgent(client);
                 }
             }
@@ -169,29 +169,11 @@ namespace OpenSim.world
             ControllingClient.OutPacket(aw);
         }
 
-        public void SendAppearanceToOtherAgent(SimClient userInfo)
+        public void SendAppearanceToOtherAgent(Avatar avatarInfo)
         {
             AvatarAppearancePacket avp = new AvatarAppearancePacket();
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
             avp.ObjectData.TextureEntry = this.avatarAppearanceTexture.ToBytes();
-
-            //a wearable update packets should only be sent about the viewers/agents own avatar not for other avatars
-            //but it seems that the following code only created the packets and never actually sent them anyway
-            /*AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
-            aw.AgentData.AgentID = this.ControllingClient.AgentID;
-            aw.AgentData.SessionID = userInfo.SessionID;
-            aw.AgentData.SerialNum = 0; //removed the use of a random number as a random number could be less than the last number, should have a counter variable for this
-
-            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
-            AgentWearablesUpdatePacket.WearableDataBlock awb;
-            for (int i = 0; i < 13; i++)
-            {
-                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                awb.WearableType = (byte)i;
-                awb.AssetID = this.Wearables[i].AssetID;
-                awb.ItemID = this.Wearables[i].ItemID;
-                aw.WearableData[i] = awb;
-            }*/
 
             AvatarAppearancePacket.VisualParamBlock avblock = null;
             for (int i = 0; i < 218; i++)
@@ -203,7 +185,7 @@ namespace OpenSim.world
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = ControllingClient.AgentID;
-            userInfo.OutPacket(avp);
+            avatarInfo.SendPacketToViewer(avp);
         }
 
         public void SetAppearance(AgentSetAppearancePacket appear)
@@ -214,9 +196,11 @@ namespace OpenSim.world
             {
                 this.visualParams[i] = appear.VisualParam[i].ParamValue;
             }
-            foreach (SimClient client in m_clientThreads.Values)
+
+            List<Avatar> avList = this.m_world.RequestAvatarList();
+            foreach (Avatar client in avList)
             {
-                if (client.AgentID != ControllingClient.AgentID)
+                if (client.ControllingClient.AgentID != this.ControllingClient.AgentID)
                 {
                     SendAppearanceToOtherAgent(client);
                 }
@@ -320,11 +304,12 @@ namespace OpenSim.world
             ani.AnimationList[0].AnimID = this.current_anim;
             ani.AnimationList[0].AnimSequenceID = this.anim_seq;
 
-            //ControllingClient.OutPacket(ani);
-            foreach (SimClient client in m_clientThreads.Values)
+            List<Avatar> avList = this.m_world.RequestAvatarList();
+            foreach (Avatar client in avList)
             {
-                client.OutPacket(ani);
+                client.SendPacketToViewer(ani);
             }
+          
         }
 
     }

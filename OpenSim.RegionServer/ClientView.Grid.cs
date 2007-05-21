@@ -18,7 +18,7 @@ using OpenSim.Assets;
 
 namespace OpenSim
 {
-    public partial class SimClient
+    public partial class ClientView
     {
 
         public void EnableNeighbours()

@@ -20,7 +20,7 @@ namespace OpenSim.world
     public class WorldBase
     {
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
-        protected Dictionary<uint, SimClient> m_clientThreads;
+        protected Dictionary<uint, ClientView> m_clientThreads;
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected InventoryCache _inventoryCache;
@@ -90,7 +90,7 @@ namespace OpenSim.world
         /// Send the region heightmap to the client
         /// </summary>
         /// <param name="RemoteClient">Client to send to</param>
-        public virtual void SendLayerData(SimClient RemoteClient)
+        public virtual void SendLayerData(ClientView RemoteClient)
         {
             try
             {
@@ -122,7 +122,7 @@ namespace OpenSim.world
         /// <param name="px">Patch coordinate (x) 0..16</param>
         /// <param name="py">Patch coordinate (y) 0..16</param>
         /// <param name="RemoteClient">The client to send to</param>
-        public void SendLayerData(int px, int py, SimClient RemoteClient)
+        public void SendLayerData(int px, int py, ClientView RemoteClient)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace OpenSim.world
         /// Add a new Agent's avatar
         /// </summary>
         /// <param name="agentClient"></param>
-        public virtual void AddViewerAgent(SimClient agentClient)
+        public virtual void AddViewerAgent(ClientView agentClient)
         {
 
         }
@@ -157,7 +157,7 @@ namespace OpenSim.world
         /// Remove a Agent's avatar
         /// </summary>
         /// <param name="agentClient"></param>
-        public virtual void RemoveViewerAgent(SimClient agentClient)
+        public virtual void RemoveViewerAgent(ClientView agentClient)
         {
 
         }

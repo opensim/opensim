@@ -18,7 +18,7 @@ using OpenSim.Assets;
 
 namespace OpenSim
 {
-    public partial class SimClient
+    public partial class ClientView
     {
         protected virtual void RegisterLocalPacketHandlers()
         {
@@ -27,7 +27,7 @@ namespace OpenSim
             this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
         }
 
-        protected virtual bool Logout(SimClient simClient, Packet packet)
+        protected virtual bool Logout(ClientView simClient, Packet packet)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
             //send reply to let the client logout
@@ -43,7 +43,7 @@ namespace OpenSim
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
             kill.ObjectData[0].ID = this.ClientAvatar.localid;
-            foreach (SimClient client in m_clientThreads.Values)
+            foreach (ClientView client in m_clientThreads.Values)
             {
                 client.OutPacket(kill);
             }
@@ -69,7 +69,7 @@ namespace OpenSim
             return true;
         }
 
-        protected bool AgentTextureCached(SimClient simclient, Packet packet)
+        protected bool AgentTextureCached(ClientView simclient, Packet packet)
         {
             // Console.WriteLine(packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
@@ -90,7 +90,7 @@ namespace OpenSim
             return true;
         }
 
-        protected bool MultipleObjUpdate(SimClient simClient, Packet packet)
+        protected bool MultipleObjUpdate(ClientView simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
