@@ -3,7 +3,7 @@
 # This is the one!
 
 export OPENSIMMAJOR=0
-export OPENSIMMINOR=1
+export OPENSIMMINOR=2
 export BUILD=`date +%s`
 export BRANCH=DEVEL
 export SVNURL=svn://openmetaverse.org/opensim/trunk
