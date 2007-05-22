@@ -168,6 +168,20 @@ namespace OpenSim.world
             return true;
         }
 
+        public void SendAvatarsToClient(ClientView RemoteClient)
+        {
+            foreach (ClientView client in m_clientThreads.Values)
+            {
+                if (client.AgentID != RemoteClient.AgentID)
+                {
+                   // ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
+                   // RemoteClient.OutPacket(objupdate);
+                    client.ClientAvatar.SendUpdateToOtherClient(RemoteClient.ClientAvatar);
+                    client.ClientAvatar.SendAppearanceToOtherAgent(RemoteClient.ClientAvatar);
+                }
+            }
+        }
+
         /*
         public void RequestMapBlock(ClientView simClient, int minX, int minY, int maxX, int maxY)
         {

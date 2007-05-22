@@ -538,6 +538,8 @@ namespace OpenSim.world
             agentClient.OnModifyTerrain += new ClientView.ModifyTerrain(this.ModifyTerrain);
             agentClient.OnRegionHandShakeReply += new ClientView.GenericCall(this.SendLayerData);
             agentClient.OnRequestWearables += new ClientView.GenericCall(this.GetInitialPrims);
+            agentClient.OnRequestAvatarsData += new ClientView.GenericCall(this.SendAvatarsToClient);
+
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");

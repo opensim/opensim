@@ -52,6 +52,9 @@ namespace OpenSim
     /// </summary>
     public partial class ClientView : ClientViewBase
     {
+        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
+        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>(); //local handlers for this instance 
+
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
@@ -74,10 +77,6 @@ namespace OpenSim
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
-
-        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
-
-        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>(); //local handlers for this instance 
 
         public IUserServer UserServer
         {
@@ -233,8 +232,6 @@ namespace OpenSim
             return result;
         }
 
-        # endregion
-
         protected virtual void ClientLoop()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ClientLoop() - Entered loop");
@@ -253,6 +250,7 @@ namespace OpenSim
                 }
             }
         }
+        # endregion
 
         # region Setup
 

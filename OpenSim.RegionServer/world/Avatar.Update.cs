@@ -93,6 +93,11 @@ namespace OpenSim.world
             }
 
         }
+        public void SendUpdateToOtherClient(Avatar RemoteAvatar)
+        {
+            ObjectUpdatePacket objupdate = CreateUpdatePacket();
+            RemoteAvatar.SendPacketToViewer(objupdate);
+        }
 
         public ObjectUpdatePacket CreateUpdatePacket()
         {

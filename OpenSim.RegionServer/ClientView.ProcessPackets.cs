@@ -38,6 +38,7 @@ namespace OpenSim
         public event GenericCall2 OnCompleteMovementToRegion;
         public event GenericCall3 OnAgentUpdate;
         public event StartAnim OnStartAnim;
+        public event GenericCall OnRequestAvatarsData;
 
         protected override void ProcessInPacket(Packet Pack)
         {
@@ -106,16 +107,7 @@ namespace OpenSim
                          break;
                      case PacketType.AgentWearablesRequest:
                          OnRequestWearables(this);
-                        //need to move the follow to a event system
-                         foreach (ClientView client in m_clientThreads.Values)
-                         {
-                             if (client.AgentID != this.AgentID)
-                             {
-                                 ObjectUpdatePacket objupdate = client.ClientAvatar.CreateUpdatePacket();
-                                 this.OutPacket(objupdate);
-                                 client.ClientAvatar.SendAppearanceToOtherAgent(this.ClientAvatar);
-                             }
-                         }
+                         OnRequestAvatarsData(this);
                          break;
                      case PacketType.AgentSetAppearance:
                          AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
