@@ -102,7 +102,6 @@ namespace OpenSim
                          break;
 
                      case PacketType.RegionHandshakeReply:
-                         m_world.SendLayerData(this);
                          OnRegionHandShakeReply(this);
                          break;
                      case PacketType.AgentWearablesRequest:
@@ -111,7 +110,6 @@ namespace OpenSim
                          break;
                      case PacketType.AgentSetAppearance:
                          AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
-                         // Console.WriteLine(appear.ToString());
                          OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
                          break;
                      case PacketType.CompleteAgentMovement:
