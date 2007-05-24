@@ -21,12 +21,12 @@ namespace OpenSim.world
             {
                 case 1:
                     // raise terrain
-                    Terrain.raise(north, west, 10.0, 0.1);
+                    Terrain.raise(north, west, 10.0, 0.001);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 2:
                     //lower terrain
-                    Terrain.lower(north, west, 10.0, 0.1);
+                    Terrain.lower(north, west, 10.0, 0.001);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
             }

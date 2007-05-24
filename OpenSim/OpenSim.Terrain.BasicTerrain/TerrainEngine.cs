@@ -94,7 +94,7 @@ namespace OpenSim.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    heightmap.set(x,y,(double)heights[x,y]);
+                    heightmap.set(x, y, (double)heights[x, y]);
                 }
             }
             tainted++;
@@ -290,7 +290,7 @@ namespace OpenSim.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    bs.Write(heightmap.get(x,y));
+                    bs.Write(heightmap.get(x, y));
                 }
             }
 
@@ -385,7 +385,8 @@ namespace OpenSim.Terrain
         /// <param name="meep">The heightfield</param>
         /// <param name="val">The multiplier</param>
         /// <returns></returns>
-        public static TerrainEngine operator *(TerrainEngine meep, Double val) {
+        public static TerrainEngine operator *(TerrainEngine meep, Double val)
+        {
             meep.heightmap *= val;
             meep.tainted++;
             return meep;
@@ -401,12 +402,12 @@ namespace OpenSim.Terrain
         {
             get
             {
-                return (float)heightmap.get(x,y);
+                return (float)heightmap.get(x, y);
             }
             set
             {
                 tainted++;
-                heightmap.set(x,y,(double)value);
+                heightmap.set(x, y, (double)value);
             }
         }
 
