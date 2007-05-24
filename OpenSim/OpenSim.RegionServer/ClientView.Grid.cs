@@ -35,38 +35,45 @@ namespace OpenSim
 
                 foreach (Hashtable neighbour in gridServer.neighbours)
                 {
-                    string neighbourIPStr = (string)neighbour["sim_ip"];
-                    System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse(neighbourIPStr);
-                    ushort neighbourPort = (ushort)Convert.ToInt32(neighbour["sim_port"]);
-                    string reqUrl = "http://" + neighbourIPStr + ":" + neighbourPort.ToString();
+                    try
+                    {
+                        string neighbourIPStr = (string)neighbour["sim_ip"];
+                        System.Net.IPAddress neighbourIP = System.Net.IPAddress.Parse(neighbourIPStr);
+                        ushort neighbourPort = (ushort)Convert.ToInt32(neighbour["sim_port"]);
+                        string reqUrl = "http://" + neighbourIPStr + ":" + neighbourPort.ToString();
 
-                    Console.WriteLine(reqUrl);
+                        Console.WriteLine(reqUrl);
 
-                    SimParams = new Hashtable();
-                    SimParams["session_id"] = this.SessionID.ToString();
-                    SimParams["secure_session_id"] = this.SecureSessionID.ToString();
-                    SimParams["firstname"] = this.ClientAvatar.firstname;
-                    SimParams["lastname"] = this.ClientAvatar.lastname;
-                    SimParams["agent_id"] = this.AgentID.ToString();
-                    SimParams["circuit_code"] = (Int32)this.CircuitCode;
-                    SimParams["child_agent"] = "1";
-                    SendParams = new ArrayList();
-                    SendParams.Add(SimParams);
+                        SimParams = new Hashtable();
+                        SimParams["session_id"] = this.SessionID.ToString();
+                        SimParams["secure_session_id"] = this.SecureSessionID.ToString();
+                        SimParams["firstname"] = this.ClientAvatar.firstname;
+                        SimParams["lastname"] = this.ClientAvatar.lastname;
+                        SimParams["agent_id"] = this.AgentID.ToString();
+                        SimParams["circuit_code"] = (Int32)this.CircuitCode;
+                        SimParams["child_agent"] = "1";
+                        SendParams = new ArrayList();
+                        SendParams.Add(SimParams);
 
-                    GridReq = new XmlRpcRequest("expect_user", SendParams);
-                    GridResp = GridReq.Send(reqUrl, 3000);
-                    EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
-                    enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
-                    enablesimpacket.SimulatorInfo.Handle = Helpers.UIntsToLong((uint)(Convert.ToInt32(neighbour["region_locx"]) * 256), (uint)(Convert.ToInt32(neighbour["region_locy"]) * 256));
+                        GridReq = new XmlRpcRequest("expect_user", SendParams);
+                        GridResp = GridReq.Send(reqUrl, 3000);
+                        EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
+                        enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
+                        enablesimpacket.SimulatorInfo.Handle = Helpers.UIntsToLong((uint)(Convert.ToInt32(neighbour["region_locx"]) * 256), (uint)(Convert.ToInt32(neighbour["region_locy"]) * 256));
 
 
-                    byte[] byteIP = neighbourIP.GetAddressBytes();
-                    enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
-                    enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
-                    enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
-                    enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
-                    enablesimpacket.SimulatorInfo.Port = neighbourPort;
-                    enablePackets.Add(enablesimpacket);
+                        byte[] byteIP = neighbourIP.GetAddressBytes();
+                        enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
+                        enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
+                        enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
+                        enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
+                        enablesimpacket.SimulatorInfo.Port = neighbourPort;
+                        enablePackets.Add(enablesimpacket);
+                    }
+                    catch (Exception e)
+                    {
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Could not connect to neighbour " + neighbour["sim_ip"] + ":" + neighbour["sim_port"] + ", continuing.");
+                    }
                 }
                 Thread.Sleep(3000);
                 foreach (Packet enable in enablePackets)
