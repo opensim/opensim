@@ -106,7 +106,7 @@
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 

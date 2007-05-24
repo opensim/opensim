@@ -23,13 +23,13 @@
                 <include name="System.dll" />
                 <include name="System.Data.dll" />
                 <include name="System.Xml.dll" />
-                <include name="OpenSim.Framework.dll" />
-                <include name="OpenSim.Framework.Console.dll" />
-                <include name="OpenSim.GridInterfaces.Local.dll" />
-                <include name="OpenSim.Servers.dll" />
+                <include name="../../bin/OpenSim.Framework.dll" />
+                <include name="../../bin/OpenSim.Framework.Console.dll" />
+                <include name="../../bin/OpenSim.GridInterfaces.Local.dll" />
+                <include name="../../bin/OpenSim.Servers.dll" />
                 <include name="../../bin/libsecondlife.dll" />
                 <include name="../../bin/Db4objects.Db4o.dll" />
-                <include name="XMLRPC.dll" />
+                <include name="../../bin/XMLRPC.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />
