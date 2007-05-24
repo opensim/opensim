@@ -38,7 +38,7 @@ namespace OpenSim.Servers
             {
                 SecuredTemplateChecksumRequestPacket checksum = (SecuredTemplateChecksumRequestPacket)packet;
                 TemplateChecksumReplyPacket checkreply = new TemplateChecksumReplyPacket();
-                checkreply.DataBlock.Checksum = 180572585;
+                checkreply.DataBlock.Checksum = 3220703154;//180572585;
                 checkreply.DataBlock.Flags = 0;
                 checkreply.DataBlock.MajorVersion = 1;
                 checkreply.DataBlock.MinorVersion = 15;
