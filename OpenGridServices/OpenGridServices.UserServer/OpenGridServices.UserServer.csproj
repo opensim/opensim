@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -70,43 +70,35 @@
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="OpenSim.Framework" >
+      <HintPath>OpenSim.Framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenSim.Framework.Console" >
+      <HintPath>OpenSim.Framework.Console.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenSim.Servers" >
+      <HintPath>OpenSim.Servers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>..\bin\libsecondlife.dll</HintPath>
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\bin\Db4objects.Db4o.dll</HintPath>
+      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC" >
+      <HintPath>XMLRPC.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
-      <Name>OpenSim.Framework</Name>
-      <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
-      <Name>OpenSim.Framework.Console</Name>
-      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\OpenGrid.Framework.Data\OpenGrid.Framework.Data.csproj">
       <Name>OpenGrid.Framework.Data</Name>
       <Project>{62CDF671-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Servers\OpenSim.Servers.csproj">
-      <Name>OpenSim.Servers</Name>
-      <Project>{8BB20F0A-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\XmlRpcCS\XMLRPC.csproj">
-      <Name>XMLRPC</Name>
-      <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

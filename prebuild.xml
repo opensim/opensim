@@ -132,7 +132,7 @@
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
@@ -513,19 +513,19 @@
 
  
   <!-- OpenGrid Data Services -->
-    <Project name="OpenGrid.Framework.Data" path="OpenGrid.Framework.Data" type="Library">
+    <Project name="OpenGrid.Framework.Data" path="OpenGridServices/OpenGrid.Framework.Data" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -535,19 +535,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenGrid.Framework.Data.MySQL" path="OpenGrid.Framework.Data.MySQL" type="Library">
+    <Project name="OpenGrid.Framework.Data.MySQL" path="OpenGridServices/OpenGrid.Framework.Data.MySQL" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -559,19 +559,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenGrid.Framework.Data.DB4o" path="OpenGrid.Framework.Data.DB4o" type="Library">
+    <Project name="OpenGrid.Framework.Data.DB4o" path="OpenGridServices/OpenGrid.Framework.Data.DB4o" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -583,19 +583,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenGrid.Framework.Data.MSSQL" path="OpenGrid.Framework.Data.MSSQL" type="Library">
+    <Project name="OpenGrid.Framework.Data.MSSQL" path="OpenGridServices/OpenGrid.Framework.Data.MSSQL" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -606,19 +606,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenGrid.Framework.Data.SQLite" path="OpenGrid.Framework.Data.SQLite" type="Library">
+    <Project name="OpenGrid.Framework.Data.SQLite" path="OpenGridServices/OpenGrid.Framework.Data.SQLite" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -632,19 +632,19 @@
 
     <!-- OGS projects -->    
    
-   <Project name="OpenGrid.Framework.Manager" path="OpenGrid.Framework.Manager" type="Library">
+   <Project name="OpenGrid.Framework.Manager" path="OpenGridServices/OpenGrid.Framework.Manager" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-     <ReferencePath>../bin/</ReferencePath>
+     <ReferencePath>../../bin/</ReferencePath>
      <Reference name="System" localCopy="false"/>
      <Reference name="OpenSim.Framework"/>
      <Reference name="OpenSim.Servers"/>
@@ -658,19 +658,19 @@
     </Project>
 
 
-   <Project name="ServiceManager" path="ServiceManager" type="Exe">
+   <Project name="ServiceManager" path="OpenGridServices/ServiceManager" type="Exe">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-     <ReferencePath>../bin/</ReferencePath>
+     <ReferencePath>../../bin/</ReferencePath>
      <Reference name="System" localCopy="false"/>
      <Reference name="System.ServiceProcess" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
@@ -681,19 +681,19 @@
     </Project>
 
  
-    <Project name="OpenGridServices.GridServer" path="OpenGridServices.GridServer" type="Exe">
+    <Project name="OpenGridServices.GridServer" path="OpenGridServices/OpenGridServices.GridServer" type="Exe">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-     <ReferencePath>../bin/</ReferencePath>
+     <ReferencePath>../../bin/</ReferencePath>
      <Reference name="System" localCopy="false"/>
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
@@ -711,19 +711,19 @@
      </Files>
     </Project>
 
- <Project name="OpenGridServices.AssetServer" path="OpenGridServices.AssetServer" type="Exe">
+ <Project name="OpenGridServices.AssetServer" path="OpenGridServices/OpenGridServices.AssetServer" type="Exe">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-     <ReferencePath>../bin/</ReferencePath>
+     <ReferencePath>../../bin/</ReferencePath>
      <Reference name="System" localCopy="false"/>
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
@@ -740,19 +740,19 @@
      </Files>
     </Project>
 
-    <Project name="OpenGridServices.UserServer" path="OpenGridServices.UserServer" type="Exe">
+    <Project name="OpenGridServices.UserServer" path="OpenGridServices/OpenGridServices.UserServer" type="Exe">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       
-     <ReferencePath>../bin/</ReferencePath>
+     <ReferencePath>../../bin/</ReferencePath>
      <Reference name="System" localCopy="false"/>
      <Reference name="System.Data" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
@@ -771,19 +771,19 @@
 
 
 
-    <Project name="OpenGrid.Config.GridConfigDb4o" path="OpenGrid.Config/GridConfigDb4o" type="Library">
+    <Project name="OpenGrid.Config.GridConfigDb4o" path="OpenGridServices/OpenGrid.Config/GridConfigDb4o" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data.dll"/>
       <Reference name="System.Xml"/>
@@ -796,19 +796,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenUser.Config.UserConfigDb4o" path="OpenUser.Config/UserConfigDb4o" type="Library">
+    <Project name="OpenUser.Config.UserConfigDb4o" path="OpenGridServices/OpenUser.Config/UserConfigDb4o" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data.dll"/>
       <Reference name="System.Xml"/>
