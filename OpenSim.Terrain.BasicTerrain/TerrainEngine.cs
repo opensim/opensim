@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Drawing;
 using libTerrain;
 
 namespace OpenSim.Terrain
@@ -401,6 +402,46 @@ namespace OpenSim.Terrain
             {
                 tainted++;
                 heightmap.set(x,y,(double)value);
+            }
+        }
+
+        /// <summary>
+        /// Exports the current heightmap to a PNG file
+        /// </summary>
+        /// <param name="filename">The destination filename for the image</param>
+        /// <param name="gradientmap">A 1x*height* image which contains the colour gradient to export with. Must be at least 1x2 pixels, 1x256 or more is ideal.</param>
+        public void exportImage(string filename, string gradientmap)
+        {
+            try
+            {
+                Bitmap gradientmapLd = new Bitmap(gradientmap);
+
+                int pallete = gradientmapLd.Width;
+
+                Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
+                Color[] colours = new Color[pallete];
+
+                for (int i = 0; i < pallete; i++)
+                {
+                    colours[i] = gradientmapLd.GetPixel(1, i);
+                }
+
+                Channel copy = heightmap.copy();
+                for (int x = 0; x < copy.w; x++)
+                {
+                    for (int y = 0; y < copy.h; y++)
+                    {
+                        // 512 is the largest possible height before colours clamp
+                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(x, y) / 512.0), 0.0) * pallete);
+                        bmp.SetPixel(x, y, colours[colorindex]);
+                    }
+                }
+
+                bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed generating terrain map: " + e.ToString());
             }
         }
     }

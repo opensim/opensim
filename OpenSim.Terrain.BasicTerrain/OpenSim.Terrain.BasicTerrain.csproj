@@ -66,6 +66,10 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Drawing" >
+      <HintPath>System.Drawing.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Data" >
       <HintPath>System.Data.dll</HintPath>
       <Private>False</Private>
