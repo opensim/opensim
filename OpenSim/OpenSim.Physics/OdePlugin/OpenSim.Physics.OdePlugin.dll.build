@@ -20,14 +20,14 @@
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
                 <include name="System.dll" />
-                <include name="../../bin/Axiom.MathLib.dll" />
-                <include name="../../bin/OpenSim.Physics.Manager.dll" />
-                <include name="../../bin/Ode.NET.dll" />
+                <include name="../../../bin/Axiom.MathLib.dll" />
+                <include name="../../../bin/OpenSim.Physics.Manager.dll" />
+                <include name="../../../bin/Ode.NET.dll" />
             </references>
         </csc>
-        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/Physics/" />
-        <mkdir dir="${project::get-base-directory()}/../../bin/Physics/"/>
-        <copy todir="${project::get-base-directory()}/../../bin/Physics/">
+        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../../bin/Physics/" />
+        <mkdir dir="${project::get-base-directory()}/../../../bin/Physics/"/>
+        <copy todir="${project::get-base-directory()}/../../../bin/Physics/">
             <fileset basedir="${project::get-base-directory()}/${build.dir}/" >
                 <include name="*.dll"/>
                 <include name="*.exe"/>

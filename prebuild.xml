@@ -33,7 +33,7 @@
     </Configuration>
 
     <!-- XML-RPC -->
-     <Project name="XMLRPC" path="XmlRpcCS" type="Library">
+     <Project name="XMLRPC" path="Common/XmlRpcCS" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -56,7 +56,7 @@
 
     <!-- Core OpenSim Projects -->
 
-    <Project name="OpenSim.Framework" path="OpenSim.Framework" type="Library">
+    <Project name="OpenSim.Framework" path="Common/OpenSim.Framework" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -79,7 +79,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Console" path="OpenSim.Framework.Console" type="Library">
+    <Project name="OpenSim.Framework.Console" path="Common/OpenSim.Framework.Console" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -98,7 +98,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers" path="OpenSim.Servers" type="Library">
+    <Project name="OpenSim.Servers" path="Common/OpenSim.Servers" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -124,7 +124,7 @@
     </Project>
 
     <!-- Storage Plug-ins -->
-    <Project name="OpenSim.Storage.LocalStorageDb4o" path="OpenSim.Storage/LocalStorageDb4o" type="Library">
+    <Project name="OpenSim.Storage.LocalStorageDb4o" path="OpenSim/OpenSim.Storage/LocalStorageDb4o" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -148,7 +148,7 @@
       </Files>
     </Project>
     
-    <Project name="OpenSim.Storage.LocalStorageSQLite" path="OpenSim.Storage/LocalStorageSQLite" type="Library">
+    <Project name="OpenSim.Storage.LocalStorageSQLite" path="OpenSim/OpenSim.Storage/LocalStorageSQLite" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -173,7 +173,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Storage.LocalStorageBerkeleyDB" path="OpenSim.Storage/LocalStorageBerkeleyDB" type="Library">
+    <Project name="OpenSim.Storage.LocalStorageBerkeleyDB" path="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -200,7 +200,7 @@
     </Project>
 
     <!-- Grid Server Plug-ins -->
-    <Project name="OpenSim.GridInterfaces.Local" path="OpenSim.GridInterfaces/Local" type="Library">
+    <Project name="OpenSim.GridInterfaces.Local" path="OpenSim/OpenSim.GridInterfaces/Local" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -224,7 +224,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.GridInterfaces.Remote" path="OpenSim.GridInterfaces/Remote" type="Library">
+    <Project name="OpenSim.GridInterfaces.Remote" path="OpenSim/OpenSim.GridInterfaces/Remote" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -249,7 +249,7 @@
     </Project>
     
 
-    <Project name="OpenSim.Physics.Manager" path="OpenSim.Physics/Manager" type="Library">
+    <Project name="OpenSim.Physics.Manager" path="OpenSim/OpenSim.Physics/Manager" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -274,7 +274,7 @@
 
 
     <!-- Physics Plug-ins -->
-    <Project name="OpenSim.Physics.BasicPhysicsPlugin" path="OpenSim.Physics/BasicPhysicsPlugin" type="Library">
+    <Project name="OpenSim.Physics.BasicPhysicsPlugin" path="OpenSim/OpenSim.Physics/BasicPhysicsPlugin" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/Physics/</OutputPath>
@@ -295,7 +295,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Physics.PhysXPlugin" path="OpenSim.Physics/PhysXPlugin" type="Library">
+    <Project name="OpenSim.Physics.PhysXPlugin" path="OpenSim/OpenSim.Physics/PhysXPlugin" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/Physics/</OutputPath>
@@ -317,7 +317,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Physics.OdePlugin" path="OpenSim.Physics/OdePlugin" type="Library">
+    <Project name="OpenSim.Physics.OdePlugin" path="OpenSim/OpenSim.Physics/OdePlugin" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/Physics/</OutputPath>
@@ -341,7 +341,7 @@
     </Project>
 
      <!-- Xml Config Dll -->
-     <Project name="OpenSim.GenericConfig.Xml" path="OpenSim.GenericConfig/Xml" type="Library">
+     <Project name="OpenSim.GenericConfig.Xml" path="Common/OpenSim.GenericConfig/Xml" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -364,7 +364,7 @@
     </Project>
 
 	<!-- Basic embedded JVM -->
-     <Project name="OpenSim.Scripting.EmbeddedJVM" path="OpenSim.Scripting/EmbeddedJVM" type="Library">
+     <Project name="OpenSim.Scripting.EmbeddedJVM" path="OpenSim/OpenSim.Scripting/EmbeddedJVM" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/ScriptEngines/</OutputPath>
@@ -388,7 +388,7 @@
 
 
      <!-- Terrain engine -->
-     <Project name="OpenSim.Terrain.BasicTerrain" path="OpenSim.Terrain.BasicTerrain" type="Library">
+     <Project name="OpenSim.Terrain.BasicTerrain" path="OpenSim/OpenSim.Terrain.BasicTerrain" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -412,7 +412,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.RegionServer" path="OpenSim.RegionServer" type="Library">
+    <Project name="OpenSim.RegionServer" path="OpenSim/OpenSim.RegionServer" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -444,7 +444,7 @@
     </Project>
 
     <!-- OpenSim app -->
-    <Project name="OpenSim" path="OpenSim" type="Exe">
+    <Project name="OpenSim" path="OpenSim/OpenSim" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>

@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\..\bin\Physics\</OutputPath>
+    <OutputPath>..\..\..\bin\Physics\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\..\bin\Physics\</OutputPath>
+    <OutputPath>..\..\..\bin\Physics\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -63,11 +63,11 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Axiom.MathLib.dll" >
-      <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
+      <HintPath>..\..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Ode.NET.dll" >
-      <HintPath>..\..\bin\Ode.NET.dll</HintPath>
+      <HintPath>..\..\..\bin\Ode.NET.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

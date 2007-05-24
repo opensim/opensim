@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>..\..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>..\..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -67,24 +67,24 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\OpenSim.Framework\OpenSim.Framework.csproj">
+    <ProjectReference Include="..\..\..\Common\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+    <ProjectReference Include="..\..\..\Common\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
       <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\XmlRpcCS\XMLRPC.csproj">
+    <ProjectReference Include="..\..\..\Common\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>

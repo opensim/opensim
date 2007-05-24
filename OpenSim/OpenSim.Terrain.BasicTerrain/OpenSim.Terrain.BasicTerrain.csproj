@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -58,12 +58,12 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="libTerrain-BSD.dll" >
-      <HintPath>..\bin\libTerrain-BSD.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" >
       <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing" >
+      <HintPath>System.Drawing.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data" >
@@ -72,6 +72,10 @@
     </Reference>
     <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="libTerrain-BSD.dll" >
+      <HintPath>..\..\bin\libTerrain-BSD.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
