@@ -29,7 +29,7 @@ namespace OpenGrid.Framework.Data.MySQL
         {
             try
             {
-                string connectionString = "Server=" + hostname + ";Port=13306;Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+                string connectionString = "Server=" + hostname + ";Port=3306;Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
                 dbcon = new MySqlConnection(connectionString);
 
                 dbcon.Open();
