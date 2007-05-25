@@ -35,7 +35,7 @@ namespace OpenSim.world
         private string m_regionName;
         private ushort m_regionWaterHeight;
         private bool m_regionTerraform;
-        //private bool childShadowAvatar = false;
+        private bool childAvatar = false;
 
         public Avatar(ClientView TheClient, World world, string regionName, Dictionary<uint, ClientView> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
         {
@@ -72,6 +72,7 @@ namespace OpenSim.world
             ControllingClient.OnCompleteMovementToRegion += new ClientView.GenericCall2(this.SendInitialPosition);
             ControllingClient.OnAgentUpdate += new ClientView.GenericCall3(this.HandleAgentUpdate);
             ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
+            ControllingClient.OnChildAgentStatus += new ClientView.StatusChange(this.ChildStatusChange);
 
         }
 
@@ -84,6 +85,35 @@ namespace OpenSim.world
             get
             {
                 return _physActor;
+            }
+        }
+
+        public void ChildStatusChange(bool status)
+        {
+            this.childAvatar = status;
+
+            if (this.childAvatar == true)
+            {
+                this._physActor.Velocity = new PhysicsVector(0, 0, 0);
+                ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
+                ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+                terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                terse.RegionData.TimeDilation = 64096;
+                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+                terse.ObjectData[0] = terseBlock;
+                List<Avatar> avList = this.m_world.RequestAvatarList();
+                foreach (Avatar client in avList)
+                {
+                    client.SendPacketToViewer(terse);
+                }
+            }
+            else
+            {
+                LLVector3 startp = ControllingClient.StartPos;
+                lock (m_world.LockPhysicsEngine)
+                {
+                    this._physActor.Position = new PhysicsVector(startp.X, startp.Y, startp.Z);
+                }
             }
         }
 

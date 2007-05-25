@@ -86,6 +86,18 @@ namespace OpenSim
             }
         }
 
+        public LLVector3 StartPos
+        {
+            get
+            {
+                return startpos;
+            }
+            set
+            {
+                startpos = value;
+            }
+        }
+
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, ClientView> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child, RegionInfo regionDat, AuthenticateSessionsBase authenSessions)
         {
             m_world = world;
@@ -133,21 +145,23 @@ namespace OpenSim
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
-            this.m_world.RemoveViewerAgent(this);
+            //this.m_world.RemoveViewerAgent(this);
             if (!this.m_sandboxMode)
             {
                 this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
                 m_authenticateSessionsHandler.UpdateAgentChildStatus(CircuitCode, false);
             }
-            this.InitNewClient();
+            OnChildAgentStatus(this.m_child);
+            //this.InitNewClient();
         }
 
         public void DowngradeClient()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - changing full agent to child");
             this.m_child = true;
-            this.m_world.RemoveViewerAgent(this);
-            this.m_world.AddViewerAgent(this);
+            OnChildAgentStatus(this.m_child);
+            //this.m_world.RemoveViewerAgent(this);
+            //this.m_world.AddViewerAgent(this);
         }
 
         public void KillClient()
@@ -256,11 +270,7 @@ namespace OpenSim
         protected virtual void InitNewClient()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
-
-            m_world.AddViewerAgent(this);
-            world.Entity tempent = m_world.Entities[this.AgentID];
-
-            this.ClientAvatar = (world.Avatar)tempent;
+            this.ClientAvatar = m_world.AddViewerAgent(this);         
         }
 
         protected virtual void AuthUser()
@@ -280,7 +290,7 @@ namespace OpenSim
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;
                 this.CircuitCode = cirpack.CircuitCode.Code;
-                InitNewClient(); //shouldn't be called here as we might be a child agent and not want a full avatar 
+                InitNewClient(); 
                 this.ClientAvatar.firstname = sessionInfo.LoginInfo.First;
                 this.ClientAvatar.lastname = sessionInfo.LoginInfo.Last;
                 if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)

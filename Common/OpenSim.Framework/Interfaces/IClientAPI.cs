@@ -24,6 +24,11 @@ namespace OpenSim.Framework.Interfaces
         event StartAnim OnStartAnim;
         event LinkObjects OnLinkObjects;
 
+        LLVector3 StartPos
+        {
+            get;
+            set;
+        }
         void SendAppearance(AvatarWearable[] wearables);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     }

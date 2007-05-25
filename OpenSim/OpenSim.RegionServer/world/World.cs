@@ -530,7 +530,7 @@ namespace OpenSim.world
 
         #region Add/Remove Avatar Methods
 
-        public override void AddViewerAgent(ClientView agentClient)
+        public override Avatar AddViewerAgent(ClientView agentClient)
         {
             //register for events
             agentClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
@@ -549,22 +549,23 @@ namespace OpenSim.world
             agentClient.OnUpdatePrimRotation += new ClientView.UpdatePrimRotation(this.UpdatePrimRotation);
             agentClient.OnUpdatePrimScale += new ClientView.UpdatePrimVector(this.UpdatePrimScale);
             agentClient.OnDeRezObject += new ClientView.GenericCall4(this.DeRezObject);
-
+            Avatar newAvatar = null;
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                Avatar newAvatar = new Avatar(agentClient, this, m_regionName, m_clientThreads, m_regionHandle, true, 20);
+                newAvatar = new Avatar(agentClient, this, m_regionName, m_clientThreads, m_regionHandle, true, 20);
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
                 newAvatar.SendRegionHandshake(this);
-                if (!agentClient.m_child)
-                {
+                //if (!agentClient.m_child)
+                //{
+                    
                     PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
                     lock (this.LockPhysicsEngine)
                     {
                         newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
                     }
-                }
+              //  }
                 lock (Entities)
                 {
                     if (!Entities.ContainsKey(agentClient.AgentID))
@@ -592,6 +593,7 @@ namespace OpenSim.world
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
             }
+            return newAvatar;
         }
 
         public override void RemoveViewerAgent(ClientView agentClient)
@@ -608,7 +610,7 @@ namespace OpenSim.world
                 }
                 if (agentClient.ClientAvatar.PhysActor != null)
                 {
-                    //this.phyScene.RemoveAvatar(agentClient.ClientAvatar.PhysActor);
+                    this.phyScene.RemoveAvatar(agentClient.ClientAvatar.PhysActor);
                 }
             }
             catch (Exception e)

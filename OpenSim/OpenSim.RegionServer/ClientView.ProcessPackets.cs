@@ -30,6 +30,7 @@ namespace OpenSim
         public delegate void UpdatePrimTexture(uint localID, byte[] texture, ClientView remoteClient);
         public delegate void UpdatePrimVector(uint localID, LLVector3 pos, ClientView remoteClient);
         public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, ClientView remoteClient);
+        public delegate void StatusChange(bool status);
 
         public event ChatFromViewer OnChatFromViewer;
         public event RezObject OnRezObject;
@@ -51,6 +52,7 @@ namespace OpenSim
         public event UpdatePrimVector OnUpdatePrimPosition;
         public event UpdatePrimRotation OnUpdatePrimRotation;
         public event UpdatePrimVector OnUpdatePrimScale;
+        public event StatusChange OnChildAgentStatus;
 
         protected override void ProcessInPacket(Packet Pack)
         {

@@ -148,9 +148,9 @@ namespace OpenSim.world
         /// Add a new Agent's avatar
         /// </summary>
         /// <param name="agentClient"></param>
-        public virtual void AddViewerAgent(ClientView agentClient)
+        public virtual Avatar AddViewerAgent(ClientView agentClient)
         {
-
+            return null;
         }
 
         /// <summary>

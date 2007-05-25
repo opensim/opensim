@@ -10,89 +10,93 @@ namespace OpenSim.world
     {
         public override void update()
         {
-            if (this._physActor == null)
+            if (!this.childAvatar)
             {
-                //HACKHACK: Note to work out why this entity does not have a physics actor
-                //          and prehaps create one.
-                return;
-            }
-            libsecondlife.LLVector3 pos2 = new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z);
-            if (this.updateflag)
-            {
-                //need to send movement info
-                //so create the improvedterseobjectupdate packet
-                //use CreateTerseBlock()
-                ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
-                ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                terse.RegionData.RegionHandle = m_regionHandle; // FIXME
-                terse.RegionData.TimeDilation = 64096;
-                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-                terse.ObjectData[0] = terseBlock;
-                List<Avatar> avList = this.m_world.RequestAvatarList();
-                foreach (Avatar client in avList)
+                if (this._physActor == null)
                 {
-                    client.SendPacketToViewer(terse);
+                    //HACKHACK: Note to work out why this entity does not have a physics actor
+                    //          and prehaps create one.
+                    return;
                 }
-
-                updateflag = false;
-                //this._updateCount = 0;
-            }
-            else
-            {
-
-                if ((pos2 != this.positionLastFrame) || (this.movementflag == 16))
+                libsecondlife.LLVector3 pos2 = new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z);
+                if (this.updateflag)
                 {
-                    _updateCount++;
-                    if (((!PhysicsEngineFlying) && (_updateCount > 3)) || (PhysicsEngineFlying) && (_updateCount > 0))
+                    //need to send movement info
+                    //so create the improvedterseobjectupdate packet
+                    //use CreateTerseBlock()
+                    ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
+                    ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+                    terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                    terse.RegionData.TimeDilation = 64096;
+                    terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+                    terse.ObjectData[0] = terseBlock;
+                    List<Avatar> avList = this.m_world.RequestAvatarList();
+                    foreach (Avatar client in avList)
                     {
-                        //It has been a while since last update was sent so lets send one.
-                        ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
-                        ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                        terse.RegionData.RegionHandle = m_regionHandle; // FIXME
-                        terse.RegionData.TimeDilation = 64096;
-                        terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-                        terse.ObjectData[0] = terseBlock;
-                        List<Avatar> avList = this.m_world.RequestAvatarList();
-                        foreach (Avatar client in avList)
+                        client.SendPacketToViewer(terse);
+                    }
+
+                    updateflag = false;
+                    //this._updateCount = 0;
+                }
+                else
+                {
+
+                    if ((pos2 != this.positionLastFrame) || (this.movementflag == 16))
+                    {
+                        _updateCount++;
+                        if (((!PhysicsEngineFlying) && (_updateCount > 3)) || (PhysicsEngineFlying) && (_updateCount > 0))
                         {
-                            client.SendPacketToViewer(terse);
+                            //It has been a while since last update was sent so lets send one.
+                            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
+                            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+                            terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                            terse.RegionData.TimeDilation = 64096;
+                            terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+                            terse.ObjectData[0] = terseBlock;
+                            List<Avatar> avList = this.m_world.RequestAvatarList();
+                            foreach (Avatar client in avList)
+                            {
+                                client.SendPacketToViewer(terse);
+                            }
+                            _updateCount = 0;
                         }
-                        _updateCount = 0;
+
+                        if (this.movementflag == 16)
+                        {
+                            movementflag = 0;
+                        }
                     }
 
-                    if (this.movementflag == 16)
+                }
+                this.positionLastFrame = pos2;
+
+                if (!this.ControllingClient.m_sandboxMode)
+                {
+                    if (pos2.X < 0)
                     {
-                        movementflag = 0;
+                        ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
                     }
-                }
 
-            }
-            this.positionLastFrame = pos2;
+                    if (pos2.Y < 0)
+                    {
+                        ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                    }
 
-            if (!this.ControllingClient.m_sandboxMode)
-            {
-                if (pos2.X < 0)
-                {
-                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
-                }
+                    if (pos2.X > 255)
+                    {
+                        ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                    }
 
-                if (pos2.Y < 0)
-                {
-                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
-                }
-
-                if (pos2.X > 255)
-                {
-                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
-                }
-
-                if (pos2.Y > 255)
-                {
-                    ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                    if (pos2.Y > 255)
+                    {
+                        ControllingClient.CrossSimBorder(new LLVector3(this._physActor.Position.X, this._physActor.Position.Y, this._physActor.Position.Z));
+                    }
                 }
             }
 
         }
+
         public void SendUpdateToOtherClient(Avatar remoteAvatar)
         {
             ObjectUpdatePacket objupdate = CreateUpdatePacket();

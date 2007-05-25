@@ -58,7 +58,6 @@ namespace OpenSim
         {
             if (this._localWorld != null)
             {
-                //ClientView.AddPacketHandler(PacketType.DeRezObject, _localWorld.DeRezObject);
                 ClientView.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
             }
         }
