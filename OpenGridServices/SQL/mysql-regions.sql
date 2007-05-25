@@ -21,7 +21,7 @@ CREATE TABLE `regions` (
   `regionAssetSendKey` varchar(128) default NULL,
   `regionUserURI` varchar(255) default NULL,
   `regionUserRecvKey` varchar(128) default NULL,
-  `regionUserSendKey` varchar(128) default NULL,
+  `regionUserSendKey` varchar(128) default NULL, `regionMapTexture` varchar(36) default NULL,
   PRIMARY KEY  (`uuid`),
   KEY `regionName` (`regionName`),
   KEY `regionHandle` (`regionHandle`),
