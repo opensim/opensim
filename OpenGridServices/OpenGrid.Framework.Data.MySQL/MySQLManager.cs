@@ -211,11 +211,11 @@ namespace OpenGrid.Framework.Data.MySQL
         {
             string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
-            sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey) VALUES ";
+            sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture) VALUES ";
 
             sql += "(?regionHandle, ?regionName, ?uuid, ?regionRecvKey, ?regionSecret, ?regionSendKey, ?regionDataURI, ";
             sql += "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
-            sql += "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey);";
+            sql += "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -242,6 +242,7 @@ namespace OpenGrid.Framework.Data.MySQL
             parameters["?regionUserURI"] = profile.regionUserURI.ToString();
             parameters["?regionUserRecvKey"] = profile.regionUserRecvKey.ToString();
             parameters["?regionUserSendKey"] = profile.regionUserSendKey.ToString();
+            parameters["?regionMapTexture"] = profile.regionMapTextureID.ToStringHyphenated();
 
             bool returnval = false;
 
