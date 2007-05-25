@@ -14,7 +14,15 @@ namespace OpenGrid.Framework.Data.MySQL
         /// </summary>
         public void Initialise()
         {
-            database = new MySQLManager("localhost", "database", "username", "password", "false");
+            IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
+            string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
+            string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
+            string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
+            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+            string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
+            string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
+
+            database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling, settingPort);
         }
 
         /// <summary>

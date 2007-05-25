@@ -81,6 +81,9 @@
     <Compile Include="GridData.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="IniConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SimProfileData.cs">
       <SubType>Code</SubType>
     </Compile>

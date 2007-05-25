@@ -25,11 +25,11 @@ namespace OpenGrid.Framework.Data.MySQL
         /// <param name="username">The username logging into the database</param>
         /// <param name="password">The password for the user logging in</param>
         /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
-        public MySQLManager(string hostname, string database, string username, string password, string cpooling)
+        public MySQLManager(string hostname, string database, string username, string password, string cpooling, string port)
         {
             try
             {
-                string connectionString = "Server=" + hostname + ";Port=3306;Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+                string connectionString = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
                 dbcon = new MySqlConnection(connectionString);
 
                 dbcon.Open();

@@ -12,6 +12,7 @@
             </resources>
             <sources failonempty="true">
                 <include name="GridData.cs" />
+                <include name="IniConfig.cs" />
                 <include name="SimProfileData.cs" />
                 <include name="UserData.cs" />
                 <include name="UserProfileData.cs" />
