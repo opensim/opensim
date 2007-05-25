@@ -81,7 +81,7 @@ namespace OpenGrid.Framework.Data.DB4o
         /// <param name="row">The profile to add</param>
         /// <returns>Successful?</returns>
         public bool AddRow(UserProfileData row)
-        {
+        { 
             if (userProfiles.ContainsKey(row.UUID))
             {
                 userProfiles[row.UUID] = row;

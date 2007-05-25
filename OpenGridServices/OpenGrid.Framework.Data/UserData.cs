@@ -52,6 +52,12 @@ namespace OpenGrid.Framework.Data
         UserAgentData getAgentByName(string fname, string lname);
 
         /// <summary>
+        /// Adds a new User profile to the database 
+        /// </summary>
+        /// <param name="user">UserProfile to add</param>
+        void addNewUserProfile(UserProfileData user);
+
+        /// <summary>
         /// Attempts to move currency units between accounts (NOT RELIABLE / TRUSTWORTHY. DONT TRY RUN YOUR OWN CURRENCY EXCHANGE WITH REAL VALUES)
         /// </summary>
         /// <param name="from">The account to transfer from</param>

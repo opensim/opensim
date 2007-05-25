@@ -702,6 +702,7 @@
      <Reference name="OpenSim.Servers"/>
      <Reference name="OpenGrid.Framework.Data"/>
      <Reference name="OpenGrid.Framework.Manager"/>
+     <Reference name="OpenSim.GenericConfig.Xml"/>
      <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>
      <Reference name="XMLRPC"/>
@@ -759,6 +760,7 @@
      <Reference name="OpenSim.Framework"/>
      <Reference name="OpenSim.Framework.Console"/>
      <Reference name="OpenGrid.Framework.Data"/>
+     <Reference name="OpenSim.GenericConfig.Xml"/>
      <Reference name="OpenSim.Servers"/>
      <Reference name="libsecondlife.dll"/>
      <Reference name="Db4objects.Db4o.dll"/>

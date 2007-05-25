@@ -121,6 +121,10 @@ namespace OpenGrid.Framework.Data.MySQL
             }
         }
 
+        public void addNewUserProfile(UserProfileData user)
+        {
+        }
+
         public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return false;

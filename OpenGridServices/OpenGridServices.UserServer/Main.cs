@@ -40,6 +40,8 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
 using OpenSim.Servers;
+using OpenSim.Framework.Utilities;
+using OpenSim.GenericConfig;
 
 namespace OpenGridServices.UserServer
 {
@@ -48,8 +50,9 @@ namespace OpenGridServices.UserServer
     public class OpenUser_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
-        private string StorageDll = "OpenGrid.Framework.Data.MySQL.dll";
+        private string StorageDll = "OpenGrid.Framework.Data.DB4o.dll";
         private UserConfig Cfg;
+        protected IGenericConfig localXMLConfig;
 
         public UserManager m_userManager; // Replaces below.
 
@@ -88,6 +91,11 @@ namespace OpenGridServices.UserServer
 
         public void Startup()
         {
+            this.localXMLConfig = new XmlConfig("UserServerConfig.xml");
+            this.localXMLConfig.LoadData();
+            this.ConfigDB(this.localXMLConfig);
+            this.localXMLConfig.Close();
+
             MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
@@ -112,33 +120,22 @@ namespace OpenGridServices.UserServer
             switch (what)
             {
                 case "user":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"Commandline user creation is currently disabled.");
-                    break;
-                    /*
                     string tempfirstname;
                     string templastname;
                     string tempMD5Passwd;
+                    uint regX = 997;
+                    uint regY = 996;
 
                     tempfirstname = m_console.CmdPrompt("First name");
                     templastname = m_console.CmdPrompt("Last name");
                     tempMD5Passwd = m_console.PasswdPrompt("Password");
+                    regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
+                    regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
 
-                    System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
-                    byte[] bs = System.Text.Encoding.UTF8.GetBytes(tempMD5Passwd);
-                    bs = x.ComputeHash(bs);
-                    System.Text.StringBuilder s = new System.Text.StringBuilder();
-                    foreach (byte b in bs)
-                    {
-                        s.Append(b.ToString("x2").ToLower());
-                    }
-                    tempMD5Passwd = s.ToString();
+                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
-                    UserProfile newuser = m_userProfileManager.CreateNewProfile(tempfirstname, templastname, tempMD5Passwd);
-                    newuser.homelookat = new LLVector3(-0.57343f, -0.819255f, 0f);
-                    newuser.homepos = new LLVector3(128f, 128f, 150f);
-                    m_userProfileManager.SaveUserProfiles();
+                    m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY); 
                     break;
-                    */
             }
         }
 
@@ -159,6 +156,29 @@ namespace OpenGridServices.UserServer
                     m_console.Close();
                     Environment.Exit(0);
                     break;
+            }
+        }
+
+        private void ConfigDB(IGenericConfig configData)
+        {
+            try
+            {
+                string attri = "";
+                attri = configData.GetAttribute("DataBaseProvider");
+                if (attri == "")
+                {
+                    StorageDll = "OpenGrid.Framework.Data.DB4o.dll";
+                    configData.SetAttribute("DataBaseProvider", "OpenGrid.Framework.Data.DB4o.dll");
+                }
+                else
+                {
+                    StorageDll = attri;
+                }
+                configData.Commit();
+            }
+            catch (Exception e)
+            {
+
             }
         }
 

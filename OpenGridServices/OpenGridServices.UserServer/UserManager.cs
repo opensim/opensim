@@ -53,6 +53,37 @@ namespace OpenGridServices.UserServer
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user"></param>
+        public void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        {
+            UserProfileData user = new UserProfileData();
+            user.homeLocation = new LLVector3(128, 128, 100);
+            user.UUID = LLUUID.Random();
+            user.username = firstName;
+            user.surname = lastName;
+            user.passwordHash = pass;
+            user.passwordSalt = "";
+            user.created = Util.UnixTimeSinceEpoch();
+            user.homeLookAt = new LLVector3(100, 100, 100);
+            user.homeRegion = Util.UIntsToLong((regX * 256), (regY * 256));
+
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.addNewUserProfile(user);
+                    
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+        }
+
+        /// <summary>
         /// Loads a user profile from a database by UUID
         /// </summary>
         /// <param name="uuid">The target UUID</param>

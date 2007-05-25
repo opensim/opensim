@@ -78,6 +78,10 @@
       <HintPath>OpenSim.Framework.Console.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="OpenSim.GenericConfig.Xml" >
+      <HintPath>OpenSim.GenericConfig.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="OpenSim.Servers" >
       <HintPath>OpenSim.Servers.dll</HintPath>
       <Private>False</Private>

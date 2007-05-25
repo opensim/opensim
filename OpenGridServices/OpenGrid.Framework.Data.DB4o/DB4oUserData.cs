@@ -66,6 +66,11 @@ namespace OpenGrid.Framework.Data.DB4o
             }
         }
 
+        public void addNewUserProfile(UserProfileData user)
+        {
+            manager.AddRow(user);
+        }
+
         public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return true;

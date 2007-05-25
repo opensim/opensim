@@ -41,6 +41,7 @@ using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Servers;
+using OpenSim.GenericConfig;
 
 namespace OpenGridServices.GridServer
 {
@@ -49,15 +50,17 @@ namespace OpenGridServices.GridServer
     public class OpenGrid_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
-        private string GridDll = "OpenGrid.Framework.Data.MySQL.dll";
+        private string GridDll = "OpenGrid.Framework.Data.DB4o.dll";
         public GridConfig Cfg;
-        
+
         public static OpenGrid_Main thegrid;
-	public static bool setuponly;
-        
+        protected IGenericConfig localXMLConfig;
+
+        public static bool setuponly;
+
         //public LLUUID highestUUID;
 
-//        private SimProfileManager m_simProfileManager;
+        //        private SimProfileManager m_simProfileManager;
 
         private GridManager m_gridManager;
 
@@ -70,7 +73,7 @@ namespace OpenGridServices.GridServer
             {
                 if (args[0] == "-setuponly") setuponly = true;
             }
-	    Console.WriteLine("Starting...\n");
+            Console.WriteLine("Starting...\n");
 
             thegrid = new OpenGrid_Main();
             thegrid.Startup();
@@ -82,8 +85,8 @@ namespace OpenGridServices.GridServer
         {
             while (true)
             {
-		Thread.Sleep(5000);
-		// should flush the DB etc here
+                Thread.Sleep(5000);
+                // should flush the DB etc here
             }
         }
 
@@ -95,30 +98,37 @@ namespace OpenGridServices.GridServer
 
         }
 
-	public void managercallback(string cmd) {
-	   switch(cmd) {
-		case "shutdown":
-	    		RunCmd("shutdown",new string[0]);
-		break;
-	   }
-	}
+        public void managercallback(string cmd)
+        {
+            switch (cmd)
+            {
+                case "shutdown":
+                    RunCmd("shutdown", new string[0]);
+                    break;
+            }
+        }
 
 
         public void Startup()
         {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
+            this.localXMLConfig = new XmlConfig("GridServerConfig.xml");
+            this.localXMLConfig.LoadData();
+            this.ConfigDB(this.localXMLConfig);
+            this.localXMLConfig.Close();
+
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
-	    if(setuponly) Environment.Exit(0);
+            if (setuponly) Environment.Exit(0);
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Connecting to Storage Server");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(GridDll); // Made of win
             m_gridManager.config = Cfg;
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);
-	    GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer,"gridserver",Cfg.SimSendKey,Cfg.SimRecvKey,managercallback);
+            GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
@@ -127,7 +137,7 @@ namespace OpenGridServices.GridServer
             httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);
             httpServer.AddRestHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod);
             httpServer.AddRestHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod);
-	    
+
 
             // lbsa71 : This code snippet taken from old http server.
             // I have no idea what this was supposed to do - looks like an infinite recursion to me.
@@ -145,9 +155,9 @@ namespace OpenGridServices.GridServer
 
             httpServer.Start();
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting sim status checker");
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting sim status checker");
 
-            System.Timers.Timer simCheckTimer = new System.Timers.Timer( 300000 ); // 5 minutes
+            System.Timers.Timer simCheckTimer = new System.Timers.Timer(300000); // 5 minutes
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }
@@ -222,7 +232,7 @@ namespace OpenGridServices.GridServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "shutdown":
@@ -234,6 +244,29 @@ namespace OpenGridServices.GridServer
 
         public void Show(string ShowWhat)
         {
+        }
+
+        private void ConfigDB(IGenericConfig configData)
+        {
+            try
+            {
+                string attri = "";
+                attri = configData.GetAttribute("DataBaseProvider");
+                if (attri == "")
+                {
+                    GridDll = "OpenGrid.Framework.Data.DB4o.dll";
+                    configData.SetAttribute("DataBaseProvider", "OpenGrid.Framework.Data.DB4o.dll");
+                }
+                else
+                {
+                    GridDll = attri;
+                }
+                configData.Commit();
+            }
+            catch (Exception e)
+            {
+
+            }
         }
     }
 }
