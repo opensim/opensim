@@ -118,7 +118,7 @@ namespace OpenSim.Terrain
                     case "help":
                         resultText += "terrain regenerate - rebuilds the sims terrain using a default algorithm\n";
                         resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
-                        resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64' or 'IMG'\n";
+                        resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
                         resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'\n";
                         resultText += "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
                         resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
@@ -168,6 +168,10 @@ namespace OpenSim.Terrain
 
                             case "f64":
                                 loadFromFileF64(args[2]);
+                                break;
+
+                            case "raw":
+                                loadFromFileSLRAW(args[2]);
                                 break;
 
                             case "img":
@@ -266,6 +270,32 @@ namespace OpenSim.Terrain
                 for (y = 0; y < h; y++)
                 {
                     heightmap.map[x, y] = (double)bs.ReadSingle();
+                }
+            }
+
+            bs.Close();
+            s.Close();
+
+            tainted++;
+        }
+
+        /// <summary>
+        /// Loads a file formatted in the SL .RAW Format used on the main grid
+        /// </summary>
+        /// <remarks>This file format stinks and is best avoided.</remarks>
+        /// <param name="filename">A path to the .RAW format</param>
+        public void loadFromFileSLRAW(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            System.IO.BinaryReader bs = new System.IO.BinaryReader(s);
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    heightmap.map[x, y] = (double)bs.ReadByte() * ((double)bs.ReadByte() / 127.0);
+                    bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }
 
