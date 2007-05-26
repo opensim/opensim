@@ -443,6 +443,38 @@
       </Files>
     </Project>
 
+
+    <Project name="OpenSim.World" path="OpenSim/OpenSim.World" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="Db4objects.Db4o.dll"/>
+      <Reference name="OpenSim.Terrain.BasicTerrain"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.GenericConfig.Xml"/>
+      <Reference name="OpenSim.Physics.Manager"/>
+      <Reference name="OpenSim.Servers"/>
+      <Reference name="XMLRPC"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <!-- OpenSim app -->
     <Project name="OpenSim" path="OpenSim/OpenSim" type="Exe">
       <Configuration name="Debug">

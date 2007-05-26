@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{632E1BFD-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{642A14A8-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.RegionServer</AssemblyName>
+    <AssemblyName>OpenSim.World</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.RegionServer</RootNamespace>
+    <RootNamespace>OpenSim.World</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -124,133 +124,64 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentAssetUpload.cs">
+    <Compile Include="Avatar.Client.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionsBase.cs">
+    <Compile Include="Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionsLocal.cs">
+    <Compile Include="Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionsRemote.cs">
+    <Compile Include="AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.API.cs">
+    <Compile Include="Entity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.cs">
+    <Compile Include="Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.Grid.cs">
+    <Compile Include="Primitive2.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.PacketHandlers.cs">
+    <Compile Include="SceneObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.ProcessPackets.cs">
+    <Compile Include="World.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientViewBase.cs">
+    <Compile Include="World.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CommsManager.cs">
+    <Compile Include="World.Scripting.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Grid.cs">
+    <Compile Include="WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimMain.cs">
+    <Compile Include="scripting\IScriptContext.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimNetworkHandler.cs">
+    <Compile Include="scripting\IScriptEntity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PacketServer.cs">
+    <Compile Include="scripting\IScriptHandler.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionInfo.cs">
+    <Compile Include="scripting\Script.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionInfoBase.cs">
+    <Compile Include="scripting\ScriptFactory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionServerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UDPServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VersionInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Assets\AssetCache.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Assets\InventoryCache.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAPS\AdminWebFront.cs">
+    <Compile Include="scripting\Scripts\FollowRandomAvatar.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="types\Mesh.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="types\Triangle.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\Avatar.Client.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\Avatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\AvatarAnimations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\Entity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\Primitive2.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\World.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\World.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\World.Scripting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\WorldBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\IScriptContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\IScriptEntity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\IScriptHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\Script.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\ScriptFactory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="world\scripting\Scripts\FollowRandomAvatar.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

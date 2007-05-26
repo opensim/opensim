@@ -57,7 +57,7 @@ namespace OpenSim.world
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, ClientView> clientThreads, RegionInfo regInfo, ulong regionHandle, string regionName)
+        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, ulong regionHandle, string regionName)
         {
             try
             {
@@ -531,92 +531,13 @@ namespace OpenSim.world
 
         public override Avatar AddViewerAgent(ClientView agentClient)
         {
-            //register for events
-            agentClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
-            agentClient.OnRezObject += new RezObject(this.RezObject);
-            agentClient.OnModifyTerrain += new ModifyTerrain(this.ModifyTerrain);
-            agentClient.OnRegionHandShakeReply += new ClientView.GenericCall(this.SendLayerData);
-            agentClient.OnRequestWearables += new ClientView.GenericCall(this.GetInitialPrims);
-            agentClient.OnRequestAvatarsData += new ClientView.GenericCall(this.SendAvatarsToClient);
-            agentClient.OnLinkObjects += new LinkObjects(this.LinkObjects);
-            agentClient.OnAddPrim += new ClientView.GenericCall4(this.AddNewPrim);
-            agentClient.OnUpdatePrimShape += new ClientView.UpdateShape(this.UpdatePrimShape);
-            agentClient.OnObjectSelect += new ClientView.ObjectSelect(this.SelectPrim);
-            agentClient.OnUpdatePrimFlags += new ClientView.UpdatePrimFlags(this.UpdatePrimFlags);
-            agentClient.OnUpdatePrimTexture += new ClientView.UpdatePrimTexture(this.UpdatePrimTexture);
-            agentClient.OnUpdatePrimPosition += new ClientView.UpdatePrimVector(this.UpdatePrimPosition);
-            agentClient.OnUpdatePrimRotation += new ClientView.UpdatePrimRotation(this.UpdatePrimRotation);
-            agentClient.OnUpdatePrimScale += new ClientView.UpdatePrimVector(this.UpdatePrimScale);
-            agentClient.OnDeRezObject += new ClientView.GenericCall4(this.DeRezObject);
-           
             Avatar newAvatar = null;
-            try
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(agentClient, this, m_regionName, m_clientThreads, m_regionHandle, true, 20);
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
-                newAvatar.SendRegionHandshake(this);
-                //if (!agentClient.m_child)
-                //{
-                    
-                    PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-                    lock (this.LockPhysicsEngine)
-                    {
-                        newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
-                    }
-              //  }
-                lock (Entities)
-                {
-                    if (!Entities.ContainsKey(agentClient.AgentID))
-                    {
-                        this.Entities.Add(agentClient.AgentID, newAvatar);
-                    }
-                    else
-                    {
-                        Entities[agentClient.AgentID] = newAvatar;
-                    }
-                }
-                lock (Avatars)
-                {
-                    if (Avatars.ContainsKey(agentClient.AgentID))
-                    {
-                        Avatars[agentClient.AgentID] = newAvatar;
-                    }
-                    else
-                    {
-                        this.Avatars.Add(agentClient.AgentID, newAvatar);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
-            }
             return newAvatar;
         }
 
         public override void RemoveViewerAgent(ClientView agentClient)
         {
-            try
-            {
-                lock (Entities)
-                {
-                    Entities.Remove(agentClient.AgentID);
-                }
-                lock (Avatars)
-                {
-                    Avatars.Remove(agentClient.AgentID);
-                }
-                if (agentClient.ClientAvatar.PhysActor != null)
-                {
-                    this.phyScene.RemoveAvatar(agentClient.ClientAvatar.PhysActor);
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: RemoveViewerAgent() - Failed with exception " + e.ToString());
-            }
+            
         }
         #endregion
 

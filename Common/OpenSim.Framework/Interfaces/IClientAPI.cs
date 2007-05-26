@@ -14,6 +14,17 @@ namespace OpenSim.Framework.Interfaces
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
     public delegate void StartAnim(LLUUID animID, int seq);
     public delegate void LinkObjects(uint parent, List<uint> children);
+    public delegate void GenericCall(IClientAPI remoteClient);
+    public delegate void GenericCall2();
+    public delegate void GenericCall3(Packet packet); // really don't want to be passing packets in these events, so this is very temporary.
+    public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
+    public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
+    public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
+    public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
+    public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
+    public delegate void UpdatePrimVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
+    public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
+    public delegate void StatusChange(bool status);
 
     public interface IClientAPI
     {
@@ -23,6 +34,23 @@ namespace OpenSim.Framework.Interfaces
         event SetAppearance OnSetAppearance;
         event StartAnim OnStartAnim;
         event LinkObjects OnLinkObjects;
+        event GenericCall4 OnDeRezObject;
+        event ModifyTerrain OnModifyTerrain;
+        event GenericCall OnRegionHandShakeReply;
+        event GenericCall OnRequestWearables;
+        event GenericCall2 OnCompleteMovementToRegion;
+        event GenericCall3 OnAgentUpdate;
+        event GenericCall OnRequestAvatarsData;
+        event GenericCall4 OnAddPrim;
+        event UpdateShape OnUpdatePrimShape;
+        event ObjectSelect OnObjectSelect;
+        event UpdatePrimFlags OnUpdatePrimFlags;
+        event UpdatePrimTexture OnUpdatePrimTexture;
+        event UpdatePrimVector OnUpdatePrimPosition;
+        event UpdatePrimRotation OnUpdatePrimRotation;
+        event UpdatePrimVector OnUpdatePrimScale;
+        event StatusChange OnChildAgentStatus;
+        event GenericCall2 OnStopMovement;
 
         LLVector3 StartPos
         {

@@ -20,7 +20,7 @@ namespace OpenSim.world
     public class WorldBase
     {
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
-        protected Dictionary<uint, ClientView> m_clientThreads;
+        protected Dictionary<uint, IClientAPI> m_clientThreads;
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected InventoryCache _inventoryCache;
