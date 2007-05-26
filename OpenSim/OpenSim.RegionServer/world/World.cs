@@ -383,11 +383,7 @@ namespace OpenSim.world
             {
                 if (changes)
                 {
-                    lock (this.LockPhysicsEngine)
-                    {
-                        this.phyScene.SetTerrain(this.Terrain.getHeights1D());
-                    }
-                    this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                    /* Dont save here, rely on tainting system instead */
 
                     foreach (ClientView client in m_clientThreads.Values)
                     {
