@@ -90,21 +90,7 @@ namespace OpenSim.world
 
         public void ChildStatusChange(bool status)
         {
-            Console.WriteLine("child agent status change");
-            this.childAvatar = status;
-
-            if (this.childAvatar == true)
-            {
-                this.StopMovement();
-            }
-            else
-            {
-                LLVector3 startp = ControllingClient.StartPos;
-                lock (m_world.LockPhysicsEngine)
-                {
-                    this._physActor.Position = new PhysicsVector(startp.X, startp.Y, startp.Z);
-                }
-            }
+          
         }
 
         public override void addForces()
@@ -147,13 +133,12 @@ namespace OpenSim.world
 
         public static void LoadAnims()
         {
-            Avatar.Animations = new AvatarAnimations();
-            Avatar.Animations.LoadAnims();
+           
         }
 
         public override void LandRenegerated()
         {
-            Pos = new LLVector3(100.0f, 100.0f, m_world.Terrain[(int)Pos.X, (int)Pos.Y] + 50.0f);
+          
         }
     }
 

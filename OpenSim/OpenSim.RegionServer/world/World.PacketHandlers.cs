@@ -87,42 +87,7 @@ namespace OpenSim.world
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
             {
                 //currently following code not used (or don't know of any case of destination being zero
-                libsecondlife.LLUUID[] DeRezEnts;
-                DeRezEnts = new libsecondlife.LLUUID[DeRezPacket.ObjectData.Length];
-                int i = 0;
-                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
-                {
-
-                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
-                    foreach (Entity ent in this.Entities.Values)
-                    {
-                        if (ent.localid == Data.ObjectLocalID)
-                        {
-                            DeRezEnts[i++] = ent.uuid;
-                            this.localStorage.RemovePrim(ent.uuid);
-                            KillObjectPacket kill = new KillObjectPacket();
-                            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-                            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-                            kill.ObjectData[0].ID = ent.localid;
-                            foreach (ClientView client in m_clientThreads.Values)
-                            {
-                                client.OutPacket(kill);
-                            }
-                            //Uncommenting this means an old UUID will be re-used, thus crashing the asset server
-                            //Uncomment when prim/object UUIDs are random or such
-                            //2007-03-22 - Randomskk
-                            //this._primCount--;
-                            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Deleted UUID " + ent.uuid);
-                        }
-                    }
-                }
-                foreach (libsecondlife.LLUUID uuid in DeRezEnts)
-                {
-                    lock (Entities)
-                    {
-                        Entities.Remove(uuid);
-                    }
-                }
+               
             }
             else
             {
@@ -292,77 +257,5 @@ namespace OpenSim.world
                 }
             }
         }
-
-        /*
-        public void RequestMapBlock(ClientView simClient, int minX, int minY, int maxX, int maxY)
-        {
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-            if (((m_regInfo.RegionLocX > minX) && (m_regInfo.RegionLocX < maxX)) && ((m_regInfo.RegionLocY > minY) && (m_regInfo.RegionLocY < maxY)))
-            {
-                MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
-                mapReply.AgentData.AgentID = simClient.AgentID;
-                mapReply.AgentData.Flags = 0;
-                mapReply.Data = new MapBlockReplyPacket.DataBlock[1];
-                mapReply.Data[0] = new MapBlockReplyPacket.DataBlock();
-                mapReply.Data[0].MapImageID = new LLUUID("00000000-0000-0000-9999-000000000007");
-                mapReply.Data[0].X = (ushort)m_regInfo.RegionLocX;
-                mapReply.Data[0].Y = (ushort)m_regInfo.RegionLocY;
-                mapReply.Data[0].WaterHeight = (byte)m_regInfo.RegionWaterHeight;
-                mapReply.Data[0].Name = _enc.GetBytes(this.m_regionName);
-                mapReply.Data[0].RegionFlags = 72458694;
-                mapReply.Data[0].Access = 13;
-                mapReply.Data[0].Agents = 1; //should send number of clients connected
-                simClient.OutPacket(mapReply);
-            }
-        }
-         public bool RezObjectHandler(ClientView simClient, Packet packet)
-        {
-            RezObjectPacket rezPacket = (RezObjectPacket)packet;
-            AgentInventory inven = this._inventoryCache.GetAgentsInventory(simClient.AgentID);
-            if (inven != null)
-            {
-                if (inven.InventoryItems.ContainsKey(rezPacket.InventoryData.ItemID))
-                {
-                    AssetBase asset = this._assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
-                    if (asset != null)
-                    {
-                        PrimData primd = new PrimData(asset.Data);
-                        Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
-                        nPrim.CreateFromStorage(primd, rezPacket.RezData.RayEnd, this._primCount, true);
-                        this.Entities.Add(nPrim.uuid, nPrim);
-                        this._primCount++;
-                        this._inventoryCache.DeleteInventoryItem(simClient, rezPacket.InventoryData.ItemID);
-                    }
-                }
-            }
-            return true;
-        }
-         public bool ModifyTerrain(ClientView simClient, Packet packet)
-        {
-            ModifyLandPacket modify = (ModifyLandPacket)packet;
-
-            switch (modify.ModifyBlock.Action)
-            {
-                case 1:
-                    // raise terrain
-                    if (modify.ParcelData.Length > 0)
-                    {
-                        Terrain.raise(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
-                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
-                    }
-                    break;
-                case 2:
-                    //lower terrain
-                    if (modify.ParcelData.Length > 0)
-                    {
-                        Terrain.lower(modify.ParcelData[0].North, modify.ParcelData[0].West, 10.0, 0.1);
-                        RegenerateTerrain(true, (int)modify.ParcelData[0].North, (int)modify.ParcelData[0].West);
-                    }
-                    break;
-            }
-            return true;
-        }
-         */
-
     }
 }

@@ -32,53 +32,6 @@ namespace OpenSim
 
         }
 
-        public void SaveToGrid()
-        {
-            //we really want to keep any server connection code out of here and out of the code code
-            // and put it in the server connection classes (those inheriting from IGridServer etc)
-            string reqtext;
-            reqtext = "<Root>";
-            reqtext += "<authkey>" + this.GridSendKey + "</authkey>";
-            reqtext += "<sim>";
-            reqtext += "<uuid>" + this.SimUUID.ToString() + "</uuid>";
-            reqtext += "<regionname>" + this.RegionName + "</regionname>";
-            reqtext += "<sim_ip>" + this.IPListenAddr + "</sim_ip>";
-            reqtext += "<sim_port>" + this.IPListenPort.ToString() + "</sim_port>";
-            reqtext += "<region_locx>" + this.RegionLocX.ToString() + "</region_locx>";
-            reqtext += "<region_locy>" + this.RegionLocY.ToString() + "</region_locy>";
-            reqtext += "<estate_id>1</estate_id>";
-            reqtext += "</sim>";
-            reqtext += "</Root>";
-
-            byte[] reqdata = (new System.Text.ASCIIEncoding()).GetBytes(reqtext);
-            string newpath = "";
-            if (this.GridURL.EndsWith("/"))
-            {
-                newpath = this.GridURL + "sims/";
-            }
-            else
-            {
-                newpath = this.GridURL + "/sims/";
-            }
-
-            WebRequest GridSaveReq = WebRequest.Create(newpath + this.SimUUID.ToString());
-            GridSaveReq.Method = "POST";
-            GridSaveReq.ContentType = "application/x-www-form-urlencoded";
-            GridSaveReq.ContentLength = reqdata.Length;
-
-            Stream stOut = GridSaveReq.GetRequestStream();
-            stOut.Write(reqdata, 0, reqdata.Length);
-            stOut.Close();
-
-            WebResponse gridresp = GridSaveReq.GetResponse();
-            StreamReader stIn = new StreamReader(gridresp.GetResponseStream(), Encoding.ASCII);
-            string GridResponse = stIn.ReadToEnd();
-            stIn.Close();
-            gridresp.Close();
-
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
-        }
-
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
         {
             this.isSandbox = sandboxMode;
@@ -233,10 +186,7 @@ namespace OpenSim
 
                 }
                 this.RegionHandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
-                if (!this.isSandbox)
-                {
-                    this.SaveToGrid();
-                }
+               
                 configData.Commit();
             }
             catch (Exception e)

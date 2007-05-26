@@ -315,133 +315,21 @@ namespace OpenSim
             this.ClientThread.Abort();
         }
 
-        #region World/Avatar To Viewer Methods
-
-        public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
-        {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
-            libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
-            reply.ChatData.Audible = 1;
-            reply.ChatData.Message = message;
-            reply.ChatData.ChatType = type;
-            reply.ChatData.SourceType = 1;
-            reply.ChatData.Position = fromPos;
-            reply.ChatData.FromName = enc.GetBytes(fromName + "\0");
-            reply.ChatData.OwnerID = fromAgentID;
-            reply.ChatData.SourceID = fromAgentID;
-
-            this.OutPacket(reply);
-        }
-
-        public void SendAppearance(AvatarWearable[] wearables)
-        {
-            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
-            aw.AgentData.AgentID = this.AgentID;
-            aw.AgentData.SerialNum = 0;
-            aw.AgentData.SessionID = this.SessionID;
-
-            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
-            AgentWearablesUpdatePacket.WearableDataBlock awb;
-            for (int i = 0; i < wearables.Length; i++)
-            {
-                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                awb.WearableType = (byte)i;
-                awb.AssetID = wearables[i].AssetID;
-                awb.ItemID = wearables[i].ItemID;
-                aw.WearableData[i] = awb;
-            }
-
-            this.OutPacket(aw);
-        }
-        #endregion
-
         #region Inventory Creation
         private void SetupInventory(AuthenticateResponse sessionInfo)
         {
-            AgentInventory inventory = null;
-            if (sessionInfo.LoginInfo.InventoryFolder != null)
-            {
-                inventory = this.CreateInventory(sessionInfo.LoginInfo.InventoryFolder);
-                if (sessionInfo.LoginInfo.BaseFolder != null)
-                {
-                    if (!inventory.HasFolder(sessionInfo.LoginInfo.BaseFolder))
-                    {
-                        m_inventoryCache.CreateNewInventoryFolder(this, sessionInfo.LoginInfo.BaseFolder);
-                    }
-                    this.newAssetFolder = sessionInfo.LoginInfo.BaseFolder;
-                    AssetBase[] inventorySet = m_assetCache.CreateNewInventorySet(this.AgentID);
-                    if (inventorySet != null)
-                    {
-                        for (int i = 0; i < inventorySet.Length; i++)
-                        {
-                            if (inventorySet[i] != null)
-                            {
-                                m_inventoryCache.AddNewInventoryItem(this, sessionInfo.LoginInfo.BaseFolder, inventorySet[i]);
-                            }
-                        }
-                    }
-                }
-            }
+            
         }
         private AgentInventory CreateInventory(LLUUID baseFolder)
         {
             AgentInventory inventory = null;
-            if (this.m_userServer != null)
-            {
-                // a user server is set so request the inventory from it
-                Console.WriteLine("getting inventory from user server");
-                inventory = m_inventoryCache.FetchAgentsInventory(this.AgentID, m_userServer);
-            }
-            else
-            {
-                inventory = new AgentInventory();
-                inventory.AgentID = this.AgentID;
-                inventory.CreateRootFolder(this.AgentID, false);
-                m_inventoryCache.AddNewAgentsInventory(inventory);
-                m_inventoryCache.CreateNewInventoryFolder(this, baseFolder);
-            }
+            
             return inventory;
         }
 
         private void CreateInventoryItem(CreateInventoryItemPacket packet)
         {
-            if (!(packet.InventoryBlock.Type == 3 || packet.InventoryBlock.Type == 7))
-            {
-                System.Console.WriteLine("Attempted to create " + Util.FieldToString(packet.InventoryBlock.Name) + " in inventory.  Unsupported type");
-                return;
-            }
-
-            //lets try this out with creating a notecard
-            AssetBase asset = new AssetBase();
-
-            asset.Name = Util.FieldToString(packet.InventoryBlock.Name);
-            asset.Description = Util.FieldToString(packet.InventoryBlock.Description);
-            asset.InvType = packet.InventoryBlock.InvType;
-            asset.Type = packet.InventoryBlock.Type;
-            asset.FullID = LLUUID.Random();
-
-            switch (packet.InventoryBlock.Type)
-            {
-                case 7: // Notecard
-                    asset.Data = new byte[0];
-                    break;
-
-                case 3: // Landmark
-                    String content;
-                    content = "Landmark version 2\n";
-                    content += "region_id " + m_regionData.SimUUID + "\n";
-                    String strPos = String.Format("%.2f %.2f %.2f>",
-                                                    this.ClientAvatar.Pos.X,
-                                                    this.ClientAvatar.Pos.Y,
-                                                    this.ClientAvatar.Pos.Z);
-                    content += "local_pos " + strPos + "\n";
-                    asset.Data = (new System.Text.ASCIIEncoding()).GetBytes(content);
-                    break;
-                default:
-                    break;
-            }
-            m_assetCache.AddAsset(asset);
-            m_inventoryCache.AddNewInventoryItem(this, packet.InventoryBlock.FolderID, asset);
+           
         }
         #endregion
 

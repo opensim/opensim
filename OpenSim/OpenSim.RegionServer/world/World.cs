@@ -548,6 +548,7 @@ namespace OpenSim.world
             agentClient.OnUpdatePrimRotation += new ClientView.UpdatePrimRotation(this.UpdatePrimRotation);
             agentClient.OnUpdatePrimScale += new ClientView.UpdatePrimVector(this.UpdatePrimScale);
             agentClient.OnDeRezObject += new ClientView.GenericCall4(this.DeRezObject);
+           
             Avatar newAvatar = null;
             try
             {

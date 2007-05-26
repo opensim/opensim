@@ -20,40 +20,7 @@ namespace OpenSim
 {
     public partial class ClientView
     {
-        public delegate void GenericCall(ClientView remoteClient);
-        public delegate void GenericCall2();
-        public delegate void GenericCall3(Packet packet); // really don't want to be passing packets in these events, so this is very temporary.
-        public delegate void GenericCall4(Packet packet, ClientView remoteClient);
-        public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
-        public delegate void ObjectSelect(uint localID, ClientView remoteClient);
-        public delegate void UpdatePrimFlags(uint localID, Packet packet, ClientView remoteClient);
-        public delegate void UpdatePrimTexture(uint localID, byte[] texture, ClientView remoteClient);
-        public delegate void UpdatePrimVector(uint localID, LLVector3 pos, ClientView remoteClient);
-        public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, ClientView remoteClient);
-        public delegate void StatusChange(bool status);
-
-        public event ChatFromViewer OnChatFromViewer;
-        public event RezObject OnRezObject;
-        public event GenericCall4 OnDeRezObject;
-        public event ModifyTerrain OnModifyTerrain;
-        public event GenericCall OnRegionHandShakeReply;
-        public event GenericCall OnRequestWearables;
-        public event SetAppearance OnSetAppearance;
-        public event GenericCall2 OnCompleteMovementToRegion;
-        public event GenericCall3 OnAgentUpdate;
-        public event StartAnim OnStartAnim;
-        public event GenericCall OnRequestAvatarsData;
-        public event LinkObjects OnLinkObjects;
-        public event GenericCall4 OnAddPrim;
-        public event UpdateShape OnUpdatePrimShape;
-        public event ObjectSelect OnObjectSelect;
-        public event UpdatePrimFlags OnUpdatePrimFlags;
-        public event UpdatePrimTexture OnUpdatePrimTexture;
-        public event UpdatePrimVector OnUpdatePrimPosition;
-        public event UpdatePrimRotation OnUpdatePrimRotation;
-        public event UpdatePrimVector OnUpdatePrimScale;
-        public event StatusChange OnChildAgentStatus;
-        public event GenericCall2 OnStopMovement;
+      
 
         protected override void ProcessInPacket(Packet Pack)
         {

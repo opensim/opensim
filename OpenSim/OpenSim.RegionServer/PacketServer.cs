@@ -56,10 +56,7 @@ namespace OpenSim
 
         public virtual void RegisterClientPacketHandlers()
         {
-            if (this._localWorld != null)
-            {
-                ClientView.AddPacketHandler(PacketType.UUIDNameRequest, this.RequestUUIDName);
-            }
+            
         }
 
         #region Client Packet Handlers
