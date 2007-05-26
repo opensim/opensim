@@ -1,0 +1,3 @@
+This directory contains scripts etc for creating a tarball/package out of the SVN tree.
+Use makerel.sh to generate a tarball, do not use other scripts
+It is designed to be run before releases or by developers/users before a local install from source.

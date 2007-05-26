@@ -1,0 +1,33 @@
+INSTALLING FROM SOURCE WITH WINDOWS
+
+1 - Ensure you have visual studio express (the C# edition)
+
+2 - Check you have a clean source tree with the latest VS2005 solution, if unsure run prebuild (See README file)
+
+3 - Open the solution in visual studio and build it
+
+4 - Look in bin/ for the output
+
+5 - ???
+
+6 - Profit
+
+INSTALLING FROM SOURCE WITH LINUX/BSD/*NIX
+
+1 - Ensure you have a clean source tree with latest nant build files, if not, get one or run prebuild (See README file)
+
+2 - Go to a shell prompt and change to the correct directory
+
+3 - Type the following:
+
+nant
+
+4 - Look in bin/ for the output
+
+5 - ???
+
+6 - Profit
+
+INSTALLING BINARY RELEASE
+
+Simply extract the tarball into a good location and run straight out of bin/. You may also wish to put all the binaries into /opt/opensim on *nix systems and adjust your path accordingly. At time of writing there is no official way yet to do this. Watch this space.
