@@ -422,14 +422,14 @@ namespace OpenSim.Terrain
             {
                 Bitmap gradientmapLd = new Bitmap(gradientmap);
 
-                int pallete = gradientmapLd.Width;
+                int pallete = gradientmapLd.Height;
 
                 Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
                 Color[] colours = new Color[pallete];
 
                 for (int i = 0; i < pallete; i++)
                 {
-                    colours[i] = gradientmapLd.GetPixel(1, i);
+                    colours[i] = gradientmapLd.GetPixel(0, i);
                 }
 
                 Channel copy = heightmap.copy();
