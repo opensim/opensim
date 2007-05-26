@@ -125,6 +125,11 @@ namespace OpenGrid.Framework.Data.MySQL
         {
         }
 
+        public void addNewUserAgent(UserAgentData agent)
+        {
+            // Do nothing.
+        }
+
         public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return false;

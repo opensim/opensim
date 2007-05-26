@@ -71,6 +71,11 @@ namespace OpenGrid.Framework.Data.DB4o
             manager.AddRow(user);
         }
 
+        public void addNewUserAgent(UserAgentData agent)
+        {
+            // Do nothing. yet.
+        }
+
         public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return true;
