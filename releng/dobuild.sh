@@ -9,12 +9,14 @@ printf "Getting fresh source tree from SVN..."
 svn checkout $1 build
 
 printf "Updating templates..."
-./parsetmpl.sh templates/VersionInfo.cs.tmpl >build/OpenSim.RegionServer/VersionInfo.cs
+./parsetmpl.sh templates/VersionInfo.cs.tmpl >build/OpenSim/OpenSim.RegionServer/VersionInfo.cs
 
 printf "Running prebuild..."
 cd build
 mono bin/Prebuild.exe /target nant
 
 printf "Doing the build..."
-nant
+nant -buildfile:OpenSim.build
+mono bin/Prebuild.exe /target nant
+nant -buildfile:OpenGridServices.build
 
