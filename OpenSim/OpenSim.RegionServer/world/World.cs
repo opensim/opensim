@@ -417,10 +417,27 @@ namespace OpenSim.world
                 float[] map = this.localStorage.LoadWorld();
                 if (map == null)
                 {
-                    Console.WriteLine("creating new terrain");
-                    this.Terrain.hills();
+                    if (string.IsNullOrEmpty(this.m_regInfo.TerrainFile))
+                    {
+                        Console.WriteLine("No default terrain, procedurally generating...");
+                        this.Terrain.hills();
 
-                    this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                    }
+                    else
+                    {
+                        try
+                        {
+                            this.Terrain.loadFromFileF32(this.m_regInfo.TerrainFile);
+                            this.Terrain *= this.m_regInfo.TerrainMultiplier;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Unable to load default terrain (" + e.ToString() + "), procedurally generating instead...");
+                            Terrain.hills();
+                        }
+                        this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                    }
                 }
                 else
                 {

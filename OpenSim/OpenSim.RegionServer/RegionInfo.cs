@@ -175,6 +175,24 @@ namespace OpenSim
                 {
                     this.IPListenAddr = attri;
                 }
+                
+                // Terrain Default File
+                attri = "";
+                attri = configData.GetAttribute("TerrainFile");
+                if (attri == "")
+                {
+                    this.TerrainFile = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Terrain file default", "default.r32");
+                    configData.SetAttribute("TerrainFile", this.TerrainFile);
+                }
+
+                attri = "";
+                attri = configData.GetAttribute("TerrainMultiplier");
+                if (attri == "")
+                {
+                    this.TerrainMultiplier = Convert.ToDouble(OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Terrain multiplier", "60.0"));
+                    configData.SetAttribute("TerrainMultiplier", this.TerrainMultiplier.ToString());
+                }
+
 
                 if (!isSandbox)
                 {

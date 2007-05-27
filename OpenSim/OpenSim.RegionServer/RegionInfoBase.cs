@@ -23,6 +23,29 @@ namespace OpenSim
         public int IPListenPort;
         public string IPListenAddr;
 
+        // Region Information
+        public LLUUID TerrainBase0 = new LLUUID(); // Insert default here
+        public LLUUID TerrainBase1 = new LLUUID();
+        public LLUUID TerrainBase2 = new LLUUID();
+        public LLUUID TerrainBase3 = new LLUUID();
+        public LLUUID TerrainDetail0 = new LLUUID();
+        public LLUUID TerrainDetail1 = new LLUUID();
+        public LLUUID TerrainDetail2 = new LLUUID();
+        public LLUUID TerrainDetail3 = new LLUUID();
+        public float TerrainStartHeight00 = 0.0f;
+        public float TerrainStartHeight01 = 0.0f;
+        public float TerrainStartHeight10 = 0.0f;
+        public float TerrainStartHeight11 = 0.0f;
+        public float TerrainHeightRange00 = 40.0f;
+        public float TerrainHeightRange01 = 40.0f;
+        public float TerrainHeightRange10 = 40.0f;
+        public float TerrainHeightRange11 = 40.0f;
+
+        // Terrain Default (Must be in F32 Format!)
+        public string TerrainFile = "default.r32";
+        public double TerrainMultiplier = 60.0;
+
+
         public RegionInfoBase()
         {
 
