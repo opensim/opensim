@@ -202,6 +202,10 @@ namespace OpenSim
                     this.TerrainFile = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Terrain file default", "default.r32");
                     configData.SetAttribute("TerrainFile", this.TerrainFile);
                 }
+                else
+                {
+                    this.TerrainFile = attri;
+                }
 
                 attri = "";
                 attri = configData.GetAttribute("TerrainMultiplier");
@@ -209,6 +213,10 @@ namespace OpenSim
                 {
                     this.TerrainMultiplier = Convert.ToDouble(OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Terrain multiplier", "60.0"));
                     configData.SetAttribute("TerrainMultiplier", this.TerrainMultiplier.ToString());
+                }
+                else
+                {
+                    this.TerrainMultiplier = Convert.ToDouble(attri);
                 }
 
 
