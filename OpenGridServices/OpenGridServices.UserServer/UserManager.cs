@@ -277,6 +277,21 @@ namespace OpenGridServices.UserServer
         }
 
         /// <summary>
+        /// Creates an error response caused by target region being down
+        /// </summary>
+        /// <returns>An XMLRPC Response</returns>
+        private static XmlRpcResponse CreateDeadRegionResponse()
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable PresenceErrorRespData = new Hashtable();
+            PresenceErrorRespData["reason"] = "key";
+            PresenceErrorRespData["message"] = "The region you are attempting to log into is not responding. Please select another region and try again.";
+            PresenceErrorRespData["login"] = "false";
+            response.Value = PresenceErrorRespData;
+            return response;
+        }
+
+        /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
         /// <param name="response">The existing response</param>
@@ -560,7 +575,15 @@ namespace OpenGridServices.UserServer
                     responseData["session_id"] = TheUser.currentAgent.sessionID.ToStringHyphenated();
                     responseData["login"] = "true";
 
-                    this.CustomiseResponse(ref responseData, ref TheUser);
+                    try
+                    {
+                        this.CustomiseResponse(ref responseData, ref TheUser);
+                    }
+                    catch (Exception e)
+                    {
+                        return CreateDeadRegionResponse();
+                        Console.WriteLine(e.ToString());
+                    }
 
                     CommitAgent(ref TheUser);
 
