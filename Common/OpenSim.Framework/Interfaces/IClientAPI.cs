@@ -35,7 +35,6 @@ namespace OpenSim.Framework.Interfaces
         event StartAnim OnStartAnim;
         event LinkObjects OnLinkObjects;
         event GenericCall4 OnDeRezObject;
-        event ModifyTerrain OnModifyTerrain;
         event GenericCall OnRegionHandShakeReply;
         event GenericCall OnRequestWearables;
         event GenericCall2 OnCompleteMovementToRegion;
@@ -57,6 +56,13 @@ namespace OpenSim.Framework.Interfaces
             get;
             set;
         }
+
+        LLUUID AgentId
+        {
+            get;
+        }
+
+        void OutPacket(Packet newPack);
         void SendAppearance(AvatarWearable[] wearables);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     }

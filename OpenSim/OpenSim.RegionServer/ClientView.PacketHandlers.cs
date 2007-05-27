@@ -13,7 +13,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
 using OpenSim.Assets;
 
 namespace OpenSim
@@ -42,26 +41,21 @@ namespace OpenSim
             KillObjectPacket kill = new KillObjectPacket();
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            kill.ObjectData[0].ID = this.ClientAvatar.localid;
+            // kill.ObjectData[0].ID = this.ClientAvatar.localid;
             foreach (ClientView client in m_clientThreads.Values)
             {
                 client.OutPacket(kill);
             }
-            if (this.m_userServer != null)
-            {
-                this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
-            }
-            else
-            {
-                this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-            }
+
+            this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+
 
             m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
             /*lock (m_world.Entities)
             {
                 m_world.Entities.Remove(this.AgentID);
             }*/
-            m_world.RemoveViewerAgent(this);
+            // m_world.RemoveViewerAgent(this);
             //need to do other cleaning up here too
             m_clientThreads.Remove(this.CircuitCode);
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
@@ -109,7 +103,7 @@ namespace OpenSim
                 else if (multipleupdate.ObjectData[i].Type == 13)//scale
                 {
                     libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                    OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);            
+                    OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
                 }
             }
             return true;

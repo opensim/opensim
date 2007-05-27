@@ -32,6 +32,6 @@ namespace OpenSim
     /// </summary>
     public class VersionInfo
     {
-        public static string Version = "0.2, SVN build - please use releng if you desire any form of support";
+        public static string Version = "0.2, SVN build ";
     }
 }

@@ -96,7 +96,7 @@ namespace OpenSim.world
                     pos.Y = y;
                    Primitive prim = entity as Primitive;
                     // Of course, we really should have asked the physEngine if this is possible, and if not, returned false.
-                   prim.UpdatePosition(pos);
+                   //prim.UpdatePosition(pos);
                    // Console.WriteLine("script- setting entity " + localID + " positon");
                 }
             }

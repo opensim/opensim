@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Sims
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                System.Console.WriteLine(e.ToString());
             }
             return this;
         }
@@ -69,7 +69,7 @@ namespace OpenSim.Framework.Sims
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                System.Console.WriteLine(e.ToString());
             }
             return this;
         }

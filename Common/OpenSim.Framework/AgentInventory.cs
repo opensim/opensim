@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Inventory
         {
             if (!this.InventoryFolders.ContainsKey(folderID))
             {
-                Console.WriteLine("creating new folder called " + folderName + " in agents inventory");
+                System.Console.WriteLine("creating new folder called " + folderName + " in agents inventory");
                 InventoryFolder Folder = new InventoryFolder();
                 Folder.FolderID = folderID;
                 Folder.OwnerID = this.AgentID;
@@ -120,7 +120,7 @@ namespace OpenSim.Framework.Inventory
             {
                 InventoryItem Item = this.InventoryItems[itemID];
                 Item.AssetID = asset.FullID;
-                Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() + " so it now is set to asset " + asset.FullID.ToStringHyphenated());
+                System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() + " so it now is set to asset " + asset.FullID.ToStringHyphenated());
                 //TODO need to update the rest of the info
             }
             return true;
@@ -128,13 +128,13 @@ namespace OpenSim.Framework.Inventory
 
         public bool UpdateItemDetails(LLUUID itemID, UpdateInventoryItemPacket.InventoryDataBlock packet)
         {
-            Console.WriteLine("updating inventory item details");
+            System.Console.WriteLine("updating inventory item details");
             if (this.InventoryItems.ContainsKey(itemID))
             {
-                Console.WriteLine("changing name to "+ Util.FieldToString(packet.Name));
+                System.Console.WriteLine("changing name to "+ Util.FieldToString(packet.Name));
                 InventoryItem Item = this.InventoryItems[itemID];
                 Item.Name = Util.FieldToString(packet.Name);
-                Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated());
+                System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated());
                 //TODO need to update the rest of the info
             }
             return true;

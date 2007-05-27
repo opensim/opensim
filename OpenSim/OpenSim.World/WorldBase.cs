@@ -9,28 +9,27 @@ using System.Threading;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Terrain;
 using OpenSim.Framework.Inventory;
-using OpenSim.Assets;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
 
 namespace OpenSim.world
 {
-    public class WorldBase
+    public class WorldBase : IWorld
     {
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         protected Dictionary<uint, IClientAPI> m_clientThreads;
         protected ulong m_regionHandle;
         protected string m_regionName;
-        protected InventoryCache _inventoryCache;
-        protected AssetCache _assetCache;
+       // protected InventoryCache _inventoryCache;
+       // protected AssetCache _assetCache;
         protected RegionInfo m_regInfo;
 
         public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         protected libsecondlife.TerrainManager TerrainManager; // To be referenced via TerrainEngine
 
         #region Properties
+        /*
         public InventoryCache InventoryCache
         {
             set
@@ -46,6 +45,7 @@ namespace OpenSim.world
                 this._assetCache = value;
             }
         }
+          */
         #endregion
 
         #region Constructors
@@ -56,14 +56,7 @@ namespace OpenSim.world
         #endregion
 
         #region Setup Methods
-        /// <summary>
-        /// Register Packet handler Methods with the packet server (which will register them with the SimClient)
-        /// </summary>
-        /// <param name="packetServer"></param>
-        public virtual void RegisterPacketHandlers(PacketServer packetServer)
-        {
-
-        }
+       
         #endregion
 
         #region Update Methods
@@ -90,7 +83,7 @@ namespace OpenSim.world
         /// Send the region heightmap to the client
         /// </summary>
         /// <param name="RemoteClient">Client to send to</param>
-        public virtual void SendLayerData(ClientView RemoteClient)
+        public virtual void SendLayerData(IClientAPI RemoteClient)
         {
             try
             {
@@ -122,7 +115,7 @@ namespace OpenSim.world
         /// <param name="px">Patch coordinate (x) 0..16</param>
         /// <param name="py">Patch coordinate (y) 0..16</param>
         /// <param name="RemoteClient">The client to send to</param>
-        public void SendLayerData(int px, int py, ClientView RemoteClient)
+        public void SendLayerData(int px, int py, IClientAPI RemoteClient)
         {
             try
             {
@@ -144,24 +137,22 @@ namespace OpenSim.world
         #endregion
 
         #region Add/Remove Agent/Avatar
-        /// <summary>
-        /// Add a new Agent's avatar
-        /// </summary>
-        /// <param name="agentClient"></param>
-        public virtual Avatar AddViewerAgent(ClientView agentClient)
+        public virtual bool AddNewAvatar(IClientAPI remoteClient, bool child)
+        {
+            return false;
+        }
+
+        public virtual bool RemoveAvatar(LLUUID agentID)
+        {
+            return false;
+        }
+
+        #endregion
+
+        public virtual RegionInfo GetRegionInfo()
         {
             return null;
         }
-
-        /// <summary>
-        /// Remove a Agent's avatar
-        /// </summary>
-        /// <param name="agentClient"></param>
-        public virtual void RemoveViewerAgent(ClientView agentClient)
-        {
-
-        }
-        #endregion
 
         #region Shutdown
         /// <summary>

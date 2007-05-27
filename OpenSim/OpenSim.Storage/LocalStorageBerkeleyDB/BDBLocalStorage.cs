@@ -34,7 +34,6 @@ using System.Data;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Terrain;
 using BerkeleyDb;
 using Kds.Serialization;
 using Kds.Serialization.Buffer;

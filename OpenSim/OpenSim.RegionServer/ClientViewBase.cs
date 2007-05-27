@@ -29,7 +29,7 @@ namespace OpenSim
         public uint CircuitCode;
         public EndPoint userEP;
 
-        protected OpenSimNetworkHandler m_networkServer;
+        protected PacketServer m_networkServer;
 
         public ClientViewBase()
         {

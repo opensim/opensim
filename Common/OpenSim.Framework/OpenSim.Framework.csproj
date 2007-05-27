@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
@@ -6,7 +6,8 @@
     <ProjectGuid>{8ACA2445-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
     <AssemblyName>OpenSim.Framework</AssemblyName>
@@ -15,9 +16,11 @@
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder></AppDesignerFolder>
+    <AppDesignerFolder>
+    </AppDesignerFolder>
     <RootNamespace>OpenSim.Framework</RootNamespace>
-    <StartupObject></StartupObject>
+    <StartupObject>
+    </StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
@@ -28,7 +31,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
@@ -37,7 +41,8 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
@@ -46,7 +51,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
@@ -55,32 +61,38 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
+    <Reference Include="System">
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" >
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml">
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll" >
+    <Reference Include="libsecondlife.dll">
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
+    <Reference Include="Db4objects.Db4o.dll">
       <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.Framework.Console</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -90,21 +102,15 @@
     <Compile Include="BlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HeightMapGenHills.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LoginService.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Remoting.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SimProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfileBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="SimProfile.cs" />
+    <Compile Include="SimProfileBase.cs" />
+    <Compile Include="Types\NetworkServersInfo.cs" />
     <Compile Include="UserProfile.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -123,37 +129,55 @@
     <Compile Include="Interfaces\IClientAPI.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IGenericConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IGridConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\IGridServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\ILocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IScriptAPI.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IScriptEngine.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IUserConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\IUserServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\IWorld.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\LocalGridBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\RemoteGridBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Config\IGenericConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Config\IGridConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Config\IUserConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Remoting\IGridServerHost.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Remoting\IProxyServerClient.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Remoting\IProxyServerHost.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Remoting\IRegionGridClient.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Remoting\IRegionSimHost.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Remoting\RegionGridClientBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Scripting\IScriptAPI.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\Scripting\IScriptEngine.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -181,6 +205,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\PrimData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\RegionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

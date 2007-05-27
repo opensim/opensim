@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.world;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
@@ -24,7 +23,6 @@ using OpenSim.GenericConfig;
 
 namespace OpenSim
 {
-    public delegate AuthenticateResponse AuthenticateSessionHandler(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 
     public class UDPServer : OpenSimNetworkHandler
     {
@@ -39,17 +37,11 @@ namespace OpenSim
         protected PacketServer _packetServer;
 
         protected int listenPort;
-        protected Grid m_gridServers;
-        protected World m_localWorld;
+        protected IWorld m_localWorld;
         protected AssetCache m_assetCache;
         protected InventoryCache m_inventoryCache;
-        protected RegionInfo m_regionData;
-        protected bool m_sandbox = false;
-        protected bool user_accounts = false;
         protected ConsoleBase m_console;
         protected AuthenticateSessionsBase m_authenticateSessionsClass;
-
-        public AuthenticateSessionHandler AuthenticateHandler;
 
         public PacketServer PacketServer
         {
@@ -63,7 +55,7 @@ namespace OpenSim
             }
         }
 
-        public World LocalWorld
+        public IWorld LocalWorld
         {
             set
             {
@@ -76,21 +68,15 @@ namespace OpenSim
         {
         }
 
-        public UDPServer(int port, Grid gridServers, AssetCache assetCache, InventoryCache inventoryCache, RegionInfo _regionData, bool sandbox, bool accounts, ConsoleBase console, AuthenticateSessionsBase authenticateClass)
+        public UDPServer(int port, AssetCache assetCache, InventoryCache inventoryCache, ConsoleBase console, AuthenticateSessionsBase authenticateClass)
         {
             listenPort = port;
-            this.m_gridServers = gridServers;
             this.m_assetCache = assetCache;
             this.m_inventoryCache = inventoryCache;
-            this.m_regionData = _regionData;
-            this.m_sandbox = sandbox;
-            this.user_accounts = accounts;
             this.m_console = console;
             this.m_authenticateSessionsClass = authenticateClass;
             this.CreatePacketServer();
 
-            //set up delegate for authenticate sessions
-            this.AuthenticateHandler = new AuthenticateSessionHandler(this.m_authenticateSessionsClass.AuthenticateSession);
         }
 
         protected virtual void CreatePacketServer()
@@ -131,15 +117,8 @@ namespace OpenSim
         {
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
             this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-            bool isChildAgent = false;
 
-            ClientView newuser = new ClientView(epSender, useCircuit, m_localWorld, _packetServer.ClientThreads, m_assetCache, m_gridServers.GridServer, this, m_inventoryCache, m_sandbox, isChildAgent, this.m_regionData, m_authenticateSessionsClass);
-            if ((this.m_gridServers.UserServer != null) && (user_accounts))
-            {
-                newuser.UserServer = this.m_gridServers.UserServer;
-            }
-            //OpenSimRoot.Instance.ClientThreads.Add(epSender, newuser);
-            this._packetServer.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
+            this.PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_inventoryCache, m_authenticateSessionsClass); 
         }
 
         public void ServerListener()
@@ -197,9 +176,6 @@ namespace OpenSim
             }
         }
 
-        public virtual AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode)
-        {
-            return this.AuthenticateHandler(sessionID, agentID, circuitCode);
-        }
+      
     }
 }

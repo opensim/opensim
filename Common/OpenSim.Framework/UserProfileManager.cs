@@ -139,12 +139,12 @@ namespace OpenSim.Framework.User
                     ClassifiedCategories.Add(ClassifiedCategoriesHash);
 
 		    ArrayList AgentInventory = new ArrayList();
-                    Console.WriteLine("adding inventory to response");
+                    System.Console.WriteLine("adding inventory to response");
 		    Hashtable TempHash;
                     foreach (InventoryFolder InvFolder in TheUser.Inventory.InventoryFolders.Values)
                     {
                         TempHash = new Hashtable();
-                        Console.WriteLine("adding folder " + InvFolder.FolderName + ", ID: " + InvFolder.FolderID.ToStringHyphenated() + " with parent: " + InvFolder.ParentID.ToStringHyphenated()); 
+                        System.Console.WriteLine("adding folder " + InvFolder.FolderName + ", ID: " + InvFolder.FolderID.ToStringHyphenated() + " with parent: " + InvFolder.ParentID.ToStringHyphenated()); 
                         TempHash["name"] = InvFolder.FolderName;
                         TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
                         TempHash["version"] = (Int32)InvFolder.Version;
@@ -206,7 +206,7 @@ namespace OpenSim.Framework.User
                 }
                 catch (Exception E)
                 {
-                    Console.WriteLine(E.ToString());
+                    System.Console.WriteLine(E.ToString());
                 }
                 //}
             }
@@ -251,7 +251,7 @@ namespace OpenSim.Framework.User
             response["region_x"] = (Int32)SimInfo.RegionLocX * 256;
 
             //default is ogs user server, so let the sim know about the user via a XmlRpcRequest
-            Console.WriteLine(SimInfo.caps_url);
+            System.Console.WriteLine(SimInfo.caps_url);
             Hashtable SimParams = new Hashtable();
             SimParams["session_id"] = theUser.CurrentSessionID.ToString();
             SimParams["secure_session_id"] = theUser.CurrentSecureSessionID.ToString();

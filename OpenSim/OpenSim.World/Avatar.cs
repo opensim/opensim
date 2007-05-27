@@ -17,7 +17,7 @@ namespace OpenSim.world
         public static AvatarAnimations Animations;
         public string firstname;
         public string lastname;
-        public ClientView ControllingClient;
+        public IClientAPI ControllingClient;
         public LLUUID current_anim;
         public int anim_seq;
         private static libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock AvatarTemplate;
@@ -37,7 +37,7 @@ namespace OpenSim.world
         private bool m_regionTerraform;
         private bool childAvatar = false;
 
-        public Avatar(ClientView TheClient, World world, string regionName, Dictionary<uint, ClientView> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
+        public Avatar(IClientAPI TheClient, World world, string regionName, Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
         {
             m_world = world;
            // m_clientThreads = clientThreads;
@@ -49,7 +49,7 @@ namespace OpenSim.world
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
-            Pos = ControllingClient.startpos;
+            Pos = ControllingClient.StartPos;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -66,14 +66,14 @@ namespace OpenSim.world
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
 
             //register for events
-            ControllingClient.OnRequestWearables += new ClientView.GenericCall(this.SendOurAppearance);
+            ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);
             ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
-            ControllingClient.OnCompleteMovementToRegion += new ClientView.GenericCall2(this.CompleteMovement);
-            ControllingClient.OnCompleteMovementToRegion += new ClientView.GenericCall2(this.SendInitialPosition);
-            ControllingClient.OnAgentUpdate += new ClientView.GenericCall3(this.HandleAgentUpdate);
+            ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.CompleteMovement);
+            ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
+            ControllingClient.OnAgentUpdate += new GenericCall3(this.HandleAgentUpdate);
             ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
-            ControllingClient.OnChildAgentStatus += new ClientView.StatusChange(this.ChildStatusChange);
-            ControllingClient.OnStopMovement += new ClientView.GenericCall2(this.StopMovement);
+            ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
+            ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
         }
 
         public PhysicsActor PhysActor

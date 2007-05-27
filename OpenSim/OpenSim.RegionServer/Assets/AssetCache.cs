@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim;
@@ -62,6 +63,20 @@ namespace OpenSim.Assets
         {
             Console.WriteLine("Creating Asset cache");
             _assetServer = assetServer;
+            _assetServer.SetReceiver(this);
+            Assets = new Dictionary<libsecondlife.LLUUID, AssetInfo>();
+            Textures = new Dictionary<libsecondlife.LLUUID, TextureImage>();
+            this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
+            this._assetCacheThread.IsBackground = true;
+            this._assetCacheThread.Start();
+
+        }
+
+        public AssetCache(string assetServerDLLName, string assetServerURL, string assetServerKey)
+        {
+            Console.WriteLine("Creating Asset cache");
+            _assetServer = this.LoadAssetDll(assetServerDLLName);
+            _assetServer.SetServerInfo(assetServerURL, assetServerKey);
             _assetServer.SetReceiver(this);
             Assets = new Dictionary<libsecondlife.LLUUID, AssetInfo>();
             Textures = new Dictionary<libsecondlife.LLUUID, TextureImage>();
@@ -512,6 +527,34 @@ namespace OpenSim.Assets
             return (newImage);
         }
         #endregion
+
+        private IAssetServer LoadAssetDll(string dllName)
+        {
+            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+            IAssetServer server = null;
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        Type typeInterface = pluginType.GetInterface("IAssetPlugin", true);
+
+                        if (typeInterface != null)
+                        {
+                            IAssetPlugin plug = (IAssetPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            server = plug.GetAssetServer();
+                            break;
+                        }
+
+                        typeInterface = null;
+                    }
+                }
+            }
+            pluginAssembly = null;
+            return server;
+        }
 
     }
 

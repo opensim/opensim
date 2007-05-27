@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.world;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
@@ -29,14 +28,12 @@ namespace OpenSim
     {
         protected IGenericConfig localConfig;
         protected PhysicsManager physManager;
-        protected Grid GridServers;
         protected AssetCache AssetCache;
         protected InventoryCache InventoryCache;
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         protected DateTime startuptime;
-        protected RegionInfo regionData;
+        protected NetworkServersInfo serversData;
 
-        protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         public string m_physicsEngine;
         public bool m_sandbox = false;
         public bool m_loginserver;
@@ -45,7 +42,9 @@ namespace OpenSim
         protected bool configFileSetup = false;
         public string m_config;
 
-        protected UDPServer m_udpServer;
+        protected List<UDPServer> m_udpServer = new List<UDPServer>();
+        protected List<RegionInfo> regionData = new List<RegionInfo>();
+        protected List<IWorld> m_localWorld = new List<IWorld>();
         protected BaseHttpServer httpServer;
         protected AuthenticateSessionsBase AuthenticateSessionsHandler;
 
@@ -65,11 +64,11 @@ namespace OpenSim
             m_config = configFile;
         }
 
-        protected World m_localWorld;
+        /*protected World m_localWorld;
         public World LocalWorld
         {
             get { return m_localWorld; }
-        }
+        }*/
 
         /// <summary>
         /// Performs initialisation of the world, such as loading configuration from disk.

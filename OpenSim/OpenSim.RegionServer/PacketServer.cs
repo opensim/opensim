@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.world;
 using libsecondlife.Packets;
+using OpenSim.Framework.Interfaces;
+using System.Net;
+using System.Net.Sockets;
+using OpenSim.Assets;
 
 namespace OpenSim
 {
     public class PacketServer
     {
         private OpenSimNetworkHandler _networkHandler;
-        private World _localWorld;
+        private IWorld _localWorld;
         public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
+        public Dictionary<uint, IClientAPI> ClientAPIs = new Dictionary<uint, IClientAPI>();
 
         public PacketServer(OpenSimNetworkHandler networkHandler)
         {
@@ -18,7 +22,7 @@ namespace OpenSim
             _networkHandler.RegisterPacketServer(this);
         }
 
-        public World LocalWorld
+        public IWorld LocalWorld
         {
             set
             {
@@ -59,27 +63,23 @@ namespace OpenSim
             
         }
 
-        #region Client Packet Handlers
-
-        public bool RequestUUIDName(ClientView simClient, Packet packet)
+        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AuthenticateSessionsBase authenticateSessionsClass)
         {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
-            Console.WriteLine(packet.ToString());
-            UUIDNameRequestPacket nameRequest = (UUIDNameRequestPacket)packet;
-            UUIDNameReplyPacket nameReply = new UUIDNameReplyPacket();
-            nameReply.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[nameRequest.UUIDNameBlock.Length];
+            ClientView newuser = new ClientView(epSender, useCircuit, this.ClientThreads, assetCache, this, inventoryCache, authenticateSessionsClass);
+            this.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
+            this.ClientAPIs.Add(useCircuit.CircuitCode.Code, (IClientAPI)newuser);
 
-            for (int i = 0; i < nameRequest.UUIDNameBlock.Length; i++)
-            {
-                nameReply.UUIDNameBlock[i] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
-                nameReply.UUIDNameBlock[i].ID = nameRequest.UUIDNameBlock[i].ID;
-                nameReply.UUIDNameBlock[i].FirstName = enc.GetBytes("Who\0");  //for now send any name
-                nameReply.UUIDNameBlock[i].LastName = enc.GetBytes("Knows\0");	   //in future need to look it up		
-            }
-            simClient.OutPacket(nameReply);
             return true;
         }
 
-        #endregion
+        public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
+        {
+            this._networkHandler.SendPacketTo(buffer, size, flags, circuitcode);
+        }
+
+        public virtual void RemoveClientCircuit(uint circuitcode)
+        {
+            this._networkHandler.RemoveClientCircuit(circuitcode);
+        }
     }
 }

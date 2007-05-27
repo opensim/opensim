@@ -4,6 +4,7 @@ using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Physics.Manager;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.world
 {
@@ -22,7 +23,7 @@ namespace OpenSim.world
 
         public ObjectUpdatePacket CreateUpdatePacket()
         {
-          
+            return null;
         }
 
         public void SendInitialPosition()
@@ -35,7 +36,7 @@ namespace OpenSim.world
            
         }
 
-        public void SendOurAppearance(ClientView OurClient)
+        public void SendOurAppearance(IClientAPI OurClient)
         {
            
         }
@@ -57,7 +58,7 @@ namespace OpenSim.world
 
         public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateTerseBlock()
         {
-            
+            return null;
         }
 
         // Sends animation update

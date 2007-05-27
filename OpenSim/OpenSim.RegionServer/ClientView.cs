@@ -35,11 +35,11 @@ using System.Net.Sockets;
 using System.IO;
 using System.Threading;
 using System.Timers;
+using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
 using OpenSim.Assets;
 
 namespace OpenSim
@@ -58,73 +58,40 @@ namespace OpenSim
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
-        public bool m_child;
-        public world.Avatar ClientAvatar;
+        public bool m_child = false;
         private UseCircuitCodePacket cirpack;
         public Thread ClientThread;
         public LLVector3 startpos;
-         
+
         private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
         private bool debug = false;
-        private World m_world;
+        private IWorld m_world;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
         private IGridServer m_gridServer;
-        private IUserServer m_userServer = null;
         private InventoryCache m_inventoryCache;
-        public bool m_sandboxMode;
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
 
-        public IUserServer UserServer
-        {
-            set
-            {
-                this.m_userServer = value;
-            }
-        }
 
-        public LLVector3 StartPos
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions)
         {
-            get
-            {
-                return startpos;
-            }
-            set
-            {
-                startpos = value;
-            }
-        }
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, World world, Dictionary<uint, ClientView> clientThreads, AssetCache assetCache, IGridServer gridServer, OpenSimNetworkHandler application, InventoryCache inventoryCache, bool sandboxMode, bool child, RegionInfo regionDat, AuthenticateSessionsBase authenSessions)
-        {
-            m_world = world;
             m_clientThreads = clientThreads;
             m_assetCache = assetCache;
-            m_gridServer = gridServer;
-            m_networkServer = application;
+
+            m_networkServer = packServer;
             m_inventoryCache = inventoryCache;
-            m_sandboxMode = sandboxMode;
-            m_child = child;
-            m_regionData = regionDat;
             m_authenticateSessionsHandler = authenSessions;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
-            if (m_gridServer.GetName() == "Remote")
-            {
-                this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
-                this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
-                //Console.WriteLine("start pos is " + this.startpos.X + " , " + this.startpos.Y + " , " + this.startpos.Z);
-            }
-            else
-            {
-                this.startpos = new LLVector3(128, 128, m_world.Terrain[(int)128, (int)128] + 15.0f); // new LLVector3(128.0f, 128.0f, 60f);
-            }
+            this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
+            this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
 
             PacketQueue = new BlockingQueue<QueItem>();
 
@@ -146,11 +113,10 @@ namespace OpenSim
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
             //this.m_world.RemoveViewerAgent(this);
-            if (!this.m_sandboxMode)
-            {
-                this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
-                m_authenticateSessionsHandler.UpdateAgentChildStatus(CircuitCode, false);
-            }
+
+            this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
+            m_authenticateSessionsHandler.UpdateAgentChildStatus(CircuitCode, false);
+
             OnChildAgentStatus(this.m_child);
             //this.InitNewClient();
         }
@@ -169,21 +135,16 @@ namespace OpenSim
             KillObjectPacket kill = new KillObjectPacket();
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            kill.ObjectData[0].ID = this.ClientAvatar.localid;
+            //kill.ObjectData[0].ID = this.ClientAvatar.localid;
             foreach (ClientView client in m_clientThreads.Values)
             {
                 client.OutPacket(kill);
             }
-            if (this.m_userServer != null)
-            {
-                this.m_inventoryCache.ClientLeaving(this.AgentID, this.m_userServer);
-            }
-            else
-            {
-                this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-            }
 
-            m_world.RemoveViewerAgent(this);
+            this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+
+
+            //   m_world.RemoveViewerAgent(this);
 
             m_clientThreads.Remove(this.CircuitCode);
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
@@ -270,13 +231,13 @@ namespace OpenSim
         protected virtual void InitNewClient()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
-            this.ClientAvatar = m_world.AddViewerAgent(this);         
+            // this.ClientAvatar = m_world.AddViewerAgent(this);         
         }
 
         protected virtual void AuthUser()
         {
             // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
-            AuthenticateResponse sessionInfo = this.m_networkServer.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
+            AuthenticateResponse sessionInfo = this.m_authenticateSessionsHandler.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
@@ -290,18 +251,12 @@ namespace OpenSim
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;
                 this.CircuitCode = cirpack.CircuitCode.Code;
-                InitNewClient(); 
-                this.ClientAvatar.firstname = sessionInfo.LoginInfo.First;
-                this.ClientAvatar.lastname = sessionInfo.LoginInfo.Last;
+                InitNewClient();
+                //this.ClientAvatar.firstname = sessionInfo.LoginInfo.First;
+                // this.ClientAvatar.lastname = sessionInfo.LoginInfo.Last;
                 if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)
                 {
                     this.SecureSessionID = sessionInfo.LoginInfo.SecureSession;
-                }
-
-                // Create Inventory, currently only works for sandbox mode
-                if (m_sandboxMode)
-                {
-                    this.SetupInventory(sessionInfo);
                 }
 
                 ClientLoop();
@@ -318,18 +273,18 @@ namespace OpenSim
         #region Inventory Creation
         private void SetupInventory(AuthenticateResponse sessionInfo)
         {
-            
+
         }
         private AgentInventory CreateInventory(LLUUID baseFolder)
         {
             AgentInventory inventory = null;
-            
+
             return inventory;
         }
 
         private void CreateInventoryItem(CreateInventoryItemPacket packet)
         {
-           
+
         }
         #endregion
 

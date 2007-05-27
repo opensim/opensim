@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
+using libsecondlife;
 
 namespace OpenSim.Framework.Types
 {

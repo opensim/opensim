@@ -13,7 +13,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
 using OpenSim.Assets;
 
 namespace OpenSim

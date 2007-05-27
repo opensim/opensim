@@ -13,15 +13,12 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
 using OpenSim.Assets;
 
 namespace OpenSim
 {
     public partial class ClientView
     {
-      
-
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
@@ -65,10 +62,10 @@ namespace OpenSim
                             //empty message so don't bother with it
                             break;
                         }
-                        string fromName = ClientAvatar.firstname + " " + ClientAvatar.lastname;
+                        string fromName = ""; //ClientAvatar.firstname + " " + ClientAvatar.lastname;
                         byte[] message = inchatpack.ChatData.Message;
                         byte type = inchatpack.ChatData.Type;
-                        LLVector3 fromPos = ClientAvatar.Pos;
+                        LLVector3 fromPos = new LLVector3(); // ClientAvatar.Pos;
                         LLUUID fromAgentID = AgentID;
                         this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
                         break;
@@ -151,7 +148,7 @@ namespace OpenSim
                         OnLinkObjects(parentprimid, childrenprims);
                         break;
                     case PacketType.ObjectAdd:
-                        m_world.AddNewPrim((ObjectAddPacket)Pack, this);
+                       // m_world.AddNewPrim((ObjectAddPacket)Pack, this);
                         OnAddPrim(Pack, this);
                         break;
                     case PacketType.ObjectShape:
@@ -270,7 +267,7 @@ namespace OpenSim
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
                         ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
                         bool foundent = false;
-                        foreach (Entity ent in m_world.Entities.Values)
+                       /* foreach (Entity ent in m_world.Entities.Values)
                         {
                             if (ent.localid == requesttask.InventoryData.LocalID)
                             {
@@ -283,13 +280,13 @@ namespace OpenSim
                         if (foundent)
                         {
                             this.OutPacket(replytask);
-                        }
+                        }*/
                         break;
                     case PacketType.UpdateTaskInventory:
                         // Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
                         AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
-                        if (myinventory != null)
+                        /*if (myinventory != null)
                         {
                             if (updatetask.UpdateData.Key == 0)
                             {
@@ -315,7 +312,7 @@ namespace OpenSim
                                     }
                                 }
                             }
-                        }
+                        }*/
                         break;
                     case PacketType.MapLayerRequest:
                         this.RequestMapLayer();

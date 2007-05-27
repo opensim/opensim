@@ -87,7 +87,7 @@ namespace OpenSim.RegionServer.world.scripting
                 {
                     Primitive prim = m_entity as Primitive;
                     // Of course, we really should have asked the physEngine if this is possible, and if not, returned false.
-                    prim.UpdatePosition( value );
+                   // prim.UpdatePosition( value );
                 }
             }
         }

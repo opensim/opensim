@@ -31,7 +31,7 @@ using Db4objects.Db4o.Query;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Terrain;
+
 
 namespace OpenSim.Storage.LocalStorageDb4o
 {

@@ -75,7 +75,7 @@ namespace OpenSim
         /// </summary>
         public override void StartUp()
         {
-            this.regionData = new RegionInfo();
+            this.serversData = new NetworkServersInfo();
             try
             {
                 this.localConfig = new XmlConfig(m_config);
@@ -90,10 +90,9 @@ namespace OpenSim
                 this.SetupFromConfigFile(this.localConfig);
             }
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Loading configuration");
-            this.regionData.InitConfig(this.m_sandbox, this.localConfig);
+            this.serversData.InitConfig(this.m_sandbox, this.localConfig);
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
-            GridServers = new Grid();
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
@@ -113,35 +112,10 @@ namespace OpenSim
 
             startuptime = DateTime.Now;
 
-            try
-            {
-                AssetCache = new AssetCache(GridServers.AssetServer);
-                InventoryCache = new InventoryCache();
-            }
-            catch (Exception e)
-            {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup local cache");
-                Environment.Exit(1);
-            }
-
-            m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console, this.AuthenticateSessionsHandler);
-
-            //should be passing a IGenericConfig object to these so they can read the config data they want from it
-            GridServers.AssetServer.SetServerInfo(regionData.AssetURL, regionData.AssetSendKey);
-            IGridServer gridServer = GridServers.GridServer;
-            gridServer.SetServerInfo(regionData.GridURL, regionData.GridSendKey, regionData.GridRecvKey);
-
-            if (!m_sandbox)
-            {
-                this.ConnectToRemoteGridServer();
-            }
+            this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
+            this.physManager.LoadPlugins();
 
             this.SetupLocalWorld();
-
-            if (m_sandbox)
-            {
-                AssetCache.LoadDefaultTextureSet();
-            }
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Initialising HTTP server");
 
@@ -151,30 +125,18 @@ namespace OpenSim
             LoginServer loginServer = null;
             LoginServer adminLoginServer = null;
 
-            bool sandBoxWithLoginServer = m_loginserver && m_sandbox;
-            if (sandBoxWithLoginServer)
+            if (m_sandbox)
             {
-                loginServer = new LoginServer(regionData.IPListenAddr, regionData.IPListenPort, regionData.RegionLocX, regionData.RegionLocY, this.user_accounts);
+                loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, this.user_accounts);
                 loginServer.Startup();
                 loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler).AddNewSession);
 
-                if (user_accounts)
-                {
-                    //sandbox mode with loginserver using accounts
-                    this.GridServers.UserServer = loginServer;
-                    adminLoginServer = loginServer;
-
-                    httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.LocalUserManager.XmlRpcLoginMethod);
-                }
-                else
-                {
-                    //sandbox mode with loginserver not using accounts
-                    httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
-                }
+                //sandbox mode with loginserver not using accounts
+                httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }
 
             //Web front end setup
-            AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, InventoryCache, adminLoginServer);
+            AdminWebFront adminWebFront = new AdminWebFront("Admin");
             adminWebFront.LoadMethods(httpServer);
 
             //Start http server
@@ -182,89 +144,93 @@ namespace OpenSim
             httpServer.Start();
 
             // Start UDP server
-            this.m_udpServer.ServerListener();
+            for (int i = 0; i < m_udpServer.Count; i++)
+            {
+                this.m_udpServer[i].ServerListener();
+            }
 
-            m_heartbeatTimer.Enabled = true;
-            m_heartbeatTimer.Interval = 100;
-            m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
         }
 
         # region Setup methods
         protected override void SetupLocalGridServers()
         {
-            GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
-            GridServers.GridDll = "OpenSim.GridInterfaces.Local.dll";
-
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Starting in Sandbox mode");
-
             try
             {
-                GridServers.Initialise();
+                AssetCache = new AssetCache("OpenSim.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
+                InventoryCache = new InventoryCache();
             }
             catch (Exception e)
             {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup the grid interface");
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup local cache");
                 Environment.Exit(1);
             }
+
         }
 
         protected override void SetupRemoteGridServers()
         {
-            if (this.gridLocalAsset)
-            {
-                GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
-            }
-            else
-            {
-                GridServers.AssetDll = "OpenSim.GridInterfaces.Remote.dll";
-            }
-            GridServers.GridDll = "OpenSim.GridInterfaces.Remote.dll";
-
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Starting in Grid mode");
-
             try
             {
-                GridServers.Initialise();
+                AssetCache = new AssetCache("OpenSim.GridInterfaces.Remote.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
+                InventoryCache = new InventoryCache();
             }
             catch (Exception e)
             {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup the grid interface");
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup remote cache");
                 Environment.Exit(1);
             }
         }
 
         protected override void SetupLocalWorld()
         {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Initialising world");
-            m_console.componentname = "Region " + regionData.RegionName;
+            IGenericConfig regionConfig;
+            World LocalWorld;
+            UDPServer udpServer;
+            RegionInfo regionDat = new RegionInfo();
 
-            m_localWorld = new World(this.m_udpServer.PacketServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
-            LocalWorld.InventoryCache = InventoryCache;
-            LocalWorld.AssetCache = AssetCache;
+            string path = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Regions");
+            string[] pluginFiles = Directory.GetFiles(path, "*.xml");
 
-            this.m_udpServer.LocalWorld = LocalWorld;
-            this.m_udpServer.PacketServer.RegisterClientPacketHandlers();
+            for (int i = 0; i < pluginFiles.Length; i++)
+            {
+                regionConfig = new XmlConfig(pluginFiles[i]);
+                regionConfig.LoadData();
+                regionDat.InitConfig(this.m_sandbox, regionConfig);
+                regionConfig.Close();
 
-            this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
-            this.physManager.LoadPlugins();
+                udpServer = new UDPServer(regionDat.IPListenPort, this.AssetCache, this.InventoryCache, this.m_console, this.AuthenticateSessionsHandler);
 
-            LocalWorld.m_datastore = this.regionData.DataStore;
+                m_udpServer.Add(udpServer);
+                this.regionData.Add(regionDat);
 
-            LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
-            LocalWorld.LoadWorldMap();
+                /*
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Initialising world");
+                m_console.componentname = "Region " + regionData.RegionName;
+                */
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
-            LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
-            LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
-            LocalWorld.LoadPrimsFromStorage();
+                LocalWorld = new World(udpServer.PacketServer.ClientAPIs, regionDat);
+                this.m_localWorld.Add(LocalWorld);
+                //LocalWorld.InventoryCache = InventoryCache;
+                //LocalWorld.AssetCache = AssetCache;
+
+                udpServer.LocalWorld = LocalWorld;
+
+                LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
+                LocalWorld.LoadWorldMap();
+
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
+                LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
+                LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
+                LocalWorld.LoadPrimsFromStorage();
+            }
         }
 
         protected override void SetupHttpListener()
         {
-            httpServer = new BaseHttpServer(regionData.IPListenPort);
+            httpServer = new BaseHttpServer(regionData[0].IPListenPort);
 
-            if (this.GridServers.GridServer.GetName() == "Remote")
+            if (!this.m_sandbox)
             {
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
@@ -275,7 +241,7 @@ namespace OpenSim
                     {
                         Hashtable requestData = (Hashtable)request.Params[0];
                         uint circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-                            
+
                         AgentCircuitData agent_data = new AgentCircuitData();
                         agent_data.firstname = (string)requestData["firstname"];
                         agent_data.lastname = (string)requestData["lastname"];
@@ -297,42 +263,7 @@ namespace OpenSim
 
         protected override void ConnectToRemoteGridServer()
         {
-            if (GridServers.GridServer.RequestConnection(regionData.SimUUID, regionData.IPListenAddr, (uint)regionData.IPListenPort))
-            {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Success: Got a grid connection OK!");
-            }
-            else
-            {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.CRITICAL, "Main.cs:Startup() - FAILED: Unable to get connection to grid. Shutting down.");
-                Shutdown();
-            }
 
-            GridServers.AssetServer.SetServerInfo((string)((RemoteGridBase)GridServers.GridServer).GridData["asset_url"], (string)((RemoteGridBase)GridServers.GridServer).GridData["asset_sendkey"]);
-
-            // If we are being told to load a file, load it.
-            string dataUri = (string)((RemoteGridBase)GridServers.GridServer).GridData["data_uri"];
-
-            if (!String.IsNullOrEmpty(dataUri))
-            {
-                this.LocalWorld.m_datastore = dataUri;
-            }
-
-            if (((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString() != "")
-            {
-                // The grid server has told us who we are
-                // We must obey the grid server.
-                try
-                {
-                    regionData.RegionLocX = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locx"].ToString());
-                    regionData.RegionLocY = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locy"].ToString());
-                    regionData.RegionName = ((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString();
-                }
-                catch (Exception e)
-                {
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.CRITICAL, e.Message + "\nBAD ERROR! THIS SHOULD NOT HAPPEN! Bad GridData from the grid interface!!!! ZOMG!!!");
-                    Environment.Exit(1);
-                }
-            }
         }
 
         #endregion
@@ -447,20 +378,12 @@ namespace OpenSim
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Killing clients");
             // IMPLEMENT THIS
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Closing console and terminating");
-            LocalWorld.Close();
-            GridServers.Close();
+            for (int i = 0; i < m_localWorld.Count; i++)
+            {
+                ((World)m_localWorld[i]).Close();
+            }
             m_console.Close();
             Environment.Exit(0);
-        }
-
-        /// <summary>
-        /// Performs per-frame updates regularly
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Heartbeat(object sender, System.EventArgs e)
-        {
-            LocalWorld.Update();
         }
 
         #region Console Commands
@@ -484,10 +407,10 @@ namespace OpenSim
 
                 case "terrain":
                     string result = "";
-                    if (!LocalWorld.Terrain.RunTerrainCmd(cmdparams, ref result))
-                    {
-                        m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, result);
-                    }
+                    /* if (!((World)m_localWorld).Terrain.RunTerrainCmd(cmdparams, ref result))
+                     {
+                         m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, result);
+                     }*/
                     break;
 
                 case "shutdown":
@@ -515,14 +438,14 @@ namespace OpenSim
                 case "users":
                     OpenSim.world.Avatar TempAv;
                     m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
-                    foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
-                    {
-                        if (LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
-                        {
-                            TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
-                            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
-                        }
-                    }
+                    /* foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
+                     {
+                         if (LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                         {
+                             TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
+                             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
+                         }
+                     }*/
                     break;
             }
         }

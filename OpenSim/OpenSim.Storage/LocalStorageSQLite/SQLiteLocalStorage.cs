@@ -35,7 +35,7 @@ using System.Data.SQLite;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Terrain;
+
 
 namespace OpenSim.Storage.LocalStorageSQLite
 {

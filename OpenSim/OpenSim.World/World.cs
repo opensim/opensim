@@ -6,13 +6,11 @@ using System.Text;
 using System.Reflection;
 using System.IO;
 using System.Threading;
+using System.Timers;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Terrain;
 using OpenSim.Framework.Inventory;
-using OpenSim.Assets;
-//using OpenSim.world.scripting;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
 
@@ -20,6 +18,7 @@ namespace OpenSim.world
 {
     public partial class World : WorldBase, ILocalStorageReceiver, IScriptAPI
     {
+        protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         public object LockPhysicsEngine = new object();
         public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
@@ -57,15 +56,16 @@ namespace OpenSim.world
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, ulong regionHandle, string regionName)
+        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo)
         {
             try
             {
                 updateLock = new Mutex(false);
                 m_clientThreads = clientThreads;
-                m_regionHandle = regionHandle;
-                m_regionName = regionName;
                 m_regInfo = regInfo;
+                m_regionHandle = m_regInfo.RegionHandle;
+                m_regionName = m_regInfo.RegionName;
+                this.m_datastore = m_regInfo.DataStore;
 
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();
@@ -85,6 +85,8 @@ namespace OpenSim.world
                 Avatar.LoadAnims();
                 this.SetDefaultScripts();
                 this.LoadScriptEngines();
+
+               
             }
             catch (Exception e)
             {
@@ -92,6 +94,13 @@ namespace OpenSim.world
             }
         }
         #endregion
+
+        public void StartTimer()
+        {
+            m_heartbeatTimer.Enabled = true;
+            m_heartbeatTimer.Interval = 100;
+            m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
+        }
 
         #region Script Methods
         /// <summary>
@@ -167,6 +176,18 @@ namespace OpenSim.world
         #endregion
 
         #region Update Methods
+
+
+        /// <summary>
+        /// Performs per-frame updates regularly
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Heartbeat(object sender, System.EventArgs e)
+        {
+            this.Update();
+        }
+
         /// <summary>
         /// Performs per-frame updates on the world, this should be the central world loop
         /// </summary>
@@ -327,7 +348,7 @@ namespace OpenSim.world
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                foreach (ClientView client in m_clientThreads.Values)
+                foreach (IClientAPI client in m_clientThreads.Values)
                 {
                     this.SendLayerData(client);
                 }
@@ -358,7 +379,7 @@ namespace OpenSim.world
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                foreach (ClientView client in m_clientThreads.Values)
+                foreach (IClientAPI client in m_clientThreads.Values)
                 {
                     this.SendLayerData(client);
                 }
@@ -388,7 +409,7 @@ namespace OpenSim.world
                 {
                     /* Dont save here, rely on tainting system instead */
 
-                    foreach (ClientView client in m_clientThreads.Values)
+                    foreach (IClientAPI client in m_clientThreads.Values)
                     {
                         this.SendLayerData(pointx, pointy, client);
                     }
@@ -436,23 +457,9 @@ namespace OpenSim.world
         /// Sends prims to a client
         /// </summary>
         /// <param name="RemoteClient">Client to send to</param>
-        public void GetInitialPrims(ClientView RemoteClient)
+        public void GetInitialPrims(IClientAPI RemoteClient)
         {
-            try
-            {
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
-                {
-                    if (Entities[UUID] is Primitive)
-                    {
-                        Primitive primitive = Entities[UUID] as Primitive;
-                        primitive.UpdateClient(RemoteClient);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: GetInitialPrims() - Failed with exception " + e.ToString());
-            }
+           
         }
 
         /// <summary>
@@ -477,67 +484,32 @@ namespace OpenSim.world
         /// <param name="prim">The object to load</param>
         public void PrimFromStorage(PrimData prim)
         {
-            try
-            {
-                if (prim.LocalID >= this._primCount)
-                {
-                    _primCount = prim.LocalID + 1;
-                }
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: PrimFromStorage() - Reloading prim (localId " + prim.LocalID + " ) from storage");
-                Primitive nPrim = new Primitive(m_clientThreads, m_regionHandle, this);
-                nPrim.CreateFromStorage(prim);
-                this.Entities.Add(nPrim.uuid, nPrim);
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: PrimFromStorage() - Failed with exception " + e.ToString());
-            }
+           
         }
 
-        public void AddNewPrim(Packet addPacket, ClientView agentClient)
+        public void AddNewPrim(Packet addPacket, IClientAPI agentClient)
         {
-            AddNewPrim((ObjectAddPacket)addPacket, agentClient.AgentID);
+            AddNewPrim((ObjectAddPacket)addPacket, agentClient.AgentId);
         }
 
         public void AddNewPrim(ObjectAddPacket addPacket, LLUUID ownerID)
         {
-            try
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: AddNewPrim() - Creating new prim");
-                Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
-                prim.CreateFromPacket(addPacket, ownerID, this._primCount);
-                PhysicsVector pVec = new PhysicsVector(prim.Pos.X, prim.Pos.Y, prim.Pos.Z);
-                PhysicsVector pSize = new PhysicsVector(0.255f, 0.255f, 0.255f);
-                if (OpenSim.world.Avatar.PhysicsEngineFlying)
-                {
-                    lock (this.LockPhysicsEngine)
-                    {
-                        prim.PhysActor = this.phyScene.AddPrim(pVec, pSize);
-                    }
-                }
-
-                this.Entities.Add(prim.uuid, prim);
-                this._primCount++;
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddNewPrim() - Failed with exception " + e.ToString());
-            }
+          
         }
 
         #endregion
 
         #region Add/Remove Avatar Methods
 
-        public override Avatar AddViewerAgent(ClientView agentClient)
+        public override bool AddNewAvatar(IClientAPI agentClient, bool child)
         {
-            Avatar newAvatar = null;
-            return newAvatar;
+          
+            return false;
         }
 
-        public override void RemoveViewerAgent(ClientView agentClient)
+        public override bool RemoveAvatar(LLUUID agentID)
         {
-            
+            return false;
         }
         #endregion
 

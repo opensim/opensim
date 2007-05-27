@@ -26,7 +26,7 @@ namespace OpenSim.Framework.User
             {
                 UserProfiles.Add(userprof.UUID, userprof);
             }
-            Console.WriteLine("UserProfiles.Cs:InitUserProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
+            System.Console.WriteLine("UserProfiles.Cs:InitUserProfiles() - Successfully loaded " + result.Count.ToString() + " from database");
             db.Close();
         }
 
@@ -73,18 +73,18 @@ namespace OpenSim.Framework.User
             {
                 if (TheUser.MD5passwd == passwd)
                 {
-                    Console.WriteLine("UserProfile - authorised " + firstname + " " + lastname);
+                    System.Console.WriteLine("UserProfile - authorised " + firstname + " " + lastname);
                     return true;
                 }
                 else
                 {
-                    Console.WriteLine("UserProfile - not authorised, password not match " + TheUser.MD5passwd + " and " + passwd);
+                    System.Console.WriteLine("UserProfile - not authorised, password not match " + TheUser.MD5passwd + " and " + passwd);
                     return false;
                 }
             }
             else
             {
-                Console.WriteLine("UserProfile - not authorised , unkown: " + firstname + " , " + lastname);
+                System.Console.WriteLine("UserProfile - not authorised , unkown: " + firstname + " , " + lastname);
                 return false;
             }
 
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.User
 
         public virtual UserProfile CreateNewProfile(string firstname, string lastname, string MD5passwd)
         {
-            Console.WriteLine("creating new profile for : " + firstname + " , " + lastname);
+            System.Console.WriteLine("creating new profile for : " + firstname + " , " + lastname);
             UserProfile newprofile = new UserProfile();
             newprofile.homeregionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
             newprofile.firstname = firstname;
