@@ -173,7 +173,25 @@ namespace OpenSim
                 }
                 else
                 {
-                    this.IPListenAddr = attri;
+                    // Probably belongs elsewhere, but oh well.
+                    if (attri.Trim().StartsWith("SYSTEMIP"))
+                    {
+                        string localhostname = System.Net.Dns.GetHostName();
+                        System.Net.IPAddress[] ips = System.Net.Dns.GetHostAddresses(localhostname);
+                        try
+                        {
+                            this.IPListenAddr = ips[0].ToString();
+                        }
+                        catch (Exception e)
+                        {
+                            e.ToString();
+                            this.IPListenAddr = "127.0.0.1"; // Use the default if we fail
+                        }
+                    }
+                    else
+                    {
+                        this.IPListenAddr = attri;
+                    }
                 }
                 
                 // Terrain Default File
