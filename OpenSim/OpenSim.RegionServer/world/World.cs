@@ -231,9 +231,16 @@ namespace OpenSim.world
                     localStorage.SaveMap(Terrain.getHeights1D());
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain saved, informing Physics.");
                     phyScene.SetTerrain(Terrain.getHeights1D());
+
+                    // Needs optimising to just send patches which have changed.
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain changed, informing Clients.");
+                    foreach (ClientView client in m_clientThreads.Values)
+                    {
+                        this.SendLayerData(client);
+                    }
                 }
 
-                // Primitive backup routines
+                // Primitive backup routines -- should only do if there's been a change.
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Backing up Primitives");
                 foreach (libsecondlife.LLUUID UUID in Entities.Keys)
                 {
