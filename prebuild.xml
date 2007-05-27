@@ -646,8 +646,8 @@
 
      <ReferencePath>../../bin/</ReferencePath>
      <Reference name="System" localCopy="false"/>
-     <Reference name="OpenSim.Framework"/>
-     <Reference name="OpenSim.Servers"/>
+     <Reference name="OpenSim.Framework.dll"/>
+     <Reference name="OpenSim.Servers.dll"/>
      <Reference name="libsecondlife.dll"/>
      <Reference name="XMLRPC"/>
 
