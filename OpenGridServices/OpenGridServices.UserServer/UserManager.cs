@@ -581,8 +581,8 @@ namespace OpenGridServices.UserServer
                     }
                     catch (Exception e)
                     {
-                        return CreateDeadRegionResponse();
                         Console.WriteLine(e.ToString());
+                        return CreateDeadRegionResponse();
                     }
 
                     CommitAgent(ref TheUser);
