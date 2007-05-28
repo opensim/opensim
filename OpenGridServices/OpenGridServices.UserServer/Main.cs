@@ -50,7 +50,7 @@ namespace OpenGridServices.UserServer
     public class OpenUser_Main : BaseServer, conscmd_callback
     {
         private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
-        private string StorageDll = "OpenGrid.Framework.Data.DB4o.dll";
+        private string StorageDll = "OpenGrid.Framework.Data.MySQL.dll";
         private UserConfig Cfg;
         protected IGenericConfig localXMLConfig;
 
