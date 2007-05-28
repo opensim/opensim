@@ -81,7 +81,7 @@ namespace OpenGridServices.AssetServer
 
         private OpenAsset_Main()
         {
-            m_console = new ConsoleBase("opengrid-AssetServer-console.log", "OpenGrid", this, false);
+            m_console = new ConsoleBase("opengrid-AssetServer-console.log", "OpenAsset", this, false);
             MainConsole.Instance = m_console;
         }
 
