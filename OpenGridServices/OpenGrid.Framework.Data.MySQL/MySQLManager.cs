@@ -207,6 +207,39 @@ namespace OpenGrid.Framework.Data.MySQL
             return retval;
         }
 
+        public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
+        {
+            string sql = "INSERT INTO logs (target, server, method, arguments, priority, message) VALUES (";
+            sql += "(?target, ?server, ?method, ?arguments, ?priority, ?message)";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters["?server"] = serverDaemon;
+            parameters["?target"] = target;
+            parameters["?method"] = methodCall;
+            parameters["?arguments"] = arguments;
+            parameters["?priority"] = priority.ToString();
+            parameters["?message"] = logMessage;
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+
+            return returnval;
+        }
+
         public bool insertRow(SimProfileData profile)
         {
             string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";

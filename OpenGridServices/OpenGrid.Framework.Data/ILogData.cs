@@ -15,6 +15,6 @@ namespace OpenGrid.Framework.Data
     }
     public interface ILogData
     {
-        void saveLog(string serverDaemon, string methodCall, string arguments, int priority,string logMessage);
+        void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,string logMessage);
     }
 }
