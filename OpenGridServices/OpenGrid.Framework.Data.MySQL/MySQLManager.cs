@@ -33,6 +33,8 @@ namespace OpenGrid.Framework.Data.MySQL
                 dbcon = new MySqlConnection(connectionString);
 
                 dbcon.Open();
+
+                System.Console.WriteLine("MySQL connection established");
             }
             catch (Exception e)
             {
@@ -120,7 +122,15 @@ namespace OpenGrid.Framework.Data.MySQL
                 retval.regionUserSendKey = (string)reader["regionUserSendKey"];
 
                 // World Map Addition
-                retval.regionMapTextureID = new libsecondlife.LLUUID((string)reader["regionMapTexture"]);
+                string tempRegionMap = reader["regionMapTexture"].ToString();
+                if (tempRegionMap != "")
+                {
+                    retval.regionMapTextureID = new libsecondlife.LLUUID(tempRegionMap);
+                }
+                else
+                {
+                    retval.regionMapTextureID = new libsecondlife.LLUUID();
+                }
             }
             else
             {
@@ -209,7 +219,7 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
         {
-            string sql = "INSERT INTO logs (target, server, method, arguments, priority, message) VALUES (";
+            string sql = "INSERT INTO logs (`target`, `server`, `method`, `arguments`, `priority`, `message`) VALUES ";
             sql += "(?target, ?server, ?method, ?arguments, ?priority, ?message)";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();

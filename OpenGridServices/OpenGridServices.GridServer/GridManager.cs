@@ -315,25 +315,49 @@ namespace OpenGridServices.GridServer
             response.Value = responseData;
             IList simProfileList = new ArrayList();
 
-            SimProfileData simProfile;
-            for (int x = xmin; x < xmax; x++)
-            {
-                for (int y = ymin; y < ymax; y++)
-                {
-                    simProfile = getRegion(Helpers.UIntsToLong((uint)(x * 256), (uint)(y * 256)));
-                    if (simProfile != null)
-                    {
-                        Hashtable simProfileBlock = new Hashtable();
-                        simProfileBlock["x"] = x;
-                        simProfileBlock["y"] = y;
-                        simProfileBlock["name"] = simProfile.regionName;
-                        simProfileBlock["access"] = 0;
-                        simProfileBlock["region-flags"] = 0;
-                        simProfileBlock["water-height"] = 20;
-                        simProfileBlock["agents"] = 1;
-                        simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
+            bool fastMode = false; // MySQL Only
 
-                        simProfileList.Add(simProfileBlock);
+            if (fastMode)
+            {
+                Dictionary<ulong, SimProfileData> neighbours = getRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
+
+                foreach (KeyValuePair<ulong, SimProfileData> aSim in neighbours)
+                {
+                    Hashtable simProfileBlock = new Hashtable();
+                    simProfileBlock["x"] = aSim.Value.regionLocX;
+                    simProfileBlock["y"] = aSim.Value.regionLocY;
+                    simProfileBlock["name"] = aSim.Value.regionName;
+                    simProfileBlock["access"] = 0;
+                    simProfileBlock["region-flags"] = 0;
+                    simProfileBlock["water-height"] = 20;
+                    simProfileBlock["agents"] = 1;
+                    simProfileBlock["map-image-id"] = aSim.Value.regionMapTextureID.ToString();
+
+                    simProfileList.Add(simProfileBlock);
+                }
+            }
+            else
+            {
+                SimProfileData simProfile;
+                for (int x = xmin; x < xmax; x++)
+                {
+                    for (int y = ymin; y < ymax; y++)
+                    {
+                        simProfile = getRegion(Helpers.UIntsToLong((uint)(x * 256), (uint)(y * 256)));
+                        if (simProfile != null)
+                        {
+                            Hashtable simProfileBlock = new Hashtable();
+                            simProfileBlock["x"] = x;
+                            simProfileBlock["y"] = y;
+                            simProfileBlock["name"] = simProfile.regionName;
+                            simProfileBlock["access"] = 0;
+                            simProfileBlock["region-flags"] = 0;
+                            simProfileBlock["water-height"] = 20;
+                            simProfileBlock["agents"] = 1;
+                            simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
+
+                            simProfileList.Add(simProfileBlock);
+                        }
                     }
                 }
             }
