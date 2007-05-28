@@ -31,6 +31,11 @@ namespace OpenGrid.Framework.Data.MySQL
             return "MySQL Logdata Interface";
         }
 
+        public void Close()
+        {
+            // Do nothing.
+        }
+
         public string getVersion()
         {
             return "0.1";

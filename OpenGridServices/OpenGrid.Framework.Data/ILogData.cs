@@ -16,5 +16,27 @@ namespace OpenGrid.Framework.Data
     public interface ILogData
     {
         void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,string logMessage);
+        /// <summary>
+        /// Initialises the interface
+        /// </summary>
+        void Initialise();
+
+        /// <summary>
+        /// Closes the interface
+        /// </summary>
+        void Close();
+
+        /// <summary>
+        /// The plugin being loaded
+        /// </summary>
+        /// <returns>A string containing the plugin name</returns>
+        string getName();
+
+        /// <summary>
+        /// The plugins version
+        /// </summary>
+        /// <returns>A string containing the plugin version</returns>
+        string getVersion();
     }
+
 }

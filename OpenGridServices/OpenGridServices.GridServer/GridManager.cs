@@ -16,6 +16,8 @@ namespace OpenGridServices.GridServer
     class GridManager
     {
         Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
+        Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
+
         public OpenSim.Framework.Interfaces.GridConfig config;
 
         /// <summary>
@@ -32,6 +34,7 @@ namespace OpenGridServices.GridServer
 			{
                 if (!pluginType.IsAbstract)
                 {
+                    // Regions go here
                     Type typeInterface = pluginType.GetInterface("IGridData", true);
 
                     if (typeInterface != null)
@@ -43,12 +46,48 @@ namespace OpenGridServices.GridServer
                     }
 
                     typeInterface = null;
+
+                    // Logs go here
+                    typeInterface = pluginType.GetInterface("ILogData", true);
+
+                    if (typeInterface != null)
+                    {
+                        ILogData plug = (ILogData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        plug.Initialise();
+                        this._logplugins.Add(plug.getName(), plug);
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Storage: Added ILogData Interface");
+                    }
+
+                    typeInterface = null;
                 }
 			}
 			
 			pluginAssembly = null; 
         }
-        
+
+        /// <summary>
+        /// Logs a piece of information to the database
+        /// </summary>
+        /// <param name="target">What you were operating on (in grid server, this will likely be the region UUIDs)</param>
+        /// <param name="method">Which method is being called?</param>
+        /// <param name="args">What arguments are being passed?</param>
+        /// <param name="priority">How high priority is this? 1 = Max, 6 = Verbose</param>
+        /// <param name="message">The message to log</param>
+        private void logToDB(string target, string method, string args, int priority, string message)
+        {
+            foreach (KeyValuePair<string, ILogData> kvp in _logplugins)
+            {
+                try
+                {
+                    kvp.Value.saveLog("Gridserver", target, method, args, priority, message);
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Storage: unable to write log via " + kvp.Key);
+                }
+            }
+        }
+
         /// <summary>
         /// Returns a region by argument
         /// </summary>
@@ -160,15 +199,23 @@ namespace OpenGridServices.GridServer
             if (requestData.ContainsKey("UUID"))
             {
                 TheSim = getRegion(new LLUUID((string)requestData["UUID"]));
+                logToDB((new LLUUID((string)requestData["UUID"])).ToStringHyphenated(),"XmlRpcLoginToSimulatorMethod","", 5,"Region attempting login with UUID.");
             }
             else if (requestData.ContainsKey("region_handle"))
             {
                 TheSim = getRegion((ulong)Convert.ToUInt64(requestData["region_handle"]));
+                logToDB((string)requestData["region_handle"], "XmlRpcLoginToSimulatorMethod", "", 5, "Region attempting login with regionHandle.");
+            }
+            else
+            {
+                responseData["error"] = "No UUID or region_handle passed to grid server - unable to connect you";
+                return response;
             }
 
             if (TheSim == null)
             {
                 responseData["error"] = "sim not found";
+                return response;
             }
             else
             {
@@ -366,7 +413,7 @@ namespace OpenGridServices.GridServer
         /// <returns>"OK" or an error</returns>
         public string RestSetSimMethod(string request, string path, string param)
         {
-            Console.WriteLine("SimProfiles.cs:RestSetSimMethod() - processing request......");
+            Console.WriteLine("Processing region update");
             SimProfileData TheSim;
             TheSim = getRegion(new LLUUID(param));
             if ((TheSim) == null)
@@ -449,13 +496,14 @@ namespace OpenGridServices.GridServer
 
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Attempting to add a new region to the grid - " + _plugins.Count + " storage provider(s) registered.");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
                     try
                     {
                         kvp.Value.AddProfile(TheSim);
                         OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"New sim added to grid (" + TheSim.regionName + ")");
+                        logToDB(TheSim.UUID.ToStringHyphenated(), "RestSetSimMethod", "", 5, "Region successfully updated and connected to grid.");
                     }
                     catch (Exception e)
                     {
