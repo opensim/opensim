@@ -128,7 +128,7 @@ namespace OpenGridServices.GridServer
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);
-            GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
+            //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
@@ -157,7 +157,7 @@ namespace OpenGridServices.GridServer
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting sim status checker");
 
-            System.Timers.Timer simCheckTimer = new System.Timers.Timer(300000); // 5 minutes
+            System.Timers.Timer simCheckTimer = new System.Timers.Timer(3600000 * 3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }
