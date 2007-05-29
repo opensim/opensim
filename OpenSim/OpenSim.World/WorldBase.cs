@@ -137,14 +137,14 @@ namespace OpenSim.world
         #endregion
 
         #region Add/Remove Agent/Avatar
-        public virtual bool AddNewAvatar(IClientAPI remoteClient, bool child)
+        public virtual void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
-            return false;
+            return ;
         }
 
-        public virtual bool RemoveAvatar(LLUUID agentID)
+        public virtual void RemoveAvatar(LLUUID agentID)
         {
-            return false;
+            return ;
         }
 
         #endregion

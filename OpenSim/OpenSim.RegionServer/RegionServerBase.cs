@@ -46,7 +46,7 @@ namespace OpenSim
         protected List<RegionInfo> regionData = new List<RegionInfo>();
         protected List<IWorld> m_localWorld = new List<IWorld>();
         protected BaseHttpServer httpServer;
-        protected AuthenticateSessionsBase AuthenticateSessionsHandler;
+        protected List<AuthenticateSessionsBase> AuthenticateSessionsHandler = new List<AuthenticateSessionsBase>();
 
         protected ConsoleBase m_console;
 

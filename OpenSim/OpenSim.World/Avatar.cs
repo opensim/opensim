@@ -7,6 +7,7 @@ using libsecondlife.Packets;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
 using Axiom.MathLib;
 
 namespace OpenSim.world
@@ -40,13 +41,13 @@ namespace OpenSim.world
         public Avatar(IClientAPI TheClient, World world, string regionName, Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
         {
             m_world = world;
-           // m_clientThreads = clientThreads;
+            // m_clientThreads = clientThreads;
             m_regionName = regionName;
             m_regionHandle = regionHandle;
             m_regionTerraform = regionTerraform;
             m_regionWaterHeight = regionWater;
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs - Loading details from grid (DUMMY)");
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
             Pos = ControllingClient.StartPos;
@@ -65,6 +66,7 @@ namespace OpenSim.world
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
 
+            /*
             //register for events
             ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);
             ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
@@ -74,6 +76,7 @@ namespace OpenSim.world
             ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+             * */
         }
 
         public PhysicsActor PhysActor
@@ -90,29 +93,29 @@ namespace OpenSim.world
 
         public void ChildStatusChange(bool status)
         {
-          
+
         }
 
         public override void addForces()
         {
-          
+
         }
 
         public static void SetupTemplate(string name)
         {
-            
+
         }
 
         protected static void SetDefaultPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
         {
-          
+
 
 
         }
 
         public void CompleteMovement()
         {
-           
+
         }
 
         public void HandleAgentUpdate(Packet pack)
@@ -122,35 +125,36 @@ namespace OpenSim.world
 
         public void HandleUpdate(AgentUpdatePacket pack)
         {
-            
+
         }
 
         //really really should be moved somewhere else (RegionInfo.cs ?)
         public void SendRegionHandshake(World regionInfo)
         {
-           
+
         }
 
         public static void LoadAnims()
         {
-           
+
         }
 
         public override void LandRenegerated()
         {
-          
+
         }
-    }
 
-    public class NewForce
-    {
-        public float X;
-        public float Y;
-        public float Z;
 
-        public NewForce()
+        public class NewForce
         {
+            public float X;
+            public float Y;
+            public float Z;
 
+            public NewForce()
+            {
+
+            }
         }
     }
 

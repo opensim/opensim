@@ -110,6 +110,7 @@
     </Compile>
     <Compile Include="SimProfile.cs" />
     <Compile Include="SimProfileBase.cs" />
+    <Compile Include="Types\AgentWearable.cs" />
     <Compile Include="Types\NetworkServersInfo.cs" />
     <Compile Include="UserProfile.cs">
       <SubType>Code</SubType>

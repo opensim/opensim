@@ -18,6 +18,8 @@ namespace OpenSim.Framework.Interfaces
     public delegate void GenericCall2();
     public delegate void GenericCall3(Packet packet); // really don't want to be passing packets in these events, so this is very temporary.
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
+    public delegate void GenericCall5(IClientAPI remoteClient, bool status);
+    public delegate void GenericCall6(LLUUID uid);
     public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
@@ -25,6 +27,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void UpdatePrimVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
     public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
     public delegate void StatusChange(bool status);
+    public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
 
     public interface IClientAPI
     {
@@ -50,6 +53,8 @@ namespace OpenSim.Framework.Interfaces
         event UpdatePrimVector OnUpdatePrimScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;
+        event NewAvatar OnNewAvatar;
+        event GenericCall6 OnRemoveAvatar;
 
         LLVector3 StartPos
         {
@@ -63,7 +68,7 @@ namespace OpenSim.Framework.Interfaces
         }
 
         void OutPacket(Packet newPack);
-        void SendAppearance(AvatarWearable[] wearables);
+        void SendWearables(AvatarWearable[] wearables);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     }
 }

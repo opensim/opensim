@@ -501,15 +501,14 @@ namespace OpenSim.world
 
         #region Add/Remove Avatar Methods
 
-        public override bool AddNewAvatar(IClientAPI agentClient, bool child)
+        public override void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
-          
-            return false;
+            return ;
         }
 
-        public override bool RemoveAvatar(LLUUID agentID)
+        public override void RemoveAvatar(LLUUID agentID)
         {
-            return false;
+            return ;
         }
         #endregion
 

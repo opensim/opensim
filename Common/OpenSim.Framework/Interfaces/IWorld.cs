@@ -8,8 +8,8 @@ namespace OpenSim.Framework.Interfaces
 {
     public interface IWorld
     {
-        bool AddNewAvatar(IClientAPI remoteClient, bool childAgent);
-        bool RemoveAvatar(LLUUID agentID);
+        void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child);
+        void RemoveAvatar(LLUUID agentID);
         RegionInfo GetRegionInfo();
     }
 }

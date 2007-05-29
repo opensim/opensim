@@ -96,18 +96,12 @@ namespace OpenSim
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
-                //Authenticate Session Handler
-                AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
-                this.AuthenticateSessionsHandler = authen;
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
             }
             else
             {
                 this.SetupRemoteGridServers();
-                //Authenticate Session Handler
-                AuthenticateSessionsRemote authen = new AuthenticateSessionsRemote();
-                this.AuthenticateSessionsHandler = authen;
             }
 
             startuptime = DateTime.Now;
@@ -129,7 +123,7 @@ namespace OpenSim
             {
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, this.user_accounts);
                 loginServer.Startup();
-                loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler).AddNewSession);
+                loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler[0]).AddNewSession);
 
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
@@ -187,18 +181,46 @@ namespace OpenSim
             World LocalWorld;
             UDPServer udpServer;
             RegionInfo regionDat = new RegionInfo();
+            AuthenticateSessionsBase authenBase;
 
             string path = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Regions");
-            string[] pluginFiles = Directory.GetFiles(path, "*.xml");
+            string[] configFiles = Directory.GetFiles(path, "*.xml");
 
-            for (int i = 0; i < pluginFiles.Length; i++)
+            if (configFiles.Length == 0)
             {
-                regionConfig = new XmlConfig(pluginFiles[i]);
+                string path2 = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Regions");
+                string path3 = Path.Combine(path2, "default.xml");
+                Console.WriteLine("Creating default region config file");
+                //TODO create default region
+                IGenericConfig defaultConfig = new XmlConfig(path3);
+                defaultConfig.LoadData();
+                defaultConfig.Commit();
+                defaultConfig.Close();
+                defaultConfig = null;
+                configFiles = Directory.GetFiles(path, "*.xml");
+            }
+
+            for (int i = 0; i < configFiles.Length; i++)
+            {
+                if (m_sandbox)
+                {
+                    AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
+                    this.AuthenticateSessionsHandler.Add(authen);
+                    authenBase = authen;
+                }
+                else
+                {
+                    AuthenticateSessionsRemote authen = new AuthenticateSessionsRemote();
+                    this.AuthenticateSessionsHandler.Add (authen);
+                    authenBase = authen;
+                }
+                Console.WriteLine("Loading region config file");
+                regionConfig = new XmlConfig(configFiles[i]);
                 regionConfig.LoadData();
                 regionDat.InitConfig(this.m_sandbox, regionConfig);
                 regionConfig.Close();
 
-                udpServer = new UDPServer(regionDat.IPListenPort, this.AssetCache, this.InventoryCache, this.m_console, this.AuthenticateSessionsHandler);
+                udpServer = new UDPServer(regionDat.IPListenPort, this.AssetCache, this.InventoryCache, this.m_console, authenBase);
 
                 m_udpServer.Add(udpServer);
                 this.regionData.Add(regionDat);
@@ -223,6 +245,8 @@ namespace OpenSim
                 LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
                 LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
                 LocalWorld.LoadPrimsFromStorage();
+
+                LocalWorld.StartTimer();
             }
         }
 
@@ -234,7 +258,7 @@ namespace OpenSim
             {
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
-                httpServer.AddXmlRPCHandler("expect_user", ((AuthenticateSessionsRemote)this.AuthenticateSessionsHandler).ExpectUser);
+                httpServer.AddXmlRPCHandler("expect_user", ((AuthenticateSessionsRemote)this.AuthenticateSessionsHandler[0]).ExpectUser);
 
                 httpServer.AddXmlRPCHandler("agent_crossing",
                     delegate(XmlRpcRequest request)
@@ -248,7 +272,7 @@ namespace OpenSim
                         agent_data.circuitcode = circuitcode;
                         agent_data.startpos = new LLVector3(Single.Parse((string)requestData["pos_x"]), Single.Parse((string)requestData["pos_y"]), Single.Parse((string)requestData["pos_z"]));
 
-                        AuthenticateSessionsHandler.UpdateAgentData(agent_data);
+                        AuthenticateSessionsHandler[0].UpdateAgentData(agent_data);
 
                         return new XmlRpcResponse();
                     });

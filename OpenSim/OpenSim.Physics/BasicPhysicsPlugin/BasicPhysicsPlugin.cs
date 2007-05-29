@@ -49,11 +49,7 @@ namespace OpenSim.Physics.BasicPhysicsPlugin
 		
 		public PhysicsScene GetScene()
 		{
-			if(_mScene == null)
-			{
-				_mScene = new BasicScene();
-			}
-			return(_mScene);
+		    return new BasicScene();
 		}
 		
 		public string GetName()
