@@ -28,7 +28,7 @@ namespace OpenSim.world
 
         public void SendInitialPosition()
         {
-           
+            this.ControllingClient.SendAvatarData(this.regionData, this.firstname, this.lastname, this.uuid, this.localid, new LLVector3(128, 128, 100));
         }
 
         public void SendOurAppearance()
@@ -38,7 +38,7 @@ namespace OpenSim.world
 
         public void SendOurAppearance(IClientAPI OurClient)
         {
-           
+            this.ControllingClient.SendWearables(this.Wearables);
         }
 
         public void SendAppearanceToOtherAgent(Avatar avatarInfo)

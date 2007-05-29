@@ -60,8 +60,8 @@ namespace OpenSim
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
-        public string FirstName;
-        public string LastName;
+        public string firstName;
+        public string lastName;
         public bool m_child = false;
         private UseCircuitCodePacket cirpack;
         public Thread ClientThread;
@@ -250,8 +250,8 @@ namespace OpenSim
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;
                 this.CircuitCode = cirpack.CircuitCode.Code;
-                this.FirstName = sessionInfo.LoginInfo.First;
-                this.LastName = sessionInfo.LoginInfo.Last;
+                this.firstName = sessionInfo.LoginInfo.First;
+                this.lastName = sessionInfo.LoginInfo.Last;
 
                 if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)
                 {

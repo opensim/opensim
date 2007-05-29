@@ -50,6 +50,8 @@ namespace OpenSim.world
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
+            this.firstname = ControllingClient.FirstName;
+            this.lastname = ControllingClient.LastName;
             localid = 8880000 + (this.m_world._localNumber++);
             Pos = ControllingClient.StartPos;
             visualParams = new byte[218];
@@ -67,10 +69,10 @@ namespace OpenSim.world
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
 
-            /*
+            
             //register for events
             ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);
-            ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);*/
+            //ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.CompleteMovement);
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
            /* ControllingClient.OnAgentUpdate += new GenericCall3(this.HandleAgentUpdate);

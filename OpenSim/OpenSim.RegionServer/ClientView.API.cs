@@ -56,6 +56,23 @@ namespace OpenSim
             }
         }
 
+        public string FirstName
+        {
+            get
+            {
+                return this.firstName;
+            }
+
+        }
+
+        public string LastName
+        {
+            get
+            {
+                return this.lastName;
+            }
+        }
+
         #region World/Avatar to Client
 
         public void MoveAgentIntoRegion(RegionInfo regInfo)

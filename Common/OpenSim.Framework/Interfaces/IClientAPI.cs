@@ -67,6 +67,16 @@ namespace OpenSim.Framework.Interfaces
             get;
         }
 
+        string FirstName
+        {
+            get;
+        }
+
+        string LastName
+        {
+            get;
+        }
+
         void OutPacket(Packet newPack);
         void SendWearables(AvatarWearable[] wearables);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
