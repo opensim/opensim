@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+# Visual C# Express 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Terrain.BasicTerrain", "OpenSim\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj", "{2270B8FE-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageBerkeleyDB", "OpenSim\OpenSim.Storage\LocalStorageBerkeleyDB\OpenSim.Storage.LocalStorageBerkeleyDB.csproj", "{EE9E5D96-0000-0000-0000-000000000000}"
