@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C# Express 2005
+# Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenUser.Config.UserConfigDb4o", "OpenGridServices\OpenUser.Config\UserConfigDb4o\OpenUser.Config.UserConfigDb4o.csproj", "{7E494328-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGridServices.AssetServer", "OpenGridServices\OpenGridServices.AssetServer\OpenGridServices.AssetServer.csproj", "{0021261B-0000-0000-0000-000000000000}"

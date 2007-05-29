@@ -493,8 +493,8 @@ namespace OpenGridServices.UserServer
                     Hashtable LoginFlagsHash = new Hashtable();
                     LoginFlagsHash["daylight_savings"] = "N";
                     LoginFlagsHash["stipend_since_login"] = "N";
-                    LoginFlagsHash["gendered"] = "N"; // Needs to be combined with below...
-                    LoginFlagsHash["ever_logged_in"] = "N"; // Should allow male/female av selection
+                    LoginFlagsHash["gendered"] = "Y"; // Needs to be combined with below...
+                    LoginFlagsHash["ever_logged_in"] = "Y"; // Should allow male/female av selection
                     ArrayList LoginFlags = new ArrayList();
                     LoginFlags.Add(LoginFlagsHash);
 

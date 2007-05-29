@@ -315,7 +315,7 @@ namespace OpenGridServices.GridServer
             response.Value = responseData;
             IList simProfileList = new ArrayList();
 
-            bool fastMode = false; // MySQL Only
+            bool fastMode = true; // MySQL Only
 
             if (fastMode)
             {
@@ -327,14 +327,15 @@ namespace OpenGridServices.GridServer
                     simProfileBlock["x"] = aSim.Value.regionLocX;
                     simProfileBlock["y"] = aSim.Value.regionLocY;
                     simProfileBlock["name"] = aSim.Value.regionName;
-                    simProfileBlock["access"] = 0;
-                    simProfileBlock["region-flags"] = 0;
-                    simProfileBlock["water-height"] = 20;
+                    simProfileBlock["access"] = 21;
+                    simProfileBlock["region-flags"] = 512;
+                    simProfileBlock["water-height"] = 0;
                     simProfileBlock["agents"] = 1;
                     simProfileBlock["map-image-id"] = aSim.Value.regionMapTextureID.ToString();
 
                     simProfileList.Add(simProfileBlock);
                 }
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "World map request processed, returned " + simProfileList.Count.ToString() + " region(s) in range via FastMode");
             }
             else
             {
@@ -360,6 +361,7 @@ namespace OpenGridServices.GridServer
                         }
                     }
                 }
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "World map request processed, returned " + simProfileList.Count.ToString() + " region(s) in range via Standard Mode");
             }
 
             responseData["sim-profiles"] = simProfileList;

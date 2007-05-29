@@ -7,7 +7,7 @@
             <fileset basedir="${project::get-base-directory()}">
             </fileset>
         </copy>
-        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
+        <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
             <resources prefix="OpenSim.RegionServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
@@ -15,10 +15,10 @@
                 <include name="AuthenticateSessionsBase.cs" />
                 <include name="AuthenticateSessionsLocal.cs" />
                 <include name="AuthenticateSessionsRemote.cs" />
+                <include name="ClientView.cs" />
                 <include name="ClientView.Grid.cs" />
                 <include name="ClientView.PacketHandlers.cs" />
                 <include name="ClientView.ProcessPackets.cs" />
-                <include name="ClientView.cs" />
                 <include name="ClientViewBase.cs" />
                 <include name="Grid.cs" />
                 <include name="OpenSimMain.cs" />
@@ -35,16 +35,16 @@
                 <include name="types/Mesh.cs" />
                 <include name="types/Triangle.cs" />
                 <include name="world/Avatar.Client.cs" />
-                <include name="world/Avatar.Update.cs" />
                 <include name="world/Avatar.cs" />
+                <include name="world/Avatar.Update.cs" />
                 <include name="world/AvatarAnimations.cs" />
                 <include name="world/Entity.cs" />
                 <include name="world/Primitive.cs" />
                 <include name="world/Primitive2.cs" />
                 <include name="world/SceneObject.cs" />
+                <include name="world/World.cs" />
                 <include name="world/World.PacketHandlers.cs" />
                 <include name="world/World.Scripting.cs" />
-                <include name="world/World.cs" />
                 <include name="world/WorldBase.cs" />
                 <include name="world/scripting/IScriptContext.cs" />
                 <include name="world/scripting/IScriptEntity.cs" />
