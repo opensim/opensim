@@ -212,7 +212,8 @@ namespace OpenSim
                 attri = configData.GetAttribute("TerrainMultiplier");
                 if (attri == "")
                 {
-                    this.TerrainMultiplier = Convert.ToDouble(OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Terrain multiplier", "60.0"), CultureInfo.InvariantCulture);
+                    string re = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Terrain multiplier", "60.0");
+                    this.TerrainMultiplier = Convert.ToDouble(re, CultureInfo.InvariantCulture);
                     configData.SetAttribute("TerrainMultiplier", this.TerrainMultiplier.ToString());
                 }
                 else
