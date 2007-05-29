@@ -504,7 +504,7 @@ namespace OpenSim.world
         public override void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
             remoteClient.OnRegionHandShakeReply += new GenericCall(this.SendLayerData);
-            remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
+            //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
 
             Avatar newAvatar = null;
             try
@@ -513,7 +513,7 @@ namespace OpenSim.world
                 newAvatar = new Avatar(remoteClient, this, m_clientThreads, this.m_regInfo);
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
-                newAvatar.SendRegionHandshake(this);
+                newAvatar.SendRegionHandshake(this.m_regInfo);
                
                 PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
                 lock (this.LockPhysicsEngine)

@@ -85,28 +85,7 @@ namespace OpenSim.world
         /// <param name="RemoteClient">Client to send to</param>
         public virtual void SendLayerData(IClientAPI RemoteClient)
         {
-            try
-            {
-                int[] patches = new int[4];
-
-                for (int y = 0; y < 16; y++)
-                {
-                    for (int x = 0; x < 16; x = x + 4)
-                    {
-                        patches[0] = x + 0 + y * 16;
-                        patches[1] = x + 1 + y * 16;
-                        patches[2] = x + 2 + y * 16;
-                        patches[3] = x + 3 + y * 16;
-
-                        Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
-                        RemoteClient.OutPacket(layerpack);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: SendLayerData() - Failed with exception " + e.ToString());
-            }
+            RemoteClient.SendLayerData(Terrain.getHeights1D());
         }
 
         /// <summary>
@@ -117,22 +96,7 @@ namespace OpenSim.world
         /// <param name="RemoteClient">The client to send to</param>
         public void SendLayerData(int px, int py, IClientAPI RemoteClient)
         {
-            try
-            {
-                int[] patches = new int[1];
-                int patchx, patchy;
-                patchx = px / 16;
-                patchy = py / 16;
-
-                patches[0] = patchx + 0 + patchy * 16;
-
-                Packet layerpack = TerrainManager.CreateLandPacket(Terrain.getHeights1D(), patches);
-                RemoteClient.OutPacket(layerpack);
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: SendLayerData() - Failed with exception " + e.ToString());
-            }
+           
         }
         #endregion
 

@@ -130,9 +130,9 @@ namespace OpenSim.world
         }
 
         //really really should be moved somewhere else (RegionInfo.cs ?)
-        public void SendRegionHandshake(World regionInfo)
+        public void SendRegionHandshake(RegionInfo regionInfo)
         {
-
+            this.ControllingClient.SendRegionHandshake(regionInfo);
         }
 
         public static void LoadAnims()
