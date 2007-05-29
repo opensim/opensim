@@ -70,10 +70,10 @@ namespace OpenSim.world
             /*
             //register for events
             ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);
-            ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
+            ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);*/
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.CompleteMovement);
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
-            ControllingClient.OnAgentUpdate += new GenericCall3(this.HandleAgentUpdate);
+           /* ControllingClient.OnAgentUpdate += new GenericCall3(this.HandleAgentUpdate);
             ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -116,7 +116,7 @@ namespace OpenSim.world
 
         public void CompleteMovement()
         {
-
+            this.ControllingClient.MoveAgentIntoRegion(this.regionData);
         }
 
         public void HandleAgentUpdate(Packet pack)
@@ -130,9 +130,9 @@ namespace OpenSim.world
         }
 
         //really really should be moved somewhere else (RegionInfo.cs ?)
-        public void SendRegionHandshake(RegionInfo regionInfo)
+        public void SendRegionHandshake()
         {
-            this.ControllingClient.SendRegionHandshake(regionInfo);
+            this.ControllingClient.SendRegionHandshake(this.regionData);
         }
 
         public static void LoadAnims()

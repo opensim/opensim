@@ -72,5 +72,7 @@ namespace OpenSim.Framework.Interfaces
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendLayerData(float[] map);
         void SendRegionHandshake(RegionInfo regionInfo);
+        void MoveAgentIntoRegion(RegionInfo regInfo);
+        void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
     }
 }

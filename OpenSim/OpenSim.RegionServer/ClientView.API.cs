@@ -57,6 +57,20 @@ namespace OpenSim
         }
 
         #region World/Avatar to Client
+
+        public void MoveAgentIntoRegion(RegionInfo regInfo)
+        {
+            AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
+            mov.AgentData.SessionID = this.SessionID;
+            mov.AgentData.AgentID = this.AgentID;
+            mov.Data.RegionHandle = regInfo.RegionHandle;
+            // TODO - dynamicalise this stuff
+            mov.Data.Timestamp = 1172750370;
+            mov.Data.Position = this.startpos;
+            mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
+
+            OutPacket(mov);
+        }
         public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
