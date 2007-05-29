@@ -37,15 +37,16 @@ namespace OpenSim.world
         private ushort m_regionWaterHeight;
         private bool m_regionTerraform;
         private bool childAvatar = false;
+        private RegionInfo regionData;
 
-        public Avatar(IClientAPI TheClient, World world, string regionName, Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
+        public Avatar(IClientAPI TheClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionDat)
         {
             m_world = world;
             // m_clientThreads = clientThreads;
-            m_regionName = regionName;
-            m_regionHandle = regionHandle;
-            m_regionTerraform = regionTerraform;
-            m_regionWaterHeight = regionWater;
+            m_regionName = regionData.RegionName;
+            m_regionHandle = regionData.RegionHandle;
+            m_regionTerraform = regionData.RegionTerraform;
+            m_regionWaterHeight = regionData.RegionWaterHeight;
 
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;

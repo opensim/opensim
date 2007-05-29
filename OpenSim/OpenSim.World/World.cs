@@ -86,7 +86,7 @@ namespace OpenSim.world
                 this.SetDefaultScripts();
                 this.LoadScriptEngines();
 
-               
+
             }
             catch (Exception e)
             {
@@ -459,7 +459,7 @@ namespace OpenSim.world
         /// <param name="RemoteClient">Client to send to</param>
         public void GetInitialPrims(IClientAPI RemoteClient)
         {
-           
+
         }
 
         /// <summary>
@@ -484,7 +484,7 @@ namespace OpenSim.world
         /// <param name="prim">The object to load</param>
         public void PrimFromStorage(PrimData prim)
         {
-           
+
         }
 
         public void AddNewPrim(Packet addPacket, IClientAPI agentClient)
@@ -494,7 +494,7 @@ namespace OpenSim.world
 
         public void AddNewPrim(ObjectAddPacket addPacket, LLUUID ownerID)
         {
-          
+
         }
 
         #endregion
@@ -503,12 +503,57 @@ namespace OpenSim.world
 
         public override void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
-            return ;
+            remoteClient.OnRegionHandShakeReply += new GenericCall(this.SendLayerData);
+            remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
+
+            Avatar newAvatar = null;
+            try
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
+                newAvatar = new Avatar(remoteClient, this, m_clientThreads, this.m_regInfo);
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
+                newAvatar.SendRegionHandshake(this);
+               
+                PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
+                lock (this.LockPhysicsEngine)
+                {
+                    newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+                }
+               
+                lock (Entities)
+                {
+                    if (!Entities.ContainsKey(agentID))
+                    {
+                        this.Entities.Add(agentID, newAvatar);
+                    }
+                    else
+                    {
+                        Entities[agentID] = newAvatar;
+                    }
+                }
+                lock (Avatars)
+                {
+                    if (Avatars.ContainsKey(agentID))
+                    {
+                        Avatars[agentID] = newAvatar;
+                    }
+                    else
+                    {
+                        this.Avatars.Add(agentID, newAvatar);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
+            }
+            return;
         }
 
         public override void RemoveAvatar(LLUUID agentID)
         {
-            return ;
+            return;
         }
         #endregion
 

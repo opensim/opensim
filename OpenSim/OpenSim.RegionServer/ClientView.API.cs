@@ -101,7 +101,7 @@ namespace OpenSim
             avp.ObjectData.TextureEntry = textureEntry;
 
             AvatarAppearancePacket.VisualParamBlock avblock = null;
-            for (int i = 0; i < 218; i++)
+            for (int i = 0; i < visualParams.Length; i++)
             {
                 avblock = new AvatarAppearancePacket.VisualParamBlock();
                 avblock.ParamValue = visualParams[i];
