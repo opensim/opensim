@@ -123,41 +123,47 @@ namespace OpenSim
             mapReply.AgentData.Flags = 0;
             mapReply.LayerData = new MapLayerReplyPacket.LayerDataBlock[1];
             mapReply.LayerData[0] = new MapLayerReplyPacket.LayerDataBlock();
-            mapReply.LayerData[0].Bottom = 800;
-            mapReply.LayerData[0].Left = 800;
-            mapReply.LayerData[0].Top = 1200;
-            mapReply.LayerData[0].Right = 1200;
-            mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
+            mapReply.LayerData[0].Bottom = this.m_regionData.RegionLocY - 50;
+            mapReply.LayerData[0].Left = this.m_regionData.RegionLocX - 50;
+            mapReply.LayerData[0].Top = this.m_regionData.RegionLocY + 50;
+            mapReply.LayerData[0].Right = this.m_regionData.RegionLocX + 50;
+            mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000005");
             this.OutPacket(mapReply);
         }
 
         public void RequestMapBlocks(int minX, int minY, int maxX, int maxY)
         {
             IList simMapProfiles = m_gridServer.RequestMapBlocks(minX, minY, maxX, maxY);
-            MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
-            mbReply.AgentData.AgentID = this.AgentID;
             int len;
             if (simMapProfiles == null)
                 len = 0;
             else
                 len = simMapProfiles.Count;
 
-            mbReply.Data = new MapBlockReplyPacket.DataBlock[len];
-            int iii;
-            for (iii = 0; iii < len; iii++)
+            int i;
+            int mtu = 8; // Number of regions to send per packet. Will be more precise in future. ( TODO )
+            for (i = 0; i < len; i += mtu)
             {
-                Hashtable mp = (Hashtable)simMapProfiles[iii];
-                mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
-                mbReply.Data[iii].Name = System.Text.Encoding.UTF8.GetBytes((string)mp["name"]);
-                mbReply.Data[iii].Access = System.Convert.ToByte(mp["access"]);
-                mbReply.Data[iii].Agents = System.Convert.ToByte(mp["agents"]);
-                mbReply.Data[iii].MapImageID = new LLUUID((string)mp["map-image-id"]);
-                mbReply.Data[iii].RegionFlags = System.Convert.ToUInt32(mp["region-flags"]);
-                mbReply.Data[iii].WaterHeight = System.Convert.ToByte(mp["water-height"]);
-                mbReply.Data[iii].X = System.Convert.ToUInt16(mp["x"]);
-                mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
+                MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
+                mbReply.AgentData.AgentID = this.AgentID;
+
+                mbReply.Data = new MapBlockReplyPacket.DataBlock[len];
+                int iii;
+                for (iii = i; iii < (i + mtu); iii++)
+                {
+                    Hashtable mp = (Hashtable)simMapProfiles[iii];
+                    mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
+                    mbReply.Data[iii].Name = System.Text.Encoding.UTF8.GetBytes((string)mp["name"]);
+                    mbReply.Data[iii].Access = System.Convert.ToByte(mp["access"]);
+                    mbReply.Data[iii].Agents = System.Convert.ToByte(mp["agents"]);
+                    mbReply.Data[iii].MapImageID = new LLUUID((string)mp["map-image-id"]);
+                    mbReply.Data[iii].RegionFlags = System.Convert.ToUInt32(mp["region-flags"]);
+                    mbReply.Data[iii].WaterHeight = System.Convert.ToByte(mp["water-height"]);
+                    mbReply.Data[iii].X = System.Convert.ToUInt16(mp["x"]);
+                    mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
+                }
+                this.OutPacket(mbReply);
             }
-            this.OutPacket(mbReply);
         }
     }
 }

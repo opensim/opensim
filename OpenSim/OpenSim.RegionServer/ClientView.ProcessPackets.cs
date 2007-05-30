@@ -350,13 +350,21 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.MapLayerRequest:
+                        // This be busted.
+                        MapLayerRequestPacket MapRequest = (MapLayerRequestPacket)Pack;
                         this.RequestMapLayer();
+                        this.RequestMapBlocks((int)this.m_regionData.RegionLocX - 50, (int)this.m_regionData.RegionLocY - 50, (int)this.m_regionData.RegionLocX + 50, (int)this.m_regionData.RegionLocY + 50);
                         break;
-                    case PacketType.MapBlockRequest:
-                        MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
 
-                        this.RequestMapBlocks(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+                    case PacketType.MapBlockRequest:
+                        MapBlockRequestPacket MapBRequest = (MapBlockRequestPacket)Pack;
+                        this.RequestMapBlocks(MapBRequest.PositionData.MinX, MapBRequest.PositionData.MinY, MapBRequest.PositionData.MaxX, MapBRequest.PositionData.MaxY);
                         break;
+
+                    case PacketType.MapNameRequest:
+                        // TODO.
+                        break;
+
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
 
