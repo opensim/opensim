@@ -353,7 +353,7 @@ namespace OpenSim
                         // This be busted.
                         MapLayerRequestPacket MapRequest = (MapLayerRequestPacket)Pack;
                         this.RequestMapLayer();
-                        this.RequestMapBlocks((int)this.m_regionData.RegionLocX - 50, (int)this.m_regionData.RegionLocY - 50, (int)this.m_regionData.RegionLocX + 50, (int)this.m_regionData.RegionLocY + 50);
+                        this.RequestMapBlocks((int)this.m_regionData.RegionLocX - 5, (int)this.m_regionData.RegionLocY - 5, (int)this.m_regionData.RegionLocX + 5, (int)this.m_regionData.RegionLocY + 5);
                         break;
 
                     case PacketType.MapBlockRequest:

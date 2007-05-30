@@ -141,26 +141,26 @@ namespace OpenSim
                 len = simMapProfiles.Count;
 
             int i;
-            int mtu = 16; // Number of regions to send per packet. Will be more precise in future. ( TODO )
+            int mtu = 24; // Number of regions to send per packet. Will be more precise in future. ( TODO )
             for (i = 0; i < len; i += mtu)
             {
                 MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
                 mbReply.AgentData.AgentID = this.AgentID;
 
                 mbReply.Data = new MapBlockReplyPacket.DataBlock[Math.Min(mtu, len - i)];
-                int iii;
-                for (iii = 0; iii < mtu && i + iii < len; iii++)
+                int j;
+                for (j = 0; (j < mtu) && ((i + j) < len); j++)
                 {
-                    Hashtable mp = (Hashtable)simMapProfiles[iii];
-                    mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
-                    mbReply.Data[iii].Name = libsecondlife.Helpers.StringToField((string)mp["name"]);
-                    mbReply.Data[iii].Access = System.Convert.ToByte(mp["access"]);
-                    mbReply.Data[iii].Agents = System.Convert.ToByte(mp["agents"]);
-                    mbReply.Data[iii].MapImageID = new LLUUID((string)mp["map-image-id"]);
-                    mbReply.Data[iii].RegionFlags = System.Convert.ToUInt32(mp["region-flags"]);
-                    mbReply.Data[iii].WaterHeight = System.Convert.ToByte(mp["water-height"]);
-                    mbReply.Data[iii].X = System.Convert.ToUInt16(mp["x"]);
-                    mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
+                    Hashtable mp = (Hashtable)simMapProfiles[j];
+                    mbReply.Data[j] = new MapBlockReplyPacket.DataBlock();
+                    mbReply.Data[j].Name = libsecondlife.Helpers.StringToField((string)mp["name"]);
+                    mbReply.Data[j].Access = System.Convert.ToByte(mp["access"]);
+                    mbReply.Data[j].Agents = System.Convert.ToByte(mp["agents"]);
+                    mbReply.Data[j].MapImageID = new LLUUID((string)mp["map-image-id"]);
+                    mbReply.Data[j].RegionFlags = System.Convert.ToUInt32(mp["region-flags"]);
+                    mbReply.Data[j].WaterHeight = System.Convert.ToByte(mp["water-height"]);
+                    mbReply.Data[j].X = System.Convert.ToUInt16(mp["x"]);
+                    mbReply.Data[j].Y = System.Convert.ToUInt16(mp["y"]);
                 }
                 //Console.WriteLine("ADAMDEBUG: Queuing MapBlockReply #" + i.ToString() + " Contains " + iii.ToString() + " region(s)");
                 //Console.WriteLine(mbReply.ToString());
