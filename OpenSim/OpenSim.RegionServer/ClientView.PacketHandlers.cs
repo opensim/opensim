@@ -50,7 +50,7 @@ namespace OpenSim
             this.m_inventoryCache.ClientLeaving(this.AgentID, null);
 
 
-            m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
+           // m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
             /*lock (m_world.Entities)
             {
                 m_world.Entities.Remove(this.AgentID);

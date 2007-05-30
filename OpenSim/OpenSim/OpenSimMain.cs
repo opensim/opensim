@@ -93,6 +93,7 @@ namespace OpenSim
             this.serversData.InitConfig(this.m_sandbox, this.localConfig);
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
+            ClientView.TerrainManager = new TerrainManager(new SecondLife());
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();

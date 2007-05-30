@@ -38,10 +38,7 @@ namespace OpenSim
             else
             {
                 System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-                if (Pack.Type != PacketType.PacketAck)
-                {
-                    Console.WriteLine(Pack.Type.ToString());
-                }
+               
                 switch (Pack.Type)
                 {
                     case PacketType.ViewerEffect:

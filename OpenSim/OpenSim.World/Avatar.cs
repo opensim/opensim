@@ -32,30 +32,30 @@ namespace OpenSim.world
         private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private ulong m_regionHandle;
-        //private Dictionary<uint, ClientView> m_clientThreads;
+        private Dictionary<uint, IClientAPI> m_clientThreads;
         private string m_regionName;
         private ushort m_regionWaterHeight;
         private bool m_regionTerraform;
         private bool childAvatar = false;
         private RegionInfo regionData;
 
-        public Avatar(IClientAPI TheClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionDat)
+        public Avatar(IClientAPI theClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionDat)
         {
-            Console.WriteLine("avatar point 1");
+
             m_world = world;
-            // m_clientThreads = clientThreads;
+            m_clientThreads = clientThreads;
+            regionData = regionDat;
+            this.uuid = theClient.AgentId;
             m_regionName = regionData.RegionName;
             m_regionHandle = regionData.RegionHandle;
             m_regionTerraform = regionData.RegionTerraform;
             m_regionWaterHeight = regionData.RegionWaterHeight;
-            Console.WriteLine("avatar point 2");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
-            ControllingClient = TheClient;
+            ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
             localid = 8880000 + (this.m_world._localNumber++);
             Pos = ControllingClient.StartPos;
-            Console.WriteLine("avatar point 3");
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -136,6 +136,7 @@ namespace OpenSim.world
         //really really should be moved somewhere else (RegionInfo.cs ?)
         public void SendRegionHandshake()
         {
+            Console.WriteLine("sending handshake");
             this.ControllingClient.SendRegionHandshake(this.regionData);
         }
 
