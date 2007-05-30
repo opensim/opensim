@@ -324,8 +324,8 @@ namespace OpenGridServices.GridServer
                 foreach (KeyValuePair<ulong, SimProfileData> aSim in neighbours)
                 {
                     Hashtable simProfileBlock = new Hashtable();
-                    simProfileBlock["x"] = aSim.Value.regionLocX;
-                    simProfileBlock["y"] = aSim.Value.regionLocY;
+                    simProfileBlock["x"] = aSim.Value.regionLocX.ToString();
+                    simProfileBlock["y"] = aSim.Value.regionLocY.ToString();
                     simProfileBlock["name"] = aSim.Value.regionName;
                     simProfileBlock["access"] = 21;
                     simProfileBlock["region-flags"] = 512;
