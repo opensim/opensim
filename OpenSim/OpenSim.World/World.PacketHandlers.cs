@@ -33,7 +33,7 @@ namespace OpenSim.world
 
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            Console.WriteLine("chat message");
+            Console.WriteLine("Chat message");
             Avatar avatar = null;
             foreach (IClientAPI client in m_clientThreads.Values)
             {
