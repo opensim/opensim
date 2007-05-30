@@ -675,6 +675,7 @@
      <Reference name="System.ServiceProcess" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
      <Reference name="libsecondlife.dll"/>
+     <Reference name="OpenSim.GenericConfig.Xml"/>
 
      <Files>
        <Match pattern="*.cs" recurse="true"/>

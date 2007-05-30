@@ -74,6 +74,10 @@
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="OpenSim.GenericConfig.Xml" >
+      <HintPath>OpenSim.GenericConfig.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

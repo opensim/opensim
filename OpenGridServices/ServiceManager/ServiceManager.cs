@@ -5,16 +5,17 @@ using System.ServiceProcess;
 using System.Xml;
 using System.IO;
 using libsecondlife;
+using OpenSim.GenericConfig;
 
 public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 
 	private Thread ServiceWorkerThread;
-	private static string GridURL;
-	private static string SimSendKey;
-	private static string SimRecvKey;
-	private static string AssetURL;
-	private static string UserSendKey;
-	private static string UserRecvKey;
+	private static string GridURL;		// URL of grid server
+	private static string GridSimKey;	// key sent from Grid>Sim
+	private static string SimGridKey;	// key sent Sim>Grid
+	private static string AssetURL;		// URL of asset server
+	private static string UserSendKey;	// key sent from user>sim
+	private static string UserRecvKey;	// key sent from sim>user
 
 	public OpenGridMasterService()
 	{
@@ -83,8 +84,13 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 			p.StartInfo.Arguments = "-dumpxmlconf";
 			p.Start();
 
-			StreamReader reader=new  StreamReader("opengrid-cfgdump.xml");
-		        string configxml = reader.ReadToEnd();
+			XmlConfig GridConf = new XmlConfig("opengrid-cfg.xml");
+			GridConf.LoadData();
+			GridURL="http://" + GridConf.GetAttribute("ListenAddr") + ":" + GridConf.GetAttribute("ListenPort") + "/";
+
+                        StreamReader reader=new  StreamReader("opengrid-cfg.xml");
+	                string configxml = reader.ReadToEnd();
+	
 			return configxml;
 		} catch(Exception e) {
 			Console.WriteLine("An error occurred while running the grid server, please rectify it and try again");
