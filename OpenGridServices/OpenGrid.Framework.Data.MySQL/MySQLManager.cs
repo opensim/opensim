@@ -16,6 +16,7 @@ namespace OpenGrid.Framework.Data.MySQL
     class MySQLManager
     {
         IDbConnection dbcon;
+        string connectionString;
 
         /// <summary>
         /// Initialises and creates a new MySQL connection and maintains it.
@@ -29,7 +30,7 @@ namespace OpenGrid.Framework.Data.MySQL
         {
             try
             {
-                string connectionString = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+                connectionString = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
                 dbcon = new MySqlConnection(connectionString);
 
                 dbcon.Open();
@@ -52,6 +53,28 @@ namespace OpenGrid.Framework.Data.MySQL
         }
 
         /// <summary>
+        /// Reconnects to the database
+        /// </summary>
+        public void Reconnect()
+        {
+            lock (dbcon)
+            {
+                try
+                {
+                    // Close the DB connection
+                    dbcon.Close();
+                    // Try reopen it
+                    dbcon = new MySqlConnection(connectionString);
+                    dbcon.Open();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unable to reconnect to database " + e.ToString());
+                }
+            }
+        }
+
+        /// <summary>
         /// Runs a query with protection against SQL Injection by using parameterised input.
         /// </summary>
         /// <param name="sql">The SQL string - replace any variables such as WHERE x = "y" with WHERE x = @y</param>
@@ -70,10 +93,47 @@ namespace OpenGrid.Framework.Data.MySQL
 
                 return (IDbCommand)dbcommand;
             }
-            catch (Exception e)
+            catch
             {
-                Console.WriteLine("Failed during Query generation: " + e.ToString());
-                return null;
+                lock (dbcon)
+                {
+                    // Close the DB connection
+                    try
+                    {
+                        dbcon.Close();
+                    }
+                    catch { }
+
+                    // Try reopen it
+                    try
+                    {
+                        dbcon = new MySqlConnection(connectionString);
+                        dbcon.Open();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Unable to reconnect to database " + e.ToString());
+                    }
+
+                    // Run the query again
+                    try
+                    {
+                        MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
+                        dbcommand.CommandText = sql;
+                        foreach (KeyValuePair<string, string> param in parameters)
+                        {
+                            dbcommand.Parameters.Add(param.Key, param.Value);
+                        }
+
+                        return (IDbCommand)dbcommand;
+                    }
+                    catch (Exception e)
+                    {
+                        // Return null if it fails.
+                        Console.WriteLine("Failed during Query generation: " + e.ToString());
+                        return null;
+                    }
+                }
             }
         }
 

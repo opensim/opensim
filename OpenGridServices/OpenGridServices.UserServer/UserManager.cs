@@ -395,10 +395,23 @@ namespace OpenGridServices.UserServer
             // If user specified additional start, use that
             if (requestData.ContainsKey("start"))
             {
-                string startLoc = (string)requestData["start"];
+                string startLoc = ((string)requestData["start"]).Trim();
                 if (!(startLoc == "last" || startLoc == "home"))
                 {
-                    // Ignore it! Heh.
+                    // Format: uri:Ahern&162&213&34
+                    try
+                    {
+                        string[] parts = startLoc.Remove(0, 4).Split('&');
+                        string region = parts[0];
+                        
+                        ////////////////////////////////////////////////////
+                        //SimProfile SimInfo = new SimProfile();
+                        //SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
                 }
             }
 

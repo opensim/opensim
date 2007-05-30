@@ -51,6 +51,7 @@ namespace OpenGrid.Framework.Data.MySQL
             }
             catch (Exception e)
             {
+                database.Reconnect();
                 Console.WriteLine(e.ToString());
                 return null;
             }
@@ -78,6 +79,7 @@ namespace OpenGrid.Framework.Data.MySQL
             }
             catch (Exception e)
             {
+                database.Reconnect();
                 Console.WriteLine(e.ToString());
                 return null;
             }
@@ -116,6 +118,7 @@ namespace OpenGrid.Framework.Data.MySQL
             }
             catch (Exception e)
             {
+                database.Reconnect();
                 Console.WriteLine(e.ToString());
                 return null;
             }
