@@ -23,7 +23,14 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
         {
-            database.insertLogRow(serverDaemon, target, methodCall, arguments, priority, logMessage);
+            try
+            {
+                database.insertLogRow(serverDaemon, target, methodCall, arguments, priority, logMessage);
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+            }
         }
 
         public string getName()
