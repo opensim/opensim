@@ -33,11 +33,21 @@ namespace OpenSim.world
 
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
+            Console.WriteLine("chat message");
+            Avatar avatar = null;
             foreach (IClientAPI client in m_clientThreads.Values)
             {
-                // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
-                int dis = 0; // (int)client.ClientAvatar.Pos.GetDistanceTo(fromPos);
+                int dis = -1000;
+                if (this.Avatars.ContainsKey(client.AgentId))
+                {
+                    
+                    avatar = this.Avatars[client.AgentId];
+                    // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                    dis= (int)avatar.Pos.GetDistanceTo(fromPos);
+                    Console.WriteLine("found avatar at " +dis);
 
+                }
+             
                 switch (type)
                 {
                     case 0: // Whisper
@@ -50,6 +60,7 @@ namespace OpenSim.world
                     case 1: // Say
                         if ((dis < 30) && (dis > -30))
                         {
+                            Console.WriteLine("sending chat");
                             client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
                         }
                         break;

@@ -136,7 +136,6 @@ namespace OpenSim.world
         //really really should be moved somewhere else (RegionInfo.cs ?)
         public void SendRegionHandshake()
         {
-            Console.WriteLine("sending handshake");
             this.ControllingClient.SendRegionHandshake(this.regionData);
         }
 

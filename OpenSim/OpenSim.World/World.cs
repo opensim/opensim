@@ -505,6 +505,7 @@ namespace OpenSim.world
         {
             remoteClient.OnRegionHandShakeReply += new GenericCall(this.SendLayerData);
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
+            remoteClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
 
             Avatar newAvatar = null;
             try
