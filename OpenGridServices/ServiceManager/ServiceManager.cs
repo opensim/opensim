@@ -4,10 +4,17 @@ using System.Threading;
 using System.ServiceProcess;
 using System.Xml;
 using System.IO;
+using libsecondlife;
 
 public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 
 	private Thread ServiceWorkerThread;
+	private static string GridURL;
+	private static string SimSendKey;
+	private static string SimRecvKey;
+	private static string AssetURL;
+	private static string UserSendKey;
+	private static string UserRecvKey;
 
 	public OpenGridMasterService()
 	{
@@ -66,13 +73,25 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	private static string SetupGrid()
 	{
 		Console.WriteLine("Running external program (OpenGridServices.GridServer.exe) to configure the grid server");
- 		Process p = new Process();
+ 		try {
+			Process p = new Process();
 
-		p.StartInfo.Arguments = "-setuponly"; 
-		p.StartInfo.FileName  = "OpenGridServices.GridServer.exe";
- 		p.Start();
+			p.StartInfo.Arguments = "-setuponly"; 
+			p.StartInfo.FileName  = "OpenGridServices.GridServer.exe";
+	 		p.Start();
 
-		return "<gridserver />";	// we let the gridserver handle it's own setup
+			p.StartInfo.Arguments = "-dumpxmlconf";
+			p.Start();
+
+			StreamReader reader=new  StreamReader("opengrid-cfgdump.xml");
+		        string configxml = reader.ReadToEnd();
+			return configxml;
+		} catch(Exception e) {
+			Console.WriteLine("An error occurred while running the grid server, please rectify it and try again");
+			Console.WriteLine(e.ToString());
+			Environment.Exit(1);
+		}
+		return "";
 	}
 
 	private static string SetupUser()
@@ -87,6 +106,53 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 
 	private static string SetupRegion()
 	{
+		string regionname;
+		ulong regionlocx;
+		ulong regionlocy;
+		string default_terrain;
+		uint terrain_multiplier;
+		uint baseport;
+
+		string listenaddr;
+		string simconfigxml;
+		LLUUID SimUUID;
+
+		Console.WriteLine("Setting up region servers");
+		Console.Write("Please specify a path to store your region data (e.g /etc/opensim/regions: ");
+		string regionpath=Console.ReadLine();
+		
+		Console.Write("How many regions would you like to configure now? ");
+		int numofregions=Convert.ToInt16(Console.ReadLine());	
+
+		Console.Write("What port should the region servers start listening at (first region is normally 9000, then 9001 the second etc, both TCP+UDP): ");
+		baseport=Convert.ToUInt16(Console.ReadLine());	
+
+		
+		listenaddr=Console.ReadLine();
+		
+		Console.WriteLine("Now ready to configure regions, please answer the questions about each region in turn");
+		for(int i=0; i<=numofregions; i++) {
+			Console.WriteLine("Configuring region number " + i.ToString());
+			
+			Console.Write("Region name: ");
+			regionname=Console.ReadLine();
+			
+			Console.Write("Region location X: ");
+			regionlocx=(ulong)Convert.ToUInt32(Console.ReadLine());
+	
+			Console.Write("Region location Y: ");
+			regionlocy=(ulong)Convert.ToUInt32(Console.ReadLine());
+
+			Console.Write("Default terrain file: ");
+			default_terrain=Console.ReadLine();
+			terrain_multiplier=Convert.ToUInt16(Console.ReadLine());
+
+			SimUUID=LLUUID.Random();
+	
+			simconfigxml="<Root><Config SimUUID=\"" + SimUUID.ToString() + "\" SimName=\"" + regionname + "\" SimLocationX=\"" + regionlocx.ToString() + "\" SimLocationY=\"" + regionlocy.ToString() + "\" Datastore=\"" + Path.Combine(regionpath,(SimUUID.ToString()+"localworld.yap")) + "\" SimListenPort=\"" + (baseport+i).ToString() + "\" SimListenAddress=\"" + listenaddr + "\" TerrainFile=\"" + default_terrain + "\" TerrainMultiplier=\"" + terrain_multiplier.ToString() + "\" GridServerURL=\"\" GridSendKey=\"\" GridRecvKey=\"\" AssetServerURL=\"\" /></Root>";
+	
+		}
+
 		return "<regions></regions>";
 	}
 

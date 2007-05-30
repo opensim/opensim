@@ -674,6 +674,7 @@
      <Reference name="System" localCopy="false"/>
      <Reference name="System.ServiceProcess" localCopy="false"/>
      <Reference name="System.Xml" localCopy="false"/>
+     <Reference name="libsecondlife.dll"/>
 
      <Files>
        <Match pattern="*.cs" recurse="true"/>
