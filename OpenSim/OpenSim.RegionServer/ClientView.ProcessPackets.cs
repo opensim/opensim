@@ -38,7 +38,10 @@ namespace OpenSim
             else
             {
                 System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-
+                if (Pack.Type != PacketType.PacketAck)
+                {
+                    Console.WriteLine(Pack.Type.ToString());
+                }
                 switch (Pack.Type)
                 {
                     case PacketType.ViewerEffect:
@@ -67,7 +70,10 @@ namespace OpenSim
                         byte type = inchatpack.ChatData.Type;
                         LLVector3 fromPos = new LLVector3(); // ClientAvatar.Pos;
                         LLUUID fromAgentID = AgentID;
-                        this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
+                        if (OnChatFromViewer != null)
+                        {
+                            this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
+                        }
                         break;
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
@@ -79,40 +85,67 @@ namespace OpenSim
                                 AssetBase asset = this.m_assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
                                 if (asset != null)
                                 {
-                                    this.OnRezObject(asset, rezPacket.RezData.RayEnd);
-                                    this.m_inventoryCache.DeleteInventoryItem(this, rezPacket.InventoryData.ItemID);
+                                    if (OnRezObject != null)
+                                    {
+                                        this.OnRezObject(asset, rezPacket.RezData.RayEnd);
+                                        this.m_inventoryCache.DeleteInventoryItem(this, rezPacket.InventoryData.ItemID);
+                                    }
                                 }
                             }
                         }
                         break;
                     case PacketType.DeRezObject:
-                        OnDeRezObject(Pack, this);
+                        if (OnDeRezObject != null)
+                        {
+                            OnDeRezObject(Pack, this);
+                        }
                         break;
                     case PacketType.ModifyLand:
                         ModifyLandPacket modify = (ModifyLandPacket)Pack;
                         if (modify.ParcelData.Length > 0)
                         {
-                            OnModifyTerrain(modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West);
+                            if (OnModifyTerrain != null)
+                            {
+                                OnModifyTerrain(modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West);
+                            }
                         }
                         break;
                     case PacketType.RegionHandshakeReply:
-                        OnRegionHandShakeReply(this);
+                        if (OnRegionHandShakeReply != null)
+                        {
+                            OnRegionHandShakeReply(this);
+                        }
                         break;
                     case PacketType.AgentWearablesRequest:
-                        OnRequestWearables(this);
-                        OnRequestAvatarsData(this);
+                        if (OnRequestWearables != null)
+                        {
+                            OnRequestWearables(this);
+                        }
+                        if (OnRequestAvatarsData != null)
+                        {
+                            OnRequestAvatarsData(this);
+                        }
                         break;
                     case PacketType.AgentSetAppearance:
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
-                        OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
+                        if (OnSetAppearance != null)
+                        {
+                            OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
+                        }
                         break;
                     case PacketType.CompleteAgentMovement:
                         if (this.m_child) this.UpgradeClient();
-                        OnCompleteMovementToRegion();
+                        if (OnCompleteMovementToRegion != null)
+                        {
+                            OnCompleteMovementToRegion();
+                        }
                         this.EnableNeighbours();
                         break;
                     case PacketType.AgentUpdate:
-                        OnAgentUpdate(Pack);
+                        if (OnAgentUpdate != null)
+                        {
+                            OnAgentUpdate(Pack);
+                        }
                         break;
                     case PacketType.AgentAnimation:
                         if (!m_child)
@@ -122,7 +155,10 @@ namespace OpenSim
                             {
                                 if (AgentAni.AnimationList[i].StartAnim)
                                 {
-                                    OnStartAnim(AgentAni.AnimationList[i].AnimID, 1);
+                                    if (OnStartAnim != null)
+                                    {
+                                        OnStartAnim(AgentAni.AnimationList[i].AnimID, 1);
+                                    }
                                 }
                             }
                         }
@@ -145,36 +181,53 @@ namespace OpenSim
                                 childrenprims.Add(link.ObjectData[i].ObjectLocalID);
                             }
                         }
-                        OnLinkObjects(parentprimid, childrenprims);
+                        if (OnLinkObjects != null)
+                        {
+                            OnLinkObjects(parentprimid, childrenprims);
+                        }
                         break;
                     case PacketType.ObjectAdd:
                        // m_world.AddNewPrim((ObjectAddPacket)Pack, this);
-                        OnAddPrim(Pack, this);
+                        if (OnAddPrim != null)
+                        {
+                            OnAddPrim(Pack, this);
+                        }
                         break;
                     case PacketType.ObjectShape:
                         ObjectShapePacket shape = (ObjectShapePacket)Pack;
                         for (int i = 0; i < shape.ObjectData.Length; i++)
                         {
-                            OnUpdatePrimShape(shape.ObjectData[i].ObjectLocalID, shape.ObjectData[i]);
+                            if (OnUpdatePrimShape != null)
+                            {
+                                OnUpdatePrimShape(shape.ObjectData[i].ObjectLocalID, shape.ObjectData[i]);
+                            }
                         }
                         break;
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
                         for (int i = 0; i < incomingselect.ObjectData.Length; i++)
                         {
-                            OnObjectSelect(incomingselect.ObjectData[i].ObjectLocalID, this);
+                            if (OnObjectSelect != null)
+                            {
+                                OnObjectSelect(incomingselect.ObjectData[i].ObjectLocalID, this);
+                            }
                         }
                         break;
                     case PacketType.ObjectFlagUpdate:
                         ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
-                        OnUpdatePrimFlags(flags.AgentData.ObjectLocalID, Pack, this);
+                        if (OnUpdatePrimFlags != null)
+                        {
+                            OnUpdatePrimFlags(flags.AgentData.ObjectLocalID, Pack, this);
+                        }
                         break;
                     case PacketType.ObjectImage:
                         ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
                         for (int i = 0; i < imagePack.ObjectData.Length; i++)
                         {
-                            OnUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID, imagePack.ObjectData[i].TextureEntry, this);
-
+                            if (OnUpdatePrimTexture != null)
+                            {
+                                OnUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID, imagePack.ObjectData[i].TextureEntry, this);
+                            }
                         }
                         break;
                     #endregion      

@@ -41,19 +41,21 @@ namespace OpenSim.world
 
         public Avatar(IClientAPI TheClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionDat)
         {
+            Console.WriteLine("avatar point 1");
             m_world = world;
             // m_clientThreads = clientThreads;
             m_regionName = regionData.RegionName;
             m_regionHandle = regionData.RegionHandle;
             m_regionTerraform = regionData.RegionTerraform;
             m_regionWaterHeight = regionData.RegionWaterHeight;
-
+            Console.WriteLine("avatar point 2");
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
             localid = 8880000 + (this.m_world._localNumber++);
             Pos = ControllingClient.StartPos;
+            Console.WriteLine("avatar point 3");
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -68,7 +70,7 @@ namespace OpenSim.world
             this.Wearables[0].ItemID = LLUUID.Random();
 
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-
+            Console.WriteLine("avatar point 4");
             
             //register for events
             ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);

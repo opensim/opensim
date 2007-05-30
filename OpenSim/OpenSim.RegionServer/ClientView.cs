@@ -80,9 +80,9 @@ namespace OpenSim
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
 
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions)
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions)
         {
-
+            m_world = world;
             m_clientThreads = clientThreads;
             m_assetCache = assetCache;
 
@@ -229,8 +229,8 @@ namespace OpenSim
 
         protected virtual void InitNewClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world"); 
-            OnNewAvatar(this, this.AgentID, this.m_child);
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+            this.m_world.AddNewAvatar(this, this.AgentID, false);
         }
 
         protected virtual void AuthUser()

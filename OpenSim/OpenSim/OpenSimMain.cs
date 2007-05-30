@@ -121,7 +121,7 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, this.user_accounts);
+                loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
                 loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler[0]).AddNewSession);
 

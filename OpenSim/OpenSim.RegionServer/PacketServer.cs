@@ -65,7 +65,7 @@ namespace OpenSim
 
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AuthenticateSessionsBase authenticateSessionsClass)
         {
-            ClientView newuser = new ClientView(epSender, useCircuit, this.ClientThreads, assetCache, this, inventoryCache, authenticateSessionsClass);
+            ClientView newuser = new ClientView(epSender, useCircuit, this.ClientThreads, this._localWorld, assetCache, this, inventoryCache, authenticateSessionsClass);
             this.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
             this.ClientAPIs.Add(useCircuit.CircuitCode.Code, (IClientAPI)newuser);
 
