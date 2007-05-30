@@ -153,7 +153,7 @@ namespace OpenSim
                 {
                     Hashtable mp = (Hashtable)simMapProfiles[iii];
                     mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
-                    mbReply.Data[iii].Name = System.Text.Encoding.ASCII.GetBytes((string)mp["name"]);
+                    mbReply.Data[iii].Name = libsecondlife.Helpers.StringToField((string)mp["name"]);
                     mbReply.Data[iii].Access = System.Convert.ToByte(mp["access"]);
                     mbReply.Data[iii].Agents = System.Convert.ToByte(mp["agents"]);
                     mbReply.Data[iii].MapImageID = new LLUUID((string)mp["map-image-id"]);
