@@ -141,15 +141,15 @@ namespace OpenSim
                 len = simMapProfiles.Count;
 
             int i;
-            int mtu = 8; // Number of regions to send per packet. Will be more precise in future. ( TODO )
+            int mtu = 16; // Number of regions to send per packet. Will be more precise in future. ( TODO )
             for (i = 0; i < len; i += mtu)
             {
                 MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
                 mbReply.AgentData.AgentID = this.AgentID;
 
-                mbReply.Data = new MapBlockReplyPacket.DataBlock[len];
+                mbReply.Data = new MapBlockReplyPacket.DataBlock[Math.Min(mtu, len - i)];
                 int iii;
-                for (iii = i; iii < (i + mtu); iii++)
+                for (iii = 0; iii < mtu && i + iii < len; iii++)
                 {
                     Hashtable mp = (Hashtable)simMapProfiles[iii];
                     mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
