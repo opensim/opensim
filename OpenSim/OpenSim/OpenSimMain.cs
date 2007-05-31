@@ -261,24 +261,7 @@ namespace OpenSim
             {
 
                 // we are in Grid mode so set a XmlRpc handler to handle "expect_user" calls from the user server
-                httpServer.AddXmlRPCHandler("expect_user", ((AuthenticateSessionsRemote)this.AuthenticateSessionsHandler[0]).ExpectUser);
-
-                httpServer.AddXmlRPCHandler("agent_crossing",
-                    delegate(XmlRpcRequest request)
-                    {
-                        Hashtable requestData = (Hashtable)request.Params[0];
-                        uint circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-
-                        AgentCircuitData agent_data = new AgentCircuitData();
-                        agent_data.firstname = (string)requestData["firstname"];
-                        agent_data.lastname = (string)requestData["lastname"];
-                        agent_data.circuitcode = circuitcode;
-                        agent_data.startpos = new LLVector3(Single.Parse((string)requestData["pos_x"]), Single.Parse((string)requestData["pos_y"]), Single.Parse((string)requestData["pos_z"]));
-
-                        AuthenticateSessionsHandler[0].UpdateAgentData(agent_data);
-
-                        return new XmlRpcResponse();
-                    });
+               
 
                 httpServer.AddRestHandler("GET", "/simstatus/",
                     delegate(string request, string path, string param)
