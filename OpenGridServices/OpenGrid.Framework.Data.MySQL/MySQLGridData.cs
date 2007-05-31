@@ -62,7 +62,7 @@ namespace OpenGrid.Framework.Data.MySQL
 
                     List<SimProfileData> rows = new List<SimProfileData>();
 
-                    while ((row = database.getSimRow(reader)) != null)
+                    while ((row = database.readSimRow(reader)) != null)
                     {
                         rows.Add(row);
                     }
@@ -98,7 +98,7 @@ namespace OpenGrid.Framework.Data.MySQL
                     System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
                     System.Data.IDataReader reader = result.ExecuteReader();
 
-                    SimProfileData row = database.getSimRow(reader);
+                    SimProfileData row = database.readSimRow(reader);
                     reader.Close();
                     result.Dispose();
 
@@ -130,7 +130,7 @@ namespace OpenGrid.Framework.Data.MySQL
                     System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
                     System.Data.IDataReader reader = result.ExecuteReader();
 
-                    SimProfileData row = database.getSimRow(reader);
+                    SimProfileData row = database.readSimRow(reader);
                     reader.Close();
                     result.Dispose();
 

@@ -41,7 +41,7 @@ namespace OpenGrid.Framework.Data.MySQL
                     System.Data.IDbCommand result = database.Query("SELECT * FROM users WHERE username = ?first AND lastname = ?second", param);
                     System.Data.IDataReader reader = result.ExecuteReader();
 
-                    UserProfileData row = database.getUserRow(reader);
+                    UserProfileData row = database.readUserRow(reader);
                     
                     reader.Close();
                     result.Dispose();
@@ -69,7 +69,7 @@ namespace OpenGrid.Framework.Data.MySQL
                     System.Data.IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = ?uuid", param);
                     System.Data.IDataReader reader = result.ExecuteReader();
 
-                    UserProfileData row = database.getUserRow(reader);
+                    UserProfileData row = database.readUserRow(reader);
 
                     reader.Close();
                     result.Dispose();
@@ -108,7 +108,7 @@ namespace OpenGrid.Framework.Data.MySQL
                     System.Data.IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = ?uuid", param);
                     System.Data.IDataReader reader = result.ExecuteReader();
 
-                    UserAgentData row = database.getAgentRow(reader);
+                    UserAgentData row = database.readAgentRow(reader);
 
                     reader.Close();
                     result.Dispose();

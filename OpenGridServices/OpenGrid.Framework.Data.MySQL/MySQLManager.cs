@@ -137,7 +137,7 @@ namespace OpenGrid.Framework.Data.MySQL
             }
         }
 
-        public SimProfileData getSimRow(IDataReader reader)
+        public SimProfileData readSimRow(IDataReader reader)
         {
             SimProfileData retval = new SimProfileData();
 
@@ -199,7 +199,7 @@ namespace OpenGrid.Framework.Data.MySQL
             return retval;
         }
 
-        public UserAgentData getAgentRow(IDataReader reader)
+        public UserAgentData readAgentRow(IDataReader reader)
         {
             UserAgentData retval = new UserAgentData();
 
@@ -231,7 +231,7 @@ namespace OpenGrid.Framework.Data.MySQL
             return retval;
         }
 
-        public UserProfileData getUserRow(IDataReader reader)
+        public UserProfileData readUserRow(IDataReader reader)
         {
             UserProfileData retval = new UserProfileData();
 
@@ -275,6 +275,32 @@ namespace OpenGrid.Framework.Data.MySQL
                 return null;
             }
             return retval;
+        }
+
+        public List<InventoryFolderBase> readInventoryInFolder(IDataReader reader)
+        {
+            List<InventoryFolderBase> rows = new List<InventoryFolderBase>();
+
+            while(reader.Read())
+            {
+                try
+                {
+                    InventoryFolderBase retval = new InventoryFolderBase();
+
+                    retval.agentID = new libsecondlife.LLUUID((string)reader["agentID"]);
+                    retval.parentID = new libsecondlife.LLUUID((string)reader["parentFolderID"]);
+                    retval.folderID = new libsecondlife.LLUUID((string)reader["folderID"]);
+                    retval.name = (string)reader["folderName"];
+
+                    rows.Add(retval);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+            }
+
+            return rows;
         }
 
         public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)

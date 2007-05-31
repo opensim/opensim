@@ -7,23 +7,23 @@ namespace OpenGrid.Framework.Data
 {
     public class InventoryItemBase
     {
-        LLUUID inventoryID;
-        LLUUID assetID;
-        int type;
-        LLUUID parentFolderID;
-        LLUUID avatarID;
-        string inventoryName;
-        string inventoryDescription;
-        uint inventoryNextPermissions;
-        uint inventoryCurrentPermissions;
+        public LLUUID inventoryID;
+        public LLUUID assetID;
+        public int type;
+        public LLUUID parentFolderID;
+        public LLUUID avatarID;
+        public string inventoryName;
+        public string inventoryDescription;
+        public uint inventoryNextPermissions;
+        public uint inventoryCurrentPermissions;
     }
 
     public class InventoryFolderBase
     {
-        string name;
-        LLUUID agentID;
-        LLUUID parentID;
-        LLUUID folderID;
+        public string name;
+        public LLUUID agentID;
+        public LLUUID parentID;
+        public LLUUID folderID;
     }
 
     public interface IInventoryData
