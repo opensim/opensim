@@ -92,7 +92,7 @@ namespace OpenSim.world
                 Avatar.SetupTemplate("avatar-texture.dat");
 
                 Avatar.LoadAnims();
-                
+
                 //this.SetDefaultScripts();
                 //this.LoadScriptEngines();
 
@@ -115,7 +115,7 @@ namespace OpenSim.world
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
         }
 
-      
+
         #region Update Methods
 
 
@@ -267,6 +267,7 @@ namespace OpenSim.world
         }
 
         #endregion
+
 
         #region Regenerate Terrain
 
@@ -451,6 +452,7 @@ namespace OpenSim.world
             remoteClient.OnRegionHandShakeReply += new GenericCall(this.SendLayerData);
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             remoteClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
+            remoteClient.OnRequestWearables += new GenericCall(this.InformClientOfNeighbours);
 
             Avatar newAvatar = null;
             try
@@ -460,13 +462,13 @@ namespace OpenSim.world
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
                 newAvatar.SendRegionHandshake();
-               
+
                 PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
                 lock (this.LockPhysicsEngine)
                 {
                     newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
                 }
-               
+
                 lock (Entities)
                 {
                     if (!Entities.ContainsKey(agentID))
@@ -495,6 +497,24 @@ namespace OpenSim.world
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
             }
             return;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void InformClientOfNeighbours(IClientAPI remoteClient)
+        {
+            List<RegionInfo> neighbours = this.commsManager.RequestNeighbours(this.m_regInfo);
+
+
+            for (int i = 0; i < neighbours.Count; i++)
+            {
+                AgentCircuitData agent = remoteClient.RequestClientInfo();
+                agent.BaseFolder = LLUUID.Zero;
+                agent.InventoryFolder = LLUUID.Zero;
+                agent.startpos = new LLVector3(128, 128, 70);
+                this.commsManager.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+            }
         }
 
         /// <summary>
@@ -556,9 +576,9 @@ namespace OpenSim.world
             }
         }
 
-        public void NewUserConnection(ulong regionHandle,AgentCircuitData agent)
+        public void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
         {
-            Console.WriteLine("World.cs - add new user connection"); 
+            Console.WriteLine("World.cs - add new user connection");
             //should just check that its meant for this region 
             if (regionHandle == this.m_regInfo.RegionHandle)
             {

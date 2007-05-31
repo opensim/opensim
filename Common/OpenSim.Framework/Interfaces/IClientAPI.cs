@@ -84,5 +84,6 @@ namespace OpenSim.Framework.Interfaces
         void SendRegionHandshake(RegionInfo regionInfo);
         void MoveAgentIntoRegion(RegionInfo regInfo);
         void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
+        AgentCircuitData RequestClientInfo();
     }
 }

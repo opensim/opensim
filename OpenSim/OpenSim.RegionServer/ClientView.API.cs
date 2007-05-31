@@ -373,6 +373,35 @@ namespace OpenSim
 
             return objdata;
         }
+
+        protected void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort)
+        {
+            EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
+            enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
+            enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
+
+            byte[] byteIP = neighbourIP.GetAddressBytes();
+            enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
+            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
+            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
+            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
+            enablesimpacket.SimulatorInfo.Port = neighbourPort;
+            OutPacket(enablesimpacket);
+        }
+
+        public AgentCircuitData RequestClientInfo()
+        {
+            AgentCircuitData agentData = new AgentCircuitData();
+            agentData.AgentID = this.AgentId;
+            agentData.SessionID = this.SessionID;
+            agentData.SecureSessionID = this.SecureSessionID;
+            agentData.circuitcode = this.CircuitCode;
+            agentData.child = false;
+            agentData.firstname = this.firstName;
+            agentData.lastname = this.lastName;
+
+            return agentData;
+        }
         #endregion
 
     }

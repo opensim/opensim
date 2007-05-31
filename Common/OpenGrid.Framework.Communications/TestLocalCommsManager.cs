@@ -53,7 +53,7 @@ namespace OpenGrid.Framework.Communications
         /// 
         /// </summary>
         /// <returns></returns>
-        public override bool InformNeighbourOfChildAgent(uint regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
+        public override bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             return false;
         }
