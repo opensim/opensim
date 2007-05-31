@@ -4,6 +4,7 @@ using System.Text;
 using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using libsecondlife;
 
 namespace OpenGrid.Framework.Communications
 {
@@ -19,7 +20,7 @@ namespace OpenGrid.Framework.Communications
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual RegionInfo LoadRegionConfigFromGridServer()
+        public virtual RegionInfo LoadRegionConfigFromGridServer(LLUUID regionID)
         {
             return null;
         }
@@ -37,8 +38,18 @@ namespace OpenGrid.Framework.Communications
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public virtual bool InformNeighbourOfChildAgent()
+        public virtual List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool InformNeighbourOfChildAgent( uint regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             return false;
         }
