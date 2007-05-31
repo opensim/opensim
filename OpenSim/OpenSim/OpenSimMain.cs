@@ -61,6 +61,7 @@ namespace OpenSim
         private CheckSumServer checkServer;
         protected RegionServerCommsManager commsManager;
 
+
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
             this.configFileSetup = useConfigFile;
@@ -209,6 +210,7 @@ namespace OpenSim
 
             for (int i = 0; i < configFiles.Length; i++)
             {
+                regionDat = new RegionInfo();
                 if (m_sandbox)
                 {
                     AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
@@ -259,7 +261,7 @@ namespace OpenSim
 
         protected override void SetupHttpListener()
         {
-            httpServer = new BaseHttpServer(regionData[0].IPListenPort);
+            httpServer = new BaseHttpServer(9000); //regionData[0].IPListenPort);
 
             if (!this.m_sandbox)
             {

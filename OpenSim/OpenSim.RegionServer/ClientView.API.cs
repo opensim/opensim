@@ -374,7 +374,7 @@ namespace OpenSim
             return objdata;
         }
 
-        protected void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort)
+        public void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort)
         {
             EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
             enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();

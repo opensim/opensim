@@ -504,16 +504,22 @@ namespace OpenSim.world
         /// </summary>
         protected void InformClientOfNeighbours(IClientAPI remoteClient)
         {
+           // Console.WriteLine("informing client of neighbouring regions");
             List<RegionInfo> neighbours = this.commsManager.RequestNeighbours(this.m_regInfo);
 
-
-            for (int i = 0; i < neighbours.Count; i++)
+            //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
+            if (neighbours != null)
             {
-                AgentCircuitData agent = remoteClient.RequestClientInfo();
-                agent.BaseFolder = LLUUID.Zero;
-                agent.InventoryFolder = LLUUID.Zero;
-                agent.startpos = new LLVector3(128, 128, 70);
-                this.commsManager.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+                for (int i = 0; i < neighbours.Count; i++)
+                {
+                   // Console.WriteLine("sending neighbours data");
+                    AgentCircuitData agent = remoteClient.RequestClientInfo();
+                    agent.BaseFolder = LLUUID.Zero;
+                    agent.InventoryFolder = LLUUID.Zero;
+                    agent.startpos = new LLVector3(128, 128, 70);
+                    this.commsManager.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
+                }
             }
         }
 

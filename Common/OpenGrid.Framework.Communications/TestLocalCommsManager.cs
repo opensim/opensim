@@ -26,12 +26,17 @@ namespace OpenGrid.Framework.Communications
         /// <returns></returns>
         public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
+            //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
+            
             if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
             {
+                //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
+            
                 this.regions.Add(regionInfo.RegionHandle, regionInfo);
                 RegionCommsHostBase regionHost = new RegionCommsHostBase();
                 this.regionHosts.Add(regionInfo.RegionHandle, regionHost);
 
+                
                 return regionHost;
             }
       
@@ -46,7 +51,26 @@ namespace OpenGrid.Framework.Communications
         /// <returns></returns>
         public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
-            return null;
+           // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
+            List<RegionInfo> neighbours = new List<RegionInfo>();
+
+            foreach (RegionInfo reg in this.regions.Values)
+            {
+               // Console.WriteLine("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
+                if (reg.RegionHandle != regionInfo.RegionHandle)
+                {
+                    //Console.WriteLine("CommsManager- RequestNeighbours() - found a different region in list, checking location");
+                    if ((reg.RegionLocX > (regionInfo.RegionLocX - 2)) && (reg.RegionLocX < (regionInfo.RegionLocX + 2)))
+                    {
+                        if ((reg.RegionLocY > (regionInfo.RegionLocY - 2)) && (reg.RegionLocY < (regionInfo.RegionLocY + 2)))
+                        {
+                            neighbours.Add(reg);
+                        }
+                    }
+                }
+            }
+
+            return neighbours;
         }
 
         /// <summary>
@@ -55,6 +79,13 @@ namespace OpenGrid.Framework.Communications
         /// <returns></returns>
         public override bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
+            //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
+            if (this.regionHosts.ContainsKey(regionHandle))
+            {
+               // Console.WriteLine("CommsManager- Informing a region to expect child agent");
+                this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                return true;
+            }
             return false;
         }
 
@@ -66,7 +97,7 @@ namespace OpenGrid.Framework.Communications
         /// <returns></returns>
         public bool AddNewSession(ulong regionHandle, Login loginData)
         {
-            Console.WriteLine(" comms manager been told to expect new user");
+            //Console.WriteLine(" comms manager been told to expect new user");
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = loginData.Agent;
             agent.firstname = loginData.First;
