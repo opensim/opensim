@@ -277,7 +277,12 @@ namespace OpenGrid.Framework.Data.MySQL
             return retval;
         }
 
-        public List<InventoryFolderBase> readInventoryInFolder(IDataReader reader)
+        /// <summary>
+        /// Reads a list of inventory folders returned by a query.
+        /// </summary>
+        /// <param name="reader">A MySQL Data Reader</param>
+        /// <returns>A List containing inventory folders</returns>
+        public List<InventoryFolderBase> readInventoryFolders(IDataReader reader)
         {
             List<InventoryFolderBase> rows = new List<InventoryFolderBase>();
 
