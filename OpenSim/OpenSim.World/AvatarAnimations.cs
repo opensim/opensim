@@ -11,10 +11,16 @@ namespace OpenSim.world
         public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
         public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
         
+        /// <summary>
+        /// 
+        /// </summary>
         public AvatarAnimations()
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void LoadAnims()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs:LoadAnims() - Loading avatar animations");

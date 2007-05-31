@@ -11,6 +11,9 @@ namespace OpenSim.types
         Vector3 b;
         Vector3 c;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Triangle()
         {
             a = new Vector3();
@@ -18,6 +21,12 @@ namespace OpenSim.types
             c = new Vector3();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="A"></param>
+        /// <param name="B"></param>
+        /// <param name="C"></param>
         public Triangle(Vector3 A, Vector3 B, Vector3 C)
         {
             a = A;

@@ -94,6 +94,7 @@ namespace OpenSim
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
+
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
@@ -138,7 +139,7 @@ namespace OpenSim
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();
 
-            // Start UDP server
+            // Start UDP servers
             for (int i = 0; i < m_udpServer.Count; i++)
             {
                 this.m_udpServer[i].ServerListener();

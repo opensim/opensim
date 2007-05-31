@@ -49,6 +49,9 @@ namespace OpenSim.world
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// 
+        /// </summary>
         public WorldBase()
         {
 
@@ -101,11 +104,21 @@ namespace OpenSim.world
         #endregion
 
         #region Add/Remove Agent/Avatar
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="agentID"></param>
+        /// <param name="child"></param>
         public virtual void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
             return ;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agentID"></param>
         public virtual void RemoveAvatar(LLUUID agentID)
         {
             return ;
@@ -113,6 +126,10 @@ namespace OpenSim.world
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public virtual RegionInfo GetRegionInfo()
         {
             return null;

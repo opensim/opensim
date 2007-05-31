@@ -16,17 +16,22 @@ namespace OpenSim.world
         public LLVector3 velocity;
         public Quaternion rotation;
         protected List<Entity> children;
-
+        protected LLVector3 m_pos;
+        protected PhysicsActor _physActor;
+        protected World m_world;
         protected string m_name;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual string Name
         {
             get { return m_name; }
         }
 
-        protected LLVector3 m_pos;
-        protected PhysicsActor _physActor;
-        protected World m_world;
-
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual LLVector3 Pos
         {
             get
@@ -76,6 +81,9 @@ namespace OpenSim.world
             children = new List<Entity>();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual void addForces()
         {
         	foreach (Entity child in children)
@@ -111,11 +119,17 @@ namespace OpenSim.world
             return mesh;
         }
         
+        /// <summary>
+        /// Called at a set interval to inform entities that they should back themsleves up to the DB 
+        /// </summary>
         public virtual void BackUp()
         {
         	
         }
 
+        /// <summary>
+        /// Infoms the entity that the land (heightmap) has changed
+        /// </summary>
         public virtual void LandRenegerated()
         {
 

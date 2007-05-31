@@ -18,30 +18,53 @@ namespace OpenSim.world
         private Dictionary<uint, IClientAPI> m_clientThreads;
         private World m_world;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public SceneObject()
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="addPacket"></param>
+        /// <param name="agentID"></param>
+        /// <param name="localID"></param>
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
         public void CreateFromBytes(byte[] data)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void update()
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void BackUp()
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
             /*

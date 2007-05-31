@@ -39,6 +39,13 @@ namespace OpenSim.world
         private bool childAvatar = false;
         private RegionInfo regionData;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="theClient"></param>
+        /// <param name="world"></param>
+        /// <param name="clientThreads"></param>
+        /// <param name="regionDat"></param>
         public Avatar(IClientAPI theClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionDat)
         {
 
@@ -84,6 +91,9 @@ namespace OpenSim.world
              * */
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public PhysicsActor PhysActor
         {
             set
@@ -96,21 +106,36 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="status"></param>
         public void ChildStatusChange(bool status)
         {
 
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public override void addForces()
         {
 
         }
 
+        /// <summary>
+        ///  likely to removed very soon
+        /// </summary>
+        /// <param name="name"></param>
         public static void SetupTemplate(string name)
         {
 
         }
 
+        /// <summary>
+        /// likely to removed very soon
+        /// </summary>
+        /// <param name="objdata"></param>
         protected static void SetDefaultPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
         {
 
@@ -118,32 +143,51 @@ namespace OpenSim.world
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void CompleteMovement()
         {
             this.ControllingClient.MoveAgentIntoRegion(this.regionData);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pack"></param>
         public void HandleAgentUpdate(Packet pack)
         {
             this.HandleUpdate((AgentUpdatePacket)pack);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pack"></param>
         public void HandleUpdate(AgentUpdatePacket pack)
         {
 
         }
 
-        //really really should be moved somewhere else (RegionInfo.cs ?)
+        /// <summary>
+        /// 
+        /// </summary>
         public void SendRegionHandshake()
         {
             this.ControllingClient.SendRegionHandshake(this.regionData);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void LoadAnims()
         {
 
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public override void LandRenegerated()
         {
 

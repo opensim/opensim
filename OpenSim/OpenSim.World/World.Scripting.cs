@@ -14,11 +14,17 @@ namespace OpenSim.world
     {
         private Dictionary<string, IScriptEngine> scriptEngines = new Dictionary<string, IScriptEngine>();
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void LoadScriptEngines()
         {
             this.LoadScriptPlugins();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void LoadScriptPlugins()
         {
             string path = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ScriptEngines");
@@ -31,6 +37,10 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FileName"></param>
         private void AddPlugin(string FileName)
         {
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
@@ -59,6 +69,13 @@ namespace OpenSim.world
             pluginAssembly = null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scriptType"></param>
+        /// <param name="scriptName"></param>
+        /// <param name="script"></param>
+        /// <param name="ent"></param>
         public void LoadScript(string scriptType, string scriptName, string script, Entity ent)
         {
             if(this.scriptEngines.ContainsKey(scriptType))
@@ -69,6 +86,11 @@ namespace OpenSim.world
 
         #region IScriptAPI Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
         public OSVector3 GetEntityPosition(uint localID)
         {
             OSVector3 res = new OSVector3();
@@ -85,6 +107,13 @@ namespace OpenSim.world
             return res;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
         public void SetEntityPosition(uint localID, float x , float y, float z)
         {
             foreach (Entity entity in this.Entities.Values)
@@ -103,6 +132,10 @@ namespace OpenSim.world
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public uint GetRandomAvatarID()
         {
             //Console.WriteLine("script- getting random avatar id");

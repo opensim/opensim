@@ -13,6 +13,12 @@ namespace OpenSim.world
 {
     public partial class World
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="north"></param>
+        /// <param name="west"></param>
         public void ModifyTerrain(byte action, float north, float west)
         {
             switch (action)
@@ -31,6 +37,14 @@ namespace OpenSim.world
             return;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="fromPos"></param>
+        /// <param name="fromName"></param>
+        /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             Console.WriteLine("Chat message");
@@ -79,59 +93,127 @@ namespace OpenSim.world
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primAsset"></param>
+        /// <param name="pos"></param>
         public void RezObject(AssetBase primAsset, LLVector3 pos)
         {
           
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <param name="simClient"></param>
         public void DeRezObject(Packet packet, IClientAPI simClient)
         {
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
         public void SendAvatarsToClient(IClientAPI remoteClient)
         {
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parentPrim"></param>
+        /// <param name="childPrims"></param>
         public void LinkObjects(uint parentPrim, List<uint> childPrims)
         {
             
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="shapeBlock"></param>
         public void UpdatePrimShape(uint primLocalID, ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="packet"></param>
+        /// <param name="remoteClient"></param>
         public void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient)
         {
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="texture"></param>
+        /// <param name="remoteClient"></param>
         public void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="pos"></param>
+        /// <param name="remoteClient"></param>
         public void UpdatePrimPosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
         {
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="rot"></param>
+        /// <param name="remoteClient"></param>
         public void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
         {
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="scale"></param>
+        /// <param name="remoteClient"></param>
         public void UpdatePrimScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
         {
+        }
+
+        /// <summary>
+        /// Sends prims to a client
+        /// </summary>
+        /// <param name="RemoteClient">Client to send to</param>
+        public void GetInitialPrims(IClientAPI RemoteClient)
+        {
+
         }
     }
 }

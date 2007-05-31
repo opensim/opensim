@@ -36,6 +36,9 @@ namespace OpenSim.world
         public string m_datastore;
 
         #region Properties
+        /// <summary>
+        /// 
+        /// </summary>
         public PhysicsScene PhysScene
         {
             set
@@ -79,12 +82,11 @@ namespace OpenSim.world
                 TerrainManager = new TerrainManager(new SecondLife());
                 Terrain = new TerrainEngine();
                 Avatar.SetupTemplate("avatar-texture.dat");
-                //	MainConsole.Instance.WriteLine("World.cs - Creating script engine instance");
-                // Initialise this only after the world has loaded
-                //	Scripts = new ScriptEngine(this);
+
                 Avatar.LoadAnims();
-                this.SetDefaultScripts();
-                this.LoadScriptEngines();
+                
+                //this.SetDefaultScripts();
+                //this.LoadScriptEngines();
 
 
             }
@@ -95,6 +97,9 @@ namespace OpenSim.world
         }
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void StartTimer()
         {
             m_heartbeatTimer.Enabled = true;
@@ -102,79 +107,7 @@ namespace OpenSim.world
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
         }
 
-        #region Script Methods
-        /// <summary>
-        /// Loads a new script into the specified entity
-        /// </summary>
-        /// <param name="entity">Entity to be scripted</param>
-        /// <param name="script">The script to load</param>
-        public void AddScript(Entity entity, Script script)
-        {
-            try
-            {
-                ScriptHandler scriptHandler = new ScriptHandler(script, entity, this);
-                m_scriptHandlers.Add(scriptHandler.ScriptId, scriptHandler);
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddScript() - Failed with exception " + e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Loads a new script into the specified entity, using a script loaded from a string.
-        /// </summary>
-        /// <param name="entity">The entity to be scripted</param>
-        /// <param name="scriptData">The string containing the script</param>
-        public void AddScript(Entity entity, string scriptData)
-        {
-            try
-            {
-                int scriptstart = 0;
-                int scriptend = 0;
-                string substring;
-                scriptstart = scriptData.LastIndexOf("<Script>");
-                scriptend = scriptData.LastIndexOf("</Script>");
-                substring = scriptData.Substring(scriptstart + 8, scriptend - scriptstart - 8);
-                substring = substring.Trim();
-                //Console.WriteLine("searching for script to add: " + substring);
-
-                ScriptFactory scriptFactory;
-                //Console.WriteLine("script string is " + substring);
-                if (substring.StartsWith("<ScriptEngine:"))
-                {
-                    string substring1 = "";
-                    string script = "";
-                    // Console.WriteLine("searching for script engine");
-                    substring1 = substring.Remove(0, 14);
-                    int dev = substring1.IndexOf(',');
-                    string sEngine = substring1.Substring(0, dev);
-                    substring1 = substring1.Remove(0, dev + 1);
-                    int end = substring1.IndexOf('>');
-                    string sName = substring1.Substring(0, end);
-                    //Console.WriteLine(" script info : " + sEngine + " , " + sName);
-                    int startscript = substring.IndexOf('>');
-                    script = substring.Remove(0, startscript + 1);
-                    // Console.WriteLine("script data is " + script);
-                    if (this.scriptEngines.ContainsKey(sEngine))
-                    {
-                        this.scriptEngines[sEngine].LoadScript(script, sName, entity.localid);
-                    }
-                }
-                else if (this.m_scripts.TryGetValue(substring, out scriptFactory))
-                {
-                    //Console.WriteLine("added script");
-                    this.AddScript(entity, scriptFactory());
-                }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddScript() - Failed with exception " + e.ToString());
-            }
-        }
-
-        #endregion
-
+      
         #region Update Methods
 
 
@@ -240,6 +173,10 @@ namespace OpenSim.world
             updateLock.ReleaseMutex();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool Backup()
         {
             try
@@ -319,14 +256,6 @@ namespace OpenSim.world
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
                 return false;
             }
-        }
-
-        public void SetDefaultScripts()
-        {
-            this.m_scripts.Add("FollowRandomAvatar", delegate()
-                                                             {
-                                                                 return new OpenSim.RegionServer.world.scripting.FollowRandomAvatar();
-                                                             });
         }
 
         #endregion
@@ -453,14 +382,6 @@ namespace OpenSim.world
 
         #region Primitives Methods
 
-        /// <summary>
-        /// Sends prims to a client
-        /// </summary>
-        /// <param name="RemoteClient">Client to send to</param>
-        public void GetInitialPrims(IClientAPI RemoteClient)
-        {
-
-        }
 
         /// <summary>
         /// Loads the World's objects
@@ -487,11 +408,21 @@ namespace OpenSim.world
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="addPacket"></param>
+        /// <param name="agentClient"></param>
         public void AddNewPrim(Packet addPacket, IClientAPI agentClient)
         {
             AddNewPrim((ObjectAddPacket)addPacket, agentClient.AgentId);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="addPacket"></param>
+        /// <param name="ownerID"></param>
         public void AddNewPrim(ObjectAddPacket addPacket, LLUUID ownerID)
         {
 
@@ -501,6 +432,12 @@ namespace OpenSim.world
 
         #region Add/Remove Avatar Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="agentID"></param>
+        /// <param name="child"></param>
         public override void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
             remoteClient.OnRegionHandShakeReply += new GenericCall(this.SendLayerData);
@@ -552,6 +489,10 @@ namespace OpenSim.world
             return;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agentID"></param>
         public override void RemoveAvatar(LLUUID agentID)
         {
             return;
@@ -562,6 +503,10 @@ namespace OpenSim.world
         //The idea is to have a group of method that return a list of avatars meeting some requirement
         // ie it could be all Avatars within a certain range of the calling prim/avatar. 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public List<Avatar> RequestAvatarList()
         {
             List<Avatar> result = new List<Avatar>();
