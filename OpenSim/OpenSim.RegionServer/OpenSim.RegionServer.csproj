@@ -135,9 +135,6 @@
     <Compile Include="AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionsBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="AuthenticateSessionsLocal.cs">
       <SubType>Code</SubType>
     </Compile>
