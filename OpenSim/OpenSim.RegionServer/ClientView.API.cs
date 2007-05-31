@@ -36,6 +36,9 @@ namespace OpenSim
         public event NewAvatar OnNewAvatar;
         public event GenericCall6 OnRemoveAvatar;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public LLVector3 StartPos
         {
             get
@@ -48,6 +51,9 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public LLUUID AgentId
         {
             get
@@ -56,6 +62,9 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string FirstName
         {
             get
@@ -65,6 +74,9 @@ namespace OpenSim
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string LastName
         {
             get
@@ -75,6 +87,10 @@ namespace OpenSim
 
         #region World/Avatar to Client
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regInfo"></param>
         public void MoveAgentIntoRegion(RegionInfo regInfo)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
@@ -88,6 +104,15 @@ namespace OpenSim
 
             OutPacket(mov);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="fromPos"></param>
+        /// <param name="fromName"></param>
+        /// <param name="fromAgentID"></param>
         public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
@@ -104,6 +129,10 @@ namespace OpenSim
             this.OutPacket(reply);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="wearables"></param>
         public void SendWearables(AvatarWearable[] wearables)
         {
             AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
@@ -125,6 +154,12 @@ namespace OpenSim
             this.OutPacket(aw);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="visualParams"></param>
+        /// <param name="textureEntry"></param>
         public void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
         {
             AvatarAppearancePacket avp = new AvatarAppearancePacket();
@@ -200,6 +235,10 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionInfo"></param>
         public void SendRegionHandshake(RegionInfo regionInfo)
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
@@ -240,6 +279,15 @@ namespace OpenSim
             OutPacket(handshake);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="avatarID"></param>
+        /// <param name="avatarLocalID"></param>
+        /// <param name="Pos"></param>
         public void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos)
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
@@ -263,6 +311,10 @@ namespace OpenSim
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objdata"></param>
         protected void SetDefaultPacketValues(ref ObjectUpdatePacket.ObjectDataBlock objdata)
         {
             objdata.PSBlock = new byte[0];
@@ -291,6 +343,10 @@ namespace OpenSim
             objdata.ObjectData[64] = 189;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket()
         {
             libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);

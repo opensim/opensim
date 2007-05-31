@@ -31,7 +31,7 @@ namespace OpenGrid.Framework.Communications
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public virtual IRegionCommsHost RegisterRegion(RegionInfo regionInfo)
+        public virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             return null;
         }

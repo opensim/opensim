@@ -107,6 +107,7 @@
     <Compile Include="LoginService.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="RegionCommsHostBase.cs" />
     <Compile Include="Remoting.cs">
       <SubType>Code</SubType>
     </Compile>
