@@ -7,10 +7,10 @@ using OpenSim.Framework.Types;
 
 namespace OpenGrid.Framework.Communications
 {
-    public class CommsManager
+    public class RegionServerCommsManager
     {
 
-        public CommsManager()
+        public RegionServerCommsManager()
         {
 
         }
