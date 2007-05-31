@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Framework
 {
@@ -8,6 +9,8 @@ namespace OpenSim.Framework
 
     public interface IRegionCommsHost
     {
-        event ExpectUserDelegate ExpectUser; 
+        event ExpectUserDelegate OnExpectUser;
+        event GenericCall2 OnExpectChildAgent;
+        event GenericCall2 OnAvatarCrossingIntoRegion;
     }
 }

@@ -87,7 +87,7 @@ namespace OpenSim
 
         }
 
-        protected virtual void SetupLocalWorld()
+        protected virtual void SetupWorld()
         {
         }
 

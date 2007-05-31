@@ -18,6 +18,15 @@ namespace OpenGrid.Framework.Communications
         /// <summary>
         /// 
         /// </summary>
+        /// <returns></returns>
+        public virtual RegionInfo LoadRegionConfigFromGridServer()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
         public virtual IRegionCommsHost RegisterRegion(RegionInfo regionInfo)
@@ -25,7 +34,20 @@ namespace OpenGrid.Framework.Communications
             return null;
         }
 
-        public virtual bool InformNeighbourChildAgent()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool InformNeighbourOfChildAgent()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool AvatarCrossingToRegion()
         {
             return false;
         }

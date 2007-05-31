@@ -112,7 +112,7 @@ namespace OpenSim
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();
 
-            this.SetupLocalWorld();
+            this.SetupWorld();
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Initialising HTTP server");
 
@@ -178,7 +178,7 @@ namespace OpenSim
             }
         }
 
-        protected override void SetupLocalWorld()
+        protected override void SetupWorld()
         {
             IGenericConfig regionConfig;
             World LocalWorld;
