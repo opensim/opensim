@@ -17,6 +17,7 @@ using OpenSim.UserServer;
 using OpenSim.Assets;
 using OpenSim.CAPS;
 using OpenSim.Framework.Console;
+using OpenSim.Framework;
 using Nwc.XmlRpc;
 using OpenSim.Servers;
 using OpenSim.GenericConfig;

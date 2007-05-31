@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using libsecondlife;
 using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using Nwc.XmlRpc;
 
 namespace OpenSim

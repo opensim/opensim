@@ -11,6 +11,7 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
 
@@ -34,6 +35,7 @@ namespace OpenSim.world
         private Dictionary<string, ScriptFactory> m_scripts;
         private Mutex updateLock;
         public string m_datastore;
+        protected AuthenticateSessionsBase authenticateHandler;
 
         #region Properties
         /// <summary>
@@ -59,11 +61,12 @@ namespace OpenSim.world
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo)
+        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen)
         {
             try
             {
                 updateLock = new Mutex(false);
+                this.authenticateHandler = authen;
                 m_clientThreads = clientThreads;
                 m_regInfo = regInfo;
                 m_regionHandle = m_regInfo.RegionHandle;

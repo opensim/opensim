@@ -42,6 +42,7 @@ using OpenSim.world;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.UserServer;
 using OpenSim.Assets;
 using OpenSim.CAPS;
@@ -233,7 +234,7 @@ namespace OpenSim
                 m_console.componentname = "Region " + regionData.RegionName;
                 */
 
-                LocalWorld = new World(udpServer.PacketServer.ClientAPIs, regionDat);
+                LocalWorld = new World(udpServer.PacketServer.ClientAPIs, regionDat, authenBase);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;

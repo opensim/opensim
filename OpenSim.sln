@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.GridInterfaces.Loca
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMLRPC", "Common\XmlRpcCS\XMLRPC.csproj", "{8E81D43C-0000-0000-0000-000000000000}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework.Communications", "Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj", "{C9702041-922C-452A-A1B4-7880AF53149A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -120,6 +122,10 @@ Global
 		{8E81D43C-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E81D43C-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E81D43C-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9702041-922C-452A-A1B4-7880AF53149A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9702041-922C-452A-A1B4-7880AF53149A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9702041-922C-452A-A1B4-7880AF53149A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9702041-922C-452A-A1B4-7880AF53149A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

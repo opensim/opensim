@@ -5,9 +5,9 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim
+namespace OpenSim.Framework
 {
-   /* public class AuthenticateSessionsBase
+    public class AuthenticateSessionsBase
     {
         public Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
 
@@ -101,5 +101,5 @@ namespace OpenSim
             }
             return false;
         }
-    }*/
+    }
 }

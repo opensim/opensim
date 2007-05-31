@@ -13,6 +13,7 @@ using libsecondlife.Packets;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.UserServer;
 using OpenSim.Assets;
 using OpenSim.CAPS;

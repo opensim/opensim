@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework;
 using System.Net;
 using System.Net.Sockets;
 using OpenSim.Assets;

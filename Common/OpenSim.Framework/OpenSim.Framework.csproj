@@ -99,9 +99,11 @@
     <Compile Include="AgentInventory.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AuthenticateSessionBase.cs" />
     <Compile Include="BlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="IRegionCommsHost.cs" />
     <Compile Include="LoginService.cs">
       <SubType>Code</SubType>
     </Compile>
