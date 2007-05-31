@@ -78,10 +78,11 @@ namespace OpenSim
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
+        protected uint serverPort = 0;
 
-
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions)
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions, uint port)
         {
+            this.serverPort = port;
             m_world = world;
             m_clientThreads = clientThreads;
             m_assetCache = assetCache;

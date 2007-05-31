@@ -82,7 +82,7 @@ namespace OpenSim
 
         protected virtual void CreatePacketServer()
         {
-            PacketServer packetServer = new PacketServer(this);
+            PacketServer packetServer = new PacketServer(this, (uint) listenPort);
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)

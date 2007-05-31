@@ -2,17 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using libsecondlife;
 
 namespace OpenGrid.Framework.Communications
 {
-    public class RegionServerCommsManager
+    public class TestLocalCommsManager : RegionServerCommsManager
     {
+        protected Dictionary<uint , RegionInfo> regions = new Dictionary<uint,RegionInfo>();
 
-        public RegionServerCommsManager()
+        public TestLocalCommsManager()
         {
 
         }
@@ -21,17 +22,7 @@ namespace OpenGrid.Framework.Communications
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual RegionInfo LoadRegionConfigFromGridServer(LLUUID regionID)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
-        public virtual IRegionCommsHost RegisterRegion(RegionInfo regionInfo)
+        public override RegionInfo LoadRegionConfigFromGridServer(LLUUID regionID)
         {
             return null;
         }
@@ -41,7 +32,17 @@ namespace OpenGrid.Framework.Communications
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public virtual List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
+        public override IRegionCommsHost RegisterRegion(RegionInfo regionInfo)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <returns></returns>
+        public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
             return null;
         }
@@ -50,7 +51,7 @@ namespace OpenGrid.Framework.Communications
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual bool InformNeighbourOfChildAgent( uint regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
+        public override bool InformNeighbourOfChildAgent(uint regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             return false;
         }
@@ -59,7 +60,7 @@ namespace OpenGrid.Framework.Communications
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual bool AvatarCrossingToRegion()
+        public override bool AvatarCrossingToRegion()
         {
             return false;
         }
@@ -68,7 +69,7 @@ namespace OpenGrid.Framework.Communications
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual IList RequestMapBlocks()
+        public override IList RequestMapBlocks()
         {
             return null;
         }

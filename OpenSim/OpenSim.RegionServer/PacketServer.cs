@@ -16,10 +16,12 @@ namespace OpenSim
         private IWorld _localWorld;
         public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
         public Dictionary<uint, IClientAPI> ClientAPIs = new Dictionary<uint, IClientAPI>();
+        protected uint serverPort;
 
-        public PacketServer(OpenSimNetworkHandler networkHandler)
+        public PacketServer(OpenSimNetworkHandler networkHandler, uint port)
         {
             _networkHandler = networkHandler;
+            this.serverPort = port;
             _networkHandler.RegisterPacketServer(this);
         }
 
@@ -66,7 +68,7 @@ namespace OpenSim
 
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AuthenticateSessionsBase authenticateSessionsClass)
         {
-            ClientView newuser = new ClientView(epSender, useCircuit, this.ClientThreads, this._localWorld, assetCache, this, inventoryCache, authenticateSessionsClass);
+            ClientView newuser = new ClientView(epSender, useCircuit, this.ClientThreads, this._localWorld, assetCache, this, inventoryCache, authenticateSessionsClass, serverPort);
             this.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
             this.ClientAPIs.Add(useCircuit.CircuitCode.Code, (IClientAPI)newuser);
 

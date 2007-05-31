@@ -39,6 +39,7 @@
   <ItemGroup>
     <Compile Include="RegionServerCommsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestLocalCommsManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
