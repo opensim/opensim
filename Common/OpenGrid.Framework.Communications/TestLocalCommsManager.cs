@@ -11,8 +11,8 @@ namespace OpenGrid.Framework.Communications
 {
     public class TestLocalCommsManager : RegionServerCommsManager
     {
-        protected Dictionary<uint , RegionInfo> regions = new Dictionary<uint,RegionInfo>();
-        protected Dictionary<uint, RegionCommsHostBase> regionHosts = new Dictionary<uint, RegionCommsHostBase>();
+        protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong,RegionInfo>();
+        protected Dictionary<ulong, RegionCommsHostBase> regionHosts = new Dictionary<ulong, RegionCommsHostBase>();
 
         public TestLocalCommsManager()
         {
@@ -28,9 +28,9 @@ namespace OpenGrid.Framework.Communications
         {
             if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
             {
-                this.regions.Add((uint)regionInfo.RegionHandle, regionInfo);
+                this.regions.Add(regionInfo.RegionHandle, regionInfo);
                 RegionCommsHostBase regionHost = new RegionCommsHostBase();
-                this.regionHosts.Add((uint)regionInfo.RegionHandle, regionHost);
+                this.regionHosts.Add(regionInfo.RegionHandle, regionHost);
 
                 return regionHost;
             }
@@ -59,13 +59,14 @@ namespace OpenGrid.Framework.Communications
         }
 
         /// <summary>
-        /// 
+        /// Is a Sandbox mode method, used by the local Login server to inform a region of a connection user/session
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="loginData"></param>
         /// <returns></returns>
-        public bool AddNewSession(uint regionHandle, Login loginData)
+        public bool AddNewSession(ulong regionHandle, Login loginData)
         {
+            Console.WriteLine(" comms manager been told to expect new user");
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = loginData.Agent;
             agent.firstname = loginData.First;
@@ -77,9 +78,9 @@ namespace OpenGrid.Framework.Communications
             agent.InventoryFolder = loginData.InventoryFolder;
             agent.startpos = new LLVector3(128, 128, 70);
 
-            if (this.regionHosts.ContainsKey((uint)regionHandle))
+            if (this.regionHosts.ContainsKey(regionHandle))
             {
-                this.regionHosts[(uint)regionHandle].TriggerExpectUser(agent);
+                this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agent);
                 return true;
             }
 

@@ -116,8 +116,8 @@ namespace OpenSim.UserServer
                 Console.WriteLine("adding login data to gridserver");
                 ((LocalGridBase)this.m_gridServer).AddNewSession(_login);
             }*/
-
-            this.AddSession(_login);
+            ulong reghand = Helpers.UIntsToLong((regionX * 256), (regionY * 256));
+            this.AddSession(reghand, _login);
         }
     }
 }

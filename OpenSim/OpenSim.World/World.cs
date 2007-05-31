@@ -14,6 +14,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
+using OpenGrid.Framework.Communications;
 
 namespace OpenSim.world
 {
@@ -36,6 +37,8 @@ namespace OpenSim.world
         private Mutex updateLock;
         public string m_datastore;
         protected AuthenticateSessionsBase authenticateHandler;
+        protected RegionCommsHostBase regionCommsHost;
+        protected RegionServerCommsManager commsManager;
 
         #region Properties
         /// <summary>
@@ -61,17 +64,19 @@ namespace OpenSim.world
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen)
+        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, RegionServerCommsManager commsMan)
         {
             try
             {
                 updateLock = new Mutex(false);
                 this.authenticateHandler = authen;
+                this.commsManager = commsMan;
                 m_clientThreads = clientThreads;
                 m_regInfo = regInfo;
                 m_regionHandle = m_regInfo.RegionHandle;
                 m_regionName = m_regInfo.RegionName;
                 this.m_datastore = m_regInfo.DataStore;
+                this.RegisterRegionWithComms();
 
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();
@@ -540,5 +545,27 @@ namespace OpenSim.world
         }
         #endregion
 
+        #region RegionCommsHost
+
+        public void RegisterRegionWithComms()
+        {
+            this.regionCommsHost = this.commsManager.RegisterRegion(this.m_regInfo);
+            if (this.regionCommsHost != null)
+            {
+                this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);
+            }
+        }
+
+        public void NewUserConnection(ulong regionHandle,AgentCircuitData agent)
+        {
+            Console.WriteLine("World.cs - add new user connection"); 
+            //should just check that its meant for this region 
+            if (regionHandle == this.m_regInfo.RegionHandle)
+            {
+                this.authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+            }
+        }
+
+        #endregion
     }
 }

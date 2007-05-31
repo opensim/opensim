@@ -6,7 +6,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework
 {
-    public delegate void ExpectUserDelegate(AgentCircuitData agent);
+    public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
 
     public interface IRegionCommsHost

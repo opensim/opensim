@@ -47,7 +47,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.UserServer
 {
-    public delegate void AddNewSessionHandler(Login loginData);
+    public delegate bool AddNewSessionHandler(ulong regionHandle, Login loginData);
     /// <summary>
     /// When running in local (default) mode , handles client logins.
     /// </summary>
@@ -196,7 +196,8 @@ namespace OpenSim.UserServer
             {
                 ((LocalGridBase)m_gridServer).AddNewSession(_login);
             }*/
-            AddSession(_login);
+            ulong reghand = Helpers.UIntsToLong((regionX * 256), (regionY * 256));
+            AddSession(reghand,_login);
 
             return response;
         }

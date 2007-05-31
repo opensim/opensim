@@ -18,11 +18,11 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        public virtual bool TriggerExpectUser(AgentCircuitData  agent)
+        public virtual bool TriggerExpectUser(ulong regionHandle, AgentCircuitData  agent)
         {
             if(OnExpectUser != null)
             {
-                OnExpectUser(agent);
+                OnExpectUser(regionHandle, agent);
                 return true;
             }
 

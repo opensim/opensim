@@ -87,6 +87,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj">
+      <Project>{C9702041-922C-452A-A1B4-7880AF53149A}</Project>
+      <Name>OpenGrid.Framework.Communications</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj">
       <Name>OpenSim.Terrain.BasicTerrain</Name>
       <Project>{2270B8FE-0000-0000-0000-000000000000}</Project>

@@ -51,6 +51,7 @@ using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
 using OpenSim.Servers;
 using OpenSim.GenericConfig;
+using OpenGrid.Framework.Communications;
 
 namespace OpenSim
 {
@@ -58,6 +59,7 @@ namespace OpenSim
     public class OpenSimMain : RegionServerBase, conscmd_callback
     {
         private CheckSumServer checkServer;
+        protected RegionServerCommsManager commsManager;
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
@@ -101,10 +103,12 @@ namespace OpenSim
                 this.SetupLocalGridServers();
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
+                this.commsManager = new TestLocalCommsManager();
             }
             else
             {
                 this.SetupRemoteGridServers();
+                this.commsManager = new TestLocalCommsManager(); //should be a remote comms manager class
             }
 
             startuptime = DateTime.Now;
@@ -126,8 +130,8 @@ namespace OpenSim
             {
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
-                loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler[0]).AddNewSession);
-
+                //loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler[0]).AddNewSession);
+                loginServer.SetSessionHandler(((TestLocalCommsManager)this.commsManager).AddNewSession);
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }
@@ -234,7 +238,7 @@ namespace OpenSim
                 m_console.componentname = "Region " + regionData.RegionName;
                 */
 
-                LocalWorld = new World(udpServer.PacketServer.ClientAPIs, regionDat, authenBase);
+                LocalWorld = new World(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;
