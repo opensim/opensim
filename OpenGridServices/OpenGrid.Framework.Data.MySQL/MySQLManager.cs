@@ -290,14 +290,50 @@ namespace OpenGrid.Framework.Data.MySQL
             {
                 try
                 {
-                    InventoryFolderBase retval = new InventoryFolderBase();
+                    InventoryFolderBase folder = new InventoryFolderBase();
 
-                    retval.agentID = new libsecondlife.LLUUID((string)reader["agentID"]);
-                    retval.parentID = new libsecondlife.LLUUID((string)reader["parentFolderID"]);
-                    retval.folderID = new libsecondlife.LLUUID((string)reader["folderID"]);
-                    retval.name = (string)reader["folderName"];
+                    folder.agentID = new libsecondlife.LLUUID((string)reader["agentID"]);
+                    folder.parentID = new libsecondlife.LLUUID((string)reader["parentFolderID"]);
+                    folder.folderID = new libsecondlife.LLUUID((string)reader["folderID"]);
+                    folder.name = (string)reader["folderName"];
 
-                    rows.Add(retval);
+                    rows.Add(folder);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+            }
+
+            return rows;
+        }
+
+        /// <summary>
+        /// Reads a collection of items from an SQL result
+        /// </summary>
+        /// <param name="reader">The SQL Result</param>
+        /// <returns>A List containing Inventory Items</returns>
+        public List<InventoryItemBase> readInventoryItems(IDataReader reader)
+        {
+            List<InventoryItemBase> rows = new List<InventoryItemBase>();
+
+            while (reader.Read())
+            {
+                try
+                {
+                    InventoryItemBase item = new InventoryItemBase();
+
+                    item.assetID = new libsecondlife.LLUUID((string)reader["assetID"]);
+                    item.avatarID = new libsecondlife.LLUUID((string)reader["avatarID"]);
+                    item.inventoryCurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"].ToString());
+                    item.inventoryDescription = (string)reader["inventoryDescription"];
+                    item.inventoryID = new libsecondlife.LLUUID((string)reader["inventoryID"]);
+                    item.inventoryName = (string)reader["inventoryName"];
+                    item.inventoryNextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"].ToString());
+                    item.parentFolderID = new libsecondlife.LLUUID((string)reader["parentFolderID"]);
+                    item.type = Convert.ToInt32(reader["type"].ToString());
+
+                    rows.Add(item);
                 }
                 catch (Exception e)
                 {
