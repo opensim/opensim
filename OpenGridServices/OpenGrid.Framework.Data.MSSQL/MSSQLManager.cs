@@ -1,3 +1,29 @@
+/*
+* Copyright (c) OpenSim project, http://sim.opensecondlife.org/
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the <organization> nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -63,57 +89,67 @@ namespace OpenGrid.Framework.Data.MSSQL
             return (IDbCommand)dbcommand;
         }
 
+        /// <summary>
+        /// Runs a database reader object and returns a region row
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A region row</returns>
         public SimProfileData getRow(IDataReader reader)
         {
-            SimProfileData retval = new SimProfileData();
+            SimProfileData regionprofile = new SimProfileData();
 
             if (reader.Read())
             {
                 // Region Main
-                retval.regionHandle = (ulong)reader["regionHandle"];
-                retval.regionName = (string)reader["regionName"];
-                retval.UUID = new libsecondlife.LLUUID((string)reader["uuid"]);
+                regionprofile.regionHandle = (ulong)reader["regionHandle"];
+                regionprofile.regionName = (string)reader["regionName"];
+                regionprofile.UUID = new libsecondlife.LLUUID((string)reader["uuid"]);
 
                 // Secrets
-                retval.regionRecvKey = (string)reader["regionRecvKey"];
-                retval.regionSecret = (string)reader["regionSecret"];
-                retval.regionSendKey = (string)reader["regionSendKey"];
+                regionprofile.regionRecvKey = (string)reader["regionRecvKey"];
+                regionprofile.regionSecret = (string)reader["regionSecret"];
+                regionprofile.regionSendKey = (string)reader["regionSendKey"];
 
                 // Region Server
-                retval.regionDataURI = (string)reader["regionDataURI"];
-                retval.regionOnline = false; // Needs to be pinged before this can be set.
-                retval.serverIP = (string)reader["serverIP"];
-                retval.serverPort = (uint)reader["serverPort"];
-                retval.serverURI = (string)reader["serverURI"];
+                regionprofile.regionDataURI = (string)reader["regionDataURI"];
+                regionprofile.regionOnline = false; // Needs to be pinged before this can be set.
+                regionprofile.serverIP = (string)reader["serverIP"];
+                regionprofile.serverPort = (uint)reader["serverPort"];
+                regionprofile.serverURI = (string)reader["serverURI"];
 
                 // Location
-                retval.regionLocX = (uint)((int)reader["locX"]);
-                retval.regionLocY = (uint)((int)reader["locY"]);
-                retval.regionLocZ = (uint)((int)reader["locZ"]);
+                regionprofile.regionLocX = (uint)((int)reader["locX"]);
+                regionprofile.regionLocY = (uint)((int)reader["locY"]);
+                regionprofile.regionLocZ = (uint)((int)reader["locZ"]);
 
                 // Neighbours - 0 = No Override
-                retval.regionEastOverrideHandle = (ulong)reader["eastOverrideHandle"];
-                retval.regionWestOverrideHandle = (ulong)reader["westOverrideHandle"];
-                retval.regionSouthOverrideHandle = (ulong)reader["southOverrideHandle"];
-                retval.regionNorthOverrideHandle = (ulong)reader["northOverrideHandle"];
+                regionprofile.regionEastOverrideHandle = (ulong)reader["eastOverrideHandle"];
+                regionprofile.regionWestOverrideHandle = (ulong)reader["westOverrideHandle"];
+                regionprofile.regionSouthOverrideHandle = (ulong)reader["southOverrideHandle"];
+                regionprofile.regionNorthOverrideHandle = (ulong)reader["northOverrideHandle"];
 
                 // Assets
-                retval.regionAssetURI = (string)reader["regionAssetURI"];
-                retval.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
-                retval.regionAssetSendKey = (string)reader["regionAssetSendKey"];
+                regionprofile.regionAssetURI = (string)reader["regionAssetURI"];
+                regionprofile.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
+                regionprofile.regionAssetSendKey = (string)reader["regionAssetSendKey"];
 
                 // Userserver
-                retval.regionUserURI = (string)reader["regionUserURI"];
-                retval.regionUserRecvKey = (string)reader["regionUserRecvKey"];
-                retval.regionUserSendKey = (string)reader["regionUserSendKey"];
+                regionprofile.regionUserURI = (string)reader["regionUserURI"];
+                regionprofile.regionUserRecvKey = (string)reader["regionUserRecvKey"];
+                regionprofile.regionUserSendKey = (string)reader["regionUserSendKey"];
             }
             else
             {
                 throw new Exception("No rows to return");
             }
-            return retval;
+            return regionprofile;
         }
 
+        /// <summary>
+        /// Creates a new region in the database
+        /// </summary>
+        /// <param name="profile">The region profile to insert</param>
+        /// <returns>Successful?</returns>
         public bool insertRow(SimProfileData profile)
         {
             string sql = "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
