@@ -39,27 +39,177 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
         {
-            return null;
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = folderID.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryItemBase> items = database.readInventoryItems(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    return items;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
         {
-            return null;
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = user.ToStringHyphenated();
+                    param["?zero"] = LLUUID.Zero.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryFolderBase> items = database.readInventoryFolders(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    return items;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
         {
-            return null;
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = parentID.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryFolderBase> items = database.readInventoryFolders(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    return items;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
-            return null;
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = item.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE inventoryID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryItemBase> items = database.readInventoryItems(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    if (items.Count > 0)
+                    {
+                        return items[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public InventoryFolderBase getInventoryFolder(LLUUID folder)
         {
-            return null;
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = folder.ToStringHyphenated();
+
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = ?uuid", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryFolderBase> items = database.readInventoryFolders(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    if (items.Count > 0)
+                    {
+                        return items[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
+        }
+
+        public void addInventoryItem(InventoryItemBase item)
+        {
+            
+        }
+
+        public void updateInventoryItem(InventoryItemBase item)
+        {
+            addInventoryItem(item);
+        }
+
+        public void addInventoryFolder(InventoryFolderBase folder)
+        {
+
+        }
+
+        public void updateInventoryFolder(InventoryFolderBase folder)
+        {
+            addInventoryFolder(folder);
         }
     }
 }

@@ -84,5 +84,29 @@ namespace OpenGrid.Framework.Data
         /// <param name="folder">The UUID of the folder to be returned</param>
         /// <returns>A class containing folder information</returns>
         InventoryFolderBase getInventoryFolder(LLUUID folder);
+
+        /// <summary>
+        /// Creates a new inventory item based on item
+        /// </summary>
+        /// <param name="item">The item to be created</param>
+        void addInventoryItem(InventoryItemBase item);
+
+        /// <summary>
+        /// Updates an inventory item with item (updates based on ID)
+        /// </summary>
+        /// <param name="item">The updated item</param>
+        void updateInventoryItem(InventoryItemBase item);
+
+        /// <summary>
+        /// Adds a new folder specified by folder
+        /// </summary>
+        /// <param name="folder">The inventory folder</param>
+        void addInventoryFolder(InventoryFolderBase folder);
+
+        /// <summary>
+        /// Updates a folder based on its ID with folder
+        /// </summary>
+        /// <param name="folder">The inventory folder</param>
+        void updateInventoryFolder(InventoryFolderBase folder);
     }
 }
