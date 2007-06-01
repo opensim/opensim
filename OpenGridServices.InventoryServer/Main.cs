@@ -39,6 +39,7 @@ namespace OpenGridServices.InventoryServer
             MainConsole.Instance.WriteLine("Starting HTTP server");
             BaseHttpServer httpServer = new BaseHttpServer(8004);
 
+            httpServer.AddXmlRPCHandler("rootfolders", m_inventoryManager.XmlRpcInventoryRequest);
             //httpServer.AddRestHandler("GET","/rootfolders/",Rest
         }
 

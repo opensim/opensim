@@ -1,3 +1,29 @@
+/*
+* Copyright (c) OpenSim project, http://sim.opensecondlife.org/
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the <organization> nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -5,50 +31,151 @@ using libsecondlife;
 
 namespace OpenGrid.Framework.Data
 {
+    /// <summary>
+    /// Information about a particular user known to the userserver
+    /// </summary>
     public class UserProfileData
     {
+        /// <summary>
+        /// The ID value for this user
+        /// </summary>
         public LLUUID UUID;
-        public string username;    // The configurable part of the users username
-        public string surname;     // The users surname (can be used to indicate user class - eg 'Test User' or 'Test Admin')
 
-        public string passwordHash; // Hash of the users password
-        public string passwordSalt; // Salt for the users password
+        /// <summary>
+        /// The first component of a users account name
+        /// </summary>
+        public string username;
+        /// <summary>
+        /// The second component of a users account name
+        /// </summary>
+        public string surname;
 
-        public ulong homeRegion;       // RegionHandle of home
-        public LLVector3 homeLocation; // Home Location inside the sim
-        public LLVector3 homeLookAt;   // Coordinates where the user is looking
+        /// <summary>
+        /// A salted hash containing the users password, in the format md5(md5(password) + ":" + salt)
+        /// </summary>
+        /// <remarks>This is double MD5'd because the client sends an unsalted MD5 to the loginserver</remarks>
+        public string passwordHash;
+        /// <summary>
+        /// The salt used for the users hash, should be 32 bytes or longer
+        /// </summary>
+        public string passwordSalt;
 
+        /// <summary>
+        /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
+        /// </summary>
+        public ulong homeRegion;
+        /// <summary>
+        /// The coordinates inside the region of the home location
+        /// </summary>
+        public LLVector3 homeLocation;
+        /// <summary>
+        /// Where the user will be looking when they rez.
+        /// </summary>
+        public LLVector3 homeLookAt;
 
-        public int created;    // UNIX Epoch Timestamp (User Creation)
-        public int lastLogin;  // UNIX Epoch Timestamp (Last Login Time)
+        /// <summary>
+        /// A UNIX Timestamp (seconds since epoch) for the users creation
+        /// </summary>
+        public int created;
+        /// <summary>
+        /// A UNIX Timestamp for the users last login date / time
+        /// </summary>
+        public int lastLogin;
 
-        public string userInventoryURI; // URI to inventory server for this user
-        public string userAssetURI;     // URI to asset server for this user
+        /// <summary>
+        /// A URI to the users inventory server, used for foreigners and large grids
+        /// </summary>
+        public string userInventoryURI;
+        /// <summary>
+        /// A URI to the users asset server, used for foreigners and large grids.
+        /// </summary>
+        public string userAssetURI;
 
-        public uint profileCanDoMask; // Profile window "I can do" mask
+        /// <summary>
+        /// A uint mask containing the "I can do" fields of the users profile
+        /// </summary>
+        public uint profileCanDoMask;
+        /// <summary>
+        /// A uint mask containing the "I want to do" part of the users profile
+        /// </summary>
         public uint profileWantDoMask; // Profile window "I want to" mask
 
-        public string profileAboutText; // My about window text
-        public string profileFirstText; // First Life Text
+        /// <summary>
+        /// The about text listed in a users profile.
+        /// </summary>
+        public string profileAboutText;
+        /// <summary>
+        /// The first life about text listed in a users profile
+        /// </summary>
+        public string profileFirstText;
 
-        public LLUUID profileImage; // My avatars profile image
-        public LLUUID profileFirstImage; // First-life image
-        public UserAgentData currentAgent; // The users last agent
+        /// <summary>
+        /// The profile image for an avatar stored on the asset server
+        /// </summary>
+        public LLUUID profileImage;
+        /// <summary>
+        /// The profile image for the users first life tab
+        /// </summary>
+        public LLUUID profileFirstImage;
+        /// <summary>
+        /// The users last registered agent (filled in on the user server)
+        /// </summary>
+        public UserAgentData currentAgent;
     }
 
+    /// <summary>
+    /// Information about a users session
+    /// </summary>
     public class UserAgentData
     {
-        public LLUUID UUID;             // Account ID
-        public string agentIP;          // The IP of the agent
-        public uint agentPort;          // The port of the agent
-        public bool agentOnline;        // The online status of the agent
-        public LLUUID sessionID;        // The session ID for the agent (used by client)
-        public LLUUID secureSessionID;  // The secure session ID for the agent (used by client)
-        public LLUUID regionID;         // The region ID the agent occupies
-        public int loginTime;          // EPOCH based Timestamp
-        public int logoutTime;         // Timestamp or 0 if N/A
-        public LLUUID currentRegion;    // UUID of the users current region
-        public ulong currentHandle;     // RegionHandle of the users current region
-        public LLVector3 currentPos;    // Current position in the region
+        /// <summary>
+        /// The UUID of the users avatar (not the agent!)
+        /// </summary>
+        public LLUUID UUID;
+        /// <summary>
+        /// The IP address of the user
+        /// </summary>
+        public string agentIP;
+        /// <summary>
+        /// The port of the user
+        /// </summary>
+        public uint agentPort;
+        /// <summary>
+        /// Is the user online?
+        /// </summary>
+        public bool agentOnline;
+        /// <summary>
+        /// The session ID for the user (also the agent ID)
+        /// </summary>
+        public LLUUID sessionID;
+        /// <summary>
+        /// The "secure" session ID for the user
+        /// </summary>
+        /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
+        public LLUUID secureSessionID;
+        /// <summary>
+        /// The region the user logged into initially
+        /// </summary>
+        public LLUUID regionID;
+        /// <summary>
+        /// A unix timestamp from when the user logged in
+        /// </summary>
+        public int loginTime;
+        /// <summary>
+        /// When this agent expired and logged out, 0 if still online
+        /// </summary>
+        public int logoutTime;
+        /// <summary>
+        /// Current region the user is logged into
+        /// </summary>
+        public LLUUID currentRegion;
+        /// <summary>
+        /// Region handle of the current region the user is in
+        /// </summary>
+        public ulong currentHandle;
+        /// <summary>
+        /// The position of the user within the region
+        /// </summary>
+        public LLVector3 currentPos;
     }
 }
