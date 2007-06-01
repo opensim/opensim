@@ -194,7 +194,10 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public void addInventoryItem(InventoryItemBase item)
         {
-            
+            lock (database)
+            {
+                database.insertItem(item);
+            }
         }
 
         public void updateInventoryItem(InventoryItemBase item)
@@ -204,7 +207,10 @@ namespace OpenGrid.Framework.Data.MySQL
 
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-
+            lock (database)
+            {
+                database.insertFolder(folder);
+            }
         }
 
         public void updateInventoryFolder(InventoryFolderBase folder)

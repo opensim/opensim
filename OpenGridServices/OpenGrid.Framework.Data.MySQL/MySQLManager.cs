@@ -377,6 +377,71 @@ namespace OpenGrid.Framework.Data.MySQL
             return returnval;
         }
 
+        public bool insertItem(InventoryItemBase item)
+        {
+            string sql = "REPLACE INTO inventoryitems (inventoryID, assetID, type, parentFolderID, avatarID, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions) VALUES ";
+            sql += "(?inventoryID, ?assetID, ?type, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription, ?inventoryNextPermissions, ?inventoryCurrentPermissions)";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters["?inventoryID"] = item.inventoryID.ToStringHyphenated();
+            parameters["?assetID"] = item.assetID.ToStringHyphenated();
+            parameters["?type"] = item.type.ToString();
+            parameters["?parentFolderID"] = item.parentFolderID.ToStringHyphenated();
+            parameters["?avatarID"] = item.avatarID.ToStringHyphenated();
+            parameters["?inventoryName"] = item.inventoryName;
+            parameters["?inventoryDescription"] = item.inventoryDescription;
+            parameters["?inventoryNextPermissions"] = item.inventoryNextPermissions.ToString();
+            parameters["?inventoryCurrentPermissions"] = item.inventoryCurrentPermissions.ToString();
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+
+            return returnval;
+        }
+
+        public bool insertFolder(InventoryFolderBase folder)
+        {
+            string sql = "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName) VALUES ";
+            sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName)";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters["?folderID"] = folder.folderID.ToStringHyphenated();
+            parameters["?agentID"] = folder.agentID.ToStringHyphenated();
+            parameters["?parentFolderID"] = folder.parentID.ToStringHyphenated();
+            parameters["?folderName"] = folder.name;
+
+            bool returnval = false;
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+            return returnval;
+        }
+
         public bool insertRow(SimProfileData profile)
         {
             string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
