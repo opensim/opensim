@@ -1,3 +1,29 @@
+/*
+* Copyright (c) OpenSim project, http://sim.opensecondlife.org/
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the <organization> nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -5,8 +31,14 @@ using OpenGrid.Framework.Data;
 
 namespace OpenGrid.Framework.Data.SQLite
 {
+    /// <summary>
+    /// A Grid Interface to the SQLite database
+    /// </summary>
     public class SQLiteGridData : IGridData
     {
+        /// <summary>
+        /// A database manager
+        /// </summary>
         private SQLiteManager database;
 
         /// <summary>
@@ -25,16 +57,32 @@ namespace OpenGrid.Framework.Data.SQLite
             database.Close();
         }
 
+        /// <summary>
+        /// Returns the name of this grid interface
+        /// </summary>
+        /// <returns>A string containing the grid interface</returns>
         public string getName()
         {
             return "SQLite OpenGridData";
         }
 
+        /// <summary>
+        /// Returns the version of this grid interface
+        /// </summary>
+        /// <returns>A string containing the version</returns>
         public string getVersion()
         {
             return "0.1";
         }
 
+        /// <summary>
+        /// Returns a list of regions within the specified ranges
+        /// </summary>
+        /// <param name="a">minimum X coordinate</param>
+        /// <param name="b">minimum Y coordinate</param>
+        /// <param name="c">maximum X coordinate</param>
+        /// <param name="d">maximum Y coordinate</param>
+        /// <returns>An array of region profiles</returns>
         public SimProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
@@ -80,6 +128,11 @@ namespace OpenGrid.Framework.Data.SQLite
             return row;
         }
 
+        /// <summary>
+        /// Adds a new specified region to the database
+        /// </summary>
+        /// <param name="profile">The profile to add</param>
+        /// <returns>A dataresponse enum indicating success</returns>
         public DataResponse AddProfile(SimProfileData profile)
         {
             if (database.insertRow(profile))

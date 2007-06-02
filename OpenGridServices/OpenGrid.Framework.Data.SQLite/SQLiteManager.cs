@@ -64,6 +64,11 @@ namespace OpenGrid.Framework.Data.SQLite
             return (IDbCommand)dbcommand;
         }
 
+        /// <summary>
+        /// Reads a region row from a database reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A region profile</returns>
         public SimProfileData getRow(IDataReader reader)
         {
             SimProfileData retval = new SimProfileData();
@@ -115,6 +120,11 @@ namespace OpenGrid.Framework.Data.SQLite
             return retval;
         }
 
+        /// <summary>
+        /// Inserts a new region into the database
+        /// </summary>
+        /// <param name="profile">The region to insert</param>
+        /// <returns>Success?</returns>
         public bool insertRow(SimProfileData profile)
         {
             string sql = "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
