@@ -230,7 +230,7 @@ namespace OpenSim.world
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain tainted, saving.");
                     localStorage.SaveMap(Terrain.getHeights1D());
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Rebuilding world map image.");
-                    Terrain.exportImage("map_" + m_regInfo.RegionName + ".png", "defaultstripe.png");
+                    Terrain.exportImage("map_" + m_regInfo.RegionName.ToLower() + ".png", "defaultstripe.png");
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain saved, informing Physics.");
                     phyScene.SetTerrain(Terrain.getHeights1D());
 
@@ -435,7 +435,7 @@ namespace OpenSim.world
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine("Unable to load default terrain (" + e.ToString() + "), procedurally generating instead...");
+                            Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
                             Terrain.hills();
                         }
                         this.localStorage.SaveMap(this.Terrain.getHeights1D());

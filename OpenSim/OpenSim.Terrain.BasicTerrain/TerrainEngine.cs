@@ -469,7 +469,7 @@ namespace OpenSim.Terrain
                     {
                         // 512 is the largest possible height before colours clamp
                         int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(x, y) / 512.0), 0.0) * pallete);
-                        bmp.SetPixel(x, y, colours[colorindex]);
+                        bmp.SetPixel(y, 255 - x, colours[colorindex]);
                     }
                 }
 
