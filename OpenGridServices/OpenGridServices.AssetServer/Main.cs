@@ -49,6 +49,7 @@ using Db4objects.Db4o.Query;
 namespace OpenGridServices.AssetServer
 {
     /// <summary>
+    /// An asset server
     /// </summary>
     public class OpenAsset_Main : BaseServer, conscmd_callback
     {

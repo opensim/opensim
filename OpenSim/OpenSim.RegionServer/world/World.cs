@@ -229,6 +229,8 @@ namespace OpenSim.world
                     Terrain.tainted = 0;
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain tainted, saving.");
                     localStorage.SaveMap(Terrain.getHeights1D());
+                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Rebuilding world map image.");
+                    Terrain.exportImage("map_" + m_regInfo.RegionName + ".png", "defaultstripe.png");
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain saved, informing Physics.");
                     phyScene.SetTerrain(Terrain.getHeights1D());
 
