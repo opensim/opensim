@@ -1,3 +1,29 @@
+/*
+* Copyright (c) OpenSim project, http://sim.opensecondlife.org/
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the <organization> nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,9 +39,18 @@ using OpenGrid.Framework.Data;
 
 namespace OpenGrid.Framework.Data.MySQL
 {
+    /// <summary>
+    /// A MySQL Database manager
+    /// </summary>
     class MySQLManager
     {
+        /// <summary>
+        /// The database connection object
+        /// </summary>
         IDbConnection dbcon;
+        /// <summary>
+        /// Connection string for ADO.net
+        /// </summary>
         string connectionString;
 
         /// <summary>
@@ -137,6 +172,11 @@ namespace OpenGrid.Framework.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Reads a region row from a database reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A region profile</returns>
         public SimProfileData readSimRow(IDataReader reader)
         {
             SimProfileData retval = new SimProfileData();
@@ -199,6 +239,11 @@ namespace OpenGrid.Framework.Data.MySQL
             return retval;
         }
 
+        /// <summary>
+        /// Reads an agent row from a database reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A user session agent</returns>
         public UserAgentData readAgentRow(IDataReader reader)
         {
             UserAgentData retval = new UserAgentData();
@@ -231,6 +276,11 @@ namespace OpenGrid.Framework.Data.MySQL
             return retval;
         }
 
+        /// <summary>
+        /// Reads a user profile from an active data reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A user profile</returns>
         public UserProfileData readUserRow(IDataReader reader)
         {
             UserProfileData retval = new UserProfileData();
@@ -344,6 +394,16 @@ namespace OpenGrid.Framework.Data.MySQL
             return rows;
         }
 
+        /// <summary>
+        /// Inserts a new row into the log database
+        /// </summary>
+        /// <param name="serverDaemon">The daemon which triggered this event</param>
+        /// <param name="target">Who were we operating on when this occured (region UUID, user UUID, etc)</param>
+        /// <param name="methodCall">The method call where the problem occured</param>
+        /// <param name="arguments">The arguments passed to the method</param>
+        /// <param name="priority">How critical is this?</param>
+        /// <param name="logMessage">Extra message info</param>
+        /// <returns>Saved successfully?</returns>
         public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
         {
             string sql = "INSERT INTO logs (`target`, `server`, `method`, `arguments`, `priority`, `message`) VALUES ";
@@ -377,6 +437,11 @@ namespace OpenGrid.Framework.Data.MySQL
             return returnval;
         }
 
+        /// <summary>
+        /// Inserts a new item into the database
+        /// </summary>
+        /// <param name="item">The item</param>
+        /// <returns>Success?</returns>
         public bool insertItem(InventoryItemBase item)
         {
             string sql = "REPLACE INTO inventoryitems (inventoryID, assetID, type, parentFolderID, avatarID, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions) VALUES ";
@@ -413,6 +478,11 @@ namespace OpenGrid.Framework.Data.MySQL
             return returnval;
         }
 
+        /// <summary>
+        /// Inserts a new folder into the database
+        /// </summary>
+        /// <param name="folder">The folder</param>
+        /// <returns>Success?</returns>
         public bool insertFolder(InventoryFolderBase folder)
         {
             string sql = "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName) VALUES ";
@@ -442,7 +512,12 @@ namespace OpenGrid.Framework.Data.MySQL
             return returnval;
         }
 
-        public bool insertRow(SimProfileData profile)
+        /// <summary>
+        /// Inserts a new region into the database
+        /// </summary>
+        /// <param name="profile">The region to insert</param>
+        /// <returns>Success?</returns>
+        public bool insertRegion(SimProfileData regiondata)
         {
             string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
@@ -454,30 +529,30 @@ namespace OpenGrid.Framework.Data.MySQL
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
-            parameters["?regionHandle"] = profile.regionHandle.ToString();
-            parameters["?regionName"] = profile.regionName.ToString();
-            parameters["?uuid"] = profile.UUID.ToStringHyphenated();
-            parameters["?regionRecvKey"] = profile.regionRecvKey.ToString();
-            parameters["?regionSecret"] = profile.regionSecret.ToString();
-            parameters["?regionSendKey"] = profile.regionSendKey.ToString();
-            parameters["?regionDataURI"] = profile.regionDataURI.ToString();
-            parameters["?serverIP"] = profile.serverIP.ToString();
-            parameters["?serverPort"] = profile.serverPort.ToString();
-            parameters["?serverURI"] = profile.serverURI.ToString();
-            parameters["?locX"] = profile.regionLocX.ToString();
-            parameters["?locY"] = profile.regionLocY.ToString();
-            parameters["?locZ"] = profile.regionLocZ.ToString();
-            parameters["?eastOverrideHandle"] = profile.regionEastOverrideHandle.ToString();
-            parameters["?westOverrideHandle"] = profile.regionWestOverrideHandle.ToString();
-            parameters["?northOverrideHandle"] = profile.regionNorthOverrideHandle.ToString();
-            parameters["?southOverrideHandle"] = profile.regionSouthOverrideHandle.ToString();
-            parameters["?regionAssetURI"] = profile.regionAssetURI.ToString();
-            parameters["?regionAssetRecvKey"] = profile.regionAssetRecvKey.ToString();
-            parameters["?regionAssetSendKey"] = profile.regionAssetSendKey.ToString();
-            parameters["?regionUserURI"] = profile.regionUserURI.ToString();
-            parameters["?regionUserRecvKey"] = profile.regionUserRecvKey.ToString();
-            parameters["?regionUserSendKey"] = profile.regionUserSendKey.ToString();
-            parameters["?regionMapTexture"] = profile.regionMapTextureID.ToStringHyphenated();
+            parameters["?regionHandle"] = regiondata.regionHandle.ToString();
+            parameters["?regionName"] = regiondata.regionName.ToString();
+            parameters["?uuid"] = regiondata.UUID.ToStringHyphenated();
+            parameters["?regionRecvKey"] = regiondata.regionRecvKey.ToString();
+            parameters["?regionSecret"] = regiondata.regionSecret.ToString();
+            parameters["?regionSendKey"] = regiondata.regionSendKey.ToString();
+            parameters["?regionDataURI"] = regiondata.regionDataURI.ToString();
+            parameters["?serverIP"] = regiondata.serverIP.ToString();
+            parameters["?serverPort"] = regiondata.serverPort.ToString();
+            parameters["?serverURI"] = regiondata.serverURI.ToString();
+            parameters["?locX"] = regiondata.regionLocX.ToString();
+            parameters["?locY"] = regiondata.regionLocY.ToString();
+            parameters["?locZ"] = regiondata.regionLocZ.ToString();
+            parameters["?eastOverrideHandle"] = regiondata.regionEastOverrideHandle.ToString();
+            parameters["?westOverrideHandle"] = regiondata.regionWestOverrideHandle.ToString();
+            parameters["?northOverrideHandle"] = regiondata.regionNorthOverrideHandle.ToString();
+            parameters["?southOverrideHandle"] = regiondata.regionSouthOverrideHandle.ToString();
+            parameters["?regionAssetURI"] = regiondata.regionAssetURI.ToString();
+            parameters["?regionAssetRecvKey"] = regiondata.regionAssetRecvKey.ToString();
+            parameters["?regionAssetSendKey"] = regiondata.regionAssetSendKey.ToString();
+            parameters["?regionUserURI"] = regiondata.regionUserURI.ToString();
+            parameters["?regionUserRecvKey"] = regiondata.regionUserRecvKey.ToString();
+            parameters["?regionUserSendKey"] = regiondata.regionUserSendKey.ToString();
+            parameters["?regionMapTexture"] = regiondata.regionMapTextureID.ToStringHyphenated();
 
             bool returnval = false;
 

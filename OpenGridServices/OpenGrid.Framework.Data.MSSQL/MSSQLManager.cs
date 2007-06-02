@@ -35,8 +35,14 @@ using OpenGrid.Framework.Data;
 
 namespace OpenGrid.Framework.Data.MSSQL
 {
+    /// <summary>
+    /// A management class for the MS SQL Storage Engine
+    /// </summary>
     class MSSqlManager
     {
+        /// <summary>
+        /// The database connection object
+        /// </summary>
         IDbConnection dbcon;
 
         /// <summary>
