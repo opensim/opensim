@@ -110,7 +110,6 @@ namespace OpenSim
             m_child = child;
             m_regionData = regionDat;
             m_authenticateSessionsHandler = authenSessions;
-
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
@@ -134,6 +133,9 @@ namespace OpenSim
             AckTimer.Start();
 
             this.RegisterLocalPacketHandlers();
+
+
+            m_world.parcelManager.sendParcelOverlay(this);
 
             ClientThread = new Thread(new ThreadStart(AuthUser));
             ClientThread.IsBackground = true;

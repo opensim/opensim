@@ -32,6 +32,7 @@ namespace OpenSim
         public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, ClientView remoteClient);
         public delegate void StatusChange(bool status);
 
+
         public event ChatFromViewer OnChatFromViewer;
         public event RezObject OnRezObject;
         public event GenericCall4 OnDeRezObject;
@@ -53,17 +54,20 @@ namespace OpenSim
         public event UpdatePrimRotation OnUpdatePrimRotation;
         public event UpdatePrimVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
+        public event ParcelPropertiesRequest OnParcelPropertiesRequest;
 
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
+            debug = true;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)
                 {
-                    Console.WriteLine(Pack.Type.ToString());
+                    Console.WriteLine("IN: " + Pack.Type.ToString());
                 }
             }
+
 
             if (this.ProcessPacketMethod(Pack))
             {
@@ -447,6 +451,13 @@ namespace OpenSim
                         break;
                     #endregion
 
+                    #region Parcel Packets
+                    case PacketType.ParcelPropertiesRequest:
+                        ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
+                        OnParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West), (int)Math.Round(propertiesRequest.ParcelData.South), (int)Math.Round(propertiesRequest.ParcelData.East), (int)Math.Round(propertiesRequest.ParcelData.North),propertiesRequest.ParcelData.SequenceID,propertiesRequest.ParcelData.SnapSelection, this);
+                        break;
+                    #endregion
+
                     #region unimplemented handlers
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
@@ -454,6 +465,33 @@ namespace OpenSim
                         break;
                     case PacketType.ObjectScale:
                         //OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, Pack.ToString());
+                        break;
+                    case PacketType.MoneyBalanceRequest:
+                        //This need to be actually done and not thrown back with fake info
+                        MoneyBalanceRequestPacket incoming = (MoneyBalanceRequestPacket)Pack;
+                        MoneyBalanceReplyPacket outgoing = new MoneyBalanceReplyPacket();
+                        outgoing.MoneyData.AgentID = incoming.AgentData.AgentID;
+                        outgoing.MoneyData.MoneyBalance = 31337;
+                        outgoing.MoneyData.SquareMetersCommitted = 0;
+                        outgoing.MoneyData.SquareMetersCredit = 100000000;
+                        outgoing.MoneyData.TransactionID = incoming.MoneyData.TransactionID;
+                        outgoing.MoneyData.TransactionSuccess = true;
+                        outgoing.MoneyData.Description = libsecondlife.Helpers.StringToField("");
+                        this.OutPacket((Packet)outgoing);
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sent Temporary Money packet (they have leet monies)");
+
+                        break;
+
+                    case PacketType.EstateCovenantRequest:
+                        //This should be actually done and not thrown back with fake info
+                        EstateCovenantRequestPacket estateCovenantRequest = (EstateCovenantRequestPacket)Pack;
+                        EstateCovenantReplyPacket estateCovenantReply = new EstateCovenantReplyPacket();
+                        estateCovenantReply.Data.EstateName = libsecondlife.Helpers.StringToField("Leet Estate");
+                        estateCovenantReply.Data.EstateOwnerID = LLUUID.Zero;
+                        estateCovenantReply.Data.CovenantID = LLUUID.Zero;
+                        estateCovenantReply.Data.CovenantTimestamp = (uint)0;
+                        this.OutPacket((Packet)estateCovenantReply);
+                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sent Temporary Estate packet (they are in leet estate)");
                         break;
                     #endregion
                 }

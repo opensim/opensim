@@ -19,6 +19,7 @@ namespace OpenSim
         public ulong RegionHandle;
         public ushort RegionWaterHeight = 20;
         public bool RegionTerraform = true;
+        public LLUUID RegionOwner = new LLUUID();
 
         public int IPListenPort;
         public string IPListenAddr;

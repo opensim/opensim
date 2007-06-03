@@ -292,6 +292,30 @@ namespace OpenSim.world
                 }
             }
         }
+        #region Parcel Packet Handlers
+        void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, ClientView remote_client)
+        {
+            //Get the parcels within the bounds
+            List<Parcel> temp = new List<Parcel>();
+            int x, y;
+            int inc_x = end_x - start_x;
+            int inc_y = end_y - start_y;
+            for(x = 0; x < inc_x; x++)
+            {
+                for(y = 0; y < inc_y; y++)
+                {
+                    Parcel currentParcel = parcelManager.getParcel(start_x + x,start_y + y);
+                    if(!temp.Contains(currentParcel))
+                    {
+                        temp.Add(currentParcel);
+                        currentParcel.sendParcelProperties(sequence_id,snap_selection,remote_client);
+                    }
+                }
+            }
+
+            parcelManager.sendParcelOverlay(remote_client);
+        }
+        #endregion
 
         /*
         public void RequestMapBlock(ClientView simClient, int minX, int minY, int maxX, int maxY)

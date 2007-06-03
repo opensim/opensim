@@ -35,6 +35,7 @@ namespace OpenSim.world
         private Dictionary<string, ScriptFactory> m_scripts;
         private Mutex updateLock;
         public string m_datastore;
+        public ParcelManager parcelManager;
 
         #region Properties
         public PhysicsScene PhysScene
@@ -85,6 +86,8 @@ namespace OpenSim.world
                 Avatar.LoadAnims();
                 this.SetDefaultScripts();
                 this.LoadScriptEngines();
+                parcelManager = new ParcelManager(this);
+                
             }
             catch (Exception e)
             {
@@ -564,6 +567,7 @@ namespace OpenSim.world
             agentClient.OnLinkObjects += new LinkObjects(this.LinkObjects);
             agentClient.OnAddPrim += new ClientView.GenericCall4(this.AddNewPrim);
             agentClient.OnUpdatePrimShape += new ClientView.UpdateShape(this.UpdatePrimShape);
+            
             agentClient.OnObjectSelect += new ClientView.ObjectSelect(this.SelectPrim);
             agentClient.OnUpdatePrimFlags += new ClientView.UpdatePrimFlags(this.UpdatePrimFlags);
             agentClient.OnUpdatePrimTexture += new ClientView.UpdatePrimTexture(this.UpdatePrimTexture);
@@ -571,6 +575,8 @@ namespace OpenSim.world
             agentClient.OnUpdatePrimRotation += new ClientView.UpdatePrimRotation(this.UpdatePrimRotation);
             agentClient.OnUpdatePrimScale += new ClientView.UpdatePrimVector(this.UpdatePrimScale);
             agentClient.OnDeRezObject += new ClientView.GenericCall4(this.DeRezObject);
+
+            agentClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(ParcelPropertiesRequest);
             Avatar newAvatar = null;
             try
             {
@@ -617,6 +623,8 @@ namespace OpenSim.world
             }
             return newAvatar;
         }
+
+       
 
         public override void RemoveViewerAgent(ClientView agentClient)
         {

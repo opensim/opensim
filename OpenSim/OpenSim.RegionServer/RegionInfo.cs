@@ -26,6 +26,8 @@ namespace OpenSim
         public string UserRecvKey = "";
         private bool isSandbox;
 
+        public string RegionOwnerName = "";
+
         public string DataStore;
 
         public RegionInfo()
@@ -221,6 +223,19 @@ namespace OpenSim
                     this.TerrainMultiplier = Convert.ToDouble(attri);
                 }
 
+
+                attri = "";
+                attri = configData.GetAttribute("RegionOwnerName");
+                if (attri == "")
+                {
+                    string name = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Region Owner Avatar Name", "Test User");
+                    this.RegionOwnerName = name;
+                    configData.SetAttribute("RegionOwnerName", this.RegionOwnerName);
+                }
+                else
+                {
+                    this.RegionOwnerName = attri;
+                }
 
                 if (!isSandbox)
                 {
