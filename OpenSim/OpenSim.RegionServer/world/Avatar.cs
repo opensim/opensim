@@ -235,7 +235,7 @@ namespace OpenSim.world
             {
                 if (this._physActor.Flying == false)
                 {
-                    this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_FLY"];
+                    this.current_anim = Animations.AnimsLLUUID["FLY"];
                     this.anim_seq = 1;
                     this.SendAnimPack();
                 }
@@ -246,7 +246,7 @@ namespace OpenSim.world
             {
                 if (this._physActor.Flying == true)
                 {
-                    this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_STAND"];
+                    this.current_anim = Animations.AnimsLLUUID["STAND"];
                     this.anim_seq = 1;
                     this.SendAnimPack();
                 }
@@ -260,7 +260,7 @@ namespace OpenSim.world
 
                     if (((movementflag & 1) == 0) && (!this._physActor.Flying))
                     {
-                        this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_WALK"];
+                        this.current_anim = Animations.AnimsLLUUID["WALK"];
                         this.anim_seq = 1;
                         this.SendAnimPack();
                     }
@@ -369,7 +369,7 @@ namespace OpenSim.world
                     // We're standing still, so make it show!
                     if (this._physActor.Flying == false)
                     {
-                        this.current_anim = Animations.AnimsLLUUID["ANIM_AGENT_STAND"];
+                        this.current_anim = Animations.AnimsLLUUID["STAND"];
                         this.anim_seq = 1;
                         this.SendAnimPack();
                     }
