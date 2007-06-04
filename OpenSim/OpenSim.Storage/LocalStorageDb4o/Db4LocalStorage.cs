@@ -28,10 +28,12 @@ using System;
 using System.Collections.Generic;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
+
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Terrain;
+
 
 namespace OpenSim.Storage.LocalStorageDb4o
 {
@@ -173,6 +175,45 @@ namespace OpenSim.Storage.LocalStorageDb4o
             db.Commit();
         }
 
+        public void SaveParcels(ParcelData[] parcel_data)
+        {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Saving Parcels...");
+            IObjectSet result = db.Get(typeof(ParcelData));
+            foreach (ParcelData parcel in result)
+            {
+                db.Delete(parcel);
+            }
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Removing old entries complete. Adding new entries.");
+            int i;
+            for (i = 0; i < parcel_data.GetLength(0); i++)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Adding : " + i);
+                db.Set(parcel_data[i]);
+
+            }
+            db.Commit();
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Parcel Save Complete");
+        }
+
+        public void LoadParcels(ILocalStorageParcelReceiver recv)
+        {
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Loading Parcels...");
+            IObjectSet result = db.Get(typeof(ParcelData));
+            if (result.Count > 0)
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Parcels exist in database.");
+                foreach (ParcelData parcelData in result)
+                {
+                    recv.ParcelFromStorage(parcelData);
+                }
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: No parcels exist. Creating basic parcel.");
+                recv.NoParcelDataFromStorage();
+            }
+            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Parcels Restored");
+        }
 		public void ShutDown()
 		{
 			db.Commit();

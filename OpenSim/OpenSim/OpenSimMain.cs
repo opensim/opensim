@@ -254,6 +254,12 @@ namespace OpenSim
             LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
             LocalWorld.LoadWorldMap();
 
+            Console.WriteLine("Creating ParcelManager");
+            LocalWorld.parcelManager = new OpenSim.RegionServer.world.ParcelManager(this.LocalWorld);
+
+            Console.WriteLine("Loading Parcels from DB...");
+            LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
             LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());

@@ -37,11 +37,17 @@ namespace OpenSim.Framework.Interfaces
     public interface ILocalStorage
     {
         void Initialise(string datastore);
+        
         void StorePrim(PrimData prim);
         void RemovePrim(LLUUID primID);
         void LoadPrimitives(ILocalStorageReceiver receiver);
+        
         float[] LoadWorld();
         void SaveMap(float[] heightmap);
+
+        void SaveParcels(ParcelData[] parcels);
+        void LoadParcels(ILocalStorageParcelReceiver recv);
+
         void ShutDown();
     }
 
@@ -49,6 +55,11 @@ namespace OpenSim.Framework.Interfaces
     {
         void PrimFromStorage(PrimData prim);
     }
-
+    
+    public interface ILocalStorageParcelReceiver
+    {
+        void ParcelFromStorage(ParcelData data);
+        void NoParcelDataFromStorage();
+    }
 }
 

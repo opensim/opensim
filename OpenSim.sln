@@ -3,6 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 9.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Terrain.BasicTerrain", "OpenSim\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj", "{2270B8FE-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageBerkeleyDB", "OpenSim\OpenSim.Storage\LocalStorageBerkeleyDB\OpenSim.Storage.LocalStorageBerkeleyDB.csproj", "{EE9E5D96-0000-0000-0000-000000000000}"
+	ProjectSection(ProjectDependencies) = postProject
+		{632E1BFD-0000-0000-0000-000000000000} = {632E1BFD-0000-0000-0000-000000000000}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.OdePlugin", "OpenSim\OpenSim.Physics\OdePlugin\OpenSim.Physics.OdePlugin.csproj", "{63A05FE9-0000-0000-0000-000000000000}"
 EndProject
@@ -27,8 +30,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Servers", "Common\OpenSim.Servers\OpenSim.Servers.csproj", "{8BB20F0A-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageDb4o", "OpenSim\OpenSim.Storage\LocalStorageDb4o\OpenSim.Storage.LocalStorageDb4o.csproj", "{E1B79ECF-0000-0000-0000-000000000000}"
+	ProjectSection(ProjectDependencies) = postProject
+		{438A9556-0000-0000-0000-000000000000} = {438A9556-0000-0000-0000-000000000000}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageSQLite", "OpenSim\OpenSim.Storage\LocalStorageSQLite\OpenSim.Storage.LocalStorageSQLite.csproj", "{6B20B603-0000-0000-0000-000000000000}"
+	ProjectSection(ProjectDependencies) = postProject
+		{632E1BFD-0000-0000-0000-000000000000} = {632E1BFD-0000-0000-0000-000000000000}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Scripting.EmbeddedJVM", "OpenSim\OpenSim.Scripting\EmbeddedJVM\OpenSim.Scripting.EmbeddedJVM.csproj", "{97A82740-0000-0000-0000-000000000000}"
 EndProject

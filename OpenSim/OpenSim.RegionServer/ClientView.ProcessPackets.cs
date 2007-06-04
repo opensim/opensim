@@ -14,6 +14,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.world;
+using OpenSim.RegionServer.world;
 using OpenSim.Assets;
 
 namespace OpenSim
@@ -59,7 +60,6 @@ namespace OpenSim
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
-            debug = true;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)

@@ -35,7 +35,7 @@ namespace OpenSim.world
         private Dictionary<string, ScriptFactory> m_scripts;
         private Mutex updateLock;
         public string m_datastore;
-        public ParcelManager parcelManager;
+        public OpenSim.RegionServer.world.ParcelManager parcelManager;
 
         #region Properties
         public PhysicsScene PhysScene
@@ -86,7 +86,6 @@ namespace OpenSim.world
                 Avatar.LoadAnims();
                 this.SetDefaultScripts();
                 this.LoadScriptEngines();
-                parcelManager = new ParcelManager(this);
                 
             }
             catch (Exception e)
@@ -251,6 +250,17 @@ namespace OpenSim.world
                 {
                     Entities[UUID].BackUp();
                 }
+
+                
+                //Parcel backup routines. Yay!
+                ParcelData[] parcels = new ParcelData[parcelManager.parcelList.Count];
+                int i;
+                for(i = 0; i < parcelManager.parcelList.Count; i++)
+                {
+                    parcels[i] = parcelManager.parcelList[i].parcelData;
+                }
+                localStorage.SaveParcels(parcels);
+
 
                 // Backup successful
                 return true;
@@ -576,7 +586,7 @@ namespace OpenSim.world
             agentClient.OnUpdatePrimScale += new ClientView.UpdatePrimVector(this.UpdatePrimScale);
             agentClient.OnDeRezObject += new ClientView.GenericCall4(this.DeRezObject);
 
-            agentClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(ParcelPropertiesRequest);
+            agentClient.OnParcelPropertiesRequest += new OpenSim.RegionServer.world.ParcelPropertiesRequest(ParcelPropertiesRequest);
             Avatar newAvatar = null;
             try
             {

@@ -86,6 +86,17 @@ namespace OpenSim.Storage.LocalStorageBDB
         {
 
         }
+
+        public void SaveParcels(ParcelData[] parcel_data)
+        {
+        }
+
+
+        public void LoadParcels(ILocalStorageParcelReceiver recv)
+        {
+            recv.NoParcelDataFromStorage();
+        }
+
         public void ShutDown()
         {
             sim.GetDb().Close();

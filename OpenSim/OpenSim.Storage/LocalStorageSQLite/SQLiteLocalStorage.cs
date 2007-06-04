@@ -167,6 +167,16 @@ namespace OpenSim.Storage.LocalStorageSQLite
 
         }
 
+        public void SaveParcels(ParcelData[] parcel_manager)
+        {
+
+        }
+
+        public void LoadParcels(ILocalStorageParcelReceiver recv)
+        {
+            recv.NoParcelDataFromStorage();
+        }
+
         public void ShutDown()
         {
             db.Close();

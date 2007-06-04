@@ -10,6 +10,7 @@ using OpenSim.Framework.Terrain;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.Assets;
+using OpenSim.RegionServer.world;
 
 namespace OpenSim.world
 {
@@ -296,7 +297,7 @@ namespace OpenSim.world
         void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, ClientView remote_client)
         {
             //Get the parcels within the bounds
-            List<Parcel> temp = new List<Parcel>();
+            List<OpenSim.RegionServer.world.Parcel> temp = new List<OpenSim.RegionServer.world.Parcel>();
             int x, y;
             int inc_x = end_x - start_x;
             int inc_y = end_y - start_y;
@@ -304,7 +305,7 @@ namespace OpenSim.world
             {
                 for(y = 0; y < inc_y; y++)
                 {
-                    Parcel currentParcel = parcelManager.getParcel(start_x + x,start_y + y);
+                    OpenSim.RegionServer.world.Parcel currentParcel = parcelManager.getParcel(start_x + x, start_y + y);
                     if(!temp.Contains(currentParcel))
                     {
                         temp.Add(currentParcel);
