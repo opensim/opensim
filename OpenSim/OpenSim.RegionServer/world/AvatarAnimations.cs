@@ -20,15 +20,18 @@ namespace OpenSim.world
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs:LoadAnims() - Loading avatar animations");
             XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
+           
             XmlDocument doc = new XmlDocument();
             doc.Load(reader);
-
-            foreach (XmlNode nod in doc.FirstChild.ChildNodes)
+            foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
             {
-                if (nod.Attributes["name"] != null)
+               
+                if ( nod.Attributes["name"] != null)
                 {
-                    AnimsLLUUID.Add(nod.Attributes["name"].ToString(), new LLUUID(nod.Value));
+                    //Console.WriteLine("'" + nod.Attributes["name"].Value + "' - '" + nod.InnerText + "'");
+                    AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
                 }
+                
             }
 
             reader.Close();
