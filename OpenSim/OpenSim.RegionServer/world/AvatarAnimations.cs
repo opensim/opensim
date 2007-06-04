@@ -27,7 +27,7 @@ namespace OpenSim.world
             {
                 if (nod.Attributes["name"] != null)
                 {
-                    AnimsLLUUID.Add(nod.Attributes["name"], nod.Value);
+                    AnimsLLUUID.Add(nod.Attributes["name"].ToString(), new LLUUID(nod.Value));
                 }
             }
 
