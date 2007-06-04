@@ -175,7 +175,7 @@ namespace OpenSim.Terrain
                                 break;
 
                             case "img":
-                                resultText = "Error - IMG mode is presently unsupported.";
+                                loadFromFileIMG(args[2]);
                                 return false;
 
                             default:
@@ -227,6 +227,28 @@ namespace OpenSim.Terrain
         {
             heightmap.normalise((double)min, (double)max);
             tainted++;
+        }
+
+        /// <summary>
+        /// Loads a file from an image compatible with System.Drawing
+        /// </summary>
+        /// <param name="filename">File to load</param>
+        public void loadFromFileIMG(string filename)
+        {
+            System.Drawing.Bitmap bmp = new Bitmap(filename);
+
+            if (bmp.Width != heightmap.w && bmp.Height != heightmap.h)
+                throw new Exception("Wrong image size! Images for this region must be " + heightmap.w.ToString() + " by " + heightmap.h.ToString() + " pixels in dimension");
+
+            int x, y;
+
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    Color c = bmp.GetPixel(x, y);
+                }
+            }
         }
 
         /// <summary>
