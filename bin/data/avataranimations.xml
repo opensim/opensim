@@ -1,0 +1,10 @@
+<!-- Copyright(C) 2002-2007 Linden Lab, OpenSim Developers -->
+<!-- Based on viewerart.ini packaged with the viewer. -->
+<!-- This file is a derivative work of the above while it contains default animation UUIDs -->
+<!-- Licensed under a creative commons license (By-SA) http://creativecommons.org/licenses/by-sa/2.5/ -->
+<?xml version="1.0" encoding="iso-8859-1"?>
+<animations>
+	<animation name="STAND">2408fe9e-df1d-1d7d-f4ff-1384fa7b350f</animation>
+	<animation name="WALK">6ed24bd8-91aa-4b12-ccc7-c97c857ab4e0</animation>
+	<animation name="FLY">aec4610c-757f-bc4e-c092-c6e9caf18daf</animation>
+</animations>
