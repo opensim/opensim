@@ -208,10 +208,10 @@ namespace OpenSim
                 m_console.Notice("Main.cs:Startup() - Grid Mode; Do not know how to get the user's master key yet!");
             }
 
-            Console.WriteLine("Creating ParcelManager");
+            m_console.Notice("Creating ParcelManager");
             LocalWorld.parcelManager = new OpenSim.RegionServer.world.ParcelManager(this.LocalWorld);
 
-            Console.WriteLine("Loading Parcels from DB...");
+            m_console.Notice("Loading Parcels from DB...");
             LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
 
             m_heartbeatTimer.Enabled = true;
@@ -359,7 +359,7 @@ namespace OpenSim
                 }
                 catch (Exception e)
                 {
-                    m_console.Error(e.Message + "\nBAD ERROR! THIS SHOULD NOT HAPPEN! Bad GridData from the grid interface!!!! ZOMG!!!");
+                    m_console.Error("Did not recieve valid information from the grid server. " + e.ToString());
                     Environment.Exit(1);
                 }
             }
@@ -460,9 +460,9 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("\nSorry, a fatal error occurred while trying to initialise the configuration data");
-                Console.WriteLine("Can not continue starting up");
+                m_console.Error(e.Message);
+                m_console.Error("Sorry, a fatal error occurred while trying to initialise the configuration data");
+                m_console.Error("Can not continue starting up");
                 Environment.Exit(1);
             }
         }

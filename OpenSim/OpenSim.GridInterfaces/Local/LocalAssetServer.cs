@@ -244,7 +244,7 @@ namespace OpenSim.GridInterfaces.Local
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                MainConsole.Instance.Error(e.Message);
             }
 
         }
