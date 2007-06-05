@@ -265,7 +265,7 @@ namespace OpenSim
 
         protected override void SetupLocalWorld()
         {
-            m_console.Notice("Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
+            m_console.Status("Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
             m_console.Notice("Initialising world");
             m_console.componentname = "Region " + regionData.RegionName;
 
