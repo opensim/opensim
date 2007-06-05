@@ -81,7 +81,7 @@ namespace OpenGridServices.UserServer
 
         private void Work()
         {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"\nEnter help for a list of commands\n");
+            m_console.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
@@ -96,16 +96,16 @@ namespace OpenGridServices.UserServer
             this.ConfigDB(this.localXMLConfig);
             this.localXMLConfig.Close();
 
-            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Loading configuration");
+            MainConsole.Instance.Verbose("Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Establishing data connection");
+            MainConsole.Instance.Verbose( "Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(StorageDll);
 
-            MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Main.cs:Startup() - Starting HTTP process");
+            MainConsole.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
@@ -144,8 +144,8 @@ namespace OpenGridServices.UserServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"create user - create a new user");
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.Notice("create user - create a new user");
+                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "create":

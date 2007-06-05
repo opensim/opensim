@@ -116,17 +116,17 @@ namespace OpenGridServices.GridServer
             this.ConfigDB(this.localXMLConfig);
             this.localXMLConfig.Close();
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Loading configuration");
+            m_console.Verbose( "Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
             if (setuponly) Environment.Exit(0);
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Connecting to Storage Server");
+            m_console.Verbose( "Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(GridDll); // Made of win
             m_gridManager.config = Cfg;
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP process");
+            m_console.Verbose( "Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8001);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
@@ -143,7 +143,7 @@ namespace OpenGridServices.GridServer
             // I have no idea what this was supposed to do - looks like an infinite recursion to me.
             //        case "regions":
             //// DIRTY HACK ALERT
-            //Console.WriteLine("/regions/ accessed");
+            //Console.Notice("/regions/ accessed");
             //TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByHandle((ulong)Convert.ToUInt64(rest_params[1]));
             //respstring = ParseREST("/regions/" + rest_params[1], requestBody, HTTPmethod);
             //break;
@@ -155,7 +155,7 @@ namespace OpenGridServices.GridServer
 
             httpServer.Start();
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting sim status checker");
+            m_console.Verbose( "Main.cs:Startup() - Starting sim status checker");
 
             System.Timers.Timer simCheckTimer = new System.Timers.Timer(3600000 * 3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
@@ -232,7 +232,7 @@ namespace OpenGridServices.GridServer
             switch (cmd)
             {
                 case "help":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "shutdown":

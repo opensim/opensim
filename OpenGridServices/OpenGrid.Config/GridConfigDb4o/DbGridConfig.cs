@@ -43,7 +43,7 @@ namespace OpenGrid.Config.GridConfigDb4o
         /// <returns>A grid configuration object</returns>
 		public GridConfig GetConfigObject()
 		{
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Loading Db40Config dll");
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loading Db40Config dll");
 			return ( new DbGridConfig());
 		}
 	}
@@ -62,7 +62,7 @@ namespace OpenGrid.Config.GridConfigDb4o
         /// User configuration for the Grid Config interfaces
         /// </summary>
 		public void LoadDefaults() {
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH,"Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+			OpenSim.Framework.Console.MainConsole.Instance.Notice("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 			
             // About the grid options
 			this.GridOwner = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid owner", "OGS development team");
@@ -94,7 +94,7 @@ namespace OpenGrid.Config.GridConfigDb4o
 				IObjectSet result = db.Get(typeof(DbGridConfig));
                 // Found?
 				if(result.Count==1) {
-					OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Config.cs:InitConfig() - Found a GridConfig object in the local database, loading");
+					OpenSim.Framework.Console.MainConsole.Instance.Verbose("Config.cs:InitConfig() - Found a GridConfig object in the local database, loading");
 					foreach (DbGridConfig cfg in result) {
                         // Import each setting into this class
                         // Grid Settings
@@ -113,40 +113,40 @@ namespace OpenGrid.Config.GridConfigDb4o
 					}
                 // Create a new configuration object from this class
 				} else {
-					OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
+					OpenSim.Framework.Console.MainConsole.Instance.Verbose("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
 
                     // Load default settings into this class
 					LoadDefaults();
 
                     // Saves to the database file...
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Writing out default settings to local database");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Writing out default settings to local database");
 					db.Set(this);
 
                     // Closes file locks
 					db.Close();
 				}
 			} catch(Exception e) {
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Config.cs:InitConfig() - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
+				OpenSim.Framework.Console.MainConsole.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.Warn(e.ToString());
 			}
 			
             // Grid Settings
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Grid settings loaded:");
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Grid owner: " + this.GridOwner);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Grid settings loaded:");
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Grid owner: " + this.GridOwner);
 
             // Asset Settings
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Default asset server: " + this.DefaultAssetServer);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Key to send to asset server: " + this.AssetSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Key to expect from asset server: " + this.AssetRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Default asset server: " + this.DefaultAssetServer);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Key to send to asset server: " + this.AssetSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Key to expect from asset server: " + this.AssetRecvKey);
 
             // User Settings
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Default user server: " + this.DefaultUserServer);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Key to send to user server: " + this.UserSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Key to expect from user server: " + this.UserRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Default user server: " + this.DefaultUserServer);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Key to send to user server: " + this.UserSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Key to expect from user server: " + this.UserRecvKey);
 
             // Region Settings
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Key to send to sims: " + this.SimSendKey);
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Key to expect from sims: " + this.SimRecvKey);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Key to send to sims: " + this.SimSendKey);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Key to expect from sims: " + this.SimRecvKey);
 		}
 	
         /// <summary>

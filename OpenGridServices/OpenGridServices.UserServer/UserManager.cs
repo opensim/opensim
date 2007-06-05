@@ -27,10 +27,10 @@ namespace OpenGridServices.UserServer
         /// <param name="FileName">The filename to the user server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Userstorage: Attempting to load " + FileName);
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Userstorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -42,7 +42,7 @@ namespace OpenGridServices.UserServer
                         IUserData plug = (IUserData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         this._plugins.Add(plug.getName(), plug);
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Userstorage: Added IUserData Interface");
+                        OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Userstorage: Added IUserData Interface");
                     }
 
                     typeInterface = null;
@@ -78,7 +78,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -125,7 +125,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -157,7 +157,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -179,7 +179,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -201,7 +201,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -224,7 +224,7 @@ namespace OpenGridServices.UserServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -348,8 +348,7 @@ namespace OpenGridServices.UserServer
         /// <returns>Authenticated?</returns>
         public bool AuthenticateUser(ref UserProfileData profile, string password)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(
-                OpenSim.Framework.Console.LogPriority.LOW, 
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose(
                 "Authenticating " + profile.username + " " + profile.surname);
 
             password = password.Remove(0, 3); //remove $1$

@@ -53,7 +53,7 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
             if (rootnode.Name != "regions")
             {
                 EventLog.WriteEntry("ERROR! bad XML in opengrid-master-cfg.xml - expected regions tag");
-       		Console.WriteLine("Sorry, could not startup the service - please check your opengrid-master-cfg.xml file: missing regions tag");
+                Console.WriteLine("Sorry, could not startup the service - please check your opengrid-master-cfg.xml file: missing regions tag");
 		(new ServiceController("OpenGridServices-master")).Stop();
 	    }
 
@@ -73,7 +73,7 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 
 	private static string SetupGrid()
 	{
-		Console.WriteLine("Running external program (OpenGridServices.GridServer.exe) to configure the grid server");
+        Console.WriteLine("Running external program (OpenGridServices.GridServer.exe) to configure the grid server");
  		try {
 			Process p = new Process();
 
@@ -93,7 +93,7 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	
 			return configxml;
 		} catch(Exception e) {
-			Console.WriteLine("An error occurred while running the grid server, please rectify it and try again");
+            Console.WriteLine("An error occurred while running the grid server, please rectify it and try again");
 			Console.WriteLine(e.ToString());
 			Environment.Exit(1);
 		}
@@ -123,7 +123,7 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 		string simconfigxml;
 		LLUUID SimUUID;
 
-		Console.WriteLine("Setting up region servers");
+        Console.WriteLine("Setting up region servers");
 		Console.Write("Please specify a path to store your region data (e.g /etc/opensim/regions: ");
 		string regionpath=Console.ReadLine();
 		
@@ -135,10 +135,10 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 
 		
 		listenaddr=Console.ReadLine();
-		
-		Console.WriteLine("Now ready to configure regions, please answer the questions about each region in turn");
+
+        Console.WriteLine("Now ready to configure regions, please answer the questions about each region in turn");
 		for(int i=0; i<=numofregions; i++) {
-			Console.WriteLine("Configuring region number " + i.ToString());
+            Console.WriteLine("Configuring region number " + i.ToString());
 			
 			Console.Write("Region name: ");
 			regionname=Console.ReadLine();
@@ -178,12 +178,12 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 		while(choice!="OK")
 		{
 	                Console.Clear();
-        	        Console.WriteLine("Please select the components you would like to run on this server:\n");
+                    Console.WriteLine("Please select the components you would like to run on this server:\n");
 
-	                Console.WriteLine("1 - [" + (grid ? "X" : " ") + "] Grid server   - this service handles co-ordinates of regions/sims on the grid");
-        	        Console.WriteLine("2 - [" + (user ? "X" : " ") + "] User server   - this service handles user login, profiles, inventory and IM");
-                	Console.WriteLine("3 - [" + (asset ? "X" : " ") + "] Asset server  - this service handles storage of assets such as textures, objects, sounds, scripts");
-                	Console.WriteLine("4 - [" + (region ? "X" : " ") + "] Region server - this is the main opensim server and can run without the above services, it handles physics simulation, terrain, building and other such features");
+                    Console.WriteLine("1 - [" + (grid ? "X" : " ") + "] Grid server   - this service handles co-ordinates of regions/sims on the grid");
+                    Console.WriteLine("2 - [" + (user ? "X" : " ") + "] User server   - this service handles user login, profiles, inventory and IM");
+                    Console.WriteLine("3 - [" + (asset ? "X" : " ") + "] Asset server  - this service handles storage of assets such as textures, objects, sounds, scripts");
+                    Console.WriteLine("4 - [" + (region ? "X" : " ") + "] Region server - this is the main opensim server and can run without the above services, it handles physics simulation, terrain, building and other such features");
 		
 
 			Console.Write("Type a number to toggle a choice or type OK to accept your current choices: ");
@@ -218,14 +218,14 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 	{
 	        if(!File.Exists("opengrid-master-cfg.xml")) 
 		{
-			Console.WriteLine("Could not find a config file, running initial setup");
+            Console.WriteLine("Could not find a config file, running initial setup");
 			InitSetup();
 		}
-		Console.WriteLine("Starting up OGS master service");
+        Console.WriteLine("Starting up OGS master service");
 		try {
 			ServiceBase.Run(new OpenGridMasterService());
 		} catch(Exception e) {
-			Console.WriteLine("THIS SHOULD NEVER HAPPEN!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("THIS SHOULD NEVER HAPPEN!!!!!!!!!!!!!!!!!!!!!");
 			Console.WriteLine(e.ToString());
 		}
 	}

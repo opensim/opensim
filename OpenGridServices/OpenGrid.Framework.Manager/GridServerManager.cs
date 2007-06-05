@@ -84,7 +84,7 @@ namespace OpenGrid.Framework.Manager {
 		public static void ShutdownServer()
 		{
 			Console.WriteLine("Shutting down the grid server - recieved a grid manager request");
-			Console.WriteLine("Terminating in three seconds...");
+            Console.WriteLine("Terminating in three seconds...");
 			Thread.Sleep(3000);
 			thecallback("shutdown");
 		}

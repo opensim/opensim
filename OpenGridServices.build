@@ -56,6 +56,7 @@
         <nant buildfile="OpenGridServices/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="clean" />
         <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MSSQL/OpenGrid.Framework.Data.MSSQL.dll.build" target="clean" />
         <nant buildfile="OpenGridServices/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="clean" />
+        <nant buildfile="OpenGridServices/OpenGridServices.InventoryServer/OpenGridServices.InventoryServer.exe.build" target="clean" />
         <nant buildfile="OpenGridServices/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="clean" />
         <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="clean" />
     </target>
@@ -70,6 +71,7 @@
         <nant buildfile="OpenGridServices/ServiceManager/ServiceManager.exe.build" target="build" />
         <nant buildfile="OpenGridServices/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices/OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="build" />
+        <nant buildfile="OpenGridServices/OpenGridServices.InventoryServer/OpenGridServices.InventoryServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="build" />
         <nant buildfile="OpenGridServices/OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="build" />
         <nant buildfile="OpenGridServices/OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="build" />
@@ -93,6 +95,7 @@
         <nant buildfile="OpenGridServices/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="doc" />
         <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MSSQL/OpenGrid.Framework.Data.MSSQL.dll.build" target="doc" />
         <nant buildfile="OpenGridServices/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="doc" />
+        <nant buildfile="OpenGridServices/OpenGridServices.InventoryServer/OpenGridServices.InventoryServer.exe.build" target="doc" />
         <nant buildfile="OpenGridServices/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="doc" />
         <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="doc" />
     </target>

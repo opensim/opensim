@@ -43,6 +43,7 @@
                 <include name="Types/Login.cs" />
                 <include name="Types/NeighbourInfo.cs" />
                 <include name="Types/OSVector3.cs" />
+                <include name="Types/ParcelData.cs" />
                 <include name="Types/PrimData.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
