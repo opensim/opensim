@@ -225,7 +225,7 @@ public class OpenGridMasterService : System.ServiceProcess.ServiceBase {
 		try {
 			ServiceBase.Run(new OpenGridMasterService());
 		} catch(Exception e) {
-            Console.WriteLine("THIS SHOULD NEVER HAPPEN!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("An error occured while initialising OGS master service.");
 			Console.WriteLine(e.ToString());
 		}
 	}
