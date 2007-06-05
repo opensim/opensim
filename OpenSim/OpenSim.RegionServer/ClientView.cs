@@ -118,6 +118,12 @@ namespace OpenSim
             {
                 this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
                 this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
+
+                // Dont rez new users underground
+                float aboveGround = 3.0f; // rez at least 3 meters above ground
+                if (this.startpos.Z < (m_world.Terrain[(int)this.startpos.X, (int)this.startpos.Y] + aboveGround))
+                    this.startpos.Z = m_world.Terrain[(int)this.startpos.X, (int)this.startpos.Y] + aboveGround;
+
                 //Console.WriteLine("start pos is " + this.startpos.X + " , " + this.startpos.Y + " , " + this.startpos.Z);
             }
             else

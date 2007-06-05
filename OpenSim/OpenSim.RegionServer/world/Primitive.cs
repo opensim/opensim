@@ -378,6 +378,7 @@ namespace OpenSim.world
             PData.PathTaperY = objupdate.ObjectData[0].PathTaperY = addPacket.ObjectData.PathTaperY;
             PData.PathTwist = objupdate.ObjectData[0].PathTwist = addPacket.ObjectData.PathTwist;
             PData.PathTwistBegin = objupdate.ObjectData[0].PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
+
             objupdate.ObjectData[0].ID = (uint)(localID);
             objupdate.ObjectData[0].FullID = new LLUUID("edba7151-5857-acc5-b30b-f01efef" + (localID - 702000).ToString("00000"));
             objupdate.ObjectData[0].ObjectData = new byte[60];
