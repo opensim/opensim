@@ -114,6 +114,11 @@ namespace OpenSim
 
             sim.StartUp();
 
+            if (false)
+            {
+                Console.WriteLine("Hippos! [needed to commit something to test CCnet]");
+            }
+
             while (true)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.MainConsolePrompt();
