@@ -124,7 +124,6 @@ namespace OpenSim
                 if (this.startpos.Z < (m_world.Terrain[(int)this.startpos.X, (int)this.startpos.Y] + aboveGround))
                     this.startpos.Z = m_world.Terrain[(int)this.startpos.X, (int)this.startpos.Y] + aboveGround;
 
-                //Console.WriteLine("start pos is " + this.startpos.X + " , " + this.startpos.Y + " , " + this.startpos.Z);
             }
             else
             {

@@ -104,7 +104,6 @@ namespace OpenSim.Physics.OdePlugin
         // This function blatantly ripped off from BoxStack.cs
         static private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
-            //Console.WriteLine("collision callback");
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
             if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))

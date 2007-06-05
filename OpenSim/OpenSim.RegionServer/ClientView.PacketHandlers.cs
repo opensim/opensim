@@ -71,7 +71,6 @@ namespace OpenSim
 
         protected bool AgentTextureCached(ClientView simclient, Packet packet)
         {
-            // Console.WriteLine(packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
             cachedresp.AgentData.AgentID = this.AgentID;
@@ -162,8 +161,6 @@ namespace OpenSim
                     mbReply.Data[j].X = System.Convert.ToUInt16(mp["x"]);
                     mbReply.Data[j].Y = System.Convert.ToUInt16(mp["y"]);
                 }
-                //Console.WriteLine("ADAMDEBUG: Queuing MapBlockReply #" + i.ToString() + " Contains " + iii.ToString() + " region(s)");
-                //Console.WriteLine(mbReply.ToString());
                 this.OutPacket(mbReply);
             }
         }

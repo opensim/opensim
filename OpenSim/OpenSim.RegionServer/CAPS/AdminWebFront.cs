@@ -58,7 +58,6 @@ namespace OpenSim.CAPS
         private string PostLogin(string requestBody, string path, string param)
         {
             string responseString;
-// Console.WriteLine(requestBody);
             if (requestBody == passWord)
             {
                 responseString = "<p> Login Successful </p>";
@@ -86,7 +85,6 @@ namespace OpenSim.CAPS
             string delimStr2 = "=";
             char[] delimiter2 = delimStr2.ToCharArray();
 
-            //Console.WriteLine(requestBody);
             comp = requestBody.Split(delimiter);
             passw = comp[3].Split(delimiter2);
             if (passw[1] == passWord)  // check admin password is correct

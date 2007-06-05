@@ -46,7 +46,6 @@ namespace OpenSim
             // Keep track of when this packet was sent out
             Pack.TickCount = Environment.TickCount;
 
-            //Console.WriteLine("OUT: " + Pack.Type.ToString());
 
             if (!Pack.Header.Resent)
             {
@@ -250,8 +249,6 @@ namespace OpenSim
                         OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Too many ACKs queued up!");
                         return;
                     }
-
-                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("Sending PacketAck");
 
 
                     int i = 0;

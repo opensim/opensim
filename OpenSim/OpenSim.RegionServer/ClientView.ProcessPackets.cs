@@ -171,7 +171,6 @@ namespace OpenSim
 
                     #region New Event System - Objects/Prims
                     case PacketType.ObjectLink:
-                        // OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket)Pack;
                         uint parentprimid = 0;
                         List<uint> childrenprims = new List<uint>();
@@ -227,7 +226,6 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.TransferRequest:
-                        //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
                         m_assetCache.AddAssetRequest(this, transfer);
                         break;
@@ -236,7 +234,6 @@ namespace OpenSim
                         this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
                         break;
                     case PacketType.RequestXfer:
-                        //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.SendXferPacket:
                         this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
@@ -244,10 +241,8 @@ namespace OpenSim
                     case PacketType.CreateInventoryFolder:
                         CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
                         m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
-                        //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.CreateInventoryItem:
-                        //Console.WriteLine(Pack.ToString());
                         CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
                         if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
                         {
@@ -255,12 +250,10 @@ namespace OpenSim
                         }
                         else
                         {
-                            // Console.Write(Pack.ToString());
                             this.CreateInventoryItem(createItem);
                         }
                         break;
                     case PacketType.FetchInventory:
-                        //Console.WriteLine("fetch item packet");
                         FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
                         m_inventoryCache.FetchInventory(this, FetchInventory);
                         break;
@@ -270,7 +263,6 @@ namespace OpenSim
                         break;
                     case PacketType.UpdateInventoryItem:
                         UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
-                        //Console.WriteLine(Pack.ToString());
                         for (int i = 0; i < update.InventoryData.Length; i++)
                         {
                             if (update.InventoryData[i].TransactionID != LLUUID.Zero)
@@ -278,7 +270,6 @@ namespace OpenSim
                                 AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
                                 if (asset != null)
                                 {
-                                    // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
                                     m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                 }
                                 else
@@ -286,12 +277,11 @@ namespace OpenSim
                                     asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
                                     if (asset != null)
                                     {
-                                        //Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
                                         m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                     }
                                     else
                                     {
-                                        //Console.WriteLine("trying to update inventory item, but asset is null");
+
                                     }
                                 }
                             }
@@ -302,7 +292,6 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.RequestTaskInventory:
-                        // Console.WriteLine(Pack.ToString());
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
                         ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
                         bool foundent = false;
@@ -322,7 +311,6 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
-                        // Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
                         AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
                         if (myinventory != null)
@@ -461,10 +449,8 @@ namespace OpenSim
                     #region unimplemented handlers
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
-                        //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.ObjectScale:
-                        //OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, Pack.ToString());
                         break;
                     case PacketType.MoneyBalanceRequest:
                         //This need to be actually done and not thrown back with fake info

@@ -28,7 +28,6 @@ namespace OpenSim.world
                
                 if ( nod.Attributes["name"] != null)
                 {
-                    //Console.WriteLine("'" + nod.Attributes["name"].Value + "' - '" + nod.InnerText + "'");
                     AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
                 }
                 

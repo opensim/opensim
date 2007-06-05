@@ -80,7 +80,6 @@ namespace OpenSim.Assets
             {
                 try
                 {
-                    //Console.WriteLine("Asset cache loop");
                     this.ProcessAssetQueue();
                     this.ProcessTextureQueue();
                     Thread.Sleep(500);
@@ -203,7 +202,6 @@ namespace OpenSim.Assets
                             req.RequestUser.OutPacket(im);
                             req.PacketCounter++;
                             //req.ImageInfo.l= time;
-                            //System.Console.WriteLine("sent texture: "+req.image_info.FullID);
                         }
                         else
                         {
@@ -218,7 +216,6 @@ namespace OpenSim.Assets
                             req.RequestUser.OutPacket(im);
                             req.PacketCounter++;
                             //req.ImageInfo.last_used = time;
-                            //System.Console.WriteLine("sent first packet of texture:
                         }
                     }
                     else
@@ -235,7 +232,6 @@ namespace OpenSim.Assets
                         req.RequestUser.OutPacket(im);
                         req.PacketCounter++;
                         //req.ImageInfo.last_used = time;
-                        //System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);
                     }
                 }
             }

@@ -34,7 +34,6 @@ namespace OpenSim
             {
                 agentData.startpos = new LLVector3(Convert.ToUInt32(requestData["startpos_x"]), Convert.ToUInt32(requestData["startpos_y"]), Convert.ToUInt32(requestData["startpos_z"]));
                 agentData.child = false;
-               // Console.WriteLine("expect user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
           
             }
 
