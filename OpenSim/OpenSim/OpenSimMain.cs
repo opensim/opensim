@@ -184,6 +184,36 @@ namespace OpenSim
             // Start UDP server
             this.m_udpServer.ServerListener();
 
+            //Setup Master Avatar
+            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Setting up Master Avatar");
+            if (this.m_sandbox)
+            {
+                OpenSim.Framework.User.UserProfile masterUser = adminLoginServer.LocalUserManager.GetProfileByName(this.regionData.MasterAvatarFirstName, this.regionData.MasterAvatarLastName);
+                if(masterUser == null)
+                {
+                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Sandbox Mode; Master Avatar is a new user; creating account.");
+                    adminLoginServer.CreateUserAccount(this.regionData.MasterAvatarFirstName, this.regionData.MasterAvatarLastName, this.regionData.MasterAvatarSandboxPassword);
+                    masterUser = adminLoginServer.LocalUserManager.GetProfileByName(this.regionData.MasterAvatarFirstName, this.regionData.MasterAvatarLastName);
+                    if(masterUser == null) //Still NULL?!!?! OMG FAIL!
+                    {
+                        throw new Exception("Failure to create master user account");
+                    }
+                }
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Master User UUID: " + masterUser.UUID.ToStringHyphenated());
+                regionData.MasterAvatarAssignedUUID = masterUser.UUID;
+
+            }
+            else
+            {
+                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Grid Mode; Do not know how to get the user's master key yet!");
+            }
+
+            Console.WriteLine("Creating ParcelManager");
+            LocalWorld.parcelManager = new OpenSim.RegionServer.world.ParcelManager(this.LocalWorld);
+
+            Console.WriteLine("Loading Parcels from DB...");
+            LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = 100;
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
@@ -253,12 +283,6 @@ namespace OpenSim
 
             LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
             LocalWorld.LoadWorldMap();
-
-            Console.WriteLine("Creating ParcelManager");
-            LocalWorld.parcelManager = new OpenSim.RegionServer.world.ParcelManager(this.LocalWorld);
-
-            Console.WriteLine("Loading Parcels from DB...");
-            LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
 
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);

@@ -254,8 +254,15 @@ namespace OpenSim.UserServer
             string mdPassword = EncodePassword(password);
             Console.WriteLine("with password: " + mdPassword);
             this.userManager.CreateNewProfile(firstName, lastName, mdPassword);
+            
             return true;
         }
+
+        public UserProfile GetProfileByName(string firstName, string lastName)
+        {
+            return this.userManager.GetProfileByName(firstName, lastName);
+        }
+
 
         //IUserServer implementation
         public AgentInventory RequestAgentsInventory(LLUUID agentID)

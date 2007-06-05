@@ -351,10 +351,10 @@ namespace OpenSim.RegionServer.world
             fullSimParcel.parcelData.parcelName = "Your Sim Parcel";
             fullSimParcel.parcelData.parcelDesc = "";
 
-            fullSimParcel.parcelData.ownerID = LLUUID.Zero;
-            fullSimParcel.parcelData.salePrice = -1;
-            fullSimParcel.parcelData.parcelFlags = libsecondlife.Parcel.ParcelFlags.None;
-            fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Abandoned;
+            fullSimParcel.parcelData.ownerID = m_world.m_regInfo.MasterAvatarAssignedUUID;
+            fullSimParcel.parcelData.salePrice = 1;
+            fullSimParcel.parcelData.parcelFlags = libsecondlife.Parcel.ParcelFlags.ForSale;
+            fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Leased;
             addParcel(fullSimParcel);
 
 
