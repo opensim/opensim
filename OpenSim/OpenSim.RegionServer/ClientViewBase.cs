@@ -10,6 +10,7 @@ using System.Threading;
 using System.Timers;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
@@ -132,7 +133,7 @@ namespace OpenSim
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
+                MainConsole.Instance.Warn("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
                 this.KillThread();
             }
 
@@ -227,7 +228,7 @@ namespace OpenSim
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Resending " + packet.Type.ToString() + " packet, " +
+                        OpenSim.Framework.Console.MainConsole.Instance.Verbose("Resending " + packet.Type.ToString() + " packet, " +
                          (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
@@ -246,7 +247,7 @@ namespace OpenSim
                     if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Too many ACKs queued up!");
+                        OpenSim.Framework.Console.MainConsole.Instance.Verbose("Too many ACKs queued up!");
                         return;
                     }
 

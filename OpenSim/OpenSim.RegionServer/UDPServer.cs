@@ -144,20 +144,20 @@ namespace OpenSim
 
         public void ServerListener()
         {
-            m_console.WriteLine("UDPServer.cs:ServerListener() - Opening UDP socket on " + listenPort);
+            m_console.Notice("UDPServer.cs:ServerListener() - Opening UDP socket on " + listenPort);
 
             ServerIncoming = new IPEndPoint(IPAddress.Any, listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
  
-            m_console.WriteLine("UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");
+            m_console.Notice("UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(IPAddress.Any, 0);
             epSender = (EndPoint)ipeSender;
             ReceivedData = new AsyncCallback(this.OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-            m_console.WriteLine("UDPServer.cs:ServerListener() - Listening...");
+            m_console.Notice("UDPServer.cs:ServerListener() - Listening...");
 
         }
 

@@ -100,8 +100,7 @@ namespace OpenSim.Servers
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
-
+                MainConsole.Instance.Warn("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
             }
         }
 

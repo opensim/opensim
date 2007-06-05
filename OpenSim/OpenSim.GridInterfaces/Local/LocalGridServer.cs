@@ -62,7 +62,7 @@ namespace OpenSim.GridInterfaces.Local
 		public LocalGridServer()
 		{
 			Sessions = new List<Login>();
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE,"Local Grid Server class created");
+			MainConsole.Instance.Verbose("Local Grid Server class created");
 		}
 		
 		public override bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port)

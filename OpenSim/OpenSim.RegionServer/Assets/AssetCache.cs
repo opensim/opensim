@@ -34,6 +34,7 @@ using OpenSim;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Assets
 {
@@ -60,7 +61,7 @@ namespace OpenSim.Assets
         /// </summary>
         public AssetCache(IAssetServer assetServer)
         {
-            Console.WriteLine("Creating Asset cache");
+            MainConsole.Instance.Verbose("Creating Asset cache");
             _assetServer = assetServer;
             _assetServer.SetReceiver(this);
             Assets = new Dictionary<libsecondlife.LLUUID, AssetInfo>();
@@ -86,7 +87,7 @@ namespace OpenSim.Assets
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    MainConsole.Instance.Error(e.Message);
                 }
             }
         }

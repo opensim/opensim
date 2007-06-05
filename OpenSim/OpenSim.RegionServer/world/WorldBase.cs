@@ -14,6 +14,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Assets;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.world
 {
@@ -112,7 +113,7 @@ namespace OpenSim.world
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: SendLayerData() - Failed with exception " + e.ToString());
+                MainConsole.Instance.Warn("World.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -138,7 +139,7 @@ namespace OpenSim.world
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: SendLayerData() - Failed with exception " + e.ToString());
+                MainConsole.Instance.Warn("World.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
         #endregion

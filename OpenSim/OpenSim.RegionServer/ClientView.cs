@@ -41,6 +41,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.world;
 using OpenSim.Assets;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
@@ -110,7 +111,7 @@ namespace OpenSim
             m_child = child;
             m_regionData = regionDat;
             m_authenticateSessionsHandler = authenSessions;
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
+            MainConsole.Instance.Notice("OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
@@ -150,7 +151,7 @@ namespace OpenSim
         # region Client Methods
         public void UpgradeClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
+            MainConsole.Instance.Notice("SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
             //this.m_world.RemoveViewerAgent(this);
             if (!this.m_sandboxMode)
@@ -164,7 +165,7 @@ namespace OpenSim
 
         public void DowngradeClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - changing full agent to child");
+            MainConsole.Instance.Notice("SimClient.cs:UpgradeClient() - changing full agent to child");
             this.m_child = true;
             OnChildAgentStatus(this.m_child);
             //this.m_world.RemoveViewerAgent(this);
@@ -254,7 +255,7 @@ namespace OpenSim
 
         protected virtual void ClientLoop()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ClientLoop() - Entered loop");
+            MainConsole.Instance.Notice("OpenSimClient.cs:ClientLoop() - Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
@@ -276,7 +277,7 @@ namespace OpenSim
 
         protected virtual void InitNewClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+            MainConsole.Instance.Notice("OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
             this.ClientAvatar = m_world.AddViewerAgent(this);         
         }
 
@@ -287,12 +288,12 @@ namespace OpenSim
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.Notice("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
                 ClientThread.Abort();
             }
             else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.Notice("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;
@@ -396,7 +397,7 @@ namespace OpenSim
             if (this.m_userServer != null)
             {
                 // a user server is set so request the inventory from it
-                Console.WriteLine("getting inventory from user server");
+                MainConsole.Instance.Verbose("getting inventory from user server");
                 inventory = m_inventoryCache.FetchAgentsInventory(this.AgentID, m_userServer);
             }
             else
@@ -414,7 +415,7 @@ namespace OpenSim
         {
             if (!(packet.InventoryBlock.Type == 3 || packet.InventoryBlock.Type == 7))
             {
-                System.Console.WriteLine("Attempted to create " + Util.FieldToString(packet.InventoryBlock.Name) + " in inventory.  Unsupported type");
+                MainConsole.Instance.Warn("Attempted to create " + Util.FieldToString(packet.InventoryBlock.Name) + " in inventory.  Unsupported type");
                 return;
             }
 

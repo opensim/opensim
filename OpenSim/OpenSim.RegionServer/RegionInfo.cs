@@ -82,7 +82,7 @@ namespace OpenSim
             stIn.Close();
             gridresp.Close();
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("RegionInfo.CS:SaveToGrid() - Grid said: " + GridResponse);
         }
 
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
@@ -333,21 +333,21 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Config.cs:InitConfig() - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.Warn(e.ToString());
             }
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Simulator Settings Loaded");
-            /* OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "UUID: " + this.SimUUID.ToStringHyphenated());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Name: " + this.RegionName);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Region Handle: " + this.RegionHandle.ToString());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sandbox Mode? " + isSandbox.ToString());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Asset URL: " + this.AssetURL);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Asset key: " + this.AssetSendKey);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Grid URL: " + this.GridURL);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Grid key: " + this.GridSendKey); */
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Simulator Settings Loaded");
+            /* MainConsole.Instance.Notice("UUID: " + this.SimUUID.ToStringHyphenated());
+            MainConsole.Instance.Notice("Name: " + this.RegionName);
+            MainConsole.Instance.Notice("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
+            MainConsole.Instance.Notice("Region Handle: " + this.RegionHandle.ToString());
+            MainConsole.Instance.Notice("Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
+            MainConsole.Instance.Notice("Sandbox Mode? " + isSandbox.ToString());
+            MainConsole.Instance.Notice("Asset URL: " + this.AssetURL);
+            MainConsole.Instance.Notice("Asset key: " + this.AssetSendKey);
+            MainConsole.Instance.Notice("Grid URL: " + this.GridURL);
+            MainConsole.Instance.Notice("Grid key: " + this.GridSendKey); */
         }
     }
 }

@@ -35,6 +35,7 @@ using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.GridInterfaces.Remote
 {
@@ -68,7 +69,7 @@ namespace OpenSim.GridInterfaces.Remote
 
         public RemoteGridServer()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Remote Grid Server class created");
+            MainConsole.Instance.Notice("Remote Grid Server class created");
         }
 
         public override bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port)
@@ -89,8 +90,8 @@ namespace OpenSim.GridInterfaces.Remote
             if (GridRespData.ContainsKey("error"))
             {
                 string errorstring = (string)GridRespData["error"];
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "Error connecting to grid:");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, errorstring);
+                MainConsole.Instance.Warn("Error connecting to grid:");
+                MainConsole.Instance.Warn(errorstring);
                 return false;
             }
             this.neighbours = (ArrayList)GridRespData["neighbours"];

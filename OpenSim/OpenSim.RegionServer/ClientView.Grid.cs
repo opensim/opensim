@@ -15,6 +15,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.world;
 using OpenSim.Assets;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
@@ -42,7 +43,7 @@ namespace OpenSim
                         ushort neighbourPort = (ushort)Convert.ToInt32(neighbour["sim_port"]);
                         string reqUrl = "http://" + neighbourIPStr + ":" + neighbourPort.ToString();
 
-                        Console.WriteLine(reqUrl);
+                        MainConsole.Instance.Verbose("Requesting " + reqUrl);
 
                         SimParams = new Hashtable();
                         SimParams["session_id"] = this.SessionID.ToString();
@@ -72,7 +73,7 @@ namespace OpenSim
                     }
                     catch (Exception e)
                     {
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Could not connect to neighbour " + neighbour["sim_ip"] + ":" + neighbour["sim_port"] + ", continuing.");
+                        MainConsole.Instance.Notice("Could not connect to neighbour " + neighbour["sim_ip"] + ":" + neighbour["sim_port"] + ", continuing.");
                     }
                 }
                 Thread.Sleep(3000);
@@ -112,7 +113,7 @@ namespace OpenSim
                 neighboury += 1;
                 newpos.Y = 1;
             }
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
+            MainConsole.Instance.Notice("SimClient.cs:CrossSimBorder() - Crossing border to neighbouring sim at [" + neighbourx.ToString() + "," + neighboury.ToString() + "]");
 
             Hashtable SimParams;
             ArrayList SendParams;

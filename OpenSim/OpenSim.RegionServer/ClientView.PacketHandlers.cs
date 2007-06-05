@@ -15,6 +15,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.world;
 using OpenSim.Assets;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
@@ -29,7 +30,7 @@ namespace OpenSim
 
         protected virtual bool Logout(ClientView simClient, Packet packet)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+            MainConsole.Instance.Notice("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
             //send reply to let the client logout
             LogoutReplyPacket logReply = new LogoutReplyPacket();
             logReply.AgentData.AgentID = this.AgentID;

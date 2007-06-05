@@ -16,6 +16,7 @@ using OpenSim.Framework.Utilities;
 using OpenSim.world;
 using OpenSim.RegionServer.world;
 using OpenSim.Assets;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
@@ -464,7 +465,7 @@ namespace OpenSim
                         outgoing.MoneyData.TransactionSuccess = true;
                         outgoing.MoneyData.Description = libsecondlife.Helpers.StringToField("");
                         this.OutPacket((Packet)outgoing);
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sent Temporary Money packet (they have leet monies)");
+                        MainConsole.Instance.Notice("Sent Temporary Money packet (they have leet monies)");
 
                         break;
 
@@ -477,7 +478,7 @@ namespace OpenSim
                         estateCovenantReply.Data.CovenantID = LLUUID.Zero;
                         estateCovenantReply.Data.CovenantTimestamp = (uint)0;
                         this.OutPacket((Packet)estateCovenantReply);
-                        OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sent Temporary Estate packet (they are in leet estate)");
+                        MainConsole.Instance.Notice("Sent Temporary Estate packet (they are in leet estate)");
                         break;
                     #endregion
                 }

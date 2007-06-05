@@ -46,7 +46,7 @@ namespace OpenSim.world
             m_regionTerraform = regionTerraform;
             m_regionWaterHeight = regionWater;
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs - Loading details from grid (DUMMY)");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
             Pos = ControllingClient.startpos;
@@ -211,7 +211,7 @@ namespace OpenSim.world
 
         public void CompleteMovement()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Avatar.cs:CompleteMovement() - Constructing AgentMovementComplete packet");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:CompleteMovement() - Constructing AgentMovementComplete packet");
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
             mov.AgentData.SessionID = this.ControllingClient.SessionID;
             mov.AgentData.AgentID = this.ControllingClient.AgentID;
@@ -382,11 +382,11 @@ namespace OpenSim.world
         //really really should be moved somewhere else (RegionInfo.cs ?)
         public void SendRegionHandshake(World regionInfo)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             RegionHandshakePacket handshake = new RegionHandshakePacket();
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Avatar.cs:SendRegionhandshake() - Filling in RegionHandshake details");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionhandshake() - Filling in RegionHandshake details");
             handshake.RegionInfo.BillableFactor = 0;
             handshake.RegionInfo.IsEstateManager = false;
             handshake.RegionInfo.TerrainHeightRange00 = regionInfo.m_regInfo.TerrainHeightRange00;
@@ -417,7 +417,7 @@ namespace OpenSim.world
             handshake.RegionInfo.TerrainDetail3 = regionInfo.m_regInfo.TerrainDetail3;
             handshake.RegionInfo.CacheID = new LLUUID("545ec0a5-5751-1026-8a0b-216e38a7ab37");
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE,"Avatar.cs:SendRegionHandshake() - Sending RegionHandshake packet");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionHandshake() - Sending RegionHandshake packet");
             this.ControllingClient.OutPacket(handshake);
         }
 

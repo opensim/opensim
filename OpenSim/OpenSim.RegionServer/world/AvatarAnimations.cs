@@ -18,7 +18,7 @@ namespace OpenSim.world
 
         public void LoadAnims()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Avatar.cs:LoadAnims() - Loading avatar animations");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
             XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
            
             XmlDocument doc = new XmlDocument();
@@ -35,7 +35,7 @@ namespace OpenSim.world
 
             reader.Close();
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
             foreach (KeyValuePair<string, LLUUID> kp in OpenSim.world.Avatar.Animations.AnimsLLUUID)
             {

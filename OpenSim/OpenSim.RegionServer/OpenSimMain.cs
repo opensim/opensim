@@ -89,7 +89,7 @@ namespace OpenSim
             {
                 this.SetupFromConfigFile(this.localConfig);
             }
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Loading configuration");
+            m_console.Notice("Main.cs:Startup() - Loading configuration");
             this.regionData.InitConfig(this.m_sandbox, this.localConfig);
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
@@ -118,7 +118,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup local cache");
+                m_console.Error(e.Message + "\nSorry, could not setup local cache");
                 Environment.Exit(1);
             }
 
@@ -141,7 +141,7 @@ namespace OpenSim
                 AssetCache.LoadDefaultTextureSet();
             }
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Initialising HTTP server");
+            m_console.Notice("Main.cs:Startup() - Initialising HTTP server");
 
             this.SetupHttpListener();
 
@@ -173,7 +173,7 @@ namespace OpenSim
             AdminWebFront adminWebFront = new AdminWebFront("Admin", LocalWorld, InventoryCache, adminLoginServer);
             adminWebFront.LoadMethods(httpServer);
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP server");
+            m_console.Notice("Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();
 
             //MainServerListener();
@@ -190,7 +190,7 @@ namespace OpenSim
             GridServers.AssetDll = "OpenSim.GridInterfaces.Local.dll";
             GridServers.GridDll = "OpenSim.GridInterfaces.Local.dll";
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Starting in Sandbox mode");
+            m_console.Notice("Starting in Sandbox mode");
 
             try
             {
@@ -198,7 +198,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup the grid interface");
+                m_console.Error(e.Message + "\nSorry, could not setup the grid interface");
                 Environment.Exit(1);
             }
         }
@@ -215,7 +215,7 @@ namespace OpenSim
             }
             GridServers.GridDll = "OpenSim.GridInterfaces.Remote.dll";
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Starting in Grid mode");
+            m_console.Notice("Starting in Grid mode");
 
             try
             {
@@ -223,15 +223,15 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, e.Message + "\nSorry, could not setup the grid interface");
+                m_console.Error(e.Message + "\nSorry, could not setup the grid interface");
                 Environment.Exit(1);
             }
         }
 
         protected virtual void SetupLocalWorld()
         {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Initialising world");
+            m_console.Notice("Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
+            m_console.Notice("Initialising world");
             m_console.componentname = "Region " + regionData.RegionName;
 
             m_localWorld = new World(this.m_udpServer.PacketServer.ClientThreads, regionData, regionData.RegionHandle, regionData.RegionName);
@@ -249,7 +249,7 @@ namespace OpenSim
             LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
             LocalWorld.LoadWorldMap();
 
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting up messaging system");
+            m_console.Notice("Main.cs:Startup() - Starting up messaging system");
             LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine); 
             LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
             LocalWorld.LoadPrimsFromStorage();
@@ -297,7 +297,7 @@ namespace OpenSim
         {
             if (GridServers.GridServer.RequestConnection(regionData.SimUUID, regionData.IPListenAddr, (uint)regionData.IPListenPort))
             {
-                m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Success: Got a grid connection OK!");
+                m_console.Notice("Main.cs:Startup() - Success: Got a grid connection OK!");
             }
             else
             {
@@ -397,7 +397,7 @@ namespace OpenSim
                 switch (attri)
                 {
                     default:
-                        m_console.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "Main.cs: SetupFromConfig() - Invalid value for PhysicsEngine attribute, terminating");
+                        m_console.Warn("Main.cs: SetupFromConfig() - Invalid value for PhysicsEngine attribute, terminating");
                         Environment.Exit(1);
                         break;
 
@@ -440,11 +440,11 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Closing all threads");
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Killing listener thread");
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Killing clients");
+            m_console.Notice("Main.cs:Shutdown() - Closing all threads");
+            m_console.Notice("Main.cs:Shutdown() - Killing listener thread");
+            m_console.Notice("Main.cs:Shutdown() - Killing clients");
             // IMPLEMENT THIS
-            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Closing console and terminating");
+            m_console.Notice("Main.cs:Shutdown() - Closing console and terminating");
             LocalWorld.Close();
             GridServers.Close();
             m_console.Close();
@@ -472,8 +472,8 @@ namespace OpenSim
             switch (command)
             {
                 case "help":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "show users - show info about connected users");
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "shutdown - disconnect all clients and shutdown");
+                    m_console.Error("show users - show info about connected users");
+                    m_console.Error("shutdown - disconnect all clients and shutdown");
                     break;
 
                 case "show":
@@ -484,7 +484,7 @@ namespace OpenSim
                     string result = "";
                     if (!LocalWorld.Terrain.RunTerrainCmd(cmdparams, ref result))
                     {
-                        m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, result);
+                        m_console.Error(result);
                     }
                     break;
 
@@ -493,7 +493,7 @@ namespace OpenSim
                     break;
 
                 default:
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "Unknown command");
+                    m_console.Error("Unknown command");
                     break;
             }
         }
@@ -507,18 +507,18 @@ namespace OpenSim
             switch (ShowWhat)
             {
                 case "uptime":
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "OpenSim has been running since " + startuptime.ToString());
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "That is " + (DateTime.Now - startuptime).ToString());
+                    m_console.Error("OpenSim has been running since " + startuptime.ToString());
+                    m_console.Error("That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
                     OpenSim.world.Avatar TempAv;
-                    m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
+                    m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                     {
                         if (LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
                         {
                             TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
-                            m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
+                            m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
                         }
                     }
                     break;

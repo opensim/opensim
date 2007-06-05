@@ -210,8 +210,7 @@ namespace OpenSim.UserServer
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(
-                    OpenSim.Framework.Console.LogPriority.LOW, 
+                OpenSim.Framework.Console.MainConsole.Instance.Warn(
                     "LoginResponse: Unable to set default values: " + e.Message
                 );
             }
@@ -326,8 +325,7 @@ namespace OpenSim.UserServer
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(
-                    OpenSim.Framework.Console.LogPriority.LOW,
+                OpenSim.Framework.Console.MainConsole.Instance.Error(
                     "LoginResponse: Error creating XML-RPC Response: " + e.Message
                 );
                 return (this.GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));

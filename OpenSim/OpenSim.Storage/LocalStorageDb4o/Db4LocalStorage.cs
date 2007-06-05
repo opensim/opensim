@@ -33,6 +33,7 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Terrain;
+using OpenSim.Framework.Console;
 
 
 namespace OpenSim.Storage.LocalStorageDb4o
@@ -52,18 +53,18 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public void Initialise(string dfile)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Db4LocalStorage Opening " + dfile);
+            OpenSim.Framework.Console.MainConsole.Instance.Warn("Db4LocalStorage Opening " + dfile);
             datastore = dfile;
             try
             {
                 db = Db4oFactory.OpenFile(datastore);
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Db4LocalStorage creation");
+                OpenSim.Framework.Console.MainConsole.Instance.Verbose("Db4LocalStorage creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Db4LocalStorage :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
+                OpenSim.Framework.Console.MainConsole.Instance.Warn("Db4LocalStorage :Constructor - Exception occured");
+                OpenSim.Framework.Console.MainConsole.Instance.Warn(e.ToString());
             }
         }
 		
@@ -122,7 +123,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
 		public void LoadPrimitives(ILocalStorageReceiver receiver)
 		{
 			IObjectSet result = db.Get(typeof(PrimData));
-			OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is "+result.Count);
+			OpenSim.Framework.Console.MainConsole.Instance.Verbose("Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is "+result.Count);
 			foreach (PrimData prim in result) {
 				receiver.PrimFromStorage(prim);
 			}
@@ -130,14 +131,14 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public float[] LoadWorld()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"LoadWorld() - Loading world....");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Loading world....");
             //World blank = new World();
             float[] heightmap = null;
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"LoadWorld() - Looking for a heightmap in local DB");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Looking for a heightmap in local DB");
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"LoadWorld() - Found a heightmap in local database, loading");
+                OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Found a heightmap in local database, loading");
                 MapStorage map = (MapStorage)world_result.Next();
                 //blank.LandMap = map.Map;
                 heightmap = map.Map;
@@ -165,7 +166,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"SaveWorld() - updating saved copy of heightmap in local database");
+                OpenSim.Framework.Console.MainConsole.Instance.Verbose("SaveWorld() - updating saved copy of heightmap in local database");
                 MapStorage map = (MapStorage)world_result.Next();
                 db.Delete(map);
             }
@@ -177,31 +178,31 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public void SaveParcels(ParcelData[] parcel_data)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Saving Parcels...");
+            MainConsole.Instance.Notice("Parcel Backup: Saving Parcels...");
             IObjectSet result = db.Get(typeof(ParcelData));
             foreach (ParcelData parcel in result)
             {
                 db.Delete(parcel);
             }
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Removing old entries complete. Adding new entries.");
+            MainConsole.Instance.Notice("Parcel Backup: Removing old entries complete. Adding new entries.");
             int i;
             for (i = 0; i < parcel_data.GetLength(0); i++)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Adding : " + i);
+                MainConsole.Instance.Notice("Adding : " + i);
                 db.Set(parcel_data[i]);
 
             }
             db.Commit();
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Parcel Save Complete");
+            MainConsole.Instance.Notice("Parcel Backup: Parcel Save Complete");
         }
 
         public void LoadParcels(ILocalStorageParcelReceiver recv)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Loading Parcels...");
+            MainConsole.Instance.Notice("Parcel Backup: Loading Parcels...");
             IObjectSet result = db.Get(typeof(ParcelData));
             if (result.Count > 0)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Parcels exist in database.");
+                MainConsole.Instance.Notice("Parcel Backup: Parcels exist in database.");
                 foreach (ParcelData parcelData in result)
                 {
                     recv.ParcelFromStorage(parcelData);
@@ -209,10 +210,10 @@ namespace OpenSim.Storage.LocalStorageDb4o
             }
             else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: No parcels exist. Creating basic parcel.");
+                MainConsole.Instance.Notice("Parcel Backup: No parcels exist. Creating basic parcel.");
                 recv.NoParcelDataFromStorage();
             }
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Parcel Backup: Parcels Restored");
+            MainConsole.Instance.Notice("Parcel Backup: Parcels Restored");
         }
 		public void ShutDown()
 		{

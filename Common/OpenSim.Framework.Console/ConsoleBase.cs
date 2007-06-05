@@ -41,29 +41,49 @@ namespace OpenSim.Framework.Console
 
         public void Write(string format, params object[] args)
         {
-            WriteLine(LogPriority.NORMAL,format,args);
+            Notice(format,args);
             return;
         }
 
-        [Obsolete("WriteLine(msg,args) has been depreciated, use WriteLine(priority,msg,args) instead.")]
-        public void WriteLine(string format, params object[] args)
+        public void Warn(string format, params object[] args)
         {
-            Log.WriteLine(format, args);
-            Log.Flush();
-	    if(!m_silent)
-            {
-            System.Console.WriteLine(format, args);
-            }
+            WriteNewLine(ConsoleColor.Yellow, format, args);
             return;
         }
 
-        public void WriteLine(LogPriority importance, string format, params object[] args)
+        public void Notice(string format, params object[] args)
+        {
+            WriteNewLine(ConsoleColor.White, format, args);
+            return;
+        }
+
+        public void Error(string format, params object[] args)
+        {
+            WriteNewLine(ConsoleColor.Red, format, args);
+            return;
+        }
+
+        public void Verbose(string format, params object[] args)
+        {
+            WriteNewLine(ConsoleColor.Gray, format, args);
+            return;
+        }
+
+        public void Status(string format, params object[] args)
+        {
+            WriteNewLine(ConsoleColor.Blue, format, args);
+            return;
+        }
+
+        private void WriteNewLine(System.ConsoleColor color, string format, params object[] args)
         {
             Log.WriteLine(format, args);
             Log.Flush();
             if (!m_silent)
             {
+                System.Console.ForegroundColor = color;
                 System.Console.WriteLine(format, args);
+                System.Console.ResetColor();
             }
             return;
         }
@@ -130,7 +150,7 @@ namespace OpenSim.Framework.Console
                 }
                 else
                 {
-                    this.WriteLine(LogPriority.MEDIUM,"Valid options are " + OptionA + " or " + OptionB);
+                    Notice("Valid options are " + OptionA + " or " + OptionB);
                     temp = CmdPrompt(prompt, defaultresponse);
                 }
             }
