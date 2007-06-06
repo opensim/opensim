@@ -654,7 +654,7 @@ namespace OpenSim.RegionServer.world
         /// <returns></returns>
         private byte[] convertParcelBitmapToBytes()
         {
-            byte[] tempConvertArr = new byte[64 * 64 / 8];
+            byte[] tempConvertArr = new byte[512];
             byte tempByte = 0;
             int x, y, i, byteNum = 0;
             i = 0;
@@ -684,7 +684,7 @@ namespace OpenSim.RegionServer.world
             for(i = 0; i < 512; i++)
             {
                 tempByte = parcelData.parcelBitmapByteArray[i];
-                for(bitNum = 7; bitNum >= 0; bitNum--)
+                for(bitNum = 0; bitNum < 8; bitNum++)
                 {
                     bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & (byte)1);
                     tempConvertMap[x, y] = bit;
