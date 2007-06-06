@@ -205,7 +205,7 @@ namespace OpenSim
             }
             else
             {
-                m_console.Notice("Main.cs:Startup() - Grid Mode; Do not know how to get the user's master key yet!");
+                m_console.Warn("Main.cs:Startup() - Grid Mode; Do not know how to get the user's master key yet!");
             }
 
             m_console.Notice("Creating ParcelManager");
@@ -528,6 +528,15 @@ namespace OpenSim
                 case "backup":
                     LocalWorld.Backup();
                     break;
+
+                case "reset":
+                    if (cmdparams[0] == "parcels")
+                    {
+                        LocalWorld.localStorage.RemoveAllParcels();
+                        LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+                    }
+                    break;
+
                 default:
                     m_console.Error("Unknown command");
                     break;
@@ -556,6 +565,16 @@ namespace OpenSim
                             TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
                             m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
                         }
+                    }
+                    break;
+                case "parcels":
+                    foreach (OpenSim.RegionServer.world.Parcel parcel in LocalWorld.parcelManager.parcelList.Values)
+                    {
+                        m_console.Error("Parcel ID#" + parcel.parcelData.localID + "(Global UUID: " + parcel.parcelData.globalID + "):");
+                        m_console.Error("\tParcel Name: " + parcel.parcelData.parcelName);
+                        m_console.Error("\tParcel Owner UUID: " + parcel.parcelData.ownerID);
+                        m_console.Error("\tParcel Area: " + parcel.parcelData.area + "sqm");
+                        m_console.Error(" ");
                     }
                     break;
             }

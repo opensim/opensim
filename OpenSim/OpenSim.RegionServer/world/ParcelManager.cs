@@ -38,6 +38,7 @@ namespace OpenSim.RegionServer.world
 {
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, ClientView remote_client);
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, ClientView remote_client);
+    public delegate void ParcelJoinRequest(int west, int south, int east, int north, ClientView remote_client);
 
     #region ParcelManager Class
     /// <summary>
@@ -63,6 +64,9 @@ namespace OpenSim.RegionServer.world
         public const byte PARCEL_FLAG_PROPERTY_BORDER_WEST = (byte)64;     //Equals 01000000
         public const byte PARCEL_FLAG_PROPERTY_BORDER_SOUTH = (byte)128;    //Equals 10000000
 
+        //RequestResults (I think these are right, they seem to work):
+        public const int PARCEL_RESULT_ONE_PARCEL       = 0;	// The request they made contained only one parcel
+        public const int PARCEL_RESULT_MULTIPLE_PARCELS = 1;	// The request they made contained more than one parcel
 
         //These are other constants. Yay!
         public const int START_PARCEL_LOCAL_ID = 1;
@@ -158,7 +162,25 @@ namespace OpenSim.RegionServer.world
                     }
                 }
             }
+            m_world.localStorage.RemoveParcel(parcelList[local_id].parcelData);
             parcelList.Remove(local_id);
+        }
+
+        public void performFinalParcelJoin(Parcel master, Parcel slave)
+        {
+            int x, y;
+            bool[,] parcelBitmapSlave = slave.getParcelBitmap();
+            for (x = 0; x < 64; x++)
+            {
+                for (y = 0; y < 64; y++)
+                {
+                    if (parcelBitmapSlave[x, y])
+                    {
+                        parcelIDList[x, y] = master.parcelData.localID;
+                    }
+                }
+            }
+            removeParcel(slave.parcelData.localID);
         }
         /// <summary>
         /// Get the parcel at the specified point
@@ -228,6 +250,7 @@ namespace OpenSim.RegionServer.world
             //Lets create a new parcel with bitmap activated at that point (keeping the old parcels info)
             Parcel newParcel = startParcel.Copy();
             newParcel.parcelData.parcelName = "Subdivision of " + newParcel.parcelData.parcelName;
+            newParcel.parcelData.globalID = LLUUID.Random();
 
             newParcel.setParcelBitmap(Parcel.getSquareParcelBitmap(start_x, start_y, end_x, end_y));
 
@@ -257,6 +280,10 @@ namespace OpenSim.RegionServer.world
         /// <returns>Returns true if successful</returns>
         public bool join(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
         {
+            end_x -= 4;
+            end_y -= 4;
+            Console.WriteLine("Joining Parcels between (" + start_x + ", " + start_y + ") and (" + end_x  + ", " + end_y + ")");
+            
             //NOTE: The following only connects the parcels in each corner and not all the parcels that are within the selection box!
             //This should be fixed later -- somewhat "incomplete code" --Ming
             Parcel startParcel, endParcel;
@@ -270,6 +297,11 @@ namespace OpenSim.RegionServer.world
             {
                 return false; //Error occured when trying to get the start and end parcels
             }
+            if (startParcel == endParcel)
+            {
+                return false; //Subdivision of the same parcel is not allowed
+            }
+
             //Check the parcel owners:
             if (startParcel.parcelData.ownerID != endParcel.parcelData.ownerID)
             {
@@ -281,12 +313,11 @@ namespace OpenSim.RegionServer.world
                 return false;
             }
 
+            Console.WriteLine("Performing Join on parcel: "  + startParcel.parcelData.parcelName + " - " + startParcel.parcelData.area + "sqm and " + endParcel.parcelData.parcelName + " - " + endParcel.parcelData.area + "sqm");
             //Same owners! Lets join them
             //Merge them to startParcel
             parcelList[startParcel.parcelData.localID].setParcelBitmap(Parcel.mergeParcelBitmaps(startParcel.getParcelBitmap(), endParcel.getParcelBitmap()));
-
-            //Remove the old parcel
-            parcelList.Remove(endParcel.parcelData.localID);
+            performFinalParcelJoin(startParcel, endParcel);
 
             return true;
 
@@ -386,6 +417,7 @@ namespace OpenSim.RegionServer.world
         {
             //Remove all the parcels in the sim and add a blank, full sim parcel set to public
             parcelList.Clear();
+            lastParcelLocalID = START_PARCEL_LOCAL_ID - 1;
             parcelIDList.Initialize();
 
             Parcel fullSimParcel = new Parcel(LLUUID.Zero, false, m_world);
@@ -475,7 +507,7 @@ namespace OpenSim.RegionServer.world
         /// <param name="sequence_id">ID sent by client for them to keep track of</param>
         /// <param name="snap_selection">Bool sent by client for them to use</param>
         /// <param name="remote_client">Object representing the client</param>
-        public void sendParcelProperties(int sequence_id, bool snap_selection, ClientView remote_client)
+        public void sendParcelProperties(int sequence_id, bool snap_selection, int request_result, ClientView remote_client)
         {
 
             ParcelPropertiesPacket updatePacket = new ParcelPropertiesPacket();
@@ -495,7 +527,7 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.GroupPrims = parcelData.groupPrims;
             updatePacket.ParcelData.IsGroupOwned = parcelData.isGroupOwned;
             updatePacket.ParcelData.LandingType = (byte)0; //unemplemented
-            updatePacket.ParcelData.LocalID = (byte)parcelData.localID;
+            updatePacket.ParcelData.LocalID = parcelData.localID;
             updatePacket.ParcelData.MaxPrims = 1000; //unemplemented
             updatePacket.ParcelData.MediaAutoScale = (byte)0; //unemplemented
             updatePacket.ParcelData.MediaID = LLUUID.Zero; //unemplemented
@@ -517,7 +549,7 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.RegionDenyTransacted = false; //unemplemented
             updatePacket.ParcelData.RegionPushOverride = true; //unemplemented
             updatePacket.ParcelData.RentPrice = 0; //??
-            updatePacket.ParcelData.RequestResult = 0;//??
+            updatePacket.ParcelData.RequestResult = request_result;
             updatePacket.ParcelData.SalePrice = parcelData.salePrice; //unemplemented
             updatePacket.ParcelData.SelectedPrims = 0; //unemeplemented
             updatePacket.ParcelData.SelfCount = 0;//unemplemented
@@ -646,17 +678,9 @@ namespace OpenSim.RegionServer.world
         private bool[,] convertBytesToParcelBitmap()
         {
             bool[,] tempConvertMap = new bool[64, 64];
-            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-            //00000000 00000000 00000000 00000001 10000000 00000000 00000000 00000000
-            //00000000 00000000 00000000 00000001 10000000 00000000 00000000 00000000 
-            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-            //
+            tempConvertMap.Initialize(); 
             byte tempByte = 0;
-            int x = 63, y = 63, i = 0, bitNum = 0;
+            int x = 0, y = 0, i = 0, bitNum = 0;
             for(i = 0; i < 512; i++)
             {
                 tempByte = parcelData.parcelBitmapByteArray[i];
@@ -664,13 +688,15 @@ namespace OpenSim.RegionServer.world
                 {
                     bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & (byte)1);
                     tempConvertMap[x, y] = bit;
-                    x--;
-                    if (x < 0)
+                    x++;
+                    if(x > 63)
                     {
-                        y--;
-                        x = 63;
+                        x = 0; 
+                        y++;
                     }
+             
                 }
+
             }
             return tempConvertMap;
         }

@@ -85,6 +85,7 @@ namespace OpenSim
         public event StatusChange OnChildAgentStatus;
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
+        public event ParcelJoinRequest OnParcelJoinRequest;
 
         protected override void ProcessInPacket(Packet Pack)
         {
@@ -476,6 +477,10 @@ namespace OpenSim
                     case PacketType.ParcelDivide:
                         ParcelDividePacket parcelDivide = (ParcelDividePacket)Pack;
                         OnParcelDivideRequest((int)Math.Round(parcelDivide.ParcelData.West), (int)Math.Round(parcelDivide.ParcelData.South), (int)Math.Round(parcelDivide.ParcelData.East), (int)Math.Round(parcelDivide.ParcelData.North), this);
+                        break;
+                    case PacketType.ParcelJoin:
+                        ParcelJoinPacket parcelJoin = (ParcelJoinPacket)Pack;
+                        OnParcelJoinRequest((int)Math.Round(parcelJoin.ParcelData.West), (int)Math.Round(parcelJoin.ParcelData.South), (int)Math.Round(parcelJoin.ParcelData.East), (int)Math.Round(parcelJoin.ParcelData.North), this);
                         break;
                     #endregion
 

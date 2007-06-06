@@ -325,7 +325,7 @@ namespace OpenSim.world
         {
             //Get the parcels within the bounds
             List<OpenSim.RegionServer.world.Parcel> temp = new List<OpenSim.RegionServer.world.Parcel>();
-            int x, y;
+            int x, y, i;
             int inc_x = end_x - start_x;
             int inc_y = end_y - start_y;
             for(x = 0; x < inc_x; x++)
@@ -335,12 +335,24 @@ namespace OpenSim.world
                     OpenSim.RegionServer.world.Parcel currentParcel = parcelManager.getParcel(start_x + x, start_y + y);
                     if(!temp.Contains(currentParcel))
                     {
+                        currentParcel.
+                            forceUpdateParcelInfo();
                         temp.Add(currentParcel);
-                        currentParcel.forceUpdateParcelInfo();
-                        currentParcel.sendParcelProperties(sequence_id,snap_selection,remote_client);
                     }
                 }
             }
+
+            int requestResult = OpenSim.RegionServer.world.ParcelManager.PARCEL_RESULT_ONE_PARCEL;
+            if (temp.Count > 1)
+            {
+                requestResult = OpenSim.RegionServer.world.ParcelManager.PARCEL_RESULT_MULTIPLE_PARCELS;
+            }
+
+            for (i = 0; i < temp.Count; i++)
+            {
+                temp[i].sendParcelProperties(sequence_id, snap_selection, requestResult, remote_client);
+            }
+
 
             parcelManager.sendParcelOverlay(remote_client);
         }
@@ -348,6 +360,10 @@ namespace OpenSim.world
         void ParcelDivideRequest(int west, int south, int east, int north, ClientView remote_client)
         {
             parcelManager.subdivide(west, south, east, north, remote_client.AgentID);
+        }
+        void ParcelJoinRequest(int west, int south, int east, int north, ClientView remote_client)
+        {
+            parcelManager.join(west, south, east, north, remote_client.AgentID);
         }
         #endregion
 

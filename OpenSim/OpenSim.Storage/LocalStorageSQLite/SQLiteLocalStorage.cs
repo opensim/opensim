@@ -173,6 +173,18 @@ namespace OpenSim.Storage.LocalStorageSQLite
 
         }
 
+        public void SaveParcel(ParcelData parcel)
+        {
+        }
+
+        public void RemoveParcel(ParcelData parcel)
+        {
+        }
+
+        public void RemoveAllParcels()
+        {
+        }
+
         public void LoadParcels(ILocalStorageParcelReceiver recv)
         {
             recv.NoParcelDataFromStorage();

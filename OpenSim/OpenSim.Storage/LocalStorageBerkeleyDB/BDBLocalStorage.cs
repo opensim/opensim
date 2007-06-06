@@ -92,6 +92,17 @@ namespace OpenSim.Storage.LocalStorageBDB
         {
         }
 
+        public void SaveParcel(ParcelData parcel)
+        {
+        }
+
+        public void RemoveParcel(ParcelData parcel)
+        {
+        }
+
+        public void RemoveAllParcels()
+        {
+        }
 
         public void LoadParcels(ILocalStorageParcelReceiver recv)
         {

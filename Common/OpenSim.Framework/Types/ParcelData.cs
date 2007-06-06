@@ -28,6 +28,12 @@ namespace OpenSim.Framework.Types
             public libsecondlife.Parcel.ParcelFlags parcelFlags = libsecondlife.Parcel.ParcelFlags.None;
 
             public int localID = 0;
+            public LLUUID globalID = new LLUUID();
+
+            public ParcelData()
+            {
+                globalID = LLUUID.Random();
+            }
 
             public ParcelData Copy()
             {
@@ -41,6 +47,7 @@ namespace OpenSim.Framework.Types
                 parcelData.category = this.category;
                 parcelData.claimDate = this.claimDate;
                 parcelData.claimPrice = this.claimPrice;
+                parcelData.globalID = this.globalID;
                 parcelData.groupID = this.groupID;
                 parcelData.groupPrims = this.groupPrims;
                 parcelData.isGroupOwned = this.isGroupOwned;

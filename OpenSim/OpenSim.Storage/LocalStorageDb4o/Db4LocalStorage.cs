@@ -71,7 +71,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
 		
 		public void StorePrim(PrimData prim)
 		{
-			IObjectSet result = db.Query(new UUIDQuery(prim.FullID));
+			IObjectSet result = db.Query(new UUIDPrimQuery(prim.FullID));
 			if(result.Count>0)
 			{
 				//prim already in storage
@@ -112,7 +112,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
 		
 		public void RemovePrim(LLUUID primID)
 		{
-			IObjectSet result = db.Query(new UUIDQuery(primID));
+			IObjectSet result = db.Query(new UUIDPrimQuery(primID));
 			if(result.Count>0)
 			{
 				PrimData found = (PrimData) result.Next();
@@ -133,7 +133,6 @@ namespace OpenSim.Storage.LocalStorageDb4o
         public float[] LoadWorld()
         {
             OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Loading world....");
-            //World blank = new World();
             float[] heightmap = null;
             OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Looking for a heightmap in local DB");
             IObjectSet world_result = db.Get(typeof(MapStorage));
@@ -143,21 +142,6 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 MapStorage map = (MapStorage)world_result.Next();
                 //blank.LandMap = map.Map;
                 heightmap = map.Map;
-            }
-            else
-            {
-                /*
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - No heightmap found, generating new one");
-                HeightmapGenHills hills = new HeightmapGenHills();
-                // blank.LandMap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-               // heightmap = hills.GenerateHeightmap(200, 4.0f, 80.0f, false);
-                heightmap = new float[256, 256];
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LoadWorld() - Saving heightmap to local database");
-                MapStorage map = new MapStorage();
-                map.Map = heightmap; //blank.LandMap;
-                db.Set(map);
-                db.Commit();
-                 */
             }
             return heightmap;
         }
@@ -177,25 +161,75 @@ namespace OpenSim.Storage.LocalStorageDb4o
             db.Commit();
         }
 
+        public void SaveParcel(ParcelData parcel)
+        {
+            IObjectSet result = db.Query(new UUIDParcelQuery(parcel.globalID));
+            if (result.Count > 0)
+            {
+                //Old Parcel
+                ParcelData updateParcel = (ParcelData)result.Next();
+                updateParcel.AABBMax = parcel.AABBMax;
+                updateParcel.AABBMin = parcel.AABBMin;
+                updateParcel.area = parcel.area;
+                updateParcel.auctionID = parcel.auctionID;
+                updateParcel.authBuyerID = parcel.authBuyerID;
+                updateParcel.category = parcel.category;
+                updateParcel.claimDate = parcel.claimDate;
+                updateParcel.claimPrice = parcel.claimPrice;
+                updateParcel.groupID = parcel.groupID;
+                updateParcel.groupPrims = parcel.groupPrims;
+                updateParcel.isGroupOwned = parcel.isGroupOwned;
+                updateParcel.localID = parcel.localID;
+                updateParcel.ownerID = parcel.ownerID;
+                updateParcel.parcelBitmapByteArray = (byte[])parcel.parcelBitmapByteArray.Clone();
+                updateParcel.parcelDesc = parcel.parcelDesc;
+                updateParcel.parcelFlags = parcel.parcelFlags;
+                updateParcel.parcelName = parcel.parcelName;
+                updateParcel.parcelStatus = parcel.parcelStatus;
+                updateParcel.salePrice = parcel.salePrice;
+                
+                db.Set(updateParcel);
+            }
+            else
+            {
+                db.Set(parcel);
+            }
+            db.Commit();                
+        }
+
         public void SaveParcels(ParcelData[] parcel_data)
         {
             MainConsole.Instance.Notice("Parcel Backup: Saving Parcels...");
-            IObjectSet result = db.Get(typeof(ParcelData));
-            foreach (ParcelData parcel in result)
-            {
-                db.Delete(parcel);
-            }
-            MainConsole.Instance.Notice("Parcel Backup: Removing old entries complete. Adding new entries.");
             int i;
             for (i = 0; i < parcel_data.GetLength(0); i++)
             {
 
-                MainConsole.Instance.Notice("Adding : " + i + " - SAMPLE: " + parcel_data[i].parcelBitmapByteArray[0]);
-                db.Set(parcel_data[i]);
+                SaveParcel(parcel_data[i]);
 
             }
-            db.Commit();
             MainConsole.Instance.Notice("Parcel Backup: Parcel Save Complete");
+        }
+
+        public void RemoveParcel(ParcelData parcel)
+        {
+            IObjectSet result = db.Query(new UUIDParcelQuery(parcel.globalID));
+            if (result.Count > 0)
+            {
+                db.Delete(result[0]);
+            }
+            db.Commit();
+        }
+        public void RemoveAllParcels()
+        {
+            MainConsole.Instance.Notice("Parcel Backup: Removing all parcels...");
+            IObjectSet result = db.Get(typeof(ParcelData));
+            if (result.Count > 0)
+            {
+                foreach (ParcelData parcelData in result)
+                {
+                    RemoveParcel(parcelData);
+                }
+            }
         }
 
         public void LoadParcels(ILocalStorageParcelReceiver recv)

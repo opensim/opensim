@@ -46,6 +46,9 @@ namespace OpenSim.Framework.Interfaces
         void SaveMap(float[] heightmap);
 
         void SaveParcels(ParcelData[] parcels);
+        void SaveParcel(ParcelData parcel);
+        void RemoveParcel(ParcelData parcel);
+        void RemoveAllParcels();
         void LoadParcels(ILocalStorageParcelReceiver recv);
 
         void ShutDown();

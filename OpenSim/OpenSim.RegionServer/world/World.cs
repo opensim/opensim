@@ -282,10 +282,11 @@ namespace OpenSim.world
                 
                 //Parcel backup routines. Yay!
                 ParcelData[] parcels = new ParcelData[parcelManager.parcelList.Count];
-                int i;
-                for (i = 0; i < parcelManager.parcelList.Count; i++)
+                int i = 0;
+                foreach(OpenSim.RegionServer.world.Parcel parcel in parcelManager.parcelList.Values)
                 {
-                    parcels[i] = parcelManager.parcelList[OpenSim.RegionServer.world.ParcelManager.START_PARCEL_LOCAL_ID + i].parcelData;
+                    parcels[i] = parcel.parcelData;
+                    i++;
                 }
                 localStorage.SaveParcels(parcels);
 
@@ -616,6 +617,7 @@ namespace OpenSim.world
 
             agentClient.OnParcelPropertiesRequest += new OpenSim.RegionServer.world.ParcelPropertiesRequest(ParcelPropertiesRequest);
             agentClient.OnParcelDivideRequest += new OpenSim.RegionServer.world.ParcelDivideRequest(ParcelDivideRequest);
+            agentClient.OnParcelJoinRequest+=new OpenSim.RegionServer.world.ParcelJoinRequest(ParcelJoinRequest);
             Avatar newAvatar = null;
             try
             {

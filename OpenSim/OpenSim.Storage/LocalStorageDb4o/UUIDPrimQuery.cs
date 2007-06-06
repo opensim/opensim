@@ -36,11 +36,11 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Storage.LocalStorageDb4o
 {
-    public class UUIDQuery : Predicate
+    public class UUIDPrimQuery : Predicate
     {
         private LLUUID _findID;
 
-        public UUIDQuery(LLUUID find)
+        public UUIDPrimQuery(LLUUID find)
         {
             _findID = find;
         }
