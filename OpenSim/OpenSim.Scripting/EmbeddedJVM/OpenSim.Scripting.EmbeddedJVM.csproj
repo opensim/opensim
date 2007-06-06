@@ -76,64 +76,64 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClassInstance.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClassRecord.cs">
+    <Compile Include="MainMemory.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Heap.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interpreter.cs">
+    <Compile Include="StackFrame.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InterpreterLogic.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="OpenSimJVM.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="InterpreterMethods.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClassInstance.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InterpreterReturn.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MainMemory.cs">
+    <Compile Include="Interpreter.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MethodMemory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Object.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="OpenSimJVM.cs">
+    <Compile Include="ClassRecord.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Stack.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="StackFrame.cs">
+    <Compile Include="Object.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Thread.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs">
+    <Compile Include="MethodMemory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\ArrayReference.cs">
+    <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\BaseType.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Types\ArrayReference.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Types\ObjectReference.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\PrimitiveTypes\Byte.cs">
+    <Compile Include="Types\PrimitiveTypes\Char.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\PrimitiveTypes\Char.cs">
+    <Compile Include="Types\PrimitiveTypes\Byte.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\PrimitiveTypes\Float.cs">

@@ -11,15 +11,15 @@
             <resources prefix="OpenSim.Servers" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="LoginServer.cs" />
                 <include name="BaseHttpServer.cs" />
                 <include name="BaseServer.cs" />
-                <include name="CheckSumServer.cs" />
                 <include name="IRestHandler.cs" />
                 <include name="LocalUserProfileManager.cs" />
-                <include name="LoginResponse.cs" />
-                <include name="LoginServer.cs" />
-                <include name="UDPServerBase.cs" />
                 <include name="XmlRpcMethod.cs" />
+                <include name="LoginResponse.cs" />
+                <include name="CheckSumServer.cs" />
+                <include name="UDPServerBase.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

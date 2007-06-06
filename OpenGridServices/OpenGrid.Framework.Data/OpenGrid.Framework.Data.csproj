@@ -81,6 +81,9 @@
     <Compile Include="GridData.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SimProfileData.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ILogData.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -88,9 +91,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InventoryData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfileData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UserData.cs">

@@ -11,9 +11,8 @@
             <resources prefix="OpenGridServices.InventoryServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="InventoryManager.cs" />
                 <include name="Main.cs" />
-                <include name="Properties/AssemblyInfo.cs" />
+                <include name="InventoryManager.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
