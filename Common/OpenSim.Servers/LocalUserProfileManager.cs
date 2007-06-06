@@ -64,7 +64,7 @@ namespace OpenSim.UserServer
 
         public override void InitUserProfiles()
         {
-            // TODO: need to load from database
+            base.InitUserProfiles();
         }
 
         public override void CustomiseResponse(ref System.Collections.Hashtable response, UserProfile theUser)

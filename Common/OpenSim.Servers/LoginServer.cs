@@ -98,7 +98,7 @@ namespace OpenSim.UserServer
             this._mpasswd = EncodePassword("testpass");
 
             userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr, regionX, regionY);
-            //userManager.InitUserProfiles();
+            userManager.InitUserProfiles();
             userManager.SetKeys("", "", "", "Welcome to OpenSim");
         }
 

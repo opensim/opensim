@@ -133,6 +133,7 @@ namespace OpenSim.Framework.User
             newprofile.UUID = LLUUID.Random();
 	    newprofile.Inventory.CreateRootFolder(newprofile.UUID, true);
             this.UserProfiles.Add(newprofile.UUID, newprofile);
+            SaveUserProfiles();
             return newprofile;
         }
 

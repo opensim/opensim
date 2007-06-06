@@ -37,7 +37,7 @@ using OpenSim.Framework.Types;
 namespace OpenSim.RegionServer.world
 {
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, ClientView remote_client);
-
+    public delegate void ParcelDivideRequest(int west, int south, int east, int north, ClientView remote_client);
 
     #region ParcelManager Class
     /// <summary>
@@ -49,25 +49,28 @@ namespace OpenSim.RegionServer.world
         #region Constants
         //Parcel types set with flags in ParcelOverlay.
         //Only one of these can be used. 
-        public static byte PARCEL_TYPE_PUBLIC = (byte)0;      //Equals 00000000
-        public static byte PARCEL_TYPE_OWNED_BY_OTHER = (byte)1;      //Equals 00000001
-        public static byte PARCEL_TYPE_OWNED_BY_GROUP = (byte)2;      //Equals 00000010
-        public static byte PARCEL_TYPE_OWNED_BY_REQUESTER = (byte)3;      //Equals 00000011
-        public static byte PARCEL_TYPE_IS_FOR_SALE = (byte)4;      //Equals 00000100
-        public static byte PARCEL_TYPE_IS_BEING_AUCTIONED = (byte)5;      //Equals 00000101
+        public const byte PARCEL_TYPE_PUBLIC = (byte)0;      //Equals 00000000
+        public const byte PARCEL_TYPE_OWNED_BY_OTHER = (byte)1;      //Equals 00000001
+        public const byte PARCEL_TYPE_OWNED_BY_GROUP = (byte)2;      //Equals 00000010
+        public const byte PARCEL_TYPE_OWNED_BY_REQUESTER = (byte)3;      //Equals 00000011
+        public const byte PARCEL_TYPE_IS_FOR_SALE = (byte)4;      //Equals 00000100
+        public const byte PARCEL_TYPE_IS_BEING_AUCTIONED = (byte)5;      //Equals 00000101
 
 
         //Flags that when set, a border on the given side will be placed
         //NOTE: North and East is assumable by the west and south sides (if parcel to east has a west border, then I have an east border; etc)
         //This took forever to figure out -- jeesh. /blame LL for even having to send these
-        public static byte PARCEL_FLAG_PROPERTY_BORDER_WEST = (byte)64;     //Equals 01000000
-        public static byte PARCEL_FLAG_PROPERTY_BORDER_SOUTH = (byte)128;    //Equals 10000000
+        public const byte PARCEL_FLAG_PROPERTY_BORDER_WEST = (byte)64;     //Equals 01000000
+        public const byte PARCEL_FLAG_PROPERTY_BORDER_SOUTH = (byte)128;    //Equals 10000000
 
+
+        //These are other constants. Yay!
+        public const int START_PARCEL_LOCAL_ID = 1;
         #endregion
 
         #region Member Variables
         public Dictionary<int, Parcel> parcelList = new Dictionary<int, Parcel>();
-        private int lastParcelLocalID = -1;
+        private int lastParcelLocalID = START_PARCEL_LOCAL_ID - 1;
         private int[,] parcelIDList = new int[64, 64];
 
         private static World m_world;
@@ -78,8 +81,7 @@ namespace OpenSim.RegionServer.world
         {
 
             m_world = world;
-            Console.WriteLine("Created ParcelManager Object");
-
+            parcelIDList.Initialize();
 
         }
         #endregion
@@ -90,15 +92,15 @@ namespace OpenSim.RegionServer.world
         public void ParcelFromStorage(ParcelData data)
         {
             Parcel new_parcel = new Parcel(data.ownerID, data.isGroupOwned, m_world);
-            new_parcel.parcelData = data;
+            new_parcel.parcelData = data.Copy();
             new_parcel.setParcelBitmapFromByteArray();
+            addParcel(new_parcel);
 
-            this.addParcel(new_parcel);
         }
 
         public void NoParcelDataFromStorage()
         {
-            this.resetSimParcels();
+            resetSimParcels();
         }
         #endregion
 
@@ -120,7 +122,7 @@ namespace OpenSim.RegionServer.world
         {
             lastParcelLocalID++;
             new_parcel.parcelData.localID = lastParcelLocalID;
-            parcelList.Add(lastParcelLocalID, new_parcel);
+            parcelList.Add(lastParcelLocalID, new_parcel.Copy());
 
 
             bool[,] parcelBitmap = new_parcel.getParcelBitmap();
@@ -135,6 +137,9 @@ namespace OpenSim.RegionServer.world
                     }
                 }
             }
+            parcelList[lastParcelLocalID].forceUpdateParcelInfo();
+
+            
         }
         /// <summary>
         /// Removes a parcel from the list. Will not remove if local_id is still owning an area in parcelIDList
@@ -198,9 +203,9 @@ namespace OpenSim.RegionServer.world
                 int totalX = end_x - start_x;
                 int totalY = end_y - start_y;
                 int x, y;
-                for (x = 0; x < totalX; x++)
+                for (y = 0; y < totalY; y++)
                 {
-                    for (y = 0; y < totalY; y++)
+                    for (x = 0; x < totalX; x++)
                     {
                         Parcel tempParcel = getParcel(start_x + x, start_y + y);
                         if (tempParcel == null) return false; //No such parcel at that point
@@ -221,15 +226,23 @@ namespace OpenSim.RegionServer.world
             }
 
             //Lets create a new parcel with bitmap activated at that point (keeping the old parcels info)
-            Parcel newParcel = startParcel;
+            Parcel newParcel = startParcel.Copy();
+            newParcel.parcelData.parcelName = "Subdivision of " + newParcel.parcelData.parcelName;
+
             newParcel.setParcelBitmap(Parcel.getSquareParcelBitmap(start_x, start_y, end_x, end_y));
 
             //Now, lets set the subdivision area of the original to false
             int startParcelIndex = startParcel.parcelData.localID;
-            parcelList[startParcelIndex].setParcelBitmap(Parcel.modifyParcelBitmapSquare(parcelList[startParcelIndex].getParcelBitmap(), start_x, start_y, end_x, end_y, false));
+            parcelList[startParcelIndex].setParcelBitmap(Parcel.modifyParcelBitmapSquare(startParcel.getParcelBitmap(), start_x, start_y, end_x, end_y, false));
+            parcelList[startParcelIndex].forceUpdateParcelInfo();
+            
 
             //Now add the new parcel
             addParcel(newParcel);
+
+             
+
+
 
             return true;
         }
@@ -247,6 +260,7 @@ namespace OpenSim.RegionServer.world
             //NOTE: The following only connects the parcels in each corner and not all the parcels that are within the selection box!
             //This should be fixed later -- somewhat "incomplete code" --Ming
             Parcel startParcel, endParcel;
+
             try
             {
                 startParcel = getParcel(start_x, start_y);
@@ -295,9 +309,9 @@ namespace OpenSim.RegionServer.world
             int sequenceID = 0;
             ParcelOverlayPacket packet;
 
-            for (x = 0; x < 64; x++)
+            for (y = 0; y < 64; y++)
             {
-                for (y = 0; y < 64; y++)
+                for (x = 0; x < 64; x++)
                 {
                     byte tempByte = (byte)0; //This represents the byte for the current 4x4
                     Parcel currentParcelBlock = getParcel(x * 4, y * 4);
@@ -329,7 +343,7 @@ namespace OpenSim.RegionServer.world
                     {
                         tempByte = Convert.ToByte(tempByte | PARCEL_FLAG_PROPERTY_BORDER_WEST);
                     }
-                    else if (getParcel(x - 1, y) != currentParcelBlock)
+                    else if (getParcel((x - 1) * 4, y * 4) != currentParcelBlock)
                     {
                         tempByte = Convert.ToByte(tempByte | PARCEL_FLAG_PROPERTY_BORDER_WEST);
                     }
@@ -338,7 +352,7 @@ namespace OpenSim.RegionServer.world
                     {
                         tempByte = Convert.ToByte(tempByte | PARCEL_FLAG_PROPERTY_BORDER_SOUTH);
                     }
-                    else if (getParcel(x, y - 1) != currentParcelBlock)
+                    else if (getParcel(x * 4, (y - 1) * 4) != currentParcelBlock)
                     {
                         tempByte = Convert.ToByte(tempByte | PARCEL_FLAG_PROPERTY_BORDER_SOUTH);
                     }
@@ -373,8 +387,10 @@ namespace OpenSim.RegionServer.world
             //Remove all the parcels in the sim and add a blank, full sim parcel set to public
             parcelList.Clear();
             parcelIDList.Initialize();
+
             Parcel fullSimParcel = new Parcel(LLUUID.Zero, false, m_world);
-            fullSimParcel.setParcelBitmap(Parcel.basicFullRegionParcelBitmap());
+
+            fullSimParcel.setParcelBitmap(Parcel.getSquareParcelBitmap(0, 0, 256, 256));
             fullSimParcel.parcelData.parcelName = "Your Sim Parcel";
             fullSimParcel.parcelData.parcelDesc = "";
 
@@ -382,8 +398,8 @@ namespace OpenSim.RegionServer.world
             fullSimParcel.parcelData.salePrice = 1;
             fullSimParcel.parcelData.parcelFlags = libsecondlife.Parcel.ParcelFlags.ForSale;
             fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Leased;
-            addParcel(fullSimParcel);
 
+            addParcel(fullSimParcel);
 
         }
         #endregion
@@ -430,13 +446,25 @@ namespace OpenSim.RegionServer.world
         {
             if (x >= 0 && y >= 0 && x <= 256 && x <= 256)
             {
-                return (this.parcelBitmap[x / 4, y / 4] == true);
+                return (parcelBitmap[x / 4, y / 4] == true);
             }
             else
             {
                 return false;
             }
         }
+
+        public Parcel Copy()
+        {
+            Parcel newParcel = new Parcel(this.parcelData.ownerID, this.parcelData.isGroupOwned, m_world);
+
+            //Place all new variables here!
+            newParcel.parcelBitmap = (bool[,])(this.parcelBitmap.Clone());
+            newParcel.parcelData = parcelData.Copy();
+           
+            return newParcel;
+        }
+
         #endregion
 
 
@@ -453,33 +481,33 @@ namespace OpenSim.RegionServer.world
             ParcelPropertiesPacket updatePacket = new ParcelPropertiesPacket();
             updatePacket.ParcelData.AABBMax = parcelData.AABBMax;
             updatePacket.ParcelData.AABBMin = parcelData.AABBMin;
-            updatePacket.ParcelData.Area = this.parcelData.area;
-            updatePacket.ParcelData.AuctionID = this.parcelData.auctionID;
-            updatePacket.ParcelData.AuthBuyerID = this.parcelData.authBuyerID; //unemplemented
+            updatePacket.ParcelData.Area = parcelData.area;
+            updatePacket.ParcelData.AuctionID = parcelData.auctionID;
+            updatePacket.ParcelData.AuthBuyerID =parcelData.authBuyerID; //unemplemented
 
-            updatePacket.ParcelData.Bitmap = this.convertParcelBitmapToBytes();
+            updatePacket.ParcelData.Bitmap = parcelData.parcelBitmapByteArray;
 
-            updatePacket.ParcelData.Desc = libsecondlife.Helpers.StringToField(this.parcelData.parcelDesc);
-            updatePacket.ParcelData.Category = (byte)this.parcelData.category;
-            updatePacket.ParcelData.ClaimDate = this.parcelData.claimDate;
-            updatePacket.ParcelData.ClaimPrice = this.parcelData.claimPrice;
-            updatePacket.ParcelData.GroupID = this.parcelData.groupID;
-            updatePacket.ParcelData.GroupPrims = this.parcelData.groupPrims;
-            updatePacket.ParcelData.IsGroupOwned = this.parcelData.isGroupOwned;
+            updatePacket.ParcelData.Desc = libsecondlife.Helpers.StringToField(parcelData.parcelDesc);
+            updatePacket.ParcelData.Category = (byte)parcelData.category;
+            updatePacket.ParcelData.ClaimDate = parcelData.claimDate;
+            updatePacket.ParcelData.ClaimPrice = parcelData.claimPrice;
+            updatePacket.ParcelData.GroupID = parcelData.groupID;
+            updatePacket.ParcelData.GroupPrims = parcelData.groupPrims;
+            updatePacket.ParcelData.IsGroupOwned = parcelData.isGroupOwned;
             updatePacket.ParcelData.LandingType = (byte)0; //unemplemented
-            updatePacket.ParcelData.LocalID = (byte)this.parcelData.localID;
+            updatePacket.ParcelData.LocalID = (byte)parcelData.localID;
             updatePacket.ParcelData.MaxPrims = 1000; //unemplemented
             updatePacket.ParcelData.MediaAutoScale = (byte)0; //unemplemented
             updatePacket.ParcelData.MediaID = LLUUID.Zero; //unemplemented
             updatePacket.ParcelData.MediaURL = Helpers.StringToField(""); //unemplemented
             updatePacket.ParcelData.MusicURL = Helpers.StringToField(""); //unemplemented
-            updatePacket.ParcelData.Name = Helpers.StringToField(this.parcelData.parcelName);
+            updatePacket.ParcelData.Name = Helpers.StringToField(parcelData.parcelName);
             updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
             updatePacket.ParcelData.OtherCount = 0; //unemplemented
             updatePacket.ParcelData.OtherPrims = 0; //unemplented
-            updatePacket.ParcelData.OwnerID = this.parcelData.ownerID;
+            updatePacket.ParcelData.OwnerID = parcelData.ownerID;
             updatePacket.ParcelData.OwnerPrims = 0; //unemplemented
-            updatePacket.ParcelData.ParcelFlags = (uint)this.parcelData.parcelFlags; //unemplemented
+            updatePacket.ParcelData.ParcelFlags = (uint)parcelData.parcelFlags; //unemplemented
             updatePacket.ParcelData.ParcelPrimBonus = (float)1.0; //unemplemented
             updatePacket.ParcelData.PassHours = (float)0.0; //unemplemented
             updatePacket.ParcelData.PassPrice = 0; //unemeplemented
@@ -490,7 +518,7 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.RegionPushOverride = true; //unemplemented
             updatePacket.ParcelData.RentPrice = 0; //??
             updatePacket.ParcelData.RequestResult = 0;//??
-            updatePacket.ParcelData.SalePrice = this.parcelData.salePrice; //unemplemented
+            updatePacket.ParcelData.SalePrice = parcelData.salePrice; //unemplemented
             updatePacket.ParcelData.SelectedPrims = 0; //unemeplemented
             updatePacket.ParcelData.SelfCount = 0;//unemplemented
             updatePacket.ParcelData.SequenceID = sequence_id;
@@ -498,7 +526,7 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.SimWideTotalPrims = 0; //unemplemented
             updatePacket.ParcelData.SnapSelection = snap_selection; //Bleh - not important yet
             updatePacket.ParcelData.SnapshotID = LLUUID.Zero; //Unemplemented
-            updatePacket.ParcelData.Status = (byte)this.parcelData.parcelStatus; //??
+            updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus; //??
             updatePacket.ParcelData.TotalPrims = 0; //unemplemented
             updatePacket.ParcelData.UserLocation = LLVector3.Zero; //unemplemented
             updatePacket.ParcelData.UserLookAt = LLVector3.Zero; //unemeplemented
@@ -534,15 +562,25 @@ namespace OpenSim.RegionServer.world
                     }
                 }
             }
-            this.parcelData.AABBMin = new LLVector3((float)(min_x * 4), (float)(min_y * 4), m_world.Terrain[(min_x * 4), (min_y * 4)]);
-            this.parcelData.AABBMax = new LLVector3((float)(max_x * 4), (float)(max_y * 4), m_world.Terrain[(max_x * 4), (max_y * 4)]);
-            this.parcelData.area = tempArea;
+            parcelData.AABBMin = new LLVector3((float)(min_x * 4), (float)(min_y * 4), m_world.Terrain[(min_x * 4), (min_y * 4)]);
+            parcelData.AABBMax = new LLVector3((float)(max_x * 4), (float)(max_y * 4), m_world.Terrain[(max_x * 4), (max_y * 4)]);
+            parcelData.area = tempArea;
         }
 
         public void updateParcelBitmapByteArray()
         {
             parcelData.parcelBitmapByteArray = convertParcelBitmapToBytes();
         }
+
+        /// <summary>
+        /// Update all settings in parcel such as area, bitmap byte array, etc
+        /// </summary>
+        public void forceUpdateParcelInfo()
+        {
+            this.updateAABBAndAreaValues();
+            this.updateParcelBitmapByteArray();
+        }
+
         public void setParcelBitmapFromByteArray()
         {
             parcelBitmap = convertBytesToParcelBitmap();
@@ -565,9 +603,9 @@ namespace OpenSim.RegionServer.world
             else
             {
                 //Valid: Lets set it
-                this.parcelBitmap = bitmap;
-                updateAABBAndAreaValues();
-                updateParcelBitmapByteArray();
+                parcelBitmap = bitmap;
+                forceUpdateParcelInfo();
+               
             }
         }
         /// <summary>
@@ -608,9 +646,17 @@ namespace OpenSim.RegionServer.world
         private bool[,] convertBytesToParcelBitmap()
         {
             bool[,] tempConvertMap = new bool[64, 64];
-
+            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+            //00000000 00000000 00000000 00000001 10000000 00000000 00000000 00000000
+            //00000000 00000000 00000000 00000001 10000000 00000000 00000000 00000000 
+            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+            //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+            //
             byte tempByte = 0;
-            int x = 0, y = 0, i = 0, bitNum = 0;
+            int x = 63, y = 63, i = 0, bitNum = 0;
             for(i = 0; i < 512; i++)
             {
                 tempByte = parcelData.parcelBitmapByteArray[i];
@@ -618,7 +664,12 @@ namespace OpenSim.RegionServer.world
                 {
                     bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & (byte)1);
                     tempConvertMap[x, y] = bit;
-                    if (x >= 64) y++;
+                    x--;
+                    if (x < 0)
+                    {
+                        y--;
+                        x = 63;
+                    }
                 }
             }
             return tempConvertMap;
@@ -646,7 +697,7 @@ namespace OpenSim.RegionServer.world
             bool[,] tempBitmap = new bool[64, 64];
             tempBitmap.Initialize();
 
-            tempBitmap = modifyParcelBitmapSquare(tempBitmap, start_x, start_y, end_x, end_x, true);
+            tempBitmap = modifyParcelBitmapSquare(tempBitmap, start_x, start_y, end_x, end_y, true);
             return tempBitmap;
         }
 
@@ -669,14 +720,14 @@ namespace OpenSim.RegionServer.world
             }
 
             int x, y;
-            for (x = 0; x < 64; x++)
+            for (y = 0; y < 64; y++)
             {
-                for (y = 0; y < 64; y++)
+                for (x = 0; x < 64; x++)
                 {
-                    if (x >= start_x / 4 && x <= end_x / 4
-                        && y >= start_y / 4 && y <= end_y / 4)
+                    if (x >= start_x / 4 && x < end_x / 4
+                        && y >= start_y / 4 && y < end_y / 4)
                     {
-                        parcel_bitmap[x, y] = true;
+                        parcel_bitmap[x, y] = set_value;
                     }
                 }
             }
@@ -699,12 +750,13 @@ namespace OpenSim.RegionServer.world
             {
                 //Throw an exception - The bitmap is not 64x64
                 throw new Exception("Error: Invalid Parcel Bitmap - Bitmap_add in mergeParcelBitmaps");
+                
             }
 
             int x, y;
-            for (x = 0; x < 64; x++)
+            for (y = 0; y < 64; y++)
             {
-                for (y = 0; y < 64; y++)
+                for (x = 0; x < 64; x++)
                 {
                     if (bitmap_add[x, y])
                     {

@@ -189,7 +189,8 @@ namespace OpenSim.Storage.LocalStorageDb4o
             int i;
             for (i = 0; i < parcel_data.GetLength(0); i++)
             {
-                MainConsole.Instance.Notice("Adding : " + i);
+
+                MainConsole.Instance.Notice("Adding : " + i + " - SAMPLE: " + parcel_data[i].parcelBitmapByteArray[0]);
                 db.Set(parcel_data[i]);
 
             }
@@ -206,6 +207,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 MainConsole.Instance.Notice("Parcel Backup: Parcels exist in database.");
                 foreach (ParcelData parcelData in result)
                 {
+
                     recv.ParcelFromStorage(parcelData);
                 }
             }

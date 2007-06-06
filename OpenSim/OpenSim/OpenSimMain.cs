@@ -506,6 +506,7 @@ namespace OpenSim
                 case "help":
                     m_console.Error("show users - show info about connected users");
                     m_console.Error("shutdown - disconnect all clients and shutdown");
+                    m_console.Error("backup - start a backup manually");
                     break;
 
                 case "show":
@@ -524,6 +525,9 @@ namespace OpenSim
                     Shutdown();
                     break;
 
+                case "backup":
+                    LocalWorld.Backup();
+                    break;
                 default:
                     m_console.Error("Unknown command");
                     break;

@@ -336,12 +336,18 @@ namespace OpenSim.world
                     if(!temp.Contains(currentParcel))
                     {
                         temp.Add(currentParcel);
+                        currentParcel.forceUpdateParcelInfo();
                         currentParcel.sendParcelProperties(sequence_id,snap_selection,remote_client);
                     }
                 }
             }
 
             parcelManager.sendParcelOverlay(remote_client);
+        }
+
+        void ParcelDivideRequest(int west, int south, int east, int north, ClientView remote_client)
+        {
+            parcelManager.subdivide(west, south, east, north, remote_client.AgentID);
         }
         #endregion
 

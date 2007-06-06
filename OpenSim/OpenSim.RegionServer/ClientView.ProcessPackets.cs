@@ -84,6 +84,7 @@ namespace OpenSim
         public event UpdatePrimVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
+        public event ParcelDivideRequest OnParcelDivideRequest;
 
         protected override void ProcessInPacket(Packet Pack)
         {
@@ -472,6 +473,10 @@ namespace OpenSim
                         ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
                         OnParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West), (int)Math.Round(propertiesRequest.ParcelData.South), (int)Math.Round(propertiesRequest.ParcelData.East), (int)Math.Round(propertiesRequest.ParcelData.North),propertiesRequest.ParcelData.SequenceID,propertiesRequest.ParcelData.SnapSelection, this);
                         break;
+                    case PacketType.ParcelDivide:
+                        ParcelDividePacket parcelDivide = (ParcelDividePacket)Pack;
+                        OnParcelDivideRequest((int)Math.Round(parcelDivide.ParcelData.West), (int)Math.Round(parcelDivide.ParcelData.South), (int)Math.Round(parcelDivide.ParcelData.East), (int)Math.Round(parcelDivide.ParcelData.North), this);
+                        break;
                     #endregion
 
                     #region unimplemented handlers
@@ -481,19 +486,7 @@ namespace OpenSim
                     case PacketType.ObjectScale:
                         break;
                     case PacketType.MoneyBalanceRequest:
-                        //This need to be actually done and not thrown back with fake info
-                        MoneyBalanceRequestPacket incoming = (MoneyBalanceRequestPacket)Pack;
-                        MoneyBalanceReplyPacket outgoing = new MoneyBalanceReplyPacket();
-                        outgoing.MoneyData.AgentID = incoming.AgentData.AgentID;
-                        outgoing.MoneyData.MoneyBalance = 31337;
-                        outgoing.MoneyData.SquareMetersCommitted = 0;
-                        outgoing.MoneyData.SquareMetersCredit = 100000000;
-                        outgoing.MoneyData.TransactionID = incoming.MoneyData.TransactionID;
-                        outgoing.MoneyData.TransactionSuccess = true;
-                        outgoing.MoneyData.Description = libsecondlife.Helpers.StringToField("");
-                        this.OutPacket((Packet)outgoing);
-                        MainConsole.Instance.Notice("Sent Temporary Money packet (they have leet monies)");
-
+                        //This need to be actually done and not thrown back with fake infos
                         break;
 
                     case PacketType.EstateCovenantRequest:

@@ -28,6 +28,34 @@ namespace OpenSim.Framework.Types
             public libsecondlife.Parcel.ParcelFlags parcelFlags = libsecondlife.Parcel.ParcelFlags.None;
 
             public int localID = 0;
+
+            public ParcelData Copy()
+            {
+                ParcelData parcelData = new ParcelData();
+
+                parcelData.AABBMax = this.AABBMax;
+                parcelData.AABBMin = this.AABBMin;
+                parcelData.area = this.area;
+                parcelData.auctionID = this.auctionID;
+                parcelData.authBuyerID = this.authBuyerID;
+                parcelData.category = this.category;
+                parcelData.claimDate = this.claimDate;
+                parcelData.claimPrice = this.claimPrice;
+                parcelData.groupID = this.groupID;
+                parcelData.groupPrims = this.groupPrims;
+                parcelData.isGroupOwned = this.isGroupOwned;
+                parcelData.localID = this.localID;
+                parcelData.ownerID = this.ownerID;
+                parcelData.parcelBitmapByteArray = (byte[])this.parcelBitmapByteArray.Clone();
+                parcelData.parcelDesc = this.parcelDesc;
+                parcelData.parcelFlags = this.parcelFlags;
+                parcelData.parcelName = this.parcelName;
+                parcelData.parcelStatus = this.parcelStatus;
+                parcelData.salePrice = this.salePrice;
+
+                return parcelData;
+           
+            }
         }
     
 }
