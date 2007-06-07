@@ -40,22 +40,22 @@ namespace OpenSim.RegionServer
 {
     public class RegionInfoBase
     {
-        public LLUUID SimUUID;
-        public string RegionName;
-        public uint RegionLocX;
-        public uint RegionLocY;
-        public ulong RegionHandle;
+        public LLUUID SimUUID = new LLUUID();
+        public string RegionName = "";
+        public uint RegionLocX = 0;
+        public uint RegionLocY = 0;
+        public ulong RegionHandle = 0;
         
 
-        public int IPListenPort;
-        public string IPListenAddr;
+        public int IPListenPort = 0;
+        public string IPListenAddr = "";
 
 
         public EstateSettings estateSettings;
 
         public RegionInfoBase()
         {
-
+            estateSettings = new EstateSettings();
         }
     }
 
