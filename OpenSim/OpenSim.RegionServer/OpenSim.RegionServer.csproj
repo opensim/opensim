@@ -124,7 +124,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AuthenticateSessionsBase.cs">
+    <Compile Include="UDPServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AuthenticateSessionsLocal.cs">
@@ -133,16 +133,19 @@
     <Compile Include="AuthenticateSessionsRemote.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="OpenSimNetworkHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Grid.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimNetworkHandler.cs">
+    <Compile Include="RegionInfoBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RegionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionInfoBase.cs">
+    <Compile Include="AuthenticateSessionsBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="VersionInfo.cs">
@@ -154,31 +157,16 @@
     <Compile Include="RegionServerBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PacketServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UDPServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="OpenSimMain.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAPS\AdminWebFront.cs">
+    <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\AssetCache.cs">
+    <Compile Include="Simulator\Avatar.Client.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\InventoryCache.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Estate\EstateManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Mesh.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Triangle.cs">
+    <Compile Include="Simulator\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\World.Scripting.cs">
@@ -187,22 +175,16 @@
     <Compile Include="Simulator\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\Primitive.cs">
+    <Compile Include="Simulator\WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\WorldBase.cs">
+    <Compile Include="Simulator\Primitive2.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\SceneObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\World.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\ParcelManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\World.PacketHandlers.cs">
+    <Compile Include="Simulator\Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\Avatar.cs">
@@ -211,34 +193,49 @@
     <Compile Include="Simulator\Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\AvatarAnimations.cs">
+    <Compile Include="Simulator\ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\Primitive2.cs">
+    <Compile Include="Simulator\World.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\Avatar.Client.cs">
+    <Compile Include="Simulator\World.PacketHandlers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Estate\EstateManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CAPS\AdminWebFront.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Assets\InventoryCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetCache.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scripting\IScriptContext.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripting\IScriptEntity.cs">
+    <Compile Include="Scripting\IScriptHandler.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripting\Script.cs">
+    <Compile Include="Scripting\IScriptEntity.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scripting\ScriptFactory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripting\IScriptHandler.cs">
+    <Compile Include="Scripting\Script.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scripting\Scripts\FollowRandomAvatar.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientViewBase.cs">
+    <Compile Include="Types\Mesh.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\Triangle.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Client\ClientView.Grid.cs">
@@ -247,10 +244,13 @@
     <Compile Include="Client\ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientView.cs">
+    <Compile Include="Client\ClientView.ProcessPackets.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientView.ProcessPackets.cs">
+    <Compile Include="Client\ClientViewBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Client\ClientView.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

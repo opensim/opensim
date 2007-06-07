@@ -96,10 +96,10 @@
     <Compile Include="MapStorage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UUIDPrimQuery.cs">
+    <Compile Include="UUIDParcelQuery.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UUIDParcelQuery.cs">
+    <Compile Include="UUIDPrimQuery.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Db4LocalStorage.cs">

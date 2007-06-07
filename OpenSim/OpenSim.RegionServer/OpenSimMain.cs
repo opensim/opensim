@@ -404,23 +404,23 @@ namespace OpenSim
                     case "":
                         this.m_physicsEngine = "basicphysics";
                         configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
                         break;
 
                     case "basicphysics":
                         this.m_physicsEngine = "basicphysics";
                         configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
                         break;
 
                     case "RealPhysX":
                         this.m_physicsEngine = "RealPhysX";
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
                         break;
 
                     case "OpenDynamicsEngine":
                         this.m_physicsEngine = "OpenDynamicsEngine";
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
                         break;
                 }
 
@@ -511,13 +511,13 @@ namespace OpenSim
                     m_console.Error("That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
-                    OpenSim.world.Avatar TempAv;
+                    OpenSim.RegionServer.Simulator.Avatar TempAv;
                     m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                     {
-                        if (LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                        if (LocalWorld.Entities[UUID].ToString() == "OpenSim.RegionServer.Simulator.Avatar")
                         {
-                            TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
+                            TempAv = (OpenSim.RegionServer.Simulator.Avatar)LocalWorld.Entities[UUID];
                             m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
                         }
                     }
