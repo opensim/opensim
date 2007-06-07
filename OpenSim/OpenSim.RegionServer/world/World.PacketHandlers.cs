@@ -365,6 +365,13 @@ namespace OpenSim.world
         {
             parcelManager.join(west, south, east, north, remote_client.AgentID);
         }
+        void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, ClientView remote_client)
+        {
+            if (parcelManager.parcelList.ContainsKey(packet.ParcelData.LocalID))
+            {
+                parcelManager.parcelList[packet.ParcelData.LocalID].updateParcelProperties(packet, remote_client);
+            }
+        }
         #endregion
 
         /*

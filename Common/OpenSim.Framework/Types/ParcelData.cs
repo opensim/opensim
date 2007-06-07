@@ -26,9 +26,19 @@ namespace OpenSim.Framework.Types
             public int salePrice = 0; //Unemeplemented. Parcels price.
             public libsecondlife.Parcel.ParcelStatus parcelStatus = libsecondlife.Parcel.ParcelStatus.None;
             public libsecondlife.Parcel.ParcelFlags parcelFlags = libsecondlife.Parcel.ParcelFlags.None;
-
+            public byte landingType = 0;
+            public byte mediaAutoScale = 0;
+            public LLUUID mediaID = LLUUID.Zero;
             public int localID = 0;
             public LLUUID globalID = new LLUUID();
+
+            public string mediaURL = "";
+            public string musicURL = "";
+            public float passHours = 0;
+            public int passPrice = 0;
+            public LLUUID snapshotID = LLUUID.Zero;
+            public LLVector3 userLocation = new LLVector3();
+            public LLVector3 userLookAt = new LLVector3();
 
             public ParcelData()
             {
@@ -52,13 +62,23 @@ namespace OpenSim.Framework.Types
                 parcelData.groupPrims = this.groupPrims;
                 parcelData.isGroupOwned = this.isGroupOwned;
                 parcelData.localID = this.localID;
+                parcelData.landingType = this.landingType;
+                parcelData.mediaAutoScale = this.mediaAutoScale;
+                parcelData.mediaID = this.mediaID;
+                parcelData.mediaURL = this.mediaURL;
+                parcelData.musicURL = this.musicURL;
                 parcelData.ownerID = this.ownerID;
                 parcelData.parcelBitmapByteArray = (byte[])this.parcelBitmapByteArray.Clone();
                 parcelData.parcelDesc = this.parcelDesc;
                 parcelData.parcelFlags = this.parcelFlags;
                 parcelData.parcelName = this.parcelName;
                 parcelData.parcelStatus = this.parcelStatus;
+                parcelData.passHours = this.passHours;
+                parcelData.passPrice = this.passPrice;
                 parcelData.salePrice = this.salePrice;
+                parcelData.snapshotID = this.snapshotID;
+                parcelData.userLocation = this.userLocation;
+                parcelData.userLookAt = this.userLookAt;
 
                 return parcelData;
            

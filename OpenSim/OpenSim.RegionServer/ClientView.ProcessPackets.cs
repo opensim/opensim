@@ -83,9 +83,11 @@ namespace OpenSim
         public event UpdatePrimRotation OnUpdatePrimRotation;
         public event UpdatePrimVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
+
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
         public event ParcelJoinRequest OnParcelJoinRequest;
+        public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         protected override void ProcessInPacket(Packet Pack)
         {
@@ -481,6 +483,10 @@ namespace OpenSim
                     case PacketType.ParcelJoin:
                         ParcelJoinPacket parcelJoin = (ParcelJoinPacket)Pack;
                         OnParcelJoinRequest((int)Math.Round(parcelJoin.ParcelData.West), (int)Math.Round(parcelJoin.ParcelData.South), (int)Math.Round(parcelJoin.ParcelData.East), (int)Math.Round(parcelJoin.ParcelData.North), this);
+                        break;
+                    case PacketType.ParcelPropertiesUpdate:
+                        ParcelPropertiesUpdatePacket updatePacket = (ParcelPropertiesUpdatePacket)Pack;
+                        OnParcelPropertiesUpdateRequest(updatePacket, this);
                         break;
                     #endregion
 

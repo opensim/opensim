@@ -179,15 +179,25 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 updateParcel.groupID = parcel.groupID;
                 updateParcel.groupPrims = parcel.groupPrims;
                 updateParcel.isGroupOwned = parcel.isGroupOwned;
+                updateParcel.landingType = parcel.landingType;
+                updateParcel.mediaAutoScale = parcel.mediaAutoScale;
+                updateParcel.mediaID = parcel.mediaID;
+                updateParcel.mediaURL = parcel.mediaURL;
+                updateParcel.musicURL = parcel.musicURL;
                 updateParcel.localID = parcel.localID;
                 updateParcel.ownerID = parcel.ownerID;
+                updateParcel.passHours = parcel.passHours;
+                updateParcel.passPrice = parcel.passPrice;
                 updateParcel.parcelBitmapByteArray = (byte[])parcel.parcelBitmapByteArray.Clone();
                 updateParcel.parcelDesc = parcel.parcelDesc;
                 updateParcel.parcelFlags = parcel.parcelFlags;
                 updateParcel.parcelName = parcel.parcelName;
                 updateParcel.parcelStatus = parcel.parcelStatus;
                 updateParcel.salePrice = parcel.salePrice;
-                
+                updateParcel.snapshotID = parcel.snapshotID;
+                updateParcel.userLocation = parcel.userLocation;
+                updateParcel.userLookAt = parcel.userLookAt;
+
                 db.Set(updateParcel);
             }
             else

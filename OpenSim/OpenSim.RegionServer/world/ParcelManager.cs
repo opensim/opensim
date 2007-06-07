@@ -39,6 +39,7 @@ namespace OpenSim.RegionServer.world
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, ClientView remote_client);
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, ClientView remote_client);
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, ClientView remote_client);
+    public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, ClientView remote_client);
 
     #region ParcelManager Class
     /// <summary>
@@ -526,13 +527,13 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.GroupID = parcelData.groupID;
             updatePacket.ParcelData.GroupPrims = parcelData.groupPrims;
             updatePacket.ParcelData.IsGroupOwned = parcelData.isGroupOwned;
-            updatePacket.ParcelData.LandingType = (byte)0; //unemplemented
+            updatePacket.ParcelData.LandingType = (byte)parcelData.landingType;
             updatePacket.ParcelData.LocalID = parcelData.localID;
             updatePacket.ParcelData.MaxPrims = 1000; //unemplemented
-            updatePacket.ParcelData.MediaAutoScale = (byte)0; //unemplemented
-            updatePacket.ParcelData.MediaID = LLUUID.Zero; //unemplemented
-            updatePacket.ParcelData.MediaURL = Helpers.StringToField(""); //unemplemented
-            updatePacket.ParcelData.MusicURL = Helpers.StringToField(""); //unemplemented
+            updatePacket.ParcelData.MediaAutoScale = parcelData.mediaAutoScale;
+            updatePacket.ParcelData.MediaID = parcelData.mediaID;
+            updatePacket.ParcelData.MediaURL = Helpers.StringToField(parcelData.mediaURL);
+            updatePacket.ParcelData.MusicURL = Helpers.StringToField(parcelData.musicURL);
             updatePacket.ParcelData.Name = Helpers.StringToField(parcelData.parcelName);
             updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
             updatePacket.ParcelData.OtherCount = 0; //unemplemented
@@ -541,8 +542,8 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.OwnerPrims = 0; //unemplemented
             updatePacket.ParcelData.ParcelFlags = (uint)parcelData.parcelFlags; //unemplemented
             updatePacket.ParcelData.ParcelPrimBonus = (float)1.0; //unemplemented
-            updatePacket.ParcelData.PassHours = (float)0.0; //unemplemented
-            updatePacket.ParcelData.PassPrice = 0; //unemeplemented
+            updatePacket.ParcelData.PassHours = parcelData.passHours;
+            updatePacket.ParcelData.PassPrice = parcelData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
             updatePacket.ParcelData.RegionDenyAnonymous = false; //unemplemented
             updatePacket.ParcelData.RegionDenyIdentified = false; //unemplemented
@@ -556,14 +557,40 @@ namespace OpenSim.RegionServer.world
             updatePacket.ParcelData.SequenceID = sequence_id;
             updatePacket.ParcelData.SimWideMaxPrims = 15000; //unemplemented
             updatePacket.ParcelData.SimWideTotalPrims = 0; //unemplemented
-            updatePacket.ParcelData.SnapSelection = snap_selection; //Bleh - not important yet
-            updatePacket.ParcelData.SnapshotID = LLUUID.Zero; //Unemplemented
-            updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus; //??
+            updatePacket.ParcelData.SnapSelection = snap_selection; 
+            updatePacket.ParcelData.SnapshotID = parcelData.snapshotID;
+            updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus;
             updatePacket.ParcelData.TotalPrims = 0; //unemplemented
-            updatePacket.ParcelData.UserLocation = LLVector3.Zero; //unemplemented
-            updatePacket.ParcelData.UserLookAt = LLVector3.Zero; //unemeplemented
+            updatePacket.ParcelData.UserLocation = parcelData.userLocation;
+            updatePacket.ParcelData.UserLookAt = parcelData.userLookAt;
 
             remote_client.OutPacket((Packet)updatePacket);
+        }
+
+        public void updateParcelProperties(ParcelPropertiesUpdatePacket packet, ClientView remote_client)
+        {
+            if (remote_client.AgentID == parcelData.ownerID)
+            {
+                //Needs later group support
+                Console.WriteLine("Request for update - parcel #" + parcelData.localID);
+                parcelData.authBuyerID = packet.ParcelData.AuthBuyerID;
+                parcelData.category = (libsecondlife.Parcel.ParcelCategory)packet.ParcelData.Category;
+                parcelData.parcelDesc = Helpers.FieldToUTF8String(packet.ParcelData.Desc);
+                parcelData.groupID = packet.ParcelData.GroupID;
+                parcelData.landingType = packet.ParcelData.LandingType;
+                parcelData.mediaAutoScale = packet.ParcelData.MediaAutoScale;
+                parcelData.mediaID = packet.ParcelData.MediaID;
+                parcelData.mediaURL = Helpers.FieldToUTF8String(packet.ParcelData.MediaURL);
+                parcelData.musicURL = Helpers.FieldToUTF8String(packet.ParcelData.MusicURL);
+                parcelData.parcelName = libsecondlife.Helpers.FieldToUTF8String(packet.ParcelData.Name);
+                parcelData.parcelFlags = (libsecondlife.Parcel.ParcelFlags)packet.ParcelData.ParcelFlags;
+                parcelData.passHours = packet.ParcelData.PassHours;
+                parcelData.passPrice = packet.ParcelData.PassPrice;
+                parcelData.salePrice = packet.ParcelData.SalePrice;
+                parcelData.snapshotID = packet.ParcelData.SnapshotID;
+                parcelData.userLocation = packet.ParcelData.UserLocation;
+                parcelData.userLookAt = packet.ParcelData.UserLookAt;
+            }
         }
         #endregion
 

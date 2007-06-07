@@ -618,6 +618,7 @@ namespace OpenSim.world
             agentClient.OnParcelPropertiesRequest += new OpenSim.RegionServer.world.ParcelPropertiesRequest(ParcelPropertiesRequest);
             agentClient.OnParcelDivideRequest += new OpenSim.RegionServer.world.ParcelDivideRequest(ParcelDivideRequest);
             agentClient.OnParcelJoinRequest+=new OpenSim.RegionServer.world.ParcelJoinRequest(ParcelJoinRequest);
+            agentClient.OnParcelPropertiesUpdateRequest += new OpenSim.RegionServer.world.ParcelPropertiesUpdateRequest(ParcelPropertiesUpdateRequest);
             Avatar newAvatar = null;
             try
             {
@@ -664,6 +665,8 @@ namespace OpenSim.world
             }
             return newAvatar;
         }
+
+        
 
         
 
