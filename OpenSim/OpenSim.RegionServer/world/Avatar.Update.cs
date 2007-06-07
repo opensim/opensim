@@ -96,7 +96,29 @@ namespace OpenSim.world
                     }
 
                 }
-                this.positionLastFrame = pos2;
+
+                if (positionFrameBeforeLast != pos2)
+                {
+                    this.positionFrameBeforeLast = this.positionLastFrame;
+                    this.positionLastFrame = pos2;
+                    int tempRoundedX = (int)Math.Round(positionLastFrame.X);
+                    int tempRoundedY = (int)Math.Round(positionLastFrame.Y);
+                    if (this.positionRoundedX != tempRoundedX || this.positionRoundedY != tempRoundedY)
+                    {
+
+                        this.positionRoundedX = tempRoundedX;
+                        this.positionRoundedY = tempRoundedY;
+                        int currentParcelLocalID = m_world.parcelManager.getParcel(tempRoundedX, tempRoundedY).parcelData.localID;
+                        if(currentParcelLocalID != this.positionParcelHoverLocalID)
+                        {
+
+                            Console.WriteLine("NEW PARCEL: " + m_world.parcelManager.getParcel(tempRoundedX, tempRoundedY).parcelData.parcelName);
+                            m_world.parcelManager.getParcel(tempRoundedX, tempRoundedY).sendParcelProperties(this.parcelUpdateSequenceIncrement, false, 0,this.ControllingClient);
+                            this.positionParcelHoverLocalID = currentParcelLocalID;
+                            this.parcelUpdateSequenceIncrement++;
+                        }
+                    }
+                }
 
                 if (!this.ControllingClient.m_sandboxMode)
                 {

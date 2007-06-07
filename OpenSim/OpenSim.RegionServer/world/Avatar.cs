@@ -57,6 +57,13 @@ namespace OpenSim.world
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
+        private LLVector3 positionFrameBeforeLast = new LLVector3(0, 0, 0);
+
+        private int positionRoundedX = 0;
+        private int positionRoundedY = 0;
+
+        private int positionParcelHoverLocalID = -1; //Local ID of the last parcel they were over
+        private int parcelUpdateSequenceIncrement = 1;
         private ulong m_regionHandle;
         //private Dictionary<uint, ClientView> m_clientThreads;
         private string m_regionName;
