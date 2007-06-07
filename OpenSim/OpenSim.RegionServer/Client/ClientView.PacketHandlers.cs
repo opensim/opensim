@@ -40,11 +40,11 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
-using OpenSim.Assets;
+using OpenSim.RegionServer.Simulator;
+using OpenSim.RegionServer.Assets;
 using OpenSim.Framework.Console;
 
-namespace OpenSim
+namespace OpenSim.RegionServer.Client
 {
     public partial class ClientView
     {

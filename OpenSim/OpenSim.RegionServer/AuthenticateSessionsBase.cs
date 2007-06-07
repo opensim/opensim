@@ -32,7 +32,7 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class AuthenticateSessionsBase
     {

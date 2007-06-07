@@ -39,7 +39,7 @@ using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
 
-namespace OpenSim
+namespace OpenSim.RegionServer.Client
 {
     public class ClientViewBase 
     {

@@ -32,7 +32,7 @@ using System.Reflection;
 using OpenSim.Framework.Interfaces;
 using OpenSim.UserServer;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class Grid
     {

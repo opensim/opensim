@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.types
+namespace OpenSim.RegionServer.Types
 {
     // TODO: This will need some performance tuning no doubt.
     public class Mesh

@@ -37,20 +37,20 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.world;
+using OpenSim.RegionServer.Simulator;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.UserServer;
-using OpenSim.Assets;
-using OpenSim.CAPS;
+using OpenSim.RegionServer.Assets;
+using OpenSim.RegionServer.CAPS;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
 using OpenSim.Servers;
 using OpenSim.GenericConfig;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class RegionServerBase
     {

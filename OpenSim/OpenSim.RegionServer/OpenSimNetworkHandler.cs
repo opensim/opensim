@@ -33,7 +33,7 @@ using System.Net.Sockets;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public interface OpenSimNetworkHandler
     {

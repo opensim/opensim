@@ -31,12 +31,13 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim;
 using libsecondlife.Packets;
-//using OpenSim.GridServers;
+
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
+using OpenSim.RegionServer.Client;
 
-namespace OpenSim.Assets
+namespace OpenSim.RegionServer.Assets
 {
     /// <summary>
     /// Description of InventoryManager.

@@ -34,7 +34,7 @@ using libsecondlife;
 using OpenSim.Framework.Types;
 using Nwc.XmlRpc;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class AuthenticateSessionsRemote : AuthenticateSessionsBase
     {

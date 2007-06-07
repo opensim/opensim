@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using Axiom.MathLib;
 
-namespace OpenSim.types
+namespace OpenSim.RegionServer.Types
 {
     public class Triangle
     {

@@ -37,19 +37,24 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.world;
 using OpenSim.Terrain;
+
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.UserServer;
-using OpenSim.Assets;
-using OpenSim.CAPS;
 using OpenSim.Framework.Console;
+
+using OpenSim.UserServer;
+
+using OpenSim.RegionServer.Simulator;
+using OpenSim.RegionServer.Assets;
+using OpenSim.RegionServer.CAPS;
+using OpenSim.RegionServer.Client;
+
 using Nwc.XmlRpc;
 using OpenSim.Servers;
 using OpenSim.GenericConfig;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public delegate AuthenticateResponse AuthenticateSessionHandler(LLUUID sessionID, LLUUID agentID, uint circuitCode);
 

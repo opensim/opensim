@@ -31,7 +31,7 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Types;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class AuthenticateSessionsLocal : AuthenticateSessionsBase
     {

@@ -36,7 +36,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 using libsecondlife;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class RegionInfo : RegionInfoBase
     {

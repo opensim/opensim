@@ -28,10 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.world;
+using OpenSim.RegionServer.Simulator;
+using OpenSim.RegionServer.Client;
 using libsecondlife.Packets;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class PacketServer
     {

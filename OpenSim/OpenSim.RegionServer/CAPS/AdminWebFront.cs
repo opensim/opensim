@@ -29,16 +29,16 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using OpenSim.world;
+using OpenSim.RegionServer.Simulator;
 using OpenSim.UserServer;
 using OpenSim.Servers;
-using OpenSim.Assets;
+using OpenSim.RegionServer.Assets;
 using OpenSim.Framework.Inventory;
 using libsecondlife;
-using OpenSim.RegionServer.world.scripting;
+using OpenSim.RegionServer.Scripting;
 using Avatar=libsecondlife.Avatar;
 
-namespace OpenSim.CAPS
+namespace OpenSim.RegionServer.CAPS
 {
     public class AdminWebFront
     {
@@ -150,12 +150,12 @@ namespace OpenSim.CAPS
         {
             string responseString;
             responseString = " <p> Listing connected Clients </p>";
-            OpenSim.world.Avatar TempAv;
+            OpenSim.RegionServer.Simulator.Avatar TempAv;
             foreach (libsecondlife.LLUUID UUID in m_world.Entities.Keys)
             {
-                if (m_world.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                if (m_world.Entities[UUID].ToString() == "OpenSim.RegionServer.Simulator.Avatar")
                 {
-                    TempAv = (OpenSim.world.Avatar)m_world.Entities[UUID];
+                    TempAv = (OpenSim.RegionServer.Simulator.Avatar)m_world.Entities[UUID];
                     responseString += "<p> Client: ";
                     responseString += TempAv.firstname + " , " + TempAv.lastname + " , <A HREF=\"javascript:loadXMLDoc('ClientInventory/" + UUID.ToString() + "')\">" + UUID + "</A> , " + TempAv.ControllingClient.SessionID + " ,  " + TempAv.ControllingClient.CircuitCode + " , " + TempAv.ControllingClient.userEP.ToString();
                     responseString += "</p>";

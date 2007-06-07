@@ -28,7 +28,7 @@
 
 using System;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     /// <summary>
     /// </summary>

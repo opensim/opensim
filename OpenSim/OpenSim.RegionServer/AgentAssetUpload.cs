@@ -28,13 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Assets;
+using OpenSim.RegionServer.Assets;
+using OpenSim.RegionServer.Client;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using libsecondlife;
 using libsecondlife.Packets;
 
-namespace OpenSim
+namespace OpenSim.RegionServer
 {
     public class AgentAssetUpload
     {

@@ -40,12 +40,11 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
-using OpenSim.RegionServer.world;
-using OpenSim.Assets;
+using OpenSim.RegionServer.Simulator;
+using OpenSim.RegionServer.Assets;
 using OpenSim.Framework.Console;
 
-namespace OpenSim
+namespace OpenSim.RegionServer.Client
 {
     public partial class ClientView
     {
@@ -92,6 +91,7 @@ namespace OpenSim
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
+            debug = true;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)
@@ -361,7 +361,7 @@ namespace OpenSim
                                             {
                                                 if (ent.localid == updatetask.UpdateData.LocalID)
                                                 {
-                                                    if (ent is OpenSim.world.Primitive)
+                                                    if (ent is OpenSim.RegionServer.Simulator.Primitive)
                                                     {
                                                         this.m_world.AddScript(ent, Util.FieldToString(assBase.Data));
                                                     }

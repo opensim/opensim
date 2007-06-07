@@ -31,13 +31,13 @@ using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Console;
+using OpenSim.RegionServer.Client;
 
-namespace OpenSim.Assets
+namespace OpenSim.RegionServer.Assets
 {
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.

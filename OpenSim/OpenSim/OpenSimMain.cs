@@ -38,13 +38,15 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.world;
+using OpenSim.RegionServer;
+
+using OpenSim.RegionServer.Simulator;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.UserServer;
-using OpenSim.Assets;
-using OpenSim.CAPS;
+using OpenSim.RegionServer.Assets;
+using OpenSim.RegionServer.CAPS;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
@@ -54,7 +56,7 @@ using OpenSim.GenericConfig;
 namespace OpenSim
 {
 
-    public class OpenSimMain : RegionServerBase, conscmd_callback
+    public class OpenSimMain : OpenSim.RegionServer.RegionServerBase, conscmd_callback
     {
         private CheckSumServer checkServer;
 
@@ -209,7 +211,7 @@ namespace OpenSim
             }
 
             m_console.Notice("Creating ParcelManager");
-            LocalWorld.parcelManager = new OpenSim.RegionServer.world.ParcelManager(this.LocalWorld);
+            LocalWorld.parcelManager = new OpenSim.RegionServer.Simulator.ParcelManager(this.LocalWorld);
 
             m_console.Notice("Loading Parcels from DB...");
             LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
@@ -436,23 +438,23 @@ namespace OpenSim
                     case "":
                         this.m_physicsEngine = "basicphysics";
                         configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
                         break;
 
                     case "basicphysics":
                         this.m_physicsEngine = "basicphysics";
                         configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
                         break;
 
                     case "RealPhysX":
                         this.m_physicsEngine = "RealPhysX";
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
                         break;
 
                     case "OpenDynamicsEngine":
                         this.m_physicsEngine = "OpenDynamicsEngine";
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
                         break;
                 }
 
@@ -556,19 +558,19 @@ namespace OpenSim
                     m_console.Error("That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
-                    OpenSim.world.Avatar TempAv;
+                    OpenSim.RegionServer.Simulator.Avatar TempAv;
                     m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                     {
-                        if (LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                        if (LocalWorld.Entities[UUID].ToString() == "OpenSim.RegionServer.Simulator.Avatar")
                         {
-                            TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
+                            TempAv = (OpenSim.RegionServer.Simulator.Avatar)LocalWorld.Entities[UUID];
                             m_console.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
                         }
                     }
                     break;
                 case "parcels":
-                    foreach (OpenSim.RegionServer.world.Parcel parcel in LocalWorld.parcelManager.parcelList.Values)
+                    foreach (OpenSim.RegionServer.Simulator.Parcel parcel in LocalWorld.parcelManager.parcelList.Values)
                     {
                         m_console.Error("Parcel ID#" + parcel.parcelData.localID + "(Global UUID: " + parcel.parcelData.globalID + "):");
                         m_console.Error("\tParcel Name: " + parcel.parcelData.parcelName);

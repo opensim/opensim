@@ -99,10 +99,10 @@
     <Compile Include="UUIDPrimQuery.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Db4LocalStorage.cs">
+    <Compile Include="UUIDParcelQuery.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UUIDParcelQuery.cs">
+    <Compile Include="Db4LocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

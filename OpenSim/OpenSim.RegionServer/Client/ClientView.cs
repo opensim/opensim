@@ -41,11 +41,11 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.world;
-using OpenSim.Assets;
+using OpenSim.RegionServer.Simulator;
+using OpenSim.RegionServer.Assets;
 using OpenSim.Framework.Console;
 
-namespace OpenSim
+namespace OpenSim.RegionServer.Client
 {
     public delegate bool PacketMethod(ClientView simClient, Packet packet);
 
@@ -62,7 +62,7 @@ namespace OpenSim
         public LLUUID SessionID;
         public LLUUID SecureSessionID = LLUUID.Zero;
         public bool m_child;
-        public world.Avatar ClientAvatar;
+        public Simulator.Avatar ClientAvatar;
         private UseCircuitCodePacket cirpack;
         public Thread ClientThread;
         public LLVector3 startpos;
