@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 
-namespace OpenSim.RegionServer.world.scripting
+namespace OpenSim.RegionServer.Scripting
 {
     public class FollowRandomAvatar : Script
     {
