@@ -232,12 +232,12 @@ namespace OpenSim.RegionServer
                 attri = configData.GetAttribute("TerrainFile");
                 if (attri == "")
                 {
-                    this.TerrainFile = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Default Terrain File", "default.r32");
-                    configData.SetAttribute("TerrainFile", this.TerrainFile);
+                    this.estateSettings.terrainFile = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Default Terrain File", "default.r32");
+                    configData.SetAttribute("TerrainFile", this.estateSettings.terrainFile);
                 }
                 else
                 {
-                    this.TerrainFile = attri;
+                    this.estateSettings.terrainFile = attri;
                 }
 
                 attri = "";
@@ -245,12 +245,12 @@ namespace OpenSim.RegionServer
                 if (attri == "")
                 {
                     string re = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Terrain Height Multiplier", "60.0");
-                    this.TerrainMultiplier = Convert.ToDouble(re, CultureInfo.InvariantCulture);
-                    configData.SetAttribute("TerrainMultiplier", this.TerrainMultiplier.ToString());
+                    this.estateSettings.terrainMultiplier = Convert.ToDouble(re, CultureInfo.InvariantCulture);
+                    configData.SetAttribute("TerrainMultiplier", this.estateSettings.terrainMultiplier.ToString());
                 }
                 else
                 {
-                    this.TerrainMultiplier = Convert.ToDouble(attri);
+                    this.estateSettings.terrainMultiplier = Convert.ToDouble(attri);
                 }
 
                 attri = "";

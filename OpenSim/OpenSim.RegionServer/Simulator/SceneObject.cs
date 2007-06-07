@@ -41,11 +41,8 @@ namespace OpenSim.RegionServer.Simulator
 {
     public class SceneObject : Entity
     {
-        private LLUUID rootUUID;
         private Dictionary<LLUUID, Primitive2> ChildPrimitives = new Dictionary<LLUUID, Primitive2>();
-        private Dictionary<uint, ClientView> m_clientThreads;
-        private World m_world;
-
+        
         public SceneObject()
         {
 

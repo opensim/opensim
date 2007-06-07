@@ -463,7 +463,7 @@ namespace OpenSim.RegionServer.Simulator
                 float[] map = this.localStorage.LoadWorld();
                 if (map == null)
                 {
-                    if (string.IsNullOrEmpty(this.m_regInfo.TerrainFile))
+                    if (string.IsNullOrEmpty(this.m_regInfo.estateSettings.terrainFile))
                     {
                         Console.WriteLine("No default terrain, procedurally generating...");
                         this.Terrain.hills();
@@ -474,8 +474,8 @@ namespace OpenSim.RegionServer.Simulator
                     {
                         try
                         {
-                            this.Terrain.loadFromFileF32(this.m_regInfo.TerrainFile);
-                            this.Terrain *= this.m_regInfo.TerrainMultiplier;
+                            this.Terrain.loadFromFileF32(this.m_regInfo.estateSettings.terrainFile);
+                            this.Terrain *= this.m_regInfo.estateSettings.terrainMultiplier;
                         }
                         catch (Exception e)
                         {

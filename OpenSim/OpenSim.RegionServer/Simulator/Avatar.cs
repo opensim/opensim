@@ -425,14 +425,14 @@ namespace OpenSim.RegionServer.Simulator
             OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionhandshake() - Filling in RegionHandshake details");
             handshake.RegionInfo.BillableFactor = 0;
             handshake.RegionInfo.IsEstateManager = false;
-            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.m_regInfo.TerrainHeightRange00;
-            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.m_regInfo.TerrainHeightRange01;
-            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.m_regInfo.TerrainHeightRange10;
-            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.m_regInfo.TerrainHeightRange11;
-            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.m_regInfo.TerrainStartHeight00;
-            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.m_regInfo.TerrainStartHeight01;
-            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.m_regInfo.TerrainStartHeight10;
-            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.m_regInfo.TerrainStartHeight11;
+            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeNW;
+            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeNE;
+            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeSW;
+            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeSE;
+            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.m_regInfo.estateSettings.terrainStartHeightNW;
+            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.m_regInfo.estateSettings.terrainStartHeightNE;
+            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.m_regInfo.estateSettings.terrainStartHeightSW;
+            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.m_regInfo.estateSettings.terrainStartHeightSE;
             handshake.RegionInfo.SimAccess = 13;
             handshake.RegionInfo.WaterHeight = m_regionWaterHeight;
             uint regionFlags = 72458694;
@@ -442,15 +442,15 @@ namespace OpenSim.RegionServer.Simulator
             }
             handshake.RegionInfo.RegionFlags = regionFlags;
             handshake.RegionInfo.SimName = _enc.GetBytes(m_regionName + "\0");
-            handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");
-            handshake.RegionInfo.TerrainBase0 = regionInfo.m_regInfo.TerrainBase0;
-            handshake.RegionInfo.TerrainBase1 = regionInfo.m_regInfo.TerrainBase1;
-            handshake.RegionInfo.TerrainBase2 = regionInfo.m_regInfo.TerrainBase2;
-            handshake.RegionInfo.TerrainBase3 = regionInfo.m_regInfo.TerrainBase3;
-            handshake.RegionInfo.TerrainDetail0 = regionInfo.m_regInfo.TerrainDetail0;
-            handshake.RegionInfo.TerrainDetail1 = regionInfo.m_regInfo.TerrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 = regionInfo.m_regInfo.TerrainDetail2;
-            handshake.RegionInfo.TerrainDetail3 = regionInfo.m_regInfo.TerrainDetail3;
+            handshake.RegionInfo.SimOwner = regionInfo.m_regInfo.MasterAvatarAssignedUUID;
+            handshake.RegionInfo.TerrainBase0 = regionInfo.m_regInfo.estateSettings.terrainBase0;
+            handshake.RegionInfo.TerrainBase1 = regionInfo.m_regInfo.estateSettings.terrainBase1;
+            handshake.RegionInfo.TerrainBase2 = regionInfo.m_regInfo.estateSettings.terrainBase2;
+            handshake.RegionInfo.TerrainBase3 = regionInfo.m_regInfo.estateSettings.terrainBase3;
+            handshake.RegionInfo.TerrainDetail0 = regionInfo.m_regInfo.estateSettings.terrainDetail0;
+            handshake.RegionInfo.TerrainDetail1 = regionInfo.m_regInfo.estateSettings.terrainDetail1;
+            handshake.RegionInfo.TerrainDetail2 = regionInfo.m_regInfo.estateSettings.terrainDetail2;
+            handshake.RegionInfo.TerrainDetail3 = regionInfo.m_regInfo.estateSettings.terrainDetail3;
             handshake.RegionInfo.CacheID = new LLUUID("545ec0a5-5751-1026-8a0b-216e38a7ab37");
 
             OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionHandshake() - Sending RegionHandshake packet");

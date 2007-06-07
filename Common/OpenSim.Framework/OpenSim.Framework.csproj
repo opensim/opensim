@@ -159,7 +159,25 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Types\AgentCircuitData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AssetBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AssetLandmark.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AssetStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\Login.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Types\NeighbourInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\OSVector3.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\ParcelData.cs">
@@ -168,22 +186,7 @@
     <Compile Include="Types\PrimData.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\AssetStorage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\OSVector3.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AgentCiruitData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetLandmark.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetBase.cs">
+    <Compile Include="Types\EstateSettings.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

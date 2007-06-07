@@ -142,13 +142,7 @@
     <Compile Include="Grid.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionInfoBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="PacketServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="RegionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AuthenticateSessionsBase.cs">
@@ -163,13 +157,16 @@
     <Compile Include="RegionServerBase.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="RegionInfoBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RegionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Simulator\Avatar.Client.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\Entity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\World.PacketHandlers.cs">
@@ -181,16 +178,7 @@
     <Compile Include="Simulator\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\ParcelManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Simulator\WorldBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\World.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\Primitive.cs">
@@ -200,6 +188,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\Primitive2.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Avatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\World.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Estate\EstateManager.cs">

@@ -284,7 +284,6 @@ namespace OpenSim.RegionServer.Simulator
         {
             end_x -= 4;
             end_y -= 4;
-            Console.WriteLine("Joining Parcels between (" + start_x + ", " + start_y + ") and (" + end_x  + ", " + end_y + ")");
             
             //NOTE: The following only connects the parcels in each corner and not all the parcels that are within the selection box!
             //This should be fixed later -- somewhat "incomplete code" --Ming
@@ -315,7 +314,6 @@ namespace OpenSim.RegionServer.Simulator
                 return false;
             }
 
-            Console.WriteLine("Performing Join on parcel: "  + startParcel.parcelData.parcelName + " - " + startParcel.parcelData.area + "sqm and " + endParcel.parcelData.parcelName + " - " + endParcel.parcelData.area + "sqm");
             //Same owners! Lets join them
             //Merge them to startParcel
             parcelList[startParcel.parcelData.localID].setParcelBitmap(Parcel.mergeParcelBitmaps(startParcel.getParcelBitmap(), endParcel.getParcelBitmap()));
@@ -573,7 +571,6 @@ namespace OpenSim.RegionServer.Simulator
             if (remote_client.AgentID == parcelData.ownerID)
             {
                 //Needs later group support
-                Console.WriteLine("Request for update - parcel #" + parcelData.localID);
                 parcelData.authBuyerID = packet.ParcelData.AuthBuyerID;
                 parcelData.category = (libsecondlife.Parcel.ParcelCategory)packet.ParcelData.Category;
                 parcelData.parcelDesc = Helpers.FieldToUTF8String(packet.ParcelData.Desc);

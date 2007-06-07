@@ -33,20 +33,18 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Types
 {
-    public class Login
+    public class AgentCircuitData
     {
-        public string First = "Test";
-        public string Last = "User";
-        public LLUUID Agent;
-        public LLUUID Session;
-        public LLUUID SecureSession = LLUUID.Zero;
+        public AgentCircuitData() { }
+        public LLUUID AgentID;
+        public LLUUID SessionID;
+        public LLUUID SecureSessionID;
+        public LLVector3 startpos;
+        public string firstname;
+        public string lastname;
+        public uint circuitcode;
+        public bool child;
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
-        public uint CircuitCode;
-
-        public Login()
-        {
-
-        }
     }
 }
