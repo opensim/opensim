@@ -156,7 +156,11 @@ namespace OpenSim.UserServer
             // LLUUID secureSess = LLUUID.Random();            
 
             loginResponse.SimPort = m_simPort.ToString();
-            loginResponse.SimAddress = m_simAddr.ToString();
+            // 7 June 2007, AJD:
+            // [10:03:05]  (@AdamZaius) Sandbox should work listening on 0.0.0.0 if you can fix the login XML reply
+            // OLD: loginResponse.SimAddress = m_simAddr.ToString();
+            loginResponse.SimAddress = "0.0.0.0";
+
             // loginResponse.AgentID = Agent.ToStringHyphenated();
             // loginResponse.SessionID = Session.ToStringHyphenated();
             // loginResponse.SecureSessionID = secureSess.ToStringHyphenated();
