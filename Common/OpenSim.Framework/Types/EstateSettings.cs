@@ -37,6 +37,26 @@ namespace OpenSim.Framework.Types
     public class EstateSettings
     {
         //Settings to this island
+        public float billableFactor = (float)0.0;
+        public uint estateID = 0;
+        public uint parentEstateID = 0;
+
+        public byte maxAgents = 40;
+        public float objectBonusFactor = (float)1.0;
+
+        public int redirectGridX = 0; //??
+        public int redirectGridY = 0; //??
+        public uint regionFlags = 0; //??
+
+        public byte simAccess = 0; //??
+        public float sunHour = 0;
+
+        public float terrainRaiseLimit = 0;
+        public float terrainLowerLimit = 0;
+
+        public bool useEstateSun = false;
+        public int pricePerMeter = 1;
+
         public ushort regionWaterHeight = 20;
         public bool regionAllowTerraform = true;
 
@@ -70,5 +90,8 @@ namespace OpenSim.Framework.Types
         // Terrain Default (Must be in F32 Format!)
         public string terrainFile = "default.r32";
         public double terrainMultiplier = 60.0;
+        public float waterHeight = (float)20.0;
+
+
     }
 }

@@ -91,7 +91,6 @@ namespace OpenSim.RegionServer.Client
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
-            debug = true;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)
@@ -490,6 +489,11 @@ namespace OpenSim.RegionServer.Client
                         break;
                     #endregion
 
+                    #region Estate Packets
+                    case PacketType.EstateOwnerMessage:
+                        this.m_world.estateManager.handleEstateOwnerMessage((EstateOwnerMessagePacket)Pack, this);
+                        break;
+                    #endregion
                     #region unimplemented handlers
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;

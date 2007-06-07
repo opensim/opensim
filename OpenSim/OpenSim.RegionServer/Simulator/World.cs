@@ -66,6 +66,7 @@ namespace OpenSim.RegionServer.Simulator
         private Mutex updateLock;
         public string m_datastore;
         public OpenSim.RegionServer.Simulator.ParcelManager parcelManager;
+        public OpenSim.RegionServer.Estate.EstateManager estateManager;
 
         #region Properties
         public PhysicsScene PhysScene
@@ -621,6 +622,7 @@ namespace OpenSim.RegionServer.Simulator
             agentClient.OnParcelDivideRequest += new OpenSim.RegionServer.Simulator.ParcelDivideRequest(ParcelDivideRequest);
             agentClient.OnParcelJoinRequest+=new OpenSim.RegionServer.Simulator.ParcelJoinRequest(ParcelJoinRequest);
             agentClient.OnParcelPropertiesUpdateRequest += new OpenSim.RegionServer.Simulator.ParcelPropertiesUpdateRequest(ParcelPropertiesUpdateRequest);
+            
             Avatar newAvatar = null;
             try
             {

@@ -210,7 +210,10 @@ namespace OpenSim
                 m_console.Warn("Main.cs:Startup() - Grid Mode; Do not know how to get the user's master key yet!");
             }
 
-            m_console.Notice("Creating ParcelManager");
+            m_console.Notice("Creating Estate Manager");
+            LocalWorld.estateManager = new OpenSim.RegionServer.Estate.EstateManager(this.LocalWorld);
+
+            m_console.Notice("Creating Parcel Manager");
             LocalWorld.parcelManager = new OpenSim.RegionServer.Simulator.ParcelManager(this.LocalWorld);
 
             m_console.Notice("Loading Parcels from DB...");
