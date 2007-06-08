@@ -74,14 +74,17 @@ namespace OpenSim.world
         private int lastParcelLocalID = START_PARCEL_LOCAL_ID - 1;
         private int[,] parcelIDList = new int[64, 64];
 
-        private static World m_world;
+        private World m_world;
+        private RegionInfo m_regInfo;
+
         #endregion
 
         #region Constructors
-        public ParcelManager(World world)
+        public ParcelManager(World world, RegionInfo reginfo)
         {
 
             m_world = world;
+            m_regInfo = reginfo;
             parcelIDList.Initialize();
 
         }
@@ -421,7 +424,7 @@ namespace OpenSim.world
             fullSimParcel.parcelData.parcelName = "Your Sim Parcel";
             fullSimParcel.parcelData.parcelDesc = "";
 
-            fullSimParcel.parcelData.ownerID = m_world.m_regInfo.MasterAvatarAssignedUUID;
+            fullSimParcel.parcelData.ownerID = m_regInfo.MasterAvatarAssignedUUID;
             fullSimParcel.parcelData.salePrice = 1;
             fullSimParcel.parcelData.parcelFlags = libsecondlife.Parcel.ParcelFlags.ForSale;
             fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Leased;

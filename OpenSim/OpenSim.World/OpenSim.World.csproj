@@ -154,16 +154,16 @@
     <Compile Include="WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ParcelManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World.cs">
+    <Compile Include="Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Avatar.cs">
+    <Compile Include="ParcelManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripting\IScriptHandler.cs">

@@ -83,6 +83,9 @@ namespace OpenSim.world
                 this.m_datastore = m_regInfo.DataStore;
                 this.RegisterRegionWithComms();
 
+                parcelManager = new ParcelManager(this,this.m_regInfo);
+                estateManager = new EstateManager(this,this.m_regInfo);
+
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();
 
@@ -463,7 +466,7 @@ namespace OpenSim.world
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(remoteClient, this, m_clientThreads);
+                newAvatar = new Avatar(remoteClient, this, m_clientThreads,this.m_regInfo);
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
                 newAvatar.SendRegionHandshake();

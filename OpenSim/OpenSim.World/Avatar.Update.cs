@@ -43,7 +43,7 @@ namespace OpenSim.world
         public void SendInitialPosition()
         {
             Console.WriteLine("sending initial Avatar data");
-            this.ControllingClient.SendAvatarData(this.m_world.m_regInfo, this.firstname, this.lastname, this.uuid, this.localid, new LLVector3(128, 128, 60));
+            this.ControllingClient.SendAvatarData(m_regInfo, this.firstname, this.lastname, this.uuid, this.localid, new LLVector3(128, 128, 60));
         }
 
         /// <summary>

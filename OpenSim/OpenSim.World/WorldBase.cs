@@ -23,7 +23,7 @@ namespace OpenSim.world
         protected string m_regionName;
        // protected InventoryCache _inventoryCache;
        // protected AssetCache _assetCache;
-        public RegionInfo m_regInfo;
+        protected RegionInfo m_regInfo;
 
         public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
         protected libsecondlife.TerrainManager TerrainManager; // To be referenced via TerrainEngine

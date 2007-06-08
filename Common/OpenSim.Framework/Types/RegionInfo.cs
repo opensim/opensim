@@ -31,7 +31,7 @@ namespace OpenSim.Framework.Types
 
         public RegionInfo()
         {
-
+            estateSettings = new EstateSettings();
         }
 
 
