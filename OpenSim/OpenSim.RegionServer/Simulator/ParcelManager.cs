@@ -562,7 +562,6 @@ namespace OpenSim.RegionServer.Simulator
             updatePacket.ParcelData.TotalPrims = 0; //unemplemented
             updatePacket.ParcelData.UserLocation = parcelData.userLocation;
             updatePacket.ParcelData.UserLookAt = parcelData.userLookAt;
-
             remote_client.OutPacket((Packet)updatePacket);
         }
 
@@ -588,6 +587,15 @@ namespace OpenSim.RegionServer.Simulator
                 parcelData.snapshotID = packet.ParcelData.SnapshotID;
                 parcelData.userLocation = packet.ParcelData.UserLocation;
                 parcelData.userLookAt = packet.ParcelData.UserLookAt;
+
+                foreach (Avatar av in m_world.Avatars.Values)
+                {
+                    Parcel over = m_world.parcelManager.getParcel((int)Math.Round(av.Pos.X), (int)Math.Round(av.Pos.Y));
+                    if (over == this)
+                    {
+                        sendParcelProperties(0, false, 0, av.ControllingClient);
+                    }
+                }
             }
         }
         #endregion

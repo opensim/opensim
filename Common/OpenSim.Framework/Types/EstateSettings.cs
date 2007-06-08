@@ -46,15 +46,14 @@ namespace OpenSim.Framework.Types
 
         public int redirectGridX = 0; //??
         public int redirectGridY = 0; //??
-        public uint regionFlags = 0; //??
-
-        public byte simAccess = 0; //??
+        public libsecondlife.Simulator.RegionFlags regionFlags = libsecondlife.Simulator.RegionFlags.None; //Booleam values of various region settings
+        public libsecondlife.Simulator.SimAccess simAccess = libsecondlife.Simulator.SimAccess.Mature; //Is sim PG, Mature, etc? Mature by default.
         public float sunHour = 0;
 
         public float terrainRaiseLimit = 0;
         public float terrainLowerLimit = 0;
 
-        public bool useEstateSun = false;
+        public bool useFixedSun = false;
         public int pricePerMeter = 1;
 
         public ushort regionWaterHeight = 20;
@@ -74,18 +73,18 @@ namespace OpenSim.Framework.Types
         public LLUUID terrainDetail3 = new LLUUID("00000000-0000-0000-0000-000000000000");
 
         // First quad - each point is bilinearly interpolated at each meter of terrain
-        public float terrainStartHeightNW = 10.0f;       // NW Corner ( I think )
-        public float terrainStartHeightNE = 10.0f;       // NE Corner ( I think )
-        public float terrainStartHeightSW = 10.0f;       // SW Corner ( I think )
-        public float terrainStartHeightSE = 10.0f;       // SE Corner ( I think )
+        public float terrainStartHeight0 = 10.0f;      
+        public float terrainStartHeight1 = 10.0f;      
+        public float terrainStartHeight2 = 10.0f;       
+        public float terrainStartHeight3 = 10.0f;       
 
         // Second quad - also bilinearly interpolated.
         // Terrain texturing is done that:
         // 0..3 (0 = base0, 3 = base3) = (terrain[x,y] - start[x,y]) / range[x,y]
-        public float terrainHeightRangeNW = 60.0f; //00
-        public float terrainHeightRangeNE = 60.0f; //01
-        public float terrainHeightRangeSW = 60.0f; //10
-        public float terrainHeightRangeSE = 60.0f; //11
+        public float terrainHeightRange0 = 60.0f; //00
+        public float terrainHeightRange1 = 60.0f; //01
+        public float terrainHeightRange2 = 60.0f; //10
+        public float terrainHeightRange3 = 60.0f; //11
 
         // Terrain Default (Must be in F32 Format!)
         public string terrainFile = "default.r32";

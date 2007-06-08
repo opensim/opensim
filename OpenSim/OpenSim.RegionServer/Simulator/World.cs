@@ -627,19 +627,18 @@ namespace OpenSim.RegionServer.Simulator
             try
             {
                 MainConsole.Instance.Notice("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(agentClient, this, m_regionName, m_clientThreads, m_regionHandle, true, 20);
+                newAvatar = new Avatar(agentClient, this);
                 MainConsole.Instance.Notice("World.cs:AddViewerAgent() - Adding new avatar to world");
                 MainConsole.Instance.Notice("World.cs:AddViewerAgent() - Starting RegionHandshake ");
-                newAvatar.SendRegionHandshake(this);
-                //if (!agentClient.m_child)
-                //{
+                estateManager.sendRegionHandshake(newAvatar.ControllingClient);                
                     
-                    PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-                    lock (this.LockPhysicsEngine)
-                    {
-                        newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
-                    }
-              //  }
+                PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
+                lock (this.LockPhysicsEngine)
+                {
+                    newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+                }
+
+
                 lock (Entities)
                 {
                     if (!Entities.ContainsKey(agentClient.AgentID))

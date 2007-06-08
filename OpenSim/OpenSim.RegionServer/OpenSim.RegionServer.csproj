@@ -154,13 +154,13 @@
     <Compile Include="AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionServerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RegionInfoBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RegionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RegionServerBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\Avatar.Client.cs">
@@ -170,9 +170,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\World.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\AvatarAnimations.cs">
@@ -190,13 +187,16 @@
     <Compile Include="Simulator\Primitive2.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Simulator\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Simulator\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\World.cs">
+    <Compile Include="Simulator\Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\SceneObject.cs">
+    <Compile Include="Simulator\World.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Simulator\ParcelManager.cs">
@@ -244,10 +244,10 @@
     <Compile Include="Client\ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientView.ProcessPackets.cs">
+    <Compile Include="Client\ClientViewBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientViewBase.cs">
+    <Compile Include="Client\ClientView.ProcessPackets.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Client\ClientView.cs">

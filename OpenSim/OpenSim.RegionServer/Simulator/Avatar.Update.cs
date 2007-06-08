@@ -54,7 +54,7 @@ namespace OpenSim.RegionServer.Simulator
                     //use CreateTerseBlock()
                     ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
                     ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                    terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                    terse.RegionData.RegionHandle = m_world.m_regInfo.RegionHandle;
                     terse.RegionData.TimeDilation = 64096;
                     terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                     terse.ObjectData[0] = terseBlock;
@@ -78,7 +78,7 @@ namespace OpenSim.RegionServer.Simulator
                             //It has been a while since last update was sent so lets send one.
                             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
                             ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                            terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                            terse.RegionData.RegionHandle = m_world.m_regInfo.RegionHandle;
                             terse.RegionData.TimeDilation = 64096;
                             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                             terse.ObjectData[0] = terseBlock;
@@ -158,7 +158,7 @@ namespace OpenSim.RegionServer.Simulator
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
-            objupdate.RegionData.RegionHandle = m_regionHandle;
+            objupdate.RegionData.RegionHandle = m_world.m_regInfo.RegionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
 
@@ -182,7 +182,7 @@ namespace OpenSim.RegionServer.Simulator
             //send a objectupdate packet with information about the clients avatar
 
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
-            objupdate.RegionData.RegionHandle = m_regionHandle;
+            objupdate.RegionData.RegionHandle = m_world.m_regInfo.RegionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = AvatarTemplate;

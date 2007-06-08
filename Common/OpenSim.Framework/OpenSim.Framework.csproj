@@ -159,7 +159,7 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\AgentCircuitData.cs">
+    <Compile Include="Types\EstateSettings.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\AssetBase.cs">
@@ -186,7 +186,7 @@
     <Compile Include="Types\PrimData.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\EstateSettings.cs">
+    <Compile Include="Types\AgentCircuitData.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

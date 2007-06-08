@@ -21,21 +21,21 @@
                 <include name="AuthenticateSessionsBase.cs" />
                 <include name="VersionInfo.cs" />
                 <include name="AgentAssetUpload.cs" />
-                <include name="RegionServerBase.cs" />
                 <include name="RegionInfoBase.cs" />
                 <include name="RegionInfo.cs" />
+                <include name="RegionServerBase.cs" />
                 <include name="Simulator/Avatar.Client.cs" />
                 <include name="Simulator/Entity.cs" />
                 <include name="Simulator/World.PacketHandlers.cs" />
-                <include name="Simulator/Avatar.Update.cs" />
                 <include name="Simulator/AvatarAnimations.cs" />
                 <include name="Simulator/WorldBase.cs" />
                 <include name="Simulator/Primitive.cs" />
                 <include name="Simulator/World.Scripting.cs" />
                 <include name="Simulator/Primitive2.cs" />
-                <include name="Simulator/Avatar.cs" />
-                <include name="Simulator/World.cs" />
                 <include name="Simulator/SceneObject.cs" />
+                <include name="Simulator/Avatar.cs" />
+                <include name="Simulator/Avatar.Update.cs" />
+                <include name="Simulator/World.cs" />
                 <include name="Simulator/ParcelManager.cs" />
                 <include name="Estate/EstateManager.cs" />
                 <include name="CAPS/AdminWebFront.cs" />
@@ -51,8 +51,8 @@
                 <include name="Types/Triangle.cs" />
                 <include name="Client/ClientView.Grid.cs" />
                 <include name="Client/ClientView.PacketHandlers.cs" />
-                <include name="Client/ClientView.ProcessPackets.cs" />
                 <include name="Client/ClientViewBase.cs" />
+                <include name="Client/ClientView.ProcessPackets.cs" />
                 <include name="Client/ClientView.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

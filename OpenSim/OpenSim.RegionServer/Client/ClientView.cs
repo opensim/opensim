@@ -144,6 +144,7 @@ namespace OpenSim.RegionServer.Client
 
 
             m_world.parcelManager.sendParcelOverlay(this);
+            m_world.estateManager.sendRegionInfoPacket(this);
 
             ClientThread = new Thread(new ThreadStart(AuthUser));
             ClientThread.IsBackground = true;

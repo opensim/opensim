@@ -66,24 +66,15 @@ namespace OpenSim.RegionServer.Simulator
 
         private int positionParcelHoverLocalID = -1; //Local ID of the last parcel they were over
         private int parcelUpdateSequenceIncrement = 1;
-        private ulong m_regionHandle;
-        //private Dictionary<uint, ClientView> m_clientThreads;
-        private string m_regionName;
-        private ushort m_regionWaterHeight;
-        private bool m_regionTerraform;
+
         private bool childAvatar = false;
 
-        public Avatar(ClientView TheClient, World world, string regionName, Dictionary<uint, ClientView> clientThreads, ulong regionHandle, bool regionTerraform, ushort regionWater)
+        public Avatar(ClientView TheClient, World world)
         {
             m_world = world;
-           // m_clientThreads = clientThreads;
-            m_regionName = regionName;
-            m_regionHandle = regionHandle;
-            m_regionTerraform = regionTerraform;
-            m_regionWaterHeight = regionWater;
+            ControllingClient = TheClient;
 
             OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs - Loading details from grid (DUMMY)");
-            ControllingClient = TheClient;
             localid = 8880000 + (this.m_world._localNumber++);
             Pos = ControllingClient.startpos;
             visualParams = new byte[218];
@@ -133,7 +124,7 @@ namespace OpenSim.RegionServer.Simulator
                 this._physActor.Velocity = new PhysicsVector(0, 0, 0);
                 ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateTerseBlock();
                 ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
-                terse.RegionData.RegionHandle = m_regionHandle; // FIXME
+                terse.RegionData.RegionHandle = m_world.m_regInfo.RegionHandle;
                 terse.RegionData.TimeDilation = 64096;
                 terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                 terse.ObjectData[0] = terseBlock;
@@ -251,7 +242,7 @@ namespace OpenSim.RegionServer.Simulator
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
             mov.AgentData.SessionID = this.ControllingClient.SessionID;
             mov.AgentData.AgentID = this.ControllingClient.AgentID;
-            mov.Data.RegionHandle = this.m_regionHandle;
+            mov.Data.RegionHandle = this.m_world.m_regInfo.RegionHandle;
             // TODO - dynamicalise this stuff
             mov.Data.Timestamp = 1172750370;
             mov.Data.Position = this.ControllingClient.startpos;
@@ -415,47 +406,7 @@ namespace OpenSim.RegionServer.Simulator
             }
         }
 
-        //really really should be moved somewhere else (RegionInfo.cs ?)
-        public void SendRegionHandshake(World regionInfo)
-        {
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-            RegionHandshakePacket handshake = new RegionHandshakePacket();
-
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionhandshake() - Filling in RegionHandshake details");
-            handshake.RegionInfo.BillableFactor = 0;
-            handshake.RegionInfo.IsEstateManager = false;
-            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeNW;
-            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeNE;
-            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeSW;
-            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.m_regInfo.estateSettings.terrainHeightRangeSE;
-            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.m_regInfo.estateSettings.terrainStartHeightNW;
-            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.m_regInfo.estateSettings.terrainStartHeightNE;
-            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.m_regInfo.estateSettings.terrainStartHeightSW;
-            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.m_regInfo.estateSettings.terrainStartHeightSE;
-            handshake.RegionInfo.SimAccess = 13;
-            handshake.RegionInfo.WaterHeight = m_regionWaterHeight;
-            uint regionFlags = 72458694;
-            if (this.m_regionTerraform)
-            {
-                regionFlags -= 64;
-            }
-            handshake.RegionInfo.RegionFlags = regionFlags;
-            handshake.RegionInfo.SimName = _enc.GetBytes(m_regionName + "\0");
-            handshake.RegionInfo.SimOwner = regionInfo.m_regInfo.MasterAvatarAssignedUUID;
-            handshake.RegionInfo.TerrainBase0 = regionInfo.m_regInfo.estateSettings.terrainBase0;
-            handshake.RegionInfo.TerrainBase1 = regionInfo.m_regInfo.estateSettings.terrainBase1;
-            handshake.RegionInfo.TerrainBase2 = regionInfo.m_regInfo.estateSettings.terrainBase2;
-            handshake.RegionInfo.TerrainBase3 = regionInfo.m_regInfo.estateSettings.terrainBase3;
-            handshake.RegionInfo.TerrainDetail0 = regionInfo.m_regInfo.estateSettings.terrainDetail0;
-            handshake.RegionInfo.TerrainDetail1 = regionInfo.m_regInfo.estateSettings.terrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 = regionInfo.m_regInfo.estateSettings.terrainDetail2;
-            handshake.RegionInfo.TerrainDetail3 = regionInfo.m_regInfo.estateSettings.terrainDetail3;
-            handshake.RegionInfo.CacheID = new LLUUID("545ec0a5-5751-1026-8a0b-216e38a7ab37");
-
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:SendRegionHandshake() - Sending RegionHandshake packet");
-            this.ControllingClient.OutPacket(handshake);
-        }
+        
 
         public static void LoadAnims()
         {

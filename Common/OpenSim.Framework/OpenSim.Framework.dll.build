@@ -36,7 +36,7 @@
                 <include name="Interfaces/IScriptAPI.cs" />
                 <include name="Interfaces/ILocalStorage.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
-                <include name="Types/AgentCircuitData.cs" />
+                <include name="Types/EstateSettings.cs" />
                 <include name="Types/AssetBase.cs" />
                 <include name="Types/AssetLandmark.cs" />
                 <include name="Types/AssetStorage.cs" />
@@ -45,7 +45,7 @@
                 <include name="Types/OSVector3.cs" />
                 <include name="Types/ParcelData.cs" />
                 <include name="Types/PrimData.cs" />
-                <include name="Types/EstateSettings.cs" />
+                <include name="Types/AgentCircuitData.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
