@@ -253,6 +253,8 @@ namespace OpenSim
                 LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
                 LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
                 LocalWorld.LoadPrimsFromStorage();
+                LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+
 
                 LocalWorld.StartTimer();
             }
@@ -417,11 +419,14 @@ namespace OpenSim
                     break;
 
                 case "show":
-                    Show(cmdparams[0]);
+                    if (cmdparams.Length > 0)
+                    {
+                        Show(cmdparams[0]);
+                    }
                     break;
 
                 case "terrain":
-                    string result = "";
+                    //string result = "";
                     /* if (!((World)m_localWorld).Terrain.RunTerrainCmd(cmdparams, ref result))
                      {
                          m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, result);

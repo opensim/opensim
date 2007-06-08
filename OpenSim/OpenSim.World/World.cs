@@ -217,6 +217,16 @@ namespace OpenSim.world
                     Entities[UUID].BackUp();
                 }
 
+                //Parcel backup routines
+                ParcelData[] parcels = new ParcelData[parcelManager.parcelList.Count];
+                int i = 0;
+                foreach (OpenSim.world.Parcel parcel in parcelManager.parcelList.Values)
+                {
+                    parcels[i] = parcel.parcelData;
+                    i++;
+                }
+                localStorage.SaveParcels(parcels);
+
                 // Backup successful
                 return true;
             }

@@ -34,6 +34,8 @@ namespace OpenSim.Framework.Interfaces
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
     public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client); // NOTETOSELFremove the packet part
 
+    public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
+
     public interface IClientAPI
     {
         event ChatFromViewer OnChatFromViewer;
@@ -60,6 +62,13 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall2 OnStopMovement;
         event NewAvatar OnNewAvatar;
         event GenericCall6 OnRemoveAvatar;
+
+        event ParcelPropertiesRequest OnParcelPropertiesRequest;
+        event ParcelDivideRequest OnParcelDivideRequest;
+        event ParcelJoinRequest OnParcelJoinRequest;
+        event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
+
+        event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
         LLVector3 StartPos
         {

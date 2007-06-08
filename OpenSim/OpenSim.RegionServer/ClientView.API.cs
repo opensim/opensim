@@ -4,6 +4,7 @@ using System.Text;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
+
 using libsecondlife;
 using libsecondlife.Packets;
 
@@ -35,6 +36,13 @@ namespace OpenSim
         public event GenericCall2 OnStopMovement;
         public event NewAvatar OnNewAvatar;
         public event GenericCall6 OnRemoveAvatar;
+
+        public event ParcelPropertiesRequest OnParcelPropertiesRequest;
+        public event ParcelDivideRequest OnParcelDivideRequest;
+        public event ParcelJoinRequest OnParcelJoinRequest;
+        public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
+
+        public event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
         /// <summary>
         /// 

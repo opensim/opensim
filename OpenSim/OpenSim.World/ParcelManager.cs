@@ -166,7 +166,7 @@ namespace OpenSim.world
             parcelList.Remove(local_id);
         }
 
-        public void performFinalParcelJoin(Parcel master, Parcel slave)
+        private void performFinalParcelJoin(Parcel master, Parcel slave)
         {
             int x, y;
             bool[,] parcelBitmapSlave = slave.getParcelBitmap();
@@ -212,7 +212,7 @@ namespace OpenSim.world
         /// <param name="end_y">North Point</param>
         /// <param name="attempting_user_id">LLUUID of user who is trying to subdivide</param>
         /// <returns>Returns true if successful</returns>
-        public bool subdivide(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
+        private bool subdivide(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
         {
             //First, lets loop through the points and make sure they are all in the same parcel
             //Get the parcel at start
@@ -278,7 +278,7 @@ namespace OpenSim.world
         /// <param name="end_y">y value in second parcel</param>
         /// <param name="attempting_user_id">LLUUID of the avatar trying to join the parcels</param>
         /// <returns>Returns true if successful</returns>
-        public bool join(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
+        private bool join(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
         {
             end_x -= 4;
             end_y -= 4;
@@ -405,6 +405,58 @@ namespace OpenSim.world
             packet.ParcelData.Data = byteArray;
             packet.ParcelData.SequenceID = sequenceID; //Eh?
             remote_client.OutPacket((Packet)packet);
+        }
+
+        public void handleParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client)
+        {
+            //Get the parcels within the bounds
+            List<Parcel> temp = new List<Parcel>();
+            int x, y, i;
+            int inc_x = end_x - start_x;
+            int inc_y = end_y - start_y;
+            for (x = 0; x < inc_x; x++)
+            {
+                for (y = 0; y < inc_y; y++)
+                {
+                    OpenSim.world.Parcel currentParcel = getParcel(start_x + x, start_y + y);
+                    if (!temp.Contains(currentParcel))
+                    {
+                        currentParcel.forceUpdateParcelInfo();
+                        temp.Add(currentParcel);
+                    }
+                }
+            }
+
+            int requestResult = ParcelManager.PARCEL_RESULT_ONE_PARCEL;
+            if (temp.Count > 1)
+            {
+                requestResult = ParcelManager.PARCEL_RESULT_MULTIPLE_PARCELS;
+            }
+
+            for (i = 0; i < temp.Count; i++)
+            {
+                temp[i].sendParcelProperties(sequence_id, snap_selection, requestResult, remote_client);
+            }
+
+
+            sendParcelOverlay(remote_client);
+        }
+
+        public void handleParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client)
+        {
+            if (parcelList.ContainsKey(packet.ParcelData.LocalID))
+            {
+                parcelList[packet.ParcelData.LocalID].updateParcelProperties(packet, remote_client);
+            }
+        }
+        public void handleParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client)
+        {
+            subdivide(west, south, east, north, remote_client.AgentId);
+        }
+        public void handleParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client)
+        {
+            join(west, south, east, north, remote_client.AgentId);
+        
         }
         #endregion
 

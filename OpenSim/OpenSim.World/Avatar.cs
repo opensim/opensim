@@ -83,6 +83,13 @@ namespace OpenSim.world
             ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
              * */
+
+            ControllingClient.OnParcelPropertiesRequest +=new ParcelPropertiesRequest(this.m_world.parcelManager.handleParcelPropertiesRequest);
+            ControllingClient.OnParcelDivideRequest += new ParcelDivideRequest(this.m_world.parcelManager.handleParcelDivideRequest);
+            ControllingClient.OnParcelJoinRequest += new ParcelJoinRequest(this.m_world.parcelManager.handleParcelJoinRequest);
+            ControllingClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(this.m_world.parcelManager.handleParcelPropertiesUpdateRequest);
+
+            ControllingClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(this.m_world.estateManager.handleEstateOwnerMessage);
         }
 
         /// <summary>
