@@ -74,6 +74,7 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="XMLRPC"/>
+	<Reference name="OpenSim.Framework.Console"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -122,6 +123,31 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
+
+	<!-- OpenGridFrameWork.Communications" -->
+	<Project name="OpenGrid.Framework.Communications" path="Common/OpenGrid.Framework.Communications" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+     <Reference name="OpenSim.Framework"/>
+     <Reference name="libsecondlife.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
 
     <!-- Storage Plug-ins -->
     <Project name="OpenSim.Storage.LocalStorageDb4o" path="OpenSim/OpenSim.Storage/LocalStorageDb4o" type="Library">
@@ -469,6 +495,7 @@
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
       <Reference name="XMLRPC"/>
+      <Reference name="OpenGrid.Framework.Communications"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -499,8 +526,10 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
+	 <Reference name="OpenSim.World"/>
       <Reference name="OpenSim.RegionServer"/>
       <Reference name="OpenSim.GenericConfig.Xml"/>
+	<Reference name="OpenGrid.Framework.Communications"/>
       <Reference name="XMLRPC"/>
 
       <Files>

@@ -69,7 +69,6 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml">
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
@@ -162,7 +161,12 @@
     <Compile Include="CommsManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimNetworkHandler.cs" />
+    <Compile Include="NetworkServersInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OpenSimNetworkHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -172,7 +176,9 @@
     <Compile Include="UDPServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserConfigUtility.cs" />
+    <Compile Include="UserConfigUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
