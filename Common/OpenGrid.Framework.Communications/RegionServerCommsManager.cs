@@ -9,6 +9,7 @@ using libsecondlife;
 
 namespace OpenGrid.Framework.Communications
 {
+ 
     public class RegionServerCommsManager
     {
 

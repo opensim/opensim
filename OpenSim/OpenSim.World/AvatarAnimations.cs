@@ -31,7 +31,7 @@ using System.Text;
 using libsecondlife;
 using System.Xml;
 
-namespace OpenSim.RegionServer.Simulator
+namespace OpenSim
 {
     public class AvatarAnimations
     {
@@ -45,7 +45,7 @@ namespace OpenSim.RegionServer.Simulator
 
         public void LoadAnims()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
+            //OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
             XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
            
             XmlDocument doc = new XmlDocument();
@@ -62,9 +62,9 @@ namespace OpenSim.RegionServer.Simulator
 
             reader.Close();
 
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
+           // OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
-            foreach (KeyValuePair<string, LLUUID> kp in OpenSim.RegionServer.Simulator.Avatar.Animations.AnimsLLUUID)
+            foreach (KeyValuePair<string, LLUUID> kp in OpenSim.world.Avatar.Animations.AnimsLLUUID)
             {
                 AnimsNames.Add(kp.Value, kp.Key);
             }

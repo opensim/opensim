@@ -27,16 +27,12 @@ namespace OpenGrid.Framework.Communications
         public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
-            
             if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
             {
                 //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
-            
                 this.regions.Add(regionInfo.RegionHandle, regionInfo);
                 RegionCommsHostBase regionHost = new RegionCommsHostBase();
-                this.regionHosts.Add(regionInfo.RegionHandle, regionHost);
-
-                
+                this.regionHosts.Add(regionInfo.RegionHandle, regionHost); 
                 return regionHost;
             }
       
@@ -69,7 +65,6 @@ namespace OpenGrid.Framework.Communications
                     }
                 }
             }
-
             return neighbours;
         }
 
