@@ -69,7 +69,6 @@ namespace OpenSim
             m_loginserver = startLoginServer;
             m_physicsEngine = physicsEngine;
             m_config = configFile;
-
             m_console = new ConsoleBase("region-console-" + Guid.NewGuid().ToString() + ".log", "Region", this, silent);
             OpenSim.Framework.Console.MainConsole.Instance = m_console;
         }

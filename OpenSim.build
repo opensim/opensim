@@ -46,10 +46,12 @@
         <echo message="Deleting all builds from all configurations" />
         <delete dir="${bin.dir}" failonerror="false" />
         <delete dir="${obj.dir}" failonerror="false" />
+        <nant buildfile="Common/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Terrain.BasicTerrain/OpenSim.Terrain.BasicTerrain.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Physics/OdePlugin/OpenSim.Physics.OdePlugin.dll.build" target="clean" />
-        <nant buildfile="Common/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="clean" />
+        <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="clean" />
+        <nant buildfile="OpenSim/OpenSim.World/OpenSim.World.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="clean" />
         <nant buildfile="Common/OpenSim.GenericConfig/Xml/OpenSim.GenericConfig.Xml.dll.build" target="clean" />
@@ -71,6 +73,7 @@
         <nant buildfile="Common/OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="Common/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="build" />
         <nant buildfile="Common/OpenSim.Servers/OpenSim.Servers.dll.build" target="build" />
+        <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="build" />
@@ -84,6 +87,7 @@
         <nant buildfile="OpenSim/OpenSim.Scripting/EmbeddedJVM/OpenSim.Scripting.EmbeddedJVM.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Terrain.BasicTerrain/OpenSim.Terrain.BasicTerrain.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="build" />
+        <nant buildfile="OpenSim/OpenSim.World/OpenSim.World.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="build" />
     </target>
 
@@ -95,10 +99,12 @@
 
     <target name="doc" depends="build-release">
         <echo message="Generating all documentation from all builds" />
+        <nant buildfile="Common/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Terrain.BasicTerrain/OpenSim.Terrain.BasicTerrain.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Physics/OdePlugin/OpenSim.Physics.OdePlugin.dll.build" target="doc" />
-        <nant buildfile="Common/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="doc" />
+        <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="doc" />
+        <nant buildfile="OpenSim/OpenSim.World/OpenSim.World.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="doc" />
         <nant buildfile="Common/OpenSim.GenericConfig/Xml/OpenSim.GenericConfig.Xml.dll.build" target="doc" />

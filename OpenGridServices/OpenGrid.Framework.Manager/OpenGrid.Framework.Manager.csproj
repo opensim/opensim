@@ -62,12 +62,12 @@
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.Framework.dll" >
-      <HintPath>..\..\bin\OpenSim.Framework.dll</HintPath>
+    <Reference Include="OpenSim.Framework" >
+      <HintPath>OpenSim.Framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.Servers.dll" >
-      <HintPath>..\..\bin\OpenSim.Servers.dll</HintPath>
+    <Reference Include="OpenSim.Servers" >
+      <HintPath>OpenSim.Servers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >

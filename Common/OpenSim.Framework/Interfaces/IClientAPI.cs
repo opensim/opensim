@@ -29,6 +29,11 @@ namespace OpenSim.Framework.Interfaces
     public delegate void StatusChange(bool status);
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
 
+    public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
+    public delegate void ParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
+    public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
+    public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client); // NOTETOSELFremove the packet part
+
     public interface IClientAPI
     {
         event ChatFromViewer OnChatFromViewer;
@@ -81,7 +86,6 @@ namespace OpenSim.Framework.Interfaces
         void SendWearables(AvatarWearable[] wearables);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendLayerData(float[] map);
-        void SendRegionHandshake(RegionInfo regionInfo);
         void MoveAgentIntoRegion(RegionInfo regInfo);
         void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
         void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort);

@@ -15,6 +15,8 @@ using OpenSim.Framework;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
+using OpenSim.world.Estate;
+
 
 namespace OpenSim.world
 {
@@ -39,6 +41,9 @@ namespace OpenSim.world
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsHostBase regionCommsHost;
         protected RegionServerCommsManager commsManager;
+
+        public ParcelManager parcelManager;
+        public EstateManager estateManager;
 
         #region Properties
         /// <summary>
@@ -444,7 +449,7 @@ namespace OpenSim.world
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="remoteClient"></param>
+        /// <param name="remoteClient"></param          
         /// <param name="agentID"></param>
         /// <param name="child"></param>
         public override void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
@@ -458,7 +463,7 @@ namespace OpenSim.world
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(remoteClient, this, m_clientThreads, this.m_regInfo);
+                newAvatar = new Avatar(remoteClient, this, m_clientThreads);
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
                 newAvatar.SendRegionHandshake();

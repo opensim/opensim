@@ -1,5 +1,6 @@
 /*
-* Copyright (c) OpenSim project, http://sim.opensecondlife.org/
+* Copyright (c) Contributors, http://www.openmetaverse.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -8,14 +9,14 @@
 *     * Redistributions in binary form must reproduce the above copyright
 *       notice, this list of conditions and the following disclaimer in the
 *       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the <organization> nor the
+*     * Neither the name of the OpenSim Project nor the
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY <copyright holder> ``AS IS'' AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -24,45 +25,28 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-
 using System;
+using System.Collections.Generic;
+using System.Text;
+using Db4objects.Db4o;
+using Db4objects.Db4o.Query;
 using libsecondlife;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim.Framework.Interfaces
+namespace OpenSim.Storage.LocalStorageDb4o
 {
-    /// <summary>
-    /// ILocalStorage. Really hacked together right now needs cleaning up
-    /// </summary>
-    public interface ILocalStorage
+    public class UUIDParcelQuery : Predicate
     {
-        void Initialise(string datastore);
+        private LLUUID globalIDSearch;
 
-        void StorePrim(PrimData prim);
-        void RemovePrim(LLUUID primID);
-        void LoadPrimitives(ILocalStorageReceiver receiver);
-
-        float[] LoadWorld();
-        void SaveMap(float[] heightmap);
-
-        void SaveParcels(ParcelData[] parcels);
-        void SaveParcel(ParcelData parcel);
-        void RemoveParcel(ParcelData parcel);
-        void RemoveAllParcels();
-        void LoadParcels(ILocalStorageParcelReceiver recv);
-
-        void ShutDown();
-    }
-
-    public interface ILocalStorageReceiver
-    {
-        void PrimFromStorage(PrimData prim);
-    }
-
-    public interface ILocalStorageParcelReceiver
-    {
-        void ParcelFromStorage(ParcelData data);
-        void NoParcelDataFromStorage();
+        public UUIDParcelQuery(LLUUID find)
+        {
+            globalIDSearch = find;
+        }
+        public bool Match(ParcelData parcel)
+        {
+            return (parcel.globalID == globalIDSearch);
+        }
     }
 }
-

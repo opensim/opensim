@@ -235,49 +235,6 @@ namespace OpenSim
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        public void SendRegionHandshake(RegionInfo regionInfo)
-        {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Avatar.cs:SendRegionHandshake() - Creating empty RegionHandshake packet");
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-            RegionHandshakePacket handshake = new RegionHandshakePacket();
-
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.VERBOSE, "Avatar.cs:SendRegionhandshake() - Filling in RegionHandshake details");
-            handshake.RegionInfo.BillableFactor = 0;
-            handshake.RegionInfo.IsEstateManager = false;
-            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.TerrainHeightRange00;
-            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.TerrainHeightRange01;
-            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.TerrainHeightRange10;
-            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.TerrainHeightRange11;
-            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.TerrainStartHeight00;
-            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.TerrainStartHeight01;
-            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.TerrainStartHeight10;
-            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.TerrainStartHeight11;
-            handshake.RegionInfo.SimAccess = 13;
-            handshake.RegionInfo.WaterHeight = regionInfo.RegionWaterHeight;
-            uint regionFlags = 72458694;
-            if (regionInfo.RegionTerraform)
-            {
-                regionFlags -= 64;
-            }
-            handshake.RegionInfo.RegionFlags = regionFlags;
-            handshake.RegionInfo.SimName = _enc.GetBytes(regionInfo.RegionName + "\0");
-            handshake.RegionInfo.SimOwner = new LLUUID("00000000-0000-0000-0000-000000000000");
-            handshake.RegionInfo.TerrainBase0 = regionInfo.TerrainBase0;
-            handshake.RegionInfo.TerrainBase1 = regionInfo.TerrainBase1;
-            handshake.RegionInfo.TerrainBase2 = regionInfo.TerrainBase2;
-            handshake.RegionInfo.TerrainBase3 = regionInfo.TerrainBase3;
-            handshake.RegionInfo.TerrainDetail0 = regionInfo.TerrainDetail0;
-            handshake.RegionInfo.TerrainDetail1 = regionInfo.TerrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 = regionInfo.TerrainDetail2;
-            handshake.RegionInfo.TerrainDetail3 = regionInfo.TerrainDetail3;
-            handshake.RegionInfo.CacheID = new LLUUID("545ec0a5-5751-1026-8a0b-216e38a7ab37");
-
-            OutPacket(handshake);
-        }
 
         /// <summary>
         /// 

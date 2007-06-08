@@ -11,26 +11,26 @@
             <resources prefix="OpenSim.Scripting.EmbeddedJVM" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="ClassInstance.cs" />
-                <include name="ClassRecord.cs" />
-                <include name="Heap.cs" />
-                <include name="Interpreter.cs" />
-                <include name="InterpreterLogic.cs" />
-                <include name="InterpreterMethods.cs" />
-                <include name="InterpreterReturn.cs" />
                 <include name="MainMemory.cs" />
-                <include name="MethodMemory.cs" />
-                <include name="Object.cs" />
-                <include name="OpenSimJVM.cs" />
-                <include name="Stack.cs" />
+                <include name="Heap.cs" />
                 <include name="StackFrame.cs" />
+                <include name="InterpreterLogic.cs" />
+                <include name="OpenSimJVM.cs" />
+                <include name="InterpreterMethods.cs" />
+                <include name="ClassInstance.cs" />
+                <include name="InterpreterReturn.cs" />
+                <include name="Interpreter.cs" />
+                <include name="ClassRecord.cs" />
+                <include name="Stack.cs" />
+                <include name="Object.cs" />
                 <include name="Thread.cs" />
+                <include name="MethodMemory.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
-                <include name="Types/ArrayReference.cs" />
                 <include name="Types/BaseType.cs" />
+                <include name="Types/ArrayReference.cs" />
                 <include name="Types/ObjectReference.cs" />
-                <include name="Types/PrimitiveTypes/Byte.cs" />
                 <include name="Types/PrimitiveTypes/Char.cs" />
+                <include name="Types/PrimitiveTypes/Byte.cs" />
                 <include name="Types/PrimitiveTypes/Float.cs" />
                 <include name="Types/PrimitiveTypes/Int.cs" />
             </sources>

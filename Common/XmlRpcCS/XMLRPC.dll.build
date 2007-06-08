@@ -11,24 +11,24 @@
             <resources prefix="XMLRPC" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="Logger.cs" />
-                <include name="SimpleHttpRequest.cs" />
                 <include name="XmlRpcBoxcarRequest.cs" />
-                <include name="XmlRpcClientProxy.cs" />
-                <include name="XmlRpcDeserializer.cs" />
-                <include name="XmlRpcErrorCodes.cs" />
-                <include name="XmlRpcException.cs" />
-                <include name="XmlRpcExposedAttribute.cs" />
                 <include name="XmlRpcRequest.cs" />
-                <include name="XmlRpcRequestDeserializer.cs" />
-                <include name="XmlRpcRequestSerializer.cs" />
-                <include name="XmlRpcResponder.cs" />
-                <include name="XmlRpcResponse.cs" />
-                <include name="XmlRpcResponseDeserializer.cs" />
                 <include name="XmlRpcResponseSerializer.cs" />
-                <include name="XmlRpcSerializer.cs" />
+                <include name="Logger.cs" />
+                <include name="XmlRpcRequestDeserializer.cs" />
+                <include name="XmlRpcExposedAttribute.cs" />
+                <include name="XmlRpcResponse.cs" />
+                <include name="XmlRpcException.cs" />
+                <include name="XmlRpcResponder.cs" />
+                <include name="XmlRpcResponseDeserializer.cs" />
                 <include name="XmlRpcServer.cs" />
+                <include name="XmlRpcErrorCodes.cs" />
+                <include name="XmlRpcSerializer.cs" />
                 <include name="XmlRpcSystemObject.cs" />
+                <include name="SimpleHttpRequest.cs" />
+                <include name="XmlRpcClientProxy.cs" />
+                <include name="XmlRpcRequestSerializer.cs" />
+                <include name="XmlRpcDeserializer.cs" />
                 <include name="XmlRpcXmlTokens.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

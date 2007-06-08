@@ -33,11 +33,7 @@ namespace OpenSim.world
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private ulong m_regionHandle;
         private Dictionary<uint, IClientAPI> m_clientThreads;
-        private string m_regionName;
-        private ushort m_regionWaterHeight;
-        private bool m_regionTerraform;
         private bool childAvatar = false;
-        private RegionInfo regionData;
 
         /// <summary>
         /// 
@@ -46,17 +42,13 @@ namespace OpenSim.world
         /// <param name="world"></param>
         /// <param name="clientThreads"></param>
         /// <param name="regionDat"></param>
-        public Avatar(IClientAPI theClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionDat)
+        public Avatar(IClientAPI theClient, World world, Dictionary<uint, IClientAPI> clientThreads)
         {
 
             m_world = world;
             m_clientThreads = clientThreads;
-            regionData = regionDat;
             this.uuid = theClient.AgentId;
-            m_regionName = regionData.RegionName;
-            m_regionHandle = regionData.RegionHandle;
-            m_regionTerraform = regionData.RegionTerraform;
-            m_regionWaterHeight = regionData.RegionWaterHeight;
+            
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
@@ -148,7 +140,7 @@ namespace OpenSim.world
         /// </summary>
         public void CompleteMovement()
         {
-            this.ControllingClient.MoveAgentIntoRegion(this.regionData);
+            this.ControllingClient.MoveAgentIntoRegion(this.m_world.m_regInfo);
         }
 
         /// <summary>
@@ -174,7 +166,7 @@ namespace OpenSim.world
         /// </summary>
         public void SendRegionHandshake()
         {
-            this.ControllingClient.SendRegionHandshake(this.regionData);
+            this.m_world.estateManager.sendRegionHandshake(this.ControllingClient);
         }
 
         /// <summary>

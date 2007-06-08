@@ -29,9 +29,9 @@
                 <include name="Interfaces/IUserServer.cs" />
                 <include name="Interfaces/IAssetServer.cs" />
                 <include name="Interfaces/IWorld.cs" />
-                <include name="Interfaces/IClientAPI.cs" />
                 <include name="Interfaces/IGridServer.cs" />
                 <include name="Interfaces/ILocalStorage.cs" />
+                <include name="Interfaces/IClientAPI.cs" />
                 <include name="Interfaces/Scripting/IScriptEngine.cs" />
                 <include name="Interfaces/Scripting/IScriptAPI.cs" />
                 <include name="Interfaces/Remoting/IProxyServerHost.cs" />
@@ -46,17 +46,17 @@
                 <include name="Properties/AssemblyInfo.cs" />
                 <include name="Types/NeighbourInfo.cs" />
                 <include name="Types/NetworkServersInfo.cs" />
-                <include name="Types/RegionInfo.cs" />
+                <include name="Types/ParcelData.cs" />
                 <include name="Types/AgentWearable.cs" />
                 <include name="Types/PrimData.cs" />
                 <include name="Types/AssetStorage.cs" />
+                <include name="Types/EstateSettings.cs" />
                 <include name="Types/OSVector3.cs" />
                 <include name="Types/AgentCiruitData.cs" />
                 <include name="Types/Login.cs" />
                 <include name="Types/AssetLandmark.cs" />
                 <include name="Types/AssetBase.cs" />
-                <include name="Types/ParcelData.cs" />
-                <include name="Types/EstateSettings.cs" />
+                <include name="Types/RegionInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
