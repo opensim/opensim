@@ -98,6 +98,46 @@ namespace OpenSim
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="regionInfo"></param>
+        public void SendRegionHandshake(RegionInfo regionInfo)
+        {
+            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+            RegionHandshakePacket handshake = new RegionHandshakePacket();
+
+            handshake.RegionInfo.BillableFactor = regionInfo.estateSettings.billableFactor;
+            handshake.RegionInfo.IsEstateManager = false;
+            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.estateSettings.terrainHeightRange0;
+            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.estateSettings.terrainHeightRange1;
+            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.estateSettings.terrainHeightRange2;
+            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.estateSettings.terrainHeightRange3;
+            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.estateSettings.terrainStartHeight0;
+            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.estateSettings.terrainStartHeight1;
+            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.estateSettings.terrainStartHeight2;
+            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.estateSettings.terrainStartHeight3;
+            handshake.RegionInfo.SimAccess = (byte)regionInfo.estateSettings.simAccess;
+            handshake.RegionInfo.WaterHeight = regionInfo.estateSettings.waterHeight;
+
+
+            handshake.RegionInfo.RegionFlags = (uint)regionInfo.estateSettings.regionFlags;
+
+            handshake.RegionInfo.SimName = _enc.GetBytes(regionInfo.estateSettings.waterHeight + "\0");
+            handshake.RegionInfo.SimOwner = regionInfo.MasterAvatarAssignedUUID;
+            handshake.RegionInfo.TerrainBase0 = regionInfo.estateSettings.terrainBase0;
+            handshake.RegionInfo.TerrainBase1 = regionInfo.estateSettings.terrainBase1;
+            handshake.RegionInfo.TerrainBase2 = regionInfo.estateSettings.terrainBase2;
+            handshake.RegionInfo.TerrainBase3 = regionInfo.estateSettings.terrainBase3;
+            handshake.RegionInfo.TerrainDetail0 = regionInfo.estateSettings.terrainDetail0;
+            handshake.RegionInfo.TerrainDetail1 = regionInfo.estateSettings.terrainDetail1;
+            handshake.RegionInfo.TerrainDetail2 =regionInfo.estateSettings.terrainDetail2;
+            handshake.RegionInfo.TerrainDetail3 = regionInfo.estateSettings.terrainDetail3;
+            handshake.RegionInfo.CacheID = LLUUID.Random(); //I guess this is for the client to remember an old setting?
+
+            this.OutPacket(handshake);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="regInfo"></param>
         public void MoveAgentIntoRegion(RegionInfo regInfo)
         {

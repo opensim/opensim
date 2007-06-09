@@ -35,7 +35,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.world
 {
-    
+
 
     #region ParcelManager Class
     /// <summary>
@@ -62,7 +62,7 @@ namespace OpenSim.world
         public const byte PARCEL_FLAG_PROPERTY_BORDER_SOUTH = (byte)128;    //Equals 10000000
 
         //RequestResults (I think these are right, they seem to work):
-        public const int PARCEL_RESULT_ONE_PARCEL       = 0;	// The request they made contained only one parcel
+        public const int PARCEL_RESULT_ONE_PARCEL = 0;	// The request they made contained only one parcel
         public const int PARCEL_RESULT_MULTIPLE_PARCELS = 1;	// The request they made contained more than one parcel
 
         //These are other constants. Yay!
@@ -143,7 +143,7 @@ namespace OpenSim.world
             }
             parcelList[lastParcelLocalID].forceUpdateParcelInfo();
 
-            
+
         }
         /// <summary>
         /// Removes a parcel from the list. Will not remove if local_id is still owning an area in parcelIDList
@@ -258,12 +258,12 @@ namespace OpenSim.world
             int startParcelIndex = startParcel.parcelData.localID;
             parcelList[startParcelIndex].setParcelBitmap(Parcel.modifyParcelBitmapSquare(startParcel.getParcelBitmap(), start_x, start_y, end_x, end_y, false));
             parcelList[startParcelIndex].forceUpdateParcelInfo();
-            
+
 
             //Now add the new parcel
             addParcel(newParcel);
 
-             
+
 
 
 
@@ -282,7 +282,7 @@ namespace OpenSim.world
         {
             end_x -= 4;
             end_y -= 4;
-            
+
             //NOTE: The following only connects the parcels in each corner and not all the parcels that are within the selection box!
             //This should be fixed later -- somewhat "incomplete code" --Ming
             Parcel startParcel, endParcel;
@@ -456,7 +456,7 @@ namespace OpenSim.world
         public void handleParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client)
         {
             join(west, south, east, north, remote_client.AgentId);
-        
+
         }
         #endregion
 
@@ -543,7 +543,7 @@ namespace OpenSim.world
             //Place all new variables here!
             newParcel.parcelBitmap = (bool[,])(this.parcelBitmap.Clone());
             newParcel.parcelData = parcelData.Copy();
-           
+
             return newParcel;
         }
 
@@ -565,7 +565,7 @@ namespace OpenSim.world
             updatePacket.ParcelData.AABBMin = parcelData.AABBMin;
             updatePacket.ParcelData.Area = parcelData.area;
             updatePacket.ParcelData.AuctionID = parcelData.auctionID;
-            updatePacket.ParcelData.AuthBuyerID =parcelData.authBuyerID; //unemplemented
+            updatePacket.ParcelData.AuthBuyerID = parcelData.authBuyerID; //unemplemented
 
             updatePacket.ParcelData.Bitmap = parcelData.parcelBitmapByteArray;
 
@@ -606,7 +606,7 @@ namespace OpenSim.world
             updatePacket.ParcelData.SequenceID = sequence_id;
             updatePacket.ParcelData.SimWideMaxPrims = 15000; //unemplemented
             updatePacket.ParcelData.SimWideTotalPrims = 0; //unemplemented
-            updatePacket.ParcelData.SnapSelection = snap_selection; 
+            updatePacket.ParcelData.SnapSelection = snap_selection;
             updatePacket.ParcelData.SnapshotID = parcelData.snapshotID;
             updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus;
             updatePacket.ParcelData.TotalPrims = 0; //unemplemented
@@ -638,14 +638,17 @@ namespace OpenSim.world
                 parcelData.userLocation = packet.ParcelData.UserLocation;
                 parcelData.userLookAt = packet.ParcelData.UserLookAt;
 
-                foreach (Avatar av in m_world.Avatars.Values)
+                List<Avatar> avatars = m_world.RequestAvatarList();
+
+                for (int i = 0; i < avatars.Count; i++)
                 {
-                    Parcel over = m_world.parcelManager.getParcel((int)Math.Round(av.Pos.X), (int)Math.Round(av.Pos.Y));
+                    Parcel over = m_world.parcelManager.getParcel((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
                     if (over == this)
                     {
-                        sendParcelProperties(0, false, 0, av.ControllingClient);
+                        sendParcelProperties(0, false, 0, avatars[i].ControllingClient);
                     }
                 }
+                
             }
         }
         #endregion
@@ -720,7 +723,7 @@ namespace OpenSim.world
                 //Valid: Lets set it
                 parcelBitmap = bitmap;
                 forceUpdateParcelInfo();
-               
+
             }
         }
         /// <summary>
@@ -761,23 +764,23 @@ namespace OpenSim.world
         private bool[,] convertBytesToParcelBitmap()
         {
             bool[,] tempConvertMap = new bool[64, 64];
-            tempConvertMap.Initialize(); 
+            tempConvertMap.Initialize();
             byte tempByte = 0;
             int x = 0, y = 0, i = 0, bitNum = 0;
-            for(i = 0; i < 512; i++)
+            for (i = 0; i < 512; i++)
             {
                 tempByte = parcelData.parcelBitmapByteArray[i];
-                for(bitNum = 0; bitNum < 8; bitNum++)
+                for (bitNum = 0; bitNum < 8; bitNum++)
                 {
                     bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & (byte)1);
                     tempConvertMap[x, y] = bit;
                     x++;
-                    if(x > 63)
+                    if (x > 63)
                     {
-                        x = 0; 
+                        x = 0;
                         y++;
                     }
-             
+
                 }
 
             }
@@ -859,7 +862,7 @@ namespace OpenSim.world
             {
                 //Throw an exception - The bitmap is not 64x64
                 throw new Exception("Error: Invalid Parcel Bitmap - Bitmap_add in mergeParcelBitmaps");
-                
+
             }
 
             int x, y;
@@ -879,9 +882,9 @@ namespace OpenSim.world
 
         #endregion
 
-       
+
     }
     #endregion
-    
-    
+
+
 }

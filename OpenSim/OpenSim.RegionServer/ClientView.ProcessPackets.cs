@@ -457,19 +457,31 @@ namespace OpenSim
                     #region Parcel related packets
                     case PacketType.ParcelPropertiesRequest:
                         ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
+                        if(OnParcelPropertiesRequest != null)
+                        {
                         OnParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West), (int)Math.Round(propertiesRequest.ParcelData.South), (int)Math.Round(propertiesRequest.ParcelData.East), (int)Math.Round(propertiesRequest.ParcelData.North), propertiesRequest.ParcelData.SequenceID, propertiesRequest.ParcelData.SnapSelection, this);
+                        }
                         break;
                     case PacketType.ParcelDivide:
                         ParcelDividePacket parcelDivide = (ParcelDividePacket)Pack;
-                        OnParcelDivideRequest((int)Math.Round(parcelDivide.ParcelData.West), (int)Math.Round(parcelDivide.ParcelData.South), (int)Math.Round(parcelDivide.ParcelData.East), (int)Math.Round(parcelDivide.ParcelData.North), this);
+                        if (OnParcelDivideRequest != null)
+                        {
+                            OnParcelDivideRequest((int)Math.Round(parcelDivide.ParcelData.West), (int)Math.Round(parcelDivide.ParcelData.South), (int)Math.Round(parcelDivide.ParcelData.East), (int)Math.Round(parcelDivide.ParcelData.North), this);
+                        }
                         break;
                     case PacketType.ParcelJoin:
                         ParcelJoinPacket parcelJoin = (ParcelJoinPacket)Pack;
-                        OnParcelJoinRequest((int)Math.Round(parcelJoin.ParcelData.West), (int)Math.Round(parcelJoin.ParcelData.South), (int)Math.Round(parcelJoin.ParcelData.East), (int)Math.Round(parcelJoin.ParcelData.North), this);
+                        if (OnParcelJoinRequest != null)
+                        {
+                            OnParcelJoinRequest((int)Math.Round(parcelJoin.ParcelData.West), (int)Math.Round(parcelJoin.ParcelData.South), (int)Math.Round(parcelJoin.ParcelData.East), (int)Math.Round(parcelJoin.ParcelData.North), this);
+                        }
                         break;
                     case PacketType.ParcelPropertiesUpdate:
                         ParcelPropertiesUpdatePacket updatePacket = (ParcelPropertiesUpdatePacket)Pack;
-                        OnParcelPropertiesUpdateRequest(updatePacket, this);
+                        if (OnParcelPropertiesUpdateRequest != null)
+                        {
+                            OnParcelPropertiesUpdateRequest(updatePacket, this);
+                        }
                         break;
                     #endregion
 

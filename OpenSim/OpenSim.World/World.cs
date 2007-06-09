@@ -24,9 +24,8 @@ namespace OpenSim.world
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         public object LockPhysicsEngine = new object();
-        public Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
-        public Dictionary<libsecondlife.LLUUID, Primitive> Prims;
-        //public ScriptEngine Scripts;
+        protected Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
+        protected Dictionary<libsecondlife.LLUUID, Primitive> Prims;
         public uint _localNumber = 0;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
@@ -83,8 +82,8 @@ namespace OpenSim.world
                 this.m_datastore = m_regInfo.DataStore;
                 this.RegisterRegionWithComms();
 
-                parcelManager = new ParcelManager(this,this.m_regInfo);
-                estateManager = new EstateManager(this,this.m_regInfo);
+                parcelManager = new ParcelManager(this, this.m_regInfo);
+                estateManager = new EstateManager(this, this.m_regInfo);
 
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();
@@ -476,10 +475,12 @@ namespace OpenSim.world
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(remoteClient, this, m_clientThreads,this.m_regInfo);
+                newAvatar = new Avatar(remoteClient, this, m_clientThreads, this.m_regInfo);
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
-                newAvatar.SendRegionHandshake();
+
+                //newAvatar.SendRegionHandshake();
+                this.estateManager.sendRegionHandshake(remoteClient);
 
                 PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
                 lock (this.LockPhysicsEngine)
@@ -522,7 +523,7 @@ namespace OpenSim.world
         /// </summary>
         protected void InformClientOfNeighbours(IClientAPI remoteClient)
         {
-           // Console.WriteLine("informing client of neighbouring regions");
+            // Console.WriteLine("informing client of neighbouring regions");
             List<RegionInfo> neighbours = this.commsManager.RequestNeighbours(this.m_regInfo);
 
             //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
@@ -530,7 +531,7 @@ namespace OpenSim.world
             {
                 for (int i = 0; i < neighbours.Count; i++)
                 {
-                   // Console.WriteLine("sending neighbours data");
+                    // Console.WriteLine("sending neighbours data");
                     AgentCircuitData agent = remoteClient.RequestClientInfo();
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
@@ -556,7 +557,7 @@ namespace OpenSim.world
         // ie it could be all Avatars within a certain range of the calling prim/avatar. 
 
         /// <summary>
-        /// 
+        /// Request a List of all Avatars in this World
         /// </summary>
         /// <returns></returns>
         public List<Avatar> RequestAvatarList()

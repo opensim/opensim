@@ -217,18 +217,22 @@ namespace OpenSim.world.Estate
 
         public void sendRegionInfoPacketToAll()
         {
-            foreach (OpenSim.world.Avatar av in m_world.Avatars.Values)
-            {
-                this.sendRegionInfoPacket(av.ControllingClient);
-            }
+             List<Avatar> avatars = m_world.RequestAvatarList();
+
+             for (int i = 0; i < avatars.Count; i++)
+             {
+                 this.sendRegionInfoPacket(avatars[i].ControllingClient);
+             }
         }
 
         public void sendRegionHandshakeToAll()
         {
-            foreach (OpenSim.world.Avatar av in m_world.Avatars.Values)
+            List<Avatar> avatars = m_world.RequestAvatarList();
+
+            for (int i = 0; i < avatars.Count; i++)
             {
-                av.SendRegionHandshake();
-            }
+                this.sendRegionHandshake(avatars[i].ControllingClient);
+            }         
         }
 
         public void sendRegionInfoPacket(IClientAPI remote_client)
@@ -257,6 +261,11 @@ namespace OpenSim.world.Estate
             regionInfoPacket.RegionInfo.WaterHeight = m_regInfo.estateSettings.waterHeight;
 
             remote_client.OutPacket(regionInfoPacket);
+        }
+
+        public void sendRegionHandshake(IClientAPI remoteClient)
+        {
+            remoteClient.SendRegionHandshake(m_regInfo);
         }
 
     }
