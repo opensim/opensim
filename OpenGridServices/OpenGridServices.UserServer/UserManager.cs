@@ -713,14 +713,14 @@ namespace OpenGridServices.UserServer
             xw.WriteAttributeString("profile_firstlife_about", profile.profileFirstText);
             xw.WriteAttributeString("profile_firstlife_image", profile.profileFirstImage.ToStringHyphenated());
             xw.WriteAttributeString("profile_can_do", profile.profileCanDoMask.ToString());
-            xw.WriteAttributeString("profile_want_do", profile.profileWantDoMask());
+            xw.WriteAttributeString("profile_want_do", profile.profileWantDoMask.ToString());
             xw.WriteAttributeString("profile_image", profile.profileImage.ToStringHyphenated());
-            xw.WriteAttributeString("profile_created",profile.created.ToString();
+            xw.WriteAttributeString("profile_created",profile.created.ToString());
             xw.WriteAttributeString("profile_lastlogin",profile.lastLogin.ToString());
             // Home region information
             xw.WriteAttributeString("home_coordinates", profile.homeLocation.ToString());
             xw.WriteAttributeString("home_region", profile.homeRegion.ToString());
-            xw.WriteAttributeString("home_look", profile.homeLookAt());
+            xw.WriteAttributeString("home_look", profile.homeLookAt.ToString());
 
             xw.WriteEndElement();
 
