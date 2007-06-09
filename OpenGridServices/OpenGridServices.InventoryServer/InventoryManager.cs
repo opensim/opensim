@@ -107,6 +107,7 @@ namespace OpenGridServices.InventoryServer
             {
                 if (requestData["access-type"] == "rootfolders")
                 {
+
 //                    responseData["rootfolders"] =
                 }
             }
