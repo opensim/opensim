@@ -655,6 +655,10 @@ namespace OpenGridServices.UserServer
             return "OK";
         }
 
+        /// <summary>
+        /// Returns an error message that the user could not be found in the database
+        /// </summary>
+        /// <returns>XML string consisting of a error element containing individual error(s)</returns>
         public string CreateUnknownUserErrorResponse()
         {
             System.IO.StringWriter sw = new System.IO.StringWriter();
@@ -697,11 +701,27 @@ namespace OpenGridServices.UserServer
 
             // User
             xw.WriteStartElement("user");
+            // Account information
             xw.WriteAttributeString("firstname", profile.username);
             xw.WriteAttributeString("lastname", profile.surname);
             xw.WriteAttributeString("uuid", profile.UUID.ToStringHyphenated());
-            xw.WriteAttributeString("inventory", profile.userInventoryURI);
-            xw.WriteAttributeString("asset", profile.userAssetURI);
+            // Server Information
+            xw.WriteAttributeString("server_inventory", profile.userInventoryURI);
+            xw.WriteAttributeString("server_asset", profile.userAssetURI);
+            // Profile Information
+            xw.WriteAttributeString("profile_about", profile.profileAboutText);
+            xw.WriteAttributeString("profile_firstlife_about", profile.profileFirstText);
+            xw.WriteAttributeString("profile_firstlife_image", profile.profileFirstImage.ToStringHyphenated());
+            xw.WriteAttributeString("profile_can_do", profile.profileCanDoMask.ToString());
+            xw.WriteAttributeString("profile_want_do", profile.profileWantDoMask());
+            xw.WriteAttributeString("profile_image", profile.profileImage.ToStringHyphenated());
+            xw.WriteAttributeString("profile_created",profile.created.ToString();
+            xw.WriteAttributeString("profile_lastlogin",profile.lastLogin.ToString());
+            // Home region information
+            xw.WriteAttributeString("home_coordinates", profile.homeLocation.ToString());
+            xw.WriteAttributeString("home_region", profile.homeRegion.ToString());
+            xw.WriteAttributeString("home_look", profile.homeLookAt());
+
             xw.WriteEndElement();
 
             // Footer
