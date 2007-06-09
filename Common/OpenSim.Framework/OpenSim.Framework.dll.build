@@ -46,6 +46,7 @@
                 <include name="Properties/AssemblyInfo.cs" />
                 <include name="Types/NeighbourInfo.cs" />
                 <include name="Types/NetworkServersInfo.cs" />
+                <include name="Types/RegionInfo.cs" />
                 <include name="Types/ParcelData.cs" />
                 <include name="Types/AgentWearable.cs" />
                 <include name="Types/PrimData.cs" />
@@ -56,7 +57,6 @@
                 <include name="Types/Login.cs" />
                 <include name="Types/AssetLandmark.cs" />
                 <include name="Types/AssetBase.cs" />
-                <include name="Types/RegionInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

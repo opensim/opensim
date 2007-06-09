@@ -1,29 +1,24 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
+
 using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenGrid.Framework.Communications
+using libsecondlife;
+
+namespace OpenGrid.Framework.Communications.GridServer
 {
-    public class TestLocalCommsManager : RegionServerCommsManager
+    public class GridCommsManagerLocal : GridCommsManagerBase
     {
-        protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong,RegionInfo>();
+        protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong, RegionInfo>();
         protected Dictionary<ulong, RegionCommsHostBase> regionHosts = new Dictionary<ulong, RegionCommsHostBase>();
 
-        public TestLocalCommsManager()
+        public GridCommsManagerLocal()
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
         public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
@@ -32,27 +27,23 @@ namespace OpenGrid.Framework.Communications
                 //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
                 this.regions.Add(regionInfo.RegionHandle, regionInfo);
                 RegionCommsHostBase regionHost = new RegionCommsHostBase();
-                this.regionHosts.Add(regionInfo.RegionHandle, regionHost); 
+                this.regionHosts.Add(regionInfo.RegionHandle, regionHost);
                 return regionHost;
             }
-      
+
             //already in our list of regions so for now lets return null
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
+
         public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
-           // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
+            // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
             List<RegionInfo> neighbours = new List<RegionInfo>();
 
             foreach (RegionInfo reg in this.regions.Values)
             {
-               // Console.WriteLine("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
+                // Console.WriteLine("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
                 if (reg.RegionHandle != regionInfo.RegionHandle)
                 {
                     //Console.WriteLine("CommsManager- RequestNeighbours() - found a different region in list, checking location");
@@ -68,16 +59,12 @@ namespace OpenGrid.Framework.Communications
             return neighbours;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
             if (this.regionHosts.ContainsKey(regionHandle))
             {
-               // Console.WriteLine("CommsManager- Informing a region to expect child agent");
+                // Console.WriteLine("CommsManager- Informing a region to expect child agent");
                 this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agentData);
                 return true;
             }
@@ -90,7 +77,7 @@ namespace OpenGrid.Framework.Communications
         /// <param name="regionHandle"></param>
         /// <param name="loginData"></param>
         /// <returns></returns>
-        public bool AddNewSession(ulong regionHandle, Login loginData)
+        public override bool AddNewSession(ulong regionHandle, Login loginData)
         {
             //Console.WriteLine(" comms manager been told to expect new user");
             AgentCircuitData agent = new AgentCircuitData();

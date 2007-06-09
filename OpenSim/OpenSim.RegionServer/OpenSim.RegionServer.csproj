@@ -145,10 +145,10 @@
     <Compile Include="ClientView.Grid.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.PacketHandlers.cs">
+    <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.ProcessPackets.cs">
+    <Compile Include="ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="VersionInfo.cs">
@@ -169,10 +169,10 @@
     <Compile Include="ClientView.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PacketServer.cs">
+    <Compile Include="ClientView.API.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.API.cs">
+    <Compile Include="ClientView.ProcessPackets.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CAPS\AdminWebFront.cs">

@@ -195,6 +195,9 @@
     <Compile Include="Types\NetworkServersInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Types\RegionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Types\ParcelData.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -223,9 +226,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\AssetBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\RegionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
