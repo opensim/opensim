@@ -1,0 +1,86 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AD062D99-DD53-4D37-A4B8-2AF635377AEB}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SimpleApp</RootNamespace>
+    <AssemblyName>SimpleApp</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="libsecondlife, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MyWorld.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
+      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.Framework.Console</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\OpenSim.Framework\OpenSim.Framework.csproj">
+      <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\OpenSim.Servers\OpenSim.Servers.csproj">
+      <Project>{8BB20F0A-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.Servers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\XmlRpcCS\XMLRPC.csproj">
+      <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
+      <Name>XMLRPC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\OpenSim.GridInterfaces\Local\OpenSim.GridInterfaces.Local.csproj">
+      <Project>{546099CD-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.GridInterfaces.Local</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
+      <Project>{8BE16150-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.Physics.Manager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\OpenSim.RegionServer\OpenSim.RegionServer.csproj">
+      <Project>{632E1BFD-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.RegionServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\OpenSim.World\OpenSim.World.csproj">
+      <Project>{642A14A8-0000-0000-0000-000000000000}</Project>
+      <Name>OpenSim.World</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

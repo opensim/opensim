@@ -54,6 +54,12 @@ namespace OpenSim.Framework.Console
             this.cmdparser = cmdparser;
             this.m_silent = silent;
             System.Console.WriteLine("ServerConsole.cs - creating new local console");
+            
+            if( String.IsNullOrEmpty( LogFile ) )
+            {
+                LogFile = componentname + ".log";
+            }
+            
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
             Log = File.AppendText(LogFile);
             Log.WriteLine("========================================================================");

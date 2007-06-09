@@ -10,6 +10,9 @@ namespace OpenSim.Framework.Interfaces
     {
         void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child);
         void RemoveAvatar(LLUUID agentID);
-        RegionInfo GetRegionInfo();
+        
+        RegionInfo RegionInfo { get; }
+        object SyncRoot { get; }
+        uint NextLocalId { get; }
     }
 }

@@ -55,21 +55,16 @@ namespace OpenSim.world
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
-            localid = 8880000 + (this.m_world._localNumber++);
+            localid = this.m_world.NextLocalId;
             Pos = ControllingClient.StartPos;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
                 visualParams[i] = 100;
             }
-            Wearables = new AvatarWearable[13]; //should be 13 of these
-            for (int i = 0; i < 13; i++)
-            {
-                Wearables[i] = new AvatarWearable();
-            }
-            this.Wearables[0].AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-            this.Wearables[0].ItemID = LLUUID.Random();
 
+            Wearables = AvatarWearable.DefaultWearables;
+            
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
             Console.WriteLine("avatar point 4");
             

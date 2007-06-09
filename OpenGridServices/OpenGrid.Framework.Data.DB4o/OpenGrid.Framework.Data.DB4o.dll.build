@@ -11,9 +11,9 @@
             <resources prefix="OpenGrid.Framework.Data.DB4o" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="DB4oUserData.cs" />
-                <include name="DB4oManager.cs" />
                 <include name="DB4oGridData.cs" />
+                <include name="DB4oManager.cs" />
+                <include name="DB4oUserData.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

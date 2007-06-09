@@ -14,5 +14,20 @@ namespace OpenSim.Framework.Types
         {
 
         }
+
+        public static AvatarWearable[] DefaultWearables
+        {
+            get
+            {
+                AvatarWearable[] defaultWearables =  new AvatarWearable[13]; //should be 13 of these
+                for (int i = 0; i < 13; i++)
+                {
+                    defaultWearables[i] = new AvatarWearable();
+                }
+                defaultWearables[0].AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+                defaultWearables[0].ItemID = LLUUID.Random();
+                return defaultWearables;
+            }
+        }
     }
 }

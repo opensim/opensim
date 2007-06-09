@@ -23,10 +23,8 @@ namespace OpenSim.world
     public partial class World : WorldBase, ILocalStorageReceiver, IScriptAPI
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
-        public object LockPhysicsEngine = new object();
         protected Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
         protected Dictionary<libsecondlife.LLUUID, Primitive> Prims;
-        public uint _localNumber = 0;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
         public ILocalStorage localStorage;
@@ -59,6 +57,7 @@ namespace OpenSim.world
                 return (this.phyScene);
             }
         }
+
         #endregion
 
         #region Constructors
@@ -155,7 +154,7 @@ namespace OpenSim.world
                     Entities[UUID].addForces();
                 }
 
-                lock (this.LockPhysicsEngine)
+                lock (this.m_syncRoot)
                 {
                     this.phyScene.Simulate(timeStep);
                 }
@@ -203,7 +202,7 @@ namespace OpenSim.world
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain tainted, saving.");
                     localStorage.SaveMap(Terrain.getHeights1D());
                     OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain saved, informing Physics.");
-                    lock (this.LockPhysicsEngine)
+                    lock (this.m_syncRoot)
                     {
                         phyScene.SetTerrain(Terrain.getHeights1D());
                     }
@@ -297,7 +296,7 @@ namespace OpenSim.world
             {
                 Terrain.hills();
 
-                lock (this.LockPhysicsEngine)
+                lock (this.m_syncRoot)
                 {
                     this.phyScene.SetTerrain(Terrain.getHeights1D());
                 }
@@ -328,7 +327,7 @@ namespace OpenSim.world
             try
             {
                 this.Terrain.setHeights2D(newMap);
-                lock (this.LockPhysicsEngine)
+                lock (this.m_syncRoot)
                 {
                     this.phyScene.SetTerrain(this.Terrain.getHeights1D());
                 }
@@ -483,7 +482,7 @@ namespace OpenSim.world
                 this.estateManager.sendRegionHandshake(remoteClient);
 
                 PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-                lock (this.LockPhysicsEngine)
+                lock (this.m_syncRoot)
                 {
                     newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
                 }
@@ -612,5 +611,10 @@ namespace OpenSim.world
         }
 
         #endregion
+
+        public override void SendLayerData(int px, int py, IClientAPI RemoteClient)
+        {
+            RemoteClient.SendLayerData( Terrain.getHeights1D() );
+        }
     }
 }

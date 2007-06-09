@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="OpenSim.RegionServer" default="build">
+<project name="OpenSim.World" default="build">
     <target name="build">
         <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
         <mkdir dir="${project::get-base-directory()}/${build.dir}" />
@@ -8,29 +8,30 @@
             </fileset>
         </copy>
         <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
-            <resources prefix="OpenSim.RegionServer" dynamicprefix="true" >
+            <resources prefix="OpenSim.World" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="AgentAssetUpload.cs" />
-                <include name="AuthenticateSessionsLocal.cs" />
-                <include name="AuthenticateSessionsRemote.cs" />
-                <include name="ClientView.API.cs" />
-                <include name="ClientView.cs" />
-                <include name="ClientView.Grid.cs" />
-                <include name="ClientView.PacketHandlers.cs" />
-                <include name="ClientView.ProcessPackets.cs" />
-                <include name="ClientViewBase.cs" />
-                <include name="CommsManager.cs" />
-                <include name="NetworkServersInfo.cs" />
-                <include name="OpenSimNetworkHandler.cs" />
-                <include name="PacketServer.cs" />
-                <include name="RegionServerBase.cs" />
-                <include name="UDPServer.cs" />
-                <include name="UserConfigUtility.cs" />
-                <include name="VersionInfo.cs" />
-                <include name="Assets/AssetCache.cs" />
-                <include name="Assets/InventoryCache.cs" />
-                <include name="CAPS/AdminWebFront.cs" />
+                <include name="Avatar.Client.cs" />
+                <include name="Avatar.cs" />
+                <include name="Avatar.Update.cs" />
+                <include name="AvatarAnimations.cs" />
+                <include name="Entity.cs" />
+                <include name="ParcelManager.cs" />
+                <include name="Primitive.cs" />
+                <include name="SceneObject.cs" />
+                <include name="World.cs" />
+                <include name="World.PacketHandlers.cs" />
+                <include name="World.Scripting.cs" />
+                <include name="WorldBase.cs" />
+                <include name="Estate/EstateManager.cs" />
+                <include name="scripting/IScriptContext.cs" />
+                <include name="scripting/IScriptEntity.cs" />
+                <include name="scripting/IScriptHandler.cs" />
+                <include name="scripting/Script.cs" />
+                <include name="scripting/ScriptFactory.cs" />
+                <include name="scripting/Scripts/FollowRandomAvatar.cs" />
+                <include name="types/Mesh.cs" />
+                <include name="types/Triangle.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -49,6 +50,7 @@
                 <include name="../../bin/OpenSim.Physics.Manager.dll" />
                 <include name="../../bin/OpenSim.Servers.dll" />
                 <include name="../../bin/XMLRPC.dll" />
+                <include name="../../bin/OpenGrid.Framework.Communications.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />

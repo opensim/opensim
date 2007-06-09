@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="OpenGrid.Framework.Data.SQLite" default="build">
+<project name="OpenGrid.Framework.Communications" default="build">
     <target name="build">
         <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
         <mkdir dir="${project::get-base-directory()}/${build.dir}" />
@@ -8,12 +8,19 @@
             </fileset>
         </copy>
         <csc target="library" debug="${build.debug}" unsafe="False" define="TRACE;DEBUG" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
-            <resources prefix="OpenGrid.Framework.Data.SQLite" dynamicprefix="true" >
+            <resources prefix="OpenGrid.Framework.Communications" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="SQLiteGridData.cs" />
-                <include name="SQLiteManager.cs" />
+                <include name="RegionServerCommsLocal.cs" />
+                <include name="RegionServerCommsManager.cs" />
+                <include name="RegionServerCommsOGS.cs" />
+                <include name="GridServer/GridCommsManagerBase.cs" />
+                <include name="GridServer/GridCommsManagerLocal.cs" />
+                <include name="GridServer/GridCommsManagerOGS.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
+                <include name="UserServer/UserCommsManagerBase.cs" />
+                <include name="UserServer/UserCommsManagerLocal.cs" />
+                <include name="UserServer/UserCommsManagerOGS.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -22,9 +29,7 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
-                <include name="System.Data.dll" />
-                <include name="../../bin/System.Data.SQLite.dll" />
-                <include name="../../bin/OpenGrid.Framework.Data.dll" />
+                <include name="../../bin/OpenSim.Framework.dll" />
                 <include name="../../bin/libsecondlife.dll" />
             </references>
         </csc>

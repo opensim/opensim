@@ -13,7 +13,13 @@ namespace OpenSim
         {
 
         }
-
+    
+        public bool AddNewSessionHandler(ulong regionHandle, Login loginData)
+        {
+            AddNewSession( loginData );
+            return true;
+        }
+        
         public void AddNewSession(Login loginData)
         {
             AgentCircuitData agent = new AgentCircuitData();

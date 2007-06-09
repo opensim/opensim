@@ -130,22 +130,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="WorldBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World.Scripting.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Avatar.Client.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Avatar.Update.cs">
@@ -154,34 +142,46 @@
     <Compile Include="AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Avatar.cs">
+    <Compile Include="Entity.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="World.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World.PacketHandlers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World.Scripting.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Estate\EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="scripting\IScriptHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="scripting\ScriptFactory.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="scripting\IScriptContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripting\IScriptEntity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripting\IScriptHandler.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripting\Script.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="scripting\IScriptEntity.cs">
+    <Compile Include="scripting\ScriptFactory.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripting\Scripts\FollowRandomAvatar.cs">

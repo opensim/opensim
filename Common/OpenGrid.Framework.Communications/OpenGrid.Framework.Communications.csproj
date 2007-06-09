@@ -83,22 +83,13 @@
     <Compile Include="RegionServerCommsLocal.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionServerCommsOGS.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RegionServerCommsManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs">
+    <Compile Include="RegionServerCommsOGS.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserServer\UserCommsManagerOGS.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserServer\UserCommsManagerLocal.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserServer\UserCommsManagerBase.cs">
+    <Compile Include="GridServer\GridCommsManagerBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GridServer\GridCommsManagerLocal.cs">
@@ -107,7 +98,16 @@
     <Compile Include="GridServer\GridCommsManagerOGS.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="GridServer\GridCommsManagerBase.cs">
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserServer\UserCommsManagerBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserServer\UserCommsManagerLocal.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserServer\UserCommsManagerOGS.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

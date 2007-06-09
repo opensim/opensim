@@ -92,13 +92,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LoginServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="BaseHttpServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BaseServer.cs">
+    <Compile Include="CheckSumServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IRestHandler.cs">
@@ -107,16 +104,16 @@
     <Compile Include="LocalUserProfileManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="XmlRpcMethod.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LoginResponse.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CheckSumServer.cs">
+    <Compile Include="LoginServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UDPServerBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XmlRpcMethod.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

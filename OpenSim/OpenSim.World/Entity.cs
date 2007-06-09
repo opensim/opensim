@@ -51,7 +51,7 @@ namespace OpenSim.world
                 {
                     try
                     {
-                        lock (this.m_world.LockPhysicsEngine)
+                        lock (this.m_world.SyncRoot)
                         {
 
                             this._physActor.Position = new PhysicsVector(value.X, value.Y, value.Z);

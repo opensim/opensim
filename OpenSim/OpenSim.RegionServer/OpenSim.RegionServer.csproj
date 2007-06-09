@@ -124,10 +124,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NetworkServersInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UDPServer.cs">
+    <Compile Include="AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AuthenticateSessionsLocal.cs">
@@ -136,52 +133,55 @@
     <Compile Include="AuthenticateSessionsRemote.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimNetworkHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserConfigUtility.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.Grid.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PacketServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VersionInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="AgentAssetUpload.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientViewBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="RegionServerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CommsManager.cs">
+    <Compile Include="ClientView.API.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ClientView.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView.API.cs">
+    <Compile Include="ClientView.Grid.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ClientView.ProcessPackets.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAPS\AdminWebFront.cs">
+    <Compile Include="ClientViewBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CommsManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NetworkServersInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OpenSimNetworkHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PacketServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RegionServerBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UDPServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserConfigUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="VersionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetCache.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Assets\InventoryCache.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\AssetCache.cs">
+    <Compile Include="CAPS\AdminWebFront.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

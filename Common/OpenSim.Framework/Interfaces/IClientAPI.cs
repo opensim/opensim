@@ -94,6 +94,7 @@ namespace OpenSim.Framework.Interfaces
         void OutPacket(Packet newPack);
         void SendWearables(AvatarWearable[] wearables);
         void SendRegionHandshake(RegionInfo regionInfo);
+        void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendLayerData(float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo);
