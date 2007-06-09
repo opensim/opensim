@@ -40,7 +40,6 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-using OpenSim.GridInterfaces.Local;		// REFACTORING IS NEEDED!!!!!!!!!!!
 using OpenSim.Servers;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
