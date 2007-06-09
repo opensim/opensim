@@ -22,6 +22,7 @@ namespace OpenSim.Framework.Types
         public LLUUID MasterAvatarAssignedUUID = new LLUUID();
         public string MasterAvatarFirstName = "";
         public string MasterAvatarLastName = "";
+        public string MasterAvatarSandboxPassword = "";
 
         public int IPListenPort = 0;
         public string IPListenAddr = "";
@@ -150,8 +151,49 @@ namespace OpenSim.Framework.Types
                         this.IPListenAddr = attri;
                     }
                 }
+                attri = "";
+                attri = configData.GetAttribute("MasterAvatarFirstName");
+                if (attri == "")
+                {
+                    this.MasterAvatarFirstName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("First name of Master Avatar (Land and Region Owner)", "Test");
 
-               
+                    configData.SetAttribute("MasterAvatarFirstName", this.MasterAvatarFirstName);
+                }
+                else
+                {
+                    this.MasterAvatarFirstName = attri;
+                }
+
+                attri = "";
+                attri = configData.GetAttribute("MasterAvatarLastName");
+                if (attri == "")
+                {
+                    this.MasterAvatarLastName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Last name of Master Avatar (Land and Region Owner)", "User");
+
+                    configData.SetAttribute("MasterAvatarLastName", this.MasterAvatarLastName);
+                }
+                else
+                {
+                    this.MasterAvatarLastName = attri;
+                }
+
+                if (isSandbox) //Sandbox Mode Specific Settings
+                {
+                    attri = "";
+                    attri = configData.GetAttribute("MasterAvatarSandboxPassword");
+                    if (attri == "")
+                    {
+                        this.MasterAvatarSandboxPassword = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Password of Master Avatar (Needed for sandbox mode account creation only)", "test");
+
+                        //Should I store this?
+                        configData.SetAttribute("MasterAvatarSandboxPassword", this.MasterAvatarSandboxPassword);
+                    }
+                    else
+                    {
+                        this.MasterAvatarSandboxPassword = attri;
+                    }
+                }
+
                 this.RegionHandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
                
                 configData.Commit();
