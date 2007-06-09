@@ -657,7 +657,25 @@ namespace OpenGridServices.UserServer
 
         public string CreateUnknownUserErrorResponse()
         {
-            return "<error>Unknown user</error>";
+            System.IO.StringWriter sw = new System.IO.StringWriter();
+            XmlTextWriter xw = new XmlTextWriter(sw);
+
+            // Header
+            xw.Formatting = Formatting.Indented;
+            xw.WriteStartDocument();
+            xw.WriteDocType("error", null, null, null);
+            xw.WriteComment("An error occured");
+            xw.WriteStartElement("error");
+
+            // User
+            xw.WriteElementString("unknownuser", "Unable to find a user with that name");
+
+            // Footer
+            xw.WriteEndElement();
+            xw.Flush();
+            xw.Close();
+
+            return sw.ToString();
         }
 
         /// <summary>
