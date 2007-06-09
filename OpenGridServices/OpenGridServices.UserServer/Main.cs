@@ -53,9 +53,7 @@ namespace OpenGridServices.UserServer
         private UserConfig Cfg;
         protected IGenericConfig localXMLConfig;
 
-        public UserManager m_userManager; // Replaces below.
-
-        //private UserProfileManager m_userProfileManager; // Depreciated
+        public UserManager m_userManager;
 
         public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
@@ -64,7 +62,7 @@ namespace OpenGridServices.UserServer
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.WriteLine("Starting...\n");
+            Console.WriteLine("Launching UserServer...");
 
             OpenUser_Main userserver = new OpenUser_Main();
 
@@ -108,9 +106,11 @@ namespace OpenGridServices.UserServer
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
+            httpServer.AddRestHandler("GET", "/user/name/", m_userManager.RestGetUserMethodName);
             httpServer.AddRestHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod);
 
             httpServer.Start();
+            m_console.Status("Userserver 0.3 - Startup complete");
         }
 
 

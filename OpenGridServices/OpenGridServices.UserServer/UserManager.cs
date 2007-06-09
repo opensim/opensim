@@ -655,5 +655,56 @@ namespace OpenGridServices.UserServer
             return "OK";
         }
 
+        public string CreateUnknownUserErrorResponse()
+        {
+            return "<error>Unknown user</error>";
+        }
+
+        /// <summary>
+        /// Converts a user profile to an XML element which can be returned
+        /// </summary>
+        /// <param name="profile">The user profile</param>
+        /// <returns>A string containing an XML Document of the user profile</returns>
+        public string ProfileToXml(UserProfileData profile)
+        {
+            System.IO.StringWriter sw = new System.IO.StringWriter();
+            XmlTextWriter xw = new XmlTextWriter(sw);
+
+            // Header
+            xw.Formatting = Formatting.Indented;
+            xw.WriteStartDocument();
+            xw.WriteDocType("userprofile", null, null, null);
+            xw.WriteComment("Found user profiles matching the request");
+            xw.WriteStartElement("users");
+
+            // User
+            xw.WriteStartElement("user");
+            xw.WriteAttributeString("firstname", profile.username);
+            xw.WriteAttributeString("lastname", profile.surname);
+            xw.WriteAttributeString("uuid", profile.UUID.ToStringHyphenated());
+            xw.WriteAttributeString("inventory", profile.userInventoryURI);
+            xw.WriteAttributeString("asset", profile.userAssetURI);
+            xw.WriteEndElement();
+
+            // Footer
+            xw.WriteEndElement();
+            xw.Flush();
+            xw.Close();
+
+            return sw.ToString();
+        }
+
+        public string RestGetUserMethodName(string request, string path, string param)
+        {
+            UserProfileData userProfile = getUserProfile(param.Trim());
+
+            if (userProfile == null)
+            {
+                return CreateUnknownUserErrorResponse();
+            }
+
+            return ProfileToXml(userProfile);
+        }
+
     }
 }
