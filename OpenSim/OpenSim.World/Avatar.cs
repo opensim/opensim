@@ -35,7 +35,7 @@ namespace OpenSim.world
         private Dictionary<uint, IClientAPI> m_clientThreads;
         private bool childAvatar = false;
 
-        private RegionInfo m_regInfo;
+        protected RegionInfo m_regionInfo;
         /// <summary>
         /// 
         /// </summary>
@@ -50,7 +50,7 @@ namespace OpenSim.world
             m_clientThreads = clientThreads;
             this.uuid = theClient.AgentId;
 
-            m_regInfo = reginfo;
+            m_regionInfo = reginfo;
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
@@ -144,7 +144,7 @@ namespace OpenSim.world
         /// </summary>
         public void CompleteMovement()
         {
-            this.ControllingClient.MoveAgentIntoRegion(m_regInfo);
+            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo);
         }
 
         /// <summary>

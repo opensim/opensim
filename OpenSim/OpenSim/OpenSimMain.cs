@@ -103,12 +103,13 @@ namespace OpenSim
                 this.SetupLocalGridServers();
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
-                this.commsManager = new RegionServerCommsOGS();
+                this.commsManager = new RegionServerCommsLocal(); 
+                new RegionServerCommsOGS();
             }
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new RegionServerCommsLocal();
+                this.commsManager = new RegionServerCommsOGS();
             }
 
             startuptime = DateTime.Now;
