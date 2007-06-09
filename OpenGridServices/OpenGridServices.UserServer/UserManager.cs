@@ -706,5 +706,17 @@ namespace OpenGridServices.UserServer
             return ProfileToXml(userProfile);
         }
 
+        public string RestGetUserMethodUUID(string request, string path, string param)
+        {
+            UserProfileData userProfile = getUserProfile(new LLUUID(param));
+
+            if (userProfile == null)
+            {
+                return CreateUnknownUserErrorResponse();
+            }
+
+            return ProfileToXml(userProfile);
+        }
+
     }
 }

@@ -106,7 +106,10 @@ namespace OpenGridServices.UserServer
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
+
             httpServer.AddRestHandler("GET", "/user/name/", m_userManager.RestGetUserMethodName);
+            httpServer.AddRestHandler("GET", "/user/uuid/", m_userManager.RestGetUserMethodUUID);
+
             httpServer.AddRestHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod);
 
             httpServer.Start();
