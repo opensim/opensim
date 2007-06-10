@@ -7,7 +7,7 @@ using OpenSim.Region;
 using Avatar=OpenSim.Region.Avatar;
 using Primitive = OpenSim.Region.Primitive;
 
-namespace OpenSim.RegionServer.world.scripting
+namespace OpenSim.Region.Scripting
 {
     public delegate void ScriptEventHandler(IScriptContext context);
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.RegionServer.world.scripting
+namespace OpenSim.Region.Scripting
 {
     public delegate Script ScriptFactory();
 }

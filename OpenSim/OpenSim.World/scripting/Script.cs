@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 
-namespace OpenSim.RegionServer.world.scripting
+namespace OpenSim.Region.Scripting
 {
     public class Script
     {

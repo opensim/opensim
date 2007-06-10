@@ -10,7 +10,7 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
-using OpenSim.RegionServer.world.scripting;
+using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
 
 namespace OpenSim.Region

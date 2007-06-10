@@ -12,7 +12,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework;
-using OpenSim.RegionServer.world.scripting;
+using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
 using OpenSim.Region.Estate;

@@ -5,7 +5,7 @@ using Axiom.MathLib;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.types;
 using libsecondlife;
-using OpenSim.RegionServer.world.scripting;
+using OpenSim.Region.Scripting;
 
 namespace OpenSim.Region
 {
