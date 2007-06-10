@@ -270,7 +270,7 @@ namespace OpenSim.Region
                 lPos = this.Pos;
             }
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.primData, lPos, new LLUUID("00000000-0000-0000-5005-000000000005"));
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.localid, this.primData, lPos, new LLUUID("00000000-0000-0000-5005-000000000005"));
         }
 
         public void SendFullUpdateToAllClients()
