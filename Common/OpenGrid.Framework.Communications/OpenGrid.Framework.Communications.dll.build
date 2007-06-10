@@ -18,6 +18,9 @@
                 <include name="GridServer/GridCommsManagerBase.cs" />
                 <include name="GridServer/GridCommsManagerLocal.cs" />
                 <include name="GridServer/GridCommsManagerOGS.cs" />
+                <include name="InterSimComms/InterSimsCommsBase.cs" />
+                <include name="InterSimComms/InterSimsCommsLocal.cs" />
+                <include name="InterSimComms/InterSimsCommsOGS.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
                 <include name="UserServer/UserCommsManagerBase.cs" />
                 <include name="UserServer/UserCommsManagerLocal.cs" />

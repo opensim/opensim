@@ -12,17 +12,13 @@ namespace OpenGrid.Framework.Communications
  
     public class RegionServerCommsManager
     {
-        public UserServer.UserCommsManagerBase userServer;
-        public GridServer.GridCommsManagerBase gridServer;
+        public UserServer.UserCommsManagerBase UserServer;
+        public GridServer.GridCommsManagerBase GridServer;
+        public InterSimsCommsBase InterSims;
 
         public RegionServerCommsManager()
         {
             
-        }
-
-        public virtual bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
-        {
-            return false;
         }
     }
 }

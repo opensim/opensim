@@ -19,9 +19,7 @@ namespace OpenGrid.Framework.Communications
         }
 
         /// <summary>
-        /// Main Register a region method with the CommsManager.
-        /// Should do anything that is needed and also call the RegisterRegion method in the gridserver class
-        /// to inform the grid server (in grid mode).
+        /// Register a region method with the SandBoxManager.
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
@@ -43,9 +41,6 @@ namespace OpenGrid.Framework.Communications
         }
 
         /// <summary>
-        /// In the current class structure this shouldn't be here as it should only be in the gridserver class
-        /// but having it there in sandbox mode makes things very difficult, so for now until something is sorted out 
-        /// it will have to be here as well
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
@@ -73,9 +68,6 @@ namespace OpenGrid.Framework.Communications
         }
 
         /// <summary>
-        /// informs a neighbouring sim to expect a child agent
-        /// I guess if we are going to stick with the current class structure then we need a intersim class
-        /// but think we need to really rethink the class structure as currently it makes things very messy for sandbox mode 
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>

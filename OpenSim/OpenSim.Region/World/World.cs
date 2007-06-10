@@ -544,7 +544,7 @@ namespace OpenSim.Region
         protected void InformClientOfNeighbours(IClientAPI remoteClient)
         {
             // Console.WriteLine("informing client of neighbouring regions");
-            List<RegionInfo> neighbours = this.commsManager.gridServer.RequestNeighbours(this.m_regInfo);
+            List<RegionInfo> neighbours = this.commsManager.GridServer.RequestNeighbours(this.m_regInfo);
 
             //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
             if (neighbours != null)
@@ -556,7 +556,7 @@ namespace OpenSim.Region
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
-                    this.commsManager.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+                    this.commsManager.InterSims.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
                     remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
                 }
             }
@@ -617,7 +617,7 @@ namespace OpenSim.Region
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            this.regionCommsHost = this.commsManager.gridServer.RegisterRegion(this.m_regInfo);
+            this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo);
             if (this.regionCommsHost != null)
             {
                 this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);
