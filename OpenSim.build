@@ -51,7 +51,7 @@
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Physics/OdePlugin/OpenSim.Physics.OdePlugin.dll.build" target="clean" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="clean" />
-        <nant buildfile="OpenSim/OpenSim.World/OpenSim.Region.dll.build" target="clean" />
+        <nant buildfile="OpenSim/OpenSim.Region/OpenSim.Region.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="clean" />
         <nant buildfile="Common/OpenSim.GenericConfig/Xml/OpenSim.GenericConfig.Xml.dll.build" target="clean" />
@@ -87,7 +87,7 @@
         <nant buildfile="OpenSim/OpenSim.Scripting/EmbeddedJVM/OpenSim.Scripting.EmbeddedJVM.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Terrain.BasicTerrain/OpenSim.Terrain.BasicTerrain.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="build" />
-        <nant buildfile="OpenSim/OpenSim.World/OpenSim.Region.dll.build" target="build" />
+        <nant buildfile="OpenSim/OpenSim.Region/OpenSim.Region.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="build" />
     </target>
 
@@ -104,7 +104,7 @@
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Physics/OdePlugin/OpenSim.Physics.OdePlugin.dll.build" target="doc" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="doc" />
-        <nant buildfile="OpenSim/OpenSim.World/OpenSim.Region.dll.build" target="doc" />
+        <nant buildfile="OpenSim/OpenSim.Region/OpenSim.Region.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="doc" />
         <nant buildfile="Common/OpenSim.GenericConfig/Xml/OpenSim.GenericConfig.Xml.dll.build" target="doc" />

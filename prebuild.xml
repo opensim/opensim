@@ -470,7 +470,7 @@
     </Project>
 
 
-    <Project name="OpenSim.Region" path="OpenSim/OpenSim.World" type="Library">
+    <Project name="OpenSim.Region" path="OpenSim/OpenSim.Region" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>

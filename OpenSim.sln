@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Physics.OdePlugin",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework.Communications", "Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj", "{683344D5-0000-0000-0000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region", "OpenSim\OpenSim.World\OpenSim.Region.csproj", "{196916AF-0000-0000-0000-000000000000}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region", "OpenSim\OpenSim.Region\OpenSim.Region.csproj", "{196916AF-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim", "OpenSim\OpenSim\OpenSim.csproj", "{438A9556-0000-0000-0000-000000000000}"
 EndProject
