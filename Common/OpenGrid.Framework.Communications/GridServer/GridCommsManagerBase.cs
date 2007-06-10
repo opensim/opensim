@@ -16,7 +16,7 @@ namespace OpenGrid.Framework.Communications.GridServer
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        internal virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             return null;
         }
@@ -30,21 +30,6 @@ namespace OpenGrid.Framework.Communications.GridServer
         {
             return null;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public virtual bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
-        {
-           return false;
-        }
-
-        public virtual bool AddNewSession(ulong regionHandle, Login loginData)
-        {
-            return false;
-        }
-
        
     }
 }

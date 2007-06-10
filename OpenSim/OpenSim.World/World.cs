@@ -523,7 +523,7 @@ namespace OpenSim.world
         protected void InformClientOfNeighbours(IClientAPI remoteClient)
         {
             // Console.WriteLine("informing client of neighbouring regions");
-            List<RegionInfo> neighbours = this.commsManager.gridServer.RequestNeighbours(this.m_regInfo);
+            List<RegionInfo> neighbours = this.commsManager.RequestNeighbours(this.m_regInfo);
 
             //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
             if (neighbours != null)
@@ -535,7 +535,7 @@ namespace OpenSim.world
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
-                    this.commsManager.gridServer.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+                    this.commsManager.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
                     remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
                 }
             }
@@ -591,18 +591,26 @@ namespace OpenSim.world
 
         #region RegionCommsHost
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void RegisterRegionWithComms()
         {
-            this.regionCommsHost = this.commsManager.gridServer.RegisterRegion(this.m_regInfo);
+            this.regionCommsHost = this.commsManager.RegisterRegion(this.m_regInfo);
             if (this.regionCommsHost != null)
             {
                 this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agent"></param>
         public void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
         {
-            Console.WriteLine("World.cs - add new user connection");
+           // Console.WriteLine("World.cs - add new user connection");
             //should just check that its meant for this region 
             if (regionHandle == this.m_regInfo.RegionHandle)
             {
@@ -612,6 +620,12 @@ namespace OpenSim.world
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="px"></param>
+        /// <param name="py"></param>
+        /// <param name="RemoteClient"></param>
         public override void SendLayerData(int px, int py, IClientAPI RemoteClient)
         {
             RemoteClient.SendLayerData( Terrain.getHeights1D() );

@@ -13,7 +13,7 @@ namespace OpenGrid.Framework.Communications.GridServer
         {
         }
 
-        public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        internal override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             return null;
         }
@@ -21,16 +21,6 @@ namespace OpenGrid.Framework.Communications.GridServer
         public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
             return null;
-        }
-
-        public override bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
-        {
-            return false;
-        }
-
-        public override bool AddNewSession(ulong regionHandle, Login loginData)
-        {
-            return false;
         }
     }
 }

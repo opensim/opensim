@@ -104,7 +104,6 @@ namespace OpenSim
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
                 this.commsManager = new RegionServerCommsLocal(); 
-                new RegionServerCommsOGS();
             }
             else
             {
@@ -132,7 +131,7 @@ namespace OpenSim
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
                 //loginServer.SetSessionHandler(((AuthenticateSessionsLocal)this.AuthenticateSessionsHandler[0]).AddNewSession);
-                loginServer.SetSessionHandler(((RegionServerCommsManager)this.commsManager).gridServer.AddNewSession);
+                loginServer.SetSessionHandler(((RegionServerCommsLocal)this.commsManager).AddNewSession);
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }
