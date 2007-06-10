@@ -421,11 +421,11 @@ namespace OpenSim
         /// </summary>
         /// <param name="primData"></param>
         /// <param name="pos"></param>
-        public void SendPrimitiveToClient( PrimData primData, LLVector3 pos)
+        public void SendPrimitiveToClient( PrimData primData, LLVector3 pos, LLUUID textureID)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData);
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID);
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
 
@@ -437,10 +437,10 @@ namespace OpenSim
         /// </summary>
         /// <param name="primData"></param>
         /// <returns></returns>
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData)
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData, LLUUID textureID)
         {
             ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
-            this.SetDefaultPrimPacketValues(objupdate);
+            this.SetDefaultPrimPacketValues(objupdate, textureID);
             objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
             this.SetPrimPacketShapeData(objupdate, primData);
 
@@ -451,7 +451,7 @@ namespace OpenSim
         /// Set some default values in a ObjectUpdatePacket
         /// </summary>
         /// <param name="objdata"></param>
-        protected void SetDefaultPrimPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
+        protected void SetDefaultPrimPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata, LLUUID textureID)
         {
             objdata.PSBlock = new byte[0];
             objdata.ExtraParams = new byte[1];
@@ -464,7 +464,7 @@ namespace OpenSim
             objdata.Material = 3;
             objdata.TextureAnim = new byte[0];
             objdata.Sound = LLUUID.Zero;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
             objdata.TextureEntry = ntex.ToBytes();
             objdata.State = 0;
             objdata.Data = new byte[0];
