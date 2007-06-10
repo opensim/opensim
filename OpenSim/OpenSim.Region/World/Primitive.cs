@@ -14,12 +14,12 @@ namespace OpenSim.Region
     public class Primitive : Entity
     {
         protected PrimData primData;
-        //private ObjectUpdatePacket OurPacket;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private Dictionary<uint, IClientAPI> m_clientThreads;
         private ulong m_regionHandle;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
         private bool physicsEnabled = false;
+        private byte updateFlag = 0;
 
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
 
@@ -66,7 +66,7 @@ namespace OpenSim.Region
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
         }
 
-        public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world, LLUUID owner)
+        public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world, LLUUID owner, LLUUID fullID, uint localID)
         {
             m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
@@ -75,7 +75,33 @@ namespace OpenSim.Region
             this.primData = new PrimData();
             this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             this.primData.OwnerID = owner;
+            this.primData.FullID = this.uuid = fullID;
+            this.primData.LocalID = this.localid = localID;
         }
+
+        /// <summary>
+        /// Constructor to create a default cube 
+        /// </summary>
+        /// <param name="clientThreads"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="world"></param>
+        /// <param name="owner"></param>
+        /// <param name="localID"></param>
+        /// <param name="position"></param>
+        public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world, LLUUID owner, uint localID, LLVector3 position)
+        {
+            m_clientThreads = clientThreads;
+            m_regionHandle = regionHandle;
+            m_world = world;
+            inventoryItems = new Dictionary<LLUUID, InventoryItem>();
+            this.primData = PrimData.DefaultCube();
+            this.primData.OwnerID = owner;
+            this.primData.LocalID = this.localid = localID;
+            this.Pos = this.primData.Position = position;
+
+            this.updateFlag = 1;
+        }
+
 
         public byte[] GetByteArray()
         {
@@ -115,7 +141,11 @@ namespace OpenSim.Region
 
         public override void update()
         {
-            LLVector3 pos2 = new LLVector3(0, 0, 0);
+            if (this.updateFlag == 1)
+            {
+                this.SendFullUpdateToAllClients();
+                this.updateFlag = 0;
+            }
         }
 
         public override void BackUp()
@@ -275,17 +305,39 @@ namespace OpenSim.Region
 
         public void SendFullUpdateToAllClients()
         {
-
+            List<Avatar> avatars = this.m_world.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                this.SendFullUpdateToClient(avatars[i].ControllingClient);
+            }
         }
 
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
+            LLVector3 lPos;
+            Axiom.MathLib.Quaternion lRot;
+            if (this._physActor != null && this.physicsEnabled)
+            {
+                PhysicsVector pPos = this._physActor.Position;
+                lPos = new LLVector3(pPos.X, pPos.Y, pPos.Z);
+                lRot = this._physActor.Orientation;
+            }
+            else
+            {
+                lPos = this.Pos;
+                lRot = this.rotation;
+            }
 
+           
         }
 
         public void SendTerseUpdateToALLClients()
         {
-
+            List<Avatar> avatars = this.m_world.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                this.SendTerseUpdateToClient(avatars[i].ControllingClient);
+            }
         }
 
         #endregion
@@ -324,6 +376,8 @@ namespace OpenSim.Region
             this.primData.FullID = this.uuid = LLUUID.Random();
             this.localid = (uint)(localID);
             this.primData.Position = this.Pos = pos1;
+
+            this.updateFlag = 1;
         }
 
         public void CreateFromBytes(byte[] data)
@@ -343,82 +397,5 @@ namespace OpenSim.Region
 
         #endregion
 
-
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
-        {
-            uint ID = this.localid;
-            byte[] bytes = new byte[60];
-
-            int i = 0;
-            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
-            dat.TextureEntry = new byte[0];
-            bytes[i++] = (byte)(ID % 256);
-            bytes[i++] = (byte)((ID >> 8) % 256);
-            bytes[i++] = (byte)((ID >> 16) % 256);
-            bytes[i++] = (byte)((ID >> 24) % 256);
-            bytes[i++] = 0;
-            bytes[i++] = 0;
-
-            LLVector3 lPos;
-            Axiom.MathLib.Quaternion lRot;
-            if (this._physActor != null && this.physicsEnabled)
-            {
-                PhysicsVector pPos = this._physActor.Position;
-                lPos = new LLVector3(pPos.X, pPos.Y, pPos.Z);
-                lRot = this._physActor.Orientation;
-            }
-            else
-            {
-                lPos = this.Pos;
-                lRot = this.rotation;
-            }
-            byte[] pb = lPos.GetBytes();
-            Array.Copy(pb, 0, bytes, i, pb.Length);
-            i += 12;
-            ushort ac = 32767;
-
-            //vel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-
-            //accel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-
-            ushort rw, rx, ry, rz;
-            rw = (ushort)(32768 * (lRot.w + 1));
-            rx = (ushort)(32768 * (lRot.x + 1));
-            ry = (ushort)(32768 * (lRot.y + 1));
-            rz = (ushort)(32768 * (lRot.z + 1));
-
-            //rot
-            bytes[i++] = (byte)(rx % 256);
-            bytes[i++] = (byte)((rx >> 8) % 256);
-            bytes[i++] = (byte)(ry % 256);
-            bytes[i++] = (byte)((ry >> 8) % 256);
-            bytes[i++] = (byte)(rz % 256);
-            bytes[i++] = (byte)((rz >> 8) % 256);
-            bytes[i++] = (byte)(rw % 256);
-            bytes[i++] = (byte)((rw >> 8) % 256);
-
-            //rotation vel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-
-            dat.Data = bytes;
-            return dat;
-        }
     }
 }

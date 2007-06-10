@@ -66,7 +66,6 @@ namespace OpenSim.Region
             Wearables = AvatarWearable.DefaultWearables;
             
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-            Console.WriteLine("avatar point 4");
             
             //register for events
             ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);
@@ -77,14 +76,7 @@ namespace OpenSim.Region
             ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
-             * */
-
-            ControllingClient.OnParcelPropertiesRequest +=new ParcelPropertiesRequest(this.m_world.parcelManager.handleParcelPropertiesRequest);
-            ControllingClient.OnParcelDivideRequest += new ParcelDivideRequest(this.m_world.parcelManager.handleParcelDivideRequest);
-            ControllingClient.OnParcelJoinRequest += new ParcelJoinRequest(this.m_world.parcelManager.handleParcelJoinRequest);
-            ControllingClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(this.m_world.parcelManager.handleParcelPropertiesUpdateRequest);
-
-            ControllingClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(this.m_world.estateManager.handleEstateOwnerMessage);
+             */
         }
 
         /// <summary>

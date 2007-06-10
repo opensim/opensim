@@ -91,19 +91,28 @@ namespace OpenSim
             {
                 if (multipleupdate.ObjectData[i].Type == 9) //change position
                 {
-                    libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                    OnUpdatePrimPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                    if (OnUpdatePrimPosition != null)
+                    {
+                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        OnUpdatePrimPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                    }
                     //should update stored position of the prim
                 }
                 else if (multipleupdate.ObjectData[i].Type == 10)//rotation
                 {
-                    libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                    OnUpdatePrimRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                    if (OnUpdatePrimRotation != null)
+                    {
+                        libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                        OnUpdatePrimRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                    }
                 }
                 else if (multipleupdate.ObjectData[i].Type == 13)//scale
                 {
-                    libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                    OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                    if (OnUpdatePrimScale != null)
+                    {
+                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                        OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                    }
                 }
             }
             return true;

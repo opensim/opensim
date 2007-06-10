@@ -212,13 +212,13 @@ namespace OpenSim
                 regionDat = new RegionInfo();
                 if (m_sandbox)
                 {
-                    AuthenticateSessionsLocal authen = new AuthenticateSessionsLocal();
+                    AuthenticateSessionsBase authen = new AuthenticateSessionsBase();  // new AuthenticateSessionsLocal();
                     this.AuthenticateSessionsHandler.Add(authen);
                     authenBase = authen;
                 }
                 else
                 {
-                    AuthenticateSessionsRemote authen = new AuthenticateSessionsRemote();
+                    AuthenticateSessionsBase authen = new AuthenticateSessionsBase(); //new AuthenticateSessionsRemote();
                     this.AuthenticateSessionsHandler.Add (authen);
                     authenBase = authen;
                 }

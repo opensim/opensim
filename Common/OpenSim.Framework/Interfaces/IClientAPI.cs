@@ -103,5 +103,6 @@ namespace OpenSim.Framework.Interfaces
         AgentCircuitData RequestClientInfo();
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID);
+        void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation);
     }
 }

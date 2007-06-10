@@ -450,7 +450,19 @@ namespace OpenSim.Region
         /// <param name="ownerID"></param>
         public void AddNewPrim(ObjectAddPacket addPacket, LLUUID ownerID)
         {
-
+            try
+            {
+               // MainConsole.Instance.Notice("World.cs: AddNewPrim() - Creating new prim");
+                Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
+                prim.CreateFromPacket(addPacket, ownerID, this._primCount);
+                
+                this.Entities.Add(prim.uuid, prim);
+                this._primCount++;
+            }
+            catch (Exception e)
+            {
+               // MainConsole.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
+            }
         }
 
         #endregion
@@ -469,6 +481,15 @@ namespace OpenSim.Region
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             remoteClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
             remoteClient.OnRequestWearables += new GenericCall(this.InformClientOfNeighbours);
+            remoteClient.OnAddPrim += new GenericCall4(this.AddNewPrim);
+
+            /*
+            remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
+            remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
+            remoteClient.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
+            remoteClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
+            remoteClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
+            */
 
             Avatar newAvatar = null;
             try

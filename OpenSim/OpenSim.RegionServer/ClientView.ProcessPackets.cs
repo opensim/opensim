@@ -488,7 +488,10 @@ namespace OpenSim
                     #region Estate Packets
                     case PacketType.EstateOwnerMessage:
                         EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
-                        OnEstateOwnerMessage(messagePacket, this);
+                        if (OnEstateOwnerMessage != null)
+                        {
+                            OnEstateOwnerMessage(messagePacket, this);
+                        }
                         break;
                     #endregion
                     #region unimplemented handlers

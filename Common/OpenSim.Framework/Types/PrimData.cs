@@ -32,7 +32,7 @@ namespace OpenSim.Framework.Types
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
         public byte[] Texture;
-       
+
 
         public Int32 CreationDate;
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
@@ -43,7 +43,7 @@ namespace OpenSim.Framework.Types
 
         //following only used during prim storage
         public LLVector3 Position;
-        public LLQuaternion Rotation = new LLQuaternion(0,1,0,0);
+        public LLQuaternion Rotation = new LLQuaternion(0, 1, 0, 0);
         public uint LocalID;
         public LLUUID FullID;
 
@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Types
 
         public PrimData(byte[] data)
         {
-            int i =0;
+            int i = 0;
 
             this.OwnerID = new LLUUID(data, i); i += 16;
             this.PCode = data[i++];
@@ -75,9 +75,9 @@ namespace OpenSim.Framework.Types
             this.PathRadiusOffset = (sbyte)data[i++];
             this.PathRevolutions = data[i++];
             this.PathTaperX = (sbyte)data[i++];
-            this.PathTaperY =(sbyte) data[i++];
-            this.PathTwist = (sbyte) data[i++];
-            this.PathTwistBegin = (sbyte) data[i++];
+            this.PathTaperY = (sbyte)data[i++];
+            this.PathTwist = (sbyte)data[i++];
+            this.PathTwistBegin = (sbyte)data[i++];
             ushort length = (ushort)(data[i++] + (data[i++] << 8));
             this.Texture = new byte[length];
             Array.Copy(data, i, Texture, 0, length); i += length;
@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Types
             this.EveryoneMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
             this.BaseMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
             this.Position = new LLVector3(data, i); i += 12;
-            this.Rotation = new LLQuaternion(data,i, true); i += 12;
+            this.Rotation = new LLQuaternion(data, i, true); i += 12;
             this.LocalID = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
             this.FullID = new LLUUID(data, i); i += 16;
 
@@ -120,14 +120,14 @@ namespace OpenSim.Framework.Types
             bytes[i++] = (byte)((ParentID >> 8) % 256);
             bytes[i++] = (byte)((ParentID >> 16) % 256);
             bytes[i++] = (byte)((ParentID >> 24) % 256);
-            bytes[i++] = (byte)(this.ProfileHollow %256);
-            bytes[i++] = (byte)((this.ProfileHollow >> 8)% 256);
+            bytes[i++] = (byte)(this.ProfileHollow % 256);
+            bytes[i++] = (byte)((this.ProfileHollow >> 8) % 256);
             bytes[i++] = ((byte)this.PathRadiusOffset);
             bytes[i++] = this.PathRevolutions;
-            bytes[i++] = ((byte) this.PathTaperX);
-            bytes[i++] = ((byte) this.PathTaperY);
-            bytes[i++] = ((byte) this.PathTwist);
-            bytes[i++] = ((byte) this.PathTwistBegin);
+            bytes[i++] = ((byte)this.PathTaperX);
+            bytes[i++] = ((byte)this.PathTaperY);
+            bytes[i++] = ((byte)this.PathTwist);
+            bytes[i++] = ((byte)this.PathTwistBegin);
             bytes[i++] = (byte)(Texture.Length % 256);
             bytes[i++] = (byte)((Texture.Length >> 8) % 256);
             Array.Copy(Texture, 0, bytes, i, Texture.Length); i += Texture.Length;
@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Types
             bytes[i++] = (byte)((this.BaseMask >> 16) % 256);
             bytes[i++] = (byte)((this.BaseMask >> 24) % 256);
             Array.Copy(this.Position.GetBytes(), 0, bytes, i, 12); i += 12;
-            if (this.Rotation == new LLQuaternion(0,0,0,0))
+            if (this.Rotation == new LLQuaternion(0, 0, 0, 0))
             {
                 this.Rotation = new LLQuaternion(0, 1, 0, 0);
             }
@@ -168,6 +168,37 @@ namespace OpenSim.Framework.Types
             Array.Copy(FullID.GetBytes(), 0, bytes, i, 16); i += 16;
 
             return bytes;
+        }
+
+        public static PrimData DefaultCube()
+        {
+            PrimData primData = new PrimData();
+            primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            primData.FullID = LLUUID.Random();
+            primData.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
+            primData.Rotation = new LLQuaternion(0, 0, 0, 1);
+            primData.PCode = 9;
+            primData.ParentID = 0;
+            primData.PathBegin = 0;
+            primData.PathEnd = 0;
+            primData.PathScaleX = 0;
+            primData.PathScaleY = 0;
+            primData.PathShearX = 0;
+            primData.PathShearY = 0;
+            primData.PathSkew = 0;
+            primData.ProfileBegin = 0;
+            primData.ProfileEnd = 0;
+            primData.PathCurve = 16;
+            primData.ProfileCurve = 1;
+            primData.ProfileHollow = 0;
+            primData.PathRadiusOffset = 0;
+            primData.PathRevolutions = 0;
+            primData.PathTaperX = 0;
+            primData.PathTaperY = 0;
+            primData.PathTwist = 0;
+            primData.PathTwistBegin = 0;
+
+            return primData;
         }
     }
 }
