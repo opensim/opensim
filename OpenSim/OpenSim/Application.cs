@@ -82,7 +82,7 @@ namespace OpenSim
             sim.m_sandbox = sandBoxMode;
             sim.user_accounts = userAccounts;
             sim.gridLocalAsset = gridLocalAsset;
-            OpenSim.world.Avatar.PhysicsEngineFlying = allowFlying;
+            OpenSim.Region.Avatar.PhysicsEngineFlying = allowFlying;
 
             sim.StartUp();
 

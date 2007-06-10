@@ -38,7 +38,7 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.world;
+using OpenSim.Region;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
@@ -354,23 +354,23 @@ namespace OpenSim
                     case "":
                         this.m_physicsEngine = "basicphysics";
                         configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        OpenSim.Region.Avatar.PhysicsEngineFlying = false;
                         break;
 
                     case "basicphysics":
                         this.m_physicsEngine = "basicphysics";
                         configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.world.Avatar.PhysicsEngineFlying = false;
+                        OpenSim.Region.Avatar.PhysicsEngineFlying = false;
                         break;
 
                     case "RealPhysX":
                         this.m_physicsEngine = "RealPhysX";
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        OpenSim.Region.Avatar.PhysicsEngineFlying = true;
                         break;
 
                     case "OpenDynamicsEngine":
                         this.m_physicsEngine = "OpenDynamicsEngine";
-                        OpenSim.world.Avatar.PhysicsEngineFlying = true;
+                        OpenSim.Region.Avatar.PhysicsEngineFlying = true;
                         break;
                 }
 
@@ -456,7 +456,7 @@ namespace OpenSim
                     m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
-                    OpenSim.world.Avatar TempAv;
+                    OpenSim.Region.Avatar TempAv;
                     m_console.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     /* foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                      {

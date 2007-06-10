@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Axiom.MathLib;
 
-namespace OpenSim.types
+namespace OpenSim.Region.types
 {
     public class Triangle
     {

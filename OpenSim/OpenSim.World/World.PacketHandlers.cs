@@ -9,7 +9,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public partial class World
     {

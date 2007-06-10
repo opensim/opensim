@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using OpenSim.Physics.Manager;
-using OpenSim.world;
-using Avatar=OpenSim.world.Avatar;
-using Primitive = OpenSim.world.Primitive;
+using OpenSim.Region;
+using Avatar=OpenSim.Region.Avatar;
+using Primitive = OpenSim.Region.Primitive;
 
 namespace OpenSim.RegionServer.world.scripting
 {

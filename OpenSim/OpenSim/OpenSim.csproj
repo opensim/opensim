@@ -110,9 +110,9 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OpenSim.World\OpenSim.World.csproj">
-      <Name>OpenSim.World</Name>
-      <Project>{642A14A8-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\OpenSim.World\OpenSim.Region.csproj">
+      <Name>OpenSim.Region</Name>
+      <Project>{196916AF-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

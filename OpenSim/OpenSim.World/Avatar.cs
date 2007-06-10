@@ -10,7 +10,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using Axiom.MathLib;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public partial class Avatar : Entity
     {

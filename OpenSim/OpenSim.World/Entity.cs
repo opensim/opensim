@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using Axiom.MathLib;
 using OpenSim.Physics.Manager;
-using OpenSim.types;
+using OpenSim.Region.types;
 using libsecondlife;
 using OpenSim.RegionServer.world.scripting;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public abstract class Entity : IScriptReadonlyEntity
     {

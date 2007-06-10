@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.types
+namespace OpenSim.Region.types
 {
     // TODO: This will need some performance tuning no doubt.
     public class Mesh

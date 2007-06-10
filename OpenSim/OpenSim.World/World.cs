@@ -15,10 +15,10 @@ using OpenSim.Framework;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
-using OpenSim.world.Estate;
+using OpenSim.Region.Estate;
 
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public partial class World : WorldBase, ILocalStorageReceiver, IScriptAPI
     {
@@ -218,7 +218,7 @@ namespace OpenSim.world
                 //Parcel backup routines
                 ParcelData[] parcels = new ParcelData[parcelManager.parcelList.Count];
                 int i = 0;
-                foreach (OpenSim.world.Parcel parcel in parcelManager.parcelList.Values)
+                foreach (OpenSim.Region.Parcel parcel in parcelManager.parcelList.Values)
                 {
                     parcels[i] = parcel.parcelData;
                     i++;

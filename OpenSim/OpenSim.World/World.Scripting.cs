@@ -8,7 +8,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using libsecondlife;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public partial class World
     {

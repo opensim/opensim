@@ -29,7 +29,7 @@
                 <include name="../../bin/OpenSim.Framework.Console.dll" />
                 <include name="../../bin/OpenSim.Physics.Manager.dll" />
                 <include name="../../bin/OpenSim.Servers.dll" />
-                <include name="../../bin/OpenSim.World.dll" />
+                <include name="../../bin/OpenSim.Region.dll" />
                 <include name="../../bin/OpenSim.RegionServer.dll" />
                 <include name="../../bin/OpenSim.GenericConfig.Xml.dll" />
                 <include name="../../bin/OpenGrid.Framework.Communications.dll" />

@@ -33,7 +33,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
 
 
@@ -418,7 +418,7 @@ namespace OpenSim.world
             {
                 for (y = 0; y < inc_y; y++)
                 {
-                    OpenSim.world.Parcel currentParcel = getParcel(start_x + x, start_y + y);
+                    OpenSim.Region.Parcel currentParcel = getParcel(start_x + x, start_y + y);
                     if (!temp.Contains(currentParcel))
                     {
                         currentParcel.forceUpdateParcelInfo();
@@ -648,7 +648,7 @@ namespace OpenSim.world
                         sendParcelProperties(0, false, 0, avatars[i].ControllingClient);
                     }
                 }
-                
+
             }
         }
         #endregion

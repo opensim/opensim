@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.types;
+using OpenSim.Region.types;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
@@ -9,7 +9,7 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public class Primitive : Entity
     {
@@ -84,9 +84,9 @@ namespace OpenSim.world
             dataArrays.Add(primData.ToBytes());
             foreach (Entity child in children)
             {
-                if (child is OpenSim.world.Primitive)
+                if (child is OpenSim.Region.Primitive)
                 {
-                    dataArrays.Add(((OpenSim.world.Primitive)child).GetByteArray());
+                    dataArrays.Add(((OpenSim.Region.Primitive)child).GetByteArray());
                 }
             }
             byte[] primstart = Helpers.StringToField("<Prim>");

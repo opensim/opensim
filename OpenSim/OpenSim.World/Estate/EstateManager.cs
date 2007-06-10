@@ -4,13 +4,13 @@ using System.Text;
 
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
-using OpenSim.world;
+using OpenSim.Region;
 using OpenSim;
 
 using libsecondlife;
 using libsecondlife.Packets;
 
-namespace OpenSim.world.Estate
+namespace OpenSim.Region.Estate
 {
 
     /// <summary>

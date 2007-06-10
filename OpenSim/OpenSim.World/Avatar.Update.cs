@@ -6,7 +6,7 @@ using libsecondlife.Packets;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     partial class Avatar
     {

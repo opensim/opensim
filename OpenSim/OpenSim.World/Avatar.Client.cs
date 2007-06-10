@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife.Packets;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     partial class Avatar
     {

@@ -31,7 +31,7 @@ using System.Text;
 using libsecondlife;
 using System.Xml;
 
-namespace OpenSim
+namespace OpenSim.Region
 {
     public class AvatarAnimations
     {
@@ -64,7 +64,7 @@ namespace OpenSim
 
            // OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
-            foreach (KeyValuePair<string, LLUUID> kp in OpenSim.world.Avatar.Animations.AnimsLLUUID)
+            foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Avatar.Animations.AnimsLLUUID)
             {
                 AnimsNames.Add(kp.Value, kp.Key);
             }

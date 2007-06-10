@@ -470,7 +470,7 @@
     </Project>
 
 
-    <Project name="OpenSim.World" path="OpenSim/OpenSim.World" type="Library">
+    <Project name="OpenSim.Region" path="OpenSim/OpenSim.World" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -526,7 +526,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
-	 <Reference name="OpenSim.World"/>
+	 <Reference name="OpenSim.Region"/>
       <Reference name="OpenSim.RegionServer"/>
       <Reference name="OpenSim.GenericConfig.Xml"/>
 	<Reference name="OpenGrid.Framework.Communications"/>

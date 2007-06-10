@@ -13,7 +13,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.RegionServer.world.scripting;
 using OpenSim.Terrain;
 
-namespace OpenSim.world
+namespace OpenSim.Region
 {
     public abstract class WorldBase : IWorld
     {
