@@ -20,16 +20,6 @@ namespace OpenGrid.Framework.Communications
             
         }
 
-        public virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
-        {          
-            return null;
-        }
-
-        public virtual List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
-        {
-            return null;
-        }
-
         public virtual bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             return false;

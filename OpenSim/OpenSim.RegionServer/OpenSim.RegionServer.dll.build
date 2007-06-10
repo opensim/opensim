@@ -12,8 +12,6 @@
             </resources>
             <sources failonempty="true">
                 <include name="AgentAssetUpload.cs" />
-                <include name="AuthenticateSessionsLocal.cs" />
-                <include name="AuthenticateSessionsRemote.cs" />
                 <include name="ClientView.API.cs" />
                 <include name="ClientView.cs" />
                 <include name="ClientView.Grid.cs" />

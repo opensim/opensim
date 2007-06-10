@@ -16,7 +16,7 @@ namespace OpenGrid.Framework.Communications.GridServer
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        internal virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        public virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             return null;
         }

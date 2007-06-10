@@ -11,19 +11,21 @@ namespace OpenGrid.Framework.Communications.GridServer
 {
     public class GridCommsManagerLocal : GridCommsManagerBase
     {
-        public GridCommsManagerLocal()
-        {
+        private SandBoxManager sandBoxManager;
 
+        public GridCommsManagerLocal(SandBoxManager sandManager)
+        {
+            sandBoxManager = sandManager;
         }
 
-        internal override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
-            return null;
+            return sandBoxManager.RegisterRegion(regionInfo);
         }
 
         public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
-            return null;
+            return sandBoxManager.RequestNeighbours(regionInfo);
         }
     }
 }

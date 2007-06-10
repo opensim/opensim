@@ -14,6 +14,7 @@
                 <include name="RegionServerCommsLocal.cs" />
                 <include name="RegionServerCommsManager.cs" />
                 <include name="RegionServerCommsOGS.cs" />
+                <include name="SandBoxManager.cs" />
                 <include name="GridServer/GridCommsManagerBase.cs" />
                 <include name="GridServer/GridCommsManagerLocal.cs" />
                 <include name="GridServer/GridCommsManagerOGS.cs" />

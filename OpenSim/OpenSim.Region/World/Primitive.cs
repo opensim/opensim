@@ -224,7 +224,6 @@ namespace OpenSim.Region
         public void UpdateTexture(byte[] tex)
         {
             this.primData.Texture = tex;
-            //this.dirtyFlag = true;
         }
 
         /// <summary>
@@ -387,8 +386,6 @@ namespace OpenSim.Region
                 lPos = this.Pos;
                 lRot = this.rotation;
             }
-
-           
         }
 
         /// <summary>

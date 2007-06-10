@@ -544,7 +544,7 @@ namespace OpenSim.Region
         protected void InformClientOfNeighbours(IClientAPI remoteClient)
         {
             // Console.WriteLine("informing client of neighbouring regions");
-            List<RegionInfo> neighbours = this.commsManager.RequestNeighbours(this.m_regInfo);
+            List<RegionInfo> neighbours = this.commsManager.gridServer.RequestNeighbours(this.m_regInfo);
 
             //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
             if (neighbours != null)
@@ -617,7 +617,7 @@ namespace OpenSim.Region
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            this.regionCommsHost = this.commsManager.RegisterRegion(this.m_regInfo);
+            this.regionCommsHost = this.commsManager.gridServer.RegisterRegion(this.m_regInfo);
             if (this.regionCommsHost != null)
             {
                 this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);

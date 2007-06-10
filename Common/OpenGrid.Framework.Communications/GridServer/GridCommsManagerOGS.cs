@@ -13,7 +13,7 @@ namespace OpenGrid.Framework.Communications.GridServer
         {
         }
 
-        internal override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
         {
             return null;
         }
