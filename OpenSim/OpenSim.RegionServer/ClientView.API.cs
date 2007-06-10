@@ -325,7 +325,7 @@ namespace OpenSim
         /// 
         /// </summary>
         /// <param name="objdata"></param>
-        protected void SetDefaultPacketValues(ref ObjectUpdatePacket.ObjectDataBlock objdata)
+        protected void SetDefaultAvatarPacketValues(ref ObjectUpdatePacket.ObjectDataBlock objdata)
         {
             objdata.PSBlock = new byte[0];
             objdata.ExtraParams = new byte[1];
@@ -361,7 +361,7 @@ namespace OpenSim
         {
             libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
-            SetDefaultPacketValues(ref objdata);
+            SetDefaultAvatarPacketValues(ref objdata);
             objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);
             objdata.PathCurve = 16;
             objdata.ProfileCurve = 1;
@@ -412,6 +412,100 @@ namespace OpenSim
 
             return agentData;
         }
+
+        #region Primitive Packet/data Sending Methods
+
+        /// <summary>
+        /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
+        /// or big changes to a existing primitive.
+        /// </summary>
+        /// <param name="primData"></param>
+        /// <param name="pos"></param>
+        public void SendPrimitiveToClient( PrimData primData, LLVector3 pos)
+        {
+            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData);
+            byte[] pb = pos.GetBytes();
+            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
+
+            OutPacket(outPacket);
+        }
+
+        /// <summary>
+        /// Create the ObjectDataBlock for a ObjectUpdatePacket  (for a Primitive)
+        /// </summary>
+        /// <param name="primData"></param>
+        /// <returns></returns>
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData)
+        {
+            ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
+            this.SetDefaultPrimPacketValues(objupdate);
+            objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
+            this.SetPrimPacketShapeData(objupdate, primData);
+
+            return objupdate;
+        }
+
+        /// <summary>
+        /// Set some default values in a ObjectUpdatePacket
+        /// </summary>
+        /// <param name="objdata"></param>
+        protected void SetDefaultPrimPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
+        {
+            objdata.PSBlock = new byte[0];
+            objdata.ExtraParams = new byte[1];
+            objdata.MediaURL = new byte[0];
+            objdata.NameValue = new byte[0];
+            objdata.Text = new byte[0];
+            objdata.TextColor = new byte[4];
+            objdata.JointAxisOrAnchor = new LLVector3(0, 0, 0);
+            objdata.JointPivot = new LLVector3(0, 0, 0);
+            objdata.Material = 3;
+            objdata.TextureAnim = new byte[0];
+            objdata.Sound = LLUUID.Zero;
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+            objdata.TextureEntry = ntex.ToBytes();
+            objdata.State = 0;
+            objdata.Data = new byte[0];
+
+            objdata.ObjectData = new byte[60];
+            objdata.ObjectData[46] = 128;
+            objdata.ObjectData[47] = 63;
+        }
+
+        /// <summary>
+        /// Copy the data from a PrimData object to a ObjectUpdatePacket
+        /// </summary>
+        /// <param name="objectData"></param>
+        /// <param name="primData"></param>
+        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimData primData)
+        {
+            objectData.OwnerID = primData.OwnerID;
+            objectData.PCode = primData.PCode;
+            objectData.PathBegin =primData.PathBegin;
+            objectData.PathEnd = primData.PathEnd;
+            objectData.PathScaleX = primData.PathScaleX;
+            objectData.PathScaleY = primData.PathScaleY;
+            objectData.PathShearX = primData.PathShearX;
+            objectData.PathShearY = primData.PathShearY;
+            objectData.PathSkew = primData.PathSkew;
+            objectData.ProfileBegin = primData.ProfileBegin;
+            objectData.ProfileEnd = primData.ProfileEnd;
+            objectData.Scale = primData.Scale;
+            objectData.PathCurve = primData.PathCurve;
+            objectData.ProfileCurve = primData.ProfileCurve;
+            objectData.ParentID = primData.ParentID;
+            objectData.ProfileHollow = primData.ProfileHollow;
+            objectData.PathRadiusOffset = primData.PathRadiusOffset;
+            objectData.PathRevolutions = primData.PathRevolutions;
+            objectData.PathTaperX = primData.PathTaperX;
+            objectData.PathTaperY = primData.PathTaperY;
+            objectData.PathTwist = primData.PathTwist;
+            objectData.PathTwistBegin = primData.PathTwistBegin;
+        }
+        #endregion
+
         #endregion
 
     }
