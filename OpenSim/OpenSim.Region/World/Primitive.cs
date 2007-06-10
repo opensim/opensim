@@ -45,6 +45,7 @@ namespace OpenSim.Region
                 this._physActor = value;
             }
         }
+
         public override LLVector3 Pos
         {
             get
@@ -58,6 +59,12 @@ namespace OpenSim.Region
         }
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clientThreads"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="world"></param>
         public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world)
         {
             m_clientThreads = clientThreads;
@@ -66,6 +73,15 @@ namespace OpenSim.Region
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clientThreads"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="world"></param>
+        /// <param name="owner"></param>
+        /// <param name="fullID"></param>
+        /// <param name="localID"></param>
         public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world, LLUUID owner, LLUUID fullID, uint localID)
         {
             m_clientThreads = clientThreads;
@@ -102,7 +118,10 @@ namespace OpenSim.Region
             this.updateFlag = 1;
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public byte[] GetByteArray()
         {
             byte[] result = null;
@@ -139,6 +158,9 @@ namespace OpenSim.Region
 
         #region Overridden Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void update()
         {
             if (this.updateFlag == 1)
@@ -148,6 +170,9 @@ namespace OpenSim.Region
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void BackUp()
         {
 
@@ -157,11 +182,19 @@ namespace OpenSim.Region
 
         #region Packet handlers
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
         public void UpdatePosition(LLVector3 pos)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="addPacket"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock addPacket)
         {
             this.primData.PathBegin = addPacket.PathBegin;
@@ -184,22 +217,38 @@ namespace OpenSim.Region
             this.primData.PathTwistBegin = addPacket.PathTwistBegin;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tex"></param>
         public void UpdateTexture(byte[] tex)
         {
             this.primData.Texture = tex;
             //this.dirtyFlag = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pack"></param>
         public void UpdateObjectFlags(ObjectFlagUpdatePacket pack)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prim"></param>
         public void AssignToParent(Primitive prim)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
@@ -286,7 +335,11 @@ namespace OpenSim.Region
 
         #region Update viewers Methods
 
-        //should change these mehtods, so that outgoing packets are sent through the avatar class
+        //should change these mehtods, so that outgoing packets are sent through the avatar class?
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
             LLVector3 lPos;
@@ -303,6 +356,9 @@ namespace OpenSim.Region
             remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.localid, this.primData, lPos, new LLUUID("00000000-0000-0000-5005-000000000005"));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void SendFullUpdateToAllClients()
         {
             List<Avatar> avatars = this.m_world.RequestAvatarList();
@@ -312,6 +368,10 @@ namespace OpenSim.Region
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="RemoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
             LLVector3 lPos;
@@ -331,6 +391,9 @@ namespace OpenSim.Region
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void SendTerseUpdateToALLClients()
         {
             List<Avatar> avatars = this.m_world.RequestAvatarList();
@@ -344,6 +407,12 @@ namespace OpenSim.Region
 
         #region Create Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="addPacket"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="localID"></param>
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
         {
             PrimData PData = new PrimData();
@@ -380,16 +449,31 @@ namespace OpenSim.Region
             this.updateFlag = 1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
         public void CreateFromBytes(byte[] data)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primData"></param>
         public void CreateFromPrimData(PrimData primData)
         {
             this.CreateFromPrimData(primData, primData.Position, primData.LocalID, false);
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primData"></param>
+        /// <param name="posi"></param>
+        /// <param name="localID"></param>
+        /// <param name="newprim"></param>
         public void CreateFromPrimData(PrimData primData, LLVector3 posi, uint localID, bool newprim)
         {
 

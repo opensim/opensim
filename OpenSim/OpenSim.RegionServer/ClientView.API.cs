@@ -182,56 +182,7 @@ namespace OpenSim
             this.OutPacket(reply);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="wearables"></param>
-        public void SendWearables(AvatarWearable[] wearables)
-        {
-            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
-            aw.AgentData.AgentID = this.AgentID;
-            aw.AgentData.SerialNum = 0;
-            aw.AgentData.SessionID = this.SessionID;
-
-            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
-            AgentWearablesUpdatePacket.WearableDataBlock awb;
-            for (int i = 0; i < wearables.Length; i++)
-            {
-                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                awb.WearableType = (byte)i;
-                awb.AssetID = wearables[i].AssetID;
-                awb.ItemID = wearables[i].ItemID;
-                aw.WearableData[i] = awb;
-            }
-
-            this.OutPacket(aw);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="visualParams"></param>
-        /// <param name="textureEntry"></param>
-        public void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
-        {
-            AvatarAppearancePacket avp = new AvatarAppearancePacket();
-            avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
-            avp.ObjectData.TextureEntry = textureEntry;
-
-            AvatarAppearancePacket.VisualParamBlock avblock = null;
-            for (int i = 0; i < visualParams.Length; i++)
-            {
-                avblock = new AvatarAppearancePacket.VisualParamBlock();
-                avblock.ParamValue = visualParams[i];
-                avp.VisualParam[i] = avblock;
-            }
-
-            avp.Sender.IsTrial = false;
-            avp.Sender.ID = agentID;
-            OutPacket(avp);
-        }
-
+       
         /// <summary>
         ///  Send the region heightmap to the client
         /// </summary>
@@ -287,7 +238,91 @@ namespace OpenSim
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
+    
+        public void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort)
+        {
+            EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
+            enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
+            enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
 
+            byte[] byteIP = neighbourIP.GetAddressBytes();
+            enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
+            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
+            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
+            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
+            enablesimpacket.SimulatorInfo.Port = neighbourPort;
+            OutPacket(enablesimpacket);
+        }
+
+        public AgentCircuitData RequestClientInfo()
+        {
+            AgentCircuitData agentData = new AgentCircuitData();
+            agentData.AgentID = this.AgentId;
+            agentData.SessionID = this.SessionID;
+            agentData.SecureSessionID = this.SecureSessionID;
+            agentData.circuitcode = this.CircuitCode;
+            agentData.child = false;
+            agentData.firstname = this.firstName;
+            agentData.lastname = this.lastName;
+
+            return agentData;
+        }
+
+        #region Appearance/ Wearables Methods
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="wearables"></param>
+        public void SendWearables(AvatarWearable[] wearables)
+        {
+            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
+            aw.AgentData.AgentID = this.AgentID;
+            aw.AgentData.SerialNum = 0;
+            aw.AgentData.SessionID = this.SessionID;
+
+            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
+            AgentWearablesUpdatePacket.WearableDataBlock awb;
+            for (int i = 0; i < wearables.Length; i++)
+            {
+                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+                awb.WearableType = (byte)i;
+                awb.AssetID = wearables[i].AssetID;
+                awb.ItemID = wearables[i].ItemID;
+                aw.WearableData[i] = awb;
+            }
+
+            this.OutPacket(aw);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="visualParams"></param>
+        /// <param name="textureEntry"></param>
+        public void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
+        {
+            AvatarAppearancePacket avp = new AvatarAppearancePacket();
+            avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
+            avp.ObjectData.TextureEntry = textureEntry;
+
+            AvatarAppearancePacket.VisualParamBlock avblock = null;
+            for (int i = 0; i < visualParams.Length; i++)
+            {
+                avblock = new AvatarAppearancePacket.VisualParamBlock();
+                avblock.ParamValue = visualParams[i];
+                avp.VisualParam[i] = avblock;
+            }
+
+            avp.Sender.IsTrial = false;
+            avp.Sender.ID = agentID;
+            OutPacket(avp);
+        }
+
+        #endregion
+
+        #region Avatar Packet/data sending Methods
 
         /// <summary>
         /// 
@@ -316,10 +351,11 @@ namespace OpenSim
             libsecondlife.LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
-           
+
             OutPacket(objupdate);
-            
+
         }
+
 
         /// <summary>
         /// 
@@ -384,34 +420,7 @@ namespace OpenSim
             return objdata;
         }
 
-        public void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort)
-        {
-            EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
-            enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
-            enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
-
-            byte[] byteIP = neighbourIP.GetAddressBytes();
-            enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
-            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
-            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
-            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
-            enablesimpacket.SimulatorInfo.Port = neighbourPort;
-            OutPacket(enablesimpacket);
-        }
-
-        public AgentCircuitData RequestClientInfo()
-        {
-            AgentCircuitData agentData = new AgentCircuitData();
-            agentData.AgentID = this.AgentId;
-            agentData.SessionID = this.SessionID;
-            agentData.SecureSessionID = this.SecureSessionID;
-            agentData.circuitcode = this.CircuitCode;
-            agentData.child = false;
-            agentData.firstname = this.firstName;
-            agentData.lastname = this.lastName;
-
-            return agentData;
-        }
+        #endregion
 
         #region Primitive Packet/data Sending Methods
 
@@ -507,6 +516,88 @@ namespace OpenSim
             objectData.PathTaperY = primData.PathTaperY;
             objectData.PathTwist = primData.PathTwist;
             objectData.PathTwistBegin = primData.PathTwistBegin;
+        }
+
+        public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation)
+        {
+            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+            terse.RegionData.RegionHandle = regionHandle;
+            terse.RegionData.TimeDilation = timeDilation;
+            terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+            terse.ObjectData[0] = this.CreatePrimImprovedBlock(localID, position, rotation);
+
+            this.OutPacket(terse);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        /// <returns></returns>
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreatePrimImprovedBlock(uint localID, LLVector3 position, LLQuaternion rotation)
+        {
+            uint ID = localID;
+            byte[] bytes = new byte[60];
+
+            int i = 0;
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+            dat.TextureEntry = new byte[0];
+            bytes[i++] = (byte)(ID % 256);
+            bytes[i++] = (byte)((ID >> 8) % 256);
+            bytes[i++] = (byte)((ID >> 16) % 256);
+            bytes[i++] = (byte)((ID >> 24) % 256);
+            bytes[i++] = 0;
+            bytes[i++] = 0;
+  
+            byte[] pb = position.GetBytes();
+            Array.Copy(pb, 0, bytes, i, pb.Length);
+            i += 12;
+            ushort ac = 32767;
+
+            //vel
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+
+            //accel
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+
+            ushort rw, rx, ry, rz;
+            rw = (ushort)(32768 * (rotation.W + 1));
+            rx = (ushort)(32768 * (rotation.X + 1));
+            ry = (ushort)(32768 * (rotation.Y + 1));
+            rz = (ushort)(32768 * (rotation.Z + 1));
+
+            //rot
+            bytes[i++] = (byte)(rx % 256);
+            bytes[i++] = (byte)((rx >> 8) % 256);
+            bytes[i++] = (byte)(ry % 256);
+            bytes[i++] = (byte)((ry >> 8) % 256);
+            bytes[i++] = (byte)(rz % 256);
+            bytes[i++] = (byte)((rz >> 8) % 256);
+            bytes[i++] = (byte)(rw % 256);
+            bytes[i++] = (byte)((rw >> 8) % 256);
+
+            //rotation vel
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+
+            dat.Data = bytes;
+            return dat;
         }
         #endregion
 
