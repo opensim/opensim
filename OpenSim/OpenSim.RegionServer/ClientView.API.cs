@@ -421,9 +421,11 @@ namespace OpenSim
         /// </summary>
         /// <param name="primData"></param>
         /// <param name="pos"></param>
-        public void SendPrimitiveToClient( PrimData primData, LLVector3 pos, LLUUID textureID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, PrimData primData, LLVector3 pos, LLUUID textureID)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            outPacket.RegionData.RegionHandle = regionHandle;
+            outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID);
             byte[] pb = pos.GetBytes();

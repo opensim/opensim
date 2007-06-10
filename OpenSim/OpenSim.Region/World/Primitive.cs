@@ -270,13 +270,7 @@ namespace OpenSim.Region
                 lPos = this.Pos;
             }
 
-            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
-            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreateUpdateBlock();
-            byte[] pb = lPos.GetBytes();
-            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
-
-            remoteClient.OutPacket(outPacket);
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.primData, lPos, new LLUUID("00000000-0000-0000-5005-000000000005"));
         }
 
         public void SendFullUpdateToAllClients()
@@ -349,67 +343,6 @@ namespace OpenSim.Region
 
         #endregion
 
-        #region Packet Update Methods
-        protected void SetDefaultPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
-        {
-            objdata.PSBlock = new byte[0];
-            objdata.ExtraParams = new byte[1];
-            objdata.MediaURL = new byte[0];
-            objdata.NameValue = new byte[0];
-            objdata.Text = new byte[0];
-            objdata.TextColor = new byte[4];
-            objdata.JointAxisOrAnchor = new LLVector3(0, 0, 0);
-            objdata.JointPivot = new LLVector3(0, 0, 0);
-            objdata.Material = 3;
-            objdata.TextureAnim = new byte[0];
-            objdata.Sound = LLUUID.Zero;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-            this.primData.Texture = objdata.TextureEntry = ntex.ToBytes();
-            objdata.State = 0;
-            objdata.Data = new byte[0];
-
-            objdata.ObjectData = new byte[60];
-            objdata.ObjectData[46] = 128;
-            objdata.ObjectData[47] = 63;
-        }
-
-        protected void SetPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData)
-        {
-            objectData.OwnerID = this.primData.OwnerID;
-            objectData.PCode = this.primData.PCode;
-            objectData.PathBegin = this.primData.PathBegin;
-            objectData.PathEnd = this.primData.PathEnd;
-            objectData.PathScaleX = this.primData.PathScaleX;
-            objectData.PathScaleY = this.primData.PathScaleY;
-            objectData.PathShearX = this.primData.PathShearX;
-            objectData.PathShearY = this.primData.PathShearY;
-            objectData.PathSkew = this.primData.PathSkew;
-            objectData.ProfileBegin = this.primData.ProfileBegin;
-            objectData.ProfileEnd = this.primData.ProfileEnd;
-            objectData.Scale = this.primData.Scale;
-            objectData.PathCurve = this.primData.PathCurve;
-            objectData.ProfileCurve = this.primData.ProfileCurve;
-            objectData.ParentID = this.primData.ParentID;
-            objectData.ProfileHollow = this.primData.ProfileHollow;
-            objectData.PathRadiusOffset = this.primData.PathRadiusOffset;
-            objectData.PathRevolutions = this.primData.PathRevolutions;
-            objectData.PathTaperX = this.primData.PathTaperX;
-            objectData.PathTaperY = this.primData.PathTaperY;
-            objectData.PathTwist = this.primData.PathTwist;
-            objectData.PathTwistBegin = this.primData.PathTwistBegin;
-        }
-
-        #endregion
-        protected ObjectUpdatePacket.ObjectDataBlock CreateUpdateBlock()
-        {
-            ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
-            this.SetDefaultPacketValues(objupdate);
-            objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
-            this.SetPacketShapeData(objupdate);
-            byte[] pb = this.Pos.GetBytes();
-            Array.Copy(pb, 0, objupdate.ObjectData, 0, pb.Length);
-            return objupdate;
-        }
 
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedBlock()
         {
