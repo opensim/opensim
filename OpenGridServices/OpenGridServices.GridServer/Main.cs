@@ -46,7 +46,7 @@ namespace OpenGridServices.GridServer
 {
     /// <summary>
     /// </summary>
-    public class OpenGrid_Main : BaseServer, conscmd_callback
+    public class OpenGrid_Main : conscmd_callback
     {
         private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
         private string GridDll = "OpenGrid.Framework.Data.MySQL.dll";
