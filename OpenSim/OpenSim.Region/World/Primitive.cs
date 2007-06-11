@@ -440,7 +440,7 @@ namespace OpenSim.Region
             PData.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             LLVector3 pos1 = addPacket.ObjectData.RayEnd;
             this.primData.FullID = this.uuid = LLUUID.Random();
-            this.localid = (uint)(localID);
+            this.primData.LocalID = this.localid = (uint)(localID);
             this.primData.Position = this.Pos = pos1;
 
             this.updateFlag = 1;

@@ -448,6 +448,34 @@ namespace OpenSim
         /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
         /// or big changes to a existing primitive.
         /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="timeDilation"></param>
+        /// <param name="localID"></param>
+        /// <param name="primData"></param>
+        /// <param name="pos"></param>
+        /// <param name="rotation"></param>
+        /// <param name="textureID"></param>
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID)
+        {
+            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            outPacket.RegionData.RegionHandle = regionHandle;
+            outPacket.RegionData.TimeDilation = timeDilation;
+            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID);
+            outPacket.ObjectData[0].ID = localID;
+            outPacket.ObjectData[0].FullID = primData.FullID;
+            byte[] pb = pos.GetBytes();
+            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
+            byte[] rot = rotation.GetBytes();
+            Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 48, rot.Length);
+            OutPacket(outPacket);
+        }
+
+        /// <summary>
+        /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
+        /// or big changes to a existing primitive.
+        /// uses default rotation
+        /// </summary>
         /// <param name="primData"></param>
         /// <param name="pos"></param>
         public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID)
@@ -473,9 +501,9 @@ namespace OpenSim
         protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData, LLUUID textureID)
         {
             ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
-            this.SetDefaultPrimPacketValues(objupdate, textureID);
+            this.SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
-            this.SetPrimPacketShapeData(objupdate, primData);
+            this.SetPrimPacketShapeData(objupdate, primData, textureID);
 
             return objupdate;
         }
@@ -484,7 +512,7 @@ namespace OpenSim
         /// Set some default values in a ObjectUpdatePacket
         /// </summary>
         /// <param name="objdata"></param>
-        protected void SetDefaultPrimPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata, LLUUID textureID)
+        protected void SetDefaultPrimPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
         {
             objdata.PSBlock = new byte[0];
             objdata.ExtraParams = new byte[1];
@@ -497,8 +525,6 @@ namespace OpenSim
             objdata.Material = 3;
             objdata.TextureAnim = new byte[0];
             objdata.Sound = LLUUID.Zero;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
-            objdata.TextureEntry = ntex.ToBytes();
             objdata.State = 0;
             objdata.Data = new byte[0];
 
@@ -512,8 +538,10 @@ namespace OpenSim
         /// </summary>
         /// <param name="objectData"></param>
         /// <param name="primData"></param>
-        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimData primData)
+        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimData primData, LLUUID textureID)
         {
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
+            objectData.TextureEntry = ntex.ToBytes();
             objectData.OwnerID = primData.OwnerID;
             objectData.PCode = primData.PCode;
             objectData.PathBegin =primData.PathBegin;

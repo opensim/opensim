@@ -56,6 +56,25 @@
 
     <!-- Core OpenSim Projects -->
 
+    <Project name="OpenSim.Framework.Console" path="Common/OpenSim.Framework.Console" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework" path="Common/OpenSim.Framework" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -80,24 +99,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Console" path="Common/OpenSim.Framework.Console" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
 
     <Project name="OpenSim.Servers" path="Common/OpenSim.Servers" type="Library">
       <Configuration name="Debug">

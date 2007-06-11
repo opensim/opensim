@@ -70,8 +70,8 @@
 
     <target name="build" depends="init" description="">
         <nant buildfile="Common/XmlRpcCS/XMLRPC.dll.build" target="build" />
-        <nant buildfile="Common/OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="Common/OpenSim.Framework.Console/OpenSim.Framework.Console.dll.build" target="build" />
+        <nant buildfile="Common/OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="Common/OpenSim.Servers/OpenSim.Servers.dll.build" target="build" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="build" />

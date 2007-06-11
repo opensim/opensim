@@ -20,6 +20,8 @@ using OpenSim.Region.Estate;
 
 namespace OpenSim.Region
 {
+    public delegate bool FilterAvatarList(Avatar avatar);
+
     public partial class World : WorldBase, ILocalStorageReceiver, IScriptAPI
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
@@ -587,6 +589,25 @@ namespace OpenSim.Region
             foreach (Avatar avatar in Avatars.Values)
             {
                 result.Add(avatar);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Request a filtered list of Avatars in this World
+        /// </summary>
+        /// <returns></returns>
+        public List<Avatar> RequestAvatarList(FilterAvatarList filter)
+        {
+            List<Avatar> result = new List<Avatar>();
+
+            foreach (Avatar avatar in Avatars.Values)
+            {
+                if (filter(avatar))
+                {
+                    result.Add(avatar);
+                }
             }
 
             return result;
