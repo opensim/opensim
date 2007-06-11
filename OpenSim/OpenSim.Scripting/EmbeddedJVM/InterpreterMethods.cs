@@ -34,6 +34,8 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Types;
 
+using libsecondlife;
+
 namespace OpenSim.Scripting.EmbeddedJVM
 {
     partial class Thread
@@ -101,7 +103,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                                             {
                                                 //Console.WriteLine("get entity pos for " + ((Int)bs1).mValue);
                                                 //should get the position of the entity from the IScriptAPI
-                                                OSVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
+                                                LLVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
                                                 Float pos = new Float();
                                                 pos.mValue = vec3.X;
                                                // Console.WriteLine("returned x value " + vec3.X.ToString());
@@ -114,7 +116,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                                             if (bs1 is Int)
                                             {
                                                 //should get the position of the entity from the IScriptAPI
-                                                OSVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
+                                                LLVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
                                                 Float pos = new Float();
                                                 pos.mValue = vec3.Y;
                                                 this._mThread.currentFrame.OpStack.Push(pos);
@@ -126,7 +128,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
                                             if (bs1 is Int)
                                             {
                                                 //should get the position of the entity from the IScriptAPI
-                                                OSVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
+                                                LLVector3 vec3 = Thread.OpenSimScriptAPI.GetEntityPosition((uint)((Int)bs1).mValue);
                                                 Float pos = new Float();
                                                 pos.mValue = vec3.Z;
                                                 this._mThread.currentFrame.OpStack.Push(pos);

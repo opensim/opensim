@@ -118,9 +118,9 @@ namespace OpenSim.Region
         /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
-        public OSVector3 GetEntityPosition(uint localID)
+        public LLVector3 GetEntityPosition(uint localID)
         {
-            OSVector3 res = new OSVector3();
+            LLVector3 res = new LLVector3();
            // Console.WriteLine("script-  getting entity " + localID + " position");
             foreach (Entity entity in this.Entities.Values)
             {
