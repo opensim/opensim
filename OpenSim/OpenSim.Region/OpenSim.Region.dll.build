@@ -14,7 +14,6 @@
                 <include name="ParcelManager.cs" />
                 <include name="Estate/EstateManager.cs" />
                 <include name="World/AvatarAnimations.cs" />
-                <include name="World/Avatar.Client.cs" />
                 <include name="World/Avatar.cs" />
                 <include name="World/Avatar.Update.cs" />
                 <include name="World/Entity.cs" />

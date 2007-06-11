@@ -126,9 +126,6 @@
     <Compile Include="SimProfile.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\ILoginServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\IUserManager.cs">
       <SubType>Code</SubType>
     </Compile>

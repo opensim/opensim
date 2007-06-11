@@ -23,7 +23,6 @@
                 <include name="UserProfileManagerBase.cs" />
                 <include name="Util.cs" />
                 <include name="SimProfile.cs" />
-                <include name="Interfaces/ILoginServer.cs" />
                 <include name="Interfaces/IUserManager.cs" />
                 <include name="Interfaces/LocalGridBase.cs" />
                 <include name="Interfaces/RemoteGridBase.cs" />

@@ -139,9 +139,6 @@
     <Compile Include="World\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Avatar.Client.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="World\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
