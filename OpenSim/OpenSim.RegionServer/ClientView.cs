@@ -69,7 +69,7 @@ namespace OpenSim
 
         private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
-        private bool debug = true;
+        private bool debug = false;
         protected IWorld m_world;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;

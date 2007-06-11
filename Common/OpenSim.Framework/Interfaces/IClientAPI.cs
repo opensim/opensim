@@ -102,6 +102,7 @@ namespace OpenSim.Framework.Interfaces
         void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort);
         AgentCircuitData RequestClientInfo();
 
+        void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID);
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation);
     }

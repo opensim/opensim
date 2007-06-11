@@ -425,6 +425,26 @@ namespace OpenSim
         #region Primitive Packet/data Sending Methods
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="rotation"></param>
+        /// <param name="attachPoint"></param>
+        public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
+        {
+            ObjectAttachPacket attach = new ObjectAttachPacket();
+            attach.AgentData.AgentID = this.AgentID;
+            attach.AgentData.SessionID = this.SessionID;
+            attach.AgentData.AttachmentPoint = attachPoint;
+            attach.ObjectData = new ObjectAttachPacket.ObjectDataBlock[1];
+            attach.ObjectData[0] = new ObjectAttachPacket.ObjectDataBlock();
+            attach.ObjectData[0].ObjectLocalID = localID;
+            attach.ObjectData[0].Rotation = rotation;
+
+            this.OutPacket(attach);
+        }
+
+        /// <summary>
         /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
         /// or big changes to a existing primitive.
         /// </summary>

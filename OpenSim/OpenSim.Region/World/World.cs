@@ -591,6 +591,15 @@ namespace OpenSim.Region
 
             return result;
         }
+
+        public Avatar RequestAvatar(LLUUID avatarID)
+        {
+            if (this.Avatars.ContainsKey(avatarID))
+            {
+                return Avatars[avatarID];
+            }
+            return null;
+        }
         #endregion
 
         #region ShutDown
