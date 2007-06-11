@@ -179,9 +179,6 @@
     <Compile Include="Assets\InventoryCache.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CAPS\AdminWebFront.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

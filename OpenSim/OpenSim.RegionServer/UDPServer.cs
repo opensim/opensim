@@ -42,7 +42,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.UserServer;
 using OpenSim.Assets;
-using OpenSim.CAPS;
 using OpenSim.Framework.Console;
 using OpenSim.Framework;
 using Nwc.XmlRpc;

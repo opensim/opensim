@@ -45,7 +45,6 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework;
 using OpenSim.UserServer;
 using OpenSim.Assets;
-using OpenSim.CAPS;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
@@ -135,10 +134,6 @@ namespace OpenSim
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }
-
-            //Web front end setup
-            AdminWebFront adminWebFront = new AdminWebFront("Admin");
-            adminWebFront.LoadMethods(httpServer);
 
             //Start http server
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Startup() - Starting HTTP server");
