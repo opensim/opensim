@@ -35,8 +35,20 @@ using Nwc.XmlRpc;
 
 namespace OpenSim.Framework.Sims
 {
-    public class SimProfile : SimProfileBase
+    public class SimProfile
     {
+        public LLUUID UUID;
+        public ulong regionhandle;
+        public string regionname;
+        public string sim_ip;
+        public uint sim_port;
+        public string caps_url;
+        public uint RegionLocX;
+        public uint RegionLocY;
+        public string sendkey;
+        public string recvkey;
+        public bool online;
+
         public SimProfile LoadFromGrid(ulong region_handle, string GridURL, string SendKey, string RecvKey)
         {
             try

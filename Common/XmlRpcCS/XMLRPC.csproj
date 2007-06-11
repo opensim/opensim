@@ -70,58 +70,58 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Logger.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimpleHttpRequest.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="XmlRpcBoxcarRequest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcClientProxy.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcDeserializer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcErrorCodes.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcException.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcExposedAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="XmlRpcRequest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="XmlRpcResponseSerializer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="XmlRpcRequestDeserializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="XmlRpcRequestSerializer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcResponder.cs">
+    <Compile Include="XmlRpcExposedAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="XmlRpcResponse.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="XmlRpcException.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="XmlRpcResponseDeserializer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="XmlRpcResponseSerializer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcSerializer.cs">
+    <Compile Include="XmlRpcResponder.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="XmlRpcServer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="XmlRpcErrorCodes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XmlRpcSerializer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="XmlRpcSystemObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimpleHttpRequest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XmlRpcClientProxy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XmlRpcRequestSerializer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XmlRpcDeserializer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="XmlRpcXmlTokens.cs">

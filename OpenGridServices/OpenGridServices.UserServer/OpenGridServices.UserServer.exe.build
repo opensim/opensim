@@ -11,8 +11,8 @@
             <resources prefix="OpenGridServices.UserServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="Main.cs" />
                 <include name="UserManager.cs" />
+                <include name="Main.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

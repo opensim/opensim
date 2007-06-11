@@ -136,6 +136,9 @@
     <Compile Include="Estate\EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="World\AvatarAnimations.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="World\Avatar.Client.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -143,9 +146,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\Entity.cs">
@@ -163,10 +163,10 @@
     <Compile Include="World\World.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\World.Scripting.cs">
+    <Compile Include="World\WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\WorldBase.cs">
+    <Compile Include="World\World.Scripting.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\scripting\IScriptContext.cs">

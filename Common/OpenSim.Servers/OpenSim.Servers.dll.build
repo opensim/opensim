@@ -11,6 +11,8 @@
             <resources prefix="OpenSim.Servers" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="LoginServer2.cs" />
+                <include name="LocalLoginServer.cs" />
                 <include name="BaseHttpServer.cs" />
                 <include name="CheckSumServer.cs" />
                 <include name="IRestHandler.cs" />

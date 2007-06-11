@@ -16,7 +16,6 @@
                 <include name="Heap.cs" />
                 <include name="Interpreter.cs" />
                 <include name="InterpreterLogic.cs" />
-                <include name="InterpreterMethods.cs" />
                 <include name="InterpreterReturn.cs" />
                 <include name="MainMemory.cs" />
                 <include name="MethodMemory.cs" />
@@ -25,6 +24,7 @@
                 <include name="Stack.cs" />
                 <include name="StackFrame.cs" />
                 <include name="Thread.cs" />
+                <include name="InterpreterMethods.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
                 <include name="Types/ArrayReference.cs" />
                 <include name="Types/BaseType.cs" />
@@ -41,6 +41,7 @@
                 </lib>
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
+                <include name="../../../bin/libsecondlife.dll" />
                 <include name="../../../bin/OpenSim.Framework.dll" />
             </references>
         </csc>

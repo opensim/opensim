@@ -92,6 +92,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LoginServer2.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LocalLoginServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="BaseHttpServer.cs">
       <SubType>Code</SubType>
     </Compile>
