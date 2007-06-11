@@ -8,18 +8,18 @@ using libsecondlife;
 
 namespace OpenGrid.Framework.Communications
 {
-    public class SandBoxManager
+    public class LocalBackEndServices
     {
         protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong, RegionInfo>();
         protected Dictionary<ulong, RegionCommsHostBase> regionHosts = new Dictionary<ulong, RegionCommsHostBase>();
 
-        public SandBoxManager()
+        public LocalBackEndServices()
         {
 
         }
 
         /// <summary>
-        /// Register a region method with the SandBoxManager.
+        /// Register a region method with the BackEnd Services.
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>

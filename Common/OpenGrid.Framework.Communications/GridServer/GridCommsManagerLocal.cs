@@ -11,9 +11,9 @@ namespace OpenGrid.Framework.Communications.GridServer
 {
     public class GridCommsManagerLocal : GridCommsManagerBase
     {
-        private SandBoxManager sandBoxManager;
+        private LocalBackEndServices sandBoxManager;
 
-        public GridCommsManagerLocal(SandBoxManager sandManager)
+        public GridCommsManagerLocal(LocalBackEndServices sandManager)
         {
             sandBoxManager = sandManager;
         }

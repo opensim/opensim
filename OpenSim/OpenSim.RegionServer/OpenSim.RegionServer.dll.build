@@ -18,7 +18,6 @@
                 <include name="ClientView.PacketHandlers.cs" />
                 <include name="ClientView.ProcessPackets.cs" />
                 <include name="ClientViewBase.cs" />
-                <include name="CommsManager.cs" />
                 <include name="NetworkServersInfo.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
                 <include name="PacketServer.cs" />

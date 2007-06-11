@@ -11,7 +11,7 @@ namespace OpenGrid.Framework.Communications
 {
     public class RegionServerCommsLocal : RegionServerCommsManager
     {
-        public SandBoxManager SandManager = new SandBoxManager();
+        public LocalBackEndServices SandManager = new LocalBackEndServices();
         public RegionServerCommsLocal()
         {
             UserServer = new UserServer.UserCommsManagerLocal(); //Local User Server

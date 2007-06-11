@@ -8,9 +8,9 @@ namespace OpenGrid.Framework.Communications
 {
     public class InterSimsCommsLocal : InterSimsCommsBase
     {
-        private SandBoxManager sandBoxManager;
+        private LocalBackEndServices sandBoxManager;
 
-        public InterSimsCommsLocal(SandBoxManager sandManager)
+        public InterSimsCommsLocal(LocalBackEndServices sandManager)
         {
             sandBoxManager = sandManager;
         }
