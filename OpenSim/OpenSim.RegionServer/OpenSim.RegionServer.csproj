@@ -170,9 +170,6 @@
     <Compile Include="ClientView\ClientView.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientView\ClientView.Grid.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ClientView\ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>

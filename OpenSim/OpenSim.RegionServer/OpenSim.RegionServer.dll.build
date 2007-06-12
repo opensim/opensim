@@ -22,7 +22,6 @@
                 <include name="ClientView/ClientView.AgentAssetUpload.cs" />
                 <include name="ClientView/ClientView.API.cs" />
                 <include name="ClientView/ClientView.cs" />
-                <include name="ClientView/ClientView.Grid.cs" />
                 <include name="ClientView/ClientView.PacketHandlers.cs" />
                 <include name="ClientView/ClientView.ProcessPackets.cs" />
                 <include name="ClientView/ClientViewBase.cs" />
