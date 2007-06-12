@@ -11,8 +11,8 @@
             <resources prefix="OpenSim.Region" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="EstateManager.cs" />
                 <include name="ParcelManager.cs" />
-                <include name="Estate/EstateManager.cs" />
                 <include name="Scene/Scene.cs" />
                 <include name="Scene/Scene.PacketHandlers.cs" />
                 <include name="Scene/Scene.Scripting.cs" />

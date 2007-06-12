@@ -42,7 +42,6 @@ using OpenSim.Framework;
 using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
-using OpenSim.Region.Estate;
 
 
 namespace OpenSim.Region

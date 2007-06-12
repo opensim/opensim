@@ -37,7 +37,7 @@ using OpenSim;
 using libsecondlife;
 using libsecondlife.Packets;
 
-namespace OpenSim.Region.Estate
+namespace OpenSim.Region
 {
 
     /// <summary>

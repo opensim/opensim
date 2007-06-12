@@ -130,10 +130,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ParcelManager.cs">
+    <Compile Include="EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Estate\EstateManager.cs">
+    <Compile Include="ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scene\Scene.cs">
