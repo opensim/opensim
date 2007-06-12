@@ -41,9 +41,9 @@ namespace OpenSim.Region
 {
     public class Primitive : Entity
     {
-        protected PrimData primData;
+        internal PrimData primData;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
-        private Dictionary<uint, IClientAPI> m_clientThreads;
+       // private Dictionary<uint, IClientAPI> m_clientThreads;
         private ulong m_regionHandle;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
         private bool physicsEnabled = false;
@@ -95,7 +95,7 @@ namespace OpenSim.Region
         /// <param name="world"></param>
         public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world)
         {
-            m_clientThreads = clientThreads;
+           // m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_world = world;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
@@ -112,7 +112,7 @@ namespace OpenSim.Region
         /// <param name="localID"></param>
         public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world, LLUUID owner, LLUUID fullID, uint localID)
         {
-            m_clientThreads = clientThreads;
+          //  m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_world = world;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
@@ -134,7 +134,7 @@ namespace OpenSim.Region
         /// <param name="position"></param>
         public Primitive(Dictionary<uint, IClientAPI> clientThreads, ulong regionHandle, World world, LLUUID owner, uint localID, LLVector3 position)
         {
-            m_clientThreads = clientThreads;
+            //m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
             m_world = world;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
@@ -191,9 +191,14 @@ namespace OpenSim.Region
         /// </summary>
         public override void update()
         {
-            if (this.updateFlag == 1)
+            if (this.updateFlag == 1) // is a new prim just been created/reloaded 
             {
                 this.SendFullUpdateToAllClients();
+                this.updateFlag = 0;
+            }
+            if (this.updateFlag == 2) //some change has been made so update the clients
+            {
+                this.SendTerseUpdateToALLClients();
                 this.updateFlag = 0;
             }
         }
@@ -216,7 +221,8 @@ namespace OpenSim.Region
         /// <param name="pos"></param>
         public void UpdatePosition(LLVector3 pos)
         {
-
+            this.Pos = new LLVector3(pos.X, pos.Y, pos.Z);
+            this.updateFlag = 2;
         }
 
         /// <summary>
@@ -272,58 +278,44 @@ namespace OpenSim.Region
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        public void GetProperites(IClientAPI client)
-        {
-            ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
-            proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
-            proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
-            proper.ObjectData[0].ItemID = LLUUID.Zero;
-            proper.ObjectData[0].CreationDate = (ulong)this.primData.CreationDate;
-            proper.ObjectData[0].CreatorID = this.primData.OwnerID;
-            proper.ObjectData[0].FolderID = LLUUID.Zero;
-            proper.ObjectData[0].FromTaskID = LLUUID.Zero;
-            proper.ObjectData[0].GroupID = LLUUID.Zero;
-            proper.ObjectData[0].InventorySerial = 0;
-            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
-            proper.ObjectData[0].ObjectID = this.uuid;
-            proper.ObjectData[0].OwnerID = primData.OwnerID;
-            proper.ObjectData[0].TouchName = new byte[0];
-            proper.ObjectData[0].TextureID = new byte[0];
-            proper.ObjectData[0].SitName = new byte[0];
-            proper.ObjectData[0].Name = new byte[0];
-            proper.ObjectData[0].Description = new byte[0];
-            proper.ObjectData[0].OwnerMask = this.primData.OwnerMask;
-            proper.ObjectData[0].NextOwnerMask = this.primData.NextOwnerMask;
-            proper.ObjectData[0].GroupMask = this.primData.GroupMask;
-            proper.ObjectData[0].EveryoneMask = this.primData.EveryoneMask;
-            proper.ObjectData[0].BaseMask = this.primData.BaseMask;
-
-            client.OutPacket(proper);
-        }
-
         #endregion
 
         # region Inventory Methods
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public bool AddToInventory(InventoryItem item)
         {
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns></returns>
         public InventoryItem RemoveFromInventory(LLUUID itemID)
         {
             return null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="simClient"></param>
+        /// <param name="packet"></param>
         public void RequestInventoryInfo(IClientAPI simClient, RequestTaskInventoryPacket packet)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="simClient"></param>
+        /// <param name="xferID"></param>
         public void RequestXferInventory(IClientAPI simClient, ulong xferID)
         {
             //will only currently work if the total size of the inventory data array is under about 1000 bytes
@@ -336,6 +328,10 @@ namespace OpenSim.Region
             simClient.OutPacket(send);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public byte[] ConvertInventoryToBytes()
         {
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
@@ -353,6 +349,10 @@ namespace OpenSim.Region
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
         public void CreateInventoryFromBytes(byte[] data)
         {
 
@@ -362,7 +362,22 @@ namespace OpenSim.Region
 
         #region Update viewers Methods
 
-        //should change these mehtods, so that outgoing packets are sent through the avatar class?
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        public void SendFullUpdateForAllChildren(IClientAPI remoteClient)
+        {
+            this.SendFullUpdateToClient(remoteClient);
+            for (int i = 0; i < this.children.Count; i++)
+            {
+                if (this.children[i] is Primitive)
+                {
+                    ((Primitive)this.children[i]).SendFullUpdateForAllChildren(remoteClient);
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -491,7 +506,7 @@ namespace OpenSim.Region
         {
             this.CreateFromPrimData(primData, primData.Position, primData.LocalID, false);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>

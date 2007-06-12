@@ -210,7 +210,14 @@ namespace OpenSim.Region
         /// <param name="remoteClient"></param>
         public void UpdatePrimPosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
         {
-           
+            foreach (Entity ent in Entities.Values)
+            {
+                if (ent.localid == localID)
+                {
+                    ((OpenSim.Region.Primitive)ent).UpdatePosition(pos);
+                    break;
+                }
+            }
         }
 
         /// <summary>

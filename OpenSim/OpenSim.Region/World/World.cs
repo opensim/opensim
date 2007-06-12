@@ -511,9 +511,9 @@ namespace OpenSim.Region
             remoteClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
             remoteClient.OnRequestWearables += new GenericCall(this.InformClientOfNeighbours);
             remoteClient.OnAddPrim += new GenericCall4(this.AddNewPrim);
-
-            /*
-            remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
+            remoteClient.OnUpdatePrimPosition += new UpdatePrimVector(this.UpdatePrimPosition);
+            
+           /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
             remoteClient.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
             remoteClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);

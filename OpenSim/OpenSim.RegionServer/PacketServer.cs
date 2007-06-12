@@ -60,6 +60,11 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="circuitCode"></param>
+        /// <param name="packet"></param>
         public virtual void ClientInPacket(uint circuitCode, Packet packet)
         {
             if (this.ClientThreads.ContainsKey(circuitCode))
@@ -68,36 +73,79 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="circuitCode"></param>
+        /// <returns></returns>
         public virtual bool AddNewCircuitCodeClient(uint circuitCode)
         {
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="packet"></param>
         public virtual void SendPacketToAllClients(Packet packet)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <param name="simClient"></param>
         public virtual void SendPacketToAllExcept(Packet packet, ClientView simClient)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="packetType"></param>
+        /// <param name="handler"></param>
         public virtual void AddClientPacketHandler(PacketType packetType, PacketMethod handler)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual void RegisterClientPacketHandlers()
         {
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteEP"></param>
+        /// <param name="initialcirpack"></param>
+        /// <param name="clientThreads"></param>
+        /// <param name="world"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="packServer"></param>
+        /// <param name="inventoryCache"></param>
+        /// <param name="authenSessions"></param>
+        /// <returns></returns>
         protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions)
         {
             return new ClientView(remoteEP, initialcirpack, clientThreads, world, assetCache, packServer, inventoryCache, authenSessions );
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="epSender"></param>
+        /// <param name="useCircuit"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="inventoryCache"></param>
+        /// <param name="authenticateSessionsClass"></param>
+        /// <returns></returns>
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AuthenticateSessionsBase authenticateSessionsClass)
         {
             ClientView newuser =
@@ -110,11 +158,22 @@ namespace OpenSim
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="size"></param>
+        /// <param name="flags"></param>
+        /// <param name="circuitcode"></param>
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
         {
             this._networkHandler.SendPacketTo(buffer, size, flags, circuitcode);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="circuitcode"></param>
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
             this._networkHandler.RemoveClientCircuit(circuitcode);

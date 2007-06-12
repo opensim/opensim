@@ -41,9 +41,10 @@ namespace OpenSim.Region
     public class SceneObject : Entity
     {
         private LLUUID rootUUID;
-        private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>();
-        private Dictionary<uint, IClientAPI> m_clientThreads;
+        //private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>();
+        protected Primitive rootPrimitive;
         private World m_world;
+        protected ulong regionHandle;
 
         /// <summary>
         /// 
@@ -61,6 +62,8 @@ namespace OpenSim.Region
         /// <param name="localID"></param>
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
+            this.rootPrimitive = new Primitive(null, this.regionHandle, this.m_world);
+            this.rootPrimitive.CreateFromPacket(addPacket, agentID, localID);
         }
 
         /// <summary>
@@ -94,33 +97,33 @@ namespace OpenSim.Region
         /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
-            /*
+            //needs changing
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
             proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
             proper.ObjectData[0].ItemID = LLUUID.Zero;
-            proper.ObjectData[0].CreationDate = (ulong)this.primData.CreationDate;
-            proper.ObjectData[0].CreatorID = this.primData.OwnerID;
+            proper.ObjectData[0].CreationDate = (ulong)this.rootPrimitive.primData.CreationDate;
+            proper.ObjectData[0].CreatorID = this.rootPrimitive.primData.OwnerID;
             proper.ObjectData[0].FolderID = LLUUID.Zero;
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
             proper.ObjectData[0].InventorySerial = 0;
             proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
             proper.ObjectData[0].ObjectID = this.uuid;
-            proper.ObjectData[0].OwnerID = primData.OwnerID;
+            proper.ObjectData[0].OwnerID = this.rootPrimitive.primData.OwnerID;
             proper.ObjectData[0].TouchName = new byte[0];
             proper.ObjectData[0].TextureID = new byte[0];
             proper.ObjectData[0].SitName = new byte[0];
             proper.ObjectData[0].Name = new byte[0];
             proper.ObjectData[0].Description = new byte[0];
-            proper.ObjectData[0].OwnerMask = this.primData.OwnerMask;
-            proper.ObjectData[0].NextOwnerMask = this.primData.NextOwnerMask;
-            proper.ObjectData[0].GroupMask = this.primData.GroupMask;
-            proper.ObjectData[0].EveryoneMask = this.primData.EveryoneMask;
-            proper.ObjectData[0].BaseMask = this.primData.BaseMask;
+            proper.ObjectData[0].OwnerMask = this.rootPrimitive.primData.OwnerMask;
+            proper.ObjectData[0].NextOwnerMask = this.rootPrimitive.primData.NextOwnerMask;
+            proper.ObjectData[0].GroupMask = this.rootPrimitive.primData.GroupMask;
+            proper.ObjectData[0].EveryoneMask = this.rootPrimitive.primData.EveryoneMask;
+            proper.ObjectData[0].BaseMask = this.rootPrimitive.primData.BaseMask;
 
             client.OutPacket(proper);
-             * */
+            
         }
 
     }
