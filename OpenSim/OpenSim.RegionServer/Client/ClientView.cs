@@ -143,7 +143,7 @@ namespace OpenSim.RegionServer.Client
             this.RegisterLocalPacketHandlers();
 
 
-            m_world.parcelManager.sendParcelOverlay(this);
+            //m_world.parcelManager.sendParcelOverlay(this);
             m_world.estateManager.sendRegionInfoPacket(this);
 
             ClientThread = new Thread(new ThreadStart(AuthUser));
