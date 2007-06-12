@@ -1,4 +1,4 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
@@ -6,8 +6,7 @@
     <ProjectGuid>{196916AF-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ApplicationIcon>
-    </ApplicationIcon>
+    <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
     <AssemblyName>OpenSim.Region</AssemblyName>
@@ -16,11 +15,9 @@
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>
-    </AppDesignerFolder>
+    <AppDesignerFolder></AppDesignerFolder>
     <RootNamespace>OpenSim.Region</RootNamespace>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
@@ -31,8 +28,7 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile></DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
@@ -41,8 +37,7 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>
-    </NoWarn>
+    <NoWarn></NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
@@ -51,8 +46,7 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile></DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
@@ -61,27 +55,26 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>
-    </NoWarn>
+    <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System">
+    <Reference Include="System" >
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml">
+    <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll">
+    <Reference Include="libsecondlife.dll" >
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Axiom.MathLib.dll">
+    <Reference Include="Axiom.MathLib.dll" >
       <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Db4objects.Db4o.dll">
+    <Reference Include="Db4objects.Db4o.dll" >
       <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
@@ -91,49 +84,49 @@
       <Name>OpenSim.Terrain.BasicTerrain</Name>
       <Project>{2270B8FE-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\OpenSim.Framework.Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
       <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\OpenSim.GenericConfig\Xml\OpenSim.GenericConfig.Xml.csproj">
       <Name>OpenSim.GenericConfig.Xml</Name>
       <Project>{E88EF749-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
       <Project>{8BE16150-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\OpenSim.Servers\OpenSim.Servers.csproj">
       <Name>OpenSim.Servers</Name>
       <Project>{8BB20F0A-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj">
       <Name>OpenGrid.Framework.Communications</Name>
       <Project>{683344D5-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
+			<Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +148,15 @@
     <Compile Include="World\WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="World\Entities\Avatar.Animations.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\Avatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\Avatar.Update.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="World\Entities\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -162,15 +164,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\Entities\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Entities\Avatar\Avatar.Animations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Entities\Avatar\Avatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Entities\Avatar\Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\scripting\IScriptContext.cs">
@@ -191,9 +184,6 @@
     <Compile Include="World\scripting\Scripts\FollowRandomAvatar.cs">
       <SubType>Code</SubType>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="World\types\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
