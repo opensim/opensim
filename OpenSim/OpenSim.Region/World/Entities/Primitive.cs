@@ -29,7 +29,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Region.types;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;

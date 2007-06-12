@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Text;
 using Axiom.MathLib;
 using OpenSim.Physics.Manager;
-using OpenSim.Region.types;
 using libsecondlife;
 using OpenSim.Region.Scripting;
 
@@ -130,22 +129,6 @@ namespace OpenSim.Region
             }
         }
 
-        /// <summary>
-        /// Returns a mesh for this object and any dependents
-        /// </summary>
-        /// <returns>The mesh of this entity tree</returns>
-        public virtual Mesh getMesh()
-        {
-            Mesh mesh = new Mesh();
-
-            foreach (Entity child in children)
-            {
-                mesh += child.getMesh();
-            }
-
-            return mesh;
-        }
-        
         /// <summary>
         /// Called at a set interval to inform entities that they should back themsleves up to the DB 
         /// </summary>
