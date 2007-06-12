@@ -98,7 +98,7 @@ namespace OpenSim.RegionServer.Client
                         enablesimpacket.SimulatorInfo.Port = neighbourPort;
                         enablePackets.Add(enablesimpacket);
                     }
-                    catch (Exception e)
+                    catch
                     {
                         MainConsole.Instance.Notice("Could not connect to neighbour " + neighbour["sim_ip"] + ":" + neighbour["sim_port"] + ", continuing.");
                     }

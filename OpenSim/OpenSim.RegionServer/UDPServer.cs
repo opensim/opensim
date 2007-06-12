@@ -135,7 +135,28 @@ namespace OpenSim.RegionServer
             ipeSender = new IPEndPoint(IPAddress.Any, 0);
             epSender = (EndPoint)ipeSender;
             Packet packet = null;
-            int numBytes = Server.EndReceiveFrom(result, ref epSender);
+
+            int numBytes;
+
+            try
+            {
+                numBytes = Server.EndReceiveFrom(result, ref epSender);
+            }
+            catch (SocketException e)
+            {
+                switch( e.SocketErrorCode )
+                {
+                    case SocketError.NotConnected:
+                    case SocketError.ConnectionReset:
+                        // At this point, we should clear the client connection altogether.
+                        // The app should hook a disconnect event into the UDPServer.
+                        // But for now, just ignore it.
+                        return;
+                       default:
+                        throw;
+                }
+            }
+
             int packetEnd = numBytes - 1;
 
             packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
@@ -181,7 +202,7 @@ namespace OpenSim.RegionServer
             ServerIncoming = new IPEndPoint(IPAddress.Any, listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
- 
+
             m_console.Notice("UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(IPAddress.Any, 0);

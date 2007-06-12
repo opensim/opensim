@@ -478,7 +478,7 @@ namespace OpenSim.RegionServer.Simulator
                             this.Terrain.loadFromFileF32(this.m_regInfo.estateSettings.terrainFile);
                             this.Terrain *= this.m_regInfo.estateSettings.terrainMultiplier;
                         }
-                        catch (Exception e)
+                        catch
                         {
                             Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
                             Terrain.hills();

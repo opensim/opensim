@@ -237,7 +237,7 @@ namespace OpenSim.RegionServer.Simulator
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return false; //Exception. For now, lets skip subdivision
             }
@@ -294,7 +294,7 @@ namespace OpenSim.RegionServer.Simulator
                 startParcel = getParcel(start_x, start_y);
                 endParcel = getParcel(end_x, end_y);
             }
-            catch (Exception e)
+            catch
             {
                 return false; //Error occured when trying to get the start and end parcels
             }
