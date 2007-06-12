@@ -124,7 +124,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentAssetUpload.cs">
+    <Compile Include="ClientView.AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ClientView.API.cs">

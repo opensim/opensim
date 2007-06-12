@@ -11,7 +11,7 @@
             <resources prefix="OpenSim.RegionServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="AgentAssetUpload.cs" />
+                <include name="ClientView.AgentAssetUpload.cs" />
                 <include name="ClientView.API.cs" />
                 <include name="ClientView.cs" />
                 <include name="ClientView.Grid.cs" />
