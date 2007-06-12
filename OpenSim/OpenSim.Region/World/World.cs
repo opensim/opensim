@@ -482,8 +482,7 @@ namespace OpenSim.Region
             try
             {
                // MainConsole.Instance.Notice("World.cs: AddNewPrim() - Creating new prim");
-                Primitive prim = new Primitive(m_clientThreads, m_regionHandle, this);
-                prim.CreateFromPacket(addPacket, ownerID, this._primCount);
+                Primitive prim = new Primitive(m_regionHandle, this, addPacket, ownerID, this._primCount);
                 
                 this.Entities.Add(prim.uuid, prim);
                 this._primCount++;

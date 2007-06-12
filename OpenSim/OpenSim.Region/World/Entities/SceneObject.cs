@@ -62,8 +62,7 @@ namespace OpenSim.Region
         /// <param name="localID"></param>
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
-            this.rootPrimitive = new Primitive(null, this.regionHandle, this.m_world);
-            this.rootPrimitive.CreateFromPacket(addPacket, agentID, localID);
+            this.rootPrimitive = new Primitive( this.regionHandle, this.m_world, addPacket, agentID, localID);
         }
 
         /// <summary>
