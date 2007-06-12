@@ -44,7 +44,7 @@ namespace OpenSim.Region
         protected List<Entity> children;
         protected LLVector3 m_pos;
         protected PhysicsActor _physActor;
-        protected World m_world;
+        protected Scene m_world;
         protected string m_name;
 
         /// <summary>

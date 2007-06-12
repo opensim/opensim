@@ -45,10 +45,10 @@ namespace OpenSim.Region.Estate
     /// </summary>
     public class EstateManager
     {
-        private World m_world;
+        private Scene m_world;
         private RegionInfo m_regInfo;
 
-        public EstateManager(World world,RegionInfo reginfo)
+        public EstateManager(Scene world,RegionInfo reginfo)
         {
             m_world = world; //Estate settings found at world.m_regInfo.estateSettings      
             m_regInfo = reginfo;

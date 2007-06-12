@@ -38,7 +38,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region
 {
-    public partial class World
+    public partial class Scene
     {
         /// <summary>
         /// 

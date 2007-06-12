@@ -70,7 +70,7 @@ namespace OpenSim.Region
         /// <param name="world"></param>
         /// <param name="clientThreads"></param>
         /// <param name="regionDat"></param>
-        public Avatar(IClientAPI theClient, World world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo reginfo)
+        public Avatar(IClientAPI theClient, Scene world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo reginfo)
         {
 
             m_world = world;

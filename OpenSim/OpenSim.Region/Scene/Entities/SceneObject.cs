@@ -42,7 +42,7 @@ namespace OpenSim.Region
         private LLUUID rootUUID;
         //private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>();
         protected Primitive rootPrimitive;
-        private World m_world;
+        private Scene m_world;
         protected ulong regionHandle;
 
         /// <summary>

@@ -49,7 +49,7 @@ namespace OpenSim.Region
 {
     public delegate bool FilterAvatarList(Avatar avatar);
 
-    public partial class World : WorldBase, ILocalStorageReceiver, IScriptAPI
+    public partial class Scene : SceneBase, ILocalStorageReceiver, IScriptAPI
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         protected Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
@@ -96,7 +96,7 @@ namespace OpenSim.Region
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public World(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, RegionServerCommsManager commsMan)
+        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, RegionServerCommsManager commsMan)
         {
             try
             {

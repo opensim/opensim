@@ -180,7 +180,7 @@ namespace OpenSim
         protected override void SetupWorld()
         {
             IGenericConfig regionConfig;
-            World LocalWorld;
+            Scene LocalWorld;
             UDPServer udpServer;
             RegionInfo regionDat = new RegionInfo();
             AuthenticateSessionsBase authenBase;
@@ -234,7 +234,7 @@ namespace OpenSim
                 m_console.componentname = "Region " + regionData.RegionName;
                 */
 
-                LocalWorld = new World(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager);
+                LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;
@@ -392,7 +392,7 @@ namespace OpenSim
             m_console.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Main.cs:Shutdown() - Closing console and terminating");
             for (int i = 0; i < m_localWorld.Count; i++)
             {
-                ((World)m_localWorld[i]).Close();
+                ((Scene)m_localWorld[i]).Close();
             }
             m_console.Close();
             Environment.Exit(0);

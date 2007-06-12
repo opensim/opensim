@@ -37,7 +37,7 @@ using libsecondlife;
 
 namespace OpenSim.Region
 {
-    public partial class World
+    public partial class Scene
     {
         private Dictionary<string, IScriptEngine> scriptEngines = new Dictionary<string, IScriptEngine>();
 

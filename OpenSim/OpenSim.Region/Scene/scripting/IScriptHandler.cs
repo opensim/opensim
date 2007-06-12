@@ -40,7 +40,7 @@ namespace OpenSim.Region.Scripting
 
     public class ScriptHandler : IScriptContext, IScriptEntity, IScriptReadonlyEntity
     {
-        private World m_world;
+        private Scene m_world;
         private Script m_script;
         private Entity m_entity;
 
@@ -57,7 +57,7 @@ namespace OpenSim.Region.Scripting
             m_script.OnFrame(this);
         }
 
-        public ScriptHandler(Script script, Entity entity, World world)
+        public ScriptHandler(Script script, Entity entity, Scene world)
         {
             m_script = script;
             m_entity = entity;

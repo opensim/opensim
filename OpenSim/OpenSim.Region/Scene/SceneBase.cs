@@ -42,7 +42,7 @@ using OpenSim.Terrain;
 
 namespace OpenSim.Region
 {
-    public abstract class WorldBase : IWorld
+    public abstract class SceneBase : IWorld
     {
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         protected Dictionary<uint, IClientAPI> m_clientThreads;

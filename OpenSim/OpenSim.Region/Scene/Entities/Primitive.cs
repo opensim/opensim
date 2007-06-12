@@ -92,7 +92,7 @@ namespace OpenSim.Region
         /// <param name="clientThreads"></param>
         /// <param name="regionHandle"></param>
         /// <param name="world"></param>
-        public Primitive( ulong regionHandle, World world)
+        public Primitive( ulong regionHandle, Scene world)
         {
            // m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
@@ -108,7 +108,7 @@ namespace OpenSim.Region
         /// <param name="addPacket"></param>
         /// <param name="ownerID"></param>
         /// <param name="localID"></param>
-        public Primitive(ulong regionHandle, World world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
+        public Primitive(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
         {
             // m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
@@ -126,7 +126,7 @@ namespace OpenSim.Region
         /// <param name="owner"></param>
         /// <param name="fullID"></param>
         /// <param name="localID"></param>
-        public Primitive( ulong regionHandle, World world, LLUUID owner, LLUUID fullID, uint localID)
+        public Primitive( ulong regionHandle, Scene world, LLUUID owner, LLUUID fullID, uint localID)
         {
           //  m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;
@@ -148,7 +148,7 @@ namespace OpenSim.Region
         /// <param name="owner"></param>
         /// <param name="localID"></param>
         /// <param name="position"></param>
-        public Primitive( ulong regionHandle, World world, LLUUID owner, uint localID, LLVector3 position)
+        public Primitive( ulong regionHandle, Scene world, LLUUID owner, uint localID, LLVector3 position)
         {
             //m_clientThreads = clientThreads;
             m_regionHandle = regionHandle;

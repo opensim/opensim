@@ -74,13 +74,13 @@ namespace OpenSim.Region
         private int lastParcelLocalID = START_PARCEL_LOCAL_ID - 1;
         private int[,] parcelIDList = new int[64, 64];
 
-        private World m_world;
+        private Scene m_world;
         private RegionInfo m_regInfo;
 
         #endregion
 
         #region Constructors
-        public ParcelManager(World world, RegionInfo reginfo)
+        public ParcelManager(Scene world, RegionInfo reginfo)
         {
 
             m_world = world;
@@ -497,7 +497,7 @@ namespace OpenSim.Region
     {
         #region Member Variables
         public ParcelData parcelData = new ParcelData();
-        public World m_world;
+        public Scene m_world;
 
         private bool[,] parcelBitmap = new bool[64, 64];
 
@@ -505,7 +505,7 @@ namespace OpenSim.Region
 
 
         #region Constructors
-        public Parcel(LLUUID owner_id, bool is_group_owned, World world)
+        public Parcel(LLUUID owner_id, bool is_group_owned, Scene world)
         {
             m_world = world;
             parcelData.ownerID = owner_id;

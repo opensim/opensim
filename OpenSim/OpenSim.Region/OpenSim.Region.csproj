@@ -136,52 +136,52 @@
     <Compile Include="Estate\EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\World.cs">
+    <Compile Include="Scene\Scene.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\World.PacketHandlers.cs">
+    <Compile Include="Scene\Scene.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\World.Scripting.cs">
+    <Compile Include="Scene\Scene.Scripting.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\WorldBase.cs">
+    <Compile Include="Scene\SceneBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Entities\Avatar.Animations.cs">
+    <Compile Include="Scene\Entities\Avatar.Animations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Entities\Avatar.cs">
+    <Compile Include="Scene\Entities\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Entities\Avatar.Update.cs">
+    <Compile Include="Scene\Entities\Avatar.Update.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Entities\Entity.cs">
+    <Compile Include="Scene\Entities\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Entities\Primitive.cs">
+    <Compile Include="Scene\Entities\Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\Entities\SceneObject.cs">
+    <Compile Include="Scene\Entities\SceneObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\scripting\IScriptContext.cs">
+    <Compile Include="Scene\scripting\IScriptContext.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\scripting\IScriptEntity.cs">
+    <Compile Include="Scene\scripting\IScriptEntity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\scripting\IScriptHandler.cs">
+    <Compile Include="Scene\scripting\IScriptHandler.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\scripting\Script.cs">
+    <Compile Include="Scene\scripting\Script.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\scripting\ScriptFactory.cs">
+    <Compile Include="Scene\scripting\ScriptFactory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\scripting\Scripts\FollowRandomAvatar.cs">
+    <Compile Include="Scene\scripting\Scripts\FollowRandomAvatar.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
