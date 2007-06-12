@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using System.Net;
 using System.Net.Sockets;
 using OpenSim.Assets;
+using OpenSim.Caches;
 
 namespace OpenSim
 {

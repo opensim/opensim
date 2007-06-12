@@ -36,7 +36,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.Assets
+namespace OpenSim.Caches
 {
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.

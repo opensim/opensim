@@ -31,6 +31,7 @@ using System.Text;
 using OpenSim.Assets;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Caches;
 using libsecondlife;
 using libsecondlife.Packets;
 

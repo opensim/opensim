@@ -42,6 +42,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.Assets;
+using OpenSim.Caches;
 
 namespace OpenSim
 {

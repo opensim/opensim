@@ -45,6 +45,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework;
 using OpenSim.UserServer;
 using OpenSim.Assets;
+using OpenSim.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
