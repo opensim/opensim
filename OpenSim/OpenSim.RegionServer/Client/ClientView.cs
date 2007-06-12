@@ -313,7 +313,7 @@ namespace OpenSim.RegionServer.Client
                     this.SetupInventory(sessionInfo);
                 }
 
-                m_world.parcelManager.sendParcelOverlay(this);
+                //m_world.parcelManager.sendParcelOverlay(this);
                 m_world.estateManager.sendRegionInfoPacket(this);
 
                 ClientLoop();
