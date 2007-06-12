@@ -1,0 +1,42 @@
+TODO
+	Anyone is free to take on one of these projects
+	since implementations offer differ in results
+	the more the merrier.
+
+	New Generators
+	
+	* Musgraves multifractal suite
+		* Hybrid Multifractal
+		* Ridged Multifractal
+		* Heterogenous procedural terrain
+		
+		Example implementation:
+			http://cobweb.ecn.purdue.edu/~ebertd/texture/1stEdition/musgrave/musgrave.c
+		
+	* Ken Perlin's noise functions
+		* Perlin noise
+			* Original
+			* Improved versions
+			
+	* Port the libnoise.sourceforge.net generators
+	
+	* Cellular / Organic Generators
+		**ADDED CELLULAR.CS** // Adam Frisby <adam@deepthink.com.au> (20/03/2007)   
+	
+	* Finish porting the procedurality code in
+		/branches/proceduality/
+	  currently Java, but porting is easy enough
+	  mostly a case of find/search/replace.
+			
+	Improvements
+	
+	* HillPlanter.cs
+		* Add rectangular & square hills
+	
+	* Voronoi.cs
+		* Add different distance metrics
+			Currently using Eulicidean distance
+			Want:
+				* Manhattan Distance
+				* Camberra Distance
+				* Chebychev Distance
