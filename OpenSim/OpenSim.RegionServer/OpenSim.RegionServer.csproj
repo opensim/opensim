@@ -151,9 +151,6 @@
     <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\AssetCache.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Assets\InventoryCache.cs">
       <SubType>Code</SubType>
     </Compile>

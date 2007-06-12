@@ -18,7 +18,6 @@
                 <include name="UDPServer.cs" />
                 <include name="UserConfigUtility.cs" />
                 <include name="VersionInfo.cs" />
-                <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />
                 <include name="ClientView/ClientView.AgentAssetUpload.cs" />
                 <include name="ClientView/ClientView.API.cs" />
