@@ -157,13 +157,13 @@
     <Compile Include="World\Entities\SceneObject.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="World\Entities\Avatar\Avatar.Animations.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="World\Entities\Avatar\Avatar.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\Entities\Avatar\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Entities\Avatar\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\scripting\IScriptContext.cs">

@@ -33,40 +33,43 @@ using System.Xml;
 
 namespace OpenSim.Region
 {
-    public class AvatarAnimations
+    partial class Avatar
     {
-
-        public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
-        public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
-        
-        public AvatarAnimations()
+        public class AvatarAnimations
         {
-        }
 
-        public void LoadAnims()
-        {
-            //OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
-            XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
-           
-            XmlDocument doc = new XmlDocument();
-            doc.Load(reader);
-            foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
+            public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
+            public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
+
+            public AvatarAnimations()
             {
-               
-                if ( nod.Attributes["name"] != null)
-                {
-                    AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
-                }
-                
             }
 
-            reader.Close();
-
-           // OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
-
-            foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Avatar.Animations.AnimsLLUUID)
+            public void LoadAnims()
             {
-                AnimsNames.Add(kp.Value, kp.Key);
+                //OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
+                XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
+
+                XmlDocument doc = new XmlDocument();
+                doc.Load(reader);
+                foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
+                {
+
+                    if (nod.Attributes["name"] != null)
+                    {
+                        AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
+                    }
+
+                }
+
+                reader.Close();
+
+                // OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
+
+                foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Avatar.Animations.AnimsLLUUID)
+                {
+                    AnimsNames.Add(kp.Value, kp.Key);
+                }
             }
         }
     }

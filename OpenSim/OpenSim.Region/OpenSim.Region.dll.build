@@ -20,9 +20,9 @@
                 <include name="World/Entities/Entity.cs" />
                 <include name="World/Entities/Primitive.cs" />
                 <include name="World/Entities/SceneObject.cs" />
+                <include name="World/Entities/Avatar/Avatar.Animations.cs" />
                 <include name="World/Entities/Avatar/Avatar.cs" />
                 <include name="World/Entities/Avatar/Avatar.Update.cs" />
-                <include name="World/Entities/Avatar/AvatarAnimations.cs" />
                 <include name="World/scripting/IScriptContext.cs" />
                 <include name="World/scripting/IScriptEntity.cs" />
                 <include name="World/scripting/IScriptHandler.cs" />
