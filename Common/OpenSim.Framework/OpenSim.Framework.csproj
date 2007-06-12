@@ -159,24 +159,6 @@
     <Compile Include="Interfaces\Config\IUserConfig.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\Remoting\IGridServerHost.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Remoting\IProxyServerClient.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Remoting\IProxyServerHost.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Remoting\IRegionGridClient.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Remoting\IRegionSimHost.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Remoting\RegionGridClientBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\Scripting\IScriptAPI.cs">
       <SubType>Code</SubType>
     </Compile>

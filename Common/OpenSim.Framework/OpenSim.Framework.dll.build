@@ -34,12 +34,6 @@
                 <include name="Interfaces/Config/IGenericConfig.cs" />
                 <include name="Interfaces/Config/IGridConfig.cs" />
                 <include name="Interfaces/Config/IUserConfig.cs" />
-                <include name="Interfaces/Remoting/IGridServerHost.cs" />
-                <include name="Interfaces/Remoting/IProxyServerClient.cs" />
-                <include name="Interfaces/Remoting/IProxyServerHost.cs" />
-                <include name="Interfaces/Remoting/IRegionGridClient.cs" />
-                <include name="Interfaces/Remoting/IRegionSimHost.cs" />
-                <include name="Interfaces/Remoting/RegionGridClientBase.cs" />
                 <include name="Interfaces/Scripting/IScriptAPI.cs" />
                 <include name="Interfaces/Scripting/IScriptEngine.cs" />
                 <include name="Properties/AssemblyInfo.cs" />

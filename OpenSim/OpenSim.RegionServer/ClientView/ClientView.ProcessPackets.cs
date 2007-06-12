@@ -81,7 +81,7 @@ namespace OpenSim
                         }
                         break;
 
-                    #region New Event System - World/Avatar
+                    #region  World/Avatar
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
                         if (Util.FieldToString(inchatpack.ChatData.Message) == "")
@@ -163,7 +163,7 @@ namespace OpenSim
                         {
                             OnCompleteMovementToRegion();
                         }
-                        this.EnableNeighbours();
+                       // this.EnableNeighbours();
                         break;
                     case PacketType.AgentUpdate:
                         if (OnAgentUpdate != null)
@@ -190,7 +190,7 @@ namespace OpenSim
 
                     #endregion
 
-                    #region New Event System - Objects/Prims
+                    #region Objects/Prims
                     case PacketType.ObjectLink:
                         // OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket)Pack;
@@ -521,6 +521,7 @@ namespace OpenSim
                         }
                         break;
                     #endregion
+
                     #region unimplemented handlers
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
