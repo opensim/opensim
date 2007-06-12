@@ -154,16 +154,16 @@
     <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserConfigUtility.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VersionInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RegionServerBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UDPServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UserConfigUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Assets\AssetCache.cs">

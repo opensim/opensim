@@ -95,6 +95,9 @@
     <Compile Include="InterpreterLogic.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="InterpreterMethods.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="InterpreterReturn.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -117,9 +120,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Thread.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InterpreterMethods.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

@@ -136,34 +136,34 @@
     <Compile Include="Estate\EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\AvatarAnimations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Avatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Entity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="World\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="World\World.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\World.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="World\World.Scripting.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="World\WorldBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="World\World.Scripting.cs">
+    <Compile Include="World\Entities\Entity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\Avatar\Avatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\Avatar\Avatar.Update.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="World\Entities\Avatar\AvatarAnimations.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="World\scripting\IScriptContext.cs">
