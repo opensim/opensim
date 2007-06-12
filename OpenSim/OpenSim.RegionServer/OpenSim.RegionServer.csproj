@@ -124,27 +124,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientView.AgentAssetUpload.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.API.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.Grid.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.ProcessPackets.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientViewBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="NetworkServersInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -170,6 +149,27 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Assets\InventoryCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientView.AgentAssetUpload.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientView.API.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientView.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientView.Grid.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientView.PacketHandlers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientView.ProcessPackets.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView\ClientViewBase.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

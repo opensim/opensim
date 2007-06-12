@@ -11,13 +11,6 @@
             <resources prefix="OpenSim.RegionServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="ClientView.AgentAssetUpload.cs" />
-                <include name="ClientView.API.cs" />
-                <include name="ClientView.cs" />
-                <include name="ClientView.Grid.cs" />
-                <include name="ClientView.PacketHandlers.cs" />
-                <include name="ClientView.ProcessPackets.cs" />
-                <include name="ClientViewBase.cs" />
                 <include name="NetworkServersInfo.cs" />
                 <include name="OpenSimNetworkHandler.cs" />
                 <include name="PacketServer.cs" />
@@ -27,6 +20,13 @@
                 <include name="VersionInfo.cs" />
                 <include name="Assets/AssetCache.cs" />
                 <include name="Assets/InventoryCache.cs" />
+                <include name="ClientView/ClientView.AgentAssetUpload.cs" />
+                <include name="ClientView/ClientView.API.cs" />
+                <include name="ClientView/ClientView.cs" />
+                <include name="ClientView/ClientView.Grid.cs" />
+                <include name="ClientView/ClientView.PacketHandlers.cs" />
+                <include name="ClientView/ClientView.ProcessPackets.cs" />
+                <include name="ClientView/ClientViewBase.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
