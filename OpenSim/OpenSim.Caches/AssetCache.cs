@@ -32,14 +32,12 @@ using System.Threading;
 using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Assets
 {
-    /*
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
     /// </summary>
@@ -113,7 +111,7 @@ namespace OpenSim.Assets
         {
             //hack: so we can give each user a set of textures
             textureList[0] = new LLUUID("00000000-0000-0000-9999-000000000001");
-           textureList[1] = new LLUUID("00000000-0000-0000-9999-000000000002");
+            textureList[1] = new LLUUID("00000000-0000-0000-9999-000000000002");
             textureList[2] = new LLUUID("00000000-0000-0000-9999-000000000003");
             textureList[3] = new LLUUID("00000000-0000-0000-9999-000000000004");
             textureList[4] = new LLUUID("00000000-0000-0000-9999-000000000005");
@@ -144,7 +142,7 @@ namespace OpenSim.Assets
         public AssetBase GetAsset(LLUUID assetID)
         {
             AssetBase asset = null;
-            if(this.Textures.ContainsKey(assetID))
+            if (this.Textures.ContainsKey(assetID))
             {
                 asset = this.Textures[assetID];
             }
@@ -240,7 +238,7 @@ namespace OpenSim.Assets
                     }
                     else
                     {
-                         //send imagepacket
+                        //send imagepacket
                         //more than one packet so split file up
                         ImagePacketPacket im = new ImagePacketPacket();
                         im.ImageID.Packet = (ushort)req.PacketCounter;
@@ -341,7 +339,7 @@ namespace OpenSim.Assets
         /// </summary>
         /// <param name="userInfo"></param>
         /// <param name="transferRequest"></param>
-        public void AddAssetRequest(ClientView userInfo, TransferRequestPacket transferRequest)
+        public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
         {
             LLUUID requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
             //check to see if asset is in local cache, if not we need to request it from asset server.
@@ -361,7 +359,7 @@ namespace OpenSim.Assets
                 return;
             }
             //it is in our cache 
-             AssetInfo asset = this.Assets[requestID];
+            AssetInfo asset = this.Assets[requestID];
 
             //work out how many packets it  should be sent in 
             // and add to the AssetRequests list
@@ -481,7 +479,7 @@ namespace OpenSim.Assets
         /// </summary>
         /// <param name="userInfo"></param>
         /// <param name="imageID"></param>
-        public void AddTextureRequest(ClientView userInfo, LLUUID imageID)
+        public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID)
         {
             //check to see if texture is in local cache, if not request from asset server
             if (!this.Textures.ContainsKey(imageID))
@@ -562,7 +560,7 @@ namespace OpenSim.Assets
 
     public class AssetRequest
     {
-        public ClientView RequestUser;
+        public IClientAPI RequestUser;
         public LLUUID RequestAssetID;
         public AssetInfo AssetInf;
         public TextureImage ImageInfo;
@@ -615,5 +613,6 @@ namespace OpenSim.Assets
             Description = aBase.Description;
         }
     }
-    */
+
 }
+

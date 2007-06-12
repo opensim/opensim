@@ -63,6 +63,7 @@
         <nant buildfile="Common/OpenSim.Servers/OpenSim.Servers.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="clean" />
+        <nant buildfile="OpenSim/OpenSim.Caches/OpenSim.Caches.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Scripting/EmbeddedJVM/OpenSim.Scripting.EmbeddedJVM.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.GridInterfaces/Local/OpenSim.GridInterfaces.Local.dll.build" target="clean" />
         <nant buildfile="Common/XmlRpcCS/XMLRPC.dll.build" target="clean" />
@@ -74,6 +75,7 @@
         <nant buildfile="Common/OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="Common/OpenSim.Servers/OpenSim.Servers.dll.build" target="build" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="build" />
+        <nant buildfile="OpenSim/OpenSim.Caches/OpenSim.Caches.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageBerkeleyDB/OpenSim.Storage.LocalStorageBerkeleyDB.dll.build" target="build" />
@@ -116,6 +118,7 @@
         <nant buildfile="Common/OpenSim.Servers/OpenSim.Servers.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="doc" />
+        <nant buildfile="OpenSim/OpenSim.Caches/OpenSim.Caches.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Scripting/EmbeddedJVM/OpenSim.Scripting.EmbeddedJVM.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.GridInterfaces/Local/OpenSim.GridInterfaces.Local.dll.build" target="doc" />
         <nant buildfile="Common/XmlRpcCS/XMLRPC.dll.build" target="doc" />

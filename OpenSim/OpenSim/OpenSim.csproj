@@ -134,6 +134,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Caches\OpenSim.Caches.csproj">
+      <Name>OpenSim.Caches</Name>
+      <Project>{1938EB12-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>

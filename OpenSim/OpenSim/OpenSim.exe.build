@@ -33,6 +33,7 @@
                 <include name="../../bin/OpenSim.RegionServer.dll" />
                 <include name="../../bin/OpenSim.GenericConfig.Xml.dll" />
                 <include name="../../bin/OpenGrid.Framework.Communications.dll" />
+                <include name="../../bin/OpenSim.Caches.dll" />
                 <include name="../../bin/XMLRPC.dll" />
             </references>
         </csc>

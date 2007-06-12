@@ -99,7 +99,6 @@
       </Files>
     </Project>
 
-
     <Project name="OpenSim.Servers" path="Common/OpenSim.Servers" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -144,6 +143,28 @@
      <Reference name="OpenSim.Framework"/>
      <Reference name="libsecondlife.dll"/>
 
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+	<Project name="OpenSim.Caches" path="OpenSim/OpenSim.Caches" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="libsecondlife.dll"/>
+	<Reference name="OpenSim.Framework"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -465,6 +486,7 @@
       <Reference name="OpenSim.GenericConfig.Xml"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
+      <Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
 
       <Files>
@@ -533,6 +555,7 @@
       <Reference name="OpenSim.RegionServer"/>
       <Reference name="OpenSim.GenericConfig.Xml"/>
 	<Reference name="OpenGrid.Framework.Communications"/>
+	<Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
 
       <Files>
