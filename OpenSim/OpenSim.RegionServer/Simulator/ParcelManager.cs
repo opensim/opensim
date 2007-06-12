@@ -396,7 +396,7 @@ namespace OpenSim.RegionServer.Simulator
                         packet = new ParcelOverlayPacket();
                         packet.ParcelData.Data = byteArray;
                         packet.ParcelData.SequenceID = sequenceID;
-                        remote_client.OutPacket((Packet)packet);
+                        //remote_client.OutPacket((Packet)packet);
                         sequenceID++;
                         byteArray = new byte[PARCEL_BLOCKS_PER_PACKET];
                     }
@@ -406,7 +406,7 @@ namespace OpenSim.RegionServer.Simulator
             packet = new ParcelOverlayPacket();
             packet.ParcelData.Data = byteArray;
             packet.ParcelData.SequenceID = sequenceID; //Eh?
-            remote_client.OutPacket((Packet)packet);
+            //remote_client.OutPacket((Packet)packet);
         }
         #endregion
 
@@ -510,7 +510,7 @@ namespace OpenSim.RegionServer.Simulator
         public void sendParcelProperties(int sequence_id, bool snap_selection, int request_result, ClientView remote_client)
         {
 
-            ParcelPropertiesPacket updatePacket = new ParcelPropertiesPacket();
+            /*ParcelPropertiesPacket updatePacket = new ParcelPropertiesPacket();
             updatePacket.ParcelData.AABBMax = parcelData.AABBMax;
             updatePacket.ParcelData.AABBMin = parcelData.AABBMin;
             updatePacket.ParcelData.Area = parcelData.area;
@@ -562,7 +562,7 @@ namespace OpenSim.RegionServer.Simulator
             updatePacket.ParcelData.TotalPrims = 0; //unemplemented
             updatePacket.ParcelData.UserLocation = parcelData.userLocation;
             updatePacket.ParcelData.UserLookAt = parcelData.userLookAt;
-            remote_client.OutPacket((Packet)updatePacket);
+            remote_client.OutPacket((Packet)updatePacket); */
         }
 
         public void updateParcelProperties(ParcelPropertiesUpdatePacket packet, ClientView remote_client)
