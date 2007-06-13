@@ -105,7 +105,6 @@ namespace OpenSim.Physics.OdePlugin
         // This function blatantly ripped off from BoxStack.cs
         static private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
-            //Console.WriteLine("collision callback");
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
             if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
@@ -183,7 +182,11 @@ namespace OpenSim.Physics.OdePlugin
         {
             for (int i = 0; i < 65536; i++)
             {
-                this._heightmap[i] = (double)heightMap[i];
+                // this._heightmap[i] = (double)heightMap[i];
+                // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
+                int x = i & 0xff;
+                int y = i >> 8;
+                this._heightmap[i] = (double)heightMap[x * 256 + y];
             }
             IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
             d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
@@ -336,7 +339,7 @@ namespace OpenSim.Physics.OdePlugin
             d.Vector3 vec = d.BodyGetPosition(BoundingCapsule);
             this._position.X = vec.X;
             this._position.Y = vec.Y;
-            this._position.Z = vec.Z;
+            this._position.Z = vec.Z+1.0f;
         }
     }
 
