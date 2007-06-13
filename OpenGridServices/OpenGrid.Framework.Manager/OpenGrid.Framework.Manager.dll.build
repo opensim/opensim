@@ -19,10 +19,10 @@
                     <include name="${project::get-base-directory()}" />
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
-                <include name="System.dll" />
+                <include name="../../bin/libsecondlife.dll" />
                 <include name="../../bin/OpenSim.Framework.dll" />
                 <include name="../../bin/OpenSim.Servers.dll" />
-                <include name="../../bin/libsecondlife.dll" />
+                <include name="System.dll" />
                 <include name="../../bin/XMLRPC.dll" />
             </references>
         </csc>

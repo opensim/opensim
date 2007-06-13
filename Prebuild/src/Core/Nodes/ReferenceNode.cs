@@ -45,7 +45,7 @@ namespace Prebuild.Core.Nodes
 	/// 
 	/// </summary>
 	[DataNode("Reference")]
-	public class ReferenceNode : DataNode
+	public class ReferenceNode : DataNode, IComparable
 	{
 		#region Fields
 
@@ -139,5 +139,15 @@ namespace Prebuild.Core.Nodes
 		}
 
 		#endregion
-	}
+
+        #region IComparable Members
+
+        public int CompareTo(object obj)
+        {
+            ReferenceNode that = (ReferenceNode)obj;
+            return this.m_Name.CompareTo(that.m_Name);
+        }
+
+        #endregion
+    }
 }

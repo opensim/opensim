@@ -45,7 +45,7 @@ namespace Prebuild.Core.Nodes
 	/// 
 	/// </summary>
 	[DataNode("Configuration")]
-	public class ConfigurationNode : DataNode, ICloneable
+	public class ConfigurationNode : DataNode, ICloneable, IComparable
 	{
 		#region Fields
 
@@ -173,5 +173,15 @@ namespace Prebuild.Core.Nodes
 		}
 
 		#endregion
-	}
+
+        #region IComparable Members
+
+        public int CompareTo(object obj)
+        {
+            ConfigurationNode that = (ConfigurationNode) obj;
+            return this.m_Name.CompareTo(that.m_Name);
+        }
+
+        #endregion
+    }
 }

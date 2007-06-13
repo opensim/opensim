@@ -11,11 +11,11 @@
             <resources prefix="OpenGrid.Framework.Data.MySQL" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="MySQLInventoryData.cs" />
-                <include name="MySQLUserData.cs" />
-                <include name="MySQLManager.cs" />
-                <include name="MySQLLogData.cs" />
                 <include name="MySQLGridData.cs" />
+                <include name="MySQLInventoryData.cs" />
+                <include name="MySQLLogData.cs" />
+                <include name="MySQLManager.cs" />
+                <include name="MySQLUserData.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
@@ -23,12 +23,12 @@
                     <include name="${project::get-base-directory()}" />
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
-                <include name="System.dll" />
-                <include name="System.Xml.dll" />
-                <include name="System.Data.dll" />
-                <include name="../../bin/OpenGrid.Framework.Data.dll" />
                 <include name="../../bin/libsecondlife.dll" />
                 <include name="../../bin/MySql.Data.dll" />
+                <include name="../../bin/OpenGrid.Framework.Data.dll" />
+                <include name="System.dll" />
+                <include name="System.Data.dll" />
+                <include name="System.Xml.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />

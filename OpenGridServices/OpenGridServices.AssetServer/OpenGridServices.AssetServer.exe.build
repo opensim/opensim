@@ -11,8 +11,8 @@
             <resources prefix="OpenGridServices.AssetServer" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="Main.cs" />
                 <include name="AssetHttpServer.cs" />
+                <include name="Main.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
@@ -20,15 +20,15 @@
                     <include name="${project::get-base-directory()}" />
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
-                <include name="System.dll" />
-                <include name="System.Data.dll" />
-                <include name="System.Xml.dll" />
+                <include name="../../bin/Db4objects.Db4o.dll" />
+                <include name="../../bin/libsecondlife.dll" />
                 <include name="../../bin/OpenSim.Framework.dll" />
                 <include name="../../bin/OpenSim.Framework.Console.dll" />
                 <include name="../../bin/OpenSim.GridInterfaces.Local.dll" />
                 <include name="../../bin/OpenSim.Servers.dll" />
-                <include name="../../bin/libsecondlife.dll" />
-                <include name="../../bin/Db4objects.Db4o.dll" />
+                <include name="System.dll" />
+                <include name="System.Data.dll" />
+                <include name="System.Xml.dll" />
                 <include name="../../bin/XMLRPC.dll" />
             </references>
         </csc>

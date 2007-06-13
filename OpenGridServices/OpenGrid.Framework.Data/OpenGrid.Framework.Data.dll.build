@@ -12,10 +12,10 @@
             </resources>
             <sources failonempty="true">
                 <include name="GridData.cs" />
-                <include name="SimProfileData.cs" />
                 <include name="ILogData.cs" />
                 <include name="IniConfig.cs" />
                 <include name="InventoryData.cs" />
+                <include name="SimProfileData.cs" />
                 <include name="UserData.cs" />
                 <include name="UserProfileData.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
@@ -25,10 +25,10 @@
                     <include name="${project::get-base-directory()}" />
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
-                <include name="System.dll" />
-                <include name="System.Xml.dll" />
-                <include name="System.Data.dll" />
                 <include name="../../bin/libsecondlife.dll" />
+                <include name="System.dll" />
+                <include name="System.Data.dll" />
+                <include name="System.Xml.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />

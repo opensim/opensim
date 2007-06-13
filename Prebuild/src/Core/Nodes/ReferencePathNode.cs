@@ -47,7 +47,7 @@ namespace Prebuild.Core.Nodes
 	/// 
 	/// </summary>
 	[DataNode("ReferencePath")]
-	public class ReferencePathNode : DataNode
+	public class ReferencePathNode : DataNode, IComparable
 	{
 		#region Fields
 
@@ -94,5 +94,15 @@ namespace Prebuild.Core.Nodes
 		}
 
 		#endregion
-	}
+
+        #region IComparable Members
+
+        public int CompareTo(object obj)
+        {
+            ReferencePathNode that = (ReferencePathNode)obj;
+            return this.m_Path.CompareTo(that.m_Path);
+        }
+
+        #endregion
+    }
 }

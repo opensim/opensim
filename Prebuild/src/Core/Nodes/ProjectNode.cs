@@ -290,7 +290,9 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_Configurations.Values;
+                ArrayList tmp = new ArrayList( ConfigurationsTable.Values);
+			    tmp.Sort();
+				return tmp;
 			}
 		}
 
@@ -314,8 +316,10 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_ReferencePaths;
-			}
+                ArrayList tmp = new ArrayList(m_ReferencePaths);
+                tmp.Sort();
+                return tmp;
+            }
 		}
 
 		/// <summary>
@@ -326,7 +330,9 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_References;
+                ArrayList tmp = new ArrayList(m_References);
+                tmp.Sort();
+                return tmp;
 			}
 		}
 
