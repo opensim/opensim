@@ -58,20 +58,20 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data" >
       <HintPath>System.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -81,9 +81,6 @@
     <Compile Include="GridData.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SimProfileData.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ILogData.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -91,6 +88,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InventoryData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimProfileData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UserData.cs">

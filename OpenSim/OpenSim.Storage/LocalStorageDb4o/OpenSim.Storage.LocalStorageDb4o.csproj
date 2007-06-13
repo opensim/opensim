@@ -58,20 +58,20 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Db4objects.Db4o.dll" >
       <HintPath>..\..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
       <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -93,6 +93,9 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Db4LocalStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MapStorage.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -100,9 +103,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UUIDPrimQuery.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Db4LocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

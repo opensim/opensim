@@ -81,7 +81,7 @@ namespace Prebuild.Core.Nodes
 	/// 
 	/// </summary>
 	[DataNode("Project")]
-	public class ProjectNode : DataNode
+	public class ProjectNode : DataNode, IComparable
 	{
 		#region Fields
 
@@ -496,5 +496,15 @@ namespace Prebuild.Core.Nodes
 
 
 		#endregion
-	}
+
+        #region IComparable Members
+
+        public int CompareTo(object obj)
+        {
+            ProjectNode that = (ProjectNode)obj;
+            return this.m_Name.CompareTo(that.m_Name);
+        }
+
+        #endregion
+    }
 }

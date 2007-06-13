@@ -58,24 +58,24 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Data" >
-      <HintPath>System.Data.dll</HintPath>
+    <Reference Include="Db4objects.Db4o.dll" >
+      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Data" >
+      <HintPath>System.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -88,13 +88,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DB4oUserData.cs">
+    <Compile Include="DB4oGridData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DB4oManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DB4oGridData.cs">
+    <Compile Include="DB4oUserData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

@@ -58,18 +58,6 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Axiom.MathLib.dll" >
       <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
@@ -78,14 +66,20 @@
       <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj">
-      <Name>OpenSim.Terrain.BasicTerrain</Name>
-      <Project>{2270B8FE-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\Common\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
@@ -116,6 +110,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj">
+      <Name>OpenSim.Terrain.BasicTerrain</Name>
+      <Project>{2270B8FE-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\XmlRpcCS\XMLRPC.csproj">
       <Name>XMLRPC</Name>
       <Project>{8E81D43C-0000-0000-0000-000000000000}</Project>
@@ -124,10 +124,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OpenSimMain.cs">
+    <Compile Include="AgentAssetUpload.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UDPServer.cs">
+    <Compile Include="AuthenticateSessionsBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AuthenticateSessionsLocal.cs">
@@ -136,106 +136,43 @@
     <Compile Include="AuthenticateSessionsRemote.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpenSimNetworkHandler.cs">
+    <Compile Include="Grid.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Grid.cs">
+    <Compile Include="OpenSimMain.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OpenSimNetworkHandler.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionsBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VersionInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="AgentAssetUpload.cs">
+    <Compile Include="RegionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RegionInfoBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RegionServerBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\Avatar.Client.cs">
+    <Compile Include="UDPServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Simulator\Entity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\World.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\AvatarAnimations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\WorldBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\World.Scripting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\Primitive2.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\Avatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\World.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Simulator\ParcelManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Estate\EstateManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CAPS\AdminWebFront.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Assets\InventoryCache.cs">
+    <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Assets\AssetCache.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripting\IScriptHandler.cs">
+    <Compile Include="Assets\InventoryCache.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripting\ScriptFactory.cs">
+    <Compile Include="CAPS\AdminWebFront.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripting\IScriptContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scripting\Script.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scripting\IScriptEntity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scripting\Scripts\FollowRandomAvatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Mesh.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Triangle.cs">
+    <Compile Include="Client\ClientView.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Client\ClientView.Grid.cs">
@@ -244,13 +181,76 @@
     <Compile Include="Client\ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientViewBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Client\ClientView.ProcessPackets.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Client\ClientView.cs">
+    <Compile Include="Client\ClientViewBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Estate\EstateManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scripting\IScriptContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scripting\IScriptEntity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scripting\IScriptHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scripting\Script.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scripting\ScriptFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scripting\Scripts\FollowRandomAvatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Avatar.Client.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Avatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Avatar.Update.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\AvatarAnimations.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Entity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\ParcelManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\Primitive2.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\World.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\World.PacketHandlers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\World.Scripting.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator\WorldBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\Mesh.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\Triangle.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

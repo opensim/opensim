@@ -58,20 +58,20 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
+    <Reference Include="Db4objects.Db4o.dll" >
+      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="libsecondlife.dll" >
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -87,52 +87,34 @@
     <Compile Include="AgentInventory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Util.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Remoting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManagerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LoginService.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManager.cs">
+    <Compile Include="BlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HeightMapGenHills.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BlockingQueue.cs">
+    <Compile Include="LoginService.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfileBase.cs">
+    <Compile Include="Remoting.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SimProfile.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IGenericConfig.cs">
+    <Compile Include="SimProfileBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\LocalGridBase.cs">
+    <Compile Include="UserProfile.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\RemoteGridBase.cs">
+    <Compile Include="UserProfileManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IUserConfig.cs">
+    <Compile Include="UserProfileManagerBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IUserServer.cs">
+    <Compile Include="Util.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IAssetServer.cs">
@@ -141,7 +123,10 @@
     <Compile Include="Interfaces\IClientAPI.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IScriptEngine.cs">
+    <Compile Include="Interfaces\IConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\IGenericConfig.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IGridConfig.cs">
@@ -150,16 +135,31 @@
     <Compile Include="Interfaces\IGridServer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Interfaces\ILocalStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Interfaces\IScriptAPI.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\ILocalStorage.cs">
+    <Compile Include="Interfaces\IScriptEngine.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\IUserConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\IUserServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\LocalGridBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\RemoteGridBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\EstateSettings.cs">
+    <Compile Include="Types\AgentCircuitData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\AssetBase.cs">
@@ -169,6 +169,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\AssetStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\EstateSettings.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\Login.cs">
@@ -184,9 +187,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\PrimData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AgentCircuitData.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

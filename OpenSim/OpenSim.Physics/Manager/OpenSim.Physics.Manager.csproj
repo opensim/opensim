@@ -58,16 +58,16 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Axiom.MathLib.dll" >
+      <HintPath>..\..\..\bin\Axiom.MathLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" >
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Axiom.MathLib.dll" >
-      <HintPath>..\..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

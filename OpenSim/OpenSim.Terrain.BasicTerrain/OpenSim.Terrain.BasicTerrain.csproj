@@ -58,24 +58,24 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
+    <Reference Include="libTerrain-BSD.dll" >
+      <HintPath>..\..\bin\libTerrain-BSD.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Drawing" >
-      <HintPath>System.Drawing.dll</HintPath>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data" >
       <HintPath>System.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
+    <Reference Include="System.Drawing" >
+      <HintPath>System.Drawing.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libTerrain-BSD.dll" >
-      <HintPath>..\..\bin\libTerrain-BSD.dll</HintPath>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
