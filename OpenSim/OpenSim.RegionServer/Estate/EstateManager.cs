@@ -275,7 +275,7 @@ namespace OpenSim.RegionServer.Estate
 
             handshake.RegionInfo.RegionFlags = (uint)m_world.m_regInfo.estateSettings.regionFlags;
 
-            handshake.RegionInfo.SimName = _enc.GetBytes(m_world.m_regInfo.estateSettings.waterHeight + "\0");
+            handshake.RegionInfo.SimName = _enc.GetBytes(m_world.m_regInfo.RegionName + "\0");
             handshake.RegionInfo.SimOwner = m_world.m_regInfo.MasterAvatarAssignedUUID;
             handshake.RegionInfo.TerrainBase0 = m_world.m_regInfo.estateSettings.terrainBase0;
             handshake.RegionInfo.TerrainBase1 = m_world.m_regInfo.estateSettings.terrainBase1;
