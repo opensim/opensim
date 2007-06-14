@@ -81,7 +81,7 @@ namespace Prebuild.Core.Nodes
 	/// 
 	/// </summary>
 	[DataNode("Project")]
-	public class ProjectNode : DataNode
+	public class ProjectNode : DataNode, IComparable
 	{
 		#region Fields
 
@@ -290,7 +290,9 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_Configurations.Values;
+                ArrayList tmp = new ArrayList( ConfigurationsTable.Values);
+			    tmp.Sort();
+				return tmp;
 			}
 		}
 
@@ -314,8 +316,10 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_ReferencePaths;
-			}
+                ArrayList tmp = new ArrayList(m_ReferencePaths);
+                tmp.Sort();
+                return tmp;
+            }
 		}
 
 		/// <summary>
@@ -326,7 +330,9 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_References;
+                ArrayList tmp = new ArrayList(m_References);
+                tmp.Sort();
+                return tmp;
 			}
 		}
 
@@ -490,5 +496,15 @@ namespace Prebuild.Core.Nodes
 
 
 		#endregion
-	}
+
+        #region IComparable Members
+
+        public int CompareTo(object obj)
+        {
+            ProjectNode that = (ProjectNode)obj;
+            return this.m_Name.CompareTo(that.m_Name);
+        }
+
+        #endregion
+    }
 }

@@ -31,10 +31,10 @@
                     <include name="${project::get-base-directory()}" />
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
+                <include name="../../bin/libsecondlife.dll" />
+                <include name="../../bin/OpenSim.Framework.dll" />
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
-                <include name="../../bin/OpenSim.Framework.dll" />
-                <include name="../../bin/libsecondlife.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />

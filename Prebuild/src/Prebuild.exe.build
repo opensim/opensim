@@ -57,9 +57,9 @@
                     <include name="${project::get-base-directory()}" />
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
+                <include name="System.dll" />
                 <include name="System.EnterpriseServices.dll" />
                 <include name="System.Xml.dll" />
-                <include name="System.dll" />
             </references>
         </csc>
         <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../bin/" />

@@ -882,7 +882,7 @@
         <SuppressWarnings>1595</SuppressWarnings>
       </Options>
     </Configuration>
-    <Project name="Prebuild" path="src/" language="C#" assemblyName="prebuild" icon="App.ico" type="Exe" rootNamespace="Prebuild" startupObject="Prebuild.Prebuild">
+    <Project name="Prebuild" path="src/" language="C#" assemblyName="Prebuild" icon="App.ico" type="Exe" rootNamespace="Prebuild" startupObject="Prebuild.Prebuild">
       <Configuration name="Debug">
         <Options>
           <CompilerDefines>DEBUG;TRACE</CompilerDefines>

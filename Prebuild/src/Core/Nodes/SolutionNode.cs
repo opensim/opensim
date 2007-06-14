@@ -165,8 +165,10 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_Configurations.Values;
-			}
+                ArrayList tmp = new ArrayList(ConfigurationsTable.Values);
+                tmp.Sort();
+                return tmp;
+            }
 		}
 
 		/// <summary>
@@ -189,7 +191,9 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_Projects.Values;
+                ArrayList tmp = new ArrayList(m_Projects.Values);
+                tmp.Sort();
+                return tmp;
 			}
 		}
 

@@ -9,7 +9,7 @@
     <ApplicationIcon>App.ico</ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>prebuild</AssemblyName>
+    <AssemblyName>Prebuild</AssemblyName>
     <AssemblyOriginatorKeyFile>Prebuild.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <DefaultClientScript>JScript</DefaultClientScript>
@@ -60,16 +60,16 @@
     <NoWarn>1595</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.EnterpriseServices" >
       <HintPath>System.EnterpriseServices.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml" >
       <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

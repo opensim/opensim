@@ -58,16 +58,16 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Axiom.MathLib.dll" >
       <HintPath>..\..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PhysX_Wrapper_Dotnet.dll" >
       <HintPath>..\..\..\bin\PhysX_Wrapper_Dotnet.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

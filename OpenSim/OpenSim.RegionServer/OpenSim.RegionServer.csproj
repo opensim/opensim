@@ -58,18 +58,6 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml" >
-      <HintPath>System.Xml.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Axiom.MathLib.dll" >
       <HintPath>..\..\bin\Axiom.MathLib.dll</HintPath>
       <Private>False</Private>
@@ -78,11 +66,23 @@
       <HintPath>..\..\bin\Db4objects.Db4o.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml" >
+      <HintPath>System.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj">
-      <Name>OpenSim.Terrain.BasicTerrain</Name>
-      <Project>{2270B8FE-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\OpenSim.Caches\OpenSim.Caches.csproj">
+      <Name>OpenSim.Caches</Name>
+      <Project>{1938EB12-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
@@ -116,9 +116,9 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OpenSim.Caches\OpenSim.Caches.csproj">
-      <Name>OpenSim.Caches</Name>
-      <Project>{1938EB12-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj">
+      <Name>OpenSim.Terrain.BasicTerrain</Name>
+      <Project>{2270B8FE-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

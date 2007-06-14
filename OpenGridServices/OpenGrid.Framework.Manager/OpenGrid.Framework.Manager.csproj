@@ -58,8 +58,8 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" >
-      <HintPath>System.dll</HintPath>
+    <Reference Include="libsecondlife.dll" >
+      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenSim.Framework" >
@@ -70,8 +70,8 @@
       <HintPath>OpenSim.Servers.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\bin\libsecondlife.dll</HintPath>
+    <Reference Include="System" >
+      <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="XMLRPC" >
