@@ -213,6 +213,7 @@ namespace OpenSim.Region
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
+             
         }
 
         /// <summary>
@@ -221,6 +222,7 @@ namespace OpenSim.Region
         /// <returns></returns>
         public bool Backup()
         {
+            /*
             try
             {
                 // Terrain backup routines
@@ -262,6 +264,8 @@ namespace OpenSim.Region
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Backup() - Backup Failed with exception " + e.ToString());
                 return false;
             }
+            */
+            return true;
         }
         #endregion
 
