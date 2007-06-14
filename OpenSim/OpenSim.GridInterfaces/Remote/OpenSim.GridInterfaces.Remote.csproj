@@ -98,9 +98,6 @@
     <Compile Include="RemoteAssetServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RemoteGridServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

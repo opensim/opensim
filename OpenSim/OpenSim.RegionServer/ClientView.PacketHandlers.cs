@@ -164,6 +164,7 @@ namespace OpenSim
 
         public void RequestMapBlocks(int minX, int minY, int maxX, int maxY)
         {
+            /*
             IList simMapProfiles = m_gridServer.RequestMapBlocks(minX, minY, maxX, maxY);
             MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
             mbReply.AgentData.AgentID = this.AgentID;
@@ -189,6 +190,7 @@ namespace OpenSim
                 mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
             }
             this.OutPacket(mbReply);
+             * */
         }
 
        

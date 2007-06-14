@@ -13,7 +13,6 @@
             <sources failonempty="true">
                 <include name="AssemblyInfo.cs" />
                 <include name="LocalAssetServer.cs" />
-                <include name="LocalGridServer.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

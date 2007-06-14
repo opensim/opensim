@@ -37,30 +37,6 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {
-    /// <summary>
-    /// Handles connection to Grid Servers.
-    /// also Sim to Sim connections?
-    /// </summary>
-
-    public interface IGridServer
-    {
-        UUIDBlock RequestUUIDBlock();
-        NeighbourInfo[] RequestNeighbours(); //should return a array of neighbouring regions
-        AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
-        bool LogoutSession(LLUUID sessionID, LLUUID agentID, uint circuitCode);
-        string GetName();
-        bool RequestConnection(LLUUID SimUUID, string sim_ip, uint sim_port);
-        void SetServerInfo(string ServerUrl, string SendKey, string RecvKey);
-        IList RequestMapBlocks(int minX, int minY, int maxX, int maxY);
-        void Close();
-    }
-    
-    public struct UUIDBlock
-    {
-        public LLUUID BlockStart;
-        public LLUUID BlockEnd;
-    }
-
     public class AuthenticateResponse
     {
         public bool Authorised;
@@ -71,10 +47,5 @@ namespace OpenSim.Framework.Interfaces
 
         }
 
-    }
-
-    public interface IGridPlugin
-    {
-        IGridServer GetGridServer();
     }
 }

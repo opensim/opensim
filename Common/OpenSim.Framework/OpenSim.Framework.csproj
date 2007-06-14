@@ -126,13 +126,13 @@
     <Compile Include="Util.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Interfaces\AuthenticateResponse.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Interfaces\IAssetServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IClientAPI.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IGridServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\ILocalStorage.cs">
@@ -142,12 +142,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IWorld.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\LocalGridBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\RemoteGridBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\Config\IGenericConfig.cs">

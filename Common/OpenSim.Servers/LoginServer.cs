@@ -53,7 +53,7 @@ namespace OpenSim.UserServer
     /// </summary>
     public class LoginServer : LoginService, IUserServer
     {
-        private IGridServer m_gridServer;
+       //private IGridServer m_gridServer;
         public IPAddress clientAddress = IPAddress.Loopback;
         public IPAddress remoteAddress = IPAddress.Any;
         private int NumClients;
@@ -96,7 +96,7 @@ namespace OpenSim.UserServer
 
             this._mpasswd = EncodePassword("testpass");
 
-            userManager = new LocalUserProfileManager(this.m_gridServer, m_simPort, m_simAddr, regionX, regionY);
+            userManager = new LocalUserProfileManager( m_simPort, m_simAddr, regionX, regionY);
             //userManager.InitUserProfiles();
             userManager.SetKeys("", "", "", "Welcome to OpenSim");
         }

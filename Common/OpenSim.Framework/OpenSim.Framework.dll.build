@@ -23,14 +23,12 @@
                 <include name="UserProfileManager.cs" />
                 <include name="UserProfileManagerBase.cs" />
                 <include name="Util.cs" />
+                <include name="Interfaces/AuthenticateResponse.cs" />
                 <include name="Interfaces/IAssetServer.cs" />
                 <include name="Interfaces/IClientAPI.cs" />
-                <include name="Interfaces/IGridServer.cs" />
                 <include name="Interfaces/ILocalStorage.cs" />
                 <include name="Interfaces/IUserServer.cs" />
                 <include name="Interfaces/IWorld.cs" />
-                <include name="Interfaces/LocalGridBase.cs" />
-                <include name="Interfaces/RemoteGridBase.cs" />
                 <include name="Interfaces/Config/IGenericConfig.cs" />
                 <include name="Interfaces/Config/IGridConfig.cs" />
                 <include name="Interfaces/Config/IUserConfig.cs" />

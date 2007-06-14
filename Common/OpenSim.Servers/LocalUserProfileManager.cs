@@ -41,16 +41,16 @@ namespace OpenSim.UserServer
 {
     public class LocalUserProfileManager : UserProfileManager 
     {
-        private IGridServer m_gridServer;
+       // private IGridServer m_gridServer;
         private int m_port;
         private string m_ipAddr;
         private uint regionX;
         private uint regionY;
         private AddNewSessionHandler AddSession;
 
-        public LocalUserProfileManager(IGridServer gridServer, int simPort, string ipAddr , uint regX, uint regY)
+        public LocalUserProfileManager( int simPort, string ipAddr , uint regX, uint regY)
 		{
-			m_gridServer = gridServer;
+			
             m_port = simPort;
             m_ipAddr = ipAddr;
             regionX = regX;

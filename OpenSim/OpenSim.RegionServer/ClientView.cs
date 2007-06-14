@@ -75,7 +75,7 @@ namespace OpenSim
         protected IWorld m_world;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
-        private IGridServer m_gridServer;
+        //private IGridServer m_gridServer;
         private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
