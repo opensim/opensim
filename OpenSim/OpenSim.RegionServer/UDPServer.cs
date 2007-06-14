@@ -61,7 +61,7 @@ namespace OpenSim.RegionServer
     public class UDPServer : OpenSimNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-        public Socket Server;
+        private Socket Server;
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];
         protected byte[] ZeroBuffer = new byte[8192];
@@ -201,6 +201,13 @@ namespace OpenSim.RegionServer
 
             ServerIncoming = new IPEndPoint(IPAddress.Any, listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+            /// Add this new socket to the list of sockets that was opened by the application.  When the application
+            /// closes, either gracefully or not, all sockets can be cleaned up.  Right now I am not aware of any method
+            /// to get all of the sockets for a process within .NET, but if so, this process can be refactored, as
+            /// socket registration would not be neccessary.
+            SocketRegistry.Register(Server);
+
             Server.Bind(ServerIncoming);
 
             m_console.Notice("UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");

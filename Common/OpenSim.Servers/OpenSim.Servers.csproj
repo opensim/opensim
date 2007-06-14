@@ -113,6 +113,9 @@
     <Compile Include="LoginServer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SocketRegistry.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UDPServerBase.cs">
       <SubType>Code</SubType>
     </Compile>

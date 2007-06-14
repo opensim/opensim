@@ -19,8 +19,8 @@
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
                 <include name="../../bin/libsecondlife.dll" />
-                <include name="../../bin/OpenSim.Framework.dll" />
-                <include name="../../bin/OpenSim.GenericConfig.Xml.dll" />
+                <include name="OpenSim.Framework.dll.dll" />
+                <include name="OpenSim.GenericConfig.Xml.dll" />
                 <include name="System.dll" />
                 <include name="System.ServiceProcess.dll" />
                 <include name="System.Xml.dll" />

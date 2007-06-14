@@ -18,6 +18,7 @@
                 <include name="LocalUserProfileManager.cs" />
                 <include name="LoginResponse.cs" />
                 <include name="LoginServer.cs" />
+                <include name="SocketRegistry.cs" />
                 <include name="UDPServerBase.cs" />
                 <include name="XmlRpcMethod.cs" />
             </sources>
