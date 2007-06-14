@@ -312,7 +312,6 @@ namespace OpenSim.Region
 
         #endregion
 
-
         #region Regenerate Terrain
 
         /// <summary>
@@ -638,6 +637,11 @@ namespace OpenSim.Region
             return result;
         }
 
+        /// <summary>
+        /// Request a Avatar by UUID
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <returns></returns>
         public Avatar RequestAvatar(LLUUID avatarID)
         {
             if (this.Avatars.ContainsKey(avatarID))

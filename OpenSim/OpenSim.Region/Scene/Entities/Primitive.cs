@@ -245,26 +245,26 @@ namespace OpenSim.Region
         /// 
         /// </summary>
         /// <param name="addPacket"></param>
-        public void UpdateShape(ObjectShapePacket.ObjectDataBlock addPacket)
+        public void UpdateShape(ObjectShapePacket.ObjectDataBlock updatePacket)
         {
-            this.primData.PathBegin = addPacket.PathBegin;
-            this.primData.PathEnd = addPacket.PathEnd;
-            this.primData.PathScaleX = addPacket.PathScaleX;
-            this.primData.PathScaleY = addPacket.PathScaleY;
-            this.primData.PathShearX = addPacket.PathShearX;
-            this.primData.PathShearY = addPacket.PathShearY;
-            this.primData.PathSkew = addPacket.PathSkew;
-            this.primData.ProfileBegin = addPacket.ProfileBegin;
-            this.primData.ProfileEnd = addPacket.ProfileEnd;
-            this.primData.PathCurve = addPacket.PathCurve;
-            this.primData.ProfileCurve = addPacket.ProfileCurve;
-            this.primData.ProfileHollow = addPacket.ProfileHollow;
-            this.primData.PathRadiusOffset = addPacket.PathRadiusOffset;
-            this.primData.PathRevolutions = addPacket.PathRevolutions;
-            this.primData.PathTaperX = addPacket.PathTaperX;
-            this.primData.PathTaperY = addPacket.PathTaperY;
-            this.primData.PathTwist = addPacket.PathTwist;
-            this.primData.PathTwistBegin = addPacket.PathTwistBegin;
+            this.primData.PathBegin = updatePacket.PathBegin;
+            this.primData.PathEnd = updatePacket.PathEnd;
+            this.primData.PathScaleX = updatePacket.PathScaleX;
+            this.primData.PathScaleY = updatePacket.PathScaleY;
+            this.primData.PathShearX = updatePacket.PathShearX;
+            this.primData.PathShearY = updatePacket.PathShearY;
+            this.primData.PathSkew = updatePacket.PathSkew;
+            this.primData.ProfileBegin = updatePacket.ProfileBegin;
+            this.primData.ProfileEnd = updatePacket.ProfileEnd;
+            this.primData.PathCurve = updatePacket.PathCurve;
+            this.primData.ProfileCurve = updatePacket.ProfileCurve;
+            this.primData.ProfileHollow = updatePacket.ProfileHollow;
+            this.primData.PathRadiusOffset = updatePacket.PathRadiusOffset;
+            this.primData.PathRevolutions = updatePacket.PathRevolutions;
+            this.primData.PathTaperX = updatePacket.PathTaperX;
+            this.primData.PathTaperY = updatePacket.PathTaperY;
+            this.primData.PathTwist = updatePacket.PathTwist;
+            this.primData.PathTwistBegin = updatePacket.PathTwistBegin;
         }
 
         /// <summary>
