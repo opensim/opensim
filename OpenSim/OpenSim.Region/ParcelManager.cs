@@ -32,6 +32,8 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Region.Scenes;
+using Avatar = OpenSim.Region.Scenes.Avatar;
 
 namespace OpenSim.Region
 {

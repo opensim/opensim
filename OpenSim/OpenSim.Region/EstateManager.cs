@@ -28,14 +28,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Region;
+using OpenSim.Region.Scenes;
 using OpenSim;
-
 using libsecondlife;
 using libsecondlife.Packets;
+using Avatar = OpenSim.Region.Scenes.Avatar;
+
 
 namespace OpenSim.Region
 {
