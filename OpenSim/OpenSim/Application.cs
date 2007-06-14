@@ -123,13 +123,6 @@ namespace OpenSim
                     OpenSim.Framework.Console.MainConsole.Instance.MainConsolePrompt();
                 }
             }
-            catch (Exception oException)
-            {
-                Console.WriteLine(oException.Message);
-                Console.WriteLine("Fatal error.  Server is shutdown.  Press 'Enter' to close.");
-                Console.ReadLine();
-                
-            }
             finally
             {
                 /// Ensure that all sockets have been closed before the process closes.  This helps ensure that no

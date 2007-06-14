@@ -78,15 +78,10 @@ namespace OpenSim
         public override void StartUp()
         {
             this.regionData = new RegionInfo();
-            try
-            {
-                this.localConfig = new XmlConfig(m_config);
-                this.localConfig.LoadData();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+
+            this.localConfig = new XmlConfig(m_config);
+            this.localConfig.LoadData();
+
             if (this.configFileSetup)
             {
                 this.SetupFromConfigFile(this.localConfig);
@@ -115,16 +110,10 @@ namespace OpenSim
 
             startuptime = DateTime.Now;
 
-            try
-            {
-                AssetCache = new AssetCache(GridServers.AssetServer);
-                InventoryCache = new InventoryCache();
-            }
-            catch (Exception e)
-            {
-                m_console.Error(e.Message + "\nSorry, could not setup local cache");
-                Environment.Exit(1);
-            }
+
+            AssetCache = new AssetCache(GridServers.AssetServer);
+            InventoryCache = new InventoryCache();
+
 
             m_udpServer = new UDPServer(this.regionData.IPListenPort, this.GridServers, this.AssetCache, this.InventoryCache, this.regionData, this.m_sandbox, this.user_accounts, this.m_console, this.AuthenticateSessionsHandler);
 
@@ -191,12 +180,12 @@ namespace OpenSim
             if (this.m_sandbox)
             {
                 OpenSim.Framework.User.UserProfile masterUser = adminLoginServer.LocalUserManager.GetProfileByName(this.regionData.MasterAvatarFirstName, this.regionData.MasterAvatarLastName);
-                if(masterUser == null)
+                if (masterUser == null)
                 {
                     m_console.Notice("Main.cs:Startup() - Sandbox Mode; Master Avatar is a new user; creating account.");
                     adminLoginServer.CreateUserAccount(this.regionData.MasterAvatarFirstName, this.regionData.MasterAvatarLastName, this.regionData.MasterAvatarSandboxPassword);
                     masterUser = adminLoginServer.LocalUserManager.GetProfileByName(this.regionData.MasterAvatarFirstName, this.regionData.MasterAvatarLastName);
-                    if(masterUser == null) //Still NULL?!!?! OMG FAIL!
+                    if (masterUser == null) //Still NULL?!!?! OMG FAIL!
                     {
                         throw new Exception("Failure to create master user account");
                     }
@@ -232,15 +221,7 @@ namespace OpenSim
 
             m_console.Notice("Starting in Sandbox mode");
 
-            try
-            {
-                GridServers.Initialise();
-            }
-            catch (Exception e)
-            {
-                m_console.Error(e.Message + "\nSorry, could not setup the grid interface");
-                Environment.Exit(1);
-            }
+            GridServers.Initialise();
         }
 
         protected override void SetupRemoteGridServers()
@@ -257,15 +238,9 @@ namespace OpenSim
 
             m_console.Notice("Starting in Grid mode");
 
-            try
-            {
-                GridServers.Initialise();
-            }
-            catch (Exception e)
-            {
-                m_console.Error(e.Message + "\nSorry, could not setup the grid interface");
-                Environment.Exit(1);
-            }
+
+            GridServers.Initialise();
+
         }
 
         protected override void SetupLocalWorld()
@@ -310,7 +285,7 @@ namespace OpenSim
                     {
                         Hashtable requestData = (Hashtable)request.Params[0];
                         uint circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-                            
+
                         AgentCircuitData agent_data = new AgentCircuitData();
                         agent_data.firstname = (string)requestData["firstname"];
                         agent_data.lastname = (string)requestData["lastname"];
@@ -356,17 +331,12 @@ namespace OpenSim
             {
                 // The grid server has told us who we are
                 // We must obey the grid server.
-                try
-                {
-                    regionData.RegionLocX = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locx"].ToString());
-                    regionData.RegionLocY = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locy"].ToString());
-                    regionData.RegionName = ((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString();
-                }
-                catch (Exception e)
-                {
-                    m_console.Error("Did not recieve valid information from the grid server. " + e.ToString());
-                    Environment.Exit(1);
-                }
+
+                regionData.RegionLocX = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locx"].ToString());
+                regionData.RegionLocY = Convert.ToUInt32(((RemoteGridBase)(GridServers.GridServer)).GridData["region_locy"].ToString());
+                regionData.RegionName = ((RemoteGridBase)(GridServers.GridServer)).GridData["regionname"].ToString();
+
+
             }
         }
 
@@ -374,102 +344,93 @@ namespace OpenSim
 
         private void SetupFromConfigFile(IGenericConfig configData)
         {
-            try
+
+            // SandBoxMode
+            string attri = "";
+            attri = configData.GetAttribute("SandBox");
+            if ((attri == "") || ((attri != "false") && (attri != "true")))
             {
-                // SandBoxMode
-                string attri = "";
-                attri = configData.GetAttribute("SandBox");
-                if ((attri == "") || ((attri != "false") && (attri != "true")))
-                {
-                    this.m_sandbox = false;
-                    configData.SetAttribute("SandBox", "false");
-                }
-                else
-                {
-                    this.m_sandbox = Convert.ToBoolean(attri);
-                }
-
-                // LoginServer
-                attri = "";
-                attri = configData.GetAttribute("LoginServer");
-                if ((attri == "") || ((attri != "false") && (attri != "true")))
-                {
-                    this.m_loginserver = false;
-                    configData.SetAttribute("LoginServer", "false");
-                }
-                else
-                {
-                    this.m_loginserver = Convert.ToBoolean(attri);
-                }
-
-                // Sandbox User accounts
-                attri = "";
-                attri = configData.GetAttribute("UserAccount");
-                if ((attri == "") || ((attri != "false") && (attri != "true")))
-                {
-                    this.user_accounts = false;
-                    configData.SetAttribute("UserAccounts", "false");
-                }
-                else if (attri == "true")
-                {
-                    this.user_accounts = Convert.ToBoolean(attri);
-                }
-
-                // Grid mode hack to use local asset server
-                attri = "";
-                attri = configData.GetAttribute("LocalAssets");
-                if ((attri == "") || ((attri != "false") && (attri != "true")))
-                {
-                    this.gridLocalAsset = false;
-                    configData.SetAttribute("LocalAssets", "false");
-                }
-                else if (attri == "true")
-                {
-                    this.gridLocalAsset = Convert.ToBoolean(attri);
-                }
-
-
-                attri = "";
-                attri = configData.GetAttribute("PhysicsEngine");
-                switch (attri)
-                {
-                    default:
-                        m_console.Warn("Main.cs: SetupFromConfig() - Invalid value for PhysicsEngine attribute, terminating");
-                        Environment.Exit(1);
-                        break;
-
-                    case "":
-                        this.m_physicsEngine = "basicphysics";
-                        configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
-                        break;
-
-                    case "basicphysics":
-                        this.m_physicsEngine = "basicphysics";
-                        configData.SetAttribute("PhysicsEngine", "basicphysics");
-                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
-                        break;
-
-                    case "RealPhysX":
-                        this.m_physicsEngine = "RealPhysX";
-                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
-                        break;
-
-                    case "OpenDynamicsEngine":
-                        this.m_physicsEngine = "OpenDynamicsEngine";
-                        OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
-                        break;
-                }
-
-                configData.Commit();
+                this.m_sandbox = false;
+                configData.SetAttribute("SandBox", "false");
             }
-            catch (Exception e)
+            else
             {
-                m_console.Error(e.Message);
-                m_console.Error("Sorry, a fatal error occurred while trying to initialise the configuration data");
-                m_console.Error("Can not continue starting up");
-                Environment.Exit(1);
+                this.m_sandbox = Convert.ToBoolean(attri);
             }
+
+            // LoginServer
+            attri = "";
+            attri = configData.GetAttribute("LoginServer");
+            if ((attri == "") || ((attri != "false") && (attri != "true")))
+            {
+                this.m_loginserver = false;
+                configData.SetAttribute("LoginServer", "false");
+            }
+            else
+            {
+                this.m_loginserver = Convert.ToBoolean(attri);
+            }
+
+            // Sandbox User accounts
+            attri = "";
+            attri = configData.GetAttribute("UserAccount");
+            if ((attri == "") || ((attri != "false") && (attri != "true")))
+            {
+                this.user_accounts = false;
+                configData.SetAttribute("UserAccounts", "false");
+            }
+            else if (attri == "true")
+            {
+                this.user_accounts = Convert.ToBoolean(attri);
+            }
+
+            // Grid mode hack to use local asset server
+            attri = "";
+            attri = configData.GetAttribute("LocalAssets");
+            if ((attri == "") || ((attri != "false") && (attri != "true")))
+            {
+                this.gridLocalAsset = false;
+                configData.SetAttribute("LocalAssets", "false");
+            }
+            else if (attri == "true")
+            {
+                this.gridLocalAsset = Convert.ToBoolean(attri);
+            }
+
+
+            attri = "";
+            attri = configData.GetAttribute("PhysicsEngine");
+            switch (attri)
+            {
+                default:
+                    m_console.Warn("Main.cs: SetupFromConfig() - Invalid value for PhysicsEngine attribute, terminating");
+                    Environment.Exit(1);
+                    break;
+
+                case "":
+                    this.m_physicsEngine = "basicphysics";
+                    configData.SetAttribute("PhysicsEngine", "basicphysics");
+                    OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
+                    break;
+
+                case "basicphysics":
+                    this.m_physicsEngine = "basicphysics";
+                    configData.SetAttribute("PhysicsEngine", "basicphysics");
+                    OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = false;
+                    break;
+
+                case "RealPhysX":
+                    this.m_physicsEngine = "RealPhysX";
+                    OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
+                    break;
+
+                case "OpenDynamicsEngine":
+                    this.m_physicsEngine = "OpenDynamicsEngine";
+                    OpenSim.RegionServer.Simulator.Avatar.PhysicsEngineFlying = true;
+                    break;
+            }
+
+            configData.Commit();
         }
 
         /// <summary>
