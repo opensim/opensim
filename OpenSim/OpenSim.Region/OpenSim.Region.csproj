@@ -136,6 +136,21 @@
     <Compile Include="ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scenes\Avatar.Animations.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Avatar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Avatar.Update.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Entity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Scenes\Scene.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -148,22 +163,7 @@
     <Compile Include="Scenes\SceneBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Entities\Avatar.Animations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Entities\Avatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Entities\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Entities\Entity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Entities\Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Entities\SceneObject.cs">
+    <Compile Include="Scenes\SceneObject.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\scripting\IScriptContext.cs">
