@@ -168,7 +168,8 @@ namespace OpenSim
                     case PacketType.AgentUpdate:
                         if (OnAgentUpdate != null)
                         {
-                            OnAgentUpdate(Pack);
+                            AgentUpdatePacket agenUpdate = (AgentUpdatePacket) Pack;
+                            OnAgentUpdate(this, agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotation );
                         }
                         break;
                     case PacketType.AgentAnimation:

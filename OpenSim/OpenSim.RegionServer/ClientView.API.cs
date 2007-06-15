@@ -47,7 +47,7 @@ namespace OpenSim
         public event GenericCall OnRequestWearables;
         public event SetAppearance OnSetAppearance;
         public event GenericCall2 OnCompleteMovementToRegion;
-        public event GenericCall3 OnAgentUpdate;
+        public event UpdateAgent OnAgentUpdate;
         public event StartAnim OnStartAnim;
         public event GenericCall OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
@@ -393,6 +393,26 @@ namespace OpenSim
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="timeDilation"></param>
+        /// <param name="localID"></param>
+        /// <param name="position"></param>
+        /// <param name="velocity"></param>
+        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity)
+        {
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = this.CreateAvatarImprovedBlock(localID, position, velocity);
+            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+            terse.RegionData.RegionHandle = regionHandle;
+            terse.RegionData.TimeDilation = timeDilation;
+            terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+            terse.ObjectData[0] = terseBlock;
+
+            this.OutPacket(terse);
+        }
+
         #endregion
 
         #region Primitive Packet/data Sending Methods
@@ -490,6 +510,83 @@ namespace OpenSim
         #endregion
 
         #region Helper Methods
+
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos, LLVector3 velocity)
+        {
+            byte[] bytes = new byte[60];
+            int i = 0;
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+
+            dat.TextureEntry = new byte[0];// AvatarTemplate.TextureEntry;
+
+            uint ID = localID;
+
+            bytes[i++] = (byte)(ID % 256);
+            bytes[i++] = (byte)((ID >> 8) % 256);
+            bytes[i++] = (byte)((ID >> 16) % 256);
+            bytes[i++] = (byte)((ID >> 24) % 256);
+            bytes[i++] = 0;
+            bytes[i++] = 1;
+            i += 14;
+            bytes[i++] = 128;
+            bytes[i++] = 63;
+
+            byte[] pb = pos.GetBytes();
+            Array.Copy(pb, 0, bytes, i, pb.Length);
+            i += 12;
+            ushort InternVelocityX;
+            ushort InternVelocityY;
+            ushort InternVelocityZ;
+            Axiom.MathLib.Vector3 internDirec = new Axiom.MathLib.Vector3(0, 0, 0);
+            
+            internDirec = new Axiom.MathLib.Vector3(velocity.X, velocity.Y, velocity.Z);
+
+            internDirec = internDirec / 128.0f;
+            internDirec.x += 1;
+            internDirec.y += 1;
+            internDirec.z += 1;
+
+            InternVelocityX = (ushort)(32768 * internDirec.x);
+            InternVelocityY = (ushort)(32768 * internDirec.y);
+            InternVelocityZ = (ushort)(32768 * internDirec.z);
+
+            ushort ac = 32767;
+            bytes[i++] = (byte)(InternVelocityX % 256);
+            bytes[i++] = (byte)((InternVelocityX >> 8) % 256);
+            bytes[i++] = (byte)(InternVelocityY % 256);
+            bytes[i++] = (byte)((InternVelocityY >> 8) % 256);
+            bytes[i++] = (byte)(InternVelocityZ % 256);
+            bytes[i++] = (byte)((InternVelocityZ >> 8) % 256);
+
+            //accel
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+
+            //rot
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+
+            //rotation vel
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+
+            dat.Data = bytes;
+            return (dat);
+        }
 
         /// <summary>
         /// 

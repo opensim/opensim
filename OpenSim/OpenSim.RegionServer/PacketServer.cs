@@ -40,13 +40,13 @@ namespace OpenSim
 {
     public class PacketServer
     {
-        private OpenSimNetworkHandler _networkHandler;
+        private ClientStackNetworkHandler _networkHandler;
         private IWorld _localWorld;
         public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
         public Dictionary<uint, IClientAPI> ClientAPIs = new Dictionary<uint, IClientAPI>();
         protected uint serverPort;
 
-        public PacketServer(OpenSimNetworkHandler networkHandler, uint port)
+        public PacketServer(ClientStackNetworkHandler networkHandler, uint port)
         {
             _networkHandler = networkHandler;
             this.serverPort = port;

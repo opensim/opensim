@@ -52,7 +52,7 @@ using OpenSim.GenericConfig;
 
 namespace OpenSim
 {
-    public class RegionServerBase
+    public class RegionApplicationBase
     {
         protected IGenericConfig localConfig;
         protected PhysicsManager physManager;
@@ -78,12 +78,12 @@ namespace OpenSim
 
         protected ConsoleBase m_console;
 
-        public RegionServerBase()
+        public RegionApplicationBase()
         {
 
         }
 
-        public RegionServerBase(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
+        public RegionApplicationBase(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
         {
             this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;

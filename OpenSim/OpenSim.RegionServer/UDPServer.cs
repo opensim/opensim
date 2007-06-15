@@ -52,7 +52,7 @@ using OpenSim.GenericConfig;
 namespace OpenSim
 {
 
-    public class UDPServer : OpenSimNetworkHandler
+    public class UDPServer : ClientStackNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         public Socket Server;

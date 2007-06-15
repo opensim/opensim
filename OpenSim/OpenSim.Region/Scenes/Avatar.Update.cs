@@ -36,14 +36,26 @@ using OpenSim.Framework.Interfaces;
 namespace OpenSim.Region.Scenes
 {
     partial class Avatar
-    {
+    { 
         /// <summary>
         /// 
         /// </summary>
         public override void update()
         {
-            
-
+            if (this.newForce)
+            {
+                this.SendTerseUpdateToALLClients();
+                _updateCount = 0;
+            }
+            else if (movementflag != 0)
+            {
+                _updateCount++;
+                if (_updateCount > 3)
+                {
+                    this.SendTerseUpdateToALLClients();
+                    _updateCount = 0;
+                }
+            }     
         }
 
         /// <summary>
@@ -114,15 +126,6 @@ namespace OpenSim.Region.Scenes
         public void StopMovement()
         {
            
-        }
-
-        /// <summary>
-        ///  Very likely to be deleted soon!
-        /// </summary>
-        /// <returns></returns>
-        public ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateTerseBlock()
-        {
-            return null;
         }
 
         /// <summary>

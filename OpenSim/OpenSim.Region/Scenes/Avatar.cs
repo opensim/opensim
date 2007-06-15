@@ -61,6 +61,7 @@ namespace OpenSim.Region.Scenes
         private ulong m_regionHandle;
         private Dictionary<uint, IClientAPI> m_clientThreads;
         private bool childAvatar = false;
+        private bool newForce = false;
 
         protected RegionInfo m_regionInfo;
         /// <summary>
@@ -78,6 +79,7 @@ namespace OpenSim.Region.Scenes
             this.uuid = theClient.AgentId;
 
             m_regionInfo = reginfo;
+            m_regionHandle = reginfo.RegionHandle;
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
@@ -99,8 +101,8 @@ namespace OpenSim.Region.Scenes
             //ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.CompleteMovement);
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
-           /* ControllingClient.OnAgentUpdate += new GenericCall3(this.HandleAgentUpdate);
-            ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
+            ControllingClient.OnAgentUpdate += new UpdateAgent(this.HandleAgentUpdate);
+           /* ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
              */
@@ -135,31 +137,51 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public override void addForces()
         {
-
+            lock (this.forcesList)
+            {
+                newForce = false;
+                if (this.forcesList.Count > 0)
+                {
+                    for (int i = 0; i < this.forcesList.Count; i++)
+                    {
+                        NewForce force = this.forcesList[i];
+                        PhysicsVector phyVector = new PhysicsVector(force.X, force.Y, force.Z);
+                        lock (m_world.SyncRoot)
+                        {
+                            this._physActor.Velocity = phyVector;
+                        }
+                        this.updateflag = true;
+                        this.velocity = new LLVector3(force.X, force.Y, force.Z); //shouldn't really be doing this
+                        // but as we are setting the velocity (rather than using real forces) at the moment it is okay.
+                        this.newForce = true;
+                    }
+                    for (int i = 0; i < this.forcesList.Count; i++)
+                    {
+                        this.forcesList.RemoveAt(0);
+                    }
+                }
+            }
         }
 
-        /// <summary>
-        ///  likely to removed very soon
-        /// </summary>
-        /// <param name="name"></param>
-        public static void SetupTemplate(string name)
+        public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
-
-        }
-
-        /// <summary>
-        /// likely to removed very soon
-        /// </summary>
-        /// <param name="objdata"></param>
-        protected static void SetDefaultPacketValues(ObjectUpdatePacket.ObjectDataBlock objdata)
-        {
-
-
-
+            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle,  64096, this.localid, new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z), new LLVector3(this._physActor.Velocity.X, this._physActor.Velocity.Y, this._physActor.Velocity.Z)); 
         }
 
         /// <summary>
         /// 
+        /// </summary>
+        public void SendTerseUpdateToALLClients()
+        {
+            List<Avatar> avatars = this.m_world.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                this.SendTerseUpdateToClient(avatars[i].ControllingClient);
+            }
+        }
+
+        /// <summary>
+        /// Complete Avatar's movement into the region
         /// </summary>
         public void CompleteMovement()
         {
@@ -187,8 +209,54 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void SendRegionHandshake()
+        /// <param name="pack"></param>
+        public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
         {
+            
+            if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
+            {
+                Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
+                if (((movementflag & 1) == 0) || (q != this.bodyRot))
+                {
+                    //we should add a new force to the list
+                    // but for now we will deal with velocities
+                    NewForce newVelocity = new NewForce();
+                    Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
+                    Axiom.MathLib.Vector3 direc = q * v3;
+                    direc.Normalize();
+
+                    //work out velocity for sim physics system
+                    direc = direc * ((0.03f) * 128f);
+                    if (this._physActor.Flying)
+                        direc *= 4;
+
+                    newVelocity.X = direc.x;
+                    newVelocity.Y = direc.y;
+                    newVelocity.Z = direc.z;
+                    this.forcesList.Add(newVelocity);
+                    movementflag = 1;
+                    this.bodyRot = q;
+                }
+            }
+            else
+            {
+                if (movementflag == 16)
+                {
+                    movementflag = 0;
+                }
+                if ((movementflag) != 0)
+                {
+                    NewForce newVelocity = new NewForce();
+                    newVelocity.X = 0;
+                    newVelocity.Y = 0;
+                    newVelocity.Z = 0;
+                    this.forcesList.Add(newVelocity);
+                    movementflag = 0;
+                   
+                    this.movementflag = 16;
+
+                }
+            }
             
         }
 

@@ -123,14 +123,8 @@ namespace OpenSim.Region.Scenes
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs - creating LandMap");
                 TerrainManager = new TerrainManager(new SecondLife());
                 Terrain = new TerrainEngine();
-                Avatar.SetupTemplate("avatar-texture.dat");
-
+                
                 Avatar.LoadAnims();
-
-                //this.SetDefaultScripts();
-                //this.LoadScriptEngines();
-
-
             }
             catch (Exception e)
             {

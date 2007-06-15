@@ -57,7 +57,7 @@ using OpenGrid.Framework.Communications;
 namespace OpenSim
 {
 
-    public class OpenSimMain : RegionServerBase, conscmd_callback
+    public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
         private CheckSumServer checkServer;
         protected RegionServerCommsManager commsManager;

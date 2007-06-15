@@ -55,6 +55,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
     public delegate void StatusChange(bool status);
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
+    public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
 
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
@@ -75,7 +76,7 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall OnRegionHandShakeReply;
         event GenericCall OnRequestWearables;
         event GenericCall2 OnCompleteMovementToRegion;
-        event GenericCall3 OnAgentUpdate;
+        event UpdateAgent OnAgentUpdate;
         event GenericCall OnRequestAvatarsData;
         event GenericCall4 OnAddPrim;
         event UpdateShape OnUpdatePrimShape;
@@ -125,9 +126,11 @@ namespace OpenSim.Framework.Interfaces
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendLayerData(float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo);
-        void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
         void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort);
         AgentCircuitData RequestClientInfo();
+
+        void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
+        void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity);
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID);
