@@ -447,7 +447,7 @@ namespace OpenSim
         /// <summary>
         /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
         /// or big changes to a existing primitive.
-        /// uses default rotation
+        /// Uses default rotation
         /// </summary>
         /// <param name="primData"></param>
         /// <param name="pos"></param>

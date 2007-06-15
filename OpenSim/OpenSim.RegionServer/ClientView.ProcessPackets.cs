@@ -65,7 +65,7 @@ namespace OpenSim
             else
             {
                 System.Text.Encoding _enc = System.Text.Encoding.ASCII;
-               
+
                 switch (Pack.Type)
                 {
                     case PacketType.ViewerEffect:
@@ -163,7 +163,7 @@ namespace OpenSim
                         {
                             OnCompleteMovementToRegion();
                         }
-                       // this.EnableNeighbours();
+                        // this.EnableNeighbours();
                         break;
                     case PacketType.AgentUpdate:
                         if (OnAgentUpdate != null)
@@ -211,7 +211,7 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.ObjectAdd:
-                       // m_world.AddNewPrim((ObjectAddPacket)Pack, this);
+                        // m_world.AddNewPrim((ObjectAddPacket)Pack, this);
                         if (OnAddPrim != null)
                         {
                             OnAddPrim(Pack, this);
@@ -254,8 +254,8 @@ namespace OpenSim
                             }
                         }
                         break;
-                    #endregion      
-                   
+                    #endregion
+
                     #region Inventory/Asset/Other related packets
                     case PacketType.RequestImage:
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
@@ -344,20 +344,20 @@ namespace OpenSim
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
                         ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
                         bool foundent = false;
-                       /* foreach (Entity ent in m_world.Entities.Values)
-                        {
-                            if (ent.localid == requesttask.InventoryData.LocalID)
-                            {
-                                replytask.InventoryData.TaskID = ent.uuid;
-                                replytask.InventoryData.Serial = 0;
-                                replytask.InventoryData.Filename = new byte[0];
-                                foundent = true;
-                            }
-                        }
-                        if (foundent)
-                        {
-                            this.OutPacket(replytask);
-                        }*/
+                        /* foreach (Entity ent in m_world.Entities.Values)
+                         {
+                             if (ent.localid == requesttask.InventoryData.LocalID)
+                             {
+                                 replytask.InventoryData.TaskID = ent.uuid;
+                                 replytask.InventoryData.Serial = 0;
+                                 replytask.InventoryData.Filename = new byte[0];
+                                 foundent = true;
+                             }
+                         }
+                         if (foundent)
+                         {
+                             this.OutPacket(replytask);
+                         }*/
                         break;
                     case PacketType.UpdateTaskInventory:
                         // Console.WriteLine(Pack.ToString());
@@ -484,9 +484,9 @@ namespace OpenSim
                     #region Parcel related packets
                     case PacketType.ParcelPropertiesRequest:
                         ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
-                        if(OnParcelPropertiesRequest != null)
+                        if (OnParcelPropertiesRequest != null)
                         {
-                        OnParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West), (int)Math.Round(propertiesRequest.ParcelData.South), (int)Math.Round(propertiesRequest.ParcelData.East), (int)Math.Round(propertiesRequest.ParcelData.North), propertiesRequest.ParcelData.SequenceID, propertiesRequest.ParcelData.SnapSelection, this);
+                            OnParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West), (int)Math.Round(propertiesRequest.ParcelData.South), (int)Math.Round(propertiesRequest.ParcelData.East), (int)Math.Round(propertiesRequest.ParcelData.North), propertiesRequest.ParcelData.SequenceID, propertiesRequest.ParcelData.SnapSelection, this);
                         }
                         break;
                     case PacketType.ParcelDivide:
