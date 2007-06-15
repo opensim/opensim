@@ -163,7 +163,6 @@ namespace OpenSim
                         {
                             OnCompleteMovementToRegion();
                         }
-                        // this.EnableNeighbours();
                         break;
                     case PacketType.AgentUpdate:
                         if (OnAgentUpdate != null)

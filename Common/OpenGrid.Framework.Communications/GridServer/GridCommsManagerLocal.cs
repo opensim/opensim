@@ -54,5 +54,10 @@ namespace OpenGrid.Framework.Communications.GridServer
         {
             return sandBoxManager.RequestNeighbours(regionInfo);
         }
+
+        public override RegionInfo RequestNeighbourInfo(ulong regionHandle)
+        {
+            return sandBoxManager.RequestNeighbourInfo(regionHandle);
+        }
     }
 }

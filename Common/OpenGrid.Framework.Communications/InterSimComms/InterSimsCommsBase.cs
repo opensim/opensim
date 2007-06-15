@@ -42,5 +42,7 @@ namespace OpenGrid.Framework.Communications
         /// <param name="agentData"></param>
         /// <returns></returns>
         public abstract bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
+        public abstract bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position);
+       
     }
 }

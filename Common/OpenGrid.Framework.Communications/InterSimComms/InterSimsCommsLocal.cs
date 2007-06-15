@@ -52,5 +52,10 @@ namespace OpenGrid.Framework.Communications
         {
             return sandBoxManager.InformNeighbourOfChildAgent(regionHandle, agentData);
         }
+
+        public override bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            return sandBoxManager.ExpectAvatarCrossing(regionHandle, agentID, position);
+        }
     }
 }

@@ -120,22 +120,22 @@ namespace OpenSim.Physics.BasicPhysicsPlugin
                 }
                 else
                 {
-                    if (actor.Position.Y < -1)
+                    if (actor.Position.Y < 0)
                     {
-                        actor.Position.Y = -1;
+                        actor.Position.Y = 0;
                     }
-                    else if (actor.Position.Y > 257)
+                    else if (actor.Position.Y > 256)
                     {
-                        actor.Position.Y = 257;
+                        actor.Position.Y = 256;
                     }
 
-                    if (actor.Position.X < -1)
+                    if (actor.Position.X < 0)
                     {
-                        actor.Position.X = -1;
+                        actor.Position.X = 0;
                     }
-                    if (actor.Position.X > 257)
+                    if (actor.Position.X > 256)
                     {
-                        actor.Position.X = 257;
+                        actor.Position.X = 256;
                     }
                 }
 				//}

@@ -37,7 +37,7 @@ namespace OpenSim.Framework
     {
         public event ExpectUserDelegate OnExpectUser;
         public event GenericCall2 OnExpectChildAgent;
-        public event GenericCall2 OnAvatarCrossingIntoRegion;
+        public event AgentCrossing OnAvatarCrossingIntoRegion;
         public event UpdateNeighbours OnNeighboursUpdate;
 
         /// <summary>
@@ -53,6 +53,16 @@ namespace OpenSim.Framework
                 return true;
             }
 
+            return false;
+        }
+
+        public virtual bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            if (OnAvatarCrossingIntoRegion != null)
+            {
+                OnAvatarCrossingIntoRegion(regionHandle, agentID, position);
+                return true;
+            }
             return false;
         }
     }

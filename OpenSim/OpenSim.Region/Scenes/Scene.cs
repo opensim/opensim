@@ -580,10 +580,32 @@ namespace OpenSim.Region.Scenes
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
+                    agent.child = true;
                     this.commsManager.InterSims.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
                     remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
+        {
+            return this.commsManager.GridServer.RequestNeighbourInfo(regionHandle);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionhandle"></param>
+        /// <param name="agentID"></param>
+        /// <param name="position"></param>
+        public void InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
+        {
+            this.commsManager.InterSims.ExpectAvatarCrossing(regionhandle, agentID, position);
         }
 
         /// <summary>
@@ -678,6 +700,7 @@ namespace OpenSim.Region.Scenes
             if (this.regionCommsHost != null)
             {
                 this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);
+                this.regionCommsHost.OnAvatarCrossingIntoRegion += new AgentCrossing(this.AgentCrossing);
             }
         }
 
@@ -693,6 +716,17 @@ namespace OpenSim.Region.Scenes
             if (regionHandle == this.m_regInfo.RegionHandle)
             {
                 this.authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+            }
+        }
+
+        public void AgentCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            if (regionHandle == this.m_regInfo.RegionHandle)
+            {
+                if (this.Avatars.ContainsKey(agentID))
+                {
+                    this.Avatars[agentID].Pos = position;
+                }
             }
         }
 

@@ -96,6 +96,20 @@ namespace OpenGrid.Framework.Communications
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbourInfo(ulong regionHandle)
+        {
+            if (this.regions.ContainsKey(regionHandle))
+            {
+                return this.regions[regionHandle];
+            }
+            return null;
+        }
+
+        /// <summary>
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
@@ -107,6 +121,24 @@ namespace OpenGrid.Framework.Communications
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect child agent");
                 this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentID"></param>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        public bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            if (this.regionHosts.ContainsKey(regionHandle))
+            {
+                // Console.WriteLine("CommsManager- Informing a region to expect avatar crossing");
+                this.regionHosts[regionHandle].ExpectAvatarCrossing(regionHandle, agentID, position);
                 return true;
             }
             return false;

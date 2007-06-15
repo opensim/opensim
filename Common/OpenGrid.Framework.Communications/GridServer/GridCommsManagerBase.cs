@@ -58,6 +58,11 @@ namespace OpenGrid.Framework.Communications.GridServer
         {
             return null;
         }
+
+        public virtual RegionInfo RequestNeighbourInfo(ulong regionHandle)
+        {
+            return null;
+        }
        
     }
 }

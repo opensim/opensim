@@ -39,5 +39,10 @@ namespace OpenGrid.Framework.Communications
         {
             return false;
         }
+
+        public override bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            return false;
+        }
     }
 }

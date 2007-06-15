@@ -102,10 +102,10 @@ namespace OpenSim.Region.Scenes
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.CompleteMovement);
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
             ControllingClient.OnAgentUpdate += new UpdateAgent(this.HandleAgentUpdate);
-           /* ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
+           // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
-            ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
-             */
+            //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+            
         }
 
         /// <summary>
@@ -129,7 +129,14 @@ namespace OpenSim.Region.Scenes
         /// <param name="status"></param>
         public void ChildStatusChange(bool status)
         {
+            this.childAvatar = status;
 
+            if (this.childAvatar == true)
+            {
+                this.Velocity = new LLVector3(0, 0, 0);
+                this.Pos = new LLVector3(128, 128, 70);
+                
+            }
         }
         
         /// <summary>
@@ -137,22 +144,17 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public override void addForces()
         {
+            newForce = false;
             lock (this.forcesList)
-            {
-                newForce = false;
+            {   
                 if (this.forcesList.Count > 0)
                 {
                     for (int i = 0; i < this.forcesList.Count; i++)
                     {
                         NewForce force = this.forcesList[i];
-                        PhysicsVector phyVector = new PhysicsVector(force.X, force.Y, force.Z);
-                        lock (m_world.SyncRoot)
-                        {
-                            this._physActor.Velocity = phyVector;
-                        }
+                        
                         this.updateflag = true;
-                        this.velocity = new LLVector3(force.X, force.Y, force.Z); //shouldn't really be doing this
-                        // but as we are setting the velocity (rather than using real forces) at the moment it is okay.
+                        this.Velocity = new LLVector3(force.X, force.Y, force.Z); //shouldn't really be doing this
                         this.newForce = true;
                     }
                     for (int i = 0; i < this.forcesList.Count; i++)
@@ -165,7 +167,9 @@ namespace OpenSim.Region.Scenes
 
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
-            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle,  64096, this.localid, new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z), new LLVector3(this._physActor.Velocity.X, this._physActor.Velocity.Y, this._physActor.Velocity.Z)); 
+            LLVector3 pos = this.Pos;
+            LLVector3 vel = this.Velocity;
+            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle,  64096, this.localid, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z)); 
         }
 
         /// <summary>
@@ -185,7 +189,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void CompleteMovement()
         {
-            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo);
+            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo, Pos);
         }
 
         /// <summary>
@@ -240,10 +244,6 @@ namespace OpenSim.Region.Scenes
             }
             else
             {
-                if (movementflag == 16)
-                {
-                    movementflag = 0;
-                }
                 if ((movementflag) != 0)
                 {
                     NewForce newVelocity = new NewForce();
@@ -252,9 +252,6 @@ namespace OpenSim.Region.Scenes
                     newVelocity.Z = 0;
                     this.forcesList.Add(newVelocity);
                     movementflag = 0;
-                   
-                    this.movementflag = 16;
-
                 }
             }
             

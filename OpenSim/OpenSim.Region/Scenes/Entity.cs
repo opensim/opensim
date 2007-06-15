@@ -93,6 +93,41 @@ namespace OpenSim.Region.Scenes
             }
         }
 
+        public virtual LLVector3 Velocity
+        {
+            get
+            {
+                if (this._physActor != null)
+                {
+                    velocity.X = _physActor.Velocity.X;
+                    velocity.Y = _physActor.Velocity.Y;
+                    velocity.Z = _physActor.Velocity.Z;
+                }
+
+                return velocity;
+            }
+            set
+            {
+                if (this._physActor != null)
+                {
+                    try
+                    {
+                        lock (this.m_world.SyncRoot)
+                        {
+
+                            this._physActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+
+                velocity = value;
+            }
+        }
+
         /// <summary>
         /// Creates a new Entity (should not occur on it's own)
         /// </summary>

@@ -35,12 +35,13 @@ namespace OpenSim.Framework
 {
     public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
+    public delegate void AgentCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position);
 
     public interface IRegionCommsHost
     {
         event ExpectUserDelegate OnExpectUser;
         event GenericCall2 OnExpectChildAgent;
-        event GenericCall2 OnAvatarCrossingIntoRegion;
+        event AgentCrossing OnAvatarCrossingIntoRegion;
         event UpdateNeighbours OnNeighboursUpdate;
     }
 }

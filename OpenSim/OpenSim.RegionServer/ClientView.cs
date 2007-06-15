@@ -117,17 +117,22 @@ namespace OpenSim
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
             this.m_child = false;
-            this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
+            //this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
             m_authenticateSessionsHandler.UpdateAgentChildStatus(CircuitCode, false);
-            OnChildAgentStatus(this.m_child);
+            if (OnChildAgentStatus != null)
+            {
+                OnChildAgentStatus(this.m_child);
+            }
         }
 
         public void DowngradeClient()
         {
             OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - changing full agent to child");
             this.m_child = true;
-            OnChildAgentStatus(this.m_child);
-
+            if (OnChildAgentStatus != null)
+            {
+                OnChildAgentStatus(this.m_child);
+            }
         }
 
         public void KillClient()

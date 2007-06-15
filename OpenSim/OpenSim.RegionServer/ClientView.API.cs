@@ -166,7 +166,7 @@ namespace OpenSim
         /// 
         /// </summary>
         /// <param name="regInfo"></param>
-        public void MoveAgentIntoRegion(RegionInfo regInfo)
+        public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
             mov.AgentData.SessionID = this.SessionID;
@@ -174,7 +174,14 @@ namespace OpenSim
             mov.Data.RegionHandle = regInfo.RegionHandle;
             // TODO - dynamicalise this stuff
             mov.Data.Timestamp = 1172750370;
-            mov.Data.Position = this.startpos;
+            if (pos != null)
+            {
+                mov.Data.Position = pos;
+            }
+            else
+            {
+                mov.Data.Position = this.startpos;
+            }
             mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
 
             OutPacket(mov);
@@ -303,6 +310,29 @@ namespace OpenSim
             agentData.lastname = this.lastName;
 
             return agentData;
+        }
+
+        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, System.Net.IPAddress newRegionIP, ushort newRegionPort)
+        {
+            CrossedRegionPacket newSimPack = new CrossedRegionPacket();
+            newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
+            newSimPack.AgentData.AgentID = this.AgentID;
+            newSimPack.AgentData.SessionID = this.SessionID;
+            newSimPack.Info = new CrossedRegionPacket.InfoBlock();
+            newSimPack.Info.Position = pos;
+            newSimPack.Info.LookAt = lookAt; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
+            newSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
+            newSimPack.RegionData.RegionHandle = newRegionHandle;
+            byte[] byteIP = newRegionIP.GetAddressBytes();
+            newSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
+            newSimPack.RegionData.SimIP += (uint)byteIP[2] << 16;
+            newSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
+            newSimPack.RegionData.SimIP += (uint)byteIP[0];
+            newSimPack.RegionData.SimPort = newRegionPort;
+            newSimPack.RegionData.SeedCapability = new byte[0];
+
+            this.OutPacket(newSimPack);
+            this.DowngradeClient();
         }
 
         #region Appearance/ Wearables Methods
