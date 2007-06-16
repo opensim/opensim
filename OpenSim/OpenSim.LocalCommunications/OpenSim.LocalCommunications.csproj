@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{683344D5-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{79CED992-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenGrid.Framework.Communications</AssemblyName>
+    <AssemblyName>OpenSim.LocalCommunications</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenGrid.Framework.Communications</RootNamespace>
+    <RootNamespace>OpenSim.LocalCommunications</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -72,7 +72,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenSim.Framework\OpenSim.Framework.csproj">
+    <ProjectReference Include="..\..\Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj">
+      <Name>OpenGrid.Framework.Communications</Name>
+      <Project>{683344D5-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\OpenSim.Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
@@ -80,16 +86,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommunicationsManager.cs">
+    <Compile Include="CommunicationsLocal.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IGridServices.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="IInterRegionCommunications.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="IUserServices.cs">
+    <Compile Include="LocalBackEndServices.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

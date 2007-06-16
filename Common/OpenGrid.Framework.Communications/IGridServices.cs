@@ -32,37 +32,12 @@ using System.Text;
 using OpenSim.Framework.Types;
 using OpenSim.Framework;
 
-namespace OpenGrid.Framework.Communications.GridServer
+namespace OpenGrid.Framework.Communications
 {
-    public class GridCommsManagerBase
+    public interface IGridServices
     {
-        public GridCommsManagerBase()
-        {
-        }
-         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
-        public virtual RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
-        public virtual List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
-        {
-            return null;
-        }
-
-        public virtual RegionInfo RequestNeighbourInfo(ulong regionHandle)
-        {
-            return null;
-        }
-       
+        RegionCommsHostBase RegisterRegion(RegionInfo regionInfo);
+        List<RegionInfo> RequestNeighbours(RegionInfo regionInfo);
+        RegionInfo RequestNeighbourInfo(ulong regionHandle);
     }
 }

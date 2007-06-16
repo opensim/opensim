@@ -25,18 +25,19 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Framework;
-using OpenSim.Framework.Types;
-
+using OpenGrid.Framework.Communications;
 using libsecondlife;
+using OpenSim.Framework.Types;
+using OpenSim.Framework;
 
-namespace OpenGrid.Framework.Communications
+namespace OpenSim.LocalCommunications
 {
-    public class LocalBackEndServices
+
+
+    public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
         protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong, RegionInfo>();
         protected Dictionary<ulong, RegionCommsHostBase> regionHosts = new Dictionary<ulong, RegionCommsHostBase>();
@@ -72,7 +73,7 @@ namespace OpenGrid.Framework.Communications
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public  List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
+        public List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
             // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
             List<RegionInfo> neighbours = new List<RegionInfo>();
@@ -114,7 +115,7 @@ namespace OpenGrid.Framework.Communications
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public  bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
+        public bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
             if (this.regionHosts.ContainsKey(regionHandle))
@@ -175,3 +176,4 @@ namespace OpenGrid.Framework.Communications
         }
     }
 }
+

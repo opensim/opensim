@@ -53,6 +53,7 @@ using Nwc.XmlRpc;
 using OpenSim.Servers;
 using OpenSim.GenericConfig;
 using OpenGrid.Framework.Communications;
+using OpenSim.LocalCommunications;
 
 namespace OpenSim
 {
@@ -60,7 +61,7 @@ namespace OpenSim
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
         private CheckSumServer checkServer;
-        protected RegionServerCommsManager commsManager;
+        protected CommunicationsManager commsManager;
 
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
@@ -104,12 +105,12 @@ namespace OpenSim
                 this.SetupLocalGridServers();
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
-                this.commsManager = new RegionServerCommsLocal(); 
+                this.commsManager = new CommunicationsLocal();
             }
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new RegionServerCommsOGS();
+                this.commsManager = new CommunicationsLocal(); //shouldn't be using the local communications manager
             }
 
             startuptime = DateTime.Now;
@@ -131,7 +132,7 @@ namespace OpenSim
             {
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
-                loginServer.SetSessionHandler(((RegionServerCommsLocal)this.commsManager).SandManager.AddNewSession);
+                loginServer.SetSessionHandler(((CommunicationsLocal)this.commsManager).SandManager.AddNewSession);
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }

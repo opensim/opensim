@@ -65,7 +65,7 @@ namespace OpenSim.Region.Scenes
         public string m_datastore;
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsHostBase regionCommsHost;
-        protected RegionServerCommsManager commsManager;
+        protected CommunicationsManager commsManager;
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, RegionServerCommsManager commsMan)
+        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan)
         {
             try
             {
@@ -416,7 +416,7 @@ namespace OpenSim.Region.Scenes
                     Console.WriteLine("creating new terrain");
                     this.Terrain.hills();
 
-                    this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                   // this.localStorage.SaveMap(this.Terrain.getHeights1D());
                 }
                 else
                 {

@@ -110,6 +110,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\OpenSim.LocalCommunications\OpenSim.LocalCommunications.csproj">
+      <Name>OpenSim.LocalCommunications</Name>
+      <Project>{79CED992-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\OpenSim.Physics\Manager\OpenSim.Physics.Manager.csproj">
       <Name>OpenSim.Physics.Manager</Name>
       <Project>{8BE16150-0000-0000-0000-000000000000}</Project>

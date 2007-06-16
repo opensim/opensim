@@ -54,6 +54,7 @@
         <nant buildfile="Common/OpenSim.GenericConfig/Xml/OpenSim.GenericConfig.Xml.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.GridInterfaces/Local/OpenSim.GridInterfaces.Local.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="clean" />
+        <nant buildfile="OpenSim/OpenSim.LocalCommunications/OpenSim.LocalCommunications.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Physics/BasicPhysicsPlugin/OpenSim.Physics.BasicPhysicsPlugin.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Physics/Manager/OpenSim.Physics.Manager.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Physics/OdePlugin/OpenSim.Physics.OdePlugin.dll.build" target="clean" />
@@ -74,6 +75,7 @@
         <nant buildfile="Common/OpenSim.Framework/OpenSim.Framework.dll.build" target="build" />
         <nant buildfile="Common/OpenSim.Servers/OpenSim.Servers.dll.build" target="build" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="build" />
+        <nant buildfile="OpenSim/OpenSim.LocalCommunications/OpenSim.LocalCommunications.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Caches/OpenSim.Caches.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageDb4o/OpenSim.Storage.LocalStorageDb4o.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="build" />
@@ -107,6 +109,7 @@
         <nant buildfile="Common/OpenSim.GenericConfig/Xml/OpenSim.GenericConfig.Xml.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.GridInterfaces/Local/OpenSim.GridInterfaces.Local.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.GridInterfaces/Remote/OpenSim.GridInterfaces.Remote.dll.build" target="doc" />
+        <nant buildfile="OpenSim/OpenSim.LocalCommunications/OpenSim.LocalCommunications.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Physics/BasicPhysicsPlugin/OpenSim.Physics.BasicPhysicsPlugin.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Physics/Manager/OpenSim.Physics.Manager.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Physics/OdePlugin/OpenSim.Physics.OdePlugin.dll.build" target="doc" />

@@ -314,13 +314,15 @@ namespace OpenSim
 
         public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, System.Net.IPAddress newRegionIP, ushort newRegionPort)
         {
+            LLVector3 look = new LLVector3(lookAt.X *10, lookAt.Y *10, lookAt.Z *10);
+            
             CrossedRegionPacket newSimPack = new CrossedRegionPacket();
             newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
             newSimPack.AgentData.AgentID = this.AgentID;
             newSimPack.AgentData.SessionID = this.SessionID;
             newSimPack.Info = new CrossedRegionPacket.InfoBlock();
             newSimPack.Info.Position = pos;
-            newSimPack.Info.LookAt = lookAt; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
+            newSimPack.Info.LookAt = look; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
             newSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
             newSimPack.RegionData.RegionHandle = newRegionHandle;
             byte[] byteIP = newRegionIP.GetAddressBytes();

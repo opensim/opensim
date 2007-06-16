@@ -28,36 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
-using OpenSim.Framework;
-using OpenSim.Framework.Types;
-
 using libsecondlife;
 
-namespace OpenGrid.Framework.Communications.GridServer
+namespace OpenGrid.Framework.Communications
 {
-    public class GridCommsManagerLocal : GridCommsManagerBase
+    public interface IUserServices
     {
-        private LocalBackEndServices sandBoxManager;
-
-        public GridCommsManagerLocal(LocalBackEndServices sandManager)
-        {
-            sandBoxManager = sandManager;
-        }
-
-        public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
-        {
-            return sandBoxManager.RegisterRegion(regionInfo);
-        }
-
-        public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
-        {
-            return sandBoxManager.RequestNeighbours(regionInfo);
-        }
-
-        public override RegionInfo RequestNeighbourInfo(ulong regionHandle)
-        {
-            return sandBoxManager.RequestNeighbourInfo(regionHandle);
-        }
+        void GetUserProfile(string name);
+        void GetUserProfile(LLUUID avatar_id); //should be returning UserProfile
+        
     }
 }

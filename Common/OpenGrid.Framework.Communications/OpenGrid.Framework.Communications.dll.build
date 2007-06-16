@@ -11,20 +11,11 @@
             <resources prefix="OpenGrid.Framework.Communications" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="LocalBackEndServices.cs" />
-                <include name="RegionServerCommsLocal.cs" />
-                <include name="RegionServerCommsManager.cs" />
-                <include name="RegionServerCommsOGS.cs" />
-                <include name="GridServer/GridCommsManagerBase.cs" />
-                <include name="GridServer/GridCommsManagerLocal.cs" />
-                <include name="GridServer/GridCommsManagerOGS.cs" />
-                <include name="InterSimComms/InterSimsCommsBase.cs" />
-                <include name="InterSimComms/InterSimsCommsLocal.cs" />
-                <include name="InterSimComms/InterSimsCommsOGS.cs" />
+                <include name="CommunicationsManager.cs" />
+                <include name="IGridServices.cs" />
+                <include name="IInterRegionCommunications.cs" />
+                <include name="IUserServices.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
-                <include name="UserServer/UserCommsManagerBase.cs" />
-                <include name="UserServer/UserCommsManagerLocal.cs" />
-                <include name="UserServer/UserCommsManagerOGS.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

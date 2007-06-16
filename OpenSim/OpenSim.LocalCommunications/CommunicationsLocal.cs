@@ -26,28 +26,26 @@
 * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-
+using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenGrid.Framework.Communications;
 
-namespace OpenGrid.Framework.Communications.GridServer
+namespace OpenSim.LocalCommunications
 {
-    public class GridCommsManagerOGS : GridCommsManagerBase
+    public class CommunicationsLocal : CommunicationsManager
     {
-        public GridCommsManagerOGS()
-        {
-        }
+        public LocalBackEndServices SandManager = new LocalBackEndServices();
 
-        public override RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        public CommunicationsLocal()
         {
-            return null;
-        }
-
-        public override List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
-        {
-            return null;
+            UserServer = null;
+            GridServer = SandManager;
+            InterSims = SandManager;
         }
     }
 }

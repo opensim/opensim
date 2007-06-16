@@ -148,6 +148,30 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.LocalCommunications" path="OpenSim/OpenSim.LocalCommunications" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+     <Reference name="OpenGrid.Framework.Communications"/>
+     <Reference name="libsecondlife.dll"/>
+	<Reference name="OpenSim.Framework"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
 	<Project name="OpenSim.Caches" path="OpenSim/OpenSim.Caches" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -531,6 +555,7 @@
 	<Reference name="OpenGrid.Framework.Communications"/>
 	<Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
+      <Reference name="OpenSim.LocalCommunications"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

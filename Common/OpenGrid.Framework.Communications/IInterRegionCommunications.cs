@@ -28,10 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Types;
+using OpenSim.Framework;
 
-namespace OpenGrid.Framework.Communications.UserServer
+namespace OpenGrid.Framework.Communications
 {
-    public class UserCommsManagerLocal : UserCommsManagerBase
+    public  interface IInterRegionCommunications
     {
+         bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
+         bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position); 
     }
 }
