@@ -14,9 +14,9 @@
                 <include name="AgentInventory.cs" />
                 <include name="AuthenticateSessionBase.cs" />
                 <include name="BlockingQueue.cs" />
-                <include name="IRegionCommsHost.cs" />
+                <include name="IRegionCommsListener.cs" />
                 <include name="LoginService.cs" />
-                <include name="RegionCommsHostBase.cs" />
+                <include name="RegionCommsListener.cs" />
                 <include name="Remoting.cs" />
                 <include name="SimProfile.cs" />
                 <include name="UserProfile.cs" />
@@ -42,6 +42,7 @@
                 <include name="Types/AssetStorage.cs" />
                 <include name="Types/EstateSettings.cs" />
                 <include name="Types/Login.cs" />
+                <include name="Types/MapBlockData.cs" />
                 <include name="Types/NeighbourInfo.cs" />
                 <include name="Types/NetworkServersInfo.cs" />
                 <include name="Types/ParcelData.cs" />

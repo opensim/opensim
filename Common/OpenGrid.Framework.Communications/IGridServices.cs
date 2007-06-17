@@ -36,8 +36,9 @@ namespace OpenGrid.Framework.Communications
 {
     public interface IGridServices
     {
-        RegionCommsHostBase RegisterRegion(RegionInfo regionInfo);
+        RegionCommsListener RegisterRegion(RegionInfo regionInfo);
         List<RegionInfo> RequestNeighbours(RegionInfo regionInfo);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
+        List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
     }
 }

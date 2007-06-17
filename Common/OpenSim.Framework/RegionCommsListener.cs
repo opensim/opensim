@@ -33,7 +33,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework
 {
-    public class RegionCommsHostBase :IRegionCommsHost
+    public class RegionCommsListener :IRegionCommsListener
     {
         public event ExpectUserDelegate OnExpectUser;
         public event GenericCall2 OnExpectChildAgent;

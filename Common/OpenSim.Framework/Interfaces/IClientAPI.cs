@@ -41,12 +41,16 @@ namespace OpenSim.Framework.Interfaces
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
     public delegate void StartAnim(LLUUID animID, int seq);
     public delegate void LinkObjects(uint parent, List<uint> children);
+    public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
+    public delegate void TeleportLocationRequest(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
+
     public delegate void GenericCall(IClientAPI remoteClient);
     public delegate void GenericCall2();
     public delegate void GenericCall3(Packet packet); // really don't want to be passing packets in these events, so this is very temporary.
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
     public delegate void GenericCall6(LLUUID uid);
+
     public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
@@ -72,6 +76,9 @@ namespace OpenSim.Framework.Interfaces
         event SetAppearance OnSetAppearance;
         event StartAnim OnStartAnim;
         event LinkObjects OnLinkObjects;
+        event RequestMapBlocks OnRequestMapBlocks;
+        event TeleportLocationRequest OnTeleportLocationRequest;
+
         event GenericCall4 OnDeRezObject;
         event GenericCall OnRegionHandShakeReply;
         event GenericCall OnRequestWearables;
@@ -79,6 +86,7 @@ namespace OpenSim.Framework.Interfaces
         event UpdateAgent OnAgentUpdate;
         event GenericCall OnRequestAvatarsData;
         event GenericCall4 OnAddPrim;
+
         event UpdateShape OnUpdatePrimShape;
         event ObjectSelect OnObjectSelect;
         event UpdatePrimFlags OnUpdatePrimFlags;
@@ -125,10 +133,15 @@ namespace OpenSim.Framework.Interfaces
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendLayerData(float[] map);
-        void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos);
+        void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);
         void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort);
         AgentCircuitData RequestClientInfo();
         void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, System.Net.IPAddress newRegionIP, ushort newRegionPort);
+        void SendMapBlock(List<MapBlockData> mapBlocks);
+        void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags);
+        void SendRegionTeleport(ulong regionHandle, byte simAccess, string ipAddress, ushort ipPort, uint locationID, uint flags);
+        void SendTeleportCancel();
+        void SendTeleportLocationStart();
 
         void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity);

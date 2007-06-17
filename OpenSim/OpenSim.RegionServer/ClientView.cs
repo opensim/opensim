@@ -95,7 +95,7 @@ namespace OpenSim
             cirpack = initialcirpack;
             userEP = remoteEP;
 
-            this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
+            //this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
             this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
 
             PacketQueue = new BlockingQueue<QueItem>();
@@ -113,27 +113,6 @@ namespace OpenSim
         }
 
         # region Client Methods
-        public void UpgradeClient()
-        {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - upgrading child to full agent");
-            this.m_child = false;
-            //this.startpos = m_authenticateSessionsHandler.GetPosition(CircuitCode);
-            m_authenticateSessionsHandler.UpdateAgentChildStatus(CircuitCode, false);
-            if (OnChildAgentStatus != null)
-            {
-                OnChildAgentStatus(this.m_child);
-            }
-        }
-
-        public void DowngradeClient()
-        {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "SimClient.cs:UpgradeClient() - changing full agent to child");
-            this.m_child = true;
-            if (OnChildAgentStatus != null)
-            {
-                OnChildAgentStatus(this.m_child);
-            }
-        }
 
         public void KillClient()
         {
@@ -147,9 +126,7 @@ namespace OpenSim
             }
 
             this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-
-
-            //   m_world.RemoveViewerAgent(this);
+            m_world.RemoveAvatar(this.AgentId);
 
             m_clientThreads.Remove(this.CircuitCode);
             m_networkServer.RemoveClientCircuit(this.CircuitCode);

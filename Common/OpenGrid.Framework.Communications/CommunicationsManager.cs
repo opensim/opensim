@@ -41,7 +41,7 @@ namespace OpenGrid.Framework.Communications
     {
         public IUserServices UserServer;
         public IGridServices GridServer;
-        public IInterRegionCommunications InterSims;
+        public IInterRegionCommunications InterRegion;
 
         public CommunicationsManager()
         {

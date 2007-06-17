@@ -63,6 +63,8 @@ namespace OpenSim
         public event GenericCall2 OnStopMovement;
         public event NewAvatar OnNewAvatar;
         public event GenericCall6 OnRemoveAvatar;
+        public event RequestMapBlocks OnRequestMapBlocks;
+        public event TeleportLocationRequest OnTeleportLocationRequest;
 
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
@@ -155,7 +157,7 @@ namespace OpenSim
             handshake.RegionInfo.TerrainBase3 = regionInfo.estateSettings.terrainBase3;
             handshake.RegionInfo.TerrainDetail0 = regionInfo.estateSettings.terrainDetail0;
             handshake.RegionInfo.TerrainDetail1 = regionInfo.estateSettings.terrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 =regionInfo.estateSettings.terrainDetail2;
+            handshake.RegionInfo.TerrainDetail2 = regionInfo.estateSettings.terrainDetail2;
             handshake.RegionInfo.TerrainDetail3 = regionInfo.estateSettings.terrainDetail3;
             handshake.RegionInfo.CacheID = LLUUID.Random(); //I guess this is for the client to remember an old setting?
 
@@ -166,7 +168,7 @@ namespace OpenSim
         /// 
         /// </summary>
         /// <param name="regInfo"></param>
-        public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos)
+        public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
             mov.AgentData.SessionID = this.SessionID;
@@ -182,16 +184,16 @@ namespace OpenSim
             {
                 mov.Data.Position = this.startpos;
             }
-            mov.Data.LookAt = new LLVector3(0.99f, 0.042f, 0);
+            mov.Data.LookAt = look;
 
             OutPacket(mov);
         }
 
         public void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-           SendChatMessage( Helpers.StringToField( message ), type, fromPos, fromName, fromAgentID); 
+            SendChatMessage(Helpers.StringToField(message), type, fromPos, fromName, fromAgentID);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -216,7 +218,7 @@ namespace OpenSim
             this.OutPacket(reply);
         }
 
-       
+
         /// <summary>
         ///  Send the region heightmap to the client
         /// </summary>
@@ -272,7 +274,7 @@ namespace OpenSim
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
-    
+
         /// <summary>
         /// 
         /// </summary>
@@ -314,8 +316,8 @@ namespace OpenSim
 
         public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, System.Net.IPAddress newRegionIP, ushort newRegionPort)
         {
-            LLVector3 look = new LLVector3(lookAt.X *10, lookAt.Y *10, lookAt.Z *10);
-            
+            LLVector3 look = new LLVector3(lookAt.X * 10, lookAt.Y * 10, lookAt.Z * 10);
+
             CrossedRegionPacket newSimPack = new CrossedRegionPacket();
             newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
             newSimPack.AgentData.AgentID = this.AgentID;
@@ -334,7 +336,86 @@ namespace OpenSim
             newSimPack.RegionData.SeedCapability = new byte[0];
 
             this.OutPacket(newSimPack);
-            this.DowngradeClient();
+            //this.DowngradeClient();
+        }
+
+        public void SendMapBlock(List<MapBlockData> mapBlocks)
+        {
+            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+
+            MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
+            mapReply.AgentData.AgentID = this.AgentID;
+            mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks.Count];
+            mapReply.AgentData.Flags = 0;
+
+            for (int i = 0; i < mapBlocks.Count; i++)
+            {
+                mapReply.Data[i] = new MapBlockReplyPacket.DataBlock();
+                mapReply.Data[i].MapImageID = mapBlocks[i].MapImageId;
+                mapReply.Data[i].X = mapBlocks[i].X;
+                mapReply.Data[i].Y = mapBlocks[i].Y;
+                mapReply.Data[i].WaterHeight = mapBlocks[i].WaterHeight;
+                mapReply.Data[i].Name = _enc.GetBytes(mapBlocks[i].Name);
+                mapReply.Data[i].RegionFlags = mapBlocks[i].RegionFlags;
+                mapReply.Data[i].Access = mapBlocks[i].Access;
+                mapReply.Data[i].Agents = mapBlocks[i].Agents; 
+            }
+            this.OutPacket(mapReply);
+        }
+
+        public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
+        {
+            TeleportLocalPacket tpLocal2 = new TeleportLocalPacket();
+            tpLocal2.Info.AgentID = this.AgentID;
+            tpLocal2.Info.TeleportFlags = flags;
+            tpLocal2.Info.LocationID = 2;
+            tpLocal2.Info.LookAt = lookAt;
+            tpLocal2.Info.Position = position;
+            OutPacket(tpLocal2);
+        }
+
+        public void SendRegionTeleport(ulong regionHandle, byte simAccess, string ipAddress, ushort ipPort, uint locationID, uint flags)
+        {
+            TeleportFinishPacket Teleport = new TeleportFinishPacket();
+            Teleport.Info.AgentID = this.AgentID;
+            Teleport.Info.RegionHandle = regionHandle;
+            Teleport.Info.SimAccess = simAccess;
+            Teleport.Info.SeedCapability = new byte[0];
+
+            System.Net.IPAddress oIP = System.Net.IPAddress.Parse(ipAddress);
+            byte[] byteIP = oIP.GetAddressBytes();
+            uint ip = (uint)byteIP[3] << 24;
+            ip += (uint)byteIP[2] << 16;
+            ip += (uint)byteIP[1] << 8;
+            ip += (uint)byteIP[0];
+
+            Teleport.Info.SimIP = ip;
+            Teleport.Info.SimPort = ipPort;
+            Teleport.Info.LocationID = 4;
+            Teleport.Info.TeleportFlags = 1 << 4; 
+            OutPacket(Teleport);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SendTeleportCancel()
+        {
+            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+            tpCancel.Info.SessionID = this.SessionID;
+            tpCancel.Info.AgentID = this.AgentID;
+
+            OutPacket(tpCancel);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SendTeleportLocationStart()
+        {
+            TeleportStartPacket tpStart = new TeleportStartPacket();
+            tpStart.Info.TeleportFlags = 16; // Teleport via location
+            OutPacket(tpStart);
         }
 
         #region Appearance/ Wearables Methods
@@ -511,7 +592,7 @@ namespace OpenSim
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID);
             outPacket.ObjectData[0].ID = localID;
-            outPacket.ObjectData[0].FullID = primData.FullID; 
+            outPacket.ObjectData[0].FullID = primData.FullID;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
 
@@ -570,7 +651,7 @@ namespace OpenSim
             ushort InternVelocityY;
             ushort InternVelocityZ;
             Axiom.MathLib.Vector3 internDirec = new Axiom.MathLib.Vector3(0, 0, 0);
-            
+
             internDirec = new Axiom.MathLib.Vector3(velocity.X, velocity.Y, velocity.Z);
 
             internDirec = internDirec / 128.0f;

@@ -517,6 +517,7 @@
       <Reference name="OpenSim.GenericConfig.Xml"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
+	<Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
       <Reference name="OpenGrid.Framework.Communications"/>
 

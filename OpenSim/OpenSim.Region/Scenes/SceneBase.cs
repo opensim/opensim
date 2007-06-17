@@ -39,6 +39,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
+using OpenSim.Caches;
 
 namespace OpenSim.Region.Scenes
 {
@@ -54,6 +55,7 @@ namespace OpenSim.Region.Scenes
         protected libsecondlife.TerrainManager TerrainManager; // To be referenced via TerrainEngine
         protected object m_syncRoot = new object();
         private uint m_nextLocalId = 8880000;
+        protected AssetCache assetCache;
 
         #region Update Methods
         /// <summary>

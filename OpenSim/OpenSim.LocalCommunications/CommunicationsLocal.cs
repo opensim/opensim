@@ -45,7 +45,7 @@ namespace OpenSim.LocalCommunications
         {
             UserServer = null;
             GridServer = SandManager;
-            InterSims = SandManager;
+            InterRegion = SandManager;
         }
     }
 }

@@ -42,7 +42,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
-
+using OpenSim.Caches;
 
 namespace OpenSim.Region.Scenes
 {
@@ -64,8 +64,9 @@ namespace OpenSim.Region.Scenes
         private Mutex updateLock;
         public string m_datastore;
         protected AuthenticateSessionsBase authenticateHandler;
-        protected RegionCommsHostBase regionCommsHost;
+        protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
+        
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;
@@ -95,13 +96,14 @@ namespace OpenSim.Region.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan)
+        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach)
         {
             try
             {
                 updateLock = new Mutex(false);
                 this.authenticateHandler = authen;
                 this.commsManager = commsMan;
+                this.assetCache = assetCach;
                 m_clientThreads = clientThreads;
                 m_regInfo = regInfo;
                 m_regionHandle = m_regInfo.RegionHandle;
@@ -507,8 +509,10 @@ namespace OpenSim.Region.Scenes
             remoteClient.OnRequestWearables += new GenericCall(this.InformClientOfNeighbours);
             remoteClient.OnAddPrim += new GenericCall4(this.AddNewPrim);
             remoteClient.OnUpdatePrimPosition += new UpdatePrimVector(this.UpdatePrimPosition);
-            
-           /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
+            remoteClient.OnRequestMapBlocks += new RequestMapBlocks(this.RequestMapBlocks);
+            remoteClient.OnTeleportLocationRequest += new TeleportLocationRequest(this.RequestTeleportLocation);
+
+            /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
             remoteClient.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
             remoteClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
@@ -562,51 +566,7 @@ namespace OpenSim.Region.Scenes
             return;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected void InformClientOfNeighbours(IClientAPI remoteClient)
-        {
-            // Console.WriteLine("informing client of neighbouring regions");
-            List<RegionInfo> neighbours = this.commsManager.GridServer.RequestNeighbours(this.m_regInfo);
-
-            //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
-            if (neighbours != null)
-            {
-                for (int i = 0; i < neighbours.Count; i++)
-                {
-                    // Console.WriteLine("sending neighbours data");
-                    AgentCircuitData agent = remoteClient.RequestClientInfo();
-                    agent.BaseFolder = LLUUID.Zero;
-                    agent.InventoryFolder = LLUUID.Zero;
-                    agent.startpos = new LLVector3(128, 128, 70);
-                    agent.child = true;
-                    this.commsManager.InterSims.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
-                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <returns></returns>
-        public RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
-        {
-            return this.commsManager.GridServer.RequestNeighbourInfo(regionHandle);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionhandle"></param>
-        /// <param name="agentID"></param>
-        /// <param name="position"></param>
-        public void InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
-        {
-            this.commsManager.InterSims.ExpectAvatarCrossing(regionhandle, agentID, position);
-        }
+       
 
         /// <summary>
         /// 
@@ -725,9 +685,95 @@ namespace OpenSim.Region.Scenes
             {
                 if (this.Avatars.ContainsKey(agentID))
                 {
-                    this.Avatars[agentID].Pos = position;
+                    this.Avatars[agentID].UpGradeAvatar(position);
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void InformClientOfNeighbours(IClientAPI remoteClient)
+        {
+            // Console.WriteLine("informing client of neighbouring regions");
+            List<RegionInfo> neighbours = this.commsManager.GridServer.RequestNeighbours(this.m_regInfo);
+
+            //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
+            if (neighbours != null)
+            {
+                for (int i = 0; i < neighbours.Count; i++)
+                {
+                    // Console.WriteLine("sending neighbours data");
+                    AgentCircuitData agent = remoteClient.RequestClientInfo();
+                    agent.BaseFolder = LLUUID.Zero;
+                    agent.InventoryFolder = LLUUID.Zero;
+                    agent.startpos = new LLVector3(128, 128, 70);
+                    agent.child = true;
+                    this.commsManager.InterRegion.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
+        {
+            return this.commsManager.GridServer.RequestNeighbourInfo(regionHandle);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="minX"></param>
+        /// <param name="minY"></param>
+        /// <param name="maxX"></param>
+        /// <param name="maxY"></param>
+        public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
+        {
+            List<MapBlockData> mapBlocks;
+            mapBlocks = this.commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
+           
+            remoteClient.SendMapBlock(mapBlocks);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="RegionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
+        public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags)
+        {
+            if (regionHandle == this.m_regionHandle)
+            {
+                if (this.Avatars.ContainsKey(remoteClient.AgentId))
+                {
+                    remoteClient.SendTeleportLocationStart();
+                    remoteClient.SendLocalTeleport(position, lookAt, flags);
+                    this.Avatars[remoteClient.AgentId].Teleport(position);
+                }
+            }
+            else
+            {
+                remoteClient.SendTeleportCancel();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionhandle"></param>
+        /// <param name="agentID"></param>
+        /// <param name="position"></param>
+        public void InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
+        {
+            this.commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
         }
 
         #endregion

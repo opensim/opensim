@@ -158,7 +158,6 @@ namespace OpenSim
                         }
                         break;
                     case PacketType.CompleteAgentMovement:
-                        if (this.m_child) this.UpgradeClient();
                         if (OnCompleteMovementToRegion != null)
                         {
                             OnCompleteMovementToRegion();
@@ -396,8 +395,11 @@ namespace OpenSim
                         break;
                     case PacketType.MapBlockRequest:
                         MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
-
-                        this.RequestMapBlocks(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+                        if (OnRequestMapBlocks != null)
+                        {
+                            OnRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+                        }
+                        //this.RequestMapBlocks(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         break;
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
@@ -449,16 +451,25 @@ namespace OpenSim
                         break;
                     case PacketType.TeleportLocationRequest:
                         TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
-                        Console.WriteLine(tpLocReq.ToString());
+                       // Console.WriteLine(tpLocReq.ToString());
 
-                        tpStart = new TeleportStartPacket();
-                        tpStart.Info.TeleportFlags = 16; // Teleport via location
-                        Console.WriteLine(tpStart.ToString());
-                        OutPacket(tpStart);
-
-                        if (m_regionData.RegionHandle != tpLocReq.Info.RegionHandle)
+                        if (OnTeleportLocationRequest != null)
                         {
-                            /* m_gridServer.getRegion(tpLocReq.Info.RegionHandle); */
+                            OnTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position, tpLocReq.Info.LookAt, 16);
+                        }
+                        else
+                        {
+                            //no event handler so cancel request
+                            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                            tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
+                            tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
+
+                            OutPacket(tpCancel);
+                        }
+
+                       /* if (m_regionData.RegionHandle != tpLocReq.Info.RegionHandle)
+                        {
+                            // m_gridServer.getRegion(tpLocReq.Info.RegionHandle);
                             Console.WriteLine("Inter-sim teleport not yet implemented");
                             TeleportCancelPacket tpCancel = new TeleportCancelPacket();
                             tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
@@ -469,15 +480,15 @@ namespace OpenSim
                         else
                         {
                             Console.WriteLine("Local teleport");
-                            TeleportLocalPacket tpLocal = new TeleportLocalPacket();
-                            tpLocal.Info.AgentID = tpLocReq.AgentData.AgentID;
-                            tpLocal.Info.TeleportFlags = tpStart.Info.TeleportFlags;
-                            tpLocal.Info.LocationID = 2;
-                            tpLocal.Info.LookAt = tpLocReq.Info.LookAt;
-                            tpLocal.Info.Position = tpLocReq.Info.Position;
-                            OutPacket(tpLocal);
+                            TeleportLocalPacket tpLocal2 = new TeleportLocalPacket();
+                            tpLocal2.Info.AgentID = tpLocReq.AgentData.AgentID;
+                            tpLocal2.Info.TeleportFlags = tpStart.Info.TeleportFlags;
+                            tpLocal2.Info.LocationID = 2;
+                            tpLocal2.Info.LookAt = tpLocReq.Info.LookAt;
+                            tpLocal2.Info.Position = tpLocReq.Info.Position;
+                            OutPacket(tpLocal2);
 
-                        }
+                        }*/
                         break;
                     #endregion
 

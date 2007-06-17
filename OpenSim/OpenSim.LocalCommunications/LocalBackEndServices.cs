@@ -36,11 +36,10 @@ using OpenSim.Framework;
 namespace OpenSim.LocalCommunications
 {
 
-
     public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
         protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong, RegionInfo>();
-        protected Dictionary<ulong, RegionCommsHostBase> regionHosts = new Dictionary<ulong, RegionCommsHostBase>();
+        protected Dictionary<ulong, RegionCommsListener> regionHosts = new Dictionary<ulong, RegionCommsListener>();
 
         public LocalBackEndServices()
         {
@@ -52,14 +51,14 @@ namespace OpenSim.LocalCommunications
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public RegionCommsHostBase RegisterRegion(RegionInfo regionInfo)
+        public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
             if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
             {
                 //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
                 this.regions.Add(regionInfo.RegionHandle, regionInfo);
-                RegionCommsHostBase regionHost = new RegionCommsHostBase();
+                RegionCommsListener regionHost = new RegionCommsListener();
                 this.regionHosts.Add(regionInfo.RegionHandle, regionHost);
 
                 return regionHost;
@@ -108,6 +107,36 @@ namespace OpenSim.LocalCommunications
                 return this.regions[regionHandle];
             }
             return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="minX"></param>
+        /// <param name="minY"></param>
+        /// <param name="maxX"></param>
+        /// <param name="maxY"></param>
+        /// <returns></returns>
+        public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
+        {
+            List<MapBlockData> mapBlocks = new List<MapBlockData>();
+            foreach(RegionInfo regInfo in this.regions.Values)
+            {
+                if (((regInfo.RegionLocX > minX) && (regInfo.RegionLocX < maxX)) && ((regInfo.RegionLocY > minY) && (regInfo.RegionLocY < maxY)))
+                {
+                    MapBlockData map = new MapBlockData();
+                    map.Name = regInfo.RegionName;
+                    map.X = (ushort)regInfo.RegionLocX;
+                    map.Y = (ushort)regInfo.RegionLocY;
+                    map.WaterHeight =(byte) regInfo.estateSettings.waterHeight;
+                    map.MapImageId = new LLUUID("00000000-0000-0000-9999-000000000007");
+                    map.Agents = 1;
+                    map.RegionFlags = 72458694;
+                    map.Access = 13;
+                    mapBlocks.Add(map);
+                }
+            }
+            return mapBlocks;
         }
 
         /// <summary>

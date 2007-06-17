@@ -236,7 +236,7 @@ namespace OpenSim
                 m_console.componentname = "Region " + regionData.RegionName;
                 */
 
-                LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager);
+                LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager, this.AssetCache);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;

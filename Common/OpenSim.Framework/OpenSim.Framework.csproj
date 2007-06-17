@@ -99,13 +99,13 @@
     <Compile Include="BlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IRegionCommsHost.cs">
+    <Compile Include="IRegionCommsListener.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LoginService.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RegionCommsHostBase.cs">
+    <Compile Include="RegionCommsListener.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Remoting.cs">
@@ -181,6 +181,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\Login.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\MapBlockData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\NeighbourInfo.cs">

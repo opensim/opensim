@@ -43,36 +43,24 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public override void update()
         {
-            if (this.newForce)
+            if (this.childAvatar == false)
             {
-                this.SendTerseUpdateToALLClients();
-                _updateCount = 0;
-            }
-            else if (movementflag != 0)
-            {
-                _updateCount++;
-                if (_updateCount > 3)
+                if (this.newForce)
                 {
                     this.SendTerseUpdateToALLClients();
                     _updateCount = 0;
                 }
-            }
+                else if (movementflag != 0)
+                {
+                    _updateCount++;
+                    if (_updateCount > 3)
+                    {
+                        this.SendTerseUpdateToALLClients();
+                        _updateCount = 0;
+                    }
+                }
 
-            LLVector3 pos2 = this.Pos;
-            LLVector3 vel = this.Velocity;
-
-            float timeStep = 0.3f;
-            pos2.X = pos2.X + (vel.X * timeStep);
-            pos2.Y = pos2.Y + (vel.Y * timeStep);
-            pos2.Z = pos2.Z + (vel.Z * timeStep);
-            if ((pos2.X < 0) || (pos2.X > 256))
-            {
-                this.CrossToNewRegion();
-            }
-
-            if ((pos2.Y < 0) || (pos2.Y > 256))
-            {
-                this.CrossToNewRegion(); 
+                this.CheckBorderCrossing();
             }
         }
 
@@ -165,10 +153,35 @@ namespace OpenSim.Region.Scenes
            
         }
 
-        private void CrossToNewRegion()
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void CheckBorderCrossing()
         {
-            
-           // Console.WriteLine("crossing to new region from region " + this.m_regionInfo.RegionLocX + " , "+ this.m_regionInfo.RegionLocY);
+            LLVector3 pos2 = this.Pos;
+            LLVector3 vel = this.Velocity;
+
+            float timeStep = 0.3f;
+            pos2.X = pos2.X + (vel.X * timeStep);
+            pos2.Y = pos2.Y + (vel.Y * timeStep);
+            pos2.Z = pos2.Z + (vel.Z * timeStep);
+
+            if ((pos2.X < 0) || (pos2.X > 256))
+            {
+                this.CrossToNewRegion();
+            }
+
+            if ((pos2.Y < 0) || (pos2.Y > 256))
+            {
+                this.CrossToNewRegion();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void CrossToNewRegion()
+        {
             LLVector3 pos = this.Pos;
             LLVector3 newpos = new LLVector3(pos.X, pos.Y, pos.Z);
             uint neighbourx = this.m_regionInfo.RegionLocX;
@@ -196,14 +209,14 @@ namespace OpenSim.Region.Scenes
             }
 
             LLVector3 vel = this.velocity;
-           // Console.WriteLine("new region should be " + neighbourx + " , " + neighboury);
             ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * 256), (uint)(neighboury* 256));
             RegionInfo neighbourRegion = this.m_world.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
-              //  Console.WriteLine("current region port is "+ this.m_regionInfo.IPListenPort + " now crossing to new region with port " + neighbourRegion.IPListenPort);
                 this.m_world.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos);
+                this.DownGradeAvatar();
                 this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, System.Net.IPAddress.Parse(neighbourRegion.IPListenAddr), (ushort)neighbourRegion.IPListenPort);
+               
             }
         }
 

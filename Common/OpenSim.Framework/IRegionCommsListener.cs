@@ -37,7 +37,7 @@ namespace OpenSim.Framework
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
     public delegate void AgentCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position);
 
-    public interface IRegionCommsHost
+    public interface IRegionCommsListener
     {
         event ExpectUserDelegate OnExpectUser;
         event GenericCall2 OnExpectChildAgent;

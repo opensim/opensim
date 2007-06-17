@@ -103,7 +103,7 @@ namespace OpenSim.Region.Scenes
             ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
             ControllingClient.OnAgentUpdate += new UpdateAgent(this.HandleAgentUpdate);
            // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
-            ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
+           // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
             
         }
@@ -138,7 +138,34 @@ namespace OpenSim.Region.Scenes
                 
             }
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        public void UpGradeAvatar(LLVector3 pos)
+        {
+            //this.childAvatar = false;
+            this.Pos = pos;
+        }
+
+        protected void DownGradeAvatar()
+        {
+            this.Velocity = new LLVector3(0, 0, 0);
+            this.Pos = new LLVector3(128, 128, 70);
+            this.childAvatar = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        public void Teleport(LLVector3 pos)
+        {
+            this.Pos = pos;
+            this.SendTerseUpdateToALLClients();
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -189,7 +216,16 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void CompleteMovement()
         {
-            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo, Pos);
+            LLVector3 look = this.Velocity;
+            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
+            {
+                look = new LLVector3(0.99f, 0.042f, 0);
+            }
+            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo, Pos, look);
+            if (this.childAvatar)
+            {
+                this.childAvatar = false;
+            }
         }
 
         /// <summary>
