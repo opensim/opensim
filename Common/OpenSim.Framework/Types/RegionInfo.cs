@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Globalization;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Console;
@@ -178,6 +179,32 @@ namespace OpenSim.Framework.Types
                         this.IPListenAddr = attri;
                     }
                 }
+
+                attri = "";
+                attri = configData.GetAttribute("TerrainFile");
+                if (attri == "")
+                {
+                    this.estateSettings.terrainFile = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Default Terrain File", "default.r32");
+                    configData.SetAttribute("TerrainFile", this.estateSettings.terrainFile);
+                }
+                else
+                {
+                    this.estateSettings.terrainFile = attri;
+                }
+
+                attri = "";
+                attri = configData.GetAttribute("TerrainMultiplier");
+                if (attri == "")
+                {
+                    string re = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Terrain Height Multiplier", "60.0");
+                    this.estateSettings.terrainMultiplier = Convert.ToDouble(re, CultureInfo.InvariantCulture);
+                    configData.SetAttribute("TerrainMultiplier", this.estateSettings.terrainMultiplier.ToString());
+                }
+                else
+                {
+                    this.estateSettings.terrainMultiplier = Convert.ToDouble(attri);
+                }
+
                 attri = "";
                 attri = configData.GetAttribute("MasterAvatarFirstName");
                 if (attri == "")

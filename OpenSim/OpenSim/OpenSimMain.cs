@@ -100,12 +100,14 @@ namespace OpenSim
 
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
+            CommunicationsLocal sandboxCommunications = null;
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
-                this.commsManager = new CommunicationsLocal();
+                sandboxCommunications = new CommunicationsLocal();
+                this.commsManager = sandboxCommunications;
             }
             else
             {
@@ -132,7 +134,7 @@ namespace OpenSim
             {
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
-                loginServer.SetSessionHandler(((CommunicationsLocal)this.commsManager).SandManager.AddNewSession);
+                loginServer.SetSessionHandler(sandboxCommunications.SandBoxManager.AddNewSession);
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }

@@ -39,13 +39,13 @@ namespace OpenSim.LocalCommunications
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public LocalBackEndServices SandManager = new LocalBackEndServices();
+        public LocalBackEndServices SandBoxManager = new LocalBackEndServices();
 
         public CommunicationsLocal()
         {
             UserServer = null;
-            GridServer = SandManager;
-            InterRegion = SandManager;
+            GridServer = SandBoxManager;
+            InterRegion = SandBoxManager;
         }
     }
 }
