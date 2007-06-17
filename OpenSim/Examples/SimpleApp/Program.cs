@@ -6,7 +6,6 @@ using OpenSim.GridInterfaces.Local;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
-using OpenSim.world;
 using OpenSim.Assets;
 using libsecondlife;
 using OpenSim.UserServer;

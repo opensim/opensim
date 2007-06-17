@@ -8,7 +8,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.UserServer;
 using OpenSim.Framework.Console;
-using OpenSim.world;
 using OpenSim.Assets;
 using libsecondlife;
 using OpenSim.Framework;

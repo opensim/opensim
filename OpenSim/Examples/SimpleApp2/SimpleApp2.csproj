@@ -62,10 +62,6 @@
       <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.World" >
-      <HintPath>OpenSim.World.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" >
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
