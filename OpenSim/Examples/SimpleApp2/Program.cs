@@ -9,9 +9,10 @@ using OpenSim.Framework.Types;
 using OpenSim.UserServer;
 using OpenSim.Framework.Console;
 using OpenSim.world;
-using OpenSim.Physics.Manager;
 using OpenSim.Assets;
 using libsecondlife;
+using OpenSim.Framework;
+using OpenSim.Caches;
 
 namespace SimpleApp2
 {
@@ -37,8 +38,8 @@ namespace SimpleApp2
             LoginServer loginServer = new LoginServer(simAddr, simPort, 0, 0, false);
             loginServer.Startup();
 
-            AuthenticateSessionsLocal localSessions = new AuthenticateSessionsLocal();
-            loginServer.SetSessionHandler(localSessions.AddNewSessionHandler);
+            AuthenticateSessionsBase localSessions = new AuthenticateSessionsBase();
+            loginServer.SetSessionHandler( AddNewSessionHandler );
 
             InventoryCache inventoryCache = new InventoryCache();
 
@@ -86,9 +87,10 @@ namespace SimpleApp2
             return map;
         }
 
-        private void AddNewSessionHandler(Login loginData)
+        private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
-            m_console.WriteLine(LogPriority.NORMAL, "Recieved Login from [{0}] [{1}]", loginData.First, loginData.Last);
+            m_console.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
+            return true;
         }
 
         static void Main(string[] args)

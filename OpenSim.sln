@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C# Express 2005
+# Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework.Communications", "Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj", "{683344D5-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim", "OpenSim\OpenSim\OpenSim.csproj", "{438A9556-0000-0000-0000-000000000000}"
@@ -39,6 +39,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Storage.LocalStorageSQLite", "OpenSim\OpenSim.Storage\LocalStorageSQLite\OpenSim.Storage.LocalStorageSQLite.csproj", "{6B20B603-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Terrain.BasicTerrain", "OpenSim\OpenSim.Terrain.BasicTerrain\OpenSim.Terrain.BasicTerrain.csproj", "{2270B8FE-0000-0000-0000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleApp", "OpenSim\Examples\SimpleApp\SimpleApp.csproj", "{24B12448-0000-0000-0000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleApp2", "OpenSim\Examples\SimpleApp2\SimpleApp2.csproj", "{24DF2448-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMLRPC", "Common\XmlRpcCS\XMLRPC.csproj", "{8E81D43C-0000-0000-0000-000000000000}"
 EndProject
@@ -128,6 +132,14 @@ Global
 		{2270B8FE-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2270B8FE-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2270B8FE-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24B12448-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24B12448-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24B12448-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24B12448-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24DF2448-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24DF2448-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24DF2448-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24DF2448-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8E81D43C-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E81D43C-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E81D43C-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU

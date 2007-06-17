@@ -12,13 +12,6 @@
         <property name="build.debug" value="true" />
     </target>
 
-    <property name="project.config" value="Release" />
-
-    <target name="Release" description="">
-        <property name="project.config" value="Release" />
-        <property name="build.debug" value="false" />
-    </target>
-
     <target name="net-1.1" description="Sets framework to .NET 1.1">
         <property name="nant.settings.currentframework" value="net-1.1" />
     </target>

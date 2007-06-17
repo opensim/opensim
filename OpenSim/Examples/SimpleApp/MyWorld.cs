@@ -51,7 +51,7 @@ namespace SimpleApp
 
             client.OnCompleteMovementToRegion += delegate()
                 {
-                    client.MoveAgentIntoRegion(m_regionInfo);
+                    client.MoveAgentIntoRegion(m_regionInfo, pos, LLVector3.Zero );
                 };
 
             client.OnCompleteMovementToRegion += delegate()

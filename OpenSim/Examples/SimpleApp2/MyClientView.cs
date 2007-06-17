@@ -9,6 +9,7 @@ using libsecondlife.Packets;
 using OpenSim.Assets;
 using OpenSim.Framework.Types;
 using OpenSim.Framework;
+using OpenSim.Caches;
 
 namespace SimpleApp2
 {
@@ -40,7 +41,7 @@ namespace SimpleApp2
         {
             LLVector3 pos = new LLVector3(128, 128, 128);
 
-            MoveAgentIntoRegion(m_world.RegionInfo);
+            MoveAgentIntoRegion(m_world.RegionInfo, pos, LLVector3.Zero );
 
             SendAvatarData( m_world.RegionInfo, FirstName,
                                            LastName, AgentId, 0,
