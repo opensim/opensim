@@ -20,6 +20,7 @@
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
                 <include name="../../bin/libTerrain-BSD.dll" />
+                <include name="../../bin/openjpegnet.dll" />
                 <include name="System.dll" />
                 <include name="System.Data.dll" />
                 <include name="System.Drawing.dll" />

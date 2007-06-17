@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using libTerrain;
+using OpenJPEGNet;
 
 namespace OpenSim.Terrain
 {
@@ -506,6 +507,49 @@ namespace OpenSim.Terrain
             {
                 Console.WriteLine("Failed generating terrain map: " + e.ToString());
             }
+        }
+
+        /// <summary>
+        /// Exports the current heightmap in Jpeg2000 format to a byte[]
+        /// </summary>
+        /// <param name="gradientmap">A 1x*height* image which contains the colour gradient to export with. Must be at least 1x2 pixels, 1x256 or more is ideal.</param>
+        public byte[] exportJpegImage(string gradientmap)
+        {
+            byte[] imageData = null;
+            try
+            {
+                Bitmap gradientmapLd = new Bitmap(gradientmap);
+
+                int pallete = gradientmapLd.Height;
+
+                Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
+                Color[] colours = new Color[pallete];
+
+                for (int i = 0; i < pallete; i++)
+                {
+                    colours[i] = gradientmapLd.GetPixel(0, i);
+                }
+
+                Channel copy = heightmap.copy();
+                for (int x = 0; x < copy.w; x++)
+                {
+                    for (int y = 0; y < copy.h; y++)
+                    {
+                        // 512 is the largest possible height before colours clamp
+                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(copy.w -x, copy.h - y) / 512.0), 0.0) * pallete);
+                        bmp.SetPixel(x, y, colours[colorindex]);
+                    }
+                }
+
+                //bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
+                imageData = OpenJPEGNet.OpenJPEG.EncodeFromImage(bmp, "map");
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed generating terrain map: " + e.ToString());
+            }
+            return imageData;
         }
     }
 }

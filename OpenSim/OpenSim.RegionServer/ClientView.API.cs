@@ -365,22 +365,22 @@ namespace OpenSim
 
         public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
         {
-            TeleportLocalPacket tpLocal2 = new TeleportLocalPacket();
-            tpLocal2.Info.AgentID = this.AgentID;
-            tpLocal2.Info.TeleportFlags = flags;
-            tpLocal2.Info.LocationID = 2;
-            tpLocal2.Info.LookAt = lookAt;
-            tpLocal2.Info.Position = position;
-            OutPacket(tpLocal2);
+            TeleportLocalPacket tpLocal = new TeleportLocalPacket();
+            tpLocal.Info.AgentID = this.AgentID;
+            tpLocal.Info.TeleportFlags = flags;
+            tpLocal.Info.LocationID = 2;
+            tpLocal.Info.LookAt = lookAt;
+            tpLocal.Info.Position = position;
+            OutPacket(tpLocal);
         }
 
         public void SendRegionTeleport(ulong regionHandle, byte simAccess, string ipAddress, ushort ipPort, uint locationID, uint flags)
         {
-            TeleportFinishPacket Teleport = new TeleportFinishPacket();
-            Teleport.Info.AgentID = this.AgentID;
-            Teleport.Info.RegionHandle = regionHandle;
-            Teleport.Info.SimAccess = simAccess;
-            Teleport.Info.SeedCapability = new byte[0];
+            TeleportFinishPacket teleport = new TeleportFinishPacket();
+            teleport.Info.AgentID = this.AgentID;
+            teleport.Info.RegionHandle = regionHandle;
+            teleport.Info.SimAccess = simAccess;
+            teleport.Info.SeedCapability = new byte[0];
 
             System.Net.IPAddress oIP = System.Net.IPAddress.Parse(ipAddress);
             byte[] byteIP = oIP.GetAddressBytes();
@@ -389,11 +389,11 @@ namespace OpenSim
             ip += (uint)byteIP[1] << 8;
             ip += (uint)byteIP[0];
 
-            Teleport.Info.SimIP = ip;
-            Teleport.Info.SimPort = ipPort;
-            Teleport.Info.LocationID = 4;
-            Teleport.Info.TeleportFlags = 1 << 4; 
-            OutPacket(Teleport);
+            teleport.Info.SimIP = ip;
+            teleport.Info.SimPort = ipPort;
+            teleport.Info.LocationID = 4;
+            teleport.Info.TeleportFlags = 1 << 4; 
+            OutPacket(teleport);
         }
 
         /// <summary>

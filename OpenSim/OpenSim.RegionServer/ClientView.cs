@@ -75,7 +75,6 @@ namespace OpenSim
         protected IWorld m_world;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
-        //private IGridServer m_gridServer;
         private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
@@ -95,7 +94,6 @@ namespace OpenSim
             cirpack = initialcirpack;
             userEP = remoteEP;
 
-            //this.m_child = m_authenticateSessionsHandler.GetAgentChildStatus(initialcirpack.CircuitCode.Code);
             this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
 
             PacketQueue = new BlockingQueue<QueItem>();

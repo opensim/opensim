@@ -190,9 +190,7 @@ namespace OpenSim
                 mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
             }
             this.OutPacket(mbReply);
-             * */
-
-            
+             */
         }
 
        

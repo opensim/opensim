@@ -129,7 +129,7 @@ namespace OpenSim.LocalCommunications
                     map.X = (ushort)regInfo.RegionLocX;
                     map.Y = (ushort)regInfo.RegionLocY;
                     map.WaterHeight =(byte) regInfo.estateSettings.waterHeight;
-                    map.MapImageId = new LLUUID("00000000-0000-0000-9999-000000000007");
+                    map.MapImageId = regInfo.estateSettings.terrainImageID; //new LLUUID("00000000-0000-0000-9999-000000000007");
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
                     map.Access = 13;

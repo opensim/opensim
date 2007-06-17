@@ -60,7 +60,7 @@ namespace OpenSim.Region.Scenes
                     }
                 }
 
-                this.CheckBorderCrossing();
+                this.CheckForBorderCrossing();
             }
         }
 
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// 
         /// </summary>
-        protected void CheckBorderCrossing()
+        protected void CheckForBorderCrossing()
         {
             LLVector3 pos2 = this.Pos;
             LLVector3 vel = this.Velocity;

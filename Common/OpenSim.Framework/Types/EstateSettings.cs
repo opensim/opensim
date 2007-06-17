@@ -91,6 +91,7 @@ namespace OpenSim.Framework.Types
         public double terrainMultiplier = 60.0;
         public float waterHeight = (float)20.0;
 
+        public LLUUID terrainImageID = LLUUID.Zero; // the assetID that is the current Map image for this region
 
     }
 }

@@ -424,6 +424,17 @@ namespace OpenSim.Region.Scenes
                 {
                     this.Terrain.setHeights1D(map);
                 }
+
+                //create a texture asset of the terrain 
+                byte[] data =this.Terrain.exportJpegImage("defaultstripe.png");
+                this.m_regInfo.estateSettings.terrainImageID=  LLUUID.Random();
+                AssetBase asset = new AssetBase();
+                asset.FullID = this.m_regInfo.estateSettings.terrainImageID;
+                asset.Data = data;
+                asset.Name = "terrainImage";
+                asset.Type = 0;
+                this.assetCache.AddAsset(asset);
+       
             }
             catch (Exception e)
             {

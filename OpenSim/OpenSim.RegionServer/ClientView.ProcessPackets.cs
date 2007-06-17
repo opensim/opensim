@@ -399,7 +399,6 @@ namespace OpenSim
                         {
                             OnRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         }
-                        //this.RequestMapBlocks(MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         break;
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
@@ -451,7 +450,7 @@ namespace OpenSim
                         break;
                     case PacketType.TeleportLocationRequest:
                         TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
-                       // Console.WriteLine(tpLocReq.ToString());
+                        // Console.WriteLine(tpLocReq.ToString());
 
                         if (OnTeleportLocationRequest != null)
                         {
@@ -463,32 +462,8 @@ namespace OpenSim
                             TeleportCancelPacket tpCancel = new TeleportCancelPacket();
                             tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
                             tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
-
                             OutPacket(tpCancel);
                         }
-
-                       /* if (m_regionData.RegionHandle != tpLocReq.Info.RegionHandle)
-                        {
-                            // m_gridServer.getRegion(tpLocReq.Info.RegionHandle);
-                            Console.WriteLine("Inter-sim teleport not yet implemented");
-                            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
-                            tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
-                            tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
-
-                            OutPacket(tpCancel);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Local teleport");
-                            TeleportLocalPacket tpLocal2 = new TeleportLocalPacket();
-                            tpLocal2.Info.AgentID = tpLocReq.AgentData.AgentID;
-                            tpLocal2.Info.TeleportFlags = tpStart.Info.TeleportFlags;
-                            tpLocal2.Info.LocationID = 2;
-                            tpLocal2.Info.LookAt = tpLocReq.Info.LookAt;
-                            tpLocal2.Info.Position = tpLocReq.Info.Position;
-                            OutPacket(tpLocal2);
-
-                        }*/
                         break;
                     #endregion
 

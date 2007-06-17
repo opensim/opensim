@@ -232,24 +232,6 @@ namespace OpenSim.Region.Scenes
         /// 
         /// </summary>
         /// <param name="pack"></param>
-        public void HandleAgentUpdate(Packet pack)
-        {
-            this.HandleUpdate((AgentUpdatePacket)pack);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pack"></param>
-        public void HandleUpdate(AgentUpdatePacket pack)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pack"></param>
         public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
         {
             

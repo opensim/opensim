@@ -429,6 +429,7 @@
       <Reference name="System.Data"/>
       <Reference name="System.Xml"/>
       <Reference name="libTerrain-BSD.dll"/>
+      <Reference name="openjpegnet.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
