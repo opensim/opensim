@@ -49,45 +49,32 @@ namespace OpenSim.GenericConfig
         public void LoadData()
         {
             doc = new XmlDocument();
-            try
-            {
-                if (System.IO.File.Exists(fileName))
-                {
-                    XmlTextReader reader = new XmlTextReader(fileName);
-                    reader.WhitespaceHandling = WhitespaceHandling.None;
-                    doc.Load(reader);
-                    reader.Close();
-                }
-                else
-                {
-                    createdFile = true;
-                    rootNode = doc.CreateNode(XmlNodeType.Element, "Root", "");
-                    doc.AppendChild(rootNode);
-                    configNode = doc.CreateNode(XmlNodeType.Element, "Config", "");
-                    rootNode.AppendChild(configNode);
-                }
 
-            }
-            catch (Exception e)
+            if (System.IO.File.Exists(fileName))
             {
-                Console.WriteLine(e.Message);
-                return;
+                XmlTextReader reader = new XmlTextReader(fileName);
+                reader.WhitespaceHandling = WhitespaceHandling.None;
+                doc.Load(reader);
+                reader.Close();
             }
-            try
+            else
             {
-                rootNode = doc.FirstChild;
-                if (rootNode.Name != "Root")
-                    throw new Exception("Error: Invalid .xml File. Missing <Root>");
+                createdFile = true;
+                rootNode = doc.CreateNode(XmlNodeType.Element, "Root", "");
+                doc.AppendChild(rootNode);
+                configNode = doc.CreateNode(XmlNodeType.Element, "Config", "");
+                rootNode.AppendChild(configNode);
+            }
 
-                configNode = rootNode.FirstChild;
-                if (configNode.Name != "Config")
-                    throw new Exception("Error: Invalid .xml File. <Root> first child should be <Config>");
-                
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+
+            rootNode = doc.FirstChild;
+            if (rootNode.Name != "Root")
+                throw new Exception("Error: Invalid .xml File. Missing <Root>");
+
+            configNode = rootNode.FirstChild;
+            if (configNode.Name != "Config")
+                throw new Exception("Error: Invalid .xml File. <Root> first child should be <Config>");
+
             if (createdFile)
             {
                 this.Commit();
@@ -108,7 +95,7 @@ namespace OpenSim.GenericConfig
         {
             if (configNode.Attributes[attributeName] != null)
             {
-                 ((XmlAttribute)configNode.Attributes.GetNamedItem(attributeName)).Value = attributeValue;
+                ((XmlAttribute)configNode.Attributes.GetNamedItem(attributeName)).Value = attributeValue;
             }
             else
             {
@@ -131,6 +118,6 @@ namespace OpenSim.GenericConfig
             rootNode = null;
             doc = null;
         }
-                             
+
     }
 }
