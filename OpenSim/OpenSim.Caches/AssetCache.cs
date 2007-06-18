@@ -556,63 +556,61 @@ namespace OpenSim.Caches
             return server;
         }
 
-    }
-
-    public class AssetRequest
-    {
-        public IClientAPI RequestUser;
-        public LLUUID RequestAssetID;
-        public AssetInfo AssetInf;
-        public TextureImage ImageInfo;
-        public LLUUID TransferRequestID;
-        public long DataPointer = 0;
-        public int NumPackets = 0;
-        public int PacketCounter = 0;
-        public bool IsTextureRequest;
-        //public bool AssetInCache;
-        //public int TimeRequested; 
-
-        public AssetRequest()
+        public class AssetRequest
         {
+            public IClientAPI RequestUser;
+            public LLUUID RequestAssetID;
+            public AssetInfo AssetInf;
+            public TextureImage ImageInfo;
+            public LLUUID TransferRequestID;
+            public long DataPointer = 0;
+            public int NumPackets = 0;
+            public int PacketCounter = 0;
+            public bool IsTextureRequest;
+            //public bool AssetInCache;
+            //public int TimeRequested; 
 
+            public AssetRequest()
+            {
+
+            }
+        }
+
+        public class AssetInfo : AssetBase
+        {
+            public AssetInfo()
+            {
+
+            }
+
+            public AssetInfo(AssetBase aBase)
+            {
+                Data = aBase.Data;
+                FullID = aBase.FullID;
+                Type = aBase.Type;
+                InvType = aBase.InvType;
+                Name = aBase.Name;
+                Description = aBase.Description;
+            }
+        }
+
+        public class TextureImage : AssetBase
+        {
+            public TextureImage()
+            {
+
+            }
+
+            public TextureImage(AssetBase aBase)
+            {
+                Data = aBase.Data;
+                FullID = aBase.FullID;
+                Type = aBase.Type;
+                InvType = aBase.InvType;
+                Name = aBase.Name;
+                Description = aBase.Description;
+            }
         }
     }
-
-    public class AssetInfo : AssetBase
-    {
-        public AssetInfo()
-        {
-
-        }
-
-        public AssetInfo(AssetBase aBase)
-        {
-            Data = aBase.Data;
-            FullID = aBase.FullID;
-            Type = aBase.Type;
-            InvType = aBase.InvType;
-            Name = aBase.Name;
-            Description = aBase.Description;
-        }
-    }
-
-    public class TextureImage : AssetBase
-    {
-        public TextureImage()
-        {
-
-        }
-
-        public TextureImage(AssetBase aBase)
-        {
-            Data = aBase.Data;
-            FullID = aBase.FullID;
-            Type = aBase.Type;
-            InvType = aBase.InvType;
-            Name = aBase.Name;
-            Description = aBase.Description;
-        }
-    }
-
 }
 

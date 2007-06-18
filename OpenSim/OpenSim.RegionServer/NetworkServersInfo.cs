@@ -32,6 +32,7 @@ using OpenSim.Framework.Interfaces;
 
 namespace OpenSim
 {
+    
     public class NetworkServersInfo
     {
         public string AssetURL = "http://127.0.0.1:8003/";
@@ -115,4 +116,5 @@ namespace OpenSim
             }
         }
     }
+    
 }

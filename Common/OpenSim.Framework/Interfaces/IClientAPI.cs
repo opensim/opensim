@@ -133,6 +133,7 @@ namespace OpenSim.Framework.Interfaces
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendLayerData(float[] map);
+        void SendLayerData(int px, int py, float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);
         void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort);
         AgentCircuitData RequestClientInfo();

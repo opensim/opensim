@@ -446,21 +446,30 @@ namespace OpenSim.Region.Scenes
                     this.Terrain.setHeights1D(map);
                 }
 
-                //create a texture asset of the terrain 
-                byte[] data =this.Terrain.exportJpegImage("defaultstripe.png");
-                this.m_regInfo.estateSettings.terrainImageID=  LLUUID.Random();
-                AssetBase asset = new AssetBase();
-                asset.FullID = this.m_regInfo.estateSettings.terrainImageID;
-                asset.Data = data;
-                asset.Name = "terrainImage";
-                asset.Type = 0;
-                this.assetCache.AddAsset(asset);
+                CreateTerrainTexture();
        
             }
             catch (Exception e)
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CreateTerrainTexture()
+        {
+            //create a texture asset of the terrain 
+            byte[] data = this.Terrain.exportJpegImage("defaultstripe.png");
+            this.m_regInfo.estateSettings.terrainImageID = LLUUID.Random();
+            AssetBase asset = new AssetBase();
+            asset.FullID = this.m_regInfo.estateSettings.terrainImageID;
+            asset.Data = data;
+            asset.Name = "terrainImage";
+            asset.Type = 0;
+            this.assetCache.AddAsset(asset);
         }
         #endregion
 
@@ -818,7 +827,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="RemoteClient"></param>
         public override void SendLayerData(int px, int py, IClientAPI RemoteClient)
         {
-            RemoteClient.SendLayerData( Terrain.getHeights1D() );
+            RemoteClient.SendLayerData(px, py, Terrain.getHeights1D());
         }
     }
 }
