@@ -102,6 +102,9 @@
     <Compile Include="IRegionCommsListener.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Logger.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LoginService.cs">
       <SubType>Code</SubType>
     </Compile>
