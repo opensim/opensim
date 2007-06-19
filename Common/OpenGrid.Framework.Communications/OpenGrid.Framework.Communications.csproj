@@ -97,7 +97,6 @@
     <Compile Include="IInterRegionCommunications.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ILoginService.cs" />
     <Compile Include="IUserServices.cs">
       <SubType>Code</SubType>
     </Compile>

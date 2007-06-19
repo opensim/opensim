@@ -35,7 +35,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenGrid.Framework.Communications;
 
-using OpenSim.LocalCommunications.LocalLoginManagement;
 using OpenSim.LocalCommunications.LocalUserManagement;
 
 namespace OpenSim.LocalCommunications
@@ -44,14 +43,11 @@ namespace OpenSim.LocalCommunications
     {
         public LocalBackEndServices SandBoxManager = new LocalBackEndServices();
         public LocalUserServices UserServices = new LocalUserServices();
-        public LocalLoginService LoginService;
     
         public CommunicationsLocal()
         {
-            LoginService = new LocalLoginService(this.UserServices);
 
             UserServer = UserServices;
-            LoginServer = LoginService;
             GridServer = SandBoxManager;
             InterRegion = SandBoxManager;
         }

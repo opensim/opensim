@@ -40,7 +40,6 @@ namespace OpenGrid.Framework.Communications
     public class CommunicationsManager
     {
         public IUserServices UserServer;
-        public ILoginService LoginServer;
         public IGridServices GridServer;
         public IInterRegionCommunications InterRegion;
 

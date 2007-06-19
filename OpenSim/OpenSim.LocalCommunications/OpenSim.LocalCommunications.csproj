@@ -100,7 +100,7 @@
     <Compile Include="LocalBackEndServices.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LocalLoginManagement\LocalLoginService.cs" />
+    <Compile Include="LocalUserManagement\LocalLoginService.cs" />
     <Compile Include="LocalUserManagement\LocalUserServices.cs" />
     <Compile Include="LocalUserManagement\UserProfileManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
