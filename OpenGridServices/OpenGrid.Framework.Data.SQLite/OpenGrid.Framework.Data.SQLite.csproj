@@ -80,7 +80,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenGrid.Framework.Data\OpenGrid.Framework.Data.csproj">
+    <ProjectReference Include="..\..\Common\OpenGrid.Framework.Data\OpenGrid.Framework.Data.csproj">
       <Name>OpenGrid.Framework.Data</Name>
       <Project>{62CDF671-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>

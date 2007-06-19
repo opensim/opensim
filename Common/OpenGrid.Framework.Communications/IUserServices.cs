@@ -30,15 +30,15 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 
-using OpenSim.Framework.User;
+using OpenGrid.Framework.Data;
 
 namespace OpenGrid.Framework.Communications
 {
     public interface IUserServices
     {
-        UserProfile GetUserProfile(string first_name, string last_name);
-        UserProfile GetUserProfile(string name);
-        UserProfile GetUserProfile(LLUUID avatar_id);
+        UserProfileData GetUserProfile(string first_name, string last_name);
+        UserProfileData GetUserProfile(string name);
+        UserProfileData GetUserProfile(LLUUID avatar_id);
         
     }
 }

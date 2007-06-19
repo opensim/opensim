@@ -35,21 +35,19 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenGrid.Framework.Communications;
 
-using OpenSim.LocalCommunications.LocalUserManagement;
 
 namespace OpenSim.LocalCommunications
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public LocalBackEndServices SandBoxManager = new LocalBackEndServices();
-        public LocalUserServices UserServices = new LocalUserServices();
+        public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
+        protected LocalUserServices UserServices = new LocalUserServices();
     
         public CommunicationsLocal()
         {
-
             UserServer = UserServices;
-            GridServer = SandBoxManager;
-            InterRegion = SandBoxManager;
+            GridServer = SandBoxServices;
+            InterRegion = SandBoxServices;
         }
     }
 }

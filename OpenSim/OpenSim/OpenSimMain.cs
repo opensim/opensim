@@ -134,7 +134,7 @@ namespace OpenSim
             {
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
-                loginServer.SetSessionHandler(sandboxCommunications.SandBoxManager.AddNewSession);
+                loginServer.SetSessionHandler(sandboxCommunications.SandBoxServices.AddNewSession);
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
             }
