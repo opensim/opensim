@@ -150,6 +150,24 @@ namespace OpenSim.Terrain
         }
 
         /// <summary>
+        /// Swaps the two heightmap buffers (the 'revert map' and the heightmap)
+        /// </summary>
+        public void swapRevertMaps()
+        {
+            Channel backup = heightmap.copy();
+            heightmap = revertmap;
+            revertmap = backup;
+        }
+
+        /// <summary>
+        /// Saves the current heightmap into the revertmap
+        /// </summary>
+        public void saveRevertMap()
+        {
+            revertmap = heightmap.copy();
+        }
+
+        /// <summary>
         /// Processes a terrain-specific command
         /// </summary>
         /// <param name="args">Commandline arguments (space seperated)</param>
@@ -175,7 +193,18 @@ namespace OpenSim.Terrain
                         resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
                         resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
+                        resultText += "terrain revert - reverts the terrain to the stored original";
+                        resultText += "terrain bake - saves the current terrain into the revert map";
                         return false;
+
+                    case "revert":
+                        swapRevertMaps();
+                        saveRevertMap();
+                        break;
+
+                    case "bake":
+                        saveRevertMap();
+                        break;
 
                     case "seed":
                         setSeed(Convert.ToInt32(args[1]));
@@ -222,7 +251,7 @@ namespace OpenSim.Terrain
                                 break;
 
                             case "img":
-                                resultText = "Error - IMG mode is presently unsupported.";
+                                heightmap.loadImage(args[2]);
                                 return false;
 
                             default:
