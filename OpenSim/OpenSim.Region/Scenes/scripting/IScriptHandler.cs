@@ -32,7 +32,7 @@ using libsecondlife;
 using OpenSim.Physics.Manager;
 using OpenSim.Region;
 using OpenSim.Region.Scenes;
-using Avatar=OpenSim.Region.Scenes.Avatar;
+using Avatar=OpenSim.Region.Scenes.ScenePresence;
 using Primitive = OpenSim.Region.Scenes.Primitive;
 
 namespace OpenSim.Region.Scripting

@@ -43,7 +43,7 @@ using OpenSim.Caches;
 
 namespace OpenSim.Region.Scenes
 {
-    public abstract class SceneBase : IWorld
+    public abstract class SceneBase :  IWorld 
     {
         public Dictionary<libsecondlife.LLUUID, Entity> Entities;
         protected Dictionary<uint, IClientAPI> m_clientThreads;
@@ -98,13 +98,13 @@ namespace OpenSim.Region.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="agentID"></param>
         /// <param name="child"></param>
-        public abstract void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child);
+        public abstract void AddNewClient(IClientAPI remoteClient, LLUUID agentID, bool child);
         
         /// <summary>
         /// 
         /// </summary>
         /// <param name="agentID"></param>
-        public abstract void RemoveAvatar(LLUUID agentID);
+        public abstract void RemoveClient(LLUUID agentID);
        
         #endregion
 

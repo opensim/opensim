@@ -70,7 +70,6 @@
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="clean" />
         <nant buildfile="OpenSim/OpenSim.Terrain.BasicTerrain/OpenSim.Terrain.BasicTerrain.dll.build" target="clean" />
         <nant buildfile="OpenSim/Examples/SimpleApp/SimpleApp.exe.build" target="clean" />
-        <nant buildfile="OpenSim/Examples/SimpleApp2/SimpleApp2.exe.build" target="clean" />
         <nant buildfile="Common/XmlRpcCS/XMLRPC.dll.build" target="clean" />
     </target>
 
@@ -100,7 +99,6 @@
         <nant buildfile="OpenSim/OpenSim.Region/OpenSim.Region.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim/OpenSim.exe.build" target="build" />
         <nant buildfile="OpenSim/Examples/SimpleApp/SimpleApp.exe.build" target="build" />
-        <nant buildfile="OpenSim/Examples/SimpleApp2/SimpleApp2.exe.build" target="build" />
     </target>
 
     <target name="build-release" depends="Release, init, build" description="Builds in Release mode" />
@@ -135,7 +133,6 @@
         <nant buildfile="OpenSim/OpenSim.Storage/LocalStorageSQLite/OpenSim.Storage.LocalStorageSQLite.dll.build" target="doc" />
         <nant buildfile="OpenSim/OpenSim.Terrain.BasicTerrain/OpenSim.Terrain.BasicTerrain.dll.build" target="doc" />
         <nant buildfile="OpenSim/Examples/SimpleApp/SimpleApp.exe.build" target="doc" />
-        <nant buildfile="OpenSim/Examples/SimpleApp2/SimpleApp2.exe.build" target="doc" />
         <nant buildfile="Common/XmlRpcCS/XMLRPC.dll.build" target="doc" />
     </target>
 

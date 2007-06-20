@@ -21,13 +21,15 @@
                     <include name="${project::get-base-directory()}/${build.dir}" />
                 </lib>
                 <include name="../../../bin/libsecondlife.dll" />
+                <include name="../../../bin/OpenGrid.Framework.Communications.dll" />
                 <include name="../../../bin/OpenSim.Caches.dll" />
                 <include name="../../../bin/OpenSim.Framework.dll" />
                 <include name="../../../bin/OpenSim.Framework.Console.dll" />
                 <include name="../../../bin/OpenSim.GridInterfaces.Local.dll" />
+                <include name="../../../bin/OpenSim.LocalCommunications.dll" />
+                <include name="../../../bin/OpenSim.Region.dll" />
                 <include name="../../../bin/OpenSim.RegionServer.dll" />
                 <include name="../../../bin/OpenSim.Servers.dll" />
-                <include name="OpenSim.World.dll" />
                 <include name="System.dll" />
                 <include name="System.Data.dll.dll" />
                 <include name="System.Xml.dll" />

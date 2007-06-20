@@ -75,7 +75,7 @@ namespace OpenSim.Region.Scenes
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             Console.WriteLine("Chat message");
-            Avatar avatar = null;
+            ScenePresence avatar = null;
             foreach (IClientAPI client in m_clientThreads.Values)
             {
                 int dis = -1000;

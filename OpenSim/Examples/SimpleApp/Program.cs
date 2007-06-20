@@ -19,13 +19,13 @@ namespace SimpleApp
 {
     class Program : IAssetReceiver, conscmd_callback
     {
-        private ConsoleBase m_console;
+        private LogBase m_console;
         AuthenticateSessionsBase m_circuitManager;
         
         private void Run()
         {
-            m_console = new ConsoleBase(null, "SimpleApp", this, false);
-            MainConsole.Instance = m_console;
+            m_console = new LogBase(null, "SimpleApp", this, false);
+            MainLog.Instance = m_console;
 
             CheckSumServer checksumServer = new CheckSumServer(12036);
             checksumServer.ServerListener();

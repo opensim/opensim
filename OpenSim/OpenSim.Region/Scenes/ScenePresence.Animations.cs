@@ -33,7 +33,7 @@ using System.Xml;
 
 namespace OpenSim.Region.Scenes
 {
-    partial class Avatar
+    partial class ScenePresence
     {
         public class AvatarAnimations
         {
@@ -66,7 +66,7 @@ namespace OpenSim.Region.Scenes
 
                 // OpenSim.Framework.Console.MainLog.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
-                foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Scenes.Avatar.Animations.AnimsLLUUID)
+                foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Scenes.ScenePresence.Animations.AnimsLLUUID)
                 {
                     AnimsNames.Add(kp.Value, kp.Key);
                 }

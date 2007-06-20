@@ -12,9 +12,9 @@
             </resources>
             <sources failonempty="true">
                 <include name="AssemblyInfo.cs" />
-                <include name="ConsoleBase.cs" />
                 <include name="ConsoleCallbacksBase.cs" />
-                <include name="MainConsole.cs" />
+                <include name="LogBase.cs" />
+                <include name="MainLog.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

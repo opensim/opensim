@@ -169,7 +169,7 @@ namespace OpenSim.Region.Scenes
             uint res = 0;
             foreach (Entity entity in this.Entities.Values)
             {
-                if (entity is Avatar)
+                if (entity is ScenePresence)
                 {
                     res = entity.LocalId;
                 }

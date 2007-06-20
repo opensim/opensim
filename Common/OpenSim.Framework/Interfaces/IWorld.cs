@@ -35,8 +35,8 @@ namespace OpenSim.Framework.Interfaces
 {
     public interface IWorld
     {
-        void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child);
-        void RemoveAvatar(LLUUID agentID);
+        void AddNewClient(IClientAPI remoteClient, LLUUID agentID, bool child);
+        void RemoveClient(LLUUID agentID);
         
         RegionInfo RegionInfo { get; }
         object SyncRoot { get; }

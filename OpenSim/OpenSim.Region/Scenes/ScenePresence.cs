@@ -39,7 +39,7 @@ using Axiom.MathLib;
 
 namespace OpenSim.Region.Scenes
 {
-    public partial class Avatar : Entity
+    public partial class ScenePresence : Entity
     {
         public static bool PhysicsEngineFlying = false;
         public static AvatarAnimations Animations;
@@ -70,7 +70,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="world"></param>
         /// <param name="clientThreads"></param>
         /// <param name="regionDat"></param>
-        public Avatar(IClientAPI theClient, Scene world, RegionInfo reginfo)
+        public ScenePresence(IClientAPI theClient, Scene world, RegionInfo reginfo)
         {
 
             m_world = world;
@@ -93,15 +93,15 @@ namespace OpenSim.Region.Scenes
             Wearables = AvatarWearable.DefaultWearables;
             
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-            
+
             //register for events
-            ControllingClient.OnRequestWearables += new GenericCall(this.SendOurAppearance);
+            ControllingClient.OnRequestWearables += this.SendOurAppearance;
             //ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
-            ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.CompleteMovement);
-            ControllingClient.OnCompleteMovementToRegion += new GenericCall2(this.SendInitialPosition);
-            ControllingClient.OnAgentUpdate += new UpdateAgent(this.HandleAgentUpdate);
-           // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
-           // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
+            ControllingClient.OnCompleteMovementToRegion += this.CompleteMovement;
+            ControllingClient.OnCompleteMovementToRegion += this.SendInitialPosition;
+            ControllingClient.OnAgentUpdate += this.HandleAgentUpdate;
+            // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
+            // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
             
         }
@@ -202,7 +202,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void SendTerseUpdateToALLClients()
         {
-            List<Avatar> avatars = this.m_world.RequestAvatarList();
+            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
                 this.SendTerseUpdateToClient(avatars[i].ControllingClient);

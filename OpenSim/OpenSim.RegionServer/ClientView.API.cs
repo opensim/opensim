@@ -483,13 +483,13 @@ namespace OpenSim
         /// <param name="avatarID"></param>
         /// <param name="avatarLocalID"></param>
         /// <param name="Pos"></param>
-        public void SendAvatarData(RegionInfo regionInfo, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos)
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos)
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
 
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
-            objupdate.RegionData.RegionHandle = regionInfo.RegionHandle;
+            objupdate.RegionData.RegionHandle = regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = this.CreateDefaultAvatarPacket();

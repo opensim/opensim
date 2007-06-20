@@ -36,7 +36,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Scenes
 {
-    partial class Avatar
+    partial class ScenePresence
     { 
         /// <summary>
         /// 
@@ -68,7 +68,7 @@ namespace OpenSim.Region.Scenes
         /// 
         /// </summary>
         /// <param name="remoteAvatar"></param>
-        public void SendUpdateToOtherClient(Avatar remoteAvatar)
+        public void SendUpdateToOtherClient(ScenePresence remoteAvatar)
         {
           
         }
@@ -87,7 +87,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void SendInitialPosition()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos);
+            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace OpenSim.Region.Scenes
         /// 
         /// </summary>
         /// <param name="avatarInfo"></param>
-        public void SendAppearanceToOtherAgent(Avatar avatarInfo)
+        public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
         {
             
         }
@@ -161,7 +161,7 @@ namespace OpenSim.Region.Scenes
             LLVector3 pos2 = this.Pos;
             LLVector3 vel = this.Velocity;
 
-            float timeStep = 0.3f;
+            float timeStep = 0.2f;
             pos2.X = pos2.X + (vel.X * timeStep);
             pos2.Y = pos2.Y + (vel.Y * timeStep);
             pos2.Z = pos2.Z + (vel.Z * timeStep);

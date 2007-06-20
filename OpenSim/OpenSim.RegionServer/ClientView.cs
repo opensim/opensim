@@ -71,7 +71,7 @@ namespace OpenSim
 
         private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
-        private bool debug = false;
+        private bool debug = true;
         protected IWorld m_world;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
@@ -124,7 +124,7 @@ namespace OpenSim
             }
 
             this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-            m_world.RemoveAvatar(this.AgentId);
+            m_world.RemoveClient(this.AgentId);
 
             m_clientThreads.Remove(this.CircuitCode);
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
@@ -211,7 +211,7 @@ namespace OpenSim
         protected virtual void InitNewClient()
         {
             OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
-            this.m_world.AddNewAvatar(this, this.AgentID, false);
+            this.m_world.AddNewClient(this, this.AgentID, false);
         }
 
         protected virtual void AuthUser()

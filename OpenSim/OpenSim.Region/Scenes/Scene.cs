@@ -46,12 +46,12 @@ using OpenSim.Caches;
 
 namespace OpenSim.Region.Scenes
 {
-    public delegate bool FilterAvatarList(Avatar avatar);
+    public delegate bool FilterAvatarList(ScenePresence avatar);
 
     public partial class Scene : SceneBase, ILocalStorageReceiver, IScriptAPI
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
-        protected Dictionary<libsecondlife.LLUUID, Avatar> Avatars;
+        protected Dictionary<libsecondlife.LLUUID, ScenePresence> Avatars;
         protected Dictionary<libsecondlife.LLUUID, Primitive> Prims;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
@@ -66,7 +66,7 @@ namespace OpenSim.Region.Scenes
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
-        
+
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;
@@ -119,14 +119,14 @@ namespace OpenSim.Region.Scenes
 
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating new entitities instance");
                 Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
-                Avatars = new Dictionary<LLUUID, Avatar>();
+                Avatars = new Dictionary<LLUUID, ScenePresence>();
                 Prims = new Dictionary<LLUUID, Primitive>();
 
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating LandMap");
                 TerrainManager = new TerrainManager(new SecondLife());
                 Terrain = new TerrainEngine();
-                
-                Avatar.LoadAnims();
+
+                ScenePresence.LoadAnims();
             }
             catch (Exception e)
             {
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Scenes
                 OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
-             
+
         }
 
         /// <summary>
@@ -408,6 +408,7 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// Loads the World heightmap
         /// </summary>
+        /// 
         public override void LoadWorldMap()
         {
             try
@@ -415,16 +416,16 @@ namespace OpenSim.Region.Scenes
                 float[] map = this.localStorage.LoadWorld();
                 if (map == null)
                 {
-                   // Console.WriteLine("creating new terrain");
-                   // this.Terrain.hills();
+                    // Console.WriteLine("creating new terrain");
+                    // this.Terrain.hills();
 
-                   // this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                    // this.localStorage.SaveMap(this.Terrain.getHeights1D());
                     if (string.IsNullOrEmpty(this.m_regInfo.estateSettings.terrainFile))
                     {
                         Console.WriteLine("No default terrain, procedurally generating...");
                         this.Terrain.hills();
 
-                       // this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        // this.localStorage.SaveMap(this.Terrain.getHeights1D());
                     }
                     else
                     {
@@ -438,7 +439,7 @@ namespace OpenSim.Region.Scenes
                             Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
                             Terrain.hills();
                         }
-                       // this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        // this.localStorage.SaveMap(this.Terrain.getHeights1D());
                     }
                 }
                 else
@@ -447,14 +448,13 @@ namespace OpenSim.Region.Scenes
                 }
 
                 CreateTerrainTexture();
-       
+
             }
             catch (Exception e)
             {
                 OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
-
 
         /// <summary>
         /// 
@@ -520,15 +520,19 @@ namespace OpenSim.Region.Scenes
         {
             try
             {
+
                // MainLog.Instance.Notice("World.cs: AddNewPrim() - Creating new prim");
+
                 Primitive prim = new Primitive(m_regionHandle, this, addPacket, ownerID, this._primCount);
-                
+
                 this.Entities.Add(prim.uuid, prim);
                 this._primCount++;
             }
             catch (Exception e)
             {
+
                // MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
+
             }
         }
 
@@ -542,16 +546,16 @@ namespace OpenSim.Region.Scenes
         /// <param name="remoteClient"></param          
         /// <param name="agentID"></param>
         /// <param name="child"></param>
-        public override void AddNewAvatar(IClientAPI remoteClient, LLUUID agentID, bool child)
+        public override void AddNewClient(IClientAPI remoteClient, LLUUID agentID, bool child)
         {
-            remoteClient.OnRegionHandShakeReply += new GenericCall(this.SendLayerData);
+            remoteClient.OnRegionHandShakeReply += this.SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
-            remoteClient.OnChatFromViewer += new ChatFromViewer(this.SimChat);
-            remoteClient.OnRequestWearables += new GenericCall(this.InformClientOfNeighbours);
-            remoteClient.OnAddPrim += new GenericCall4(this.AddNewPrim);
-            remoteClient.OnUpdatePrimPosition += new UpdatePrimVector(this.UpdatePrimPosition);
-            remoteClient.OnRequestMapBlocks += new RequestMapBlocks(this.RequestMapBlocks);
-            remoteClient.OnTeleportLocationRequest += new TeleportLocationRequest(this.RequestTeleportLocation);
+            remoteClient.OnChatFromViewer += this.SimChat;
+            remoteClient.OnRequestWearables += this.InformClientOfNeighbours;
+            remoteClient.OnAddPrim += this.AddNewPrim;
+            remoteClient.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            remoteClient.OnRequestMapBlocks += this.RequestMapBlocks;
+            remoteClient.OnTeleportLocationRequest += this.RequestTeleportLocation;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
@@ -560,11 +564,12 @@ namespace OpenSim.Region.Scenes
             remoteClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
             */
 
-            Avatar newAvatar = null;
+            ScenePresence newAvatar = null;
             try
             {
+
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(remoteClient, this, this.m_regInfo);
+                newAvatar = new ScenePresence(remoteClient, this, this.m_regInfo);
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Starting RegionHandshake ");
 
@@ -607,13 +612,13 @@ namespace OpenSim.Region.Scenes
             return;
         }
 
-       
+
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="agentID"></param>
-        public override void RemoveAvatar(LLUUID agentID)
+        public override void RemoveClient(LLUUID agentID)
         {
             return;
         }
@@ -627,11 +632,11 @@ namespace OpenSim.Region.Scenes
         /// Request a List of all Avatars in this World
         /// </summary>
         /// <returns></returns>
-        public List<Avatar> RequestAvatarList()
+        public List<ScenePresence> RequestAvatarList()
         {
-            List<Avatar> result = new List<Avatar>();
+            List<ScenePresence> result = new List<ScenePresence>();
 
-            foreach (Avatar avatar in Avatars.Values)
+            foreach (ScenePresence avatar in Avatars.Values)
             {
                 result.Add(avatar);
             }
@@ -643,11 +648,11 @@ namespace OpenSim.Region.Scenes
         /// Request a filtered list of Avatars in this World
         /// </summary>
         /// <returns></returns>
-        public List<Avatar> RequestAvatarList(FilterAvatarList filter)
+        public List<ScenePresence> RequestAvatarList(FilterAvatarList filter)
         {
-            List<Avatar> result = new List<Avatar>();
+            List<ScenePresence> result = new List<ScenePresence>();
 
-            foreach (Avatar avatar in Avatars.Values)
+            foreach (ScenePresence avatar in Avatars.Values)
             {
                 if (filter(avatar))
                 {
@@ -663,7 +668,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns></returns>
-        public Avatar RequestAvatar(LLUUID avatarID)
+        public ScenePresence RequestAvatar(LLUUID avatarID)
         {
             if (this.Avatars.ContainsKey(avatarID))
             {
@@ -712,7 +717,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
         {
-           // Console.WriteLine("World.cs - add new user connection");
+            // Console.WriteLine("World.cs - add new user connection");
             //should just check that its meant for this region 
             if (regionHandle == this.m_regInfo.RegionHandle)
             {
@@ -777,7 +782,7 @@ namespace OpenSim.Region.Scenes
         {
             List<MapBlockData> mapBlocks;
             mapBlocks = this.commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
-           
+
             remoteClient.SendMapBlock(mapBlocks);
         }
 

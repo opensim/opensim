@@ -362,23 +362,23 @@ namespace OpenSim
                 case "":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    OpenSim.Region.Scenes.Avatar.PhysicsEngineFlying = false;
+                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = false;
                     break;
 
                 case "basicphysics":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    OpenSim.Region.Scenes.Avatar.PhysicsEngineFlying = false;
+                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = false;
                     break;
 
                 case "RealPhysX":
                     this.m_physicsEngine = "RealPhysX";
-                    OpenSim.Region.Scenes.Avatar.PhysicsEngineFlying = true;
+                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = true;
                     break;
 
                 case "OpenDynamicsEngine":
                     this.m_physicsEngine = "OpenDynamicsEngine";
-                    OpenSim.Region.Scenes.Avatar.PhysicsEngineFlying = true;
+                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = true;
                     break;
             }
 
@@ -457,7 +457,7 @@ namespace OpenSim
                     m_log.Error( "That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
-                    OpenSim.Region.Scenes.Avatar TempAv;
+                    OpenSim.Region.Scenes.ScenePresence TempAv;
                     m_log.Error( String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     /* foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                      {

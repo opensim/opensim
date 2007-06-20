@@ -6,7 +6,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using libsecondlife;
 using OpenSim.Region;
-using Avatar=OpenSim.Region.Scenes.Avatar;
+using Avatar=OpenSim.Region.Scenes.ScenePresence;
 using OpenSim.Region.Scenes;
 using OpenSim.Framework;
 using OpenSim.Caches;
@@ -17,7 +17,7 @@ namespace SimpleApp
     public class MyWorld : Scene
     {
         private RegionInfo m_regionInfo;
-        private List<OpenSim.Region.Scenes.Avatar> m_avatars;
+        private List<OpenSim.Region.Scenes.ScenePresence> m_avatars;
 
         public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach)
             : base(clientThreads, regionInfo, authen, commsMan, assetCach)
@@ -43,7 +43,8 @@ namespace SimpleApp
 
         #region IWorld Members
 
-        override public void AddNewAvatar(IClientAPI client, LLUUID agentID, bool child)
+        override public void AddNewClient(IClientAPI client, LLUUID agentID, bool child)
+
         {
             LLVector3 pos = new LLVector3(128, 128, 128);
             
@@ -65,7 +66,7 @@ namespace SimpleApp
 
             client.OnCompleteMovementToRegion += delegate()
                  {
-                     client.SendAvatarData(m_regionInfo, client.FirstName,
+                     client.SendAvatarData(m_regionInfo.RegionHandle, client.FirstName,
                                            client.LastName, client.AgentId, 0,
                                            pos);
                                                          
@@ -74,7 +75,7 @@ namespace SimpleApp
 
             client.SendRegionHandshake(m_regionInfo);
 
-            OpenSim.Region.Scenes.Avatar avatar = new Avatar( client, this, m_regionInfo );
+            OpenSim.Region.Scenes.ScenePresence avatar = new Avatar( client, this, m_regionInfo );
             
         }
 
@@ -83,7 +84,8 @@ namespace SimpleApp
             client.SendWearables( AvatarWearable.DefaultWearables );
         }
 
-        public void RemoveAvatar(LLUUID agentID)
+
+       override public void RemoveClient(LLUUID agentID)
         {
 
         }

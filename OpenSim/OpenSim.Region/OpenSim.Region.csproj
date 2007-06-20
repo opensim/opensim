@@ -142,15 +142,6 @@
     <Compile Include="ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Avatar.Animations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Avatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Avatar.Update.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Scenes\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -170,6 +161,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.Animations.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.Update.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\scripting\IScriptContext.cs">

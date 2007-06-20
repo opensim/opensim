@@ -419,7 +419,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
-            List<Avatar> avatars = this.m_world.RequestAvatarList();
+            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
                 this.SendFullUpdateToClient(avatars[i].ControllingClient);
@@ -452,7 +452,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void SendTerseUpdateToALLClients()
         {
-            List<Avatar> avatars = this.m_world.RequestAvatarList();
+            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
                 this.SendTerseUpdateToClient(avatars[i].ControllingClient);
