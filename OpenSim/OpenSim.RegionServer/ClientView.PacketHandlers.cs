@@ -154,10 +154,10 @@ namespace OpenSim
             mapReply.AgentData.Flags = 0;
             mapReply.LayerData = new MapLayerReplyPacket.LayerDataBlock[1];
             mapReply.LayerData[0] = new MapLayerReplyPacket.LayerDataBlock();
-            mapReply.LayerData[0].Bottom = 800;
-            mapReply.LayerData[0].Left = 800;
-            mapReply.LayerData[0].Top = 1200;
-            mapReply.LayerData[0].Right = 1200;
+            mapReply.LayerData[0].Bottom = 1;
+            mapReply.LayerData[0].Left = 1;
+            mapReply.LayerData[0].Top = 30000;
+            mapReply.LayerData[0].Right = 30000;
             mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
             this.OutPacket(mapReply);
         }
