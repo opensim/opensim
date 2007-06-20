@@ -55,7 +55,7 @@ namespace OpenGridServices.AssetServer
 
         public static OpenAsset_Main assetserver;
 
-        private ConsoleBase m_console;
+        private LogBase m_console;
 
         [STAThread]
         public static void Main(string[] args)
@@ -74,14 +74,14 @@ namespace OpenGridServices.AssetServer
 
             while (true)
             {
-                m_console.MainConsolePrompt();
+                m_console.MainLogPrompt();
             }
         }
 
         private OpenAsset_Main()
         {
-            m_console = new ConsoleBase("opengrid-AssetServer-console.log", "OpenAsset", this, false);
-            MainConsole.Instance = m_console;
+            m_console = new LogBase("opengrid-AssetServer-console.log", "OpenAsset", this, false);
+            MainLog.Instance = m_console;
         }
 
         public void Startup()
@@ -165,13 +165,13 @@ namespace OpenGridServices.AssetServer
             try
             {
                 db = Db4oFactory.OpenFile("assets.yap");
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Main.cs:setupDB() - creation");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "Main.cs:setupDB() - creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainConsole.Instance.Warn("Main.cs:setupDB() - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.Warn(e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("Main.cs:setupDB() - Exception occured");
+                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
             }
             if (!yapfile)
             {

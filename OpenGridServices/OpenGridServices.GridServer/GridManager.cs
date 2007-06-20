@@ -53,10 +53,10 @@ namespace OpenGridServices.GridServer
         /// <param name="FileName">The filename to the grid server plugin DLL</param>
         public void AddPlugin(string FileName)
 		{
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Storage: Attempting to load " + FileName);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Storage: Attempting to load " + FileName);
 			Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Storage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Storage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
 			foreach (Type pluginType in pluginAssembly.GetTypes())
 			{
                 if (!pluginType.IsAbstract)
@@ -69,7 +69,7 @@ namespace OpenGridServices.GridServer
                         IGridData plug = (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         this._plugins.Add(plug.getName(), plug);
-                        OpenSim.Framework.Console.MainConsole.Instance.Verbose("Storage: Added IGridData Interface");
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Storage: Added IGridData Interface");
                     }
 
                     typeInterface = null;
@@ -82,7 +82,7 @@ namespace OpenGridServices.GridServer
                         ILogData plug = (ILogData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         this._logplugins.Add(plug.getName(), plug);
-                        OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Storage: Added ILogData Interface");
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose( "Storage: Added ILogData Interface");
                     }
 
                     typeInterface = null;
@@ -110,7 +110,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.Warn("Storage: unable to write log via " + kvp.Key);
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: unable to write log via " + kvp.Key);
                 }
             }
         }
@@ -129,7 +129,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.Warn("Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -150,7 +150,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.Warn("Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -174,7 +174,7 @@ namespace OpenGridServices.GridServer
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.Warn("Storage: Unable to query regionblock via " + kvp.Key);
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to query regionblock via " + kvp.Key);
                 }
             }
 
@@ -362,7 +362,7 @@ namespace OpenGridServices.GridServer
 
                     simProfileList.Add(simProfileBlock);
                 }
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose("World map request processed, returned " + simProfileList.Count.ToString() + " region(s) in range via FastMode");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("World map request processed, returned " + simProfileList.Count.ToString() + " region(s) in range via FastMode");
             }
             else
             {
@@ -388,7 +388,7 @@ namespace OpenGridServices.GridServer
                         }
                     }
                 }
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose("World map request processed, returned " + simProfileList.Count.ToString() + " region(s) in range via Standard Mode");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("World map request processed, returned " + simProfileList.Count.ToString() + " region(s) in range via Standard Mode");
             }
 
             responseData["sim-profiles"] = simProfileList;
@@ -549,18 +549,18 @@ namespace OpenGridServices.GridServer
 
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose("Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
                     try
                     {
                         kvp.Value.AddProfile(TheSim);
-                        OpenSim.Framework.Console.MainConsole.Instance.Verbose("New sim added to grid (" + TheSim.regionName + ")");
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("New sim added to grid (" + TheSim.regionName + ")");
                         logToDB(TheSim.UUID.ToStringHyphenated(), "RestSetSimMethod", "", 5, "Region successfully updated and connected to grid.");
                     }
                     catch (Exception e)
                     {
-                        OpenSim.Framework.Console.MainConsole.Instance.Verbose("getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " + e.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " + e.ToString());
                     }
                 }
                 return "OK";

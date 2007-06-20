@@ -63,7 +63,7 @@ namespace OpenGridServices.GridServer
 
         private GridManager m_gridManager;
 
-        private ConsoleBase m_console;
+        private LogBase m_console;
 
         [STAThread]
         public static void Main(string[] args)
@@ -91,8 +91,8 @@ namespace OpenGridServices.GridServer
 
         private OpenGrid_Main()
         {
-            m_console = new ConsoleBase("opengrid-gridserver-console.log", "OpenGrid", this, false);
-            MainConsole.Instance = m_console;
+            m_console = new LogBase("opengrid-gridserver-console.log", "OpenGrid", this, false);
+            MainLog.Instance = m_console;
 
 
         }

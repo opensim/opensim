@@ -57,7 +57,7 @@ namespace OpenGridServices.UserServer
 
         public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
-        ConsoleBase m_console;
+        LogBase m_console;
 
         [STAThread]
         public static void Main(string[] args)
@@ -72,8 +72,8 @@ namespace OpenGridServices.UserServer
 
         private OpenUser_Main()
         {
-            m_console = new ConsoleBase("opengrid-userserver-console.log", "OpenUser", this , false);
-            MainConsole.Instance = m_console;
+            m_console = new LogBase("opengrid-userserver-console.log", "OpenUser", this , false);
+            MainLog.Instance = m_console;
         }
 
         private void Work()
@@ -82,7 +82,7 @@ namespace OpenGridServices.UserServer
 
             while (true)
             {
-                m_console.MainConsolePrompt();
+                m_console.MainLogPrompt();
             }
         }
 
@@ -93,16 +93,16 @@ namespace OpenGridServices.UserServer
             this.ConfigDB(this.localXMLConfig);
             this.localXMLConfig.Close();
 
-            MainConsole.Instance.Verbose("Main.cs:Startup() - Loading configuration");
+            MainLog.Instance.Verbose("Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            MainConsole.Instance.Verbose( "Main.cs:Startup() - Establishing data connection");
+            MainLog.Instance.Verbose( "Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(StorageDll);
 
-            MainConsole.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
+            MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
