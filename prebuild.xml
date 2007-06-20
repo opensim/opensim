@@ -540,7 +540,6 @@
       </Files>
     </Project>
 
-
     <Project name="OpenSim.RegionServer" path="OpenSim/OpenSim.RegionServer" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -564,6 +563,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.GenericConfig.Xml"/>
       <Reference name="OpenSim.Physics.Manager"/>
+      <Reference name="OpenSim.Region"/>
       <Reference name="OpenSim.Servers"/>
       <Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
@@ -572,6 +572,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
+
 
 
     <Project name="OpenSim.Region" path="OpenSim/OpenSim.Region" type="Library">
@@ -631,7 +632,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
-	 <Reference name="OpenSim.Region"/>
+	<Reference name="OpenSim.Region"/>
       <Reference name="OpenSim.RegionServer"/>
       <Reference name="OpenSim.GenericConfig.Xml"/>
 	<Reference name="OpenGrid.Framework.Communications"/>
@@ -670,42 +671,12 @@
       <Reference name="XMLRPC"/>
       <Reference name="OpenSim.GridInterfaces.Local"/>
       <Reference name="OpenSim.Servers"/>
+<Reference name="OpenGrid.Framework.Communications"/>      
+<Reference name="OpenSim.LocalCommunications"/>      
       <Reference name="OpenSim.Caches"/>
       <Reference name="OpenSim.RegionServer"/>
-      <Reference name="OpenSim.World"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="SimpleApp2" path="OpenSim/Examples/SimpleApp2" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data.dll"/>
-      <Reference name="System.Xml"/>
-
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="XMLRPC"/>
-      <Reference name="OpenSim.GridInterfaces.Local"/>
-      <Reference name="OpenSim.Servers"/>
-      <Reference name="OpenSim.Caches"/>
-      <Reference name="OpenSim.RegionServer"/>
-      <Reference name="OpenSim.World"/>
+      <Reference name="OpenSim.Region"/>
+      
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

@@ -107,7 +107,7 @@ namespace OpenSim.Region.Scenes
         {
             if(this.scriptEngines.ContainsKey(scriptType))
             {
-                this.scriptEngines[scriptType].LoadScript(script, scriptName, ent.localid);
+                this.scriptEngines[scriptType].LoadScript(script, scriptName, ent.LocalId);
             }
         }
 
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Scenes
            // Console.WriteLine("script-  getting entity " + localID + " position");
             foreach (Entity entity in this.Entities.Values)
             {
-                if (entity.localid == localID)
+                if (entity.LocalId == localID)
                 {
                     res.X = entity.Pos.X;
                     res.Y = entity.Pos.Y;
@@ -145,7 +145,7 @@ namespace OpenSim.Region.Scenes
         {
             foreach (Entity entity in this.Entities.Values)
             {
-                if (entity.localid == localID && entity is Primitive)
+                if (entity.LocalId == localID && entity is Primitive)
                 {
                     LLVector3 pos = entity.Pos;
                     pos.X = x;
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Scenes
             {
                 if (entity is Avatar)
                 {
-                    res = entity.localid;
+                    res = entity.LocalId;
                 }
             }
             return res;

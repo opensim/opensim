@@ -87,7 +87,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void SendInitialPosition()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo, this.firstname, this.lastname, this.uuid, this.localid, this.Pos);
+            this.ControllingClient.SendAvatarData(m_regionInfo, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos);
         }
 
         /// <summary>

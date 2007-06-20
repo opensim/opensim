@@ -38,7 +38,6 @@ namespace OpenSim.Region.Scenes
     public abstract class Entity : IScriptReadonlyEntity
     {
         public libsecondlife.LLUUID uuid;
-        public uint localid;
         public LLVector3 velocity;
         public Quaternion rotation;
         protected List<Entity> children;
@@ -128,13 +127,20 @@ namespace OpenSim.Region.Scenes
             }
         }
 
+        protected uint m_localId;
+
+        public uint LocalId
+        {
+            get { return m_localId; }
+        }
+
         /// <summary>
         /// Creates a new Entity (should not occur on it's own)
         /// </summary>
         public Entity()
         {
             uuid = new libsecondlife.LLUUID();
-            localid = 0;
+
             m_pos = new LLVector3();
             velocity = new LLVector3();
             rotation = new Quaternion();

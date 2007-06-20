@@ -212,7 +212,7 @@ namespace OpenSim.Region.Scenes
         {
             foreach (Entity ent in Entities.Values)
             {
-                if (ent.localid == localID)
+                if (ent.LocalId == localID)
                 {
                     ((OpenSim.Region.Scenes.Primitive)ent).UpdatePosition(pos);
                     break;

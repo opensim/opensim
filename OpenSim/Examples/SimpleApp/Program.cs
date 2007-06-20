@@ -12,6 +12,8 @@ using OpenSim.UserServer;
 using OpenSim.Servers;
 using OpenSim.Framework;
 using OpenSim.Caches;
+using OpenGrid.Framework.Communications;
+using OpenSim.LocalCommunications;
 
 namespace SimpleApp
 {
@@ -51,9 +53,11 @@ namespace SimpleApp
             
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
-            RegionInfo regionInfo = new RegionInfo();
+            CommunicationsManager communicationsManager = new CommunicationsLocal();
+            
+            RegionInfo regionInfo = new RegionInfo( );
 
-            udpServer.LocalWorld = new MyWorld( regionInfo );
+            udpServer.LocalWorld = new MyWorld( packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache );
 
             // World world = new World(udpServer.PacketServer.ClientAPIs, regionInfo);            
             // PhysicsScene physicsScene = new NullPhysicsScene();

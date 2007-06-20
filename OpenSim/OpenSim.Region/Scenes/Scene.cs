@@ -564,7 +564,7 @@ namespace OpenSim.Region.Scenes
             try
             {
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new Avatar(remoteClient, this, m_clientThreads, this.m_regInfo);
+                newAvatar = new Avatar(remoteClient, this, this.m_regInfo);
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
 

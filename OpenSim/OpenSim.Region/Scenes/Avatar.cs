@@ -59,7 +59,6 @@ namespace OpenSim.Region.Scenes
         private AvatarWearable[] Wearables;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private ulong m_regionHandle;
-        private Dictionary<uint, IClientAPI> m_clientThreads;
         private bool childAvatar = false;
         private bool newForce = false;
 
@@ -71,11 +70,10 @@ namespace OpenSim.Region.Scenes
         /// <param name="world"></param>
         /// <param name="clientThreads"></param>
         /// <param name="regionDat"></param>
-        public Avatar(IClientAPI theClient, Scene world, Dictionary<uint, IClientAPI> clientThreads, RegionInfo reginfo)
+        public Avatar(IClientAPI theClient, Scene world, RegionInfo reginfo)
         {
 
             m_world = world;
-            m_clientThreads = clientThreads;
             this.uuid = theClient.AgentId;
 
             m_regionInfo = reginfo;
@@ -84,7 +82,7 @@ namespace OpenSim.Region.Scenes
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
-            localid = this.m_world.NextLocalId;
+            m_localId = m_world.NextLocalId;
             Pos = ControllingClient.StartPos;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
@@ -196,7 +194,7 @@ namespace OpenSim.Region.Scenes
         {
             LLVector3 pos = this.Pos;
             LLVector3 vel = this.Velocity;
-            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle,  64096, this.localid, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z)); 
+            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle,  64096, this.LocalId, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z)); 
         }
 
         /// <summary>

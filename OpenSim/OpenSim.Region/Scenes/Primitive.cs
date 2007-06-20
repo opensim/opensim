@@ -136,7 +136,7 @@ namespace OpenSim.Region.Scenes
             this.primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             this.primData.OwnerID = owner;
             this.primData.FullID = this.uuid = fullID;
-            this.primData.LocalID = this.localid = localID;
+            this.primData.LocalID = m_localId = localID;
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Scenes
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
             this.primData = PrimData.DefaultCube();
             this.primData.OwnerID = owner;
-            this.primData.LocalID = this.localid = localID;
+            this.primData.LocalID = m_localId = localID;
             this.Pos = this.primData.Position = position;
 
             this.updateFlag = 1;
@@ -411,7 +411,7 @@ namespace OpenSim.Region.Scenes
                 lPos = this.Pos;
             }
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.localid, this.primData, lPos, new LLUUID("00000000-0000-0000-5005-000000000005"));
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.primData, lPos, new LLUUID("00000000-0000-0000-5005-000000000005"));
         }
 
         /// <summary>
@@ -499,7 +499,7 @@ namespace OpenSim.Region.Scenes
             PData.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             LLVector3 pos1 = addPacket.ObjectData.RayEnd;
             this.primData.FullID = this.uuid = LLUUID.Random();
-            this.primData.LocalID = this.localid = (uint)(localID);
+            this.primData.LocalID = m_localId = (uint)(localID);
             this.primData.Position = this.Pos = pos1;
 
             this.updateFlag = 1;

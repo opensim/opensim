@@ -5,19 +5,28 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using libsecondlife;
+using OpenSim.Region;
+using Avatar=OpenSim.Region.Scenes.Avatar;
+using OpenSim.Region.Scenes;
+using OpenSim.Framework;
+using OpenSim.Caches;
+using OpenGrid.Framework.Communications;
 
 namespace SimpleApp
 {
-    public class MyWorld : IWorld
+    public class MyWorld : Scene
     {
         private RegionInfo m_regionInfo;
+        private List<OpenSim.Region.Scenes.Avatar> m_avatars;
 
-        public MyWorld(RegionInfo regionInfo)
+        public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach)
+            : base(clientThreads, regionInfo, authen, commsMan, assetCach)
         {
             m_regionInfo = regionInfo;
+            m_avatars = new List<Avatar>();
         }
 
-        private void SendLayerData(IClientAPI remoteClient)
+        public override void SendLayerData(IClientAPI remoteClient)
         {
             float[] map = new float[65536];
 
@@ -34,7 +43,7 @@ namespace SimpleApp
 
         #region IWorld Members
 
-        void IWorld.AddNewAvatar(IClientAPI client, LLUUID agentID, bool child)
+        override public void AddNewAvatar(IClientAPI client, LLUUID agentID, bool child)
         {
             LLVector3 pos = new LLVector3(128, 128, 128);
             
@@ -65,6 +74,8 @@ namespace SimpleApp
 
             client.SendRegionHandshake(m_regionInfo);
 
+            OpenSim.Region.Scenes.Avatar avatar = new Avatar( client, this, m_regionInfo );
+            
         }
 
         private void SendWearables( IClientAPI client )
@@ -72,30 +83,28 @@ namespace SimpleApp
             client.SendWearables( AvatarWearable.DefaultWearables );
         }
 
-        void IWorld.RemoveAvatar(LLUUID agentID)
+        public void RemoveAvatar(LLUUID agentID)
         {
 
         }
 
-        RegionInfo IWorld.RegionInfo
+        public RegionInfo RegionInfo
         {
             get { return m_regionInfo; }
         }
 
-        object IWorld.SyncRoot
+        public object SyncRoot
         {
             get { return this; }
         }
 
         private uint m_nextLocalId = 1;
 
-        uint IWorld.NextLocalId
+        public uint NextLocalId
         {
             get { return m_nextLocalId++; }
         }
 
         #endregion
-
-
     }
 }
