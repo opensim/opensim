@@ -187,7 +187,7 @@ namespace OpenSim.Terrain
                         resultText += "terrain voronoi <points> <blocksize> - generates a worley fractal with X points per block";
                         resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
                         resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
-                        resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'\n";
+                        resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32', 'F64' or 'PNG'\n";
                         resultText += "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
                         resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
                         resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
@@ -273,6 +273,10 @@ namespace OpenSim.Terrain
 
                             case "grdmap":
                                 exportImage(args[2], args[3]);
+                                break;
+
+                            case "png":
+                                heightmap.saveImage(args[2]);
                                 break;
 
                             default:
