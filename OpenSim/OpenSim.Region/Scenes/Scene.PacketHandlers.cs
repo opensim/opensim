@@ -41,24 +41,61 @@ namespace OpenSim.Region.Scenes
     public partial class Scene
     {
         /// <summary>
-        /// 
+        /// Modifies terrain using the specified information
         /// </summary>
-        /// <param name="action"></param>
-        /// <param name="north"></param>
-        /// <param name="west"></param>
-        public void ModifyTerrain(byte action, float north, float west)
+        /// <param name="height">The height at which the user started modifying the terrain</param>
+        /// <param name="seconds">The number of seconds the modify button was pressed</param>
+        /// <param name="brushsize">The size of the brush used</param>
+        /// <param name="action">The action to be performed</param>
+        /// <param name="north">Distance from the north border where the cursor is located</param>
+        /// <param name="west">Distance from the west border where the cursor is located</param>
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west)
         {
+            // Shiny.
+            double size = (double)(1 << brushsize);
+
             switch (action)
             {
+                case 0:
+                    // flatten terrain
+                    Terrain.flatten(north, west, size, (double)seconds / 100.0);
+                    RegenerateTerrain(true, (int)north, (int)west);
+                    break;
                 case 1:
                     // raise terrain
-                    Terrain.raise(north, west, 10.0, 0.001);
+                    Terrain.raise(north, west, size, (double)seconds / 100.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 2:
                     //lower terrain
-                    Terrain.lower(north, west, 10.0, 0.001);
+                    Terrain.lower(north, west, size, (double)seconds / 100.0);
                     RegenerateTerrain(true, (int)north, (int)west);
+                    break;
+                case 3:
+                    // smooth terrain
+                    Terrain.smooth(north, west, size, (double)seconds / 100.0);
+                    RegenerateTerrain(true, (int)north, (int)west);
+                    break;
+                case 4:
+                    // noise
+                    Terrain.noise(north, west, size, (double)seconds / 100.0);
+                    RegenerateTerrain(true, (int)north, (int)west);
+                    break;
+                case 5:
+                    // revert
+                    Terrain.revert(north, west, size, (double)seconds / 100.0);
+                    RegenerateTerrain(true, (int)north, (int)west);
+                    break;
+
+                // CLIENT EXTENSIONS GO HERE
+                case 128:
+                    // erode-thermal
+                    break;
+                case 129:
+                    // erode-aerobic
+                    break;
+                case 130:
+                    // erode-hydraulic
                     break;
             }
             return;

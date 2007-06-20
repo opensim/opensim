@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Interfaces
 {
     public delegate void ChatFromViewer(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     public delegate void RezObject(AssetBase primAsset, LLVector3 pos);
-    public delegate void ModifyTerrain(byte action, float north, float west);
+    public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west);
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
     public delegate void StartAnim(LLUUID animID, int seq);
     public delegate void LinkObjects(uint parent, List<uint> children);

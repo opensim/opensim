@@ -19,13 +19,13 @@ namespace SimpleApp
 {
     class Program : IAssetReceiver, conscmd_callback
     {
-        private LogBase m_console;
+        private LogBase m_log;
         AuthenticateSessionsBase m_circuitManager;
         
         private void Run()
         {
-            m_console = new LogBase(null, "SimpleApp", this, false);
-            MainLog.Instance = m_console;
+            m_log = new LogBase(null, "SimpleApp", this, false);
+            MainLog.Instance = m_log;
 
             CheckSumServer checksumServer = new CheckSumServer(12036);
             checksumServer.ServerListener();
@@ -47,7 +47,7 @@ namespace SimpleApp
 
             AssetCache assetCache = new AssetCache(assetServer);
             
-            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_console, m_circuitManager );
+            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_log, m_circuitManager );
             PacketServer packetServer = new PacketServer( udpServer, (uint) simPort );
             udpServer.ServerListener();
             
@@ -68,13 +68,13 @@ namespace SimpleApp
             httpServer.AddXmlRPCHandler( "login_to_simulator", loginServer.XmlRpcLoginMethod );
             httpServer.Start();
             
-            m_console.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
-            m_console.ReadLine();
+            m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
+            m_log.ReadLine();
         }
 
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
-            m_console.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
+            m_log.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
 
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = loginData.Agent;

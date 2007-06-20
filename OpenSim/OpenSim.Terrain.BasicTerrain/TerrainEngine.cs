@@ -542,6 +542,89 @@ namespace OpenSim.Terrain
         }
 
         /// <summary>
+        /// Flattens the land under the brush of specified coordinates (spherical mask)
+        /// </summary>
+        /// <param name="rx">Center of sphere</param>
+        /// <param name="ry">Center of sphere</param>
+        /// <param name="size">Radius of the sphere</param>
+        /// <param name="amount">Thickness of the mask (0..2 recommended)</param>
+        public void flatten(double rx, double ry, double size, double amount)
+        {
+            lock (heightmap)
+            {
+                heightmap.flatten(rx, ry, size, amount);
+            }
+
+            tainted++;
+        }
+
+        /// <summary>
+        /// Creates noise within the specified bounds
+        /// </summary>
+        /// <param name="rx">Center of the bounding sphere</param>
+        /// <param name="ry">Center of the bounding sphere</param>
+        /// <param name="size">The radius of the sphere</param>
+        /// <param name="amount">Strength of the mask (0..2) recommended</param>
+        public void noise(double rx, double ry, double size, double amount)
+        {
+            lock (heightmap)
+            {
+                Channel smoothed = new Channel();
+                smoothed.noise();
+
+                Channel mask = new Channel();
+                mask.raise(rx, ry, size, amount);
+
+                heightmap.blend(smoothed, mask);
+            }
+
+            tainted++;
+        }
+
+        /// <summary>
+        /// Reverts land within the specified bounds
+        /// </summary>
+        /// <param name="rx">Center of the bounding sphere</param>
+        /// <param name="ry">Center of the bounding sphere</param>
+        /// <param name="size">The radius of the sphere</param>
+        /// <param name="amount">Strength of the mask (0..2) recommended</param>
+        public void revert(double rx, double ry, double size, double amount)
+        {
+            lock (heightmap)
+            {
+                Channel mask = new Channel();
+                mask.raise(rx, ry, size, amount);
+
+                heightmap.blend(revertmap, mask);
+            }
+
+            tainted++;
+        }
+
+        /// <summary>
+        /// Smooths land under the brush of specified coordinates (spherical mask)
+        /// </summary>
+        /// <param name="rx">Center of the sphere</param>
+        /// <param name="ry">Center of the sphere</param>
+        /// <param name="size">Radius of the sphere</param>
+        /// <param name="amount">Thickness of the mask (0..2 recommended)</param>
+        public void smooth(double rx, double ry, double size, double amount)
+        {
+            lock (heightmap)
+            {
+                Channel smoothed = heightmap.copy();
+                smoothed.smooth(amount);
+
+                Channel mask = new Channel();
+                mask.raise(rx,ry,size,amount);
+
+                heightmap.blend(smoothed, mask);
+            }
+
+            tainted++;
+        }
+
+        /// <summary>
         /// Generates a simple set of hills in the shape of an island
         /// </summary>
         public void hills()
