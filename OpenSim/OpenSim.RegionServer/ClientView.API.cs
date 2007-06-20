@@ -245,7 +245,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -271,7 +271,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 

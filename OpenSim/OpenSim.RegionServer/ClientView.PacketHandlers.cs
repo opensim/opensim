@@ -55,7 +55,7 @@ namespace OpenSim
 
         protected virtual bool Logout(ClientView simClient, Packet packet)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
             //send reply to let the client logout
             LogoutReplyPacket logReply = new LogoutReplyPacket();
             logReply.AgentData.AgentID = this.AgentID;

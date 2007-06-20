@@ -79,7 +79,7 @@ namespace OpenSim.Region
                     case "setregioninfo":
                         if (packet.ParamList.Length != 9)
                         {
-                            OpenSim.Framework.Console.MainConsole.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
+                            OpenSim.Framework.Console.MainLog.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
                         }
                         else
                         {
@@ -223,7 +223,7 @@ namespace OpenSim.Region
                     case "setregionterrain":
                         if (packet.ParamList.Length != 9)
                         {
-                            OpenSim.Framework.Console.MainConsole.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
+                            OpenSim.Framework.Console.MainLog.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
                         }
                         else
                         {
@@ -237,7 +237,7 @@ namespace OpenSim.Region
                         }
                         break;
                     default:
-                        OpenSim.Framework.Console.MainConsole.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                         break;
                 }
             }

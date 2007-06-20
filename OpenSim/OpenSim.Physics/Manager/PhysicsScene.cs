@@ -68,7 +68,7 @@ namespace OpenSim.Physics.Manager
 
         public override PhysicsActor AddAvatar(PhysicsVector position)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE,"NullPhysicsScene : AddAvatar({0})", position);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
             return PhysicsActor.Null;
         }
 
@@ -79,7 +79,7 @@ namespace OpenSim.Physics.Manager
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE, "NullPhysicsScene : AddPrim({0},{1})", position, size);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "NullPhysicsScene : AddPrim({0},{1})", position, size);
             return PhysicsActor.Null;
         }
 
@@ -87,17 +87,17 @@ namespace OpenSim.Physics.Manager
         {
             m_workIndicator = (m_workIndicator + 1) % 10;
 
-            //OpenSim.Framework.Console.MainConsole.Instance.SetStatus(m_workIndicator.ToString());
+            //OpenSim.Framework.Console.MainLog.Instance.SetStatus(m_workIndicator.ToString());
         }
 
         public override void GetResults()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE, "NullPhysicsScene : GetResults()");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "NullPhysicsScene : GetResults()");
         }
 
         public override void SetTerrain(float[] heightMap)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.VERBOSE, "NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
         }
 
         public override void DeleteTerrain()

@@ -250,7 +250,7 @@ namespace OpenSim.Servers
 
         public void Start()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: Starting up HTTP Server");
+            OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: Starting up HTTP Server");
 
             m_workerThread = new Thread(new ThreadStart(StartHTTP));
             m_workerThread.IsBackground = true;
@@ -261,7 +261,7 @@ namespace OpenSim.Servers
         {
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
+                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
                 m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
@@ -276,7 +276,7 @@ namespace OpenSim.Servers
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
+                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
             }
         }
     }

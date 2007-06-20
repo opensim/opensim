@@ -29,11 +29,11 @@ using System;
 
 namespace OpenSim.Framework.Console
 {
-	public class MainConsole {
+	public class MainLog {
 		
-		private static ConsoleBase instance;
+		private static LogBase instance;
 		
-		public static ConsoleBase Instance 
+		public static LogBase Instance 
 		{
 			get 
 			{

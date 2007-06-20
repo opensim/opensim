@@ -60,7 +60,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridServerURL");
                     if (attri == "")
                     {
-                        this.GridURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid server URL", "http://127.0.0.1:8001/");
+                        this.GridURL = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid server URL", "http://127.0.0.1:8001/");
                         configData.SetAttribute("GridServerURL", this.GridURL);
                     }
                     else
@@ -73,7 +73,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridSendKey");
                     if (attri == "")
                     {
-                        this.GridSendKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to send to grid server", "null");
+                        this.GridSendKey = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Key to send to grid server", "null");
                         configData.SetAttribute("GridSendKey", this.GridSendKey);
                     }
                     else
@@ -86,7 +86,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("GridRecvKey");
                     if (attri == "")
                     {
-                        this.GridRecvKey = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Key to expect from grid server", "null");
+                        this.GridRecvKey = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Key to expect from grid server", "null");
                         configData.SetAttribute("GridRecvKey", this.GridRecvKey);
                     }
                     else
@@ -98,7 +98,7 @@ namespace OpenSim
                     attri = configData.GetAttribute("AssetServerURL");
                     if (attri == "")
                     {
-                        this.AssetURL = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Asset server URL", "http://127.0.0.1:8003/");
+                        this.AssetURL = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Asset server URL", "http://127.0.0.1:8003/");
                         configData.SetAttribute("AssetServerURL", this.GridURL);
                     }
                     else
@@ -111,8 +111,8 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "Config.cs:InitConfig() - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
             }
         }
     }

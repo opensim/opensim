@@ -90,7 +90,7 @@ namespace OpenSim
             m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs - Started up new client thread to handle incoming request");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
@@ -188,7 +188,7 @@ namespace OpenSim
 
         protected virtual void ClientLoop()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:ClientLoop() - Entered loop");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:ClientLoop() - Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
@@ -210,7 +210,7 @@ namespace OpenSim
 
         protected virtual void InitNewClient()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
             this.m_world.AddNewAvatar(this, this.AgentID, false);
         }
 
@@ -221,12 +221,12 @@ namespace OpenSim
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
                 ClientThread.Abort();
             }
             else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;

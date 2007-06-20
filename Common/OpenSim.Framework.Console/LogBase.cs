@@ -41,14 +41,14 @@ namespace OpenSim.Framework.Console
         EXTRAVERBOSE
     }
 
-    public class ConsoleBase
+    public class LogBase
     {
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
         private bool m_silent;
 
-        public ConsoleBase(string LogFile, string componentname, conscmd_callback cmdparser, bool silent )
+        public LogBase(string LogFile, string componentname, conscmd_callback cmdparser, bool silent )
         {
             this.componentname = componentname;
             this.cmdparser = cmdparser;
@@ -77,19 +77,7 @@ namespace OpenSim.Framework.Console
             Notice(format,args);
             return;
         }
-
-        [Obsolete("WriteLine(msg,args) has been depreciated, use WriteLine(priority,msg,args) instead.")]
-        public void WriteLine(string format, params object[] args)
-        {
-            Log.WriteLine(format, args);
-            Log.Flush();
-            if (!m_silent)
-            {
-                System.Console.WriteLine(format, args);
-            }
-            return;
-        }
-
+         
         public void WriteLine(LogPriority importance, string format, params object[] args)
         {
             Log.WriteLine(format, args);
@@ -226,7 +214,7 @@ namespace OpenSim.Framework.Console
             cmdparser.Show(ShowWhat);
         }
 
-        public void MainConsolePrompt()
+        public void MainLogPrompt()
         {
             string[] tempstrarray;
             string tempstr = this.CmdPrompt(this.componentname + "# ");

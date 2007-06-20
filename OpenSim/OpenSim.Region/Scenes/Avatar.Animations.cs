@@ -47,7 +47,7 @@ namespace OpenSim.Region.Scenes
 
             public void LoadAnims()
             {
-                //OpenSim.Framework.Console.MainConsole.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
+                //OpenSim.Framework.Console.MainLog.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
                 XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
 
                 XmlDocument doc = new XmlDocument();
@@ -64,7 +64,7 @@ namespace OpenSim.Region.Scenes
 
                 reader.Close();
 
-                // OpenSim.Framework.Console.MainConsole.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
+                // OpenSim.Framework.Console.MainLog.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
                 foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Scenes.Avatar.Animations.AnimsLLUUID)
                 {

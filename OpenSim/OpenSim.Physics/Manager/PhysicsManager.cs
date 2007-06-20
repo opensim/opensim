@@ -56,12 +56,12 @@ namespace OpenSim.Physics.Manager
 
 			if(_plugins.ContainsKey(engineName))
 			{
-				OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.LOW,"creating "+engineName);
+				OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.LOW,"creating "+engineName);
 				return _plugins[engineName].GetScene();
 			}
 			else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(LogPriority.MEDIUM,"couldn't find physicsEngine: {0}",engineName);
+                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.MEDIUM,"couldn't find physicsEngine: {0}",engineName);
                 throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}",engineName));
 			}
 		}

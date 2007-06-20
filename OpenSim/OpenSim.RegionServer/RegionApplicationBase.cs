@@ -76,7 +76,7 @@ namespace OpenSim
         protected BaseHttpServer httpServer;
         protected List<AuthenticateSessionsBase> AuthenticateSessionsHandler = new List<AuthenticateSessionsBase>();
 
-        protected ConsoleBase m_console;
+        protected LogBase m_log;
 
         public RegionApplicationBase()
         {

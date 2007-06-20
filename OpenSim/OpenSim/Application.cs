@@ -115,7 +115,7 @@ namespace OpenSim
 
             while (true)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.MainConsolePrompt();
+                OpenSim.Framework.Console.MainLog.Instance.MainLogPrompt();
             }
         }
     }

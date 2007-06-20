@@ -117,12 +117,12 @@ namespace OpenSim.Region.Scenes
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();
 
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs - creating new entitities instance");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating new entitities instance");
                 Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
                 Avatars = new Dictionary<LLUUID, Avatar>();
                 Prims = new Dictionary<LLUUID, Primitive>();
 
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs - creating LandMap");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating LandMap");
                 TerrainManager = new TerrainManager(new SecondLife());
                 Terrain = new TerrainEngine();
                 
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.CRITICAL, "World.cs: Constructor failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Error( "World.cs: Constructor failed with exception " + e.ToString());
             }
         }
         #endregion
@@ -206,7 +206,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: Update() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
              
@@ -225,9 +225,9 @@ namespace OpenSim.Region.Scenes
                 if (Terrain.tainted > 0)
                 {
                     Terrain.tainted = 0;
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain tainted, saving.");
+                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs: Backup() - Terrain tainted, saving.");
                     localStorage.SaveMap(Terrain.getHeights1D());
-                    OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Terrain saved, informing Physics.");
+                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs: Backup() - Terrain saved, informing Physics.");
                     lock (this.m_syncRoot)
                     {
                         phyScene.SetTerrain(Terrain.getHeights1D());
@@ -235,7 +235,7 @@ namespace OpenSim.Region.Scenes
                 }
 
                 // Primitive backup routines
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: Backup() - Backing up Primitives");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs: Backup() - Backing up Primitives");
                 foreach (libsecondlife.LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].BackUp();
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Scenes
             catch (Exception e)
             {
                 // Backup failed
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Backup() - Backup Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Backup() - Backup Failed with exception " + e.ToString());
                 return false;
             }
             */
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
                 return false;
             }
         }
@@ -341,7 +341,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -372,7 +372,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -398,7 +398,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -451,7 +451,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
@@ -483,12 +483,12 @@ namespace OpenSim.Region.Scenes
         {
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs: LoadPrimsFromStorage() - Loading primitives");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs: LoadPrimsFromStorage() - Loading primitives");
                 this.localStorage.LoadPrimitives(this);
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: LoadPrimsFromStorage() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadPrimsFromStorage() - Failed with exception " + e.ToString());
             }
         }
 
@@ -520,7 +520,7 @@ namespace OpenSim.Region.Scenes
         {
             try
             {
-               // MainConsole.Instance.Notice("World.cs: AddNewPrim() - Creating new prim");
+               // MainLog.Instance.Notice("World.cs: AddNewPrim() - Creating new prim");
                 Primitive prim = new Primitive(m_regionHandle, this, addPacket, ownerID, this._primCount);
                 
                 this.Entities.Add(prim.uuid, prim);
@@ -528,7 +528,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-               // MainConsole.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
+               // MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
             }
         }
 
@@ -563,10 +563,10 @@ namespace OpenSim.Region.Scenes
             Avatar newAvatar = null;
             try
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
                 newAvatar = new Avatar(remoteClient, this, this.m_regInfo);
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Adding new avatar to world");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "World.cs:AddViewerAgent() - Starting RegionHandshake ");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Adding new avatar to world");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Starting RegionHandshake ");
 
                 //newAvatar.SendRegionHandshake();
                 this.estateManager.sendRegionHandshake(remoteClient);
@@ -602,7 +602,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM, "World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
             }
             return;
         }
@@ -685,7 +685,7 @@ namespace OpenSim.Region.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
             }
         }
         #endregion

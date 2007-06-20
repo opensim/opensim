@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimName");
                 if (attri == "")
                 {
-                    this.RegionName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Name", "OpenSim test");
+                    this.RegionName = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Name", "OpenSim test");
                     configData.SetAttribute("SimName", this.RegionName);
                 }
                 else
@@ -99,7 +99,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimLocationX");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location X", "997");
+                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location X", "997");
                     configData.SetAttribute("SimLocationX", location);
                     this.RegionLocX = (uint)Convert.ToUInt32(location);
                 }
@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimLocationY");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Grid Location Y", "996");
+                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location Y", "996");
                     configData.SetAttribute("SimLocationY", location);
                     this.RegionLocY = (uint)Convert.ToUInt32(location);
                 }
@@ -126,7 +126,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("Datastore");
                 if (attri == "")
                 {
-                    string datastore = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Filename for local storage", "localworld.yap");
+                    string datastore = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Filename for local storage", "localworld.yap");
                     configData.SetAttribute("Datastore", datastore);
                     this.DataStore = datastore;
                 }
@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimListenPort");
                 if (attri == "")
                 {
-                    string port = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("UDP port for client connections", "9000");
+                    string port = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("UDP port for client connections", "9000");
                     configData.SetAttribute("SimListenPort", port);
                     this.IPListenPort = Convert.ToInt32(port);
                 }
@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimListenAddress");
                 if (attri == "")
                 {
-                    this.IPListenAddr = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("IP Address to listen on for client connections", "127.0.0.1");
+                    this.IPListenAddr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP Address to listen on for client connections", "127.0.0.1");
                     configData.SetAttribute("SimListenAddress", this.IPListenAddr);
                 }
                 else
@@ -184,7 +184,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("TerrainFile");
                 if (attri == "")
                 {
-                    this.estateSettings.terrainFile = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Default Terrain File", "default.r32");
+                    this.estateSettings.terrainFile = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("GENERAL SETTING: Default Terrain File", "default.r32");
                     configData.SetAttribute("TerrainFile", this.estateSettings.terrainFile);
                 }
                 else
@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("TerrainMultiplier");
                 if (attri == "")
                 {
-                    string re = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("GENERAL SETTING: Terrain Height Multiplier", "60.0");
+                    string re = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("GENERAL SETTING: Terrain Height Multiplier", "60.0");
                     this.estateSettings.terrainMultiplier = Convert.ToDouble(re, CultureInfo.InvariantCulture);
                     configData.SetAttribute("TerrainMultiplier", this.estateSettings.terrainMultiplier.ToString());
                 }
@@ -209,7 +209,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("MasterAvatarFirstName");
                 if (attri == "")
                 {
-                    this.MasterAvatarFirstName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("First name of Master Avatar (Land and Region Owner)", "Test");
+                    this.MasterAvatarFirstName = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("First name of Master Avatar (Land and Region Owner)", "Test");
 
                     configData.SetAttribute("MasterAvatarFirstName", this.MasterAvatarFirstName);
                 }
@@ -222,7 +222,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("MasterAvatarLastName");
                 if (attri == "")
                 {
-                    this.MasterAvatarLastName = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Last name of Master Avatar (Land and Region Owner)", "User");
+                    this.MasterAvatarLastName = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Last name of Master Avatar (Land and Region Owner)", "User");
 
                     configData.SetAttribute("MasterAvatarLastName", this.MasterAvatarLastName);
                 }
@@ -237,7 +237,7 @@ namespace OpenSim.Framework.Types
                     attri = configData.GetAttribute("MasterAvatarSandboxPassword");
                     if (attri == "")
                     {
-                        this.MasterAvatarSandboxPassword = OpenSim.Framework.Console.MainConsole.Instance.CmdPrompt("Password of Master Avatar (Needed for sandbox mode account creation only)", "test");
+                        this.MasterAvatarSandboxPassword = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Password of Master Avatar (Needed for sandbox mode account creation only)", "test");
 
                         //Should I store this?
                         configData.SetAttribute("MasterAvatarSandboxPassword", this.MasterAvatarSandboxPassword);
@@ -254,17 +254,17 @@ namespace OpenSim.Framework.Types
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,"Config.cs:InitConfig() - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.MEDIUM,e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
             }
 
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Sim settings loaded:");
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "UUID: " + this.SimUUID.ToStringHyphenated());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Name: " + this.RegionName);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Region Handle: " + this.RegionHandle.ToString());
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Sandbox Mode? " + isSandbox.ToString());
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Sim settings loaded:");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "UUID: " + this.SimUUID.ToStringHyphenated());
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Name: " + this.RegionName);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Region Handle: " + this.RegionHandle.ToString());
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Sandbox Mode? " + isSandbox.ToString());
   
         }
     }

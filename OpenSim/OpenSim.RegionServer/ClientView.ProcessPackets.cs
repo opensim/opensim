@@ -191,7 +191,7 @@ namespace OpenSim
 
                     #region Objects/Prims
                     case PacketType.ObjectLink:
-                        // OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, Pack.ToString());
+                        // OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket)Pack;
                         uint parentprimid = 0;
                         List<uint> childrenprims = new List<uint>();
@@ -514,7 +514,7 @@ namespace OpenSim
                         //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.ObjectScale:
-                        //OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, Pack.ToString());
+                        //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
                         break;
                     #endregion
                 }

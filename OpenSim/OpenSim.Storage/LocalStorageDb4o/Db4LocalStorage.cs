@@ -53,18 +53,18 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public void Initialise(string dfile)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.Warn("Db4LocalStorage Opening " + dfile);
+            OpenSim.Framework.Console.MainLog.Instance.Warn("Db4LocalStorage Opening " + dfile);
             datastore = dfile;
             try
             {
                 db = Db4oFactory.OpenFile(datastore);
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose("Db4LocalStorage creation");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("Db4LocalStorage creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainConsole.Instance.Warn("Db4LocalStorage :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainConsole.Instance.Warn(e.ToString());
+                OpenSim.Framework.Console.MainLog.Instance.Warn("Db4LocalStorage :Constructor - Exception occured");
+                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
             }
         }
 
@@ -123,7 +123,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
         public void LoadPrimitives(ILocalStorageReceiver receiver)
         {
             IObjectSet result = db.Get(typeof(PrimData));
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is " + result.Count);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is " + result.Count);
             foreach (PrimData prim in result)
             {
                 receiver.PrimFromStorage(prim);
@@ -132,13 +132,13 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public float[] LoadWorld()
         {
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Loading world....");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("LoadWorld() - Loading world....");
             float[] heightmap = null;
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Looking for a heightmap in local DB");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("LoadWorld() - Looking for a heightmap in local DB");
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose("LoadWorld() - Found a heightmap in local database, loading");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("LoadWorld() - Found a heightmap in local database, loading");
                 MapStorage map = (MapStorage)world_result.Next();
                 //blank.LandMap = map.Map;
                 heightmap = map.Map;
@@ -151,7 +151,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
             {
-                OpenSim.Framework.Console.MainConsole.Instance.Verbose("SaveWorld() - updating saved copy of heightmap in local database");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("SaveWorld() - updating saved copy of heightmap in local database");
                 MapStorage map = (MapStorage)world_result.Next();
                 db.Delete(map);
             }
@@ -209,7 +209,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public void SaveParcels(ParcelData[] parcel_data)
         {
-            MainConsole.Instance.Notice("Parcel Backup: Saving Parcels...");
+            MainLog.Instance.Notice("Parcel Backup: Saving Parcels...");
             int i;
             for (i = 0; i < parcel_data.GetLength(0); i++)
             {
@@ -217,7 +217,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 SaveParcel(parcel_data[i]);
 
             }
-            MainConsole.Instance.Notice("Parcel Backup: Parcel Save Complete");
+            MainLog.Instance.Notice("Parcel Backup: Parcel Save Complete");
         }
 
         public void RemoveParcel(ParcelData parcel)
@@ -231,7 +231,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
         }
         public void RemoveAllParcels()
         {
-            MainConsole.Instance.Notice("Parcel Backup: Removing all parcels...");
+            MainLog.Instance.Notice("Parcel Backup: Removing all parcels...");
             IObjectSet result = db.Get(typeof(ParcelData));
             if (result.Count > 0)
             {
@@ -244,11 +244,11 @@ namespace OpenSim.Storage.LocalStorageDb4o
 
         public void LoadParcels(ILocalStorageParcelReceiver recv)
         {
-            MainConsole.Instance.Notice("Parcel Backup: Loading Parcels...");
+            MainLog.Instance.Notice("Parcel Backup: Loading Parcels...");
             IObjectSet result = db.Get(typeof(ParcelData));
             if (result.Count > 0)
             {
-                MainConsole.Instance.Notice("Parcel Backup: Parcels exist in database.");
+                MainLog.Instance.Notice("Parcel Backup: Parcels exist in database.");
                 foreach (ParcelData parcelData in result)
                 {
 
@@ -257,10 +257,10 @@ namespace OpenSim.Storage.LocalStorageDb4o
             }
             else
             {
-                MainConsole.Instance.Notice("Parcel Backup: No parcels exist. Creating basic parcel.");
+                MainLog.Instance.Notice("Parcel Backup: No parcels exist. Creating basic parcel.");
                 recv.NoParcelDataFromStorage();
             }
-            MainConsole.Instance.Notice("Parcel Backup: Parcels Restored");
+            MainLog.Instance.Notice("Parcel Backup: Parcels Restored");
         }
         public void ShutDown()
         {

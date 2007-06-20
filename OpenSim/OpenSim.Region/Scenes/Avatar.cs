@@ -78,7 +78,7 @@ namespace OpenSim.Region.Scenes
 
             m_regionInfo = reginfo;
             m_regionHandle = reginfo.RegionHandle;
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW, "Avatar.cs - Loading details from grid (DUMMY)");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Avatar.cs - Loading details from grid (DUMMY)");
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;

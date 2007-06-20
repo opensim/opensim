@@ -53,7 +53,7 @@ namespace OpenSim.GridInterfaces.Remote
             this._remoteAssetServerThread = new Thread(new ThreadStart(RunRequests));
             this._remoteAssetServerThread.IsBackground = true;
             this._remoteAssetServerThread.Start();
-            OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW,"Remote Asset Server class created");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Remote Asset Server class created");
         }
 
         public void SetReceiver(IAssetReceiver receiver)
@@ -98,7 +98,7 @@ namespace OpenSim.GridInterfaces.Remote
 		// 404... THE MAGIC FILE NOT FOUND ERROR, very useful for telling you things such as a file (or asset ;) ) not being found!!!!!!!!!!! it's 2:22AM
                 ARequest req = this._assetRequests.Dequeue();
                 LLUUID assetID = req.AssetID;
-              //  OpenSim.Framework.Console.MainConsole.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.LOW," RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "assets/" + assetID);
+              //  OpenSim.Framework.Console.MainLog.Instance.Verbose(" RemoteAssetServer- Got a AssetServer request, processing it - " + this.AssetServerUrl + "assets/" + assetID);
                 WebRequest AssetLoad = WebRequest.Create(this.AssetServerUrl + "assets/" + assetID);
                 WebResponse AssetResponse = AssetLoad.GetResponse();
                 byte[] idata = new byte[(int)AssetResponse.ContentLength];

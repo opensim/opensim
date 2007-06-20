@@ -34,12 +34,33 @@ using OpenJPEGNet;
 
 namespace OpenSim.Terrain
 {
+    public class TerrainCommand
+    {
+        public virtual bool run(string[] cmdargs, ref string output)
+        {
+            return false;
+        }
+
+        public string args;
+        public string help;
+    }
+
     public class TerrainEngine
     {
         /// <summary>
         /// A [normally] 256x256 heightmap
         /// </summary>
         public Channel heightmap;
+
+        /// <summary>
+        /// A copy of heightmap at the last save point (for reverting)
+        /// </summary>
+        public Channel revertmap;
+
+        /// <summary>
+        /// Water heightmap (needs clientside mods to work)
+        /// </summary>
+        public Channel watermap;
 
         /// <summary>
         /// Whether or not the terrain has been modified since it was last saved and sent to the Physics engine.
@@ -145,6 +166,7 @@ namespace OpenSim.Terrain
                 {
                     case "help":
                         resultText += "terrain regenerate - rebuilds the sims terrain using a default algorithm\n";
+                        resultText += "terrain voronoi <points> <blocksize> - generates a worley fractal with X points per block";
                         resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
                         resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
                         resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32' or 'F64'\n";
@@ -160,20 +182,17 @@ namespace OpenSim.Terrain
                         break;
 
                     case "erode":
-                        switch (args[1].ToLower())
-                        {
-                            case "aerobic":
-                                // WindSpeed, PickupMinimum,DropMinimum,Carry,Rounds,Lowest
-                                heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]));
-                                break;
-                            case "thermal":
-                                heightmap.thermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
-                                break;
-                            default:
-                                resultText = "Unknown erosion type";
-                                return false;
-                        }
+                        return consoleErosion(args, ref resultText);
+
+                    case "voronoi":
+                        double[] c = new double[2];
+                        c[0] = -1;
+                        c[1] = 1;
+                        heightmap.voronoiDiagram(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), c);
                         break;
+
+                    case "hills":
+                        return consoleHills(args, ref resultText);
 
                     case "regenerate":
                         hills();
@@ -244,6 +263,73 @@ namespace OpenSim.Terrain
                 resultText = "Error running terrain command: " + e.ToString();
                 return false;
             }
+        }
+
+        private bool consoleErosion(string[] args, ref string resultText)
+        {
+            switch (args[1].ToLower())
+            {
+                case "aerobic":
+                    // WindSpeed, PickupMinimum,DropMinimum,Carry,Rounds,Lowest
+                    heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]));
+                    break;
+                case "thermal":
+                    heightmap.thermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
+                    break;
+                default:
+                    resultText = "Unknown erosion type";
+                    return false;
+            }
+            return true;
+        }
+
+        private bool consoleHills(string[] args, ref string resultText)
+        {
+            int count;
+            double sizeMin;
+            double sizeRange;
+            bool island;
+            bool additive;
+            bool noisy;
+
+            if (args.GetLength(0) > 2)
+            {
+                count = Convert.ToInt32(args[2]);
+                sizeMin = Convert.ToDouble(args[3]);
+                sizeRange = Convert.ToDouble(args[4]);
+                island = Convert.ToBoolean(args[5]);
+                additive = Convert.ToBoolean(args[6]);
+                noisy = Convert.ToBoolean(args[7]);
+            }
+            else
+            {
+                count = 200;
+                sizeMin = 20;
+                sizeRange = 40;
+                island = true;
+                additive = true;
+                noisy = false;
+            }
+
+            switch (args[1].ToLower())
+            {
+                case "blocks":
+                    heightmap.hillsBlocks(count, sizeMin, sizeRange, island, additive, noisy);
+                    break;
+                case "cones":
+                    heightmap.hillsCones(count, sizeMin, sizeRange, island, additive, noisy);
+                    break;
+                case "spheres":
+                    heightmap.hillsSpheres(count, sizeMin, sizeRange, island, additive, noisy);
+                    break;
+                case "squared":
+                    heightmap.hillsSquared(count, sizeMin, sizeRange, island, additive, noisy);
+                    break;
+                default:
+                    resultText = "Unknown hills type";
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>
