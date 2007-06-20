@@ -20,6 +20,7 @@ namespace SimpleApp2
         private ConsoleBase m_console;
         private RegionInfo m_regionInfo;
         private float[] m_map;
+        private AuthenticateSessionsBase m_circuitManager;
         
         private void Run()
         {
@@ -34,10 +35,11 @@ namespace SimpleApp2
             string simAddr = "127.0.0.1";
             int simPort = 9000;
 
+            m_circuitManager = new AuthenticateSessionsBase();            
+            
             LoginServer loginServer = new LoginServer(simAddr, simPort, 0, 0, false);
             loginServer.Startup();
 
-            AuthenticateSessionsBase localSessions = new AuthenticateSessionsBase();
             loginServer.SetSessionHandler( AddNewSessionHandler );
 
             InventoryCache inventoryCache = new InventoryCache();
@@ -48,7 +50,7 @@ namespace SimpleApp2
 
             AssetCache assetCache = new AssetCache(assetServer);
 
-            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_console, localSessions);
+            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_console, m_circuitManager );
             PacketServer packetServer = new MyPacketServer(m_map, udpServer, (uint) simPort );
             udpServer.ServerListener();
 
@@ -89,6 +91,20 @@ namespace SimpleApp2
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
             m_console.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
+
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = loginData.Agent;
+            agent.firstname = loginData.First;
+            agent.lastname = loginData.Last;
+            agent.SessionID = loginData.Session;
+            agent.SecureSessionID = loginData.SecureSession;
+            agent.circuitcode = loginData.CircuitCode;
+            agent.BaseFolder = loginData.BaseFolder;
+            agent.InventoryFolder = loginData.InventoryFolder;
+            agent.startpos = new LLVector3(128, 128, 70);
+
+            m_circuitManager.AddNewCircuit(agent.circuitcode, agent);
+
             return true;
         }
 
@@ -98,6 +114,7 @@ namespace SimpleApp2
 
             app.Run();
         }
+
 
         #region IWorld Members
 

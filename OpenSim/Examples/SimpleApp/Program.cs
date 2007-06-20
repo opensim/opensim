@@ -18,6 +18,7 @@ namespace SimpleApp
     class Program : IAssetReceiver, conscmd_callback
     {
         private ConsoleBase m_console;
+        AuthenticateSessionsBase m_circuitManager;
         
         private void Run()
         {
@@ -34,7 +35,7 @@ namespace SimpleApp
             loginServer.Startup();
             loginServer.SetSessionHandler( AddNewSessionHandler );
 
-            AuthenticateSessionsBase localSessions = new AuthenticateSessionsBase();
+            m_circuitManager = new AuthenticateSessionsBase();
 
             InventoryCache inventoryCache = new InventoryCache();
 
@@ -44,7 +45,7 @@ namespace SimpleApp
 
             AssetCache assetCache = new AssetCache(assetServer);
             
-            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_console, localSessions );
+            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_console, m_circuitManager );
             PacketServer packetServer = new PacketServer( udpServer, (uint) simPort );
             udpServer.ServerListener();
             
@@ -69,7 +70,21 @@ namespace SimpleApp
 
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
-            m_console.WriteLine( LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last );
+            m_console.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
+
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = loginData.Agent;
+            agent.firstname = loginData.First;
+            agent.lastname = loginData.Last;
+            agent.SessionID = loginData.Session;
+            agent.SecureSessionID = loginData.SecureSession;
+            agent.circuitcode = loginData.CircuitCode;
+            agent.BaseFolder = loginData.BaseFolder;
+            agent.InventoryFolder = loginData.InventoryFolder;
+            agent.startpos = new LLVector3(128, 128, 70);
+
+            m_circuitManager.AddNewCircuit(agent.circuitcode, agent);
+
             return true;
         }
         
