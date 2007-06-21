@@ -807,7 +807,20 @@ namespace OpenSim.Region.Scenes
             }
             else
             {
-                remoteClient.SendTeleportCancel();
+                RegionInfo reg = this.RequestNeighbouringRegionInfo(regionHandle);
+                if (reg != null)
+                {
+                    remoteClient.SendTeleportLocationStart();
+                    AgentCircuitData agent = remoteClient.RequestClientInfo();
+                    agent.BaseFolder = LLUUID.Zero;
+                    agent.InventoryFolder = LLUUID.Zero;
+                    agent.startpos = new LLVector3(128, 128, 70);
+                    agent.child = true;
+                    this.commsManager.InterRegion.InformNeighbourOfChildAgent(regionHandle, agent);
+                    this.commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
+                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.IPListenAddr, (ushort)reg.IPListenPort, 4, (1 << 4));               
+                }
+                //remoteClient.SendTeleportCancel();
             }
         }
 
