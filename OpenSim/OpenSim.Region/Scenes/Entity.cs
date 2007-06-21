@@ -156,11 +156,11 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public virtual void addForces()
+        public virtual void updateMovement()
         {
         	foreach (Entity child in children)
             {
-                child.addForces();
+                child.updateMovement();
             }
         }
 

@@ -14,6 +14,7 @@
                 <include name="EstateManager.cs" />
                 <include name="ParcelManager.cs" />
                 <include name="Scenes/Entity.cs" />
+                <include name="Scenes/IScenePresenceBody.cs" />
                 <include name="Scenes/Primitive.cs" />
                 <include name="Scenes/Scene.cs" />
                 <include name="Scenes/Scene.PacketHandlers.cs" />
@@ -21,8 +22,8 @@
                 <include name="Scenes/SceneBase.cs" />
                 <include name="Scenes/SceneObject.cs" />
                 <include name="Scenes/ScenePresence.Animations.cs" />
+                <include name="Scenes/ScenePresence.Body.cs" />
                 <include name="Scenes/ScenePresence.cs" />
-                <include name="Scenes/ScenePresence.Update.cs" />
                 <include name="Scenes/scripting/IScriptContext.cs" />
                 <include name="Scenes/scripting/IScriptEntity.cs" />
                 <include name="Scenes/scripting/IScriptHandler.cs" />

@@ -174,8 +174,8 @@ namespace OpenSim
             mov.AgentData.SessionID = this.SessionID;
             mov.AgentData.AgentID = this.AgentID;
             mov.Data.RegionHandle = regInfo.RegionHandle;
-            // TODO - dynamicalise this stuff
-            mov.Data.Timestamp = 1172750370;
+            mov.Data.Timestamp = 1172750370; // TODO - dynamicalise this
+
             if (pos == null)
             {
                 mov.Data.Position = this.startpos;

@@ -175,7 +175,7 @@ namespace OpenSim.Region.Scenes
 
                 foreach (libsecondlife.LLUUID UUID in Entities.Keys)
                 {
-                    Entities[UUID].addForces();
+                    Entities[UUID].updateMovement();
                 }
 
                 lock (this.m_syncRoot)
@@ -731,7 +731,7 @@ namespace OpenSim.Region.Scenes
             {
                 if (this.Avatars.ContainsKey(agentID))
                 {
-                    this.Avatars[agentID].UpGradeAvatar(position);
+                    this.Avatars[agentID].MakeAvatar(position);
                 }
             }
         }

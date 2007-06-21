@@ -145,6 +145,9 @@
     <Compile Include="Scenes\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scenes\IScenePresenceBody.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Scenes\Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -166,10 +169,10 @@
     <Compile Include="Scenes\ScenePresence.Animations.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.cs">
+    <Compile Include="Scenes\ScenePresence.Body.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.Update.cs">
+    <Compile Include="Scenes\ScenePresence.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\scripting\IScriptContext.cs">
