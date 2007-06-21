@@ -168,7 +168,7 @@ namespace OpenSim.LocalCommunications
             if (this.regionHosts.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect avatar crossing");
-                this.regionHosts[regionHandle].ExpectAvatarCrossing(regionHandle, agentID, position);
+                this.regionHosts[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
                 return true;
             }
             return false;

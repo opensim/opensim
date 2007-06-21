@@ -61,6 +61,7 @@ namespace OpenSim.Region.Scenes
         private ulong m_regionHandle;
         private bool childAvatar = false;
         private bool newForce = false;
+        private bool newAvatar = false;
 
         protected RegionInfo m_regionInfo;
         /// <summary>
@@ -145,6 +146,7 @@ namespace OpenSim.Region.Scenes
         {
             //this.childAvatar = false;
             this.Pos = pos;
+            this.newAvatar = true;
         }
 
         protected void DownGradeAvatar()
@@ -179,7 +181,7 @@ namespace OpenSim.Region.Scenes
                         NewForce force = this.forcesList[i];
                         
                         this.updateflag = true;
-                        this.Velocity = new LLVector3(force.X, force.Y, force.Z); //shouldn't really be doing this
+                        this.Velocity = new LLVector3(force.X, force.Y, force.Z); 
                         this.newForce = true;
                     }
                     for (int i = 0; i < this.forcesList.Count; i++)

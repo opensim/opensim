@@ -38,10 +38,9 @@ namespace OpenSim.Region.Scenes
     public abstract class Entity : IScriptReadonlyEntity
     {
         public libsecondlife.LLUUID uuid;
-        public LLVector3 velocity;
         public Quaternion rotation;
         protected List<Entity> children;
-        protected LLVector3 m_pos;
+        
         protected PhysicsActor _physActor;
         protected Scene m_world;
         protected string m_name;
@@ -54,6 +53,7 @@ namespace OpenSim.Region.Scenes
             get { return m_name; }
         }
 
+        protected LLVector3 m_pos;
         /// <summary>
         /// 
         /// </summary>
@@ -92,6 +92,11 @@ namespace OpenSim.Region.Scenes
             }
         }
 
+        public LLVector3 velocity;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual LLVector3 Velocity
         {
             get

@@ -56,7 +56,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
         {
             if (OnAvatarCrossingIntoRegion != null)
             {

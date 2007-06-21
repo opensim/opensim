@@ -76,26 +76,14 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <returns></returns>
-        public ObjectUpdatePacket CreateUpdatePacket()
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public void SendInitialPosition()
         {
             this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void SendOurAppearance()
-        {
-           
+            if (this.newAvatar)
+            {
+                this.m_world.InformClientOfNeighbours(this.ControllingClient);
+                this.newAvatar = false;
+            }
         }
         
         /// <summary>

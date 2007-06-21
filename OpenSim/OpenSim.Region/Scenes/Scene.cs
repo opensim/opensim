@@ -739,7 +739,7 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// 
         /// </summary>
-        protected void InformClientOfNeighbours(IClientAPI remoteClient)
+        public void InformClientOfNeighbours(IClientAPI remoteClient)
         {
             // Console.WriteLine("informing client of neighbouring regions");
             List<RegionInfo> neighbours = this.commsManager.GridServer.RequestNeighbours(this.m_regInfo);
