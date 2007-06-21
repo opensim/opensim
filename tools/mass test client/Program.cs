@@ -8,15 +8,15 @@ namespace libsecondlife.TestClient
     public class CommandLineArgumentsException : Exception
     {
     }
-    
+
     public class Program
     {
 
         private static void Usage()
         {
             Console.WriteLine("Usage: " + Environment.NewLine +
-                    "MassTestClient.exe --first \"firstname\" --last \"lastname\" --pass \"password\" --contact \"youremail\" [--startpos \"sim/x/y/z\"] [--master \"master name\"] [--masterkey \"master uuid\"] [--loginuri \"loginuri\"] [--masscommandfile \"filename\"]" +
-                    Environment.NewLine + Environment.NewLine + "MassTestClient.exe --loginfile \"filename\" --contact \"youremail\" [--master \"master name\"] [--masterkey \"master uuid\"] [--loginuri \"loginuri\"] [--masscommandfile \"filename\"]");
+                    "MassTestClient.exe --first \"firstname\" --last \"lastname\" --pass \"password\" --contact \"youremail\" [--startpos \"sim/x/y/z\"] [--master \"master name\"] [--masterkey \"master uuid\"] [--loginuri] [--masscommandfile \"filename\"]" +
+                    Environment.NewLine + Environment.NewLine + "MassTestClient.exe --loginfile \"filename\" --contact \"youremail\" [--master \"master name\"] [--masterkey \"master uuid\"] [--loginuri] [--masscommandfile \"filename\"]");
             Console.ReadLine();
         }
 
@@ -38,7 +38,7 @@ namespace libsecondlife.TestClient
                     curCommand++;
                 }
             }
-            
+
             return givenCommands;
         }
 
@@ -52,8 +52,9 @@ namespace libsecondlife.TestClient
             string masterName = String.Empty;
             LLUUID masterKey = LLUUID.Zero;
             string file = String.Empty;
-			string contact = String.Empty;
+            string contact = String.Empty;
             string loginURI = "https://login.agni.lindenlab.com/cgi-bin/login.cgi";
+
             try
             {
                 if (arguments["masterkey"] != null)
@@ -71,9 +72,9 @@ namespace libsecondlife.TestClient
 
                 contact = arguments["contact"];
 
-                if (arguments["file"] != null)
+                if (arguments["loginfile"] != null)
                 {
-                    file = arguments["file"];
+                    file = arguments["loginfile"];
 
                     // Loading names from a file
                     try
@@ -144,13 +145,18 @@ namespace libsecondlife.TestClient
                 return;
             }
 
-            if(arguments["loginuri"] != null)
+            if (arguments["loginuri"] != null)
             {
-                loginURI = arguments["loginuri"];
+                Console.WriteLine("Please enter a login uri. If you enter nothing, AGNI grid is assumed:");
+                string temp = Console.ReadLine();
+                if (temp.Trim().Length > 0)
+                {
+                    loginURI = temp.Trim();
+                }
             }
 
             List<string> massTestCommands = new List<string>();
-            if(arguments["masscommandfile"] != null)
+            if (arguments["masscommandfile"] != null)
             {
                 string massCommandFile = arguments["masscommandfile"];
                 try
@@ -161,9 +167,9 @@ namespace libsecondlife.TestClient
 
                         while ((line = reader.ReadLine()) != null)
                         {
-                              
+
                             line = line.Trim();
-                            if(line.Length > 0)
+                            if (line.Length > 0)
                             {
                                 massTestCommands.Add(line);
                             }
@@ -183,7 +189,7 @@ namespace libsecondlife.TestClient
                 Console.Clear();
                 massTestCommands = getMassTestCommands();
             }
-            
+
             Console.Clear();
             if (massTestCommands.Count == 0)
             {
@@ -194,6 +200,7 @@ namespace libsecondlife.TestClient
                 Console.WriteLine("Detected " + massTestCommands.Count + " mass commands; MassTestClient operation will be used");
             }
 
+            Console.WriteLine(loginURI);
             foreach (LoginDetails a in accounts)
             {
                 a.MasterName = masterName;
