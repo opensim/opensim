@@ -176,7 +176,7 @@ namespace OpenSim
             mov.Data.RegionHandle = regInfo.RegionHandle;
             mov.Data.Timestamp = 1172750370; // TODO - dynamicalise this
 
-            if (pos == null)
+            if ((pos.X  == 0) && (pos.Y  == 0) && (pos.Z  == 0))
             {
                 mov.Data.Position = this.startpos;
             }
