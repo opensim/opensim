@@ -125,9 +125,17 @@ namespace OpenSim.Framework.Console
             Log.Flush();
             if (!m_silent)
             {
-                System.Console.ForegroundColor = color;
-                System.Console.WriteLine(format, args);
-                System.Console.ResetColor();
+                try
+                {
+                    System.Console.ForegroundColor = color;
+                    System.Console.WriteLine(format, args);
+                    System.Console.ResetColor();
+                }
+                catch (System.ArgumentNullException)
+                {
+                    // Some older systems dont support coloured text.
+                    System.Console.WriteLine(format, args);
+                }
             }
             return;
         }
