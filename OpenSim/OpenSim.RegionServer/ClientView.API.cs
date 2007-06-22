@@ -189,6 +189,14 @@ namespace OpenSim
             OutPacket(mov);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="fromPos"></param>
+        /// <param name="fromName"></param>
+        /// <param name="fromAgentID"></param>
         public void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             SendChatMessage(Helpers.StringToField(message), type, fromPos, fromName, fromAgentID);

@@ -36,9 +36,9 @@ namespace OpenGrid.Framework.Communications
 {
     public interface IUserServices
     {
-        UserProfileData GetUserProfile(string first_name, string last_name);
+        UserProfileData GetUserProfile(string firstName, string lastName);
         UserProfileData GetUserProfile(string name);
-        UserProfileData GetUserProfile(LLUUID avatar_id);
+        UserProfileData GetUserProfile(LLUUID avatarID);
         
     }
 }

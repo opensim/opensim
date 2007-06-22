@@ -11,6 +11,7 @@
             <resources prefix="OpenGrid.Framework.UserManagement" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="LoginResponse.cs" />
                 <include name="UserManagerBase.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

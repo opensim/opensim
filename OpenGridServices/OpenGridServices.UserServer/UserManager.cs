@@ -55,7 +55,7 @@ namespace OpenGridServices.UserServer
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
-        public override void CustomiseResponse(ref Hashtable response, ref UserProfileData theUser)
+        public override void CustomiseResponse(ref LoginResponse response, ref UserProfileData theUser)
         {
             // Load information from the gridserver
             SimProfile SimInfo = new SimProfile();
@@ -63,15 +63,15 @@ namespace OpenGridServices.UserServer
 
             // Customise the response
             // Home Location
-            response["home"] = "{'region_handle':[r" + (SimInfo.RegionLocX * 256).ToString() + ",r" + (SimInfo.RegionLocY * 256).ToString() + "], " +
+            response.Home = "{'region_handle':[r" + (SimInfo.RegionLocX * 256).ToString() + ",r" + (SimInfo.RegionLocY * 256).ToString() + "], " +
                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
             // Destination
-            response["sim_ip"] = SimInfo.sim_ip;
-            response["sim_port"] = (Int32)SimInfo.sim_port;
-            response["region_y"] = (Int32)SimInfo.RegionLocY * 256;
-            response["region_x"] = (Int32)SimInfo.RegionLocX * 256;
+            response.SimAddress = SimInfo.sim_ip;
+            response.SimPort = (Int32)SimInfo.sim_port;
+            response.RegionX = SimInfo.RegionLocY ;
+            response.RegionY = SimInfo.RegionLocX ;
 
             // Notify the target of an incoming user
             Console.WriteLine("Notifying " + SimInfo.regionname + " (" + SimInfo.caps_url + ")");
@@ -83,7 +83,7 @@ namespace OpenGridServices.UserServer
             SimParams["firstname"] = theUser.username;
             SimParams["lastname"] = theUser.surname;
             SimParams["agent_id"] = theUser.UUID.ToString();
-            SimParams["circuit_code"] = (Int32)Convert.ToUInt32(response["circuit_code"]);
+            SimParams["circuit_code"] = (Int32)Convert.ToUInt32(response.CircuitCode);
             SimParams["startpos_x"] = theUser.currentAgent.currentPos.X.ToString();
             SimParams["startpos_y"] = theUser.currentAgent.currentPos.Y.ToString();
             SimParams["startpos_z"] = theUser.currentAgent.currentPos.Z.ToString();

@@ -79,37 +79,7 @@ namespace OpenGrid.Framework.UserManagement
             pluginAssembly = null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="user"></param>
-        public void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
-        {
-            UserProfileData user = new UserProfileData();
-            user.homeLocation = new LLVector3(128, 128, 100);
-            user.UUID = LLUUID.Random();
-            user.username = firstName;
-            user.surname = lastName;
-            user.passwordHash = pass;
-            user.passwordSalt = "";
-            user.created = Util.UnixTimeSinceEpoch();
-            user.homeLookAt = new LLVector3(100, 100, 100);
-            user.homeRegion = Util.UIntsToLong((regX * 256), (regY * 256));
-
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
-            {
-                try
-                {
-                    plugin.Value.addNewUserProfile(user);
-                    
-                }
-                catch (Exception e)
-                {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
-                }
-            }
-        }
-
+        #region Get UserProfile 
         /// <summary>
         /// Loads a user profile from a database by UUID
         /// </summary>
@@ -190,7 +160,9 @@ namespace OpenGrid.Framework.UserManagement
 
             return null;
         }
+        #endregion
 
+        #region Get UserAgent
         /// <summary>
         /// Loads a user agent by uuid (not called directly)
         /// </summary>
@@ -258,94 +230,9 @@ namespace OpenGrid.Framework.UserManagement
             return null;
         }
 
-        /// <summary>
-        /// Creates a error response caused by invalid XML
-        /// </summary>
-        /// <returns>An XMLRPC response</returns>
-        private static XmlRpcResponse CreateErrorConnectingToGridResponse()
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable ErrorRespData = new Hashtable();
-            ErrorRespData["reason"] = "key";
-            ErrorRespData["message"] = "Error connecting to grid. Could not percieve credentials from login XML.";
-            ErrorRespData["login"] = "false";
-            response.Value = ErrorRespData;
-            return response;
-        }
+        #endregion
 
-        /// <summary>
-        /// Creates an error response caused by bad login credentials
-        /// </summary>
-        /// <returns>An XMLRPC response</returns>
-        private static XmlRpcResponse CreateLoginErrorResponse()
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable ErrorRespData = new Hashtable();
-            ErrorRespData["reason"] = "key";
-            ErrorRespData["message"] = "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.";
-            ErrorRespData["login"] = "false";
-            response.Value = ErrorRespData;
-            return response;
-        }
-
-        /// <summary>
-        /// Creates an error response caused by being logged in already
-        /// </summary>
-        /// <returns>An XMLRPC Response</returns>
-        private static XmlRpcResponse CreateAlreadyLoggedInResponse()
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable PresenceErrorRespData = new Hashtable();
-            PresenceErrorRespData["reason"] = "presence";
-            PresenceErrorRespData["message"] = "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner";
-            PresenceErrorRespData["login"] = "false";
-            response.Value = PresenceErrorRespData;
-            return response;
-        }
-
-        /// <summary>
-        /// Creates an error response caused by target region being down
-        /// </summary>
-        /// <returns>An XMLRPC Response</returns>
-        private static XmlRpcResponse CreateDeadRegionResponse()
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable PresenceErrorRespData = new Hashtable();
-            PresenceErrorRespData["reason"] = "key";
-            PresenceErrorRespData["message"] = "The region you are attempting to log into is not responding. Please select another region and try again.";
-            PresenceErrorRespData["login"] = "false";
-            response.Value = PresenceErrorRespData;
-            return response;
-        }
-
-        /// <summary>
-        /// Customises the login response and fills in missing values.
-        /// </summary>
-        /// <param name="response">The existing response</param>
-        /// <param name="theUser">The user profile</param>
-        public virtual void CustomiseResponse(ref Hashtable response, ref UserProfileData theUser)
-        {
-       
-        }
-
-        /// <summary>
-        /// Checks a user against it's password hash
-        /// </summary>
-        /// <param name="profile">The users profile</param>
-        /// <param name="password">The supplied password</param>
-        /// <returns>Authenticated?</returns>
-        public bool AuthenticateUser(ref UserProfileData profile, string password)
-        {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose(
-                "Authenticating " + profile.username + " " + profile.surname);
-
-            password = password.Remove(0, 3); //remove $1$
-
-            string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
-
-            return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
-        }
-
+        #region CreateAgent
         /// <summary>
         /// Creates and initialises a new user agent - make sure to use CommitAgent when done to submit to the DB
         /// </summary>
@@ -390,7 +277,7 @@ namespace OpenGrid.Framework.UserManagement
                     {
                         string[] parts = startLoc.Remove(0, 4).Split('&');
                         string region = parts[0];
-                        
+
                         ////////////////////////////////////////////////////
                         //SimProfile SimInfo = new SimProfile();
                         //SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
@@ -424,6 +311,58 @@ namespace OpenGrid.Framework.UserManagement
             return true;
         }
 
+        #endregion
+
+        /// <summary>
+        /// Checks a user against it's password hash
+        /// </summary>
+        /// <param name="profile">The users profile</param>
+        /// <param name="password">The supplied password</param>
+        /// <returns>Authenticated?</returns>
+        public virtual bool AuthenticateUser(ref UserProfileData profile, string password)
+        {
+            OpenSim.Framework.Console.MainLog.Instance.Verbose(
+                "Authenticating " + profile.username + " " + profile.surname);
+
+            password = password.Remove(0, 3); //remove $1$
+
+            string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
+
+            return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        #region Xml Response
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="firstname"></param>
+        /// <param name="lastname"></param>
+        /// <returns></returns>
+        public virtual UserProfileData GetTheUser(string firstname, string lastname)
+        {
+            return getUserProfile(firstname, lastname);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetMessage()
+        {
+            return _config.DefaultStartupMsg;
+        }
+
+        /// <summary>
+        /// Customises the login response and fills in missing values.
+        /// </summary>
+        /// <param name="response">The existing response</param>
+        /// <param name="theUser">The user profile</param>
+        public virtual void CustomiseResponse(ref LoginResponse response, ref UserProfileData theUser)
+        {
+       
+        }
+
         /// <summary>
         /// Main user login function
         /// </summary>
@@ -441,6 +380,7 @@ namespace OpenGrid.Framework.UserManagement
             string passwd = "";
 
             UserProfileData TheUser;
+            LoginResponse logResponse = new LoginResponse();
 
             if (GoodXML)
             {
@@ -448,20 +388,20 @@ namespace OpenGrid.Framework.UserManagement
                 lastname = (string)requestData["last"];
                 passwd = (string)requestData["passwd"];
 
-                TheUser = getUserProfile(firstname, lastname);
+                TheUser = GetTheUser(firstname, lastname);
                 if (TheUser == null)
-                    return CreateLoginErrorResponse();
+                    return logResponse.CreateLoginFailedResponse();
 
                 GoodLogin = AuthenticateUser(ref TheUser, passwd);
             }
             else
             {
-                return CreateErrorConnectingToGridResponse();
+                return logResponse.CreateGridErrorResponse();
             }
 
             if (!GoodLogin)
             {
-                return CreateLoginErrorResponse();
+                return logResponse.CreateLoginFailedResponse();
             }
             else
             {
@@ -469,7 +409,7 @@ namespace OpenGrid.Framework.UserManagement
                 if (TheUser.currentAgent != null && TheUser.currentAgent.agentOnline)
                 {
                     // Reject the login
-                    return CreateAlreadyLoggedInResponse();
+                    return logResponse.CreateAlreadyLoggedInResponse();
                 }
                 // Otherwise...
                 // Create a new agent session
@@ -477,39 +417,8 @@ namespace OpenGrid.Framework.UserManagement
 
                 try
                 {
-                    Hashtable responseData = new Hashtable();
 
                     LLUUID AgentID = TheUser.UUID;
-                    
-                    // Global Texture Section
-                    Hashtable GlobalT = new Hashtable();
-                    GlobalT["sun_texture_id"] = "cce0f112-878f-4586-a2e2-a8f104bba271";
-                    GlobalT["cloud_texture_id"] = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-                    GlobalT["moon_texture_id"] = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-                    ArrayList GlobalTextures = new ArrayList();
-                    GlobalTextures.Add(GlobalT);
-
-                    // Login Flags Section
-                    Hashtable LoginFlagsHash = new Hashtable();
-                    LoginFlagsHash["daylight_savings"] = "N";
-                    LoginFlagsHash["stipend_since_login"] = "N";
-                    LoginFlagsHash["gendered"] = "Y"; // Needs to be combined with below...
-                    LoginFlagsHash["ever_logged_in"] = "Y"; // Should allow male/female av selection
-                    ArrayList LoginFlags = new ArrayList();
-                    LoginFlags.Add(LoginFlagsHash);
-
-                    // UI Customisation Section
-                    Hashtable uiconfig = new Hashtable();
-                    uiconfig["allow_first_life"] = "Y";
-                    ArrayList ui_config = new ArrayList();
-                    ui_config.Add(uiconfig);
-
-                    // Classified Categories Section
-                    Hashtable ClassifiedCategoriesHash = new Hashtable();
-                    ClassifiedCategoriesHash["category_name"] = "Generic";
-                    ClassifiedCategoriesHash["category_id"] = (Int32)1;
-                    ArrayList ClassifiedCategories = new ArrayList();
-                    ClassifiedCategories.Add(ClassifiedCategoriesHash);
 
                     // Inventory Library Section
                     ArrayList AgentInventoryArray = new ArrayList();
@@ -534,62 +443,37 @@ namespace OpenGrid.Framework.UserManagement
                     ArrayList InventoryRoot = new ArrayList();
                     InventoryRoot.Add(InventoryRootHash);
 
-                    Hashtable InitialOutfitHash = new Hashtable();
-                    InitialOutfitHash["folder_name"] = "Nightclub Female";
-                    InitialOutfitHash["gender"] = "female";
-                    ArrayList InitialOutfit = new ArrayList();
-                    InitialOutfit.Add(InitialOutfitHash);
-
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());
 
-                    // Generics
-                    responseData["last_name"] = TheUser.surname;
-                    responseData["ui-config"] = ui_config;
-                    responseData["sim_ip"] = "127.0.0.1"; //SimInfo.sim_ip.ToString();
-                    responseData["login-flags"] = LoginFlags;
-                    responseData["global-textures"] = GlobalTextures;
-                    responseData["classified_categories"] = ClassifiedCategories;
-                    responseData["event_categories"] = new ArrayList();
-                    responseData["inventory-skeleton"] = AgentInventoryArray;
-                    responseData["inventory-skel-lib"] = new ArrayList();
-                    responseData["inventory-root"] = InventoryRoot;
-                    responseData["event_notifications"] = new ArrayList();
-                    responseData["gestures"] = new ArrayList();
-                    responseData["inventory-lib-owner"] = new ArrayList();
-                    responseData["initial-outfit"] = InitialOutfit;
-                    responseData["seconds_since_epoch"] = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-                    responseData["start_location"] = "last";
-                    responseData["home"] = "!!null temporary value {home}!!";   // Overwritten
-                    responseData["message"] = _config.DefaultStartupMsg;
-                    responseData["first_name"] = TheUser.username;
-                    responseData["circuit_code"] = (Int32)circode;
-                    responseData["sim_port"] = 0; //(Int32)SimInfo.sim_port;
-                    responseData["secure_session_id"] = TheUser.currentAgent.secureSessionID.ToStringHyphenated();
-                    responseData["look_at"] = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
-                    responseData["agent_id"] = AgentID.ToStringHyphenated();
-                    responseData["region_y"] = (Int32)0;    // Overwritten
-                    responseData["region_x"] = (Int32)0;    // Overwritten
-                    responseData["seed_capability"] = "";
-                    responseData["agent_access"] = "M";
-                    responseData["session_id"] = TheUser.currentAgent.sessionID.ToStringHyphenated();
-                    responseData["login"] = "true";
-
+                    logResponse.Lastname = TheUser.surname;
+                    logResponse.Firstname = TheUser.username;
+                    logResponse.AgentID = AgentID.ToStringHyphenated();
+                    logResponse.SessionID = TheUser.currentAgent.sessionID.ToStringHyphenated();
+                    logResponse.SecureSessionID = TheUser.currentAgent.secureSessionID.ToStringHyphenated();
+                    logResponse.InventoryRoot = InventoryRoot;
+                    logResponse.InventorySkeleton = AgentInventoryArray;
+                    logResponse.CircuitCode = (Int32)circode;
+                    logResponse.RegionX = 0; //overwritten
+                    logResponse.RegionY = 0; //overwritten
+                    logResponse.Home = "!!null temporary value {home}!!";   // Overwritten
+                    //logResponse.LookAt = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
+                    logResponse.SimAddress = "127.0.0.1"; //overwritten
+                    logResponse.SimPort = 0; //overwritten
+                    logResponse.Message = this.GetMessage();
+                    
                     try
                     {
-                        this.CustomiseResponse(ref responseData, ref TheUser);
+                        this.CustomiseResponse(ref logResponse, ref TheUser);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.ToString());
-                        return CreateDeadRegionResponse();
+                        return logResponse.CreateDeadRegionResponse();
                     }
-
                     CommitAgent(ref TheUser);
 
-                    response.Value = responseData;
-                    //                   TheUser.SendDataToSim(SimInfo);
-                    return response;
+                    return logResponse.ToXmlRpcResponse();
 
                 }
                 catch (Exception E)
@@ -601,6 +485,8 @@ namespace OpenGrid.Framework.UserManagement
             return response;
 
         }
+
+        #endregion
 
         /// <summary>
         /// Deletes an active agent session
@@ -614,6 +500,37 @@ namespace OpenGrid.Framework.UserManagement
             // TODO! Important!
 
             return "OK";
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user"></param>
+        public void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        {
+            UserProfileData user = new UserProfileData();
+            user.homeLocation = new LLVector3(128, 128, 100);
+            user.UUID = LLUUID.Random();
+            user.username = firstName;
+            user.surname = lastName;
+            user.passwordHash = pass;
+            user.passwordSalt = "";
+            user.created = Util.UnixTimeSinceEpoch();
+            user.homeLookAt = new LLVector3(100, 100, 100);
+            user.homeRegion = Util.UIntsToLong((regX * 256), (regY * 256));
+
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.addNewUserProfile(user);
+
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
         }
 
         /// <summary>
@@ -693,6 +610,8 @@ namespace OpenGrid.Framework.UserManagement
             return sw.ToString();
         }
 
+        #region REST Methods 
+        //should most likely move out of here and into the grid's userserver sub class
         public string RestGetUserMethodName(string request, string path, string param)
         {
             UserProfileData userProfile = getUserProfile(param.Trim());
@@ -716,6 +635,7 @@ namespace OpenGrid.Framework.UserManagement
 
             return ProfileToXml(userProfile);
         }
+        #endregion
 
     }
 }

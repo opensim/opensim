@@ -157,9 +157,6 @@
     <Compile Include="ClientViewBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NetworkServersInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -60,7 +60,6 @@ namespace OpenSim.Framework.Types
         public sbyte PathTwistBegin;
         public byte[] Texture;
 
-
         public Int32 CreationDate;
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
         public uint NextOwnerMask = FULL_MASK_PERMISSIONS;

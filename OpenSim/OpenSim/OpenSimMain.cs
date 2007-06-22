@@ -106,13 +106,13 @@ namespace OpenSim
                 this.SetupLocalGridServers();
                 this.checkServer = new CheckSumServer(12036);
                 this.checkServer.ServerListener();
-                sandboxCommunications = new CommunicationsLocal();
+                sandboxCommunications = new CommunicationsLocal(this.serversData.DefaultHomeLocX, this.serversData.DefaultHomeLocY);
                 this.commsManager = sandboxCommunications;
             }
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new CommunicationsLocal(); //shouldn't be using the local communications manager
+                this.commsManager = new CommunicationsLocal(this.serversData.DefaultHomeLocX, this.serversData.DefaultHomeLocY); //shouldn't be using the local communications manager
             }
 
             startuptime = DateTime.Now;
@@ -132,11 +132,15 @@ namespace OpenSim
 
             if (m_sandbox)
             {
+                httpServer.AddXmlRPCHandler("login_to_simulator", sandboxCommunications.UserServices.XmlRpcLoginMethod);
+               
+                /*
                 loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
                 loginServer.Startup();
                 loginServer.SetSessionHandler(sandboxCommunications.SandBoxServices.AddNewSession);
                 //sandbox mode with loginserver not using accounts
                 httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
+                 */
             }
 
             //Start http server

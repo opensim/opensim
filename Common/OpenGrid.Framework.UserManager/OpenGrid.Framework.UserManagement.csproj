@@ -108,6 +108,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LoginResponse.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UserManagerBase.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -425,7 +425,7 @@ namespace OpenSim.Region.Scenes
                         Console.WriteLine("No default terrain, procedurally generating...");
                         this.Terrain.hills();
 
-                        // this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        this.localStorage.SaveMap(this.Terrain.getHeights1D());
                     }
                     else
                     {
@@ -439,7 +439,7 @@ namespace OpenSim.Region.Scenes
                             Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
                             Terrain.hills();
                         }
-                        // this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        this.localStorage.SaveMap(this.Terrain.getHeights1D());
                     }
                 }
                 else

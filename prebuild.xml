@@ -638,6 +638,7 @@
 	<Reference name="OpenGrid.Framework.Communications"/>
 	<Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
+      <Reference name="OpenGrid.Framework.UserManagement" />
       <Reference name="OpenSim.LocalCommunications"/>
 
       <Files>

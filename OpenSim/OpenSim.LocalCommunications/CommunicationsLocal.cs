@@ -41,13 +41,20 @@ namespace OpenSim.LocalCommunications
     public class CommunicationsLocal : CommunicationsManager
     {
         public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
-        protected LocalUserServices UserServices = new LocalUserServices();
+        public LocalUserServices UserServices;
     
-        public CommunicationsLocal()
+        public CommunicationsLocal(uint defaultHomeX , uint defaultHomeY)
         {
+            UserServices = new LocalUserServices(this , defaultHomeX, defaultHomeY);
+            UserServices.AddPlugin("OpenGrid.Framework.Data.DB4o.dll");
             UserServer = UserServices;
             GridServer = SandBoxServices;
             InterRegion = SandBoxServices;
+        }
+
+        internal void InformRegionOfLogin(ulong regionHandle, Login login)
+        {
+            this.SandBoxServices.AddNewSession(regionHandle, login);
         }
     }
 }

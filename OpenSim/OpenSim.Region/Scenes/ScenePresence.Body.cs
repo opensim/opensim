@@ -49,7 +49,7 @@ namespace OpenSim.Region.Scenes
             {
             }
 
-            public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam) 
+            public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
             {
             }
 
@@ -69,11 +69,11 @@ namespace OpenSim.Region.Scenes
 
             }
 
-           public void processMovement(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
+            public void processMovement(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
             {
             }
 
-           public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
+            public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
             {
             }
 
