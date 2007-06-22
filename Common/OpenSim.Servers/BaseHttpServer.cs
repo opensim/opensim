@@ -66,6 +66,7 @@ namespace OpenSim.Servers
         protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected int m_port;
+        protected bool firstcaps = true;
 
         public BaseHttpServer(int port)
         {
@@ -74,6 +75,7 @@ namespace OpenSim.Servers
 
         public bool AddRestHandler(string method, string path, RestMethod handler)
         {
+            Console.WriteLine("adding new REST handler for path " + path);
             string methodKey = String.Format("{0}: {1}", method, path);
 
             if (!this.m_restHandlers.ContainsKey(methodKey))
@@ -158,7 +160,14 @@ namespace OpenSim.Servers
         protected virtual string ParseLLSDXML(string requestBody)
         {
             // dummy function for now - IMPLEMENT ME!
-            return "";
+            Console.WriteLine("LLSD request "+requestBody);
+            string resp = "";
+            if (firstcaps)
+            {
+                resp = "<llsd><map><key>MapLayer</key><string>http://127.0.0.1:9000/CAPS/</string></map></llsd>";
+                firstcaps = false;
+            }
+            return resp;
         }
 
         protected virtual string ParseXMLRPC(string requestBody)
@@ -204,6 +213,7 @@ namespace OpenSim.Servers
                 //Console.WriteLine(requestBody);
 
                 string responseString = "";
+                Console.WriteLine("new request " + request.ContentType);
                 switch (request.ContentType)
                 {
                     case "text/xml":
@@ -217,7 +227,9 @@ namespace OpenSim.Servers
 
                     case "application/xml":
                         // probably LLSD we hope, otherwise it should be ignored by the parser
-                        responseString = ParseLLSDXML(requestBody);
+                       // responseString = ParseLLSDXML(requestBody);
+                        Console.WriteLine(" request " + request.HttpMethod + " to " + request.RawUrl);
+                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
                         response.AddHeader("Content-type", "application/xml");
                         break;
 

@@ -43,6 +43,8 @@ using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
 using OpenSim.Caches;
+using OpenSim.Region;
+using OpenSim.Servers;
 
 namespace OpenSim.Region.Scenes
 {
@@ -67,6 +69,8 @@ namespace OpenSim.Region.Scenes
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
 
+        protected Caps TestCapsHandler;
+        protected BaseHttpServer httpListener;
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;
@@ -96,7 +100,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach)
+        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
         {
             try
             {
@@ -127,6 +131,9 @@ namespace OpenSim.Region.Scenes
                 Terrain = new TerrainEngine();
 
                 ScenePresence.LoadAnims();
+                this.httpListener = httpServer;
+                this.TestCapsHandler = new Caps(httpListener, "127.0.0.1" , 9000);
+                this.TestCapsHandler.RegisterHandlers();
             }
             catch (Exception e)
             {
@@ -755,7 +762,7 @@ namespace OpenSim.Region.Scenes
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
-                    this.commsManager.InterRegion.InformNeighbourOfChildAgent(neighbours[i].RegionHandle, agent);
+                    this.commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
                     remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
                 }
             }
@@ -816,7 +823,7 @@ namespace OpenSim.Region.Scenes
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
-                    this.commsManager.InterRegion.InformNeighbourOfChildAgent(regionHandle, agent);
+                    this.commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     this.commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.IPListenAddr, (ushort)reg.IPListenPort, 4, (1 << 4));               
                 }

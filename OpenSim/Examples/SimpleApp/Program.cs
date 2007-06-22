@@ -56,15 +56,14 @@ namespace SimpleApp
             CommunicationsManager communicationsManager = new CommunicationsLocal(1000, 1000);
             
             RegionInfo regionInfo = new RegionInfo( );
-
-            udpServer.LocalWorld = new MyWorld( packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache );
+            BaseHttpServer httpServer = new BaseHttpServer(simPort);
+            udpServer.LocalWorld = new MyWorld( packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer );
 
             // World world = new World(udpServer.PacketServer.ClientAPIs, regionInfo);            
             // PhysicsScene physicsScene = new NullPhysicsScene();
             // world.PhysicsScene = physicsScene;
             // udpServer.LocalWorld = world;
 
-            BaseHttpServer httpServer = new BaseHttpServer( simPort );
             httpServer.AddXmlRPCHandler( "login_to_simulator", loginServer.XmlRpcLoginMethod );
             httpServer.Start();
             

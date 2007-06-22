@@ -91,7 +91,7 @@ namespace OpenSim.LocalCommunications
                 response.SimPort = (Int32)reg.IPListenPort;
                 response.RegionX = reg.RegionLocX ;
                 response.RegionY = reg.RegionLocY ;
-
+                response.SeedCapability = "http://" + reg.IPListenAddr + ":" + "9000" + "/CAPS/00334-0000/";
                 theUser.currentAgent.currentRegion = reg.SimUUID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 

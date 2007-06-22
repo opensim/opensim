@@ -11,6 +11,7 @@ using OpenSim.Region.Scenes;
 using OpenSim.Framework;
 using OpenSim.Caches;
 using OpenGrid.Framework.Communications;
+using OpenSim.Servers;
 
 namespace SimpleApp
 {
@@ -19,8 +20,8 @@ namespace SimpleApp
         private RegionInfo m_regionInfo;
         private List<OpenSim.Region.Scenes.ScenePresence> m_avatars;
 
-        public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach)
-            : base(clientThreads, regionInfo, authen, commsMan, assetCach)
+        public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
+            : base(clientThreads, regionInfo, authen, commsMan, assetCach, httpServer)
         {
             m_regionInfo = regionInfo;
             m_avatars = new List<Avatar>();

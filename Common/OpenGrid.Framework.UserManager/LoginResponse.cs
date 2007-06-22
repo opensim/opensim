@@ -40,8 +40,6 @@ namespace OpenGrid.Framework.UserManagement
         private LLUUID agentID;
         private LLUUID sessionID;
         private LLUUID secureSessionID;
-        private LLUUID baseFolderID;
-        private LLUUID inventoryFolderID;
 
         // Login Flags
         private string dst;
@@ -107,8 +105,6 @@ namespace OpenGrid.Framework.UserManagement
 
         public void SetDefaultValues()
         {
-            try
-            {
                 this.DST = "N";
                 this.StipendSinceLogin = "N";
                 this.Gendered = "Y";
@@ -153,14 +149,7 @@ namespace OpenGrid.Framework.UserManagement
                 InitialOutfitHash["folder_name"] = "Nightclub Female";
                 InitialOutfitHash["gender"] = "female";
                 this.initialOutfit.Add(InitialOutfitHash);
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(
-                    OpenSim.Framework.Console.LogPriority.LOW,
-                    "LoginResponse: Unable to set default values: " + e.Message
-                );
-            }
+          
 
         } // SetDefaultValues
 

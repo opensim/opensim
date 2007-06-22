@@ -144,7 +144,7 @@ namespace OpenSim.LocalCommunications
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
+        public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
             if (this.regionHosts.ContainsKey(regionHandle))

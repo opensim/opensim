@@ -120,11 +120,11 @@ namespace OpenSim
             this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
             this.physManager.LoadPlugins();
 
+            this.SetupHttpListener();
+
             this.SetupWorld();
 
             m_log.Verbose( "Main.cs:Startup() - Initialising HTTP server");
-
-            this.SetupHttpListener();
 
             //Login server setup
             LoginServer loginServer = null;
@@ -242,7 +242,7 @@ namespace OpenSim
                 m_log.componentname = "Region " + regionData.RegionName;
                 */
 
-                LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager, this.AssetCache);
+                LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager, this.AssetCache, httpServer);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;

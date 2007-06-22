@@ -35,7 +35,7 @@ namespace OpenGrid.Framework.Communications
 {
     public  interface IInterRegionCommunications
     {
-         bool InformNeighbourOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
+         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
          bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position); 
     }
 }
