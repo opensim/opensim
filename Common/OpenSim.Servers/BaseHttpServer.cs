@@ -213,7 +213,7 @@ namespace OpenSim.Servers
                 //Console.WriteLine(requestBody);
 
                 string responseString = "";
-                Console.WriteLine("new request " + request.ContentType);
+                //Console.WriteLine("new request " + request.ContentType);
                 switch (request.ContentType)
                 {
                     case "text/xml":
@@ -228,7 +228,6 @@ namespace OpenSim.Servers
                     case "application/xml":
                         // probably LLSD we hope, otherwise it should be ignored by the parser
                        // responseString = ParseLLSDXML(requestBody);
-                        Console.WriteLine(" request " + request.HttpMethod + " to " + request.RawUrl);
                         responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
                         response.AddHeader("Content-type", "application/xml");
                         break;

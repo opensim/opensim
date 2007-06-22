@@ -13,6 +13,7 @@ namespace OpenSim.Region
         private string MainPath = "00334-0000/";
         private string MapLayerPath = "00334-0001/";
         private BaseHttpServer httpListener;
+       // private LLUUID agentID;
 
         public Caps(BaseHttpServer httpServer, string httpListen, uint httpPort)
         {
@@ -26,7 +27,7 @@ namespace OpenSim.Region
         /// </summary>
         public void RegisterHandlers()
         {
-            Console.WriteLine("registering caps handlers");
+            Console.WriteLine("registering CAPS handlers");
             httpListener.AddRestHandler("POST", "/CAPS/" + MainPath, CapsRequest);
             httpListener.AddRestHandler("POST", "/CAPS/" + MapLayerPath, MapLayer);
         }
@@ -40,7 +41,6 @@ namespace OpenSim.Region
         /// <returns></returns>
         public string CapsRequest(string request, string path, string param)
         {
-            Console.WriteLine("Caps request " + request);
             string result = "<llsd><map>";
             result += this.GetCapabilities();
             result += "</map></llsd>";
@@ -53,7 +53,10 @@ namespace OpenSim.Region
         /// <returns></returns>
         protected string GetCapabilities()
         {
-            string capURLS = "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + MapLayerPath + "</string>";
+            string capURLS="";
+
+            capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + MapLayerPath + "</string>";
+            
             return capURLS;
         }
 
@@ -66,7 +69,7 @@ namespace OpenSim.Region
         /// <returns></returns>
         public string MapLayer(string request, string path, string param)
         {
-            Console.WriteLine("Caps MapLayer request " + request);
+
             string res = "<llsd><map><key>AgentData</key><map><key>Flags</key><integer>0</integer></map><key>LayerData</key><array>";
             res += this.BuildLLSDMapLayerResponse();
             res += "</array></map></llsd>";
@@ -79,6 +82,7 @@ namespace OpenSim.Region
         /// <returns></returns>
         protected string BuildLLSDMapLayerResponse()
         {
+            string res = "";
             int left;
             int right;
             int top;
@@ -91,7 +95,8 @@ namespace OpenSim.Region
             right = 1500;
             image = new LLUUID("00000000-0000-0000-9999-000000000006");
 
-            string res= "<map><key>Left</key><integer>"+left+"</integer><key>Bottom</key><integer>"+bottom +"</integer><key>Top</key><integer>"+top+"</integer><key>Right</key><integer>"+right+"</integer><key>ImageID</key><uuid>"+image.ToStringHyphenated()+"</uuid></map>";
+            res += "<map><key>Left</key><integer>" + left + "</integer><key>Bottom</key><integer>" + bottom + "</integer><key>Top</key><integer>" + top + "</integer><key>Right</key><integer>" + right + "</integer><key>ImageID</key><uuid>" + image.ToStringHyphenated() + "</uuid></map>";
+            
             return res;
         }
     }
