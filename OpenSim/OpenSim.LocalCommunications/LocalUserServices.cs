@@ -86,12 +86,12 @@ namespace OpenSim.LocalCommunications
                 response.Home = "{'region_handle':[r" + (reg.RegionLocX * 256).ToString() + ",r" + (reg.RegionLocY * 256).ToString() + "], " +
                  "'position':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                  "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
-
+                string capsPath = Util.GetRandomCapsPath();
                 response.SimAddress = reg.IPListenAddr;
                 response.SimPort = (Int32)reg.IPListenPort;
                 response.RegionX = reg.RegionLocX ;
                 response.RegionY = reg.RegionLocY ;
-                response.SeedCapability = "http://" + reg.IPListenAddr + ":" + "9000" + "/CAPS/00334-0000/";
+                response.SeedCapability = "http://" + reg.IPListenAddr + ":" + "9000" + "/CAPS/"+capsPath +"0000/";
                 theUser.currentAgent.currentRegion = reg.SimUUID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 
@@ -103,6 +103,7 @@ namespace OpenSim.LocalCommunications
                 _login.Session = response.SessionID;
                 _login.SecureSession = response.SecureSessionID;
                 _login.CircuitCode = (uint)response.CircuitCode;
+                _login.CapsPath = capsPath;
 
                 m_Parent.InformRegionOfLogin(currentRegion, _login);
             }

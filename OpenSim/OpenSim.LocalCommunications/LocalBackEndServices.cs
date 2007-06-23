@@ -193,6 +193,7 @@ namespace OpenSim.LocalCommunications
             agent.BaseFolder = loginData.BaseFolder;
             agent.InventoryFolder = loginData.InventoryFolder;
             agent.startpos = new LLVector3(128, 128, 70);
+            agent.CapsPath = loginData.CapsPath;
 
             if (this.regionHosts.ContainsKey(regionHandle))
             {

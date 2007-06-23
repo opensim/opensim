@@ -69,7 +69,7 @@ namespace OpenSim.Region.Scenes
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
 
-        protected Caps TestCapsHandler;
+        protected List<Caps> capsHandlers = new List<Caps>();
         protected BaseHttpServer httpListener;
 
         public ParcelManager parcelManager;
@@ -132,8 +132,7 @@ namespace OpenSim.Region.Scenes
 
                 ScenePresence.LoadAnims();
                 this.httpListener = httpServer;
-                this.TestCapsHandler = new Caps(httpListener, "127.0.0.1" , 9000);
-                this.TestCapsHandler.RegisterHandlers();
+                
             }
             catch (Exception e)
             {
@@ -728,6 +727,13 @@ namespace OpenSim.Region.Scenes
             //should just check that its meant for this region 
             if (regionHandle == this.m_regInfo.RegionHandle)
             {
+                if (agent.CapsPath != "")
+                {
+                    //Console.WriteLine("new user, so creating caps handler for it");
+                    Caps cap = new Caps(httpListener, this.m_regInfo.IPListenAddr, 9000, agent.CapsPath, agent.AgentID);
+                    cap.RegisterHandlers();
+                    this.capsHandlers.Add(cap);
+                }
                 this.authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
         }

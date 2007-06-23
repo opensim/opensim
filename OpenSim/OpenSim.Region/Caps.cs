@@ -10,16 +10,19 @@ namespace OpenSim.Region
     {
         private string httpListenerAddress;
         private uint httpListenPort;
-        private string MainPath = "00334-0000/";
-        private string MapLayerPath = "00334-0001/";
+        private string capsObjectPath = "00001-";
+        private string requestPath = "0000/";
+        private string mapLayerPath = "0001/";
         private BaseHttpServer httpListener;
-       // private LLUUID agentID;
+        private LLUUID agentID;
 
-        public Caps(BaseHttpServer httpServer, string httpListen, uint httpPort)
+        public Caps(BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath, LLUUID agent)
         {
+            capsObjectPath = capsPath;
             httpListener = httpServer;
             httpListenerAddress = httpListen;
             httpListenPort = httpPort;
+            agentID = agent;
         }
 
         /// <summary>
@@ -28,8 +31,8 @@ namespace OpenSim.Region
         public void RegisterHandlers()
         {
             Console.WriteLine("registering CAPS handlers");
-            httpListener.AddRestHandler("POST", "/CAPS/" + MainPath, CapsRequest);
-            httpListener.AddRestHandler("POST", "/CAPS/" + MapLayerPath, MapLayer);
+            httpListener.AddRestHandler("POST", "/CAPS/" +capsObjectPath+ requestPath, CapsRequest);
+            httpListener.AddRestHandler("POST", "/CAPS/" +capsObjectPath+ mapLayerPath, MapLayer);
         }
 
         /// <summary>
@@ -41,6 +44,7 @@ namespace OpenSim.Region
         /// <returns></returns>
         public string CapsRequest(string request, string path, string param)
         {
+            //Console.WriteLine("Caps Request " + request);
             string result = "<llsd><map>";
             result += this.GetCapabilities();
             result += "</map></llsd>";
@@ -55,7 +59,7 @@ namespace OpenSim.Region
         {
             string capURLS="";
 
-            capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + MapLayerPath + "</string>";
+            capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" +capsObjectPath+ mapLayerPath + "</string>";
             
             return capURLS;
         }

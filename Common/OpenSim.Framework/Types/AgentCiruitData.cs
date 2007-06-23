@@ -45,5 +45,6 @@ namespace OpenSim.Framework.Types
         public bool child;
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
+        public string CapsPath = ""; 
     }
 }

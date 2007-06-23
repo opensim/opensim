@@ -81,6 +81,14 @@ namespace OpenSim.Framework.Utilities
             return sb.ToString();
         }
 
+        public static string GetRandomCapsPath()
+        {
+            LLUUID caps = LLUUID.Random();
+            string capsPath = caps.ToStringHyphenated();
+            capsPath = capsPath.Remove(capsPath.Length - 4, 4);
+            return capsPath;
+        }
+
         //public static int fast_distance2d(int x, int y)
         //{
         //    x = System.Math.Abs(x);

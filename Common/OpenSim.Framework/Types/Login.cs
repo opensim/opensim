@@ -42,6 +42,7 @@ namespace OpenSim.Framework.Types
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
         public uint CircuitCode;
+        public string CapsPath ="";
 
         public Login()
         {
