@@ -77,7 +77,7 @@ namespace OpenSim.Region
             capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath + "</string>";
             capURLS += "<key>NewFileAgentInventory</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory + "</string>";
             //capURLS += "<key>RequestTextureDownload</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + requestTexture + "</string>";
-            capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
+          //  capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
             return capURLS;
         }
 
@@ -122,7 +122,7 @@ namespace OpenSim.Region
 
         public string ProcessEventQueue(string request, string path, string param)
         {
-            Console.WriteLine("event queue request " + request);
+           // Console.WriteLine("event queue request " + request);
             string res = "";
             res = this.CreateEmptyEventResponse();
             return res;

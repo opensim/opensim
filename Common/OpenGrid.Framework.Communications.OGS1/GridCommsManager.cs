@@ -6,8 +6,6 @@ namespace OpenGrid.Framework.Communications.OGS1
 {
     public class GridCommsManager : CommunicationsManager
     {
-       
-
         public GridCommsManager()
         {
             GridServer = new OGS1GridServices();
