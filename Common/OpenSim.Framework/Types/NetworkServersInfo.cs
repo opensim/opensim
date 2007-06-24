@@ -48,6 +48,8 @@ namespace OpenSim.Framework.Types
         public uint DefaultHomeLocX = 0;
         public uint DefaultHomeLocY = 0;
 
+        public int HttpListenerPort = 9000;
+
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
         {
             this.isSandbox = sandboxMode;
@@ -55,34 +57,50 @@ namespace OpenSim.Framework.Types
             try
             {
                 string attri = "";
-                // default home location X
+
                 attri = "";
-                attri = configData.GetAttribute("DefaultLocationX");
+                attri = configData.GetAttribute("HttpListenerPort");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Default Home Location X", "1000");
-                    configData.SetAttribute("DefaultLocationX", location);
-                    this.DefaultHomeLocX = (uint)Convert.ToUInt32(location);
+                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Http Listener Port", "9000");
+                    configData.SetAttribute("HttpListenerPort", location);
+                    this.HttpListenerPort = Convert.ToInt32(location);
                 }
                 else
                 {
-                    this.DefaultHomeLocX = (uint)Convert.ToUInt32(attri);
+                    this.HttpListenerPort = Convert.ToInt32(attri);
                 }
 
-                // default home location Y
-                attri = "";
-                attri = configData.GetAttribute("DefaultLocationY");
-                if (attri == "")
+                if (sandboxMode)
                 {
-                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Default Home Location Y", "1000");
-                    configData.SetAttribute("DefaultLocationY", location);
-                    this.DefaultHomeLocY = (uint)Convert.ToUInt32(location);
-                }
-                else
-                {
-                    this.DefaultHomeLocY = (uint)Convert.ToUInt32(attri);
-                }
+                    // default home location X
+                    attri = "";
+                    attri = configData.GetAttribute("DefaultLocationX");
+                    if (attri == "")
+                    {
+                        string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Default Home Location X", "1000");
+                        configData.SetAttribute("DefaultLocationX", location);
+                        this.DefaultHomeLocX = (uint)Convert.ToUInt32(location);
+                    }
+                    else
+                    {
+                        this.DefaultHomeLocX = (uint)Convert.ToUInt32(attri);
+                    }
 
+                    // default home location Y
+                    attri = "";
+                    attri = configData.GetAttribute("DefaultLocationY");
+                    if (attri == "")
+                    {
+                        string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Default Home Location Y", "1000");
+                        configData.SetAttribute("DefaultLocationY", location);
+                        this.DefaultHomeLocY = (uint)Convert.ToUInt32(location);
+                    }
+                    else
+                    {
+                        this.DefaultHomeLocY = (uint)Convert.ToUInt32(attri);
+                    }
+                }
                 if (!isSandbox)
                 {
                     //Grid Server 

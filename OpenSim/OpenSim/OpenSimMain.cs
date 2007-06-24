@@ -54,6 +54,7 @@ using OpenSim.Servers;
 using OpenSim.GenericConfig;
 using OpenGrid.Framework.Communications;
 using OpenSim.LocalCommunications;
+using OpenGrid.Framework.Communications.OGS1;
 
 namespace OpenSim
 {
@@ -114,7 +115,7 @@ namespace OpenSim
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new CommunicationsLocal(this.serversData.DefaultHomeLocX, this.serversData.DefaultHomeLocY); //shouldn't be using the local communications manager
+                this.commsManager = new GridCommsManager();
             }
 
             startuptime = DateTime.Now;
@@ -267,7 +268,7 @@ namespace OpenSim
 
         protected override void SetupHttpListener()
         {
-            httpServer = new BaseHttpServer(9000); //regionData[0].IPListenPort);
+            httpServer = new BaseHttpServer(this.serversData.HttpListenerPort); //regionData[0].IPListenPort);
 
             if (!this.m_sandbox)
             {

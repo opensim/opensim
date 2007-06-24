@@ -22,9 +22,11 @@ namespace OpenSim.Region
         private string mapLayerPath = "0001/";
         private string newInventory = "0002/";
         private string requestTexture = "0003/";
+        private string eventQueue = "0100/";
         private BaseHttpServer httpListener;
         private LLUUID agentID;
         private AssetCache assetCache;
+        private int eventQueueCount = 1;
 
         public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath, LLUUID agent)
         {
@@ -45,6 +47,7 @@ namespace OpenSim.Region
             httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + requestPath, CapsRequest);
             httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + mapLayerPath, MapLayer);
             httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + newInventory, NewAgentInventory);
+            httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + eventQueue, ProcessEventQueue);
         }
 
         /// <summary>
@@ -74,6 +77,7 @@ namespace OpenSim.Region
             capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath + "</string>";
             capURLS += "<key>NewFileAgentInventory</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory + "</string>";
             //capURLS += "<key>RequestTextureDownload</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + requestTexture + "</string>";
+            capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
             return capURLS;
         }
 
@@ -116,6 +120,40 @@ namespace OpenSim.Region
             return res;
         }
 
+        public string ProcessEventQueue(string request, string path, string param)
+        {
+            Console.WriteLine("event queue request " + request);
+            string res = "";
+            res = this.CreateEmptyEventResponse();
+            return res;
+        }
+
+        public string CreateEstablishAgentComms(string caps, string ipAddressPort)
+        {
+            string res = "<llsd><map><key>id</key><integer>" + eventQueueCount + "</integer>";
+            res += "<key>events</key><array><map>";
+            res += "<key>message</key><string>EstablishAgentCommunication</string>";
+            res += "<key>body</key><map>";
+            res += "<key>sim-ip-and-port</key><string>"+ipAddressPort +"</string>";
+            res += "<key>seed-capability</key><string>"+caps+"</string>";
+            res += "<key>agent-id</key><uuid>"+this.agentID.ToStringHyphenated()+"</uuid>";
+            res += "</map>";
+            res += "</map></array>";
+            res += "</map></llsd>";
+            eventQueueCount++;
+            return res;
+        }
+
+        public string CreateEmptyEventResponse()
+        {
+            string res = "<llsd><map><key>id</key><integer>" + eventQueueCount + "</integer>";
+            res += "<key>events</key><array><map>";
+            res += "</map></array>";
+            res += "</map></llsd>";
+            eventQueueCount++;
+            return res;
+        }
+
         public string NewAgentInventory(string request, string path, string param)
         {
             //Console.WriteLine("received upload request:"+ request);
@@ -123,13 +161,13 @@ namespace OpenSim.Region
             LLUUID newAsset = LLUUID.Random();
             LLUUID newInvItem = LLUUID.Random();
             string uploaderPath = capsObjectPath + Util.RandomClass.Next(5000, 8000).ToString("0000");
-            AssetUploader uploader = new AssetUploader(newAsset,newInvItem, uploaderPath, this.httpListener);
+            AssetUploader uploader = new AssetUploader(newAsset, newInvItem, uploaderPath, this.httpListener);
             httpListener.AddRestHandler("POST", "/CAPS/" + uploaderPath, uploader.uploaderCaps);
             string uploaderURL = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + uploaderPath;
             Console.WriteLine("uploader url is " + uploaderURL);
             res += "<llsd><map>";
-            res += "<key>uploader</key><string>"+uploaderURL +"</string>";
-           //res += "<key>success</key><boolean>true</boolean>";
+            res += "<key>uploader</key><string>" + uploaderURL + "</string>";
+            //res += "<key>success</key><boolean>true</boolean>";
             res += "<key>state</key><string>upload</string>";
             res += "</map></llsd>";
             uploader.OnUpLoad += this.UploadHandler;
@@ -138,7 +176,7 @@ namespace OpenSim.Region
 
         public void UploadHandler(LLUUID assetID, LLUUID inventoryItem, byte[] data)
         {
-           // Console.WriteLine("upload handler called");
+            // Console.WriteLine("upload handler called");
             AssetBase asset;
             asset = new AssetBase();
             asset.FullID = assetID;
@@ -147,7 +185,7 @@ namespace OpenSim.Region
             asset.Name = "UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
             asset.Data = data;
             this.assetCache.AddAsset(asset);
-            
+
         }
 
         public class AssetUploader
@@ -181,12 +219,12 @@ namespace OpenSim.Region
                 res += "</map></llsd>";
 
                 Console.WriteLine("asset " + newAssetID.ToStringHyphenated() + " , inventory item " + inv.ToStringHyphenated());
-                httpListener.RemoveRestHandler("POST", "/CAPS/"+uploaderPath);
+                httpListener.RemoveRestHandler("POST", "/CAPS/" + uploaderPath);
                 if (OnUpLoad != null)
                 {
                     OnUpLoad(newAssetID, inv, data);
                 }
-              
+
                 /*FileStream fs = File.Create("upload.jp2");
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);

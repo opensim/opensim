@@ -39,6 +39,7 @@ using OpenSim.Framework.Utilities;
 namespace OpenSim.Caches
 {
     public delegate void DownloadComplete(AssetCache.TextureSender sender);
+
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
     /// </summary>
