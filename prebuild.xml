@@ -514,6 +514,34 @@
       </Files>
     </Project>
 
+    <Project name="OpenGrid.Framework.Communications.OGS1" path="Common/OpenGrid.Framework.Communications.OGS1" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Servers"/>
+      <Reference name="OpenGrid.Framework.Communications" />
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="XMLRPC"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+    
     <Project name="OpenSim.LocalCommunications" path="OpenSim/OpenSim.LocalCommunications" type="Library">
       <Configuration name="Debug">
         <Options>

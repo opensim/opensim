@@ -47,6 +47,7 @@
         <delete dir="${bin.dir}" failonerror="false" />
         <delete dir="${obj.dir}" failonerror="false" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="clean" />
+        <nant buildfile="Common/OpenGrid.Framework.Communications.OGS1/OpenGrid.Framework.Communications.OGS1.dll.build" target="clean" />
         <nant buildfile="Common/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="clean" />
         <nant buildfile="Common/OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="clean" />
         <nant buildfile="Common/OpenGrid.Framework.UserManager/OpenGrid.Framework.UserManagement.dll.build" target="clean" />
@@ -94,6 +95,7 @@
         <nant buildfile="Common/OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="build" />
         <nant buildfile="Common/OpenGrid.Framework.UserManager/OpenGrid.Framework.UserManagement.dll.build" target="build" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="build" />
+        <nant buildfile="Common/OpenGrid.Framework.Communications.OGS1/OpenGrid.Framework.Communications.OGS1.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.LocalCommunications/OpenSim.LocalCommunications.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.RegionServer/OpenSim.RegionServer.dll.build" target="build" />
         <nant buildfile="OpenSim/OpenSim.Region/OpenSim.Region.dll.build" target="build" />
@@ -110,6 +112,7 @@
     <target name="doc" depends="build-release">
         <echo message="Generating all documentation from all builds" />
         <nant buildfile="Common/OpenGrid.Framework.Communications/OpenGrid.Framework.Communications.dll.build" target="doc" />
+        <nant buildfile="Common/OpenGrid.Framework.Communications.OGS1/OpenGrid.Framework.Communications.OGS1.dll.build" target="doc" />
         <nant buildfile="Common/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="doc" />
         <nant buildfile="Common/OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="doc" />
         <nant buildfile="Common/OpenGrid.Framework.UserManager/OpenGrid.Framework.UserManagement.dll.build" target="doc" />

@@ -14,6 +14,7 @@
                 <include name="Caps.cs" />
                 <include name="EstateManager.cs" />
                 <include name="ParcelManager.cs" />
+                <include name="RegionManager.cs" />
                 <include name="Scenes/Entity.cs" />
                 <include name="Scenes/IScenePresenceBody.cs" />
                 <include name="Scenes/Primitive.cs" />
