@@ -16,7 +16,7 @@ namespace OpenGrid.Framework.Communications.OGS1
 {
     public class OGS1GridServices : IGridServices
     {
-        public RegionCommsListener listener;
+        public Dictionary<ulong, RegionCommsListener> listeners = new Dictionary<ulong, RegionCommsListener>();
         public GridInfo grid;
         public BaseHttpServer httpListener;
         private bool initialised = false;
@@ -52,7 +52,7 @@ namespace OpenGrid.Framework.Communications.OGS1
             }
             
             // Initialise the background listeners
-            listener = new RegionCommsListener();
+            listeners[regionInfo.RegionHandle] = new RegionCommsListener();
 
             if (!initialised)
             {
@@ -62,21 +62,12 @@ namespace OpenGrid.Framework.Communications.OGS1
                 httpListener.Start();
             }
 
-            return listener;
+            return listeners[regionInfo.RegionHandle];
         }
 
         public List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
-            Hashtable param = new Hashtable();
-            param["xmin"] = regionInfo.RegionLocX - 1;
-            param["ymin"] = regionInfo.RegionLocY - 1;
-            param["xmax"] = regionInfo.RegionLocX + 1;
-            param["ymax"] = regionInfo.RegionLocY + 1;
-            IList parameters = new ArrayList();
-            parameters.Add(param);
-            XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
-            XmlRpcResponse resp = req.Send(grid.GridServerURI, 3000);
-            Hashtable respData = (Hashtable)resp.Value;
+            Hashtable respData = MapBlockQuery((int)regionInfo.RegionLocX - 1, (int)regionInfo.RegionLocY - 1, (int)regionInfo.RegionLocX + 1, (int)regionInfo.RegionLocY + 1);
 
             List<RegionInfo> neighbours = new List<RegionInfo>();
 
@@ -101,23 +92,16 @@ namespace OpenGrid.Framework.Communications.OGS1
 
             return neighbours;
         }
+
         public RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
             OpenSim.Framework.Console.MainLog.Instance.Warn("Unimplemented - RequestNeighbourInfo()");
             return null;
         }
+
         public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
         {
-            Hashtable param = new Hashtable();
-            param["xmin"] = minX;
-            param["ymin"] = minY;
-            param["xmax"] = maxX;
-            param["ymax"] = maxY;
-            IList parameters = new ArrayList();
-            parameters.Add(param);
-            XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
-            XmlRpcResponse resp = req.Send(grid.GridServerURI, 3000);
-            Hashtable respData = (Hashtable)resp.Value;
+            Hashtable respData = MapBlockQuery(minX, minY, maxX, maxY);
 
             List<MapBlockData> neighbours = new List<MapBlockData>();
 
@@ -138,6 +122,21 @@ namespace OpenGrid.Framework.Communications.OGS1
             }
 
             return neighbours;
+        }
+
+        private Hashtable MapBlockQuery(int minX, int minY, int maxX, int maxY)
+        {
+            Hashtable param = new Hashtable();
+            param["xmin"] = minX;
+            param["ymin"] = minY;
+            param["xmax"] = maxX;
+            param["ymax"] = maxY;
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
+            XmlRpcResponse resp = req.Send(grid.GridServerURI, 3000);
+            Hashtable respData = (Hashtable)resp.Value;
+            return respData;
         }
 
         // Grid Request Processing
@@ -162,7 +161,14 @@ namespace OpenGrid.Framework.Communications.OGS1
 
             }
 
-            this.listener.TriggerExpectUser((ulong)requestData["regionhandle"], agentData);
+            if (listeners.ContainsKey((ulong)requestData["regionhandle"]))
+            {
+                this.listeners[(ulong)requestData["regionhandle"]].TriggerExpectUser((ulong)requestData["regionhandle"], agentData);
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Error("ExpectUser() - Unknown region " + ((ulong)requestData["regionhandle"]).ToString());
+            }
 
             return new XmlRpcResponse();
         }
