@@ -704,7 +704,8 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo);
+            GridInfo gridSettings = new GridInfo();
+            this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo,gridSettings);
             if (this.regionCommsHost != null)
             {
                 this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);
@@ -726,7 +727,7 @@ namespace OpenSim.Region.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.IPListenAddr, 9000, agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     this.capsHandlers.Add(cap);
                 }
@@ -765,7 +766,7 @@ namespace OpenSim.Region.Scenes
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
                     this.commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
-                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].IPListenAddr), (ushort)neighbours[i].IPListenPort);
+                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr), (ushort)neighbours[i].CommsIPListenPort);
                 }
             }
         }
@@ -826,7 +827,7 @@ namespace OpenSim.Region.Scenes
                     agent.child = true;
                     this.commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     this.commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
-                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.IPListenAddr, (ushort)reg.IPListenPort, 4, (1 << 4));               
+                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.CommsIPListenAddr, (ushort)reg.CommsIPListenPort, 4, (1 << 4));               
                 }
                 //remoteClient.SendTeleportCancel();
             }

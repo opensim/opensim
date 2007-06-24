@@ -87,11 +87,11 @@ namespace OpenSim.LocalCommunications
                  "'position':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                  "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
                 string capsPath = Util.GetRandomCapsPath();
-                response.SimAddress = reg.IPListenAddr;
-                response.SimPort = (Int32)reg.IPListenPort;
+                response.SimAddress = reg.CommsIPListenAddr;
+                response.SimPort = (Int32)reg.CommsIPListenPort;
                 response.RegionX = reg.RegionLocX ;
                 response.RegionY = reg.RegionLocY ;
-                response.SeedCapability = "http://" + reg.IPListenAddr + ":" + "9000" + "/CAPS/"+capsPath +"0000/";
+                response.SeedCapability = "http://" + reg.CommsIPListenAddr + ":" + "9000" + "/CAPS/" + capsPath + "0000/";
                 theUser.currentAgent.currentRegion = reg.SimUUID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 

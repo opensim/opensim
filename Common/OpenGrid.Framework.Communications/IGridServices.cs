@@ -34,9 +34,16 @@ using OpenSim.Framework;
 
 namespace OpenGrid.Framework.Communications
 {
+    public class GridInfo
+    {
+        public string GridServerURI = "http://grid:8001/";
+        public string GridServerSendKey = "badger";
+        public string GridServerRecvKey = "badger";
+    }
+
     public interface IGridServices
     {
-        RegionCommsListener RegisterRegion(RegionInfo regionInfo);
+        RegionCommsListener RegisterRegion(RegionInfo regionInfo, GridInfo gridInfo);
         List<RegionInfo> RequestNeighbours(RegionInfo regionInfo);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);

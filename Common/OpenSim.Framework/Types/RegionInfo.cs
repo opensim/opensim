@@ -52,8 +52,19 @@ namespace OpenSim.Framework.Types
         public string MasterAvatarLastName = "";
         public string MasterAvatarSandboxPassword = "";
 
-        public int IPListenPort = 0;
-        public string IPListenAddr = "";
+        /// <summary>
+        /// Port used for listening (TCP and UDP)
+        /// </summary>
+        /// <remarks>Seperate TCP and UDP</remarks>
+        public int CommsIPListenPort = 0;
+        /// <summary>
+        /// Address used for internal listening (default: 0.0.0.0?)
+        /// </summary>
+        public string CommsIPListenAddr = "";
+        /// <summary>
+        /// Address used for external addressing (DNS or IP)
+        /// </summary>
+        public string CommsExternalAddress = "";
 
 
         public EstateSettings estateSettings;
@@ -142,11 +153,11 @@ namespace OpenSim.Framework.Types
                 {
                     string port = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("UDP port for client connections", "9000");
                     configData.SetAttribute("SimListenPort", port);
-                    this.IPListenPort = Convert.ToInt32(port);
+                    this.CommsIPListenPort = Convert.ToInt32(port);
                 }
                 else
                 {
-                    this.IPListenPort = Convert.ToInt32(attri);
+                    this.CommsIPListenPort = Convert.ToInt32(attri);
                 }
 
                 //Sim Listen Address
@@ -154,8 +165,8 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimListenAddress");
                 if (attri == "")
                 {
-                    this.IPListenAddr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP Address to listen on for client connections", "127.0.0.1");
-                    configData.SetAttribute("SimListenAddress", this.IPListenAddr);
+                    this.CommsIPListenAddr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP Address to listen on for client connections", "0.0.0.0");
+                    configData.SetAttribute("SimListenAddress", this.CommsIPListenAddr);
                 }
                 else
                 {
@@ -166,18 +177,31 @@ namespace OpenSim.Framework.Types
                         System.Net.IPAddress[] ips = System.Net.Dns.GetHostAddresses(localhostname);
                         try
                         {
-                            this.IPListenAddr = ips[0].ToString();
+                            this.CommsIPListenAddr = ips[0].ToString();
                         }
                         catch (Exception e)
                         {
                             e.ToString();
-                            this.IPListenAddr = "127.0.0.1"; // Use the default if we fail
+                            this.CommsIPListenAddr = "0.0.0.0"; // Use the default if we fail
                         }
                     }
                     else
                     {
-                        this.IPListenAddr = attri;
+                        this.CommsIPListenAddr = attri;
                     }
+                }
+
+                // Sim External Address
+                attri = "";
+                attri = configData.GetAttribute("SimExternalAddress");
+                if (attri == "")
+                {
+                    this.CommsExternalAddress = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP or DNS address to send external clients to", "localhost");
+                    configData.SetAttribute("SimExternalAddress", this.CommsExternalAddress);
+                }
+                else
+                {
+                    this.CommsExternalAddress = attri;
                 }
 
                 attri = "";
@@ -263,7 +287,7 @@ namespace OpenSim.Framework.Types
             OpenSim.Framework.Console.MainLog.Instance.Verbose( "Name: " + this.RegionName);
             OpenSim.Framework.Console.MainLog.Instance.Verbose( "Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
             OpenSim.Framework.Console.MainLog.Instance.Verbose( "Region Handle: " + this.RegionHandle.ToString());
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Listening on IP: " + this.IPListenAddr + ":" + this.IPListenPort);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Listening on IP: " + this.CommsIPListenAddr + ":" + this.CommsIPListenPort);
             OpenSim.Framework.Console.MainLog.Instance.Verbose( "Sandbox Mode? " + isSandbox.ToString());
   
         }
