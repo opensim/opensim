@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 
+using OpenSim.Servers;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Types;
 using OpenGrid.Framework.Communications;
 
 using Nwc.XmlRpc;
+using libsecondlife;
 
 namespace OpenGrid.Framework.Communications.OGS1
 {
@@ -15,6 +18,8 @@ namespace OpenGrid.Framework.Communications.OGS1
     {
         public RegionCommsListener listener;
         public GridInfo grid;
+        public BaseHttpServer httpListener;
+        private bool initialised = false;
 
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo, GridInfo gridInfo)
         {
@@ -45,9 +50,17 @@ namespace OpenGrid.Framework.Communications.OGS1
                 OpenSim.Framework.Console.MainLog.Instance.Error("Unable to connect to grid: " + errorstring);
                 return null;
             }
-            //this.neighbours = (ArrayList)GridRespData["neighbours"];
-
+            
+            // Initialise the background listeners
             listener = new RegionCommsListener();
+
+            if (!initialised)
+            {
+                initialised = true;
+                httpListener = new BaseHttpServer(regionInfo.CommsIPListenPort);
+                httpListener.AddXmlRPCHandler("expect_user", this.ExpectUser);
+                httpListener.Start();
+            }
 
             return listener;
         }
@@ -126,5 +139,34 @@ namespace OpenGrid.Framework.Communications.OGS1
 
             return neighbours;
         }
+
+        // Grid Request Processing
+        public XmlRpcResponse ExpectUser(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            AgentCircuitData agentData = new AgentCircuitData();
+            agentData.SessionID = new LLUUID((string)requestData["session_id"]);
+            agentData.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
+            agentData.firstname = (string)requestData["firstname"];
+            agentData.lastname = (string)requestData["lastname"];
+            agentData.AgentID = new LLUUID((string)requestData["agent_id"]);
+            agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+            if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
+            {
+                agentData.child = true;
+            }
+            else
+            {
+                agentData.startpos = new LLVector3(Convert.ToUInt32(requestData["startpos_x"]), Convert.ToUInt32(requestData["startpos_y"]), Convert.ToUInt32(requestData["startpos_z"]));
+                agentData.child = false;
+
+            }
+
+            this.listener.TriggerExpectUser((ulong)requestData["regionhandle"], agentData);
+
+            return new XmlRpcResponse();
+        }
+
+
     }
 }
