@@ -355,6 +355,7 @@ namespace OpenGridServices.UserServer
             SimParams["startpos_x"] = theUser.currentAgent.currentPos.X.ToString();
             SimParams["startpos_y"] = theUser.currentAgent.currentPos.Y.ToString();
             SimParams["startpos_z"] = theUser.currentAgent.currentPos.Z.ToString();
+            SimParams["regionhandle"] = theUser.currentAgent.currentHandle.ToString();
             ArrayList SendParams = new ArrayList();
             SendParams.Add(SimParams);
 
