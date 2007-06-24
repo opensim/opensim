@@ -514,6 +514,90 @@ namespace OpenGrid.Framework.Data.MySQL
         }
 
         /// <summary>
+        /// Creates a new user and inserts it into the database
+        /// </summary>
+        /// <param name="uuid">User ID</param>
+        /// <param name="username">First part of the login</param>
+        /// <param name="lastname">Second part of the login</param>
+        /// <param name="passwordHash">A salted hash of the users password</param>
+        /// <param name="passwordSalt">The salt used for the password hash</param>
+        /// <param name="homeRegion">A regionHandle of the users home region</param>
+        /// <param name="homeLocX">Home region position vector</param>
+        /// <param name="homeLocY">Home region position vector</param>
+        /// <param name="homeLocZ">Home region position vector</param>
+        /// <param name="homeLookAtX">Home region 'look at' vector</param>
+        /// <param name="homeLookAtY">Home region 'look at' vector</param>
+        /// <param name="homeLookAtZ">Home region 'look at' vector</param>
+        /// <param name="created">Account created (unix timestamp)</param>
+        /// <param name="lastlogin">Last login (unix timestamp)</param>
+        /// <param name="inventoryURI">Users inventory URI</param>
+        /// <param name="assetURI">Users asset URI</param>
+        /// <param name="canDoMask">I can do mask</param>
+        /// <param name="wantDoMask">I want to do mask</param>
+        /// <param name="aboutText">Profile text</param>
+        /// <param name="firstText">Firstlife text</param>
+        /// <param name="profileImage">UUID for profile image</param>
+        /// <param name="firstImage">UUID for firstlife image</param>
+        /// <returns>Success?</returns>
+        public bool insertUserRow(libsecondlife.LLUUID uuid, string username, string lastname, string passwordHash, string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
+            float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin, string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask, string aboutText, string firstText,
+            libsecondlife.LLUUID profileImage, libsecondlife.LLUUID firstImage)
+        {
+            string sql = "INSERT INTO users (`UUID`, `username`, `lastname`, `passwordHash`, `passworldSalt`, `homeRegion`, ";
+            sql += "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
+            sql += "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
+            sql += "`profileFirstText`, `profileImage`, profileFirstImage`) VALUES ";
+
+            sql += "(?UUID, ?username, ?lastname, ?passwordHash, ?passworldSalt, ?homeRegion, ";
+            sql += "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX`, ?homeLookAtY, ?homeLookAtZ, ?created, ";
+            sql += "?lastLogin`, ?userInventoryURI, ?userAssetURI, ?profileCanDoMask, ?profileWantDoMask, ?profileAboutText, ";
+            sql += "?profileFirstText, ?profileImage, ?profileFirstImage)";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters["?UUID"] = uuid.ToStringHyphenated();
+            parameters["?username"] = username.ToString();
+            parameters["?lastname"] = lastname.ToString();
+            parameters["?passwordHash"] = passwordHash.ToString();
+            parameters["?passworldSalt"] = passwordSalt.ToString();
+            parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeLocationX"] = homeLocX.ToString();
+            parameters["?homeLocationY"] = homeLocY.ToString();
+            parameters["?homeLocationZ"] = homeLocZ.ToString();
+            parameters["?homeLookAtX"] = homeLookAtX.ToString();
+            parameters["?homeLookAtY"] = homeLookAtY.ToString();
+            parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
+            parameters["?created"] = created.ToString();
+            parameters["?lastLogin"] = lastlogin.ToString();
+            parameters["?userInventoryURI"] = inventoryURI.ToString();
+            parameters["?userAssetURI"] = assetURI.ToString();
+            parameters["?profileCanDoMask"] = canDoMask.ToString();
+            parameters["?profileWantDoMask"] = wantDoMask.ToString();
+            parameters["?profileAboutText"] = aboutText.ToString();
+            parameters["?profileFirstText"] = firstText.ToString();
+            parameters["?profileImage"] = profileImage.ToStringHyphenated();
+            parameters["?profileFirstImage"] = firstImage.ToStringHyphenated();
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+
+            return returnval;
+        }
+
+        /// <summary>
         /// Inserts a new region into the database
         /// </summary>
         /// <param name="profile">The region to insert</param>

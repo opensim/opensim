@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
@@ -6,7 +6,8 @@
     <ProjectGuid>{E141F4EE-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
     <AssemblyName>ServiceManager</AssemblyName>
@@ -15,9 +16,11 @@
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder></AppDesignerFolder>
+    <AppDesignerFolder>
+    </AppDesignerFolder>
     <RootNamespace>ServiceManager</RootNamespace>
-    <StartupObject></StartupObject>
+    <StartupObject>
+    </StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
   </PropertyGroup>
@@ -28,7 +31,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
@@ -37,7 +41,8 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
@@ -46,7 +51,8 @@
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
@@ -55,30 +61,31 @@
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <NoWarn></NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="libsecondlife.dll" >
+    <Reference Include="libsecondlife.dll">
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.Framework.dll" >
+    <Reference Include="OpenSim.Framework.dll">
       <HintPath>..\..\bin\OpenSim.Framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.GenericConfig.Xml" >
+    <Reference Include="OpenSim.GenericConfig.Xml">
       <HintPath>OpenSim.GenericConfig.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System" >
+    <Reference Include="System">
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.ServiceProcess" >
+    <Reference Include="System.ServiceProcess">
       <HintPath>System.ServiceProcess.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" >
+    <Reference Include="System.Xml">
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
@@ -87,7 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ServiceManager.cs">
-      <SubType>Code</SubType>
+      <SubType>Component</SubType>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
