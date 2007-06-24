@@ -571,17 +571,23 @@ namespace OpenSim.Caches
         {
             public AssetRequest request;
             public event DownloadComplete OnComplete;
-
+            Thread m_thread;
             public TextureSender(AssetRequest req)
             {
                 request = req;
                 //Console.WriteLine("creating worker thread for texture " + req.ImageInfo.FullID.ToStringHyphenated());
                 //Console.WriteLine("texture data length is " + req.ImageInfo.Data.Length);
                 // Console.WriteLine("in " + req.NumPackets + " packets");
-                ThreadPool.QueueUserWorkItem(new WaitCallback(SendTexture), new object());
+                //ThreadPool.QueueUserWorkItem(new WaitCallback(SendTexture), new object());
+
+                //need some sort of custom threadpool here, as using the .net one, overloads it and stops the handling of incoming packets etc
+                //but don't really want to create a thread for every texture download
+                m_thread = new Thread(new ThreadStart(SendTexture));
+                m_thread.IsBackground = true;
+                m_thread.Start();
             }
 
-            public void SendTexture(Object obj)
+            public void SendTexture()
             {
                 //Console.WriteLine("starting to send sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
                 while (request.PacketCounter != request.NumPackets)

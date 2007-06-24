@@ -86,7 +86,6 @@ namespace OpenSim.Region
         /// <returns></returns>
         public string MapLayer(string request, string path, string param)
         {
-
             string res = "<llsd><map><key>AgentData</key><map><key>Flags</key><integer>0</integer></map><key>LayerData</key><array>";
             res += this.BuildLLSDMapLayerResponse();
             res += "</array></map></llsd>";
@@ -119,12 +118,12 @@ namespace OpenSim.Region
 
         public string NewAgentInventory(string request, string path, string param)
         {
-
             //Console.WriteLine("received upload request:"+ request);
             string res = "";
             LLUUID newAsset = LLUUID.Random();
-            string uploaderPath = capsObjectPath + Util.RandomClass.Next(5000, 7000).ToString("0000");
-            AssetUploader uploader = new AssetUploader(newAsset, uploaderPath, this.httpListener);
+            LLUUID newInvItem = LLUUID.Random();
+            string uploaderPath = capsObjectPath + Util.RandomClass.Next(5000, 8000).ToString("0000");
+            AssetUploader uploader = new AssetUploader(newAsset,newInvItem, uploaderPath, this.httpListener);
             httpListener.AddRestHandler("POST", "/CAPS/" + uploaderPath, uploader.uploaderCaps);
             string uploaderURL = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + uploaderPath;
             Console.WriteLine("uploader url is " + uploaderURL);
@@ -157,11 +156,12 @@ namespace OpenSim.Region
 
             private string uploaderPath = "";
             private LLUUID newAssetID;
-            //private LLUUID inventoryItemID;
+            private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
-            public AssetUploader(LLUUID assetID, string path,BaseHttpServer httpServer)
+            public AssetUploader(LLUUID assetID, LLUUID inventoryItem, string path, BaseHttpServer httpServer)
             {
                 newAssetID = assetID;
+                inventoryItemID = inventoryItem;
                 uploaderPath = path;
                 httpListener = httpServer;
 
@@ -172,7 +172,7 @@ namespace OpenSim.Region
                 Encoding _enc = System.Text.Encoding.UTF8;
                 byte[] data = _enc.GetBytes(request);
                 //Console.WriteLine("recieved upload " + Util.FieldToString(data));
-                LLUUID inv =  LLUUID.Random();
+                LLUUID inv = this.inventoryItemID;
                 string res = "";
                 res += "<llsd><map>";
                 res += "<key>new_asset</key><string>" + newAssetID.ToStringHyphenated() + "</string>";

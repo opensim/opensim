@@ -422,10 +422,6 @@ namespace OpenSim.Region.Scenes
                 float[] map = this.localStorage.LoadWorld();
                 if (map == null)
                 {
-                    // Console.WriteLine("creating new terrain");
-                    // this.Terrain.hills();
-
-                    // this.localStorage.SaveMap(this.Terrain.getHeights1D());
                     if (string.IsNullOrEmpty(this.m_regInfo.estateSettings.terrainFile))
                     {
                         Console.WriteLine("No default terrain, procedurally generating...");
@@ -795,7 +791,6 @@ namespace OpenSim.Region.Scenes
         {
             List<MapBlockData> mapBlocks;
             mapBlocks = this.commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
-            Console.WriteLine("number of mapblocks " + mapBlocks.Count +" in "+ minX +" , " + minY + " , "+ maxX + " , "+ maxY);
             remoteClient.SendMapBlock(mapBlocks);
         }
 

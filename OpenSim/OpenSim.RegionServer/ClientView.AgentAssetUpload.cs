@@ -289,6 +289,7 @@ namespace OpenSim
 
                     if (Asset.Data.Length > 2)
                     {
+                        //data block should only have data in it, if there is no more data to be uploaded
                         this.SendCompleteMessage();
                     }
                     else
