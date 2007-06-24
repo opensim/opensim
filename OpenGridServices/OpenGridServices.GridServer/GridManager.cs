@@ -391,6 +391,13 @@ namespace OpenGridServices.GridServer
                             simProfileBlock["agents"] = 1;
                             simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
 
+                            // For Sugilite compatibility
+                            simProfileBlock["regionhandle"] = aSim.Value.regionHandle.ToString();
+                            simProfileBlock["sim_ip"] = aSim.Value.serverIP.ToString();
+                            simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
+                            simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
+                            simProfileBlock["uuid"] = aSim.Value.UUID.ToStringHyphenated();
+
                             simProfileList.Add(simProfileBlock);
                         }
                     }
