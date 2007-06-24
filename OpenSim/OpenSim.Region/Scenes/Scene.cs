@@ -730,7 +730,7 @@ namespace OpenSim.Region.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(httpListener, this.m_regInfo.IPListenAddr, 9000, agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.IPListenAddr, 9000, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     this.capsHandlers.Add(cap);
                 }
@@ -795,7 +795,7 @@ namespace OpenSim.Region.Scenes
         {
             List<MapBlockData> mapBlocks;
             mapBlocks = this.commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
-
+            Console.WriteLine("number of mapblocks " + mapBlocks.Count +" in "+ minX +" , " + minY + " , "+ maxX + " , "+ maxY);
             remoteClient.SendMapBlock(mapBlocks);
         }
 
@@ -843,9 +843,9 @@ namespace OpenSim.Region.Scenes
         /// <param name="regionhandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
-        public void InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
+        public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
         {
-            this.commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
+           return this.commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
         }
 
         #endregion

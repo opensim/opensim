@@ -491,7 +491,7 @@ namespace OpenSim
         /// <param name="avatarID"></param>
         /// <param name="avatarLocalID"></param>
         /// <param name="Pos"></param>
-        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos)
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry)
         {
             System.Text.Encoding _enc = System.Text.Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
@@ -500,7 +500,7 @@ namespace OpenSim
             objupdate.RegionData.RegionHandle = regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
-            objupdate.ObjectData[0] = this.CreateDefaultAvatarPacket();
+            objupdate.ObjectData[0] = this.CreateDefaultAvatarPacket(textureEntry);
             //give this avatar object a local id and assign the user a name
 
             objupdate.ObjectData[0].ID = avatarLocalID;
@@ -859,7 +859,7 @@ namespace OpenSim
         /// 
         /// </summary>
         /// <returns></returns>
-        protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket()
+        protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
         {
             libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
@@ -873,6 +873,10 @@ namespace OpenSim
             objdata.OwnerID = LLUUID.Zero;
             objdata.Scale = new LLVector3(1, 1, 1);
             objdata.PCode = 47;
+            if (textureEntry != null)
+            {
+                objdata.TextureEntry = textureEntry;
+            }
             System.Text.Encoding enc = System.Text.Encoding.ASCII;
             libsecondlife.LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
             pos.X = 100f;

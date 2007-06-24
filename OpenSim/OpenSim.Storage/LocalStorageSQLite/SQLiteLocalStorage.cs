@@ -97,7 +97,7 @@ namespace OpenSim.Storage.LocalStorageSQLite
             sql += "\"" + prim.PathTaperY.ToString() + "\",";
             sql += "\"" + prim.PathTwist.ToString() + "\",";
             sql += "\"" + prim.PathTwistBegin.ToString() + "\",";
-            sql += "\"" + prim.Texture.ToString() + "\",";
+            sql += "\"" + prim.TextureEntry.ToString() + "\",";
             sql += "\"" + prim.CreationDate.ToString() + "\",";
             sql += "\"" + prim.OwnerMask.ToString() + "\",";
             sql += "\"" + prim.NextOwnerMask.ToString() + "\",";

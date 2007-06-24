@@ -88,6 +88,17 @@ namespace OpenSim.Servers
             return false;
         }
 
+        public bool RemoveRestHandler(string method, string path)
+        {
+            string methodKey = String.Format("{0}: {1}", method, path);
+            if (this.m_restHandlers.ContainsKey(methodKey))
+            {
+                this.m_restHandlers.Remove(methodKey);
+                return true;
+            }
+            return false;
+        }
+
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
             if (!this.m_rpcHandlers.ContainsKey(method))
@@ -213,7 +224,7 @@ namespace OpenSim.Servers
                 //Console.WriteLine(requestBody);
 
                 string responseString = "";
-                //Console.WriteLine("new request " + request.ContentType);
+                Console.WriteLine("new request " + request.ContentType +" at "+ request.RawUrl);
                 switch (request.ContentType)
                 {
                     case "text/xml":
@@ -228,6 +239,13 @@ namespace OpenSim.Servers
                     case "application/xml":
                         // probably LLSD we hope, otherwise it should be ignored by the parser
                        // responseString = ParseLLSDXML(requestBody);
+                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                        response.AddHeader("Content-type", "application/xml");
+                        break;
+
+                    case "application/octet-stream":
+                        // probably LLSD we hope, otherwise it should be ignored by the parser
+                        // responseString = ParseLLSDXML(requestBody);
                         responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
                         response.AddHeader("Content-type", "application/xml");
                         break;

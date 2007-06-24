@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Assets;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 using OpenSim.Caches;
 using libsecondlife;
@@ -256,6 +257,99 @@ namespace OpenSim
                 public AssetTransaction()
                 {
 
+                }
+            }
+
+            //new class , not currently used.
+            public class AssetXferUploader
+            {
+                private IClientAPI ourClient;
+
+                public bool UploadComplete = false;
+
+                public bool AddToInventory;
+                public LLUUID InventFolder = LLUUID.Zero;
+               
+                public uint XferID;
+                public AssetBase Asset;
+                public LLUUID TransactionID = LLUUID.Zero;
+
+
+                public AssetXferUploader(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data)
+                {
+                    ourClient = remoteClient;
+                    Asset = new AssetBase();
+                    Asset.FullID = assetID;
+                    Asset.InvType = type;
+                    Asset.Type = type;
+                    Asset.Data = data;
+                    Asset.Name = "blank";
+                    Asset.Description = "empty";
+                    TransactionID = transaction;
+
+                    if (Asset.Data.Length > 2)
+                    {
+                        this.SendCompleteMessage();
+                    }
+                    else
+                    {
+                        this.ReqestStartXfer();
+                    }
+                }
+
+                protected void SendCompleteMessage()
+                {
+                    UploadComplete = true;
+                    AssetUploadCompletePacket response = new AssetUploadCompletePacket();
+                    response.AssetBlock.Type = Asset.Type;
+                    response.AssetBlock.Success = true;
+                    response.AssetBlock.UUID = Asset.FullID;
+                    this.ourClient.OutPacket(response);
+
+                    //TODO trigger event
+                }
+
+                protected void ReqestStartXfer()
+                {
+                    UploadComplete = false;
+                    XferID = Util.GetNextXferID();
+                    RequestXferPacket xfer = new RequestXferPacket();
+                    xfer.XferID.ID = XferID;
+                    xfer.XferID.VFileType = Asset.Type;
+                    xfer.XferID.VFileID = Asset.FullID;
+                    xfer.XferID.FilePath = 0;
+                    xfer.XferID.Filename = new byte[0];
+                    this.ourClient.OutPacket(xfer);
+                }
+
+                public void HandleXferPacket(uint xferID, uint packetID, byte[] data)
+                {
+                    if (XferID == xferID)
+                    {
+                        if (Asset.Data.Length > 1)
+                        {
+                            byte[] newArray = new byte[Asset.Data.Length + data.Length];
+                            Array.Copy(Asset.Data, 0, newArray, 0, Asset.Data.Length);
+                            Array.Copy(data, 0, newArray, Asset.Data.Length, data.Length);
+                            Asset.Data = newArray;
+                        }
+                        else
+                        {
+                            byte[] newArray = new byte[data.Length - 4];
+                            Array.Copy(data, 4, newArray, 0, data.Length - 4);
+                            Asset.Data = newArray;
+                        }
+
+                        ConfirmXferPacketPacket confirmXfer = new ConfirmXferPacketPacket();
+                        confirmXfer.XferID.ID = xferID;
+                        confirmXfer.XferID.Packet = packetID;
+                        this.ourClient.OutPacket(confirmXfer);
+
+                        if ((packetID & 2147483648) != 0)
+                        {
+                            this.SendCompleteMessage();
+                        }
+                    }
                 }
             }
         }

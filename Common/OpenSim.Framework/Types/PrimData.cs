@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Types
         public sbyte PathTaperY;
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
-        public byte[] Texture;
+        public byte[] TextureEntry; // a LL textureEntry in byte[] format
 
         public Int32 CreationDate;
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
@@ -105,8 +105,8 @@ namespace OpenSim.Framework.Types
             this.PathTwist = (sbyte)data[i++];
             this.PathTwistBegin = (sbyte)data[i++];
             ushort length = (ushort)(data[i++] + (data[i++] << 8));
-            this.Texture = new byte[length];
-            Array.Copy(data, i, Texture, 0, length); i += length;
+            this.TextureEntry = new byte[length];
+            Array.Copy(data, i, TextureEntry, 0, length); i += length;
             this.CreationDate = (Int32)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
             this.OwnerMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
             this.NextOwnerMask = (uint)(data[i++] + (data[i++] << 8) + (data[i++] << 16) + (data[i++] << 24));
@@ -123,7 +123,7 @@ namespace OpenSim.Framework.Types
         public byte[] ToBytes()
         {
             int i = 0;
-            byte[] bytes = new byte[126 + Texture.Length];
+            byte[] bytes = new byte[126 + TextureEntry.Length];
             Array.Copy(OwnerID.GetBytes(), 0, bytes, i, 16); i += 16;
             bytes[i++] = this.PCode;
             bytes[i++] = (byte)(this.PathBegin % 256);
@@ -154,9 +154,9 @@ namespace OpenSim.Framework.Types
             bytes[i++] = ((byte)this.PathTaperY);
             bytes[i++] = ((byte)this.PathTwist);
             bytes[i++] = ((byte)this.PathTwistBegin);
-            bytes[i++] = (byte)(Texture.Length % 256);
-            bytes[i++] = (byte)((Texture.Length >> 8) % 256);
-            Array.Copy(Texture, 0, bytes, i, Texture.Length); i += Texture.Length;
+            bytes[i++] = (byte)(TextureEntry.Length % 256);
+            bytes[i++] = (byte)((TextureEntry.Length >> 8) % 256);
+            Array.Copy(TextureEntry, 0, bytes, i, TextureEntry.Length); i += TextureEntry.Length;
             bytes[i++] = (byte)(this.CreationDate % 256);
             bytes[i++] = (byte)((this.CreationDate >> 8) % 256);
             bytes[i++] = (byte)((this.CreationDate >> 16) % 256);

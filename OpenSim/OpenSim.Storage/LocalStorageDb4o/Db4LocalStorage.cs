@@ -97,7 +97,7 @@ namespace OpenSim.Storage.LocalStorageDb4o
                 found.ProfileHollow = prim.ProfileHollow;
                 found.Position = prim.Position;
                 found.Rotation = prim.Rotation;
-                found.Texture = prim.Texture;
+                found.TextureEntry = prim.TextureEntry;
                 db.Set(found);
                 db.Commit();
             }

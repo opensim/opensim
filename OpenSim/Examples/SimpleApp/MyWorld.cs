@@ -69,7 +69,7 @@ namespace SimpleApp
                  {
                      client.SendAvatarData(m_regionInfo.RegionHandle, client.FirstName,
                                            client.LastName, client.AgentId, 0,
-                                           pos);
+                                           pos, null);
                                                          
                      client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero );
                  };

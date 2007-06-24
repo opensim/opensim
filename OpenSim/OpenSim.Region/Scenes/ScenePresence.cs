@@ -43,6 +43,7 @@ namespace OpenSim.Region.Scenes
     {
         public static bool PhysicsEngineFlying = false;
         public static AvatarAnimations Animations;
+        public static byte[] DefaultTexture;
         public string firstname;
         public string lastname;
         public IClientAPI ControllingClient;
@@ -324,7 +325,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
-            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos);
+            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos, DefaultTexture);
         }
 
         /// <summary>
@@ -332,7 +333,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos);
+            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos, DefaultTexture);
             if (this.newAvatar)
             {
                 this.m_world.InformClientOfNeighbours(this.ControllingClient);
@@ -439,10 +440,12 @@ namespace OpenSim.Region.Scenes
             RegionInfo neighbourRegion = this.m_world.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
-                this.m_world.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos);
-                this.MakeChildAgent();
-                this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, System.Net.IPAddress.Parse(neighbourRegion.IPListenAddr), (ushort)neighbourRegion.IPListenPort);
-
+                bool res = this.m_world.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos);
+                if (res)
+                {
+                    this.MakeChildAgent();
+                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, System.Net.IPAddress.Parse(neighbourRegion.IPListenAddr), (ushort)neighbourRegion.IPListenPort);
+                }
             }
         }
         #endregion
@@ -479,6 +482,18 @@ namespace OpenSim.Region.Scenes
                     }
                 }
             }
+        }
+
+        public static void LoadTextureFile(string name)
+        {
+            FileInfo fInfo = new FileInfo(name);
+            long numBytes = fInfo.Length;
+            FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
+            BinaryReader br = new BinaryReader(fStream);
+            byte[] data1 = br.ReadBytes((int)numBytes);
+            br.Close();
+            fStream.Close();
+            DefaultTexture = data1;
         }
 
         public class NewForce

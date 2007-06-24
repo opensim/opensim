@@ -144,7 +144,7 @@ namespace OpenSim.Framework.Interfaces
         void SendTeleportCancel();
         void SendTeleportLocationStart();
 
-        void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos);
+        void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry);
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity);
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);

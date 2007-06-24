@@ -60,7 +60,7 @@ namespace OpenSim
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
-        private CheckSumServer checkServer;
+      //  private CheckSumServer checkServer;
         protected CommunicationsManager commsManager;
 
         private bool m_silent;
@@ -97,6 +97,8 @@ namespace OpenSim
             m_log.Verbose( "Main.cs:Startup() - Loading configuration");
             this.serversData.InitConfig(this.m_sandbox, this.localConfig);
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
+            
+            ScenePresence.LoadTextureFile("avatar-texture.dat");
 
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
@@ -104,8 +106,8 @@ namespace OpenSim
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
-                this.checkServer = new CheckSumServer(12036);
-                this.checkServer.ServerListener();
+              //  this.checkServer = new CheckSumServer(12036);
+              //  this.checkServer.ServerListener();
                 sandboxCommunications = new CommunicationsLocal(this.serversData.DefaultHomeLocX, this.serversData.DefaultHomeLocY);
                 this.commsManager = sandboxCommunications;
             }

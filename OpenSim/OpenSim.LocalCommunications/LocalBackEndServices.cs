@@ -122,7 +122,7 @@ namespace OpenSim.LocalCommunications
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             foreach(RegionInfo regInfo in this.regions.Values)
             {
-                if (((regInfo.RegionLocX > minX) && (regInfo.RegionLocX < maxX)) && ((regInfo.RegionLocY > minY) && (regInfo.RegionLocY < maxY)))
+                if (((regInfo.RegionLocX >= minX) && (regInfo.RegionLocX <= maxX)) && ((regInfo.RegionLocY >= minY) && (regInfo.RegionLocY <= maxY)))
                 {
                     MapBlockData map = new MapBlockData();
                     map.Name = regInfo.RegionName;

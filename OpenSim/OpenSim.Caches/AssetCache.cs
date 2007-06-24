@@ -38,6 +38,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Caches
 {
+    public delegate void DownloadComplete(AssetCache.TextureSender sender);
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
     /// </summary>
@@ -52,6 +53,7 @@ namespace OpenSim.Caches
         public Dictionary<LLUUID, AssetRequest> RequestedAssets = new Dictionary<LLUUID, AssetRequest>(); //Assets requested from the asset server
         public Dictionary<LLUUID, AssetRequest> RequestedTextures = new Dictionary<LLUUID, AssetRequest>(); //Textures requested from the asset server
 
+        public Dictionary<LLUUID, TextureSender> SendingTextures = new Dictionary<LLUUID, TextureSender>();
         private IAssetServer _assetServer;
         private Thread _assetCacheThread;
         private LLUUID[] textureList = new LLUUID[5];
@@ -155,8 +157,10 @@ namespace OpenSim.Caches
 
         public void AddAsset(AssetBase asset)
         {
+           // Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
             if (asset.Type == 0)
             {
+                //Console.WriteLine("which is a texture");
                 if (!this.Textures.ContainsKey(asset.FullID))
                 { //texture
                     TextureImage textur = new TextureImage(asset);
@@ -186,94 +190,42 @@ namespace OpenSim.Caches
                 return;
             }
             int num;
+            num = this.TextureRequests.Count;
 
-            if (this.TextureRequests.Count < 5)
-            {
-                //lower than 5 so do all of them
-                num = this.TextureRequests.Count;
-            }
-            else
-            {
-                num = 5;
-            }
             AssetRequest req;
             for (int i = 0; i < num; i++)
             {
                 req = (AssetRequest)this.TextureRequests[i];
-                if (req.PacketCounter != req.NumPackets)
+                if (!this.SendingTextures.ContainsKey(req.ImageInfo.FullID))
                 {
-                    // if (req.ImageInfo.FullID == new LLUUID("00000000-0000-0000-5005-000000000005"))
-                    if (req.PacketCounter == 0)
+                    TextureSender sender = new TextureSender(req);
+                    sender.OnComplete += this.TextureSent;
+                    lock (this.SendingTextures)
                     {
-                        //first time for this request so send imagedata packet
-                        if (req.NumPackets == 1)
-                        {
-                            //only one packet so send whole file
-                            ImageDataPacket im = new ImageDataPacket();
-                            im.ImageID.Packets = 1;
-                            im.ImageID.ID = req.ImageInfo.FullID;
-                            im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
-                            im.ImageData.Data = req.ImageInfo.Data;
-                            im.ImageID.Codec = 2;
-                            req.RequestUser.OutPacket(im);
-                            req.PacketCounter++;
-                            //req.ImageInfo.l= time;
-                            //System.Console.WriteLine("sent texture: "+req.image_info.FullID);
-                        }
-                        else
-                        {
-                            //more than one packet so split file up
-                            ImageDataPacket im = new ImageDataPacket();
-                            im.ImageID.Packets = (ushort)req.NumPackets;
-                            im.ImageID.ID = req.ImageInfo.FullID;
-                            im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
-                            im.ImageData.Data = new byte[600];
-                            Array.Copy(req.ImageInfo.Data, 0, im.ImageData.Data, 0, 600);
-                            im.ImageID.Codec = 2;
-                            req.RequestUser.OutPacket(im);
-                            req.PacketCounter++;
-                            //req.ImageInfo.last_used = time;
-                            //System.Console.WriteLine("sent first packet of texture:
-                        }
-                    }
-                    else
-                    {
-                        //send imagepacket
-                        //more than one packet so split file up
-                        ImagePacketPacket im = new ImagePacketPacket();
-                        im.ImageID.Packet = (ushort)req.PacketCounter;
-                        im.ImageID.ID = req.ImageInfo.FullID;
-                        int size = req.ImageInfo.Data.Length - 600 - 1000 * (req.PacketCounter - 1);
-                        if (size > 1000) size = 1000;
-                        im.ImageData.Data = new byte[size];
-                        Array.Copy(req.ImageInfo.Data, 600 + 1000 * (req.PacketCounter - 1), im.ImageData.Data, 0, size);
-                        req.RequestUser.OutPacket(im);
-                        req.PacketCounter++;
-                        //req.ImageInfo.last_used = time;
-                        //System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);
+                        this.SendingTextures.Add(req.ImageInfo.FullID, sender);
                     }
                 }
+
             }
 
-            //remove requests that have been completed
-            int count = 0;
-            for (int i = 0; i < num; i++)
-            {
-                if (this.TextureRequests.Count > count)
-                {
-                    req = (AssetRequest)this.TextureRequests[count];
-                    if (req.PacketCounter == req.NumPackets)
-                    {
-                        this.TextureRequests.Remove(req);
-                    }
-                    else
-                    {
-                        count++;
-                    }
-                }
-            }
-
+            this.TextureRequests.Clear();
         }
+
+        /// <summary>
+        /// Event handler, called by a TextureSender object to say that texture has been sent
+        /// </summary>
+        /// <param name="sender"></param>
+        public void TextureSent(AssetCache.TextureSender sender)
+        {
+            if (this.SendingTextures.ContainsKey(sender.request.ImageInfo.FullID))
+            {
+                lock (this.SendingTextures)
+                {
+                    this.SendingTextures.Remove(sender.request.ImageInfo.FullID);
+                }
+            }
+        }
+
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
             if (asset.FullID != LLUUID.Zero)  // if it is set to zero then the asset wasn't found by the server
@@ -343,6 +295,7 @@ namespace OpenSim.Caches
         {
             LLUUID requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
             //check to see if asset is in local cache, if not we need to request it from asset server.
+
             if (!this.Assets.ContainsKey(requestID))
             {
                 //not found asset	
@@ -481,6 +434,7 @@ namespace OpenSim.Caches
         /// <param name="imageID"></param>
         public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID)
         {
+            //Console.WriteLine("texture request for " + imageID.ToStringHyphenated());
             //check to see if texture is in local cache, if not request from asset server
             if (!this.Textures.ContainsKey(imageID))
             {
@@ -497,6 +451,7 @@ namespace OpenSim.Caches
                 return;
             }
 
+            //Console.WriteLine("texture already in cache");
             TextureImage imag = this.Textures[imageID];
             AssetRequest req = new AssetRequest();
             req.RequestUser = userInfo;
@@ -609,6 +564,98 @@ namespace OpenSim.Caches
                 InvType = aBase.InvType;
                 Name = aBase.Name;
                 Description = aBase.Description;
+            }
+        }
+
+        public class TextureSender
+        {
+            public AssetRequest request;
+            public event DownloadComplete OnComplete;
+
+            public TextureSender(AssetRequest req)
+            {
+                request = req;
+                //Console.WriteLine("creating worker thread for texture " + req.ImageInfo.FullID.ToStringHyphenated());
+                //Console.WriteLine("texture data length is " + req.ImageInfo.Data.Length);
+                // Console.WriteLine("in " + req.NumPackets + " packets");
+                ThreadPool.QueueUserWorkItem(new WaitCallback(SendTexture), new object());
+            }
+
+            public void SendTexture(Object obj)
+            {
+                //Console.WriteLine("starting to send sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
+                while (request.PacketCounter != request.NumPackets)
+                {
+                    SendPacket();
+                    Thread.Sleep(500);
+                }
+
+                //Console.WriteLine("finished sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
+                if (OnComplete != null)
+                {
+                    OnComplete(this);
+                }
+            }
+
+            public void SendPacket()
+            {
+                AssetRequest req = request;
+                // Console.WriteLine("sending " + req.ImageInfo.FullID);
+
+                // if (req.ImageInfo.FullID == new LLUUID("00000000-0000-0000-5005-000000000005"))
+                if (req.PacketCounter == 0)
+                {
+                    //first time for this request so send imagedata packet
+                    if (req.NumPackets == 1)
+                    {
+                        //only one packet so send whole file
+                        ImageDataPacket im = new ImageDataPacket();
+                        im.ImageID.Packets = 1;
+                        im.ImageID.ID = req.ImageInfo.FullID;
+                        im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
+                        im.ImageData.Data = req.ImageInfo.Data;
+                        im.ImageID.Codec = 2;
+                        req.RequestUser.OutPacket(im);
+                        req.PacketCounter++;
+                        //req.ImageInfo.l= time;
+                        //System.Console.WriteLine("sent texture: " + req.ImageInfo.FullID);
+                        //  Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    }
+                    else
+                    {
+                        //more than one packet so split file up
+                        ImageDataPacket im = new ImageDataPacket();
+                        im.ImageID.Packets = (ushort)req.NumPackets;
+                        im.ImageID.ID = req.ImageInfo.FullID;
+                        im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
+                        im.ImageData.Data = new byte[600];
+                        Array.Copy(req.ImageInfo.Data, 0, im.ImageData.Data, 0, 600);
+                        im.ImageID.Codec = 2;
+                        req.RequestUser.OutPacket(im);
+                        req.PacketCounter++;
+                        //req.ImageInfo.last_used = time;
+                        //System.Console.WriteLine("sent first packet of texture:
+                        // Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine("sending packet" + req.PacketCounter + "for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    //send imagepacket
+                    //more than one packet so split file up
+                    ImagePacketPacket im = new ImagePacketPacket();
+                    im.ImageID.Packet = (ushort)req.PacketCounter;
+                    im.ImageID.ID = req.ImageInfo.FullID;
+                    int size = req.ImageInfo.Data.Length - 600 - 1000 * (req.PacketCounter - 1);
+                    if (size > 1000) size = 1000;
+                    im.ImageData.Data = new byte[size];
+                    Array.Copy(req.ImageInfo.Data, 600 + 1000 * (req.PacketCounter - 1), im.ImageData.Data, 0, size);
+                    req.RequestUser.OutPacket(im);
+                    req.PacketCounter++;
+                    //req.ImageInfo.last_used = time;
+                    //System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);
+                }
+
             }
         }
     }

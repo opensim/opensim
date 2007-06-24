@@ -42,7 +42,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Servers
 {
-    public class CheckSumServer : UDPServerBase
+/*    public class CheckSumServer : UDPServerBase
     {
         //protected ConsoleBase m_log;
 
@@ -79,7 +79,7 @@ namespace OpenSim.Servers
                 SecuredTemplateChecksumRequestPacket checkrequest = new SecuredTemplateChecksumRequestPacket();
                 checkrequest.TokenBlock.Token = checksum.TokenBlock.Token;
                 this.SendPacket(checkrequest, epSender);
-                */
+                
             }
             else if (packet.Type == PacketType.TemplateChecksumReply)
             {
@@ -136,5 +136,6 @@ namespace OpenSim.Servers
         {
             this.Server.SendTo(buffer, size, flags, endp);
         }
-    }
+ * 
+    }*/
 }

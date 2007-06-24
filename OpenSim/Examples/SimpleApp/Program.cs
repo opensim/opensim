@@ -27,8 +27,8 @@ namespace SimpleApp
             m_log = new LogBase(null, "SimpleApp", this, false);
             MainLog.Instance = m_log;
 
-            CheckSumServer checksumServer = new CheckSumServer(12036);
-            checksumServer.ServerListener();
+          //  CheckSumServer checksumServer = new CheckSumServer(12036);
+           // checksumServer.ServerListener();
 
             string simAddr = "127.0.0.1";
             int simPort = 9000;

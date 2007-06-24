@@ -273,7 +273,7 @@ namespace OpenSim.Region.Scenes
         /// <param name="tex"></param>
         public void UpdateTexture(byte[] tex)
         {
-            this.primData.Texture = tex;
+            this.primData.TextureEntry = tex;
         }
 
         /// <summary>
@@ -411,7 +411,7 @@ namespace OpenSim.Region.Scenes
                 lPos = this.Pos;
             }
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.primData, lPos, new LLUUID("00000000-0000-1000-5005-000000000018"));
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.primData, lPos, new LLUUID("00000000-0000-0000-9999-000000000005"));
         }
 
         /// <summary>
