@@ -63,10 +63,9 @@ namespace OpenSim.Region
         /// <returns></returns>
         public string CapsRequest(string request, string path, string param)
         {
-            Console.WriteLine("Caps Request " + request);
-            string result = "<llsd><map>";
-            result += this.GetCapabilities();
-            result += "</map></llsd>";
+           // Console.WriteLine("Caps Request " + request);
+            string result = ""; 
+            result = LLSDHelpers.SerialiseLLSDReply(this.GetCapabilities());
             return result;
         }
 
@@ -74,15 +73,19 @@ namespace OpenSim.Region
         /// 
         /// </summary>
         /// <returns></returns>
-        protected string GetCapabilities()
+        protected LLSDCapsDetails GetCapabilities()
         {
-            string capURLS = "";
-
+           /* string capURLS = "";
             capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath + "</string>";
             capURLS += "<key>NewFileAgentInventory</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory + "</string>";
             //capURLS += "<key>RequestTextureDownload</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + requestTexture + "</string>";
             //capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
-            return capURLS;
+            return capURLS;*/
+
+            LLSDCapsDetails caps = new LLSDCapsDetails();
+            caps.MapLayer = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath;
+            caps.NewFileAgentInventory = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory;
+            return caps;
         }
 
         /// <summary>
@@ -99,9 +102,12 @@ namespace OpenSim.Region
             LLSDMapRequest mapReq = new LLSDMapRequest();
             LLSDHelpers.DeserialiseLLSDMap(hash, mapReq );
 
-            string res = "<llsd><map><key>AgentData</key><map><key>Flags</key><integer>0</integer></map><key>LayerData</key><array>";
-            res += this.BuildLLSDMapLayerResponse();
-            res += "</array></map></llsd>";
+            LLSDMapLayerResponse mapResponse= new LLSDMapLayerResponse();
+            mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
+            string res = LLSDHelpers.SerialiseLLSDReply(mapResponse);
+            
+            //Console.WriteLine(" Maplayer response is " + res);
+          
             return res;
         }
 
@@ -109,24 +115,14 @@ namespace OpenSim.Region
         /// 
         /// </summary>
         /// <returns></returns>
-        protected string BuildLLSDMapLayerResponse()
+        protected LLSDMapLayer BuildLLSDMapLayerResponse()
         {
-            string res = "";
-            int left;
-            int right;
-            int top;
-            int bottom;
-            LLUUID image = null;
+            LLSDMapLayer mapLayer = new LLSDMapLayer();
+            mapLayer.Right = 5000;
+            mapLayer.Top = 5000;
+            mapLayer.ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
 
-            left = 0;
-            bottom = 0;
-            top = 5000;
-            right = 5000;
-            image = new LLUUID("00000000-0000-0000-9999-000000000006");
-
-            res += "<map><key>Left</key><integer>" + left + "</integer><key>Bottom</key><integer>" + bottom + "</integer><key>Top</key><integer>" + top + "</integer><key>Right</key><integer>" + right + "</integer><key>ImageID</key><uuid>" + image.ToStringHyphenated() + "</uuid></map>";
-
-            return res;
+            return mapLayer;
         }
 
         public string ProcessEventQueue(string request, string path, string param)
@@ -191,7 +187,7 @@ namespace OpenSim.Region
             AssetUploader uploader = new AssetUploader(newAsset, newInvItem, uploaderPath, this.httpListener);
             httpListener.AddRestHandler("POST", "/CAPS/" + uploaderPath, uploader.uploaderCaps);
             string uploaderURL = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + uploaderPath;
-            Console.WriteLine("uploader url is " + uploaderURL);
+            //Console.WriteLine("uploader url is " + uploaderURL);
             res += "<llsd><map>";
             res += "<key>uploader</key><string>" + uploaderURL + "</string>";
             //res += "<key>success</key><boolean>true</boolean>";
@@ -244,7 +240,7 @@ namespace OpenSim.Region
                 res += "<key>state</key><string>complete</string>";
                 res += "</map></llsd>";
 
-                Console.WriteLine("asset " + newAssetID.ToStringHyphenated() + " , inventory item " + inv.ToStringHyphenated());
+               // Console.WriteLine("asset " + newAssetID.ToStringHyphenated() + " , inventory item " + inv.ToStringHyphenated());
                 httpListener.RemoveRestHandler("POST", "/CAPS/" + uploaderPath);
                 if (OnUpLoad != null)
                 {

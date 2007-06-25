@@ -100,6 +100,31 @@ namespace OpenSim.Framework
     }
 
     [LLSDType("MAP")]
+    public class LLSDMapLayerResponse
+    {
+        public LLSDMapRequest AgentData = new LLSDMapRequest();
+        public LLSDArray LayerData = new LLSDArray();
+
+        public LLSDMapLayerResponse()
+        {
+
+        }
+    }
+
+    [LLSDType("MAP")]
+    public class LLSDCapsDetails
+    {
+        public string MapLayer = "";
+        public string NewFileAgentInventory = "";
+        //public string EventQueueGet = "";
+
+        public LLSDCapsDetails()
+        {
+
+        }
+    }
+
+    [LLSDType("MAP")]
     public class LLSDMapLayer
     {
         public int Left = 0;
@@ -108,10 +133,9 @@ namespace OpenSim.Framework
         public int Bottom = 0;
         public LLUUID ImageID = LLUUID.Zero;
 
-        public LLSDArray TestArray = new LLSDArray();
         public LLSDMapLayer()
         {
-
+           
         }
     }
 
@@ -137,6 +161,7 @@ namespace OpenSim.Framework
         }
     }
 
+
     [LLSDType("MAP")]
     public class LLSDTest
     {
@@ -153,12 +178,11 @@ namespace OpenSim.Framework
     [AttributeUsage(AttributeTargets.Class)]
     public class LLSDType : Attribute
     {
-        private string myHandler;
-
+        private string myType;
 
         public LLSDType(string type)
         {
-            myHandler = type;
+            myType = type;
 
         }
 
@@ -166,7 +190,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                return myHandler;
+                return myType;
             }
         }
     }

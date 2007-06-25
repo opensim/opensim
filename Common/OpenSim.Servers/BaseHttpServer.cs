@@ -75,7 +75,7 @@ namespace OpenSim.Servers
 
         public bool AddRestHandler(string method, string path, RestMethod handler)
         {
-            Console.WriteLine("adding new REST handler for path " + path);
+           //Console.WriteLine("adding new REST handler for path " + path);
             string methodKey = String.Format("{0}: {1}", method, path);
 
             if (!this.m_restHandlers.ContainsKey(methodKey))
