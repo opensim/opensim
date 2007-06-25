@@ -224,7 +224,7 @@ namespace OpenSim.Servers
                 //Console.WriteLine(requestBody);
 
                 string responseString = "";
-                Console.WriteLine("new request " + request.ContentType +" at "+ request.RawUrl);
+               // Console.WriteLine("new request " + request.ContentType +" at "+ request.RawUrl);
                 switch (request.ContentType)
                 {
                     case "text/xml":

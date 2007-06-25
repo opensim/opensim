@@ -195,7 +195,7 @@ namespace OpenSim.Region
 
         public void UploadHandler(LLUUID assetID, LLUUID inventoryItem, byte[] data)
         {
-            Console.WriteLine("upload handler called");
+           // Console.WriteLine("upload handler called");
             AssetBase asset;
             asset = new AssetBase();
             asset.FullID = assetID;

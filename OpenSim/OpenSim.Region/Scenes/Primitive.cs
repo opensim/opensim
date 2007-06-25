@@ -540,7 +540,7 @@ namespace OpenSim.Region.Scenes
         
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            Console.WriteLine("moving prim to new location " + pos.X + " , " + pos.Y + " , " + pos.Z);
+           // Console.WriteLine("moving prim to new location " + pos.X + " , " + pos.Y + " , " + pos.Z);
             this.Pos = pos;
             this.SendTerseUpdateToALLClients();
         }
