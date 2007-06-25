@@ -15,6 +15,7 @@
                 <include name="AuthenticateSessionBase.cs" />
                 <include name="BlockingQueue.cs" />
                 <include name="IRegionCommsListener.cs" />
+                <include name="LLSDHelpers.cs" />
                 <include name="Logger.cs" />
                 <include name="LoginService.cs" />
                 <include name="RegionCommsListener.cs" />

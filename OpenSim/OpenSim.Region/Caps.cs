@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Xml;
 using OpenSim.Servers;
+using OpenSim.Framework;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Types;
 using OpenSim.Caches;
@@ -91,6 +94,11 @@ namespace OpenSim.Region
         /// <returns></returns>
         public string MapLayer(string request, string path, string param)
         {
+            Encoding _enc = System.Text.Encoding.UTF8;
+            Hashtable hash =(Hashtable) LLSD.LLSDDeserialize(_enc.GetBytes(request));
+            LLSDMapRequest mapReq = new LLSDMapRequest();
+            LLSDHelpers.DeserialiseLLSDMap(hash, mapReq );
+
             string res = "<llsd><map><key>AgentData</key><map><key>Flags</key><integer>0</integer></map><key>LayerData</key><array>";
             res += this.BuildLLSDMapLayerResponse();
             res += "</array></map></llsd>";
@@ -123,14 +131,14 @@ namespace OpenSim.Region
 
         public string ProcessEventQueue(string request, string path, string param)
         {
-         //  Console.WriteLine("event queue request " + request);
+            //  Console.WriteLine("event queue request " + request);
             string res = "";
             int timer = 0;
 
-           /*while ((timer < 200) || (this.CapsEventQueue.Count < 1))
-            {
-                timer++;
-            }*/
+            /*while ((timer < 200) || (this.CapsEventQueue.Count < 1))
+             {
+                 timer++;
+             }*/
             if (this.CapsEventQueue.Count > 0)
             {
                 lock (this.CapsEventQueue)
@@ -152,9 +160,9 @@ namespace OpenSim.Region
             res += "<key>events</key><array><map>";
             res += "<key>message</key><string>EstablishAgentCommunication</string>";
             res += "<key>body</key><map>";
-            res += "<key>sim-ip-and-port</key><string>"+ipAddressPort +"</string>";
-            res += "<key>seed-capability</key><string>"+caps+"</string>";
-            res += "<key>agent-id</key><uuid>"+this.agentID.ToStringHyphenated()+"</uuid>";
+            res += "<key>sim-ip-and-port</key><string>" + ipAddressPort + "</string>";
+            res += "<key>seed-capability</key><string>" + caps + "</string>";
+            res += "<key>agent-id</key><uuid>" + this.agentID.ToStringHyphenated() + "</uuid>";
             res += "</map>";
             res += "</map></array>";
             res += "</map></llsd>";
@@ -195,7 +203,7 @@ namespace OpenSim.Region
 
         public void UploadHandler(LLUUID assetID, LLUUID inventoryItem, byte[] data)
         {
-           // Console.WriteLine("upload handler called");
+            // Console.WriteLine("upload handler called");
             AssetBase asset;
             asset = new AssetBase();
             asset.FullID = assetID;
