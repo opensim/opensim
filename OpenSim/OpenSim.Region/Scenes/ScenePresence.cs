@@ -223,23 +223,20 @@ namespace OpenSim.Region.Scenes
                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
                 if (((movementflag & 1) == 0) || (q != this.bodyRot))
                 {
-                    //we should add a new force to the list
-                    // but for now we will deal with velocities
-                    NewForce newVelocity = new NewForce();
                     Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
-                    Axiom.MathLib.Vector3 direc = q * v3;
-                    direc.Normalize();
-
-                    //work out velocity for sim physics system
-                    direc = direc * ((0.03f) * 128f);
-                    if (this._physActor.Flying)
-                        direc *= 4;
-
-                    newVelocity.X = direc.x;
-                    newVelocity.Y = direc.y;
-                    newVelocity.Z = direc.z;
-                    this.forcesList.Add(newVelocity);
+                    this.AddNewMovement(v3, q);
                     movementflag = 1;
+                    this.bodyRot = q;
+                }
+            }
+            else if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
+            {
+                Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
+                if (((movementflag & 2) == 0) || (q != this.bodyRot))
+                {  
+                    Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(-1, 0, 0);
+                    this.AddNewMovement(v3, q);
+                    movementflag = 2;
                     this.bodyRot = q;
                 }
             }
@@ -257,6 +254,23 @@ namespace OpenSim.Region.Scenes
             }
 
         }
+
+        protected void AddNewMovement(Axiom.MathLib.Vector3 vec, Axiom.MathLib.Quaternion rotation)
+        {
+            NewForce newVelocity = new NewForce();
+            Axiom.MathLib.Vector3 direc = rotation * vec;
+            direc.Normalize();
+
+            direc = direc * ((0.03f) * 128f);
+            if (this._physActor.Flying)
+                direc *= 4;
+
+            newVelocity.X = direc.x;
+            newVelocity.Y = direc.y;
+            newVelocity.Z = direc.z;
+            this.forcesList.Add(newVelocity);
+        }
+
         #endregion
 
         #region Overridden Methods

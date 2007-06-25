@@ -109,13 +109,13 @@ namespace OpenSim
                 this.SetupLocalGridServers();
               //  this.checkServer = new CheckSumServer(12036);
               //  this.checkServer.ServerListener();
-                sandboxCommunications = new CommunicationsLocal(this.serversData.DefaultHomeLocX, this.serversData.DefaultHomeLocY);
+                sandboxCommunications = new CommunicationsLocal(this.serversData);
                 this.commsManager = sandboxCommunications;
             }
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new GridCommsManager();
+                this.commsManager = new GridCommsManager(this.serversData);
             }
 
             startuptime = DateTime.Now;

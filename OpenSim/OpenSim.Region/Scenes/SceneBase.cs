@@ -51,8 +51,11 @@ namespace OpenSim.Region.Scenes
         protected string m_regionName;
         protected RegionInfo m_regInfo;
 
-        public TerrainEngine Terrain; //TODO: Replace TerrainManager with this.
-        protected libsecondlife.TerrainManager TerrainManager; // To be referenced via TerrainEngine
+        public TerrainEngine Terrain;
+
+        public string m_datastore;
+        public ILocalStorage localStorage;
+
         protected object m_syncRoot = new object();
         private uint m_nextLocalId = 8880000;
         protected AssetCache assetCache;
@@ -71,6 +74,51 @@ namespace OpenSim.Region.Scenes
         /// Loads the World heightmap
         /// </summary>
         public abstract void LoadWorldMap();
+
+        /// <summary>
+        /// Loads a new storage subsystem from a named library
+        /// </summary>
+        /// <param name="dllName">Storage Library</param>
+        /// <returns>Successful or not</returns>
+        public bool LoadStorageDLL(string dllName)
+        {
+            try
+            {
+                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+                ILocalStorage store = null;
+
+                foreach (Type pluginType in pluginAssembly.GetTypes())
+                {
+                    if (pluginType.IsPublic)
+                    {
+                        if (!pluginType.IsAbstract)
+                        {
+                            Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
+
+                            if (typeInterface != null)
+                            {
+                                ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                store = plug;
+
+                                store.Initialise(this.m_datastore);
+                                break;
+                            }
+
+                            typeInterface = null;
+                        }
+                    }
+                }
+                pluginAssembly = null;
+                this.localStorage = store;
+                return (store == null);
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
+                return false;
+            }
+        }
+
         
         /// <summary>
         /// Send the region heightmap to the client
@@ -87,7 +135,10 @@ namespace OpenSim.Region.Scenes
         /// <param name="px">Patch coordinate (x) 0..16</param>
         /// <param name="py">Patch coordinate (y) 0..16</param>
         /// <param name="RemoteClient">The client to send to</param>
-        public abstract void SendLayerData(int px, int py, IClientAPI RemoteClient);
+        public virtual void SendLayerData(int px, int py, IClientAPI RemoteClient)
+        {
+            RemoteClient.SendLayerData(px, py, Terrain.getHeights1D());
+        }
 
         #endregion
 
@@ -114,7 +165,7 @@ namespace OpenSim.Region.Scenes
         /// <returns></returns>
         public virtual RegionInfo RegionInfo
         {
-            get { return null; }
+            get { return this.m_regInfo; }
         }
 
         public object SyncRoot
@@ -131,7 +182,17 @@ namespace OpenSim.Region.Scenes
         /// <summary>
         /// Tidy before shutdown
         /// </summary>
-        public abstract void Close();
+        public virtual void Close()
+        {
+            try
+            {
+                this.localStorage.ShutDown();
+            }
+            catch (Exception e)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
+            }
+        }
 
         #endregion
 

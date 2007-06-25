@@ -55,11 +55,12 @@ namespace OpenSim.Framework.Interfaces
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
-    public delegate void UpdatePrimVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
+    public delegate void UpdateVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
     public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
     public delegate void StatusChange(bool status);
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
     public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
+    public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
 
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
@@ -86,14 +87,17 @@ namespace OpenSim.Framework.Interfaces
         event UpdateAgent OnAgentUpdate;
         event GenericCall OnRequestAvatarsData;
         event GenericCall4 OnAddPrim;
+        event UpdateVector OnGrapObject;
+        event ObjectSelect OnDeGrapObject;
+        event MoveObject OnGrapUpdate;
 
         event UpdateShape OnUpdatePrimShape;
         event ObjectSelect OnObjectSelect;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
-        event UpdatePrimVector OnUpdatePrimPosition;
+        event UpdateVector OnUpdatePrimPosition;
         event UpdatePrimRotation OnUpdatePrimRotation;
-        event UpdatePrimVector OnUpdatePrimScale;
+        event UpdateVector OnUpdatePrimScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;
         event NewAvatar OnNewAvatar;
@@ -143,13 +147,14 @@ namespace OpenSim.Framework.Interfaces
         void SendRegionTeleport(ulong regionHandle, byte simAccess, string ipAddress, ushort ipPort, uint locationID, uint flags);
         void SendTeleportCancel();
         void SendTeleportLocationStart();
+        void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);
 
         void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry);
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity);
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID);
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID);
+        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID , uint flags);
+        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID, uint flags);
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation);
     }
 }

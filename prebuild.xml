@@ -534,6 +534,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Servers"/>
       <Reference name="OpenGrid.Framework.Communications" />
+      <Reference name="OpenGrid.Framework.Data" />
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC"/>
 
@@ -664,6 +665,7 @@
       <Reference name="OpenSim.RegionServer"/>
       <Reference name="OpenSim.GenericConfig.Xml"/>
 	<Reference name="OpenGrid.Framework.Communications"/>
+      <Reference name="OpenGrid.Framework.Communications.OGS1"/>
 	<Reference name="OpenSim.Caches"/>
       <Reference name="XMLRPC"/>
       <Reference name="OpenGrid.Framework.UserManagement" />

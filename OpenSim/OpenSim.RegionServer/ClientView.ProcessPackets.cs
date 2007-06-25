@@ -254,6 +254,27 @@ namespace OpenSim
                             }
                         }
                         break;
+                    case PacketType.ObjectGrab:
+                        ObjectGrabPacket grap = (ObjectGrabPacket)Pack;
+                        if (OnGrapObject != null)
+                        {
+                            OnGrapObject(grap.ObjectData.LocalID, grap.ObjectData.GrabOffset, this);
+                        }
+                        break;
+                    case PacketType.ObjectGrabUpdate:
+                        ObjectGrabUpdatePacket grapUpdate = (ObjectGrabUpdatePacket)Pack;
+                        if (OnGrapUpdate != null)
+                        {
+                            OnGrapUpdate(grapUpdate.ObjectData.ObjectID, grapUpdate.ObjectData.GrabOffsetInitial, grapUpdate.ObjectData.GrabPosition, this);
+                        }
+                        break;
+                    case PacketType.ObjectDeGrab:
+                        ObjectDeGrabPacket deGrap = (ObjectDeGrabPacket)Pack;
+                        if (OnDeGrapObject != null)
+                        {
+                            OnDeGrapObject(deGrap.ObjectData.LocalID, this);
+                        }
+                        break;
                     #endregion
 
                     #region Inventory/Asset/Other related packets
@@ -467,6 +488,10 @@ namespace OpenSim
                         }
                         break;
                     #endregion
+
+                    case PacketType.MoneyBalanceRequest:
+                        this.SendMoneyBalance(LLUUID.Zero, true, new byte[0], 1000);
+                        break;
 
                     #region Parcel related packets
                     case PacketType.ParcelPropertiesRequest:

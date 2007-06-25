@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ReferencePath>E:\work\oslauth\sim\branches\Sugilite\bin\</ReferencePath>
+    <ReferencePath>C:\New Folder\second-life-viewer\opensim-dailys2\opensim15-06\Sugilite\bin\</ReferencePath>
     <LastOpenVersion>8.0.50727</LastOpenVersion>
     <ProjectView>ProjectFiles</ProjectView>
     <ProjectTrust>0</ProjectTrust>

@@ -27,6 +27,7 @@ namespace OpenSim.Region
         private LLUUID agentID;
         private AssetCache assetCache;
         private int eventQueueCount = 1;
+        private Queue<string> CapsEventQueue = new Queue<string>();
 
         public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath, LLUUID agent)
         {
@@ -77,7 +78,7 @@ namespace OpenSim.Region
             capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath + "</string>";
             capURLS += "<key>NewFileAgentInventory</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory + "</string>";
             //capURLS += "<key>RequestTextureDownload</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + requestTexture + "</string>";
-          //  capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
+            //capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
             return capURLS;
         }
 
@@ -122,9 +123,26 @@ namespace OpenSim.Region
 
         public string ProcessEventQueue(string request, string path, string param)
         {
-           // Console.WriteLine("event queue request " + request);
+         //  Console.WriteLine("event queue request " + request);
             string res = "";
-            res = this.CreateEmptyEventResponse();
+            int timer = 0;
+
+           /*while ((timer < 200) || (this.CapsEventQueue.Count < 1))
+            {
+                timer++;
+            }*/
+            if (this.CapsEventQueue.Count > 0)
+            {
+                lock (this.CapsEventQueue)
+                {
+                    string item = CapsEventQueue.Dequeue();
+                    res = item;
+                }
+            }
+            else
+            {
+                res = this.CreateEmptyEventResponse();
+            }
             return res;
         }
 
@@ -141,6 +159,7 @@ namespace OpenSim.Region
             res += "</map></array>";
             res += "</map></llsd>";
             eventQueueCount++;
+            this.CapsEventQueue.Enqueue(res);
             return res;
         }
 
@@ -176,7 +195,7 @@ namespace OpenSim.Region
 
         public void UploadHandler(LLUUID assetID, LLUUID inventoryItem, byte[] data)
         {
-            // Console.WriteLine("upload handler called");
+            Console.WriteLine("upload handler called");
             AssetBase asset;
             asset = new AssetBase();
             asset.FullID = assetID;
@@ -185,7 +204,6 @@ namespace OpenSim.Region
             asset.Name = "UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
             asset.Data = data;
             this.assetCache.AddAsset(asset);
-
         }
 
         public class AssetUploader

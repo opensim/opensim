@@ -23,6 +23,7 @@
                 <include name="../../bin/Db4objects.Db4o.dll" />
                 <include name="../../bin/libsecondlife.dll" />
                 <include name="../../bin/OpenGrid.Framework.Communications.dll" />
+                <include name="../../bin/OpenGrid.Framework.Communications.OGS1.dll" />
                 <include name="../../bin/OpenGrid.Framework.UserManagement.dll" />
                 <include name="../../bin/OpenSim.Caches.dll" />
                 <include name="../../bin/OpenSim.Framework.dll" />

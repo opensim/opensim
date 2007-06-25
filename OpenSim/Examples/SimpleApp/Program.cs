@@ -53,7 +53,7 @@ namespace SimpleApp
             
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
-            CommunicationsManager communicationsManager = new CommunicationsLocal(1000, 1000);
+            CommunicationsManager communicationsManager = new CommunicationsLocal(null);
             
             RegionInfo regionInfo = new RegionInfo( );
             BaseHttpServer httpServer = new BaseHttpServer(simPort);

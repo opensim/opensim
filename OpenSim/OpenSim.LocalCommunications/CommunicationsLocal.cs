@@ -42,10 +42,11 @@ namespace OpenSim.LocalCommunications
     {
         public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
         public LocalUserServices UserServices;
-    
-        public CommunicationsLocal(uint defaultHomeX , uint defaultHomeY)
+
+        public CommunicationsLocal(NetworkServersInfo serversInfo)
+            : base(serversInfo)
         {
-            UserServices = new LocalUserServices(this , defaultHomeX, defaultHomeY);
+            UserServices = new LocalUserServices(this , serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY);
             UserServices.AddPlugin("OpenGrid.Framework.Data.DB4o.dll");
             UserServer = UserServices;
             GridServer = SandBoxServices;

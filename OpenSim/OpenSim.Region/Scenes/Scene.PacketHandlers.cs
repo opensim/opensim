@@ -214,7 +214,22 @@ namespace OpenSim.Region.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-           
+            foreach (Entity ent in Entities.Values)
+            {
+                if (ent.LocalId == primLocalID)
+                {
+                    ((OpenSim.Region.Scenes.Primitive)ent).GetProperites(remoteClient);
+                    break;
+                }
+            }
+        }
+
+        public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
+        {
+            if (this.Entities.ContainsKey(objectID))
+            {
+                ((Primitive)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
+            }
         }
 
         /// <summary>

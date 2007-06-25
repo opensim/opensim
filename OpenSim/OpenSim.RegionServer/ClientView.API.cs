@@ -51,14 +51,17 @@ namespace OpenSim
         public event StartAnim OnStartAnim;
         public event GenericCall OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
+        public event UpdateVector OnGrapObject;
+        public event ObjectSelect OnDeGrapObject;
+        public event MoveObject OnGrapUpdate;
         public event GenericCall4 OnAddPrim;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectSelect OnObjectSelect;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
-        public event UpdatePrimVector OnUpdatePrimPosition;
+        public event UpdateVector OnUpdatePrimPosition;
         public event UpdatePrimRotation OnUpdatePrimRotation;
-        public event UpdatePrimVector OnUpdatePrimScale;
+        public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
         public event NewAvatar OnNewAvatar;
@@ -426,6 +429,17 @@ namespace OpenSim
             OutPacket(tpStart);
         }
 
+        public void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
+        {
+            MoneyBalanceReplyPacket money = new MoneyBalanceReplyPacket();
+            money.MoneyData.AgentID = this.AgentID;
+            money.MoneyData.TransactionID = transaction;
+            money.MoneyData.TransactionSuccess = success;
+            money.MoneyData.Description = description;
+            money.MoneyData.MoneyBalance = balance;
+            OutPacket(money);
+        }
+
         #region Appearance/ Wearables Methods
 
         /// <summary>
@@ -569,13 +583,13 @@ namespace OpenSim
         /// <param name="pos"></param>
         /// <param name="rotation"></param>
         /// <param name="textureID"></param>
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID);
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID, flags);
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = primData.FullID;
             byte[] pb = pos.GetBytes();
@@ -592,13 +606,13 @@ namespace OpenSim
         /// </summary>
         /// <param name="primData"></param>
         /// <param name="pos"></param>
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID , uint flags)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID);
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID, flags);
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = primData.FullID;
             byte[] pb = pos.GetBytes();
@@ -786,11 +800,11 @@ namespace OpenSim
         /// </summary>
         /// <param name="primData"></param>
         /// <returns></returns>
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData, LLUUID textureID)
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData, LLUUID textureID, uint flags)
         {
             ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
             this.SetDefaultPrimPacketValues(objupdate);
-            objupdate.UpdateFlags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456;
+            objupdate.UpdateFlags = flags;
             this.SetPrimPacketShapeData(objupdate, primData, textureID);
 
             return objupdate;

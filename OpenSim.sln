@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+# Visual C# Express 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework.Communications", "Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj", "{683344D5-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGrid.Framework.Communications.OGS1", "Common\OpenGrid.Framework.Communications.OGS1\OpenGrid.Framework.Communications.OGS1.csproj", "{17442AF1-0000-0000-0000-000000000000}"

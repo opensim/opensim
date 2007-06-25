@@ -43,7 +43,7 @@ namespace OpenGrid.Framework.Communications
         public IGridServices GridServer;
         public IInterRegionCommunications InterRegion;
 
-        public CommunicationsManager()
+        public CommunicationsManager(NetworkServersInfo serversInfo)
         {
             
         }

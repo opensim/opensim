@@ -265,6 +265,7 @@ namespace OpenSim.Region
 
         public void sendRegionInfoPacket(IClientAPI remote_client)
         {
+            Encoding _enc = System.Text.Encoding.ASCII;
 
             AgentCircuitData circuitData = remote_client.RequestClientInfo();
 
@@ -281,7 +282,7 @@ namespace OpenSim.Region
             regionInfoPacket.RegionInfo.RedirectGridY = m_regInfo.estateSettings.redirectGridY;
             regionInfoPacket.RegionInfo.RegionFlags = (uint)m_regInfo.estateSettings.regionFlags;
             regionInfoPacket.RegionInfo.SimAccess = (byte)m_regInfo.estateSettings.simAccess;
-            regionInfoPacket.RegionInfo.SimName = Helpers.StringToField(m_regInfo.RegionName);
+            regionInfoPacket.RegionInfo.SimName = _enc.GetBytes( m_regInfo.RegionName);
             regionInfoPacket.RegionInfo.SunHour = m_regInfo.estateSettings.sunHour;
             regionInfoPacket.RegionInfo.TerrainLowerLimit = m_regInfo.estateSettings.terrainLowerLimit;
             regionInfoPacket.RegionInfo.TerrainRaiseLimit = m_regInfo.estateSettings.terrainRaiseLimit;

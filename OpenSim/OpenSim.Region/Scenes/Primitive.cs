@@ -47,6 +47,7 @@ namespace OpenSim.Region.Scenes
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
         private bool physicsEnabled = false;
         private byte updateFlag = 0;
+        private uint flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
 
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
 
@@ -411,7 +412,7 @@ namespace OpenSim.Region.Scenes
                 lPos = this.Pos;
             }
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.primData, lPos, new LLUUID("00000000-0000-0000-9999-000000000005"));
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.primData, lPos, new LLUUID("00000000-0000-0000-9999-000000000005"), this.flags);
         }
 
         /// <summary>
@@ -434,7 +435,7 @@ namespace OpenSim.Region.Scenes
         {
             LLVector3 lPos;
             Axiom.MathLib.Quaternion lRot;
-            if (this._physActor != null && this.physicsEnabled)
+            if (this._physActor != null && this.physicsEnabled) //is this needed ? doesn't the property fields do this for us?
             {
                 PhysicsVector pPos = this._physActor.Position;
                 lPos = new LLVector3(pPos.X, pPos.Y, pPos.Z);
@@ -445,6 +446,8 @@ namespace OpenSim.Region.Scenes
                 lPos = this.Pos;
                 lRot = this.rotation;
             }
+            LLQuaternion mRot = new LLQuaternion(lRot.x, lRot.y, lRot.z, lRot.w);
+            RemoteClient.SendPrimTerseUpdate(this.m_regionHandle, 64096, this.LocalId, lPos, mRot);
         }
 
         /// <summary>
@@ -532,6 +535,44 @@ namespace OpenSim.Region.Scenes
         /// <param name="newprim"></param>
         public void CreateFromPrimData(PrimData primData, LLVector3 posi, uint localID, bool newprim)
         {
+
+        }
+        
+        public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
+        {
+            Console.WriteLine("moving prim to new location " + pos.X + " , " + pos.Y + " , " + pos.Z);
+            this.Pos = pos;
+            this.SendTerseUpdateToALLClients();
+        }
+
+        public void GetProperites(IClientAPI client)
+        {
+            //needs changing
+            ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
+            proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
+            proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
+            proper.ObjectData[0].ItemID = LLUUID.Zero;
+            proper.ObjectData[0].CreationDate = (ulong)primData.CreationDate;
+            proper.ObjectData[0].CreatorID = primData.OwnerID;
+            proper.ObjectData[0].FolderID = LLUUID.Zero;
+            proper.ObjectData[0].FromTaskID = LLUUID.Zero;
+            proper.ObjectData[0].GroupID = LLUUID.Zero;
+            proper.ObjectData[0].InventorySerial = 0;
+            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
+            proper.ObjectData[0].ObjectID = this.uuid;
+            proper.ObjectData[0].OwnerID = primData.OwnerID;
+            proper.ObjectData[0].TouchName = new byte[0];
+            proper.ObjectData[0].TextureID = new byte[0];
+            proper.ObjectData[0].SitName = new byte[0];
+            proper.ObjectData[0].Name = new byte[0];
+            proper.ObjectData[0].Description = new byte[0];
+            proper.ObjectData[0].OwnerMask = primData.OwnerMask;
+            proper.ObjectData[0].NextOwnerMask = primData.NextOwnerMask;
+            proper.ObjectData[0].GroupMask = primData.GroupMask;
+            proper.ObjectData[0].EveryoneMask = primData.EveryoneMask;
+            proper.ObjectData[0].BaseMask = primData.BaseMask;
+
+            client.OutPacket(proper);
 
         }
 

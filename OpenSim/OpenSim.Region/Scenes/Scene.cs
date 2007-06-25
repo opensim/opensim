@@ -57,19 +57,18 @@ namespace OpenSim.Region.Scenes
         protected Dictionary<libsecondlife.LLUUID, Primitive> Prims;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
-        public ILocalStorage localStorage;
         private Random Rand = new Random();
         private uint _primCount = 702000;
         private int storageCount;
         private Dictionary<LLUUID, ScriptHandler> m_scriptHandlers;
         private Dictionary<string, ScriptFactory> m_scripts;
         private Mutex updateLock;
-        public string m_datastore;
+        
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
 
-        protected List<Caps> capsHandlers = new List<Caps>();
+        protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
 
         public ParcelManager parcelManager;
@@ -127,7 +126,6 @@ namespace OpenSim.Region.Scenes
                 Prims = new Dictionary<LLUUID, Primitive>();
 
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating LandMap");
-                TerrainManager = new TerrainManager(new SecondLife());
                 Terrain = new TerrainEngine();
 
                 ScenePresence.LoadAnims();
@@ -269,53 +267,6 @@ namespace OpenSim.Region.Scenes
             */
             return true;
         }
-        #endregion
-
-        #region Setup Methods
-        /// <summary>
-        /// Loads a new storage subsystem from a named library
-        /// </summary>
-        /// <param name="dllName">Storage Library</param>
-        /// <returns>Successful or not</returns>
-        public bool LoadStorageDLL(string dllName)
-        {
-            try
-            {
-                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-                ILocalStorage store = null;
-
-                foreach (Type pluginType in pluginAssembly.GetTypes())
-                {
-                    if (pluginType.IsPublic)
-                    {
-                        if (!pluginType.IsAbstract)
-                        {
-                            Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
-
-                            if (typeInterface != null)
-                            {
-                                ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                                store = plug;
-
-                                store.Initialise(this.m_datastore);
-                                break;
-                            }
-
-                            typeInterface = null;
-                        }
-                    }
-                }
-                pluginAssembly = null;
-                this.localStorage = store;
-                return (store == null);
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
-                return false;
-            }
-        }
-
         #endregion
 
         #region Regenerate Terrain
@@ -558,6 +509,8 @@ namespace OpenSim.Region.Scenes
             remoteClient.OnUpdatePrimPosition += this.UpdatePrimPosition;
             remoteClient.OnRequestMapBlocks += this.RequestMapBlocks;
             remoteClient.OnTeleportLocationRequest += this.RequestTeleportLocation;
+           //remoteClient.OnObjectSelect += this.SelectPrim;
+            remoteClient.OnGrapUpdate += this.MoveObject;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
@@ -680,22 +633,6 @@ namespace OpenSim.Region.Scenes
         }
         #endregion
 
-        #region ShutDown
-        /// <summary>
-        /// Tidy before shutdown
-        /// </summary>
-        public override void Close()
-        {
-            try
-            {
-                this.localStorage.ShutDown();
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
-            }
-        }
-        #endregion
 
         #region RegionCommsHost
 
@@ -729,7 +666,7 @@ namespace OpenSim.Region.Scenes
                     //Console.WriteLine("new user, so creating caps handler for it");
                     Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
-                    this.capsHandlers.Add(cap);
+                    this.capsHandlers.Add(agent.AgentID, cap);
                 }
                 this.authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
@@ -767,6 +704,7 @@ namespace OpenSim.Region.Scenes
                     agent.child = true;
                     this.commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
                     remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr), (ushort)neighbours[i].CommsIPListenPort);
+                    //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
                 }
             }
         }
@@ -845,16 +783,5 @@ namespace OpenSim.Region.Scenes
         }
 
         #endregion
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="px"></param>
-        /// <param name="py"></param>
-        /// <param name="RemoteClient"></param>
-        public override void SendLayerData(int px, int py, IClientAPI RemoteClient)
-        {
-            RemoteClient.SendLayerData(px, py, Terrain.getHeights1D());
-        }
     }
 }
