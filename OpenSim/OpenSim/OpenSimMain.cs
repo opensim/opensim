@@ -434,11 +434,14 @@ namespace OpenSim
                     break;
 
                 case "terrain":
-                    //string result = "";
-                    /* if (!((World)m_localWorld).Terrain.RunTerrainCmd(cmdparams, ref result))
-                     {
-                         m_log.Error( result);
-                     }*/
+                    string result = "";
+                    for (int i = 0; i < m_localWorld.Count; i++)
+                    {
+                        if (!((Scene)m_localWorld[i]).Terrain.RunTerrainCmd(cmdparams, ref result))
+                        {
+                            m_log.Error(result);
+                        }
+                    }
                     break;
 
                 case "shutdown":

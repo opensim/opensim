@@ -48,6 +48,11 @@ namespace OpenSim.Terrain
     public class TerrainEngine
     {
         /// <summary>
+        /// Plugin library for scripts
+        /// </summary>
+        public FilterHost customFilters = new FilterHost();
+
+        /// <summary>
         /// A [normally] 256x256 heightmap
         /// </summary>
         public Channel heightmap;
@@ -193,8 +198,10 @@ namespace OpenSim.Terrain
                         resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
                         resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
-                        resultText += "terrain revert - reverts the terrain to the stored original";
-                        resultText += "terrain bake - saves the current terrain into the revert map";
+                        resultText += "terrain revert - reverts the terrain to the stored original\n";
+                        resultText += "terrain bake - saves the current terrain into the revert map\n";
+                        resultText += "terrain csfilter <filename.cs> - loads a new filter from the specified .cs file\n";
+                        resultText += "terrain jsfilter <filename.js> - loads a new filter from the specified .js file\n";
                         return false;
 
                     case "revert":
@@ -285,9 +292,25 @@ namespace OpenSim.Terrain
                         }
                         break;
 
+                    case "csfilter":
+                        customFilters.LoadFilterCSharp(args[1]);
+                        break;
+                    case "jsfilter":
+                        customFilters.LoadFilterJScript(args[1]);
+                        break;
+
                     default:
-                        resultText = "Unknown terrain command";
-                        return false;
+                        // Run any custom registered filters
+                        if (customFilters.filters.ContainsKey(command))
+                        {
+                            customFilters.filters[command].Filter(heightmap, args);
+                            break;
+                        }
+                        else
+                        {
+                            resultText = "Unknown terrain command";
+                            return false;
+                        }
                 }
                 return true;
             }

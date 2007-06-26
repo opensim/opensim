@@ -36,7 +36,7 @@ namespace OpenGrid.Framework.Communications
 {
     public class GridInfo
     {
-        public string GridServerURI = "http://grid:8001/";
+        public string GridServerURI = "http://grid.deepgrid.com:8001/"; // Temporarily hardcoded.
         public string GridServerSendKey = "badger";
         public string GridServerRecvKey = "badger";
     }

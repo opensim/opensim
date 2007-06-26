@@ -124,6 +124,15 @@ namespace OpenGrid.Framework.Communications.OGS1
             return neighbours;
         }
 
+        /// <summary>
+        /// Performs a XML-RPC query against the grid server returning mapblock information in the specified coordinates
+        /// </summary>
+        /// <remarks>REDUNDANT - OGS1 is to be phased out in favour of OGS2</remarks>
+        /// <param name="minX">Minimum X value</param>
+        /// <param name="minY">Minimum Y value</param>
+        /// <param name="maxX">Maximum X value</param>
+        /// <param name="maxY">Maximum Y value</param>
+        /// <returns>Hashtable of hashtables containing map data elements</returns>
         private Hashtable MapBlockQuery(int minX, int minY, int maxX, int maxY)
         {
             Hashtable param = new Hashtable();
