@@ -3,7 +3,7 @@ using libTerrain;
 using OpenSim.Terrain;
 
 /// <summary>
-/// Summary description for Class1
+/// A Demonstration Filter
 /// </summary>
 public class DemoFilter : ITerrainFilter
 {
@@ -15,5 +15,10 @@ public class DemoFilter : ITerrainFilter
     public string Register()
     {
         return "demofilter";
+    }
+
+    public string Help()
+    {
+        return "demofilter - Does nothing\n";
     }
 }
