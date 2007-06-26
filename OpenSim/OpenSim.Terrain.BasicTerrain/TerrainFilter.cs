@@ -15,6 +15,7 @@ namespace OpenSim.Terrain
     {
         void Filter(Channel heightmap, string[] args);
         string Register();
+        string Help();
     }
 
     public class TestFilter : ITerrainFilter
@@ -27,6 +28,11 @@ namespace OpenSim.Terrain
         public string Register()
         {
             return "demofilter";
+        }
+
+        public string Help()
+        {
+            return "demofilter - Does nothing";
         }
     }
 

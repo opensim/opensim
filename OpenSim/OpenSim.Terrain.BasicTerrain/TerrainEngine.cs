@@ -202,6 +202,11 @@ namespace OpenSim.Terrain
                         resultText += "terrain bake - saves the current terrain into the revert map\n";
                         resultText += "terrain csfilter <filename.cs> - loads a new filter from the specified .cs file\n";
                         resultText += "terrain jsfilter <filename.js> - loads a new filter from the specified .js file\n";
+                        foreach (KeyValuePair<string, ITerrainFilter> filter in customFilters.filters)
+                        {
+                            resultText += filter.Value.Help();
+                        }
+
                         return false;
 
                     case "revert":
