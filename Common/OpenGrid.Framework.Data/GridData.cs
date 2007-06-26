@@ -106,5 +106,8 @@ namespace OpenGrid.Framework.Data
         /// <param name="profile">The profile to add</param>
         /// <returns>RESPONSE_OK if successful, error if not.</returns>
         DataResponse AddProfile(SimProfileData profile);
+
+        ReservationData GetReservationAtPoint(uint x, uint y);
+
     }
 }

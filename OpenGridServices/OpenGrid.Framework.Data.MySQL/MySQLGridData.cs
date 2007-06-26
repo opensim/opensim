@@ -252,6 +252,33 @@ namespace OpenGrid.Framework.Data.MySQL
 
             return false;
         }
+
+        public ReservationData GetReservationAtPoint(uint x, uint y)
+        {
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?x"] = x.ToString();
+                    param["?y"] = y.ToString();
+                    System.Data.IDbCommand result = database.Query("SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y", param);
+                    System.Data.IDataReader reader = result.ExecuteReader();
+
+                    ReservationData row = database.readReservationRow(reader);
+                    reader.Close();
+                    result.Dispose();
+
+                    return row;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
+        }
     }
 
 

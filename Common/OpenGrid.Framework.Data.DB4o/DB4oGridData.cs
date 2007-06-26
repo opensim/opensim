@@ -157,5 +157,10 @@ namespace OpenGrid.Framework.Data.DB4o
         {
             return "0.1";
         }
+
+        public ReservationData GetReservationAtPoint(uint x, uint y)
+        {
+            return null;
+        }
     }
 }

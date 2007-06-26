@@ -241,6 +241,34 @@ namespace OpenGrid.Framework.Data.MySQL
         }
 
         /// <summary>
+        /// Reads a reservation row from a database reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A reservation data object</returns>
+        public ReservationData readReservationRow(IDataReader reader)
+        {
+            ReservationData retval = new ReservationData();
+            if (reader.Read())
+            {
+                retval.gridRecvKey = (string)reader["gridRecvKey"];
+                retval.gridSendKey = (string)reader["gridSendKey"];
+                retval.reservationCompany = (string)reader["resCompany"];
+                retval.reservationMaxX = (int)reader["resXMax"];
+                retval.reservationMaxY = (int)reader["resYMax"];
+                retval.reservationMinX = (int)reader["resXMin"];
+                retval.reservationMinY = (int)reader["resYMin"];
+                retval.reservationName = (string)reader["resName"];
+                retval.status = (bool)reader["status"];
+                retval.userUUID = new libsecondlife.LLUUID((string)reader["userUUID"]);
+
+            }
+            else
+            {
+                return null;
+            }
+            return retval;
+        }
+        /// <summary>
         /// Reads an agent row from a database reader
         /// </summary>
         /// <param name="reader">An active database reader</param>

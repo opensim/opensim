@@ -81,7 +81,7 @@ namespace OpenGridServices.AssetServer
         private OpenAsset_Main()
         {
             m_console = new LogBase("opengrid-AssetServer-console.log", "OpenAsset", this, false);
-            MainLog.Instance = m_console;
+            OpenSim.Framework.Console.MainLog.Instance = m_console;
         }
 
         public void Startup()

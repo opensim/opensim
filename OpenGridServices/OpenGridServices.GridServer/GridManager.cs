@@ -392,11 +392,11 @@ namespace OpenGridServices.GridServer
                             simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
 
                             // For Sugilite compatibility
-                            simProfileBlock["regionhandle"] = aSim.Value.regionHandle.ToString();
-                            simProfileBlock["sim_ip"] = aSim.Value.serverIP.ToString();
-                            simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
-                            simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
-                            simProfileBlock["uuid"] = aSim.Value.UUID.ToStringHyphenated();
+                            simProfileBlock["regionhandle"] = simProfile.regionHandle.ToString();
+                            simProfileBlock["sim_ip"] = simProfile.serverIP.ToString();
+                            simProfileBlock["sim_port"] = simProfile.serverPort.ToString();
+                            simProfileBlock["sim_uri"] = simProfile.serverURI.ToString();
+                            simProfileBlock["uuid"] = simProfile.UUID.ToStringHyphenated();
 
                             simProfileList.Add(simProfileBlock);
                         }
@@ -561,6 +561,7 @@ namespace OpenGridServices.GridServer
                 return "ERROR! Servers must register with public addresses.";
             }
 
+            
             try
             {
                 OpenSim.Framework.Console.MainLog.Instance.Verbose("Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
@@ -568,9 +569,18 @@ namespace OpenGridServices.GridServer
                 {
                     try
                     {
-                        kvp.Value.AddProfile(TheSim);
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("New sim added to grid (" + TheSim.regionName + ")");
-                        logToDB(TheSim.UUID.ToStringHyphenated(), "RestSetSimMethod", "", 5, "Region successfully updated and connected to grid.");
+                        //Check reservations
+                        ReservationData reserveData = kvp.Value.GetReservationAtPoint(TheSim.regionLocX, TheSim.regionLocY);
+                        if ((reserveData != null && reserveData.gridRecvKey == TheSim.regionRecvKey) || (reserveData == null))
+                        {
+                            kvp.Value.AddProfile(TheSim);
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("New sim added to grid (" + TheSim.regionName + ")");
+                            logToDB(TheSim.UUID.ToStringHyphenated(), "RestSetSimMethod", "", 5, "Region successfully updated and connected to grid.");
+                        }
+                        else
+                        {
+                            return "Unable to update region (RestSetSimMethod): Incorrect auth key.";
+                        }
                     }
                     catch (Exception e)
                     {

@@ -181,10 +181,12 @@ namespace OpenGrid.Framework.Data.MSSQL
 
             byte[] stream = TextProvider.GetBytes(uuid.ToStringHyphenated() + ":" + handle.ToString() + ":" + challenge);
             byte[] hash = HashProvider.ComputeHash(stream);
-
             return false;
         }
+        public ReservationData GetReservationAtPoint(uint x, uint y)
+        {
+            return null;
+        }
     }
-
-
+    
 }

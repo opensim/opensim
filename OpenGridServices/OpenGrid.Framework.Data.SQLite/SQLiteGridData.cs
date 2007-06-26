@@ -184,6 +184,11 @@ namespace OpenGrid.Framework.Data.SQLite
 
             return false;
         }
+
+        public ReservationData GetReservationAtPoint(uint x, uint y)
+        {
+            return null;
+        }
     }
 
 
