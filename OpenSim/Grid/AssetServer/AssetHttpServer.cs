@@ -35,9 +35,9 @@ using System.Threading;
 using Nwc.XmlRpc;
 using System.Collections;
 using OpenSim.Framework.Console;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 
-namespace OpenGridServices.AssetServer
+namespace OpenSim.Grid.AssetServer
 {
     /// <summary>
     /// An HTTP server for sending assets

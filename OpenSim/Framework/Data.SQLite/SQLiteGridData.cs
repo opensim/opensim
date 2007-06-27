@@ -28,9 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 
-namespace OpenGrid.Framework.Data.SQLite
+namespace OpenSim.Framework.Data.SQLite
 {
     /// <summary>
     /// A Grid Interface to the SQLite database

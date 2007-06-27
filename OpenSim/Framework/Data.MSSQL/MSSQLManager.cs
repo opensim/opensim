@@ -32,9 +32,9 @@ using System.Data;
 
 using System.Data.SqlClient;
 
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 
-namespace OpenGrid.Framework.Data.MSSQL
+namespace OpenSim.Framework.Data.MSSQL
 {
     /// <summary>
     /// A management class for the MS SQL Storage Engine

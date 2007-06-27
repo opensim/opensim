@@ -36,9 +36,9 @@ using MySql.Data;
 using MySql.Data.Types;
 using MySql.Data.MySqlClient;
 
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 
-namespace OpenGrid.Framework.Data.MySQL
+namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
     /// A MySQL Database manager

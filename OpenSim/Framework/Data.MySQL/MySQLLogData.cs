@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenGrid.Framework.Data.MySQL
+namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
     /// An interface to the log database for MySQL

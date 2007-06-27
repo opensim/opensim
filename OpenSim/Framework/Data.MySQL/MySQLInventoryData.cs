@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 
-namespace OpenGrid.Framework.Data.MySQL
+namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
     /// A MySQL interface for the inventory server

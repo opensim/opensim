@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Sims;
@@ -38,7 +38,7 @@ using libsecondlife;
 using Nwc.XmlRpc;
 using System.Xml;
 
-namespace OpenGridServices.GridServer
+namespace OpenSim.Grid.GridServer
 {
     class GridManager
     {

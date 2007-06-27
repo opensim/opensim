@@ -32,9 +32,9 @@ using System.Data;
 
 using System.Data.SQLite;
 
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 
-namespace OpenGrid.Framework.Data.SQLite
+namespace OpenSim.Framework.Data.SQLite
 {
     class SQLiteManager
     {

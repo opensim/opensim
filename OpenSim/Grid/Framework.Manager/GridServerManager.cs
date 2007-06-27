@@ -33,7 +33,7 @@ using Nwc.XmlRpc;
 using System.Threading;
 using libsecondlife;
 
-namespace OpenGrid.Framework.Manager {
+namespace OpenSim.Framework.Manager {
 
     /// <summary>
     /// A remote management system for the grid server

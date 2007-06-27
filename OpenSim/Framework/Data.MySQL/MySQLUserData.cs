@@ -28,10 +28,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 using libsecondlife;
 
-namespace OpenGrid.Framework.Data.MySQL
+namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
     /// A database interface class to a user profile storage system

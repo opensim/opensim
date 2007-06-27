@@ -27,12 +27,12 @@
 */
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 
-namespace OpenGrid.Framework.Manager
+namespace OpenSim.Framework.Manager
 {
     /// <summary>
     /// Used to pass messages to the gridserver
@@ -116,7 +116,7 @@ namespace OpenGrid.Framework.Manager
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable responseData = new Hashtable();
 
-            // TODO: Switch this over to using OpenGrid.Framework.Data
+            // TODO: Switch this over to using OpenSim.Framework.Data
             if (requestData["username"].Equals("admin") && requestData["password"].Equals("supersecret"))
             {
                 response.IsFault = false;

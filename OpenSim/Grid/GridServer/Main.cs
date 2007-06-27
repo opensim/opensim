@@ -34,22 +34,22 @@ using System.Net;
 using System.Threading;
 using System.Reflection;
 using libsecondlife;
-using OpenGrid.Framework.Manager;
+using OpenSim.Framework.Manager;
 using OpenSim.Framework;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 using OpenSim.GenericConfig;
 
-namespace OpenGridServices.GridServer
+namespace OpenSim.Grid.GridServer
 {
     /// <summary>
     /// </summary>
     public class OpenGrid_Main : conscmd_callback
     {
         private string ConfigDll = "OpenGrid.Config.GridConfigDb4o.dll";
-        private string GridDll = "OpenGrid.Framework.Data.MySQL.dll";
+        private string GridDll = "OpenSim.Framework.Data.MySQL.dll";
         public GridConfig Cfg;
 
         public static OpenGrid_Main thegrid;
@@ -253,8 +253,8 @@ namespace OpenGridServices.GridServer
                 attri = configData.GetAttribute("DataBaseProvider");
                 if (attri == "")
                 {
-                    GridDll = "OpenGrid.Framework.Data.DB4o.dll";
-                    configData.SetAttribute("DataBaseProvider", "OpenGrid.Framework.Data.DB4o.dll");
+                    GridDll = "OpenSim.Framework.Data.DB4o.dll";
+                    configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");
                 }
                 else
                 {

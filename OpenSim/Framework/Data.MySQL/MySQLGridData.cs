@@ -28,9 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 
-namespace OpenGrid.Framework.Data.MySQL
+namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
     /// A MySQL Interface for the Grid Server

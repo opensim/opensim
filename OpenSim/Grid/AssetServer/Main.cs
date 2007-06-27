@@ -40,11 +40,11 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 
-namespace OpenGridServices.AssetServer
+namespace OpenSim.Grid.AssetServer
 {
     /// <summary>
     /// An asset server

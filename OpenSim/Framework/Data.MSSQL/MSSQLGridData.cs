@@ -28,9 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 
-namespace OpenGrid.Framework.Data.MSSQL
+namespace OpenSim.Framework.Data.MSSQL
 {
     /// <summary>
     /// A grid data interface for Microsoft SQL Server

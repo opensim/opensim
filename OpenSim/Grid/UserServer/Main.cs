@@ -38,18 +38,18 @@ using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.Utilities;
 using OpenSim.GenericConfig;
 
-namespace OpenGridServices.UserServer
+namespace OpenSim.Grid.UserServer
 {
     /// <summary>
     /// </summary>
     public class OpenUser_Main :  conscmd_callback
     {
         private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
-        private string StorageDll = "OpenGrid.Framework.Data.MySQL.dll";
+        private string StorageDll = "OpenSim.Framework.Data.MySQL.dll";
         private UserConfig Cfg;
         protected IGenericConfig localXMLConfig;
 
@@ -169,8 +169,8 @@ namespace OpenGridServices.UserServer
                 attri = configData.GetAttribute("DataBaseProvider");
                 if (attri == "")
                 {
-                    StorageDll = "OpenGrid.Framework.Data.DB4o.dll";
-                    configData.SetAttribute("DataBaseProvider", "OpenGrid.Framework.Data.DB4o.dll");
+                    StorageDll = "OpenSim.Framework.Data.DB4o.dll";
+                    configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");
                 }
                 else
                 {

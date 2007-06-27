@@ -469,7 +469,7 @@
      </Files> 
     </Project>
 
-    <!-- OpenGridFrameWork.Communications" -->
+    <!-- OpenSim.Framework.Communications -->
 	<Project name="OpenSim.Framework.Communications" path="OpenSim/Framework/Communications" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -730,7 +730,7 @@
     </Configuration>
 
  
-  <!-- OpenGrid Data Services -->
+  <!-- OpenSim Data Services -->
     <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
       <Configuration name="Debug">
         <Options>

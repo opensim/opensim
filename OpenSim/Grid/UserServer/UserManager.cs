@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using OpenGrid.Framework.Data;
+using OpenSim.Framework.Data;
 using libsecondlife;
 using System.Reflection;
 
@@ -38,11 +38,12 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Sims;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenGrid.Framework.UserManagement;
+
+using OpenSim.Framework.UserManagement;
 
 using System.Security.Cryptography;
 
-namespace OpenGridServices.UserServer
+namespace OpenSim.Grid.UserServer
 {
     public class UserManager : UserManagerBase
     {
