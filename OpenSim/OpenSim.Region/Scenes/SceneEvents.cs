@@ -7,7 +7,7 @@ namespace OpenSim.Region.Scenes
     /// <summary>
     /// A class for triggering remote scene events.
     /// </summary>
-    class SceneEvents
+    class EventManager
     {
         public delegate void OnFrameDelegate();
         public event OnFrameDelegate OnFrame;

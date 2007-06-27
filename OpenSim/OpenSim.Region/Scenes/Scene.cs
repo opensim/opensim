@@ -73,6 +73,7 @@ namespace OpenSim.Region.Scenes
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;
+        public EventManager eventManager;
 
         #region Properties
         /// <summary>
@@ -116,6 +117,8 @@ namespace OpenSim.Region.Scenes
 
                 parcelManager = new ParcelManager(this, this.m_regInfo);
                 estateManager = new EstateManager(this, this.m_regInfo);
+
+                eventManager = new EventManager();
 
                 m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
                 m_scripts = new Dictionary<string, ScriptFactory>();
@@ -192,6 +195,10 @@ namespace OpenSim.Region.Scenes
                     Entities[UUID].update();
                 }
 
+                // New
+                eventManager.TriggerOnFrame();
+
+                // TODO: Obsolete - Phase out
                 foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
                 {
                     scriptHandler.OnFrame();
@@ -200,6 +207,7 @@ namespace OpenSim.Region.Scenes
                 {
                     scripteng.OnFrame();
                 }
+
                 //backup world data
                 this.storageCount++;
                 if (storageCount > 1200) //set to how often you want to backup 
