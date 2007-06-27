@@ -177,7 +177,16 @@ namespace OpenSim.Framework.Types
                         System.Net.IPAddress[] ips = System.Net.Dns.GetHostAddresses(localhostname);
                         try
                         {
-                            this.CommsIPListenAddr = ips[0].ToString();
+                            this.CommsIPListenAddr = "0.0.0.0"; // Incase a IPv4 address isnt found
+
+                            foreach (System.Net.IPAddress ip in ips)
+                            {
+                                if (ip.AddressFamily.ToString() == System.Net.Sockets.ProtocolFamily.InterNetwork.ToString())
+                                {
+                                    this.CommsIPListenAddr = ip.ToString();
+                                    break;
+                                }
+                            }
                         }
                         catch (Exception e)
                         {
