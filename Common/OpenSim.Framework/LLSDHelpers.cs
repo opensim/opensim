@@ -89,7 +89,23 @@ namespace OpenSim.Framework
                             System.Reflection.FieldInfo field = myType.GetField((string)enumerator.Key);
                             if (field != null)
                             {
-                                field.SetValue(obj, enumerator.Value);
+                                if (enumerator.Value is Hashtable)
+                                {
+                                    object fieldValue = field.GetValue(obj);
+                                    DeserialiseLLSDMap((Hashtable) enumerator.Value, fieldValue);
+                                }
+                                else if (enumerator.Value is ArrayList)
+                                {
+                                    object fieldValue = field.GetValue(obj);
+                                    fieldValue.GetType().GetField("Array").SetValue(fieldValue, enumerator.Value);
+                                    //TODO
+                                    // the LLSD map/array types in the array need to be deserialised
+                                    // but first we need to know the right class to deserialise them into. 
+                                }
+                                else
+                                {
+                                    field.SetValue(obj, enumerator.Value);
+                                }
                             }
                         }
                         break;
@@ -161,6 +177,39 @@ namespace OpenSim.Framework
         }
     }
 
+    [LLSDType("MAP")]
+    public class LLSDUploadReply
+    {
+        public string new_asset = "";
+        public LLUUID new_inventory_item = LLUUID.Zero;
+        public string state = "";
+
+        public LLSDUploadReply()
+        {
+
+        }
+    }
+
+    [LLSDType("MAP")]
+    public class LLSDCapEvent
+    {
+        public int id = 0;
+        public LLSDArray events = new LLSDArray();
+
+        public LLSDCapEvent()
+        {
+
+        }
+    }
+
+    [LLSDType("MAP")]
+    public class LLSDEmpty
+    {
+        public LLSDEmpty()
+        {
+
+        }
+    }
 
     [LLSDType("MAP")]
     public class LLSDTest

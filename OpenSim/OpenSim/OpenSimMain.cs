@@ -44,7 +44,6 @@ using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework;
-using OpenSim.UserServer;
 using OpenSim.Assets;
 using OpenSim.Caches;
 using OpenSim.Framework.Console;
@@ -129,21 +128,11 @@ namespace OpenSim
 
             m_log.Verbose( "Main.cs:Startup() - Initialising HTTP server");
 
-            //Login server setup
-            LoginServer loginServer = null;
-            LoginServer adminLoginServer = null;
+
 
             if (m_sandbox)
             {
                 httpServer.AddXmlRPCHandler("login_to_simulator", sandboxCommunications.UserServices.XmlRpcLoginMethod);
-               
-                /*
-                loginServer = new LoginServer(regionData[0].IPListenAddr, regionData[0].IPListenPort, regionData[0].RegionLocX, regionData[0].RegionLocY, false);
-                loginServer.Startup();
-                loginServer.SetSessionHandler(sandboxCommunications.SandBoxServices.AddNewSession);
-                //sandbox mode with loginserver not using accounts
-                httpServer.AddXmlRPCHandler("login_to_simulator", loginServer.XmlRpcLoginMethod);
-                 */
             }
 
             //Start http server

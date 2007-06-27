@@ -17,7 +17,6 @@ namespace OpenSim.Region
 
     public class Caps
     {
-
         private string httpListenerAddress;
         private uint httpListenPort;
         private string capsObjectPath = "00001-";

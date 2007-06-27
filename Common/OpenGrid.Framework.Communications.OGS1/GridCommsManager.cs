@@ -7,10 +7,11 @@ namespace OpenGrid.Framework.Communications.OGS1
 {
     public class GridCommsManager : CommunicationsManager
     {
+        private OGS1GridServices gridInterComms = new OGS1GridServices();
         public GridCommsManager(NetworkServersInfo serversInfo) :base(serversInfo)
         {
-            GridServer = new OGS1GridServices();
-            InterRegion = new OGSInterSimComms();
+            GridServer = gridInterComms;
+            InterRegion = gridInterComms;
             UserServer = new OGSUserServices();
         }
     }

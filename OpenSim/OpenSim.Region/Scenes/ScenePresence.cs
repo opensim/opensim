@@ -99,7 +99,7 @@ namespace OpenSim.Region.Scenes
 
             m_regionInfo = reginfo;
             m_regionHandle = reginfo.RegionHandle;
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Avatar.cs - Loading details from grid (DUMMY)");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Avatar.cs ");
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
@@ -216,8 +216,7 @@ namespace OpenSim.Region.Scenes
         /// </summary>
         /// <param name="pack"></param>
         public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
-        {
-            
+        {  
             if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
             {
                 Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);

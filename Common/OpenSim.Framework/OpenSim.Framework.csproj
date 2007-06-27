@@ -126,15 +126,7 @@
     <Compile Include="SimProfile.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UserProfile.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UserProfileManagerBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="UserProfile.cs" />
     <Compile Include="Util.cs">
       <SubType>Code</SubType>
     </Compile>

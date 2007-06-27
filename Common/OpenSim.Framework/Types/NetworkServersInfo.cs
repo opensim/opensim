@@ -49,6 +49,7 @@ namespace OpenSim.Framework.Types
         public uint DefaultHomeLocY = 0;
 
         public int HttpListenerPort = 9000;
+        public int RemotingListenerPort = 8895;
 
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
         {
@@ -69,6 +70,19 @@ namespace OpenSim.Framework.Types
                 else
                 {
                     this.HttpListenerPort = Convert.ToInt32(attri);
+                }
+
+                attri = "";
+                attri = configData.GetAttribute("RemotingListenerPort");
+                if (attri == "")
+                {
+                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Remoting Listener Port", "8895");
+                    configData.SetAttribute("RemotingListenerPort", location);
+                    this.RemotingListenerPort = Convert.ToInt32(location);
+                }
+                else
+                {
+                    this.RemotingListenerPort = Convert.ToInt32(attri);
                 }
 
                 if (sandboxMode)

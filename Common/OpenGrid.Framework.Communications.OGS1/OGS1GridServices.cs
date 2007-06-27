@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Tcp;
 
 using OpenSim.Servers;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Types;
 using OpenGrid.Framework.Communications;
@@ -14,7 +16,7 @@ using libsecondlife;
 
 namespace OpenGrid.Framework.Communications.OGS1
 {
-    public class OGS1GridServices : IGridServices
+    public class OGS1GridServices : IGridServices, IInterRegionCommunications
     {
         public Dictionary<ulong, RegionCommsListener> listeners = new Dictionary<ulong, RegionCommsListener>();
         public GridInfo grid;
@@ -49,18 +51,18 @@ namespace OpenGrid.Framework.Communications.OGS1
                 string errorstring = (string)GridRespData["error"];
                 OpenSim.Framework.Console.MainLog.Instance.Error("Unable to connect to grid: " + errorstring);
                 return null;
-            }
-            
-            // Initialise the background listeners
-            listeners[regionInfo.RegionHandle] = new RegionCommsListener();
+            }  
 
-            if (!initialised)
+            if (!this.listeners.ContainsKey(regionInfo.RegionHandle))
             {
-                initialised = true;
+               // initialised = true;
                 httpListener = new BaseHttpServer(regionInfo.CommsIPListenPort);
                 httpListener.AddXmlRPCHandler("expect_user", this.ExpectUser);
                 httpListener.Start();
             }
+
+            // Initialise the background listeners
+            listeners[regionInfo.RegionHandle] = new RegionCommsListener();
 
             return listeners[regionInfo.RegionHandle];
         }
@@ -182,6 +184,65 @@ namespace OpenGrid.Framework.Communications.OGS1
             return new XmlRpcResponse();
         }
 
+        #region InterRegion Comms
+        private void StartRemoting()
+        {
+            TcpChannel ch = new TcpChannel(8895);
+            ChannelServices.RegisterChannel(ch);
 
+            WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry( Type.GetType("OGS1InterRegionRemoting"), "InterRegions", WellKnownObjectMode.Singleton);
+            RemotingConfiguration.RegisterWellKnownServiceType(wellType);
+            InterRegionSingleton.Instance.OnArrival += this.IncomingArrival;
+            InterRegionSingleton.Instance.OnChildAgent += this.IncomingChildAgent;
+        }
+
+        #region Methods called by regions in this instance
+        public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
+        {
+            if (this.listeners.ContainsKey(regionHandle))
+            {
+                this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                return true;
+            }
+            //TODO need to see if we know about where this region is and use .net remoting 
+            // to inform it. 
+            return false;
+        }
+
+        public bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            if (this.listeners.ContainsKey(regionHandle))
+            {
+                this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                return true;
+            }
+            //TODO need to see if we know about where this region is and use .net remoting 
+            // to inform it. 
+            return false;
+        }
+        #endregion
+
+        #region Methods triggered by calls from external instances
+        public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
+        {
+            if (this.listeners.ContainsKey(regionHandle))
+            {
+                this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                return true;
+            }
+            return false;
+        }
+
+        public bool IncomingArrival(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        {
+            if (this.listeners.ContainsKey(regionHandle))
+            {
+                this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                return true;
+            }
+            return false;
+        }
+        #endregion
+        #endregion
     }
 }

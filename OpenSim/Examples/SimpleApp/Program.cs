@@ -8,7 +8,6 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using OpenSim.Assets;
 using libsecondlife;
-using OpenSim.UserServer;
 using OpenSim.Servers;
 using OpenSim.Framework;
 using OpenSim.Caches;
@@ -32,10 +31,10 @@ namespace SimpleApp
 
             string simAddr = "127.0.0.1";
             int simPort = 9000;
-            
+            /*
             LoginServer loginServer = new LoginServer( simAddr, simPort, 0, 0, false );
             loginServer.Startup();
-            loginServer.SetSessionHandler( AddNewSessionHandler );
+            loginServer.SetSessionHandler( AddNewSessionHandler );*/
 
             m_circuitManager = new AuthenticateSessionsBase();
 
@@ -64,7 +63,7 @@ namespace SimpleApp
             // world.PhysicsScene = physicsScene;
             // udpServer.LocalWorld = world;
 
-            httpServer.AddXmlRPCHandler( "login_to_simulator", loginServer.XmlRpcLoginMethod );
+          //  httpServer.AddXmlRPCHandler( "login_to_simulator", loginServer.XmlRpcLoginMethod );
             httpServer.Start();
             
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
