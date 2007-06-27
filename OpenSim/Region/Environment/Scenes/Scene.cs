@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
 
-        protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
+        protected Dictionary<LLUUID, Capabilities.Caps> capsHandlers = new Dictionary<LLUUID, Capabilities.Caps>();
         protected BaseHttpServer httpListener;
 
         public ParcelManager parcelManager;
@@ -672,7 +672,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
+                    Capabilities.Caps cap = new Capabilities.Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     this.capsHandlers.Add(agent.AgentID, cap);
                 }

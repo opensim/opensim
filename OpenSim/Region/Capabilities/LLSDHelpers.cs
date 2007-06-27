@@ -1,3 +1,30 @@
+/*
+* Copyright (c) Contributors, http://www.openmetaverse.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +33,7 @@ using System.IO;
 using System.Xml;
 using libsecondlife;
 
-namespace OpenSim.Framework
+namespace OpenSim.Region.Capabilities
 {
     public class LLSDHelpers
     {
@@ -115,132 +142,22 @@ namespace OpenSim.Framework
         }
     }
 
-    [LLSDType("MAP")]
-    public class LLSDMapLayerResponse
-    {
-        public LLSDMapRequest AgentData = new LLSDMapRequest();
-        public LLSDArray LayerData = new LLSDArray();
+    
 
-        public LLSDMapLayerResponse()
-        {
+    
 
-        }
-    }
+   
 
-    [LLSDType("MAP")]
-    public class LLSDCapsDetails
-    {
-        public string MapLayer = "";
-        public string NewFileAgentInventory = "";
-        //public string EventQueueGet = "";
+    
 
-        public LLSDCapsDetails()
-        {
+    
 
-        }
-    }
+    
 
-    [LLSDType("MAP")]
-    public class LLSDMapLayer
-    {
-        public int Left = 0;
-        public int Right = 0;
-        public int Top = 0;
-        public int Bottom = 0;
-        public LLUUID ImageID = LLUUID.Zero;
+    
 
-        public LLSDMapLayer()
-        {
-           
-        }
-    }
-
-    [LLSDType("ARRAY")]
-    public class LLSDArray
-    {
-        public ArrayList Array = new ArrayList();
-
-        public LLSDArray()
-        {
-
-        }
-    }
-
-    [LLSDType("MAP")]
-    public class LLSDMapRequest
-    {
-        public int Flags = 0;
-
-        public LLSDMapRequest()
-        {
-
-        }
-    }
-
-    [LLSDType("MAP")]
-    public class LLSDUploadReply
-    {
-        public string new_asset = "";
-        public LLUUID new_inventory_item = LLUUID.Zero;
-        public string state = "";
-
-        public LLSDUploadReply()
-        {
-
-        }
-    }
-
-    [LLSDType("MAP")]
-    public class LLSDCapEvent
-    {
-        public int id = 0;
-        public LLSDArray events = new LLSDArray();
-
-        public LLSDCapEvent()
-        {
-
-        }
-    }
-
-    [LLSDType("MAP")]
-    public class LLSDEmpty
-    {
-        public LLSDEmpty()
-        {
-
-        }
-    }
-
-    [LLSDType("MAP")]
-    public class LLSDTest
-    {
-        public int Test1 = 20;
-        public int Test2 = 10;
-
-        public LLSDTest()
-        {
-
-        }
-    }
+    
 
 
-    [AttributeUsage(AttributeTargets.Class)]
-    public class LLSDType : Attribute
-    {
-        private string myType;
-
-        public LLSDType(string type)
-        {
-            myType = type;
-
-        }
-
-        public string ObjectType
-        {
-            get
-            {
-                return myType;
-            }
-        }
-    }
+    
 }

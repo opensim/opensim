@@ -125,7 +125,7 @@
       </Files>
     </Project>
 
-	<Project name="OpenSim.Region.Caps" path="OpenSim/Region/Caps" type="Library">
+	<Project name="OpenSim.Region.Capabilities" path="OpenSim/Region/Capabilities" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -598,7 +598,6 @@
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.FrameworkGenericConfig.Xml"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Caches"/>
@@ -611,7 +610,7 @@
 
 
 
-    <Project name="OpenSim.Region.Environment" path="OpenSim/Region/Simulation" type="Library">
+    <Project name="OpenSim.Region.Environment" path="OpenSim/Region/Environment" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -636,6 +635,7 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
 	<Reference name="OpenSim.Region.Caches"/>
+	<Reference name="OpenSim.Region.Capabilities"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
 

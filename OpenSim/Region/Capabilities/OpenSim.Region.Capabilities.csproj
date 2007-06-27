@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{DCBA491C-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{39038E85-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>OpenSim.Region.Environment</AssemblyName>
+    <AssemblyName>OpenSim.Region.Capabilities</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
     <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>OpenSim.Region.Environment</RootNamespace>
+    <RootNamespace>OpenSim.Region.Capabilities</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -58,16 +58,16 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Axiom.MathLib.dll" >
-      <HintPath>..\..\..\bin\Axiom.MathLib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Db4objects.Db4o.dll" >
-      <HintPath>..\..\..\bin\Db4objects.Db4o.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="libsecondlife.dll" >
       <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenSim.Framework.Types" >
+      <HintPath>OpenSim.Framework.Types.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenSim.Framework.Utilities" >
+      <HintPath>OpenSim.Framework.Utilities.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" >
@@ -90,24 +90,6 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Framework\Communications\OpenSim.Framework.Communications.csproj">
-      <Name>OpenSim.Framework.Communications</Name>
-      <Project>{CB52B7E7-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj">
-      <Name>OpenSim.Framework.Console</Name>
-      <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Framework\GenericConfig\Xml\OpenSim.Framework.GenericConfig.Xml.csproj">
-      <Name>OpenSim.Framework.GenericConfig.Xml</Name>
-      <Project>{C74E4A30-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj">
       <Name>OpenSim.Framework.Servers</Name>
       <Project>{2CC71860-0000-0000-0000-000000000000}</Project>
@@ -120,84 +102,42 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Physics\Manager\OpenSim.Region.Physics.Manager.csproj">
-      <Name>OpenSim.Region.Physics.Manager</Name>
-      <Project>{F4FF31EB-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Terrain.BasicTerrain\OpenSim.Region.Terrain.BasicTerrain.csproj">
-      <Name>OpenSim.Region.Terrain.BasicTerrain</Name>
-      <Project>{C9E0F891-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RegionManager.cs">
+    <Compile Include="LLSDCapsDetails.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="EstateManager.cs">
+    <Compile Include="LLSDMapRequest.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ParcelManager.cs">
+    <Compile Include="LLSDMapLayerResponse.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Caps.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Entity.cs">
+    <Compile Include="LLSDArray.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Scene.Scripting.cs">
+    <Compile Include="LLSDCapEvent.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.Body.cs">
+    <Compile Include="LLSDEmpty.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\SceneEvents.cs">
+    <Compile Include="LLSDHelpers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.cs">
+    <Compile Include="LLSDMapLayer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.Animations.cs">
+    <Compile Include="LLSDTest.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Scene.PacketHandlers.cs">
+    <Compile Include="LLSDType.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\IScenePresenceBody.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Scene.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\SceneBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\IScriptHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\ScriptFactory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\IScriptContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\Script.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\IScriptEntity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\Scripts\FollowRandomAvatar.cs">
+    <Compile Include="LLSDUploadReply.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

@@ -3,20 +3,20 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{24B12448-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{DCBA491C-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon></ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>SimpleApp</AssemblyName>
+    <AssemblyName>OpenSim.Region.Environment</AssemblyName>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder></AppDesignerFolder>
-    <RootNamespace>SimpleApp</RootNamespace>
+    <RootNamespace>OpenSim.Region.Environment</RootNamespace>
     <StartupObject></StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -32,7 +32,7 @@
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>..\..\..\..\bin\</OutputPath>
+    <OutputPath>..\..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -50,7 +50,7 @@
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>..\..\..\..\bin\</OutputPath>
+    <OutputPath>..\..\..\bin\</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -58,16 +58,20 @@
     <NoWarn></NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Axiom.MathLib.dll" >
+      <HintPath>..\..\..\bin\Axiom.MathLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Db4objects.Db4o.dll" >
+      <HintPath>..\..\..\bin\Db4objects.Db4o.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="libsecondlife.dll" >
-      <HintPath>..\..\..\..\bin\libsecondlife.dll</HintPath>
+      <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" >
       <HintPath>System.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Data.dll" >
-      <HintPath>..\..\..\..\bin\System.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml" >
@@ -75,74 +79,128 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="XMLRPC.dll" >
-      <HintPath>..\..\..\..\bin\XMLRPC.dll</HintPath>
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Framework\General\OpenSim.Framework.csproj">
+    <ProjectReference Include="..\..\Framework\General\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{8ACA2445-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Framework\Communications\OpenSim.Framework.Communications.csproj">
+    <ProjectReference Include="..\..\Framework\Communications\OpenSim.Framework.Communications.csproj">
       <Name>OpenSim.Framework.Communications</Name>
       <Project>{CB52B7E7-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Framework\Console\OpenSim.Framework.Console.csproj">
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj">
       <Name>OpenSim.Framework.Console</Name>
       <Project>{A7CD0630-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Framework\Servers\OpenSim.Framework.Servers.csproj">
+    <ProjectReference Include="..\..\Framework\GenericConfig\Xml\OpenSim.Framework.GenericConfig.Xml.csproj">
+      <Name>OpenSim.Framework.GenericConfig.Xml</Name>
+      <Project>{C74E4A30-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj">
       <Name>OpenSim.Framework.Servers</Name>
       <Project>{2CC71860-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Caches\OpenSim.Region.Caches.csproj">
+    <ProjectReference Include="..\Caches\OpenSim.Region.Caches.csproj">
       <Name>OpenSim.Region.Caches</Name>
       <Project>{61FCCDB3-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\ClientStack\OpenSim.Region.ClientStack.csproj">
-      <Name>OpenSim.Region.ClientStack</Name>
-      <Project>{DC3698B2-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\Capabilities\OpenSim.Region.Capabilities.csproj">
+      <Name>OpenSim.Region.Capabilities</Name>
+      <Project>{39038E85-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Communications\Local\OpenSim.Region.Communications.Local.csproj">
-      <Name>OpenSim.Region.Communications.Local</Name>
-      <Project>{BFB5D807-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\Physics\Manager\OpenSim.Region.Physics.Manager.csproj">
+      <Name>OpenSim.Region.Physics.Manager</Name>
+      <Project>{F4FF31EB-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Environment\OpenSim.Region.Environment.csproj">
-      <Name>OpenSim.Region.Environment</Name>
-      <Project>{DCBA491C-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\GridInterfaces\Local\OpenSim.Region.GridInterfaces.Local.csproj">
-      <Name>OpenSim.Region.GridInterfaces.Local</Name>
-      <Project>{241A8CDD-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\Terrain.BasicTerrain\OpenSim.Region.Terrain.BasicTerrain.csproj">
+      <Name>OpenSim.Region.Terrain.BasicTerrain</Name>
+      <Project>{C9E0F891-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyWorld.cs">
+    <Compile Include="EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Program.cs">
+    <Compile Include="ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs">
+    <Compile Include="RegionManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Entity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Scene.Scripting.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.Body.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\SceneEvents.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.Animations.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Scene.PacketHandlers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\IScenePresenceBody.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\SceneBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\Scene.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\IScriptHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\ScriptFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\IScriptContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\Script.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\IScriptEntity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\Scripts\FollowRandomAvatar.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
