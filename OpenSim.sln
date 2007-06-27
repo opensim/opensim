@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Communicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Communications.OGS1", "OpenSim\Region\Communications\OGS1\OpenSim.Region.Communications.OGS1.csproj", "{4806E378-0000-0000-0000-000000000000}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Environment", "OpenSim\Region\Simulation\OpenSim.Region.Environment.csproj", "{DCBA491C-0000-0000-0000-000000000000}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.GridInterfaces.Local", "OpenSim\Region\GridInterfaces\Local\OpenSim.Region.GridInterfaces.Local.csproj", "{241A8CDD-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.GridInterfaces.Remote", "OpenSim\Region\GridInterfaces\Remote\OpenSim.Region.GridInterfaces.Remote.csproj", "{98C7B681-0000-0000-0000-000000000000}"
@@ -37,8 +39,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Physics.OdePlugin", "OpenSim\Region\Physics\OdePlugin\OpenSim.Region.Physics.OdePlugin.csproj", "{90620634-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Physics.PhysXPlugin", "OpenSim\Region\Physics\PhysXPlugin\OpenSim.Region.Physics.PhysXPlugin.csproj", "{A6D191D8-0000-0000-0000-000000000000}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Simulation", "OpenSim\Region\Simulation\OpenSim.Region.Simulation.csproj", "{C0DAB338-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Storage.LocalStorageBerkeleyDB", "OpenSim\Region\Storage\LocalStorageBerkeleyDB\OpenSim.Region.Storage.LocalStorageBerkeleyDB.csproj", "{A4691E59-0000-0000-0000-000000000000}"
 EndProject
@@ -108,6 +108,10 @@ Global
 		{4806E378-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4806E378-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4806E378-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCBA491C-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCBA491C-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCBA491C-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCBA491C-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
 		{241A8CDD-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{241A8CDD-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{241A8CDD-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -132,10 +136,6 @@ Global
 		{A6D191D8-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6D191D8-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6D191D8-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C0DAB338-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C0DAB338-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C0DAB338-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C0DAB338-0000-0000-0000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A4691E59-0000-0000-0000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A4691E59-0000-0000-0000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4691E59-0000-0000-0000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU

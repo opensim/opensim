@@ -122,15 +122,15 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\GridInterfaces\Local\OpenSim.Region.GridInterfaces.Local.csproj">
-      <Name>OpenSim.Region.GridInterfaces.Local</Name>
-      <Project>{241A8CDD-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\..\Simulation\OpenSim.Region.Environment.csproj">
+      <Name>OpenSim.Region.Environment</Name>
+      <Project>{DCBA491C-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Simulation\OpenSim.Region.Simulation.csproj">
-      <Name>OpenSim.Region.Simulation</Name>
-      <Project>{C0DAB338-0000-0000-0000-000000000000}</Project>
+    <ProjectReference Include="..\..\GridInterfaces\Local\OpenSim.Region.GridInterfaces.Local.csproj">
+      <Name>OpenSim.Region.GridInterfaces.Local</Name>
+      <Project>{241A8CDD-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

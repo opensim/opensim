@@ -584,7 +584,7 @@
 
 
 
-    <Project name="OpenSim.Region.Simulation" path="OpenSim/Region/Simulation" type="Library">
+    <Project name="OpenSim.Region.Environment" path="OpenSim/Region/Simulation" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -641,7 +641,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
-	<Reference name="OpenSim.Region.Simulation"/>
+	<Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.GenericConfig.Xml"/>
 	<Reference name="OpenSim.Framework.Communications"/>
@@ -686,7 +686,7 @@
 <Reference name="OpenSim.Region.Communications.Local"/>      
       <Reference name="OpenSim.Region.Caches"/>
       <Reference name="OpenSim.Region.ClientStack"/>
-      <Reference name="OpenSim.Region.Simulation"/>
+      <Reference name="OpenSim.Region.Environment"/>
       
 
       <Files>

@@ -91,10 +91,10 @@
     <Compile Include="AgentInventory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionBase.cs">
+    <Compile Include="Util.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Util.cs">
+    <Compile Include="AuthenticateSessionBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Logger.cs">
