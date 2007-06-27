@@ -78,7 +78,13 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ReservationData.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GridData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SimProfileData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ILogData.cs">
@@ -88,12 +94,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InventoryData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ReservationData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfileData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UserData.cs">

@@ -86,16 +86,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommunicationsManager.cs">
+    <Compile Include="IUserServices.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IGridServices.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IInterRegionCommunications.cs">
+    <Compile Include="CommunicationsManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IUserServices.cs">
+    <Compile Include="IInterRegionCommunications.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
