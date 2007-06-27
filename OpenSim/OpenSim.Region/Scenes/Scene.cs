@@ -481,19 +481,17 @@ namespace OpenSim.Region.Scenes
         {
             try
             {
-
-               // MainLog.Instance.Notice("World.cs: AddNewPrim() - Creating new prim");
-
                 Primitive prim = new Primitive(m_regionHandle, this, addPacket, ownerID, this._primCount);
 
                 this.Entities.Add(prim.uuid, prim);
                 this._primCount++;
+
+                // Trigger event for listeners
+                eventManager.TriggerOnNewPrimitive(prim);
             }
             catch (Exception e)
             {
-
-               // MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
-
+                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
             }
         }
 
@@ -583,6 +581,8 @@ namespace OpenSim.Region.Scenes
         /// <param name="agentID"></param>
         public override void RemoveClient(LLUUID agentID)
         {
+            eventManager.TriggerOnRemovePresence(agentID);
+
             return;
         }
         #endregion
