@@ -1,0 +1,21 @@
+* monodev target should be able to detect whether the project is 1.x
+  or 2.x runtime
+
+* make an autotools install target for .exe files
+
+* Fix the autotools target so that
+
+if(numProjects == 1){
+  for($projectDir){
+    generate_a_project_configure_dot_ac()
+  }
+}else{
+  generate_a_solution_configure_dot_ac()
+
+  foreach($project in $projectsList){
+    mkdir $project/
+    cd $project/
+    generate_a_project_configure_dot_ac
+  }
+}
+

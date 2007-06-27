@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<project name="Prebuild" default="build">
+    <echo message="Using '${nant.settings.currentframework}' Framework"/>
+
+    <property name="bin.dir" value="bin" />
+    <property name="obj.dir" value="obj" />
+    <property name="doc.dir" value="doc" />
+    <property name="project.main.dir" value="${project::get-base-directory()}" />
+
+    <target name="Debug" description="">
+        <property name="project.config" value="Debug" />
+        <property name="build.debug" value="true" />
+    </target>
+
+    <property name="project.config" value="Release" />
+
+    <target name="Release" description="">
+        <property name="project.config" value="Release" />
+        <property name="build.debug" value="false" />
+    </target>
+
+    <target name="net-1.1" description="Sets framework to .NET 1.1">
+        <property name="nant.settings.currentframework" value="net-1.1" />
+    </target>
+
+    <target name="net-2.0" description="Sets framework to .NET 2.0">
+        <property name="nant.settings.currentframework" value="net-2.0" />
+    </target>
+
+    <target name="mono-2.0" description="Sets framework to mono 2.0">
+        <property name="nant.settings.currentframework" value="mono-2.0" />
+    </target>
+
+    <target name="mono-1.0" description="Sets framework to mono 1.0">
+        <property name="nant.settings.currentframework" value="mono-1.0" />
+    </target>
+
+    <target name="init" description="">
+        <call target="${project.config}" />
+        <sysinfo />
+        <echo message="Platform ${sys.os.platform}" />
+        <property name="build.dir" value="${bin.dir}/${project.config}" />
+    </target>
+
+    <target name="clean" description="">
+        <echo message="Deleting all builds from all configurations" />
+        <delete dir="${bin.dir}" failonerror="false" />
+        <delete dir="${obj.dir}" failonerror="false" />
+        <nant buildfile="src/Prebuild.exe.build" target="clean" />
+    </target>
+
+    <target name="build" depends="init" description="">
+        <nant buildfile="src/Prebuild.exe.build" target="build" />
+    </target>
+
+    <target name="build-release" depends="Release, init, build" description="Builds in Release mode" />
+
+    <target name="build-debug" depends="Debug, init, build" description="Builds in Debug mode" />
+
+    <target name="package" depends="clean, doc" description="Builds all" />
+
+    <target name="doc" depends="build-release">
+        <echo message="Generating all documentation from all builds" />
+        <nant buildfile="src/Prebuild.exe.build" target="doc" />
+    </target>
+
+</project>
