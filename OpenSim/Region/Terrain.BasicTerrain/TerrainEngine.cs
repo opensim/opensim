@@ -32,7 +32,7 @@ using System.Drawing;
 using libTerrain;
 using OpenJPEGNet;
 
-namespace OpenSim.Terrain
+namespace OpenSim.Region.Terrain
 {
     public class TerrainCommand
     {

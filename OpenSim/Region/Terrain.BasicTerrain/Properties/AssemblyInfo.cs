@@ -32,11 +32,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OpenSim.Terrain.BasicTerrain")]
+[assembly: AssemblyTitle("OpenSim.Region.Terrain.BasicTerrain")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("OpenSim.Terrain.BasicTerrain")]
+[assembly: AssemblyProduct("OpenSim.Region.Terrain.BasicTerrain")]
 [assembly: AssemblyCopyright("Copyright ©  2007")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

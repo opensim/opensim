@@ -40,7 +40,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scripting;
-using OpenSim.Terrain;
+using OpenSim.Region.Terrain;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;

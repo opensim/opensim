@@ -135,9 +135,6 @@
     <Compile Include="PacketServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UDPServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ClientView.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -147,16 +144,16 @@
     <Compile Include="ClientView.ProcessPackets.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="VersionInfo.cs">
+    <Compile Include="ClientViewBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientView.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RegionApplicationBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ClientViewBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ClientView.cs">
+    <Compile Include="UDPServer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Assets\InventoryCache.cs">

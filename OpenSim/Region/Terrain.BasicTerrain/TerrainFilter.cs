@@ -9,7 +9,7 @@ using Microsoft.JScript;
 
 using libTerrain;
 
-namespace OpenSim.Terrain
+namespace OpenSim.Region.Terrain
 {
     public interface ITerrainFilter
     {
@@ -48,7 +48,7 @@ namespace OpenSim.Terrain
             compilerParams.GenerateInMemory = true;
             compilerParams.IncludeDebugInformation = false;
             compilerParams.ReferencedAssemblies.Add("libTerrain-BSD.dll");
-            compilerParams.ReferencedAssemblies.Add("OpenSim.Terrain.BasicTerrain.dll");
+            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.Terrain.BasicTerrain.dll");
             compilerParams.ReferencedAssemblies.Add("System.dll");
 
             compilerResults = compiler.CompileAssemblyFromFile(compilerParams, filename);

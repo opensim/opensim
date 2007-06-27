@@ -125,6 +125,33 @@
       </Files>
     </Project>
 
+	<Project name="OpenSim.Region.Caps" path="OpenSim/Region/Caps" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+     <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>	
+      <Reference name="OpenSim.Framework.Servers"/>
+<Reference name="OpenSim.Framework.Utilities"/>
+<Reference name="OpenSim.Framework.Types"/>
+<Reference name="OpenSim.Region.Caches"/>
+     <Reference name="XMLRPC.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
 
     <!-- Storage Plug-ins -->
     <Project name="OpenSim.Region.Storage.LocalStorageDb4o" path="OpenSim/Region/Storage/LocalStorageDb4o" type="Library">

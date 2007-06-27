@@ -40,7 +40,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Terrain;
+using OpenSim.Region.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework;

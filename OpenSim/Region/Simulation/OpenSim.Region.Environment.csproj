@@ -149,9 +149,6 @@
     <Compile Include="Scenes\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Scene.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Scenes\Scene.Scripting.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -176,10 +173,13 @@
     <Compile Include="Scenes\Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\SceneBase.cs">
+    <Compile Include="Scenes\IScenePresenceBody.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\IScenePresenceBody.cs">
+    <Compile Include="Scenes\Scene.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\SceneBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\scripting\IScriptHandler.cs">

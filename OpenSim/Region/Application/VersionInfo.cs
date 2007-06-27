@@ -27,7 +27,7 @@
 */
 using System;
 
-namespace OpenSim.Region.ClientStack
+namespace OpenSim
 {
     /// <summary>
     /// </summary>

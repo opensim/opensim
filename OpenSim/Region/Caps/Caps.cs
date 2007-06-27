@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Xml;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Types;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 using libsecondlife;
 
 namespace OpenSim.Region
