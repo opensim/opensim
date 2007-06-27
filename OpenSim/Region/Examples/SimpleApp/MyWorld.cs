@@ -5,20 +5,20 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using libsecondlife;
-using OpenSim.Region;
-using Avatar=OpenSim.Region.Scenes.ScenePresence;
-using OpenSim.Region.Scenes;
+using OpenSim.Region.Environment;
+using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
-using OpenSim.Caches;
-using OpenGrid.Framework.Communications;
-using OpenSim.Servers;
+using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications;
+using OpenSim.Framework.Servers;
 
 namespace SimpleApp
 {
     public class MyWorld : Scene
     {
         private RegionInfo m_regionInfo;
-        private List<OpenSim.Region.Scenes.ScenePresence> m_avatars;
+        private List<OpenSim.Region.Environment.Scenes.ScenePresence> m_avatars;
 
         public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
             : base(clientThreads, regionInfo, authen, commsMan, assetCach, httpServer)
@@ -76,7 +76,7 @@ namespace SimpleApp
 
             client.SendRegionHandshake(m_regionInfo);
 
-            OpenSim.Region.Scenes.ScenePresence avatar = new Avatar( client, this, m_regionInfo );
+            OpenSim.Region.Environment.Scenes.ScenePresence avatar = new Avatar( client, this, m_regionInfo );
             
         }
 

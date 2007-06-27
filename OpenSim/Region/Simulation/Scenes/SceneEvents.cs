@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     /// <summary>
     /// A class for triggering remote scene events.

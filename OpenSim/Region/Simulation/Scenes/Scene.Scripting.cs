@@ -35,7 +35,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using libsecondlife;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {

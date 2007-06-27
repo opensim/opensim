@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework", "OpenSi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework.Communications", "OpenSim\Framework\Communications\OpenSim.Framework.Communications.csproj", "{CB52B7E7-0000-0000-0000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework.Communications.OGS1", "OpenSim\Framework\Communications.OGS1\OpenSim.Framework.Communications.OGS1.csproj", "{6109024D-0000-0000-0000-000000000000}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Communications.OGS1", "OpenSim\Region\Communications\OGS1\OpenSim.Region.Communications.OGS1.csproj", "{6109024D-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Framework.Console", "OpenSim\Framework\Console\OpenSim.Framework.Console.csproj", "{A7CD0630-0000-0000-0000-000000000000}"
 EndProject
@@ -28,7 +28,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.GridInterfac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.GridInterfaces.Remote", "OpenSim\Region\GridInterfaces\Remote\OpenSim.Region.GridInterfaces.Remote.csproj", "{98C7B681-0000-0000-0000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.LocalCommunications", "OpenSim\Region\LocalCommunications\OpenSim.Region.LocalCommunications.csproj", "{EB3A1BA8-0000-0000-0000-000000000000}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Communications.Local", "OpenSim\Region\Communications\Local\OpenSim.Region.Communications.Local.csproj", "{EB3A1BA8-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Physics.BasicPhysicsPlugin", "OpenSim\Region\Physics\BasicPhysicsPlugin\OpenSim.Region.Physics.BasicPhysicsPlugin.csproj", "{15B4FEF3-0000-0000-0000-000000000000}"
 EndProject
@@ -38,7 +38,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Physics.OdeP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Physics.PhysXPlugin", "OpenSim\Region\Physics\PhysXPlugin\OpenSim.Region.Physics.PhysXPlugin.csproj", "{A6D191D8-0000-0000-0000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Simulation", "OpenSim\Region\Simulation\OpenSim.Region.Simulation.csproj", "{C0DAB338-0000-0000-0000-000000000000}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Environment", "OpenSim\Region\Simulation\OpenSim.Region.Environment.csproj", "{C0DAB338-0000-0000-0000-000000000000}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Region.Storage.LocalStorageBerkeleyDB", "OpenSim\Region\Storage\LocalStorageBerkeleyDB\OpenSim.Region.Storage.LocalStorageBerkeleyDB.csproj", "{A4691E59-0000-0000-0000-000000000000}"
 EndProject

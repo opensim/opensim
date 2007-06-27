@@ -36,7 +36,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {
@@ -218,7 +218,7 @@ namespace OpenSim.Region.Scenes
             {
                 if (ent.LocalId == primLocalID)
                 {
-                    ((OpenSim.Region.Scenes.Primitive)ent).GetProperites(remoteClient);
+                    ((OpenSim.Region.Environment.Scenes.Primitive)ent).GetProperites(remoteClient);
                     break;
                 }
             }
@@ -266,7 +266,7 @@ namespace OpenSim.Region.Scenes
             {
                 if (ent.LocalId == localID)
                 {
-                    ((OpenSim.Region.Scenes.Primitive)ent).UpdatePosition(pos);
+                    ((OpenSim.Region.Environment.Scenes.Primitive)ent).UpdatePosition(pos);
                     break;
                 }
             }

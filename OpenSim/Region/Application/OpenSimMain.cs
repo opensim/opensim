@@ -38,22 +38,24 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Region;
-using OpenSim.Region.Scenes;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework;
 using OpenSim.Assets;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 using OpenSim.GenericConfig;
-using OpenGrid.Framework.Communications;
-using OpenSim.LocalCommunications;
-using OpenGrid.Framework.Communications.OGS1;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Communications.OGS1;
+using OpenSim.Region.Communications.Local;
+
+using OpenSim.Region.ClientStack;
 
 namespace OpenSim
 {
@@ -241,7 +243,7 @@ namespace OpenSim
 
                 udpServer.LocalWorld = LocalWorld;
 
-                LocalWorld.LoadStorageDLL("OpenSim.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
+                LocalWorld.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
                 LocalWorld.LoadWorldMap();
 
                 m_log.Verbose( "Main.cs:Startup() - Starting up messaging system");
@@ -358,23 +360,23 @@ namespace OpenSim
                 case "":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = false;
+                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = false;
                     break;
 
                 case "basicphysics":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = false;
+                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = false;
                     break;
 
                 case "RealPhysX":
                     this.m_physicsEngine = "RealPhysX";
-                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = true;
+                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = true;
                     break;
 
                 case "OpenDynamicsEngine":
                     this.m_physicsEngine = "OpenDynamicsEngine";
-                    OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = true;
+                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = true;
                     break;
             }
 
@@ -456,7 +458,7 @@ namespace OpenSim
                     m_log.Error( "That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
-                    OpenSim.Region.Scenes.ScenePresence TempAv;
+                    OpenSim.Region.Environment.Scenes.ScenePresence TempAv;
                     m_log.Error( String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     /* foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                      {

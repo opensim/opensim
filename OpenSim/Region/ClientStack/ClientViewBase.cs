@@ -39,7 +39,7 @@ using System.Timers;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Interfaces;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
     public class ClientViewBase 
     {

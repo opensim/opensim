@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Storage.LocalStorageDb4o
+namespace OpenSim.Region.Storage.LocalStorageDb4o
 {
     public class MapStorage
     {

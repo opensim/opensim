@@ -30,15 +30,15 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Region;
-using OpenSim.Region.Scenes;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim;
 using libsecondlife;
 using libsecondlife.Packets;
-using Avatar = OpenSim.Region.Scenes.ScenePresence;
+using Avatar = OpenSim.Region.Environment.Scenes.ScenePresence;
 
 
-namespace OpenSim.Region
+namespace OpenSim.Region.Environment
 {
 
     /// <summary>

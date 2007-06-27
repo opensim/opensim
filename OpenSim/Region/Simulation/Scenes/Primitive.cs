@@ -36,7 +36,7 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public class Primitive : Entity
     {
@@ -174,9 +174,9 @@ namespace OpenSim.Region.Scenes
             dataArrays.Add(primData.ToBytes());
             foreach (Entity child in children)
             {
-                if (child is OpenSim.Region.Scenes.Primitive)
+                if (child is OpenSim.Region.Environment.Scenes.Primitive)
                 {
-                    dataArrays.Add(((OpenSim.Region.Scenes.Primitive)child).GetByteArray());
+                    dataArrays.Add(((OpenSim.Region.Environment.Scenes.Primitive)child).GetByteArray());
                 }
             }
             byte[] primstart = Helpers.StringToField("<Prim>");

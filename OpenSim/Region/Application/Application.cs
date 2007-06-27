@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework.Console;
+using OpenSim.Region.ClientStack;
 
 namespace OpenSim
 {
@@ -108,7 +109,7 @@ namespace OpenSim
             sim.m_sandbox = sandBoxMode;
             sim.user_accounts = userAccounts;
             sim.gridLocalAsset = gridLocalAsset;
-            OpenSim.Region.Scenes.ScenePresence.PhysicsEngineFlying = allowFlying;
+            OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = allowFlying;
 
             sim.StartUp();
 

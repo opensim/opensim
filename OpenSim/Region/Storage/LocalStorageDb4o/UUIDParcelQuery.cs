@@ -34,7 +34,7 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim.Storage.LocalStorageDb4o
+namespace OpenSim.Region.Storage.LocalStorageDb4o
 {
     public class UUIDParcelQuery : Predicate
     {

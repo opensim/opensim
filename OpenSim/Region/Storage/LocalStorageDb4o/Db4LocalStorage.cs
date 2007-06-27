@@ -36,7 +36,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 
 
-namespace OpenSim.Storage.LocalStorageDb4o
+namespace OpenSim.Region.Storage.LocalStorageDb4o
 {
     /// <summary>
     /// 

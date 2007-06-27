@@ -36,7 +36,7 @@ using Nwc.XmlRpc;
 using System.Collections;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Servers
+namespace OpenSim.Framework.Servers
 {
     public class BaseHttpServer
     {
@@ -171,7 +171,7 @@ namespace OpenSim.Servers
         protected virtual string ParseLLSDXML(string requestBody)
         {
             // dummy function for now - IMPLEMENT ME!
-            Console.WriteLine("LLSD request "+requestBody);
+            //Console.WriteLine("LLSD request "+requestBody);
             string resp = "";
             if (firstcaps)
             {
@@ -195,7 +195,7 @@ namespace OpenSim.Servers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                //Console.WriteLine(e.ToString());
             }
             return responseString;
         }
@@ -273,7 +273,7 @@ namespace OpenSim.Servers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                //Console.WriteLine(e.ToString());
             }
         }
 

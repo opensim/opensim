@@ -30,12 +30,12 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using OpenSim.Physics.Manager;
-using OpenSim.Region;
-using OpenSim.Region.Scenes;
-using Avatar=OpenSim.Region.Scenes.ScenePresence;
-using Primitive = OpenSim.Region.Scenes.Primitive;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
+using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
+using Primitive = OpenSim.Region.Environment.Scenes.Primitive;
 
-namespace OpenSim.Region.Scripting
+namespace OpenSim.Region.Environment.Scripting
 {
     public delegate void ScriptEventHandler(IScriptContext context);
 

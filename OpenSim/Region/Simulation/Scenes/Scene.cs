@@ -39,14 +39,14 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework;
-using OpenSim.Region.Scripting;
+using OpenSim.Region.Environment.Scripting;
 using OpenSim.Terrain;
-using OpenGrid.Framework.Communications;
-using OpenSim.Caches;
-using OpenSim.Region;
-using OpenSim.Servers;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Caches;
+using OpenSim.Region.Environment;
+using OpenSim.Framework.Servers;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public delegate bool FilterAvatarList(ScenePresence avatar);
 
@@ -256,7 +256,7 @@ namespace OpenSim.Region.Scenes
                 //Parcel backup routines
                 ParcelData[] parcels = new ParcelData[parcelManager.parcelList.Count];
                 int i = 0;
-                foreach (OpenSim.Region.Parcel parcel in parcelManager.parcelList.Values)
+                foreach (OpenSim.Region.Environment.Parcel parcel in parcelManager.parcelList.Values)
                 {
                     parcels[i] = parcel.parcelData;
                     i++;

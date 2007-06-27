@@ -41,14 +41,13 @@ using OpenSim.Terrain;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Assets;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework;
 using Nwc.XmlRpc;
-using OpenSim.Servers;
-using OpenSim.GenericConfig;
+using OpenSim.Framework.Servers;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
 
     public class UDPServer : ClientStackNetworkHandler

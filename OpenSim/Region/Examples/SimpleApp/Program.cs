@@ -6,13 +6,14 @@ using OpenSim.GridInterfaces.Local;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 using OpenSim.Assets;
 using libsecondlife;
-using OpenSim.Servers;
 using OpenSim.Framework;
-using OpenSim.Caches;
-using OpenGrid.Framework.Communications;
-using OpenSim.LocalCommunications;
+using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Communications.Local;
+using OpenSim.Region.ClientStack;
 
 namespace SimpleApp
 {

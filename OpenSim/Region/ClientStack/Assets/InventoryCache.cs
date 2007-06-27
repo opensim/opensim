@@ -35,6 +35,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Region.ClientStack;
 
 namespace OpenSim.Assets
 {

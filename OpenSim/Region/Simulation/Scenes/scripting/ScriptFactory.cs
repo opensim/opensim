@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.Scripting
+namespace OpenSim.Region.Environment.Scripting
 {
     public delegate Script ScriptFactory();
 }

@@ -37,11 +37,11 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
-using OpenSim.Region.Scripting;
+using OpenSim.Region.Environment.Scripting;
 using OpenSim.Terrain;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase :  IWorld 
     {

@@ -32,11 +32,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OpenSim.Storage.LocalStorageSQLite")]
+[assembly: AssemblyTitle("OpenSim.Region.Storage.LocalStorageSQLite")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("OpenSim.Storage.LocalStorageSQLite")]
+[assembly: AssemblyProduct("OpenSim.Region.Storage.LocalStorageSQLite")]
 [assembly: AssemblyCopyright("Copyright ©  2007")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

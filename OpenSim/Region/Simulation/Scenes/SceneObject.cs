@@ -35,7 +35,7 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public class SceneObject : Entity
     {

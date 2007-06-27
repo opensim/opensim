@@ -38,7 +38,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 
-namespace OpenSim.Servers
+namespace OpenSim.Framework.Servers
 {
     public class UDPServerBase
     {

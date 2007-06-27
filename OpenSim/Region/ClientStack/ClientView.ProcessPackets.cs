@@ -42,7 +42,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.Assets;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
     public partial class ClientView
     {

@@ -42,14 +42,13 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework;
 using OpenSim.Assets;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Physics.Manager;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.GenericConfig;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
     public class RegionApplicationBase
     {

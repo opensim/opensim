@@ -34,9 +34,9 @@ using OpenSim.Framework;
 using System.Net;
 using System.Net.Sockets;
 using OpenSim.Assets;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
     public class PacketServer
     {

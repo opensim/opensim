@@ -32,10 +32,10 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Region.Scenes;
-using Avatar = OpenSim.Region.Scenes.ScenePresence;
+using OpenSim.Region.Environment.Scenes;
+using Avatar = OpenSim.Region.Environment.Scenes.ScenePresence;
 
-namespace OpenSim.Region
+namespace OpenSim.Region.Environment
 {
 
 
@@ -420,7 +420,7 @@ namespace OpenSim.Region
             {
                 for (y = 0; y < inc_y; y++)
                 {
-                    OpenSim.Region.Parcel currentParcel = getParcel(start_x + x, start_y + y);
+                    OpenSim.Region.Environment.Parcel currentParcel = getParcel(start_x + x, start_y + y);
                     if (!temp.Contains(currentParcel))
                     {
                         currentParcel.forceUpdateParcelInfo();

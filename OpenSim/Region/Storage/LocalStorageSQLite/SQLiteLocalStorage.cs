@@ -37,7 +37,7 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim.Storage.LocalStorageSQLite
+namespace OpenSim.Region.Storage.LocalStorageSQLite
 {
     public class SQLiteLocalStorage : ILocalStorage
     {

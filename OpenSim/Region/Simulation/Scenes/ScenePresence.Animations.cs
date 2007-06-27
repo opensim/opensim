@@ -31,7 +31,7 @@ using System.Text;
 using libsecondlife;
 using System.Xml;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     partial class ScenePresence
     {
@@ -66,7 +66,7 @@ namespace OpenSim.Region.Scenes
 
                 // OpenSim.Framework.Console.MainLog.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
-                foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Scenes.ScenePresence.Animations.AnimsLLUUID)
+                foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Environment.Scenes.ScenePresence.Animations.AnimsLLUUID)
                 {
                     AnimsNames.Add(kp.Value, kp.Key);
                 }

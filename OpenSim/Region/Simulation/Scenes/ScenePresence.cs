@@ -37,7 +37,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using Axiom.MathLib;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public partial class ScenePresence : Entity
     {

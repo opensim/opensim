@@ -42,9 +42,9 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.Assets;
-using OpenSim.Caches;
+using OpenSim.Region.Caches;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
     public delegate bool PacketMethod(ClientView simClient, Packet packet);
 

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenGrid.Framework.Communications;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework;
 using OpenSim.Framework.Types;
-using OpenSim.Servers;
+using OpenSim.Framework.Servers;
 
-namespace OpenSim.Region
+namespace OpenSim.Region.Environment
 {
     public class RegionManager //needs renaming , but first we need to rename the namespace
     {

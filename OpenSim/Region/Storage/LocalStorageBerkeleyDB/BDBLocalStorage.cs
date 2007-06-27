@@ -39,7 +39,7 @@ using BerkeleyDb;
 using Kds.Serialization;
 using Kds.Serialization.Buffer;
 
-namespace OpenSim.Storage.LocalStorageBDB
+namespace OpenSim.Region.Storage.LocalStorageBDB
 {
     public class BDBLocalStorage : ILocalStorage
     {

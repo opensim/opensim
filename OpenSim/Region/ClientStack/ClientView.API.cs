@@ -35,7 +35,7 @@ using OpenSim.Framework.Types;
 using libsecondlife;
 using libsecondlife.Packets;
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
     partial class ClientView
     {

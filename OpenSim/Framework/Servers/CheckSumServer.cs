@@ -40,7 +40,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 
 
-namespace OpenSim.Servers
+namespace OpenSim.Framework.Servers
 {
 /*    public class CheckSumServer : UDPServerBase
     {

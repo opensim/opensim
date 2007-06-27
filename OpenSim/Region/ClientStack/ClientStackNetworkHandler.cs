@@ -33,7 +33,7 @@ using System.Net.Sockets;
 using libsecondlife;
 
 
-namespace OpenSim
+namespace OpenSim.Region.ClientStack
 {
 
     public interface ClientStackNetworkHandler

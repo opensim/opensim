@@ -31,9 +31,9 @@ using System.Text;
 using Axiom.MathLib;
 using OpenSim.Physics.Manager;
 using libsecondlife;
-using OpenSim.Region.Scripting;
+using OpenSim.Region.Environment.Scripting;
 
-namespace OpenSim.Region.Scenes
+namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class Entity : IScriptReadonlyEntity
     {

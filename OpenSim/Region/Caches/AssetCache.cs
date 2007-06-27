@@ -36,7 +36,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.Caches
+namespace OpenSim.Region.Caches
 {
     public delegate void DownloadComplete(AssetCache.TextureSender sender);
 

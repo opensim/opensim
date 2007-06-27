@@ -28,7 +28,7 @@
 using System;
 using Nwc.XmlRpc;
 
-namespace OpenSim.Servers
+namespace OpenSim.Framework.Servers
 {
     public delegate XmlRpcResponse XmlRpcMethod( XmlRpcRequest request );    
 }
