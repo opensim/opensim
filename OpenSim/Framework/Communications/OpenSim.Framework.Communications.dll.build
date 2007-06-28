@@ -11,10 +11,10 @@
             <resources prefix="OpenSim.Framework.Communications" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="CommunicationsManager.cs" />
                 <include name="IGridServices.cs" />
                 <include name="IInterRegionCommunications.cs" />
                 <include name="IUserServices.cs" />
-                <include name="CommunicationsManager.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

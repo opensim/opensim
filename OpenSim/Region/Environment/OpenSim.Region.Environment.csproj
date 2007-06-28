@@ -82,10 +82,6 @@
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VJSharpCodeProvider" >
-      <HintPath>VJSharpCodeProvider.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="XMLRPC.dll" >
       <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
       <Private>False</Private>
@@ -148,61 +144,58 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RegionManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="EstateManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ParcelManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.Body.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\SceneEvents.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\ScenePresence.Animations.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Scene.PacketHandlers.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\SceneObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\Primitive.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\IScenePresenceBody.cs">
+    <Compile Include="RegionManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\SceneBase.cs">
+    <Compile Include="Scenes\IScenePresenceBody.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.cs">
+    <Compile Include="Scenes\Primitive.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\Scene.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\scripting\ScriptManager.cs">
+    <Compile Include="Scenes\Scene.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\scripting\ScriptInfo.cs">
+    <Compile Include="Scenes\SceneBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\SceneEvents.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\SceneObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.Animations.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.Body.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\scripting\Script.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\scripting\Engines\CSharpScriptEngine.cs">
+    <Compile Include="Scenes\scripting\ScriptInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\scripting\Engines\JSharpScriptEngine.cs">
+    <Compile Include="Scenes\scripting\ScriptManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\scripting\Engines\CSharpScriptEngine.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\scripting\Engines\JScriptEngine.cs">

@@ -59,9 +59,6 @@ namespace OpenSim.Region.Enviorment.Scripting
 
             JScriptEngine jscriptCompiler = new JScriptEngine();
             compilers.Add(jscriptCompiler.FileExt(), jscriptCompiler);
-
-            JSharpScriptEngine jsharpCompiler = new JSharpScriptEngine();
-            compilers.Add(jsharpCompiler.FileExt(), jsharpCompiler);
         }
 
         public void Compile(string filename)

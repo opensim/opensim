@@ -12,10 +12,10 @@
             </resources>
             <sources failonempty="true">
                 <include name="AssemblyInfo.cs" />
+                <include name="Db4LocalStorage.cs" />
                 <include name="MapStorage.cs" />
                 <include name="UUIDParcelQuery.cs" />
                 <include name="UUIDPrimQuery.cs" />
-                <include name="Db4LocalStorage.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

@@ -22,11 +22,11 @@
                 </lib>
                 <include name="../../../bin/Db4objects.Db4o.dll" />
                 <include name="../../../bin/libsecondlife.dll" />
-                <include name="../../../bin/OpenSim.Framework.dll" />
-                <include name="../../../bin/OpenSim.Framework.Console.dll" />
+                <include name="OpenSim.Framework.dll" />
+                <include name="OpenSim.Framework.Console.dll" />
                 <include name="../../../bin/OpenSim.Framework.Data.dll" />
-                <include name="../../../bin/OpenSim.Framework.GenericConfig.Xml.dll" />
-                <include name="../../../bin/OpenSim.Framework.Servers.dll" />
+                <include name="OpenSim.Framework.GenericConfig.Xml.dll" />
+                <include name="OpenSim.Framework.Servers.dll" />
                 <include name="../../../bin/OpenSim.Grid.Framework.Manager.dll" />
                 <include name="System.dll" />
                 <include name="System.Data.dll" />

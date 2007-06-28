@@ -636,8 +636,6 @@
 	<Reference name="OpenSim.Region.Capabilities"/>
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
-      <!-- This needs checking with the Mono folks -->
-      <Reference name="VJSharpCodeProvider"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
 

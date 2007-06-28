@@ -96,40 +96,40 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LLSDCapsDetails.cs">
+    <Compile Include="Caps.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LLSDArray.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LLSDEmpty.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LLSDTest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LLSDUploadReply.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LLSDType.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LLSDCapEvent.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LLSDMapRequest.cs">
+    <Compile Include="LLSDCapsDetails.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Caps.cs">
+    <Compile Include="LLSDEmpty.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LLSDMapLayerResponse.cs">
+    <Compile Include="LLSDHelpers.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LLSDMapLayer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LLSDHelpers.cs">
+    <Compile Include="LLSDMapLayerResponse.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDMapRequest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDUploadReply.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

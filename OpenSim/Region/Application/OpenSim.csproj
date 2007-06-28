@@ -170,13 +170,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VersionInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Application.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="OpenSimMain.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
