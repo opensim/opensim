@@ -36,6 +36,7 @@ namespace OpenSim.Region.Communications.Local
         {
             return this.getUserProfile(name);
         }
+
         public UserProfileData GetUserProfile(LLUUID avatarID)
         {
             return this.getUserProfile(avatarID);
@@ -118,6 +119,7 @@ namespace OpenSim.Region.Communications.Local
         {
             return SetupMasterUser(firstName, lastName, "");
         }
+
         public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             UserProfileData profile = getUserProfile(firstName, lastName);

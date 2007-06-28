@@ -242,8 +242,7 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 agent_control_v3 = new Vector3(0, 0, 0);
             Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
 
-
-            // this.PhysActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            this.PhysActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
             if (q != this.bodyRot)
             {
