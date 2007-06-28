@@ -13,8 +13,8 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGSUserServices :IUserServices
     {
-        GridCommsManager m_parent;
-        public OGSUserServices(GridCommsManager parent)
+        CommunicationsOGS1 m_parent;
+        public OGSUserServices(CommunicationsOGS1 parent)
         {
             m_parent = parent;
         }

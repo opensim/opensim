@@ -118,7 +118,7 @@ namespace OpenSim
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new GridCommsManager(this.serversData);
+                this.commsManager = new CommunicationsOGS1(this.serversData);
             }
 
             startuptime = DateTime.Now;
