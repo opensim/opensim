@@ -93,16 +93,16 @@
     <Compile Include="BaseHttpServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IRestHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XmlRpcMethod.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="CheckSumServer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="IRestHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UDPServerBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XmlRpcMethod.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

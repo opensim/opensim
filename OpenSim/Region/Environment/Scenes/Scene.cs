@@ -39,12 +39,14 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scripting;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;
 using OpenSim.Framework.Servers;
+using OpenSim.Scripting;
+using OpenSim.Region.Capabilities;
+using Caps = OpenSim.Region.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -60,20 +62,19 @@ namespace OpenSim.Region.Environment.Scenes
         private Random Rand = new Random();
         private uint _primCount = 702000;
         private int storageCount;
-        private Dictionary<LLUUID, ScriptHandler> m_scriptHandlers;
-        private Dictionary<string, ScriptFactory> m_scripts;
         private Mutex updateLock;
         
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
 
-        protected Dictionary<LLUUID, Capabilities.Caps> capsHandlers = new Dictionary<LLUUID, Capabilities.Caps>();
+        protected Dictionary<LLUUID,Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;
         public EventManager eventManager;
+        public ScriptManager scriptManager;
 
         #region Properties
         /// <summary>
@@ -117,11 +118,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                 parcelManager = new ParcelManager(this, this.m_regInfo);
                 estateManager = new EstateManager(this, this.m_regInfo);
-
+                scriptManager = new ScriptManager(this);
                 eventManager = new EventManager();
-
-                m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
-                m_scripts = new Dictionary<string, ScriptFactory>();
 
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating new entitities instance");
                 Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
@@ -195,18 +193,8 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities[UUID].update();
                 }
 
-                // New
+                // General purpose event manager
                 eventManager.TriggerOnFrame();
-
-                // TODO: Obsolete - Phase out
-                foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
-                {
-                    scriptHandler.OnFrame();
-                }
-                foreach (IScriptEngine scripteng in this.scriptEngines.Values)
-                {
-                    scripteng.OnFrame();
-                }
 
                 //backup world data
                 this.storageCount++;
@@ -256,7 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //Parcel backup routines
                 ParcelData[] parcels = new ParcelData[parcelManager.parcelList.Count];
                 int i = 0;
-                foreach (OpenSim.Region.Environment.Parcel parcel in parcelManager.parcelList.Values)
+                foreach (OpenSim.Region.Parcel parcel in parcelManager.parcelList.Values)
                 {
                     parcels[i] = parcel.parcelData;
                     i++;
@@ -672,7 +660,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Capabilities.Caps cap = new Capabilities.Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     this.capsHandlers.Add(agent.AgentID, cap);
                 }

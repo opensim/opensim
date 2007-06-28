@@ -37,7 +37,6 @@ using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
-using OpenSim.Region.Environment.Scripting;
 using OpenSim.Region.Terrain;
 using OpenSim.Region.Caches;
 

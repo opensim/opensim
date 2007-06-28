@@ -143,9 +143,7 @@
      <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>	
       <Reference name="OpenSim.Framework.Servers"/>
-<Reference name="OpenSim.Framework.Utilities"/>
-<Reference name="OpenSim.Framework.Types"/>
-<Reference name="OpenSim.Region.Caches"/>
+      <Reference name="OpenSim.Region.Caches"/>
      <Reference name="XMLRPC.dll"/>
 
       <Files>
@@ -636,6 +634,10 @@
       <Reference name="OpenSim.Framework.Servers"/>
 	<Reference name="OpenSim.Region.Caches"/>
 	<Reference name="OpenSim.Region.Capabilities"/>
+      <!-- For scripting in funny languages by default -->
+      <Reference name="Microsoft.JScript"/>
+      <!-- This needs checking with the Mono folks -->
+      <Reference name="VJSharpCodeProvider"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
 

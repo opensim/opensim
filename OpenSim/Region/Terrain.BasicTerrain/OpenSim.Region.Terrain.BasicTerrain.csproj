@@ -90,10 +90,10 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TerrainFilter.cs">
+    <Compile Include="TerrainEngine.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TerrainEngine.cs">
+    <Compile Include="TerrainFilter.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

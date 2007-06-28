@@ -62,14 +62,6 @@
       <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenSim.Framework.Types" >
-      <HintPath>OpenSim.Framework.Types.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="OpenSim.Framework.Utilities" >
-      <HintPath>OpenSim.Framework.Utilities.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" >
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
@@ -104,15 +96,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LLSDCapsDetails.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LLSDMapRequest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LLSDMapLayerResponse.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Caps.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -122,6 +105,9 @@
     <Compile Include="LLSDCapEvent.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LLSDCapsDetails.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LLSDEmpty.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -129,6 +115,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LLSDMapLayer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDMapLayerResponse.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDMapRequest.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LLSDTest.cs">

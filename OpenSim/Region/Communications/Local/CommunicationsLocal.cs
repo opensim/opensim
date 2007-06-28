@@ -35,7 +35,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications;
 
-
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
