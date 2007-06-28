@@ -11,7 +11,7 @@ namespace OpenSim.Region.Communications.OGS1
     {
         public UserProfileData GetUserProfile(string firstName, string lastName)
         {
-            return null;
+            return GetUserProfile(firstName + " " + lastName);
         }
         public UserProfileData GetUserProfile(string name)
         {
@@ -19,6 +19,21 @@ namespace OpenSim.Region.Communications.OGS1
         }
         public UserProfileData GetUserProfile(LLUUID avatarID)
         {
+            return null;
+        }
+
+        public UserProfileData SetupMasterUser(string firstName, string lastName)
+        {
+            return SetupMasterUser(firstName, lastName, "");
+        }
+
+        public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+        {
+            UserProfileData profile = GetUserProfile(firstName, lastName);
+            if (profile == null)
+            {
+                Console.WriteLine("Unknown Master User. Grid Mode: No clue what I should do. Probably would choose the grid owner UUID when that is implemented");
+            }
             return null;
         }
     }

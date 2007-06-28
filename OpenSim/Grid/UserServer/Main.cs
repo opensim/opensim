@@ -107,8 +107,8 @@ namespace OpenSim.Grid.UserServer
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
 
-            httpServer.AddRestHandler("GET", "/user/name/", m_userManager.RestGetUserMethodName);
-            httpServer.AddRestHandler("GET", "/user/uuid/", m_userManager.RestGetUserMethodUUID);
+            httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
+            httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
 
             httpServer.AddRestHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod);
 

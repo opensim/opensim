@@ -537,27 +537,15 @@ namespace OpenSim.Framework.UserManagement
         /// Returns an error message that the user could not be found in the database
         /// </summary>
         /// <returns>XML string consisting of a error element containing individual error(s)</returns>
-        public string CreateUnknownUserErrorResponse()
+        public XmlRpcResponse CreateUnknownUserErrorResponse()
         {
-            System.IO.StringWriter sw = new System.IO.StringWriter();
-            XmlTextWriter xw = new XmlTextWriter(sw);
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            responseData["error_type"] = "unknown_user";
+            responseData["error_desc"] = "The user requested is not in the database";
 
-            // Header
-            xw.Formatting = Formatting.Indented;
-            xw.WriteStartDocument();
-            xw.WriteDocType("error", null, null, null);
-            xw.WriteComment("An error occured");
-            xw.WriteStartElement("error");
-
-            // User
-            xw.WriteElementString("unknownuser", "Unable to find a user with that name");
-
-            // Footer
-            xw.WriteEndElement();
-            xw.Flush();
-            xw.Close();
-
-            return sw.ToString();
+            response.Value = responseData;
+            return response;
         }
 
         /// <summary>
@@ -565,75 +553,81 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="profile">The user profile</param>
         /// <returns>A string containing an XML Document of the user profile</returns>
-        public string ProfileToXml(UserProfileData profile)
+        public XmlRpcResponse ProfileToXmlRPCResponse(UserProfileData profile)
         {
-            System.IO.StringWriter sw = new System.IO.StringWriter();
-            XmlTextWriter xw = new XmlTextWriter(sw);
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
 
-            // Header
-            xw.Formatting = Formatting.Indented;
-            xw.WriteStartDocument();
-            xw.WriteDocType("userprofile", null, null, null);
-            xw.WriteComment("Found user profiles matching the request");
-            xw.WriteStartElement("users");
-
-            // User
-            xw.WriteStartElement("user");
             // Account information
-            xw.WriteAttributeString("firstname", profile.username);
-            xw.WriteAttributeString("lastname", profile.surname);
-            xw.WriteAttributeString("uuid", profile.UUID.ToStringHyphenated());
+            responseData["firstname"] = profile.username;
+            responseData["lastname"]  = profile.surname;
+            responseData["uuid"]  = profile.UUID.ToStringHyphenated();
             // Server Information
-            xw.WriteAttributeString("server_inventory", profile.userInventoryURI);
-            xw.WriteAttributeString("server_asset", profile.userAssetURI);
+            responseData["server_inventory"]  = profile.userInventoryURI;
+            responseData["server_asset"]  = profile.userAssetURI;
             // Profile Information
-            xw.WriteAttributeString("profile_about", profile.profileAboutText);
-            xw.WriteAttributeString("profile_firstlife_about", profile.profileFirstText);
-            xw.WriteAttributeString("profile_firstlife_image", profile.profileFirstImage.ToStringHyphenated());
-            xw.WriteAttributeString("profile_can_do", profile.profileCanDoMask.ToString());
-            xw.WriteAttributeString("profile_want_do", profile.profileWantDoMask.ToString());
-            xw.WriteAttributeString("profile_image", profile.profileImage.ToStringHyphenated());
-            xw.WriteAttributeString("profile_created",profile.created.ToString());
-            xw.WriteAttributeString("profile_lastlogin",profile.lastLogin.ToString());
+            responseData["profile_about"]  = profile.profileAboutText;
+            responseData["profile_firstlife_about"]  = profile.profileFirstText;
+            responseData["profile_firstlife_image"]  = profile.profileFirstImage.ToStringHyphenated();
+            responseData["profile_can_do"]  = profile.profileCanDoMask.ToString();
+            responseData["profile_want_do"]  = profile.profileWantDoMask.ToString();
+            responseData["profile_image"]  = profile.profileImage.ToStringHyphenated();
+            responseData["profile_created"] = profile.created.ToString();
+            responseData["profile_lastlogin"] = profile.lastLogin.ToString();
             // Home region information
-            xw.WriteAttributeString("home_coordinates", profile.homeLocation.ToString());
-            xw.WriteAttributeString("home_region", profile.homeRegion.ToString());
-            xw.WriteAttributeString("home_look", profile.homeLookAt.ToString());
+            responseData["home_coordinates"]  = profile.homeLocation.ToString();
+            responseData["home_region"]  = profile.homeRegion.ToString();
+            responseData["home_look"]  = profile.homeLookAt.ToString();
 
-            xw.WriteEndElement();
-
-            // Footer
-            xw.WriteEndElement();
-            xw.Flush();
-            xw.Close();
-
-            return sw.ToString();
+            response.Value = responseData;
+            return response;
         }
 
-        #region REST Methods 
+        #region XMLRPC User Methods 
         //should most likely move out of here and into the grid's userserver sub class
-        public string RestGetUserMethodName(string request, string path, string param)
+        public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
         {
-            UserProfileData userProfile = getUserProfile(param.Trim());
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            UserProfileData userProfile;
 
-            if (userProfile == null)
+            if (requestData.Contains("avatar_name"))
+            {
+                userProfile = getUserProfile((string)requestData["avatar_name"]);
+                if (userProfile == null)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+            }
+            else
             {
                 return CreateUnknownUserErrorResponse();
             }
+            
 
-            return ProfileToXml(userProfile);
+            return ProfileToXmlRPCResponse(userProfile);
         }
 
-        public string RestGetUserMethodUUID(string request, string path, string param)
+        public XmlRpcResponse XmlRPCGetUserMethodUUID(XmlRpcRequest request)
         {
-            UserProfileData userProfile = getUserProfile(new LLUUID(param));
-
-            if (userProfile == null)
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            UserProfileData userProfile;
+            if (requestData.Contains("avatar_uuid"))
+            {
+                userProfile = getUserProfile((LLUUID)requestData["avatar_uuid"]);
+                if (userProfile == null)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+            }
+            else
             {
                 return CreateUnknownUserErrorResponse();
             }
 
-            return ProfileToXml(userProfile);
+
+            return ProfileToXmlRPCResponse(userProfile);
         }
         #endregion
 

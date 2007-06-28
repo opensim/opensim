@@ -114,5 +114,30 @@ namespace OpenSim.Region.Communications.Local
 
         }
 
+        public UserProfileData SetupMasterUser(string firstName, string lastName)
+        {
+            return SetupMasterUser(firstName, lastName, "");
+        }
+        public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+        {
+            UserProfileData profile = getUserProfile(firstName, lastName);
+            if (profile != null)
+            {
+
+                return profile;
+            }
+
+            Console.WriteLine("Unknown Master User. Sandbox Mode: Creating Account");
+            this.AddUserProfile(firstName, lastName, password, defaultHomeX, defaultHomeY);
+
+            profile = getUserProfile(firstName, lastName);
+
+            if (profile == null)
+            {
+                Console.WriteLine("Unknown Master User after creation attempt. No clue what to do here.");
+            }
+
+            return profile;
+        }
     }
 }
