@@ -43,9 +43,10 @@ namespace OpenSim.Framework.Communications
         public IGridServices GridServer;
         public IInterRegionCommunications InterRegion;
 
+        public NetworkServersInfo ServersInfo;
         public CommunicationsManager(NetworkServersInfo serversInfo)
         {
-            
+            ServersInfo = serversInfo;
         }
     }
 }

@@ -42,6 +42,8 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Data;
+
 using OpenSim.Framework.Types;
 using OpenSim.Framework;
 using OpenSim.Assets;
@@ -250,7 +252,14 @@ namespace OpenSim
                 LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
                 LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
                 LocalWorld.LoadPrimsFromStorage();
-                LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+
+                //Master Avatar Setup
+                UserProfileData masterAvatar = commsManager.UserServer.SetupMasterUser(LocalWorld.RegionInfo.MasterAvatarFirstName, LocalWorld.RegionInfo.MasterAvatarLastName, LocalWorld.RegionInfo.MasterAvatarSandboxPassword);
+                if (masterAvatar != null)
+                {
+                    LocalWorld.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                    LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+                }
 
 
                 LocalWorld.StartTimer();

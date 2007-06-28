@@ -11,9 +11,9 @@
             <resources prefix="OpenSim" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="VersionInfo.cs" />
                 <include name="Application.cs" />
                 <include name="OpenSimMain.cs" />
-                <include name="VersionInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -26,6 +26,7 @@
                 <include name="../../../bin/OpenSim.Framework.dll" />
                 <include name="../../../bin/OpenSim.Framework.Communications.dll" />
                 <include name="../../../bin/OpenSim.Framework.Console.dll" />
+                <include name="../../../bin/OpenSim.Framework.Data.dll" />
                 <include name="../../../bin/OpenSim.Framework.GenericConfig.Xml.dll" />
                 <include name="../../../bin/OpenSim.Framework.Servers.dll" />
                 <include name="../../../bin/OpenSim.Framework.UserManagement.dll" />

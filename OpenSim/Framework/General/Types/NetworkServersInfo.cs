@@ -156,6 +156,45 @@ namespace OpenSim.Framework.Types
                         this.GridRecvKey = attri;
                     }
 
+                    //Grid Server 
+                    attri = "";
+                    attri = configData.GetAttribute("UserServerURL");
+                    if (attri == "")
+                    {
+                        this.UserURL= OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("User server URL", "http://127.0.0.1:8002/");
+                        configData.SetAttribute("UserServerURL", this.UserURL);
+                    }
+                    else
+                    {
+                        this.UserURL = attri;
+                    }
+
+                    //Grid Send Key
+                    attri = "";
+                    attri = configData.GetAttribute("UserSendKey");
+                    if (attri == "")
+                    {
+                        this.UserSendKey = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Key to send to user server", "null");
+                        configData.SetAttribute("UserSendKey", this.UserSendKey);
+                    }
+                    else
+                    {
+                        this.UserSendKey = attri;
+                    }
+
+                    //Grid Receive Key
+                    attri = "";
+                    attri = configData.GetAttribute("UserRecvKey");
+                    if (attri == "")
+                    {
+                        this.UserRecvKey = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Key to expect from user server", "null");
+                        configData.SetAttribute("GridRecvKey", this.UserRecvKey);
+                    }
+                    else
+                    {
+                        this.UserRecvKey = attri;
+                    }
+
                     attri = "";
                     attri = configData.GetAttribute("AssetServerURL");
                     if (attri == "")

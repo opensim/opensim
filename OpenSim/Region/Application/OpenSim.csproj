@@ -102,6 +102,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Framework\Data\OpenSim.Framework.Data.csproj">
+      <Name>OpenSim.Framework.Data</Name>
+      <Project>{36B72A9B-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Framework\GenericConfig\Xml\OpenSim.Framework.GenericConfig.Xml.csproj">
       <Name>OpenSim.Framework.GenericConfig.Xml</Name>
       <Project>{C74E4A30-0000-0000-0000-000000000000}</Project>
@@ -164,13 +170,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VersionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Application.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="OpenSimMain.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VersionInfo.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

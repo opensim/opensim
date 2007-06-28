@@ -86,9 +86,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommunicationsManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="IGridServices.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -96,6 +93,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IUserServices.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CommunicationsManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

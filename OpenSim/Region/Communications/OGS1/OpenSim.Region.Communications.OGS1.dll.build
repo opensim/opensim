@@ -11,9 +11,9 @@
             <resources prefix="OpenSim.Region.Communications.OGS1" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="GridCommsManager.cs" />
-                <include name="OGS1GridServices.cs" />
                 <include name="OGSInterSimComms.cs" />
+                <include name="OGS1GridServices.cs" />
+                <include name="GridCommsManager.cs" />
                 <include name="OGSUserServices.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>

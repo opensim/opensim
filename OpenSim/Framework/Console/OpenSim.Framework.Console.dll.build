@@ -12,8 +12,8 @@
             </resources>
             <sources failonempty="true">
                 <include name="AssemblyInfo.cs" />
-                <include name="ConsoleCallbacksBase.cs" />
                 <include name="LogBase.cs" />
+                <include name="ConsoleCallbacksBase.cs" />
                 <include name="MainLog.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

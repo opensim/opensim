@@ -11,26 +11,26 @@
             <resources prefix="OpenSim.Region.Environment" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="RegionManager.cs" />
                 <include name="EstateManager.cs" />
                 <include name="ParcelManager.cs" />
-                <include name="RegionManager.cs" />
-                <include name="Scenes/Entity.cs" />
-                <include name="Scenes/IScenePresenceBody.cs" />
-                <include name="Scenes/Primitive.cs" />
-                <include name="Scenes/Scene.cs" />
-                <include name="Scenes/Scene.PacketHandlers.cs" />
-                <include name="Scenes/SceneBase.cs" />
-                <include name="Scenes/SceneEvents.cs" />
-                <include name="Scenes/SceneObject.cs" />
-                <include name="Scenes/ScenePresence.Animations.cs" />
                 <include name="Scenes/ScenePresence.Body.cs" />
+                <include name="Scenes/SceneEvents.cs" />
                 <include name="Scenes/ScenePresence.cs" />
-                <include name="Scenes/scripting/Script.cs" />
-                <include name="Scenes/scripting/ScriptInfo.cs" />
+                <include name="Scenes/ScenePresence.Animations.cs" />
+                <include name="Scenes/Scene.PacketHandlers.cs" />
+                <include name="Scenes/SceneObject.cs" />
+                <include name="Scenes/Primitive.cs" />
+                <include name="Scenes/IScenePresenceBody.cs" />
+                <include name="Scenes/Entity.cs" />
+                <include name="Scenes/SceneBase.cs" />
+                <include name="Scenes/Scene.cs" />
                 <include name="Scenes/scripting/ScriptManager.cs" />
+                <include name="Scenes/scripting/ScriptInfo.cs" />
+                <include name="Scenes/scripting/Script.cs" />
                 <include name="Scenes/scripting/Engines/CSharpScriptEngine.cs" />
-                <include name="Scenes/scripting/Engines/JScriptEngine.cs" />
                 <include name="Scenes/scripting/Engines/JSharpScriptEngine.cs" />
+                <include name="Scenes/scripting/Engines/JScriptEngine.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

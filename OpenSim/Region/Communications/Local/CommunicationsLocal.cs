@@ -45,7 +45,7 @@ namespace OpenSim.Region.Communications.Local
         public CommunicationsLocal(NetworkServersInfo serversInfo)
             : base(serversInfo)
         {
-            UserServices = new LocalUserServices(this , serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY);
+            UserServices = new LocalUserServices(this,this.ServersInfo.DefaultHomeLocX,this.ServersInfo.DefaultHomeLocY);
             UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");
             UserServer = UserServices;
             GridServer = SandBoxServices;

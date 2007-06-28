@@ -12,7 +12,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             GridServer = gridInterComms;
             InterRegion = gridInterComms;
-            UserServer = new OGSUserServices();
+            UserServer = new OGSUserServices(this);
         }
     }
 }
