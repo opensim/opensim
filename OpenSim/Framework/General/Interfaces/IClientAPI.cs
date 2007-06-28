@@ -69,6 +69,8 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 
+    public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
+
     public interface IClientAPI
     {
         event ChatFromViewer OnChatFromViewer;
@@ -102,6 +104,8 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall2 OnStopMovement;
         event NewAvatar OnNewAvatar;
         event GenericCall6 OnRemoveAvatar;
+
+        event UUIDNameRequest OnNameFromUUIDRequest;
 
         event ParcelPropertiesRequest OnParcelPropertiesRequest;
         event ParcelDivideRequest OnParcelDivideRequest;

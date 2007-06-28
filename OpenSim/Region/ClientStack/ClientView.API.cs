@@ -68,6 +68,8 @@ namespace OpenSim.Region.ClientStack
         public event GenericCall6 OnRemoveAvatar;
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
+        
+        public event UUIDNameRequest OnNameFromUUIDRequest;
 
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
@@ -75,7 +77,6 @@ namespace OpenSim.Region.ClientStack
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
-
         /// <summary>
         /// 
         /// </summary>

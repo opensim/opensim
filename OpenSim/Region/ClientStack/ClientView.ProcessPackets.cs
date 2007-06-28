@@ -492,7 +492,13 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.MoneyBalanceRequest:
                         this.SendMoneyBalance(LLUUID.Zero, true, new byte[0], 1000);
                         break;
-
+                    case PacketType.UUIDNameRequest:
+                        UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
+                        foreach (UUIDNameRequestPacket.UUIDNameBlockBlock UUIDBlock in incoming.UUIDNameBlock)
+                        {
+                            OnNameFromUUIDRequest(UUIDBlock.ID, this);
+                        }
+                        break;
                     #region Parcel related packets
                     case PacketType.ParcelPropertiesRequest:
                         ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;

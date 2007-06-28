@@ -17,12 +17,12 @@
                 <include name="LLSDTest.cs" />
                 <include name="LLSDUploadReply.cs" />
                 <include name="LLSDType.cs" />
-                <include name="LLSDHelpers.cs" />
                 <include name="LLSDCapEvent.cs" />
                 <include name="LLSDMapRequest.cs" />
                 <include name="Caps.cs" />
                 <include name="LLSDMapLayerResponse.cs" />
                 <include name="LLSDMapLayer.cs" />
+                <include name="LLSDHelpers.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

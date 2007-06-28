@@ -133,10 +133,10 @@
     <Compile Include="Interfaces\IWorld.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IClientAPI.cs">
+    <Compile Include="Interfaces\ILocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\ILocalStorage.cs">
+    <Compile Include="Interfaces\IClientAPI.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\Config\IGenericConfig.cs">

@@ -163,9 +163,6 @@
     <Compile Include="Scenes\SceneEvents.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\ScenePresence.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Scenes\ScenePresence.Animations.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -185,6 +182,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\SceneBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\ScenePresence.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\Scene.cs">

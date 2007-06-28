@@ -11,16 +11,22 @@ using Nwc.XmlRpc;
 
 namespace OpenSim.Region.Communications.OGS1
 {
-    public class OGSUserServices :IUserServices
+    public class OGS1UserServices :IUserServices
     {
         CommunicationsOGS1 m_parent;
-        public OGSUserServices(CommunicationsOGS1 parent)
+        public OGS1UserServices(CommunicationsOGS1 parent)
         {
             m_parent = parent;
         }
 
         public UserProfileData ConvertXMLRPCDataToUserProfile(Hashtable data)
         {
+            if (data.Contains("error_type"))
+            {
+                Console.WriteLine("Error sent by user server when trying to get user profile: (" + data["error_type"] + "): " + data["error_desc"]);
+                return null;
+            }
+
             UserProfileData userData = new UserProfileData();
             userData.username = (string)data["firstname"];
             userData.surname = (string)data["lastname"];

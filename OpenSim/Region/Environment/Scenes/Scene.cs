@@ -505,6 +505,7 @@ namespace OpenSim.Region.Environment.Scenes
             remoteClient.OnTeleportLocationRequest += this.RequestTeleportLocation;
            //remoteClient.OnObjectSelect += this.SelectPrim;
             remoteClient.OnGrapUpdate += this.MoveObject;
+            remoteClient.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
@@ -512,7 +513,7 @@ namespace OpenSim.Region.Environment.Scenes
             remoteClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
             remoteClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
             */
-
+            
             ScenePresence newAvatar = null;
             try
             {

@@ -192,7 +192,5 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(mbReply);
              */
         }
-
-       
     }
 }

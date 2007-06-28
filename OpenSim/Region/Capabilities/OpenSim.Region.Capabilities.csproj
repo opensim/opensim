@@ -114,9 +114,6 @@
     <Compile Include="LLSDType.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LLSDHelpers.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LLSDCapEvent.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -130,6 +127,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LLSDMapLayer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDHelpers.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

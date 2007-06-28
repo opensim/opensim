@@ -26,8 +26,8 @@
                 <include name="Interfaces/IUserServer.cs" />
                 <include name="Interfaces/IAssetServer.cs" />
                 <include name="Interfaces/IWorld.cs" />
-                <include name="Interfaces/IClientAPI.cs" />
                 <include name="Interfaces/ILocalStorage.cs" />
+                <include name="Interfaces/IClientAPI.cs" />
                 <include name="Interfaces/Config/IGenericConfig.cs" />
                 <include name="Interfaces/Config/IUserConfig.cs" />
                 <include name="Interfaces/Config/IGridConfig.cs" />

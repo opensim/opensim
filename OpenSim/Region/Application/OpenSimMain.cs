@@ -64,8 +64,8 @@ namespace OpenSim
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
-      //  private CheckSumServer checkServer;
         protected CommunicationsManager commsManager;
+      //  private CheckSumServer checkServer;
 
         private bool m_silent;
         private string m_logFilename = "region-console-" + Guid.NewGuid().ToString() + ".log";
@@ -106,14 +106,12 @@ namespace OpenSim
 
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
-            CommunicationsLocal sandboxCommunications = null;
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
               //  this.checkServer = new CheckSumServer(12036);
               //  this.checkServer.ServerListener();
-                sandboxCommunications = new CommunicationsLocal(this.serversData);
-                this.commsManager = sandboxCommunications;
+                this.commsManager = new CommunicationsLocal(this.serversData);
             }
             else
             {
@@ -136,7 +134,7 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                httpServer.AddXmlRPCHandler("login_to_simulator", sandboxCommunications.UserServices.XmlRpcLoginMethod);
+                httpServer.AddXmlRPCHandler("login_to_simulator", ((CommunicationsLocal)this.commsManager).UserServices.XmlRpcLoginMethod);
             }
 
             //Start http server

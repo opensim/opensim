@@ -30,9 +30,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework;
+using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using libsecondlife;
+using libsecondlife.Packets;
 
 namespace OpenSim.Framework.Communications
 {
@@ -48,5 +50,21 @@ namespace OpenSim.Framework.Communications
         {
             ServersInfo = serversInfo;
         }
+
+        #region Packet Handlers
+        public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
+        {
+            UserProfileData profileData = this.UserServer.GetUserProfile(uuid);
+            if (profileData != null)
+            {
+                UUIDNameReplyPacket packet = new UUIDNameReplyPacket();
+                packet.UUIDNameBlock[0].ID = profileData.UUID;
+                packet.UUIDNameBlock[0].FirstName = libsecondlife.Helpers.StringToField(profileData.username);
+                packet.UUIDNameBlock[0].LastName = libsecondlife.Helpers.StringToField(profileData.surname);
+                remote_client.OutPacket((Packet)packet);
+            }
+            
+        }
+        #endregion
     }
 }
