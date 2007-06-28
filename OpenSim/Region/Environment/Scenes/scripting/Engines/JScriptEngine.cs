@@ -34,7 +34,7 @@ using System.CodeDom;
 using System.CodeDom.Compiler;
 using Microsoft.JScript;
 
-namespace OpenSim.Scripting
+namespace OpenSim.Region.Enviorment.Scripting
 {
     public class JScriptEngine : IScriptCompiler
     {

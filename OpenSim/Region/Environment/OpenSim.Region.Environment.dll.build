@@ -19,7 +19,6 @@
                 <include name="Scenes/Primitive.cs" />
                 <include name="Scenes/Scene.cs" />
                 <include name="Scenes/Scene.PacketHandlers.cs" />
-                <include name="Scenes/Scene.Scripting.cs" />
                 <include name="Scenes/SceneBase.cs" />
                 <include name="Scenes/SceneEvents.cs" />
                 <include name="Scenes/SceneObject.cs" />

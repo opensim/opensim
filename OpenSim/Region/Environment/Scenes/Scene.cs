@@ -44,7 +44,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;
 using OpenSim.Framework.Servers;
-using OpenSim.Scripting;
+using OpenSim.Region.Enviorment.Scripting;
 using OpenSim.Region.Capabilities;
 using Caps = OpenSim.Region.Capabilities.Caps;
 
@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public delegate bool FilterAvatarList(ScenePresence avatar);
 
-    public partial class Scene : SceneBase, ILocalStorageReceiver, IScriptAPI
+    public partial class Scene : SceneBase, ILocalStorageReceiver
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         protected Dictionary<libsecondlife.LLUUID, ScenePresence> Avatars;

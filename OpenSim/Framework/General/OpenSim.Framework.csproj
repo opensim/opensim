@@ -148,12 +148,6 @@
     <Compile Include="Interfaces\Config\IUserConfig.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\Scripting\IScriptAPI.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Scripting\IScriptEngine.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

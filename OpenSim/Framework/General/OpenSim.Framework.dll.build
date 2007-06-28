@@ -31,8 +31,6 @@
                 <include name="Interfaces/Config/IGenericConfig.cs" />
                 <include name="Interfaces/Config/IGridConfig.cs" />
                 <include name="Interfaces/Config/IUserConfig.cs" />
-                <include name="Interfaces/Scripting/IScriptAPI.cs" />
-                <include name="Interfaces/Scripting/IScriptEngine.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
                 <include name="Types/AgentCiruitData.cs" />
                 <include name="Types/AgentWearable.cs" />

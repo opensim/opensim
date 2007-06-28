@@ -32,7 +32,7 @@ using System.Text;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Scripting
+namespace OpenSim.Region.Enviorment.Scripting
 {
     /// <summary>
     /// Class which provides access to the world

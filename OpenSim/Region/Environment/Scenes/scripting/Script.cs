@@ -28,15 +28,44 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Framework.Types;
 
-using libsecondlife;
-namespace OpenSim.Framework.Interfaces
+using OpenSim.Framework.Console;
+using OpenSim.Framework;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
+
+namespace OpenSim.Region.Enviorment.Scripting
 {
-    public interface IScriptAPI
+    public interface IScript
     {
-        LLVector3 GetEntityPosition(uint localID);
-        void SetEntityPosition(uint localID, float x, float y, float z);
-        uint GetRandomAvatarID();
+        void Initialise(ScriptInfo scriptInfo);
+        string getName();
+    }
+
+    public class TestScript : IScript
+    {
+        ScriptInfo script;
+
+        public string getName()
+        {
+            return "TestScript 0.1";
+        }
+
+        public void Initialise(ScriptInfo scriptInfo)
+        {
+            script = scriptInfo;
+            script.events.OnFrame += new OpenSim.Region.Environment.Scenes.EventManager.OnFrameDelegate(events_OnFrame);
+            script.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
+        }
+
+        void events_OnNewPresence(ScenePresence presence)
+        {
+            script.logger.Verbose("Hello " + presence.firstname.ToString() + "!");
+        }
+
+        void events_OnFrame()
+        {
+            //script.logger.Verbose("Hello World!");
+        }
     }
 }

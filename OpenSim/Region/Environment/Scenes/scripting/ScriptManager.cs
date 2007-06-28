@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Scripting
+namespace OpenSim.Region.Enviorment.Scripting
 {
     public class ScriptManager
     {

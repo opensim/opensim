@@ -172,9 +172,6 @@
     <Compile Include="Scenes\Scene.PacketHandlers.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\Scene.Scripting.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Scenes\SceneBase.cs">
       <SubType>Code</SubType>
     </Compile>
