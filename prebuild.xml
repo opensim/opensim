@@ -407,6 +407,7 @@
       <Reference name="System.Xml"/>
       <Reference name="libTerrain-BSD.dll"/>
       <Reference name="openjpegnet.dll" />
+      <Reference name="Microsoft.JScript"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

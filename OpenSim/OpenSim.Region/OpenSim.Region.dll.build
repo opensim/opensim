@@ -22,16 +22,17 @@
                 <include name="Scenes/Scene.PacketHandlers.cs" />
                 <include name="Scenes/Scene.Scripting.cs" />
                 <include name="Scenes/SceneBase.cs" />
+                <include name="Scenes/SceneEvents.cs" />
                 <include name="Scenes/SceneObject.cs" />
                 <include name="Scenes/ScenePresence.Animations.cs" />
                 <include name="Scenes/ScenePresence.Body.cs" />
                 <include name="Scenes/ScenePresence.cs" />
-                <include name="Scenes/scripting/IScriptContext.cs" />
-                <include name="Scenes/scripting/IScriptEntity.cs" />
-                <include name="Scenes/scripting/IScriptHandler.cs" />
                 <include name="Scenes/scripting/Script.cs" />
-                <include name="Scenes/scripting/ScriptFactory.cs" />
-                <include name="Scenes/scripting/Scripts/FollowRandomAvatar.cs" />
+                <include name="Scenes/scripting/ScriptInfo.cs" />
+                <include name="Scenes/scripting/ScriptManager.cs" />
+                <include name="Scenes/scripting/Engines/CSharpScriptEngine.cs" />
+                <include name="Scenes/scripting/Engines/JScriptEngine.cs" />
+                <include name="Scenes/scripting/Engines/JSharpScriptEngine.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
@@ -41,6 +42,7 @@
                 <include name="../../bin/Axiom.MathLib.dll" />
                 <include name="../../bin/Db4objects.Db4o.dll" />
                 <include name="../../bin/libsecondlife.dll" />
+                <include name="Microsoft.JScript.dll" />
                 <include name="../../bin/OpenGrid.Framework.Communications.dll" />
                 <include name="../../bin/OpenSim.Caches.dll" />
                 <include name="../../bin/OpenSim.Framework.dll" />
@@ -51,6 +53,7 @@
                 <include name="../../bin/OpenSim.Terrain.BasicTerrain.dll" />
                 <include name="System.dll" />
                 <include name="System.Xml.dll" />
+                <include name="VJSharpCodeProvider.dll" />
                 <include name="../../bin/XMLRPC.dll" />
             </references>
         </csc>
