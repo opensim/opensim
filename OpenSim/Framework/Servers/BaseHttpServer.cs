@@ -31,7 +31,6 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-//using OpenSim.CAPS;
 using Nwc.XmlRpc;
 using System.Collections;
 using OpenSim.Framework.Console;
