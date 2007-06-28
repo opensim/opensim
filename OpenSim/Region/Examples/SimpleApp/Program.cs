@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim;
-using OpenSim.GridInterfaces.Local;
+using OpenSim.Region.GridInterfaces.Local;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;

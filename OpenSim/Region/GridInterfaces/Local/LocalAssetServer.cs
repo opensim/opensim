@@ -38,7 +38,7 @@ using libsecondlife;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 
-namespace OpenSim.GridInterfaces.Local
+namespace OpenSim.Region.GridInterfaces.Local
 {
     public class LocalAssetPlugin : IAssetPlugin
     {

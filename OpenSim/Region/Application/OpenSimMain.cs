@@ -154,7 +154,7 @@ namespace OpenSim
         {
             try
             {
-                AssetCache = new AssetCache("OpenSim.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
+                AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
                 InventoryCache = new InventoryCache();
             }
             catch (Exception e)
@@ -169,7 +169,7 @@ namespace OpenSim
         {
             try
             {
-                AssetCache = new AssetCache("OpenSim.GridInterfaces.Remote.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
+                AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Remote.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
                 InventoryCache = new InventoryCache();
             }
             catch (Exception e)

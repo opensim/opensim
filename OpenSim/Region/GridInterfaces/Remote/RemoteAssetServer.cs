@@ -37,7 +37,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.GridInterfaces.Remote
+namespace OpenSim.Region.GridInterfaces.Remote
 {
     public class RemoteAssetServer : IAssetServer
     {

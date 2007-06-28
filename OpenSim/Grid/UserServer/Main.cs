@@ -48,7 +48,7 @@ namespace OpenSim.Grid.UserServer
     /// </summary>
     public class OpenUser_Main :  conscmd_callback
     {
-        private string ConfigDll = "OpenUser.Config.UserConfigDb4o.dll";
+        private string ConfigDll = "OpenSim.Grid.UserServer.Config.dll";
         private string StorageDll = "OpenSim.Framework.Data.MySQL.dll";
         private UserConfig Cfg;
         protected IGenericConfig localXMLConfig;
