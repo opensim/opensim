@@ -73,7 +73,6 @@ namespace OpenSim.Region.Capabilities
                             }
                             else
                             {
-                                //Console.WriteLine("LLSD field name" + fields[i].Name + " , " + fields[i].GetValue(obj).GetType());
                                 writer.WriteStartElement(String.Empty, "key", String.Empty);
                                 writer.WriteString(fields[i].Name);
                                 writer.WriteEndElement();
@@ -86,12 +85,15 @@ namespace OpenSim.Region.Capabilities
                         // LLSDArray arrayObject = obj as LLSDArray;
                         // ArrayList a = arrayObject.Array;
                         ArrayList a = (ArrayList)obj.GetType().GetField("Array").GetValue(obj);
-                        writer.WriteStartElement(String.Empty, "array", String.Empty);
-                        foreach (object item in a)
+                        if (a != null)
                         {
-                            SerializeLLSDType(writer, item);
+                            writer.WriteStartElement(String.Empty, "array", String.Empty);
+                            foreach (object item in a)
+                            {
+                                SerializeLLSDType(writer, item);
+                            }
+                            writer.WriteEndElement();
                         }
-                        writer.WriteEndElement();
                         break;
                 }
             }

@@ -66,6 +66,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected RegionInfo m_regionInfo;
 
+        private Vector3[] Dir_Vectors = new Vector3[6];
+        private enum Dir_ControlFlags
+        {
+            DIR_CONTROL_FLAG_FOWARD = MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS,
+            DIR_CONTROL_FLAG_BACK = MainAvatar.ControlFlags.AGENT_CONTROL_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT = MainAvatar.ControlFlags.AGENT_CONTROL_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT = MainAvatar.ControlFlags.AGENT_CONTROL_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP = MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS,
+            DIR_CONTROL_FLAG_DOWN = MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG
+        }
+
         #region Properties
         /// <summary>
         /// 
@@ -124,6 +135,13 @@ namespace OpenSim.Region.Environment.Scenes
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+
+            Dir_Vectors[0] = new Vector3(1, 0, 0);  //FOWARD
+            Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
+            Dir_Vectors[2] = new Vector3(0, 1, 0);  //LEFT
+            Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
+            Dir_Vectors[4] = new Vector3(0, 0, 1);  //UP
+            Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
 
         }
         #endregion
@@ -216,40 +234,47 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="pack"></param>
         public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
-        {  
-            if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
+        {
+            int i = 0;
+            bool update_movementflag = false;
+            bool update_rotation = false;
+            bool DCFlagKeyPressed = false;
+            Vector3 agent_control_v3 = new Vector3(0, 0, 0);
+            Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
+
+
+            // this.PhysActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+
+            if (q != this.bodyRot)
             {
-                Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
-                if (((movementflag & 1) == 0) || (q != this.bodyRot))
-                {
-                    Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(1, 0, 0);
-                    this.AddNewMovement(v3, q);
-                    movementflag = 1;
-                    this.bodyRot = q;
-                }
+                this.bodyRot = q;
+                update_rotation = true;
             }
-            else if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
+            foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
             {
-                Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
-                if (((movementflag & 2) == 0) || (q != this.bodyRot))
-                {  
-                    Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3(-1, 0, 0);
-                    this.AddNewMovement(v3, q);
-                    movementflag = 2;
-                    this.bodyRot = q;
-                }
-            }
-            else
-            {
-                if ((movementflag) != 0)
+                if ((flags & (uint)DCF) != 0)
                 {
-                    NewForce newVelocity = new NewForce();
-                    newVelocity.X = 0;
-                    newVelocity.Y = 0;
-                    newVelocity.Z = 0;
-                    this.forcesList.Add(newVelocity);
-                    movementflag = 0;
+                    DCFlagKeyPressed = true;
+                    agent_control_v3 += Dir_Vectors[i];
+                    if ((movementflag & (uint)DCF) == 0)
+                    {
+                        movementflag += (byte)(uint)DCF;
+                        update_movementflag = true;
+                    }
                 }
+                else
+                {
+                    if ((movementflag & (uint)DCF) != 0)
+                    {
+                        movementflag -= (byte)(uint)DCF;
+                        update_movementflag = true;
+                    }
+                }
+                i++;
+            }
+            if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
+            {
+                this.AddNewMovement(agent_control_v3, q);
             }
 
         }
