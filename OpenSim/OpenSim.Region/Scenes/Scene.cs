@@ -39,12 +39,12 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework;
-using OpenSim.Region.Scripting;
 using OpenSim.Terrain;
 using OpenGrid.Framework.Communications;
 using OpenSim.Caches;
 using OpenSim.Region;
 using OpenSim.Servers;
+using OpenSim.Scripting;
 
 namespace OpenSim.Region.Scenes
 {
@@ -60,8 +60,6 @@ namespace OpenSim.Region.Scenes
         private Random Rand = new Random();
         private uint _primCount = 702000;
         private int storageCount;
-        private Dictionary<LLUUID, ScriptHandler> m_scriptHandlers;
-        private Dictionary<string, ScriptFactory> m_scripts;
         private Mutex updateLock;
         
         protected AuthenticateSessionsBase authenticateHandler;
@@ -74,6 +72,7 @@ namespace OpenSim.Region.Scenes
         public ParcelManager parcelManager;
         public EstateManager estateManager;
         public EventManager eventManager;
+        public ScriptManager scriptManager;
 
         #region Properties
         /// <summary>
@@ -117,11 +116,8 @@ namespace OpenSim.Region.Scenes
 
                 parcelManager = new ParcelManager(this, this.m_regInfo);
                 estateManager = new EstateManager(this, this.m_regInfo);
-
+                scriptManager = new ScriptManager(this);
                 eventManager = new EventManager();
-
-                m_scriptHandlers = new Dictionary<LLUUID, ScriptHandler>();
-                m_scripts = new Dictionary<string, ScriptFactory>();
 
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs - creating new entitities instance");
                 Entities = new Dictionary<libsecondlife.LLUUID, Entity>();
@@ -195,18 +191,8 @@ namespace OpenSim.Region.Scenes
                     Entities[UUID].update();
                 }
 
-                // New
+                // General purpose event manager
                 eventManager.TriggerOnFrame();
-
-                // TODO: Obsolete - Phase out
-                foreach (ScriptHandler scriptHandler in m_scriptHandlers.Values)
-                {
-                    scriptHandler.OnFrame();
-                }
-                foreach (IScriptEngine scripteng in this.scriptEngines.Values)
-                {
-                    scripteng.OnFrame();
-                }
 
                 //backup world data
                 this.storageCount++;

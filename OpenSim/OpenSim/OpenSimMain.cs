@@ -433,6 +433,13 @@ namespace OpenSim
                     }
                     break;
 
+                case "script":
+                    for (int i = 0; i < m_localWorld.Count; i++)
+                    {
+                        ((Scene)m_localWorld[i]).scriptManager.RunScriptCmd(cmdparams);
+                    }
+                    break;
+
                 case "shutdown":
                     Shutdown();
                     break;

@@ -31,11 +31,10 @@ using System.Text;
 using Axiom.MathLib;
 using OpenSim.Physics.Manager;
 using libsecondlife;
-using OpenSim.Region.Scripting;
 
 namespace OpenSim.Region.Scenes
 {
-    public abstract class Entity : IScriptReadonlyEntity
+    public abstract class Entity
     {
         public libsecondlife.LLUUID uuid;
         public Quaternion rotation;

@@ -190,24 +190,13 @@
     <Compile Include="Scenes\ScenePresence.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\scripting\IScriptContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\IScriptEntity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\IScriptHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\Script.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\ScriptFactory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scenes\scripting\Scripts\FollowRandomAvatar.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Scenes\scripting\CSharpScriptEngine.cs" />
+    <Compile Include="Scenes\scripting\Script.cs" />
+    <Compile Include="Scenes\scripting\ScriptInfo.cs" />
+    <Compile Include="Scenes\scripting\ScriptManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Scenes\scripting\CSharpScripts\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
