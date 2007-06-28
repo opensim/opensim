@@ -29,51 +29,43 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.Scenes
+using OpenSim.Framework.Console;
+using OpenSim.Framework;
+using OpenSim.Region;
+using OpenSim.Region.Scenes;
+
+namespace OpenSim.Scripting
 {
-    /// <summary>
-    /// A class for triggering remote scene events.
-    /// </summary>
-    public class EventManager
+    public interface IScript
     {
-        public delegate void OnFrameDelegate();
-        public event OnFrameDelegate OnFrame;
+        void Initialise(ScriptInfo scriptInfo);
+        string getName();
+    }
 
-        public delegate void OnNewPresenceDelegate(ScenePresence presence);
-        public event OnNewPresenceDelegate OnNewPresence;
+    public class TestScript : IScript
+    {
+        ScriptInfo script;
 
-        public delegate void OnNewPrimitiveDelegate(Primitive prim);
-        public event OnNewPrimitiveDelegate OnNewPrimitive;
-
-        public delegate void OnRemovePresenceDelegate(libsecondlife.LLUUID uuid);
-        public event OnRemovePresenceDelegate OnRemovePresence;
-
-        public void TriggerOnFrame()
+        public string getName()
         {
-            if (OnFrame != null)
-            {
-                OnFrame();
-            }
+            return "TestScript 0.1";
         }
 
-        public void TriggerOnNewPrimitive(Primitive prim)
+        public void Initialise(ScriptInfo scriptInfo)
         {
-            if (OnNewPrimitive != null)
-                OnNewPrimitive(prim);
+            script = scriptInfo;
+            script.events.OnFrame += new OpenSim.Region.Scenes.EventManager.OnFrameDelegate(events_OnFrame);
+            script.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
         }
 
-        public void TriggerOnNewPresence(ScenePresence presence)
+        void events_OnNewPresence(ScenePresence presence)
         {
-            if (OnNewPresence != null)
-                OnNewPresence(presence);
+            script.logger.Verbose("Hello " + presence.firstname.ToString() + "!");
         }
 
-        public void TriggerOnRemovePresence(libsecondlife.LLUUID uuid)
+        void events_OnFrame()
         {
-            if (OnRemovePresence != null)
-            {
-                OnRemovePresence(uuid);
-            }
+            //script.logger.Verbose("Hello World!");
         }
     }
 }

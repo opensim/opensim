@@ -629,7 +629,11 @@
       <Reference name="OpenSim.GenericConfig.Xml"/>
       <Reference name="OpenSim.Physics.Manager"/>
       <Reference name="OpenSim.Servers"/>
-	<Reference name="OpenSim.Caches"/>
+	    <Reference name="OpenSim.Caches"/>
+      <!-- For scripting in funny languages by default -->
+      <Reference name="Microsoft.JScript"/>
+      <!-- This needs checking with the Mono folks -->
+      <Reference name="VJSharpCodeProvider"/>
       <Reference name="XMLRPC"/>
       <Reference name="OpenGrid.Framework.Communications"/>
 

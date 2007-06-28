@@ -29,102 +29,76 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using System.CodeDom.Compiler;
+// Compilation stuff
 using System.CodeDom;
-using Microsoft.CSharp;
-using Microsoft.JScript;
+using System.CodeDom.Compiler;
+using Microsoft.VJSharp;
 
-using libTerrain;
-
-namespace OpenSim.Terrain
+namespace OpenSim.Scripting
 {
-    public interface ITerrainFilter
+    public class JSharpScriptEngine : IScriptCompiler
     {
-        void Filter(Channel heightmap, string[] args);
-        string Register();
-        string Help();
-    }
-
-    public class TestFilter : ITerrainFilter
-    {
-        public void Filter(Channel heightmap, string[] args)
+        public string FileExt()
         {
-            Console.WriteLine("Hello world");
+            return ".jsl";
         }
 
-        public string Register()
-        {
-            return "demofilter";
-        }
-
-        public string Help()
-        {
-            return "demofilter - Does nothing";
-        }
-    }
-
-    public class FilterHost
-    {
-        public Dictionary<string, ITerrainFilter> filters = new Dictionary<string, ITerrainFilter>();
-
-        private void LoadFilter(ICodeCompiler compiler, string filename)
+        private Dictionary<string, IScript> LoadDotNetScript(ICodeCompiler compiler, string filename)
         {
             CompilerParameters compilerParams = new CompilerParameters();
             CompilerResults compilerResults;
             compilerParams.GenerateExecutable = false;
             compilerParams.GenerateInMemory = true;
             compilerParams.IncludeDebugInformation = false;
-            compilerParams.ReferencedAssemblies.Add("libTerrain-BSD.dll");
-            compilerParams.ReferencedAssemblies.Add("OpenSim.Terrain.BasicTerrain.dll");
+            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.dll");
+            compilerParams.ReferencedAssemblies.Add("OpenSim.Framework.dll");
+            compilerParams.ReferencedAssemblies.Add("libsecondlife.dll");
             compilerParams.ReferencedAssemblies.Add("System.dll");
 
             compilerResults = compiler.CompileAssemblyFromFile(compilerParams, filename);
 
             if (compilerResults.Errors.Count > 0)
             {
-                Console.WriteLine("Compile errors:");
+                OpenSim.Framework.Console.MainLog.Instance.Error("Compile errors");
                 foreach (CompilerError error in compilerResults.Errors)
                 {
-                    Console.WriteLine(error.Line.ToString() + ": " + error.ErrorText.ToString());
+                    OpenSim.Framework.Console.MainLog.Instance.Error(error.Line.ToString() + ": " + error.ErrorText.ToString());
                 }
             }
             else
             {
+                Dictionary<string, IScript> scripts = new Dictionary<string, IScript>();
+
                 foreach (Type pluginType in compilerResults.CompiledAssembly.GetExportedTypes())
                 {
-                    Type testInterface = pluginType.GetInterface("ITerrainFilter",true);
+                    Type testInterface = pluginType.GetInterface("IScript", true);
 
                     if (testInterface != null)
                     {
-                        ITerrainFilter filter = (ITerrainFilter)compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
+                        IScript script = (IScript)compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
 
-                        string filterName = filter.Register();
-                        Console.WriteLine("Plugin: " + filterName + " loaded.");
+                        string scriptName = "J#/" + script.getName();
+                        Console.WriteLine("Script: " + scriptName + " loaded.");
 
-                        if (!filters.ContainsKey(filterName))
+                        if (!scripts.ContainsKey(scriptName))
                         {
-                            filters.Add(filterName, filter);
+                            scripts.Add(scriptName, script);
                         }
                         else
                         {
-                            filters[filterName] = filter;
+                            scripts[scriptName] = script;
                         }
                     }
                 }
+                return scripts;
             }
-
+            return null;
         }
 
-        public void LoadFilterCSharp(string filename)
+        public Dictionary<string, IScript> compile(string filename)
         {
-            CSharpCodeProvider compiler = new CSharpCodeProvider();
-            LoadFilter(compiler.CreateCompiler(), filename);
-        }
-
-        public void LoadFilterJScript(string filename)
-        {
-            JScriptCodeProvider compiler = new JScriptCodeProvider();
-            LoadFilter(compiler.CreateCompiler(), filename);
+            VJSharpCodeProvider jsharpProvider = new VJSharpCodeProvider();
+            return LoadDotNetScript(jsharpProvider.CreateCompiler(), filename);
         }
     }
 }

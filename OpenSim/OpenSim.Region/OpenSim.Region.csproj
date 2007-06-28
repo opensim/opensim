@@ -77,6 +77,7 @@
       <HintPath>..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.JScript" />
     <Reference Include="System">
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
@@ -86,6 +87,7 @@
       <HintPath>System.Xml.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="VJSharpCodeProvider" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Common\OpenGrid.Framework.Communications\OpenGrid.Framework.Communications.csproj">
@@ -190,13 +192,15 @@
     <Compile Include="Scenes\ScenePresence.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scenes\scripting\CSharpScriptEngine.cs" />
-    <Compile Include="Scenes\scripting\Script.cs" />
-    <Compile Include="Scenes\scripting\ScriptInfo.cs" />
-    <Compile Include="Scenes\scripting\ScriptManager.cs" />
+    <Compile Include="Scenes\Scripting\Engines\CSharpScriptEngine.cs" />
+    <Compile Include="Scenes\Scripting\Engines\JScriptEngine.cs" />
+    <Compile Include="Scenes\Scripting\Engines\JSharpScriptEngine.cs" />
+    <Compile Include="Scenes\Scripting\Script.cs" />
+    <Compile Include="Scenes\Scripting\ScriptInfo.cs" />
+    <Compile Include="Scenes\Scripting\ScriptManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Scenes\scripting\CSharpScripts\" />
+    <Folder Include="Scenes\Scripting\CSharpScripts\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

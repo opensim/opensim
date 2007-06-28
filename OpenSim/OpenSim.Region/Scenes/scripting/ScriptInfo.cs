@@ -29,51 +29,30 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.Scenes
+using OpenSim.Region.Scenes;
+using OpenSim.Framework.Console;
+
+namespace OpenSim.Scripting
 {
     /// <summary>
-    /// A class for triggering remote scene events.
+    /// Class which provides access to the world
     /// </summary>
-    public class EventManager
+    public class ScriptInfo
     {
-        public delegate void OnFrameDelegate();
-        public event OnFrameDelegate OnFrame;
+        // Reference to world.eventsManager provided for convenience
+        public EventManager events;
 
-        public delegate void OnNewPresenceDelegate(ScenePresence presence);
-        public event OnNewPresenceDelegate OnNewPresence;
+        // The main world
+        public Scene world;
 
-        public delegate void OnNewPrimitiveDelegate(Primitive prim);
-        public event OnNewPrimitiveDelegate OnNewPrimitive;
+        // The console
+        public LogBase logger;
 
-        public delegate void OnRemovePresenceDelegate(libsecondlife.LLUUID uuid);
-        public event OnRemovePresenceDelegate OnRemovePresence;
-
-        public void TriggerOnFrame()
+        public ScriptInfo(Scene scene)
         {
-            if (OnFrame != null)
-            {
-                OnFrame();
-            }
-        }
-
-        public void TriggerOnNewPrimitive(Primitive prim)
-        {
-            if (OnNewPrimitive != null)
-                OnNewPrimitive(prim);
-        }
-
-        public void TriggerOnNewPresence(ScenePresence presence)
-        {
-            if (OnNewPresence != null)
-                OnNewPresence(presence);
-        }
-
-        public void TriggerOnRemovePresence(libsecondlife.LLUUID uuid)
-        {
-            if (OnRemovePresence != null)
-            {
-                OnRemovePresence(uuid);
-            }
+            world = scene;
+            events = world.eventManager;
+            logger = OpenSim.Framework.Console.MainLog.Instance;
         }
     }
 }
