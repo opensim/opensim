@@ -49,6 +49,7 @@ namespace OpenSim.Framework
         {
             if(OnExpectUser != null)
             {
+                
                 OnExpectUser(regionHandle, agent);
                 return true;
             }

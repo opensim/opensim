@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimLocationX");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location X", "997");
+                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location X", "1000");
                     configData.SetAttribute("SimLocationX", location);
                     this.RegionLocX = (uint)Convert.ToUInt32(location);
                 }
@@ -123,7 +123,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimLocationY");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location Y", "996");
+                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location Y", "1000");
                     configData.SetAttribute("SimLocationY", location);
                     this.RegionLocY = (uint)Convert.ToUInt32(location);
                 }

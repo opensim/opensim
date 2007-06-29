@@ -472,7 +472,6 @@ namespace OpenSim.Framework.UserManagement
                         return logResponse.CreateDeadRegionResponse();
                     }
                     CommitAgent(ref TheUser);
-
                     return logResponse.ToXmlRpcResponse();
 
                 }

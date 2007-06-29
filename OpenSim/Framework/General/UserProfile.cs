@@ -59,7 +59,7 @@ namespace OpenSim.Framework.User
         {
             Circuits = new Dictionary<LLUUID, uint>();
             Inventory = new AgentInventory();
-            homeregionhandle = Helpers.UIntsToLong((997 * 256), (996 * 256));
+            homeregionhandle = Helpers.UIntsToLong((1000 * 256), (1000 * 256));
             homepos = new LLVector3();
 	    homelookat = new LLVector3();
         }

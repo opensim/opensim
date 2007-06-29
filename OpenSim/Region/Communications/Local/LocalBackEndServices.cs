@@ -182,7 +182,6 @@ namespace OpenSim.Region.Communications.Local
         /// <returns></returns>
         public bool AddNewSession(ulong regionHandle, Login loginData)
         {
-            //Console.WriteLine(" comms manager been told to expect new user");
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = loginData.Agent;
             agent.firstname = loginData.First;

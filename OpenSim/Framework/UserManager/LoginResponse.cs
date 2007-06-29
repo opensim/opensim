@@ -124,7 +124,7 @@ namespace OpenSim.Framework.UserManagement
                 this.ErrorReason = "key";
                 this.welcomeMessage = "Welcome to OpenSim!";
                 this.seedCapability = "";
-                this.home = "{'region_handle':[r" + (997 * 256).ToString() + ",r" + (996 * 256).ToString() + "], 'position':[r" + this.userProfile.homepos.X.ToString() + ",r" + this.userProfile.homepos.Y.ToString() + ",r" + this.userProfile.homepos.Z.ToString() + "], 'look_at':[r" + this.userProfile.homelookat.X.ToString() + ",r" + this.userProfile.homelookat.Y.ToString() + ",r" + this.userProfile.homelookat.Z.ToString() + "]}";
+                this.home = "{'region_handle':[r" + (1000 * 256).ToString() + ",r" + (1000 * 256).ToString() + "], 'position':[r" + this.userProfile.homepos.X.ToString() + ",r" + this.userProfile.homepos.Y.ToString() + ",r" + this.userProfile.homepos.Z.ToString() + "], 'look_at':[r" + this.userProfile.homelookat.X.ToString() + ",r" + this.userProfile.homelookat.Y.ToString() + ",r" + this.userProfile.homelookat.Z.ToString() + "]}";
                 this.lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
                 this.RegionX = (uint)255232;
                 this.RegionY = (uint)254976;
@@ -227,6 +227,7 @@ namespace OpenSim.Framework.UserManagement
 
                 responseData["sim_port"] =(Int32) this.SimPort;
                 responseData["sim_ip"] = this.SimAddress;
+                Console.MainLog.Instance.Warn("SIM IP: " + responseData["sim_ip"] + "; SIM PORT: " + responseData["sim_port"]);
                 responseData["agent_id"] = this.AgentID.ToStringHyphenated();
                 responseData["session_id"] = this.SessionID.ToStringHyphenated();
                 responseData["secure_session_id"] = this.SecureSessionID.ToStringHyphenated();
