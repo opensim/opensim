@@ -101,22 +101,29 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 		{
 			foreach (BasicActor actor in _actors)
 			{
-				actor.Position.X = actor.Position.X + (actor.Velocity.X * timeStep);
-				actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
-				actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
-				/*if(actor.Flying)
-				{
-					actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
-				}
-				else
-				{
-					actor.Position.Z = actor.Position.Z + ((-9.8f + actor.Velocity.Z) * timeStep);
-				}
-				if(actor.Position.Z < (_heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X]+1))
-				{*/
                 if ((actor.Position.Y > 0 && actor.Position.Y < 256) && (actor.Position.X > 0 && actor.Position.X < 256))
                 {
-                    actor.Position.Z = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1;
+                    float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.2f;
+                    actor.Position.X = actor.Position.X + (actor.Velocity.X * timeStep);
+                    actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
+                    if (actor.Flying)
+                    {
+                        if (actor.Position.Z + (actor.Velocity.Z * timeStep) < 
+                            _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 2)
+                        {
+                            actor.Position.Z = height;
+                            actor.Velocity.Z = 0;
+                        }
+                        else
+                        {
+                            actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
+                        }
+                    }
+                    else
+                    {
+                        actor.Position.Z = height;
+                        actor.Velocity.Z = 0;
+                    }
                 }
                 else
                 {
@@ -167,7 +174,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 					actor.Position.Y = 255;
 					actor.Velocity.X = 0;
 				}*/
-			}
+            }
 		}
 		
 		public override void GetResults()
@@ -211,7 +218,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 		{
 			get
 			{
-				return false;
+                return flying;
 			}
 			set
 			{
