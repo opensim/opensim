@@ -46,33 +46,33 @@
         <echo message="Deleting all builds from all configurations" />
         <delete dir="${bin.dir}" failonerror="false" />
         <delete dir="${obj.dir}" failonerror="false" />
-        <nant buildfile="OpenGridServices/OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="clean" />
-        <nant buildfile="Common/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="clean" />
-        <nant buildfile="Common/OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MSSQL/OpenGrid.Framework.Data.MSSQL.dll.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.SQLite/OpenGrid.Framework.Data.SQLite.dll.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Manager/OpenGrid.Framework.Manager.dll.build" target="clean" />
-        <nant buildfile="Common/OpenGrid.Framework.UserManager/OpenGrid.Framework.UserManagement.dll.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="clean" />
-        <nant buildfile="OpenGridServices/OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Framework/Data/OpenSim.Framework.Data.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Framework/Data.DB4o/OpenSim.Framework.Data.DB4o.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Framework/Data.MSSQL/OpenSim.Framework.Data.MSSQL.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Framework/Data.MySQL/OpenSim.Framework.Data.MySQL.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Framework/Data.SQLite/OpenSim.Framework.Data.SQLite.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Framework/UserManager/OpenSim.Framework.UserManagement.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Grid/AssetServer/OpenSim.Grid.AssetServer.exe.build" target="clean" />
+        <nant buildfile="OpenSim/Grid/Framework.Manager/OpenSim.Grid.Framework.Manager.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Grid/GridServer/OpenSim.Grid.GridServer.exe.build" target="clean" />
+        <nant buildfile="OpenSim/Grid/GridServer.Config/OpenSim.Grid.GridServer.Config.dll.build" target="clean" />
+        <nant buildfile="OpenSim/Grid/UserServer/OpenSim.Grid.UserServer.exe.build" target="clean" />
+        <nant buildfile="OpenSim/Grid/UserServer.Config/OpenSim.Grid.UserServer.Config.dll.build" target="clean" />
     </target>
 
     <target name="build" depends="init" description="">
-        <nant buildfile="Common/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="build" />
-        <nant buildfile="Common/OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MSSQL/OpenGrid.Framework.Data.MSSQL.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.SQLite/OpenGrid.Framework.Data.SQLite.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Manager/OpenGrid.Framework.Manager.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="build" />
-        <nant buildfile="Common/OpenGrid.Framework.UserManager/OpenGrid.Framework.UserManagement.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="build" />
-        <nant buildfile="OpenGridServices/OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="build" />
+        <nant buildfile="OpenSim/Framework/Data/OpenSim.Framework.Data.dll.build" target="build" />
+        <nant buildfile="OpenSim/Framework/Data.MySQL/OpenSim.Framework.Data.MySQL.dll.build" target="build" />
+        <nant buildfile="OpenSim/Framework/Data.DB4o/OpenSim.Framework.Data.DB4o.dll.build" target="build" />
+        <nant buildfile="OpenSim/Framework/Data.MSSQL/OpenSim.Framework.Data.MSSQL.dll.build" target="build" />
+        <nant buildfile="OpenSim/Framework/Data.SQLite/OpenSim.Framework.Data.SQLite.dll.build" target="build" />
+        <nant buildfile="OpenSim/Grid/Framework.Manager/OpenSim.Grid.Framework.Manager.dll.build" target="build" />
+        <nant buildfile="OpenSim/Grid/GridServer/OpenSim.Grid.GridServer.exe.build" target="build" />
+        <nant buildfile="OpenSim/Grid/AssetServer/OpenSim.Grid.AssetServer.exe.build" target="build" />
+        <nant buildfile="OpenSim/Framework/UserManager/OpenSim.Framework.UserManagement.dll.build" target="build" />
+        <nant buildfile="OpenSim/Grid/UserServer/OpenSim.Grid.UserServer.exe.build" target="build" />
+        <nant buildfile="OpenSim/Grid/GridServer.Config/OpenSim.Grid.GridServer.Config.dll.build" target="build" />
+        <nant buildfile="OpenSim/Grid/UserServer.Config/OpenSim.Grid.UserServer.Config.dll.build" target="build" />
     </target>
 
     <target name="build-release" depends="Release, init, build" description="Builds in Release mode" />
@@ -83,18 +83,18 @@
 
     <target name="doc" depends="build-release">
         <echo message="Generating all documentation from all builds" />
-        <nant buildfile="OpenGridServices/OpenGrid.Config/GridConfigDb4o/OpenGrid.Config.GridConfigDb4o.dll.build" target="doc" />
-        <nant buildfile="Common/OpenGrid.Framework.Data/OpenGrid.Framework.Data.dll.build" target="doc" />
-        <nant buildfile="Common/OpenGrid.Framework.Data.DB4o/OpenGrid.Framework.Data.DB4o.dll.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MSSQL/OpenGrid.Framework.Data.MSSQL.dll.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.MySQL/OpenGrid.Framework.Data.MySQL.dll.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Data.SQLite/OpenGrid.Framework.Data.SQLite.dll.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGrid.Framework.Manager/OpenGrid.Framework.Manager.dll.build" target="doc" />
-        <nant buildfile="Common/OpenGrid.Framework.UserManager/OpenGrid.Framework.UserManagement.dll.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGridServices.AssetServer/OpenGridServices.AssetServer.exe.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGridServices.GridServer/OpenGridServices.GridServer.exe.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenGridServices.UserServer/OpenGridServices.UserServer.exe.build" target="doc" />
-        <nant buildfile="OpenGridServices/OpenUser.Config/UserConfigDb4o/OpenUser.Config.UserConfigDb4o.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Framework/Data/OpenSim.Framework.Data.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Framework/Data.DB4o/OpenSim.Framework.Data.DB4o.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Framework/Data.MSSQL/OpenSim.Framework.Data.MSSQL.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Framework/Data.MySQL/OpenSim.Framework.Data.MySQL.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Framework/Data.SQLite/OpenSim.Framework.Data.SQLite.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Framework/UserManager/OpenSim.Framework.UserManagement.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Grid/AssetServer/OpenSim.Grid.AssetServer.exe.build" target="doc" />
+        <nant buildfile="OpenSim/Grid/Framework.Manager/OpenSim.Grid.Framework.Manager.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Grid/GridServer/OpenSim.Grid.GridServer.exe.build" target="doc" />
+        <nant buildfile="OpenSim/Grid/GridServer.Config/OpenSim.Grid.GridServer.Config.dll.build" target="doc" />
+        <nant buildfile="OpenSim/Grid/UserServer/OpenSim.Grid.UserServer.exe.build" target="doc" />
+        <nant buildfile="OpenSim/Grid/UserServer.Config/OpenSim.Grid.UserServer.Config.dll.build" target="doc" />
     </target>
 
 </project>
