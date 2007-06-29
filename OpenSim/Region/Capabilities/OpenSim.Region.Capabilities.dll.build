@@ -11,18 +11,18 @@
             <resources prefix="OpenSim.Region.Capabilities" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="Caps.cs" />
-                <include name="LLSDArray.cs" />
-                <include name="LLSDCapEvent.cs" />
                 <include name="LLSDCapsDetails.cs" />
+                <include name="LLSDArray.cs" />
                 <include name="LLSDEmpty.cs" />
-                <include name="LLSDHelpers.cs" />
-                <include name="LLSDMapLayer.cs" />
-                <include name="LLSDMapLayerResponse.cs" />
-                <include name="LLSDMapRequest.cs" />
                 <include name="LLSDTest.cs" />
-                <include name="LLSDType.cs" />
                 <include name="LLSDUploadReply.cs" />
+                <include name="LLSDType.cs" />
+                <include name="LLSDHelpers.cs" />
+                <include name="LLSDCapEvent.cs" />
+                <include name="LLSDMapRequest.cs" />
+                <include name="Caps.cs" />
+                <include name="LLSDMapLayerResponse.cs" />
+                <include name="LLSDMapLayer.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

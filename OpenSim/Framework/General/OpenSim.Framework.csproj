@@ -88,10 +88,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentInventory.cs">
+    <Compile Include="AuthenticateSessionBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AuthenticateSessionBase.cs">
+    <Compile Include="Remoting.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RegionCommsListener.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BlockingQueue.cs">
@@ -100,31 +103,31 @@
     <Compile Include="IRegionCommsListener.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LoginService.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="RegionCommsListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Remoting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SimProfile.cs">
+    <Compile Include="Util.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UserProfile.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Util.cs">
+    <Compile Include="SimProfile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LoginService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="AgentInventory.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\AuthenticateResponse.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Interfaces\IUserServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Interfaces\IAssetServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Interfaces\IWorld.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IClientAPI.cs">
@@ -133,46 +136,16 @@
     <Compile Include="Interfaces\ILocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IUserServer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\IWorld.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\Config\IGenericConfig.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Interfaces\Config\IGridConfig.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\Config\IUserConfig.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Interfaces\Config\IGridConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AgentCiruitData.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AgentWearable.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetLandmark.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\AssetStorage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\EstateSettings.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Types\MapBlockData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\NeighbourInfo.cs">
@@ -181,16 +154,40 @@
     <Compile Include="Types\NetworkServersInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Types\RegionHandle.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\RegionInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Types\ParcelData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AgentWearable.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Types\PrimData.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\RegionHandle.cs">
+    <Compile Include="Types\MapBlockData.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Types\RegionInfo.cs">
+    <Compile Include="Types\AssetStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\EstateSettings.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AgentCiruitData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\Login.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AssetLandmark.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\AssetBase.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

@@ -93,9 +93,6 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Db4LocalStorage.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="MapStorage.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -103,6 +100,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UUIDPrimQuery.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Db4LocalStorage.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
