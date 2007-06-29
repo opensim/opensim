@@ -108,12 +108,12 @@ namespace OpenSim.Framework.Types
 
         public static bool operator ==(UUID a, UUID b)
         {
-            return a.Equals(b);
+            return a.llUUID.Equals(b.GetLLUUID());
         }
 
         public static bool operator !=(UUID a, UUID b)
         {
-            return !a.Equals(b);
+            return !a.llUUID.Equals(b.GetLLUUID());
         }
 
         public static bool operator ==(UUID a, LLUUID b)
