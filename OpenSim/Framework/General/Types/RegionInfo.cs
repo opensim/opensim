@@ -227,93 +227,17 @@ namespace OpenSim.Framework.Types
 
                 m_regionHandle = null;
 
-                // Local storage datastore
-                attri = "";
-                attri = configData.GetAttribute("Datastore");
-                if (attri == "")
-                {
-                    string datastore = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Filename for local storage", "localworld.yap");
-                    configData.SetAttribute("Datastore", datastore);
-                    this.DataStore = datastore;
-                }
-                else
-                {
-                    this.DataStore = attri;
-                }
-
+                this.DataStore = GetString(configData, "Datastore", "localworld.yap", "Filename for local storage");
+                
                 IPAddress internalAddress = GetIPAddress(configData, "InternalIPAddress", "0.0.0.0", "Internal IP Address for UDP client connections");
                 int internalPort = GetIPPort(configData, "InternalIPPort", "9000", "Internal IP Port for UDP client connections");
                 m_internalEndPoint = new IPEndPoint(internalAddress, internalPort);
 
                 m_externalHostName = GetString(configData, "ExternalHostName", "localhost", "External Host Name");
+
+                estateSettings.terrainFile =
+                    GetString(configData, "TerrainFile", "default.r32", "GENERAL SETTING: Default Terrain File");                
                 
-
-                
-
-                //Sim Listen Address
-                //attri = "";
-                //attri = configData.GetAttribute("SimListenAddress");
-                //if (attri == "")
-                //{
-                //    m_commsIPListenAddr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP Address to listen on for client connections", "0.0.0.0");
-                //    configData.SetAttribute("SimListenAddress", CommsIPListenAddr);
-                //}
-                //else
-                //{
-                //    // Probably belongs elsewhere, but oh well.
-                //    if (attri.Trim().StartsWith("SYSTEMIP"))
-                //    {
-                //        string localhostname = System.Net.Dns.GetHostName();
-                //        System.Net.IPAddress[] ips = System.Net.Dns.GetHostAddresses(localhostname);
-                //        try
-                //        {
-                //            m_commsIPListenAddr = "0.0.0.0"; // Incase a IPv4 address isnt found
-
-                //            foreach (System.Net.IPAddress ip in ips)
-                //            {
-                //                if (ip.AddressFamily.ToString() == System.Net.Sockets.ProtocolFamily.InterNetwork.ToString())
-                //                {
-                //                    m_commsIPListenAddr = ip.ToString();
-                //                    break;
-                //                }
-                //            }
-                //        }
-                //        catch (Exception)
-                //        {
-                //            m_commsIPListenAddr = "0.0.0.0"; // Use the default if we fail
-                //        }
-                //    }
-                //    else
-                //    {
-                //        m_commsIPListenAddr = attri;
-                //    }
-                //}
-
-                //// Sim External Address
-                //attri = "";
-                //attri = configData.GetAttribute("SimExternalAddress");
-                //if (attri == "")
-                //{
-                //    m_commsExternalAddress = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP or DNS address to send external clients to", "localhost");
-                //    configData.SetAttribute("SimExternalAddress", CommsExternalAddress);
-                //}
-                //else
-                //{
-                //    m_commsExternalAddress = attri;
-                //}
-
-                attri = "";
-                attri = configData.GetAttribute("TerrainFile");
-                if (attri == "")
-                {
-                    this.estateSettings.terrainFile = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("GENERAL SETTING: Default Terrain File", "default.r32");
-                    configData.SetAttribute("TerrainFile", this.estateSettings.terrainFile);
-                }
-                else
-                {
-                    this.estateSettings.terrainFile = attri;
-                }
-
                 attri = "";
                 attri = configData.GetAttribute("TerrainMultiplier");
                 if (attri == "")
