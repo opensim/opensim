@@ -37,22 +37,46 @@ using OpenSim.Framework.Inventory;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class SceneObject : Entity
+    public class SceneObject : EntityBase
     {
-        private LLUUID rootUUID;
-        //private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>();
+        
+        private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
         protected Primitive rootPrimitive;
         private Scene m_world;
-        protected ulong regionHandle;
+        protected ulong m_regionHandle;
 
+        private bool physicsEnabled = false;
+        private PhysicsScene m_PhysScene;
+        private PhysicsActor m_PhysActor;
+
+        public LLUUID rootUUID
+        {
+            get
+            {
+                this.uuid = this.rootPrimitive.uuid;
+                return this.uuid;
+            }
+        }
+
+        public uint rootLocalID
+        {
+            get
+            {
+                this.m_localId = this.rootPrimitive.LocalId;
+                return this.LocalId;
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
-        public SceneObject()
+        public SceneObject(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
         {
+            m_regionHandle = regionHandle;
+            m_world = world;
+            this.Pos = addPacket.ObjectData.RayEnd;
+            this.CreateFromPacket(addPacket, ownerID, localID);
 
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -61,7 +85,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
-            this.rootPrimitive = new Primitive( this.regionHandle, this.m_world, addPacket, agentID, localID);
+           this.rootPrimitive = new Primitive( this.m_regionHandle, this.m_world, addPacket, agentID, localID, true, this, this);
+           this.children.Add(rootPrimitive);
+           this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
 
         /// <summary>
@@ -76,10 +102,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public override void update()
+        /// <param name="primID"></param>
+        /// <returns></returns>
+        public Primitive HasChildPrim(LLUUID primID)
         {
+            if (this.ChildPrimitives.ContainsKey(primID))
+            {
+                return this.ChildPrimitives[primID];
+            }
 
+            return null;
         }
+
 
         /// <summary>
         /// 
@@ -87,6 +121,18 @@ namespace OpenSim.Region.Environment.Scenes
         public override void BackUp()
         {
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="pos"></param>
+        /// <param name="remoteClient"></param>
+        public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
+        {
+            this.Pos = pos;
+            this.rootPrimitive.SendTerseUpdateForAllChildren(remoteClient);
         }
 
         /// <summary>
@@ -100,25 +146,25 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
             proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
             proper.ObjectData[0].ItemID = LLUUID.Zero;
-            proper.ObjectData[0].CreationDate = (ulong)this.rootPrimitive.primData.CreationDate;
-            proper.ObjectData[0].CreatorID = this.rootPrimitive.primData.OwnerID;
+            proper.ObjectData[0].CreationDate = (ulong)this.rootPrimitive.CreationDate;
+            proper.ObjectData[0].CreatorID = this.rootPrimitive.OwnerID;
             proper.ObjectData[0].FolderID = LLUUID.Zero;
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
             proper.ObjectData[0].InventorySerial = 0;
             proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
-            proper.ObjectData[0].ObjectID = this.uuid;
-            proper.ObjectData[0].OwnerID = this.rootPrimitive.primData.OwnerID;
+            proper.ObjectData[0].ObjectID = this.rootUUID;
+            proper.ObjectData[0].OwnerID = this.rootPrimitive.OwnerID;
             proper.ObjectData[0].TouchName = new byte[0];
             proper.ObjectData[0].TextureID = new byte[0];
             proper.ObjectData[0].SitName = new byte[0];
             proper.ObjectData[0].Name = new byte[0];
             proper.ObjectData[0].Description = new byte[0];
-            proper.ObjectData[0].OwnerMask = this.rootPrimitive.primData.OwnerMask;
-            proper.ObjectData[0].NextOwnerMask = this.rootPrimitive.primData.NextOwnerMask;
-            proper.ObjectData[0].GroupMask = this.rootPrimitive.primData.GroupMask;
-            proper.ObjectData[0].EveryoneMask = this.rootPrimitive.primData.EveryoneMask;
-            proper.ObjectData[0].BaseMask = this.rootPrimitive.primData.BaseMask;
+            proper.ObjectData[0].OwnerMask = this.rootPrimitive.OwnerMask;
+            proper.ObjectData[0].NextOwnerMask = this.rootPrimitive.NextOwnerMask;
+            proper.ObjectData[0].GroupMask = this.rootPrimitive.GroupMask;
+            proper.ObjectData[0].EveryoneMask = this.rootPrimitive.EveryoneMask;
+            proper.ObjectData[0].BaseMask = this.rootPrimitive.BaseMask;
 
             client.OutPacket(proper);
             

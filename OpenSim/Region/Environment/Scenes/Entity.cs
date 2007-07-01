@@ -34,29 +34,14 @@ using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class Entity
-    {
-        public libsecondlife.LLUUID uuid;
-        public Quaternion rotation;
-        protected List<Entity> children;
-        
+    public abstract class Entity :EntityBase //will be phased out 
+    {     
         protected PhysicsActor _physActor;
-        protected Scene m_world;
-        protected string m_name;
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual string Name
-        {
-            get { return m_name; }
-        }
-
-        protected LLVector3 m_pos;
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual LLVector3 Pos
+        public override LLVector3 Pos
         {
             get
             {
@@ -91,12 +76,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public LLVector3 velocity;
-
+       
         /// <summary>
         /// 
         /// </summary>
-        public virtual LLVector3 Velocity
+        public override LLVector3 Velocity
         {
             get
             {
@@ -129,65 +113,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 velocity = value;
             }
-        }
-
-        protected uint m_localId;
-
-        public uint LocalId
-        {
-            get { return m_localId; }
-        }
-
-        /// <summary>
-        /// Creates a new Entity (should not occur on it's own)
-        /// </summary>
-        public Entity()
-        {
-            uuid = new libsecondlife.LLUUID();
-
-            m_pos = new LLVector3();
-            velocity = new LLVector3();
-            rotation = new Quaternion();
-            m_name = "(basic entity)";
-            children = new List<Entity>();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual void updateMovement()
-        {
-        	foreach (Entity child in children)
-            {
-                child.updateMovement();
-            }
-        }
-
-        /// <summary>
-        /// Performs any updates that need to be done at each frame. This function is overridable from it's children.
-        /// </summary>
-        public virtual void update() {
-            // Do any per-frame updates needed that are applicable to every type of entity
-            foreach (Entity child in children)
-            {
-                child.update();
-            }
-        }
-
-        /// <summary>
-        /// Called at a set interval to inform entities that they should back themsleves up to the DB 
-        /// </summary>
-        public virtual void BackUp()
-        {
-        	
-        }
-
-        /// <summary>
-        /// Infoms the entity that the land (heightmap) has changed
-        /// </summary>
-        public virtual void LandRenegerated()
-        {
-
         }
     }
 }

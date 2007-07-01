@@ -184,6 +184,9 @@
     <Compile Include="Types\PrimData.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Types\PrimitiveBaseShape.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Types\RegionHandle.cs">
       <SubType>Code</SubType>
     </Compile>

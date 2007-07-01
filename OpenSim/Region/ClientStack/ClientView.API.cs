@@ -626,6 +626,39 @@ namespace OpenSim.Region.ClientStack
             OutPacket(outPacket);
         }
 
+
+        public void SendPrimitiveToClient2(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID)
+        {
+            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            outPacket.RegionData.RegionHandle = regionHandle;
+            outPacket.RegionData.TimeDilation = timeDilation;
+            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, textureID, flags);
+            outPacket.ObjectData[0].ID = localID;
+            outPacket.ObjectData[0].FullID = objectID;
+            outPacket.ObjectData[0].OwnerID = ownerID;
+            byte[] pb = pos.GetBytes();
+            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
+            byte[] rot = rotation.GetBytes();
+            Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 48, rot.Length);
+            OutPacket(outPacket);
+        }
+
+        public void SendPrimitiveToClient2(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID)
+        {
+            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            outPacket.RegionData.RegionHandle = regionHandle;
+            outPacket.RegionData.TimeDilation = timeDilation;
+            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, textureID, flags);
+            outPacket.ObjectData[0].ID = localID;
+            outPacket.ObjectData[0].FullID = objectID;
+            outPacket.ObjectData[0].OwnerID = ownerID;
+            byte[] pb = pos.GetBytes();
+            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
+
+            OutPacket(outPacket);
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -816,6 +849,22 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
+        /// Create the ObjectDataBlock for a ObjectUpdatePacket  (for a Primitive)
+        /// </summary>
+        /// <param name="primData"></param>
+        /// <returns></returns>
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimitiveBaseShape primShape, LLUUID textureID, uint flags)
+        {
+            ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
+            this.SetDefaultPrimPacketValues(objupdate);
+            objupdate.UpdateFlags = flags;
+            this.SetPrimPacketShapeData(objupdate, primShape, textureID);
+
+            return objupdate;
+        }
+
+
+        /// <summary>
         /// Copy the data from a PrimData object to a ObjectUpdatePacket
         /// </summary>
         /// <param name="objectData"></param>
@@ -825,6 +874,33 @@ namespace OpenSim.Region.ClientStack
             LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
             objectData.TextureEntry = ntex.ToBytes();
             objectData.OwnerID = primData.OwnerID;
+            objectData.PCode = primData.PCode;
+            objectData.PathBegin = primData.PathBegin;
+            objectData.PathEnd = primData.PathEnd;
+            objectData.PathScaleX = primData.PathScaleX;
+            objectData.PathScaleY = primData.PathScaleY;
+            objectData.PathShearX = primData.PathShearX;
+            objectData.PathShearY = primData.PathShearY;
+            objectData.PathSkew = primData.PathSkew;
+            objectData.ProfileBegin = primData.ProfileBegin;
+            objectData.ProfileEnd = primData.ProfileEnd;
+            objectData.Scale = primData.Scale;
+            objectData.PathCurve = primData.PathCurve;
+            objectData.ProfileCurve = primData.ProfileCurve;
+            objectData.ParentID = primData.ParentID;
+            objectData.ProfileHollow = primData.ProfileHollow;
+            objectData.PathRadiusOffset = primData.PathRadiusOffset;
+            objectData.PathRevolutions = primData.PathRevolutions;
+            objectData.PathTaperX = primData.PathTaperX;
+            objectData.PathTaperY = primData.PathTaperY;
+            objectData.PathTwist = primData.PathTwist;
+            objectData.PathTwistBegin = primData.PathTwistBegin;
+        }
+
+        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimitiveBaseShape primData, LLUUID textureID)
+        {
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
+            objectData.TextureEntry = ntex.ToBytes();
             objectData.PCode = primData.PCode;
             objectData.PathBegin = primData.PathBegin;
             objectData.PathEnd = primData.PathEnd;

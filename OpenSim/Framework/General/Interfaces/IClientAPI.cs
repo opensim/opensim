@@ -160,6 +160,8 @@ namespace OpenSim.Framework.Interfaces
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID , uint flags);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID, uint flags);
+        void SendPrimitiveToClient2(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID);
+        void SendPrimitiveToClient2(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID);
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation);
     }
 }

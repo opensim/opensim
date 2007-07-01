@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase :  IWorld 
     {
-        public Dictionary<libsecondlife.LLUUID, Entity> Entities;
+        public Dictionary<libsecondlife.LLUUID, EntityBase> Entities;
         protected Dictionary<uint, IClientAPI> m_clientThreads;
         protected ulong m_regionHandle;
         protected string m_regionName;

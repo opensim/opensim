@@ -43,6 +43,7 @@
                 <include name="Types/NetworkServersInfo.cs" />
                 <include name="Types/ParcelData.cs" />
                 <include name="Types/PrimData.cs" />
+                <include name="Types/PrimitiveBaseShape.cs" />
                 <include name="Types/RegionHandle.cs" />
                 <include name="Types/RegionInfo.cs" />
                 <include name="Types/UUID.cs" />

@@ -31,8 +31,16 @@ using System.Text;
 
 namespace OpenSim.Physics.Manager
 {
+    public delegate void PositionUpdate(PhysicsVector position);
+    public delegate void VelocityUpdate(PhysicsVector velocity);
+    public delegate void OrientationUpdate(Axiom.MathLib.Quaternion orientation);
+
     public abstract class PhysicsActor
     {
+        public event PositionUpdate OnPositionUpdate;
+        public event VelocityUpdate OnVelocityUpdate;
+        public event OrientationUpdate OnOrientationUpdate;
+
         public static PhysicsActor Null
         {
             get

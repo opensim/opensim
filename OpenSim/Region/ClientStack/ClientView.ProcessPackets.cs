@@ -211,7 +211,6 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectAdd:
-                        // m_world.AddNewPrim((ObjectAddPacket)Pack, this);
                         if (OnAddPrim != null)
                         {
                             OnAddPrim(Pack, this);

@@ -54,13 +54,16 @@ namespace OpenSim.Framework.Communications
         #region Packet Handlers
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
+            System.Text.Encoding enc = System.Text.Encoding.ASCII;
             UserProfileData profileData = this.UserServer.GetUserProfile(uuid);
             if (profileData != null)
             {
                 UUIDNameReplyPacket packet = new UUIDNameReplyPacket();
+                packet.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[1];
+                packet.UUIDNameBlock[0] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
                 packet.UUIDNameBlock[0].ID = profileData.UUID;
-                packet.UUIDNameBlock[0].FirstName = libsecondlife.Helpers.StringToField(profileData.username);
-                packet.UUIDNameBlock[0].LastName = libsecondlife.Helpers.StringToField(profileData.surname);
+                packet.UUIDNameBlock[0].FirstName = enc.GetBytes(profileData.username + "\0");
+                packet.UUIDNameBlock[0].LastName = enc.GetBytes(profileData.surname +"\0");
                 remote_client.OutPacket((Packet)packet);
             }
             

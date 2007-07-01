@@ -15,8 +15,10 @@
                 <include name="ParcelManager.cs" />
                 <include name="RegionManager.cs" />
                 <include name="Scenes/Entity.cs" />
+                <include name="Scenes/EntityBase.cs" />
                 <include name="Scenes/IScenePresenceBody.cs" />
                 <include name="Scenes/Primitive.cs" />
+                <include name="Scenes/PrimitiveOld.cs" />
                 <include name="Scenes/Scene.cs" />
                 <include name="Scenes/Scene.PacketHandlers.cs" />
                 <include name="Scenes/SceneBase.cs" />

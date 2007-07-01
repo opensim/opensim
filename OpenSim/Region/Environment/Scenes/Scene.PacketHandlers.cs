@@ -214,12 +214,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            foreach (Entity ent in Entities.Values)
+            Console.WriteLine("prim selected :" + primLocalID);
+            foreach (EntityBase ent in Entities.Values)
             {
-                if (ent.LocalId == primLocalID)
+                if (ent is SceneObject)
                 {
-                    ((OpenSim.Region.Environment.Scenes.Primitive)ent).GetProperites(remoteClient);
-                    break;
+                    if (((SceneObject)ent).rootLocalID == primLocalID)
+                    {
+                      ((OpenSim.Region.Environment.Scenes.SceneObject)ent).GetProperites(remoteClient);
+                        break;
+                    }
                 }
             }
         }
@@ -228,7 +232,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (this.Entities.ContainsKey(objectID))
             {
-                ((Primitive)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
+                ((PrimitiveOld)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
             }
         }
 
@@ -266,7 +270,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent.LocalId == localID)
                 {
-                    ((OpenSim.Region.Environment.Scenes.Primitive)ent).UpdatePosition(pos);
+                    ((OpenSim.Region.Environment.Scenes.PrimitiveOld)ent).UpdatePosition(pos);
                     break;
                 }
             }

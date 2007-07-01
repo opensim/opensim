@@ -18,13 +18,15 @@ namespace OpenSim.Region.Communications.Local
     {
         private CommunicationsLocal m_Parent;
 
+        private NetworkServersInfo serversInfo;
         private uint defaultHomeX ;
         private uint defaultHomeY;
-        public LocalUserServices(CommunicationsLocal parent, uint defHomeX, uint defHomeY)
+        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversData)
         {
             m_Parent = parent;
-            defaultHomeX = defHomeX;
-            defaultHomeY = defHomeY;
+            this.serversInfo = serversData;
+            defaultHomeX = this.serversInfo.DefaultHomeLocX;
+            defaultHomeY = this.serversInfo.DefaultHomeLocY;
         }
 
         public UserProfileData GetUserProfile(string firstName, string lastName)
@@ -81,7 +83,6 @@ namespace OpenSim.Region.Communications.Local
             ulong currentRegion = theUser.currentAgent.currentHandle;
             RegionInfo reg = m_Parent.GridServer.RequestNeighbourInfo(currentRegion);
 
-
             if (reg != null)
             {
                 response.Home = "{'region_handle':[r" + (reg.RegionLocX * 256).ToString() + ",r" + (reg.RegionLocY * 256).ToString() + "], " +
@@ -92,7 +93,9 @@ namespace OpenSim.Region.Communications.Local
                 response.SimPort = (Int32)reg.ExternalEndPoint.Port;
                 response.RegionX = reg.RegionLocX ;
                 response.RegionY = reg.RegionLocY ;
-                response.SeedCapability = "http://" + reg.ExternalHostName + ":" + reg.ExternalEndPoint.Port.ToString() + "/CAPS/" + capsPath + "0000/";
+
+                //following port needs changing as we don't want a http listener for every region (or do we?)
+                response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
                 theUser.currentAgent.currentRegion = reg.SimUUID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 

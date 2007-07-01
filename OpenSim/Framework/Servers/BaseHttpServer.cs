@@ -167,18 +167,6 @@ namespace OpenSim.Framework.Servers
             return response;
         }
 
-        protected virtual string ParseLLSDXML(string requestBody)
-        {
-            // dummy function for now - IMPLEMENT ME!
-            //Console.WriteLine("LLSD request "+requestBody);
-            string resp = "";
-            if (firstcaps)
-            {
-                resp = "<llsd><map><key>MapLayer</key><string>http://127.0.0.1:9000/CAPS/</string></map></llsd>";
-                firstcaps = false;
-            }
-            return resp;
-        }
 
         protected virtual string ParseXMLRPC(string requestBody)
         {

@@ -156,10 +156,16 @@
     <Compile Include="Scenes\Entity.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scenes\EntityBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Scenes\IScenePresenceBody.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\Primitive.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Scenes\PrimitiveOld.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Scenes\Scene.cs">

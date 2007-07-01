@@ -15,7 +15,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
         public event OnNewPresenceDelegate OnNewPresence;
 
-        public delegate void OnNewPrimitiveDelegate(Primitive prim);
+        public delegate void OnNewPrimitiveDelegate(PrimitiveOld prim);
         public event OnNewPrimitiveDelegate OnNewPrimitive;
 
         public delegate void OnRemovePresenceDelegate(libsecondlife.LLUUID uuid);
@@ -29,7 +29,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnNewPrimitive(Primitive prim)
+        public void TriggerOnNewPrimitive(PrimitiveOld prim)
         {
             if (OnNewPrimitive != null)
                 OnNewPrimitive(prim);
