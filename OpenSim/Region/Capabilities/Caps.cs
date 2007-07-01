@@ -44,8 +44,8 @@ namespace OpenSim.Region.Capabilities
 
     public class Caps
     {
-        private string httpListenerAddress;
-        private uint httpListenPort;
+        private string httpListenerHostName;
+        private int httpListenPort;
         private string capsObjectPath = "00001-";
         private string requestPath = "0000/";
         private string mapLayerPath = "0001/";
@@ -58,12 +58,12 @@ namespace OpenSim.Region.Capabilities
         private int eventQueueCount = 1;
         private Queue<string> CapsEventQueue = new Queue<string>();
 
-        public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath, LLUUID agent)
+        public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath, LLUUID agent)
         {
             assetCache = assetCach;
             capsObjectPath = capsPath;
             httpListener = httpServer;
-            httpListenerAddress = httpListen;
+            httpListenerHostName = httpListen;
             httpListenPort = httpPort;
             agentID = agent;
         }
@@ -109,8 +109,11 @@ namespace OpenSim.Region.Capabilities
             return capURLS;*/
 
             LLSDCapsDetails caps = new LLSDCapsDetails();
-            caps.MapLayer = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath;
-            caps.NewFileAgentInventory = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory;
+            string capsBaseUrl = "http://" + httpListenerHostName + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath;
+            
+            caps.MapLayer = capsBaseUrl + mapLayerPath;
+            caps.NewFileAgentInventory = capsBaseUrl + newInventory;
+            
             return caps;
         }
 
@@ -206,7 +209,7 @@ namespace OpenSim.Region.Capabilities
             string uploaderPath = capsObjectPath + Util.RandomClass.Next(5000, 8000).ToString("0000");
             AssetUploader uploader = new AssetUploader(newAsset, newInvItem, uploaderPath, this.httpListener);
             httpListener.AddRestHandler("POST", "/CAPS/" + uploaderPath, uploader.uploaderCaps);
-            string uploaderURL = "http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + uploaderPath;
+            string uploaderURL = "http://" + httpListenerHostName + ":" + httpListenPort.ToString() + "/CAPS/" + uploaderPath;
             //Console.WriteLine("uploader url is " + uploaderURL);
             res += "<llsd><map>";
             res += "<key>uploader</key><string>" + uploaderURL + "</string>";

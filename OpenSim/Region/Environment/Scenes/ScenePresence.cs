@@ -481,7 +481,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (res)
                 {
                     this.MakeChildAgent();
-                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, System.Net.IPAddress.Parse(neighbourRegion.CommsIPListenAddr), (ushort)neighbourRegion.CommsIPListenPort);
+                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.InternalEndPoint );
                 }
             }
         }

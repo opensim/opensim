@@ -32,6 +32,7 @@ using OpenSim.Framework.Inventory;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Types;
+using System.Net;
 
 namespace OpenSim.Framework.Interfaces
 {
@@ -143,12 +144,12 @@ namespace OpenSim.Framework.Interfaces
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);
-        void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort);
+        void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint );
         AgentCircuitData RequestClientInfo();
-        void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, System.Net.IPAddress newRegionIP, ushort newRegionPort);
+        void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint );
         void SendMapBlock(List<MapBlockData> mapBlocks);
         void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags);
-        void SendRegionTeleport(ulong regionHandle, byte simAccess, string ipAddress, ushort ipPort, uint locationID, uint flags);
+        void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID, uint flags);
         void SendTeleportCancel();
         void SendTeleportLocationStart();
         void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);

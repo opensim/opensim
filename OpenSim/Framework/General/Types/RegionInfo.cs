@@ -33,6 +33,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Console;
 using libsecondlife;
+using System.Net;
 
 namespace OpenSim.Framework.Types
 {
@@ -40,6 +41,32 @@ namespace OpenSim.Framework.Types
     {
         public LLUUID SimUUID = new LLUUID();
         public string RegionName = "";
+
+        private IPEndPoint m_internalEndPoint;
+        public IPEndPoint InternalEndPoint
+        {
+            get
+            {
+                return m_internalEndPoint;
+            }
+        }
+
+        public IPEndPoint ExternalEndPoint
+        {
+            get
+            {
+                return new IPEndPoint( Dns.GetHostAddresses( m_externalHostName )[0], m_internalEndPoint.Port );
+            }
+        }
+        
+        private string m_externalHostName;
+        public string ExternalHostName
+        {
+            get
+            {
+                return m_externalHostName;
+            }
+        }
 
         private uint? m_regionLocX;
         public uint RegionLocX
@@ -81,43 +108,43 @@ namespace OpenSim.Framework.Types
         public string MasterAvatarLastName = "";
         public string MasterAvatarSandboxPassword = "";
 
-        private int? m_commsIPListenPort;
+        //private int? m_commsIPListenPort;
 
-        /// <summary>
-        /// Port used for listening (TCP and UDP)
-        /// </summary>
-        /// <remarks>Seperate TCP and UDP</remarks>
-        public int CommsIPListenPort
-        {
-            get
-            {
-                return m_commsIPListenPort.Value;
-            }
-        }
-        
-        private string m_commsIPListenAddr;
-        /// <summary>
-        /// Address used for internal listening (default: 0.0.0.0?)
-        /// </summary>
-        public string CommsIPListenAddr        
-        {
-            get
-            {
-                return m_commsIPListenAddr;
-            }            
-        }
-        
-        private string m_commsExternalAddress;
-        /// <summary>
-        /// Address used for external addressing (DNS or IP)
-        /// </summary>
-        public string CommsExternalAddress
-        {
-            get
-            {
-                return m_commsExternalAddress;
-            }
-        }
+        ///// <summary>
+        ///// Port used for listening (TCP and UDP)
+        ///// </summary>
+        ///// <remarks>Seperate TCP and UDP</remarks>
+        //public int CommsIPListenPort
+        //{
+        //    get
+        //    {
+        //        return m_commsIPListenPort.Value;
+        //    }
+        //}
+
+        //private string m_commsIPListenAddr;
+        ///// <summary>
+        ///// Address used for internal listening (default: 0.0.0.0?)
+        ///// </summary>
+        //public string CommsIPListenAddr        
+        //{
+        //    get
+        //    {
+        //        return m_commsIPListenAddr;
+        //    }            
+        //}
+
+        //private string m_commsExternalAddress;
+        ///// <summary>
+        ///// Address used for external addressing (DNS or IP)
+        ///// </summary>
+        //public string CommsExternalAddress
+        //{
+        //    get
+        //    {
+        //        return m_commsExternalAddress;
+        //    }
+        //}
 
 
         public EstateSettings estateSettings;
@@ -126,15 +153,19 @@ namespace OpenSim.Framework.Types
         {
             estateSettings = new EstateSettings();
         }
-        
-        public RegionInfo( uint regionLocX, uint regionLocY, string simIp, int simPort, string simUri ) : this()
+
+        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
+            : this()
         {
             m_regionLocX = regionLocX;
-            m_regionLocY = regionLocY;            
-            
-            m_commsIPListenAddr = simIp;
-            m_commsIPListenPort = simPort;
-            m_commsExternalAddress = simUri;
+            m_regionLocY = regionLocY;
+
+            //m_commsIPListenAddr = simIp;
+            //m_commsIPListenPort = simPort;
+            //m_commsExternalAddress = simUri;
+
+            m_internalEndPoint = internalEndPoint;
+            m_externalHostName = externalUri;
         }
 
         public void InitConfig(bool sandboxMode, IGenericConfig configData)
@@ -195,7 +226,7 @@ namespace OpenSim.Framework.Types
                 }
 
                 m_regionHandle = null;
-                
+
                 // Local storage datastore
                 attri = "";
                 attri = configData.GetAttribute("Datastore");
@@ -210,71 +241,67 @@ namespace OpenSim.Framework.Types
                     this.DataStore = attri;
                 }
 
-                //Sim Listen Port
-                attri = "";
-                attri = configData.GetAttribute("SimListenPort");
-                if (attri == "")
-                {
-                    string port = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("UDP port for client connections", "9000");
-                    configData.SetAttribute("SimListenPort", port);
-                    m_commsIPListenPort = Convert.ToInt32(port);
-                }
-                else
-                {
-                    m_commsIPListenPort = Convert.ToInt32(attri);
-                }
+                IPAddress internalAddress = GetIPAddress(configData, "InternalIPAddress", "0.0.0.0", "Internal IP Address for UDP client connections");
+                int internalPort = GetIPPort(configData, "InternalIPPort", "9000", "Internal IP Port for UDP client connections");
+                m_internalEndPoint = new IPEndPoint(internalAddress, internalPort);
+
+                m_externalHostName = MainLog.Instance.CmdPrompt("External Host Name", "localhost");
+
+                
+
+                
 
                 //Sim Listen Address
-                attri = "";
-                attri = configData.GetAttribute("SimListenAddress");
-                if (attri == "")
-                {
-                    m_commsIPListenAddr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP Address to listen on for client connections", "0.0.0.0");
-                    configData.SetAttribute("SimListenAddress", CommsIPListenAddr );
-                }
-                else
-                {
-                    // Probably belongs elsewhere, but oh well.
-                    if (attri.Trim().StartsWith("SYSTEMIP"))
-                    {
-                        string localhostname = System.Net.Dns.GetHostName();
-                        System.Net.IPAddress[] ips = System.Net.Dns.GetHostAddresses(localhostname);
-                        try
-                        {
-                            m_commsIPListenAddr = "0.0.0.0"; // Incase a IPv4 address isnt found
+                //attri = "";
+                //attri = configData.GetAttribute("SimListenAddress");
+                //if (attri == "")
+                //{
+                //    m_commsIPListenAddr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP Address to listen on for client connections", "0.0.0.0");
+                //    configData.SetAttribute("SimListenAddress", CommsIPListenAddr);
+                //}
+                //else
+                //{
+                //    // Probably belongs elsewhere, but oh well.
+                //    if (attri.Trim().StartsWith("SYSTEMIP"))
+                //    {
+                //        string localhostname = System.Net.Dns.GetHostName();
+                //        System.Net.IPAddress[] ips = System.Net.Dns.GetHostAddresses(localhostname);
+                //        try
+                //        {
+                //            m_commsIPListenAddr = "0.0.0.0"; // Incase a IPv4 address isnt found
 
-                            foreach (System.Net.IPAddress ip in ips)
-                            {
-                                if (ip.AddressFamily.ToString() == System.Net.Sockets.ProtocolFamily.InterNetwork.ToString())
-                                {
-                                    m_commsIPListenAddr = ip.ToString();
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            m_commsIPListenAddr = "0.0.0.0"; // Use the default if we fail
-                        }
-                    }
-                    else
-                    {
-                        m_commsIPListenAddr = attri;
-                    }
-                }
+                //            foreach (System.Net.IPAddress ip in ips)
+                //            {
+                //                if (ip.AddressFamily.ToString() == System.Net.Sockets.ProtocolFamily.InterNetwork.ToString())
+                //                {
+                //                    m_commsIPListenAddr = ip.ToString();
+                //                    break;
+                //                }
+                //            }
+                //        }
+                //        catch (Exception)
+                //        {
+                //            m_commsIPListenAddr = "0.0.0.0"; // Use the default if we fail
+                //        }
+                //    }
+                //    else
+                //    {
+                //        m_commsIPListenAddr = attri;
+                //    }
+                //}
 
-                // Sim External Address
-                attri = "";
-                attri = configData.GetAttribute("SimExternalAddress");
-                if (attri == "")
-                {
-                    m_commsExternalAddress = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP or DNS address to send external clients to", "localhost");
-                    configData.SetAttribute("SimExternalAddress", CommsExternalAddress);
-                }
-                else
-                {
-                    m_commsExternalAddress = attri;
-                }
+                //// Sim External Address
+                //attri = "";
+                //attri = configData.GetAttribute("SimExternalAddress");
+                //if (attri == "")
+                //{
+                //    m_commsExternalAddress = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("IP or DNS address to send external clients to", "localhost");
+                //    configData.SetAttribute("SimExternalAddress", CommsExternalAddress);
+                //}
+                //else
+                //{
+                //    m_commsExternalAddress = attri;
+                //}
 
                 attri = "";
                 attri = configData.GetAttribute("TerrainFile");
@@ -357,9 +384,38 @@ namespace OpenSim.Framework.Types
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Name: " + this.RegionName);
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Region Handle: " + this.RegionHandle.ToString());
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Listening on IP: " + this.CommsIPListenAddr + ":" + this.CommsIPListenPort);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Listening on IP end point: " + m_internalEndPoint.ToString() );
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Sandbox Mode? " + isSandbox.ToString());
 
+        }
+
+        private IPAddress GetIPAddress(IGenericConfig configData, string attrName, string defaultvalue, string prompt)
+        {
+            string addressStr = configData.GetAttribute(attrName);
+
+            IPAddress address;
+
+            if (!IPAddress.TryParse(addressStr, out address))
+            {
+                address =  MainLog.Instance.CmdPromptIPAddress(prompt, defaultvalue);
+                configData.SetAttribute(attrName, address.ToString());
+            }
+            return address;
+        }
+        
+        private int GetIPPort(IGenericConfig configData, string attrName, string defaultvalue, string prompt)
+        {
+            string portStr = configData.GetAttribute(attrName);
+
+            int port;
+
+            if (!int.TryParse(portStr, out port))
+            {
+                port = MainLog.Instance.CmdPromptIPPort(prompt, defaultvalue);
+                configData.SetAttribute(attrName, port.ToString());
+            }
+            
+            return port;
         }
     }
 }

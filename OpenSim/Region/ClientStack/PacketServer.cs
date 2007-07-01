@@ -44,12 +44,10 @@ namespace OpenSim.Region.ClientStack
         private IWorld _localWorld;
         public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
         public Dictionary<uint, IClientAPI> ClientAPIs = new Dictionary<uint, IClientAPI>();
-        protected uint serverPort;
 
-        public PacketServer(ClientStackNetworkHandler networkHandler, uint port)
+        public PacketServer(ClientStackNetworkHandler networkHandler)
         {
             _networkHandler = networkHandler;
-            this.serverPort = port;
             _networkHandler.RegisterPacketServer(this);
         }
 

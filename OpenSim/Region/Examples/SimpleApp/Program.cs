@@ -15,6 +15,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Physics.BasicPhysicsPlugin;
+using System.Net;
 
 namespace SimpleApp
 {
@@ -31,9 +32,8 @@ namespace SimpleApp
           //  CheckSumServer checksumServer = new CheckSumServer(12036);
            // checksumServer.ServerListener();
 
-            string simAddr = "127.0.0.1";
-            int simPort = 9000;
-            
+            IPEndPoint internalEndPoint = new IPEndPoint( IPAddress.Parse( "127.0.0.1" ), 9000 );
+
             m_circuitManager = new AuthenticateSessionsBase();
 
             InventoryCache inventoryCache = new InventoryCache();
@@ -44,8 +44,8 @@ namespace SimpleApp
 
             AssetCache assetCache = new AssetCache(assetServer);
             
-            UDPServer udpServer = new UDPServer(simPort, assetCache, inventoryCache, m_log, m_circuitManager );
-            PacketServer packetServer = new PacketServer( udpServer, (uint) simPort );
+            UDPServer udpServer = new UDPServer( internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager );
+            PacketServer packetServer = new PacketServer(udpServer);
             udpServer.ServerListener();
             
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
@@ -53,9 +53,9 @@ namespace SimpleApp
             NetworkServersInfo serverInfo = new NetworkServersInfo();
             CommunicationsLocal communicationsManager = new CommunicationsLocal(serverInfo);
 
-            RegionInfo regionInfo = new RegionInfo( 1000, 1000, simAddr, simPort, simAddr );
-            
-            BaseHttpServer httpServer = new BaseHttpServer(simPort);
+            RegionInfo regionInfo = new RegionInfo( 1000, 1000, internalEndPoint, "localhost" );
+
+            BaseHttpServer httpServer = new BaseHttpServer( internalEndPoint.Port );
             MyWorld world = new MyWorld(packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
             world.PhysScene = new BasicScene();
             udpServer.LocalWorld = world;

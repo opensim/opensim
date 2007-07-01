@@ -27,6 +27,7 @@
 */
 using System;
 using System.IO;
+using System.Net;
 
 namespace OpenSim.Framework.Console
 {
@@ -48,18 +49,18 @@ namespace OpenSim.Framework.Console
         public string componentname;
         private bool m_silent;
 
-        public LogBase(string LogFile, string componentname, conscmd_callback cmdparser, bool silent )
+        public LogBase(string LogFile, string componentname, conscmd_callback cmdparser, bool silent)
         {
             this.componentname = componentname;
             this.cmdparser = cmdparser;
             this.m_silent = silent;
             System.Console.WriteLine("ServerConsole.cs - creating new local console");
-            
-            if( String.IsNullOrEmpty( LogFile ) )
+
+            if (String.IsNullOrEmpty(LogFile))
             {
                 LogFile = componentname + ".log";
             }
-            
+
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
             Log = File.AppendText(LogFile);
             Log.WriteLine("========================================================================");
@@ -74,10 +75,10 @@ namespace OpenSim.Framework.Console
 
         public void Write(string format, params object[] args)
         {
-            Notice(format,args);
+            Notice(format, args);
             return;
         }
-         
+
         public void WriteLine(LogPriority importance, string format, params object[] args)
         {
             Log.WriteLine(format, args);
@@ -154,6 +155,49 @@ namespace OpenSim.Framework.Console
             return TempInt;
         }
 
+        public IPAddress CmdPromptIPAddress(string prompt, string defaultvalue)
+        {
+            IPAddress address;
+            string addressStr;
+
+            while (true)
+            {
+                addressStr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                if (IPAddress.TryParse(addressStr, out address))
+                {
+                    break;
+                }
+                else
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Error("Illegal address. Please re-enter.");
+                }
+            }
+
+            return address;
+        }
+
+        public int CmdPromptIPPort(string prompt, string defaultvalue)
+        {
+            int port;
+            string portStr;
+
+            while (true)
+            {
+                portStr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                if (int.TryParse(portStr, out port))
+                {
+                    if (port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort)
+                    {
+                        break;
+                    }
+                }
+
+                OpenSim.Framework.Console.MainLog.Instance.Error("Illegal address. Please re-enter.");
+            }
+
+            return port;
+        }
+
         // Displays a prompt and waits for the user to enter a string, then returns that string
         // Done with no echo and suitable for passwords
         public string PasswdPrompt(string prompt)
@@ -178,7 +222,7 @@ namespace OpenSim.Framework.Console
         // Displays a command prompt and returns a default value if the user simply presses enter
         public string CmdPrompt(string prompt, string defaultresponse)
         {
-            string temp = CmdPrompt(String.Format( "{0} [{1}]", prompt, defaultresponse ));
+            string temp = CmdPrompt(String.Format("{0} [{1}]", prompt, defaultresponse));
             if (temp == "")
             {
                 return defaultresponse;

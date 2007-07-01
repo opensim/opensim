@@ -656,7 +656,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.CommsIPListenAddr, 9000, agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.ExternalHostName, this.m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     this.capsHandlers.Add(agent.AgentID, cap);
                 }
@@ -695,7 +695,7 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
                     this.commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
-                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr), (ushort)neighbours[i].CommsIPListenPort);
+                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint );
                     //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
                 }
             }
@@ -757,7 +757,7 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.child = true;
                     this.commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     this.commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
-                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.CommsIPListenAddr, (ushort)reg.CommsIPListenPort, 4, (1 << 4));               
+                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));               
                 }
                 //remoteClient.SendTeleportCancel();
             }

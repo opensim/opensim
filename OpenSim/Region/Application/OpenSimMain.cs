@@ -225,7 +225,7 @@ namespace OpenSim
                 regionDat.InitConfig(this.m_sandbox, regionConfig);
                 regionConfig.Close();
 
-                udpServer = new UDPServer(regionDat.CommsIPListenPort, this.AssetCache, this.InventoryCache, this.m_log, authenBase);
+                udpServer = new UDPServer(regionDat.InternalEndPoint.Port, this.AssetCache, this.InventoryCache, this.m_log, authenBase);
 
                 m_udpServer.Add(udpServer);
                 this.regionData.Add(regionDat);

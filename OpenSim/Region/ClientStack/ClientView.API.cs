@@ -34,6 +34,7 @@ using OpenSim.Framework.Types;
 
 using libsecondlife;
 using libsecondlife.Packets;
+using System.Net;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -293,8 +294,11 @@ namespace OpenSim.Region.ClientStack
         /// <param name="neighbourHandle"></param>
         /// <param name="neighbourIP"></param>
         /// <param name="neighbourPort"></param>
-        public void InformClientOfNeighbour(ulong neighbourHandle, System.Net.IPAddress neighbourIP, ushort neighbourPort)
+        public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint )
         {
+            System.Net.IPAddress neighbourIP = neighbourEndPoint.Address;
+            ushort neighbourPort = (ushort) neighbourEndPoint.Port;
+            
             EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
             enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
             enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
@@ -326,7 +330,7 @@ namespace OpenSim.Region.ClientStack
             return agentData;
         }
 
-        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, System.Net.IPAddress newRegionIP, ushort newRegionPort)
+        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint externalIPEndPoint)
         {
             LLVector3 look = new LLVector3(lookAt.X * 10, lookAt.Y * 10, lookAt.Z * 10);
 
@@ -339,12 +343,12 @@ namespace OpenSim.Region.ClientStack
             newSimPack.Info.LookAt = look; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
             newSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
             newSimPack.RegionData.RegionHandle = newRegionHandle;
-            byte[] byteIP = newRegionIP.GetAddressBytes();
+            byte[] byteIP = externalIPEndPoint.Address.GetAddressBytes();
             newSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
             newSimPack.RegionData.SimIP += (uint)byteIP[2] << 16;
             newSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
             newSimPack.RegionData.SimIP += (uint)byteIP[0];
-            newSimPack.RegionData.SimPort = newRegionPort;
+            newSimPack.RegionData.SimPort = (ushort)externalIPEndPoint.Port;
             newSimPack.RegionData.SeedCapability = new byte[0];
 
             this.OutPacket(newSimPack);
@@ -386,7 +390,7 @@ namespace OpenSim.Region.ClientStack
             OutPacket(tpLocal);
         }
 
-        public void SendRegionTeleport(ulong regionHandle, byte simAccess, string ipAddress, ushort ipPort, uint locationID, uint flags)
+        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags)        
         {
             TeleportFinishPacket teleport = new TeleportFinishPacket();
             teleport.Info.AgentID = this.AgentID;
@@ -394,7 +398,7 @@ namespace OpenSim.Region.ClientStack
             teleport.Info.SimAccess = simAccess;
             teleport.Info.SeedCapability = new byte[0];
 
-            System.Net.IPAddress oIP = System.Net.IPAddress.Parse(ipAddress);
+            IPAddress oIP = newRegionEndPoint.Address;
             byte[] byteIP = oIP.GetAddressBytes();
             uint ip = (uint)byteIP[3] << 24;
             ip += (uint)byteIP[2] << 16;
@@ -402,7 +406,7 @@ namespace OpenSim.Region.ClientStack
             ip += (uint)byteIP[0];
 
             teleport.Info.SimIP = ip;
-            teleport.Info.SimPort = ipPort;
+            teleport.Info.SimPort = (ushort)newRegionEndPoint.Port;
             teleport.Info.LocationID = 4;
             teleport.Info.TeleportFlags = 1 << 4; 
             OutPacket(teleport);

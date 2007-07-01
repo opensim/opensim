@@ -107,7 +107,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void CreatePacketServer()
         {
-            PacketServer packetServer = new PacketServer(this, (uint) listenPort);
+            PacketServer packetServer = new PacketServer(this);
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)
