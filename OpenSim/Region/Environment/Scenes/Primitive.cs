@@ -21,6 +21,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
 
+        private string description = "";
         public LLUUID OwnerID;
         public Int32 CreationDate;
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
@@ -53,6 +54,18 @@ namespace OpenSim.Region.Environment.Scenes
                 this.m_pos = value - m_Parent.Pos; //should we being subtracting the parent position
             }
 
+        }
+
+        public string Description
+        {
+            get
+            {
+                return this.description;
+            }
+            set
+            {
+                this.description = value;
+            }
         }
 
         public Primitive(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent , SceneObject rootObject)

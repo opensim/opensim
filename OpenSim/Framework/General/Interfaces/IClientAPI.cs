@@ -51,6 +51,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
     public delegate void GenericCall6(LLUUID uid);
+    public delegate void GenericCall7(uint localID, string message);
 
     public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
@@ -96,6 +97,8 @@ namespace OpenSim.Framework.Interfaces
 
         event UpdateShape OnUpdatePrimShape;
         event ObjectSelect OnObjectSelect;
+        event GenericCall7 OnObjectDescription;
+        event GenericCall7 OnObjectName;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
         event UpdateVector OnUpdatePrimPosition;

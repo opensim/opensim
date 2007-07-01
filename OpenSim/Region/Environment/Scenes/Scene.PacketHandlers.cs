@@ -214,7 +214,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            Console.WriteLine("prim selected :" + primLocalID);
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObject)
@@ -222,6 +221,50 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObject)ent).rootLocalID == primLocalID)
                     {
                       ((OpenSim.Region.Environment.Scenes.SceneObject)ent).GetProperites(remoteClient);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="description"></param>
+        public void PrimDescription(uint primLocalID, string description)
+        {
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
+                    if (prim != null)
+                    {
+                        prim.Description = description;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="description"></param>
+        public void PrimName(uint primLocalID, string name)
+        {
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
+                    if (prim != null)
+                    {
+                        prim.Name = name;
                         break;
                     }
                 }

@@ -130,7 +130,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnModifyTerrain != null)
                             {
-                                OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds, modify.ModifyBlock.BrushSize, 
+                                OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds, modify.ModifyBlock.BrushSize,
                                     modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West);
                             }
                         }
@@ -167,8 +167,8 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentUpdate:
                         if (OnAgentUpdate != null)
                         {
-                            AgentUpdatePacket agenUpdate = (AgentUpdatePacket) Pack;
-                            OnAgentUpdate(this, agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotation );
+                            AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+                            OnAgentUpdate(this, agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotation);
                         }
                         break;
                     case PacketType.AgentAnimation:
@@ -273,6 +273,29 @@ namespace OpenSim.Region.ClientStack
                         {
                             OnDeGrapObject(deGrap.ObjectData.LocalID, this);
                         }
+                        break;
+                    case PacketType.ObjectDescription:
+                        ObjectDescriptionPacket objDes = (ObjectDescriptionPacket)Pack;
+                        for (int i = 0; i < objDes.ObjectData.Length; i++)
+                        {
+                            if (OnObjectDescription != null)
+                            {
+                                OnObjectDescription(objDes.ObjectData[i].LocalID, enc.GetString(objDes.ObjectData[i].Description));
+                            }
+                        }
+                        break;
+                    case PacketType.ObjectName:
+                        ObjectNamePacket objName = (ObjectNamePacket)Pack;
+                        for (int i = 0; i < objName.ObjectData.Length; i++)
+                        {
+                            if (OnObjectName != null)
+                            {
+                                OnObjectName(objName.ObjectData[i].LocalID, enc.GetString(objName.ObjectData[i].Name));
+                            }
+                        }
+                        break;
+                    case PacketType.ObjectPermissions:
+                        //Console.WriteLine("permissions set " + Pack.ToString());
                         break;
                     #endregion
 

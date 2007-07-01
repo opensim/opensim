@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class SceneObject : EntityBase
     {
-        
+        private System.Text.Encoding enc = System.Text.Encoding.ASCII;
         private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
         protected Primitive rootPrimitive;
         private Scene m_world;
@@ -114,6 +114,19 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        public Primitive HasChildPrim(uint localID)
+        {
+            Primitive returnPrim = null;
+            foreach (Primitive prim in this.children)
+            {
+                if (prim.LocalId == localID)
+                {
+                    returnPrim = prim;
+                    break;
+                }
+            }
+            return returnPrim;
+        }
 
         /// <summary>
         /// 
@@ -141,6 +154,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
+
             //needs changing
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
@@ -158,8 +172,8 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].TouchName = new byte[0];
             proper.ObjectData[0].TextureID = new byte[0];
             proper.ObjectData[0].SitName = new byte[0];
-            proper.ObjectData[0].Name = new byte[0];
-            proper.ObjectData[0].Description = new byte[0];
+            proper.ObjectData[0].Name = enc.GetBytes(this.rootPrimitive.Name +"\0");
+            proper.ObjectData[0].Description = enc.GetBytes(this.rootPrimitive.Description +"\0");
             proper.ObjectData[0].OwnerMask = this.rootPrimitive.OwnerMask;
             proper.ObjectData[0].NextOwnerMask = this.rootPrimitive.NextOwnerMask;
             proper.ObjectData[0].GroupMask = this.rootPrimitive.GroupMask;

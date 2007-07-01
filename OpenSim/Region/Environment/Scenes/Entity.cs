@@ -34,7 +34,7 @@ using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class Entity :EntityBase //will be phased out 
+    public abstract class Entity :EntityBase //this class (Entity) will be phased out 
     {     
         protected PhysicsActor _physActor;
 

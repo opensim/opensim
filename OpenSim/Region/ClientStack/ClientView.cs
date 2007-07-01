@@ -79,6 +79,7 @@ namespace OpenSim.Region.ClientStack
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
+        private System.Text.Encoding enc = System.Text.Encoding.ASCII;
 
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions )
         {

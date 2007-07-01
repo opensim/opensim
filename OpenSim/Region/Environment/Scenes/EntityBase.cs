@@ -21,6 +21,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual string Name
         {
             get { return m_name; }
+            set { m_name = value; }
         }
 
         protected LLVector3 m_pos;

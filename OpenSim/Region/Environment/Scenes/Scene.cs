@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
         protected Dictionary<libsecondlife.LLUUID, ScenePresence> Avatars;
-        protected Dictionary<libsecondlife.LLUUID, Primitive> Prims;
+        protected Dictionary<libsecondlife.LLUUID, SceneObject> Prims;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
         private Random Rand = new Random();
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
                 OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating new entitities instance");
                 Entities = new Dictionary<libsecondlife.LLUUID, EntityBase>();
                 Avatars = new Dictionary<LLUUID, ScenePresence>();
-                Prims = new Dictionary<LLUUID, Primitive>();
+                Prims = new Dictionary<LLUUID, SceneObject>();
 
                 OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating LandMap");
                 Terrain = new TerrainEngine();
@@ -463,6 +463,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectSelect += this.SelectPrim;
            // client.OnGrapUpdate += this.MoveObject;
             client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
+            client.OnObjectDescription += this.PrimDescription;
+            client.OnObjectName += this.PrimName;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
