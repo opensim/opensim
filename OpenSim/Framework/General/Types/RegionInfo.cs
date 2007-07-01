@@ -245,8 +245,7 @@ namespace OpenSim.Framework.Types
                 int internalPort = GetIPPort(configData, "InternalIPPort", "9000", "Internal IP Port for UDP client connections");
                 m_internalEndPoint = new IPEndPoint(internalAddress, internalPort);
 
-                m_externalHostName = MainLog.Instance.CmdPrompt("External Host Name", "localhost");
-
+                m_externalHostName = GetString(configData, "ExternalHostName", "localhost", "External Host Name");
                 
 
                 
@@ -387,6 +386,18 @@ namespace OpenSim.Framework.Types
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Listening on IP end point: " + m_internalEndPoint.ToString() );
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Sandbox Mode? " + isSandbox.ToString());
 
+        }
+
+        private string GetString(IGenericConfig configData, string attrName, string defaultvalue, string prompt)
+        {
+            string s = configData.GetAttribute(attrName);
+
+            if (String.IsNullOrEmpty( s ))
+            {
+                s = MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                configData.SetAttribute(attrName, s );
+            }
+            return s;
         }
 
         private IPAddress GetIPAddress(IGenericConfig configData, string attrName, string defaultvalue, string prompt)

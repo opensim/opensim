@@ -230,12 +230,6 @@ namespace OpenSim
                 m_udpServer.Add(udpServer);
                 this.regionData.Add(regionDat);
 
-                /*
-                m_log.WriteLine(OpenSim.Framework.Console.LogPriority.NORMAL, "Main.cs:Startup() - We are " + regionData.RegionName + " at " + regionData.RegionLocX.ToString() + "," + regionData.RegionLocY.ToString());
-                m_log.Verbose( "Initialising world");
-                m_log.componentname = "Region " + regionData.RegionName;
-                */
-
                 LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager, this.AssetCache, httpServer);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
