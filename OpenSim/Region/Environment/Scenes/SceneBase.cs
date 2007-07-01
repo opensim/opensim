@@ -149,7 +149,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         /// <param name="child"></param>
         public abstract void AddNewClient(IClientAPI client, bool child);
-        
+
+        public abstract uint AddNewPrim(LLUUID ownerId, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID texture, int flags);
+
         /// <summary>
         /// 
         /// </summary>

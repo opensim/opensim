@@ -103,40 +103,32 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionName">Region Name for this region</param>
         public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
         {
-            try
-            {
-                updateLock = new Mutex(false);
-                this.authenticateHandler = authen;
-                this.commsManager = commsMan;
-                this.assetCache = assetCach;
-                m_clientThreads = clientThreads;
-                m_regInfo = regInfo;
-                m_regionHandle = m_regInfo.RegionHandle;
-                m_regionName = m_regInfo.RegionName;
-                this.m_datastore = m_regInfo.DataStore;
-                this.RegisterRegionWithComms();
+            updateLock = new Mutex(false);
+            this.authenticateHandler = authen;
+            this.commsManager = commsMan;
+            this.assetCache = assetCach;
+            m_clientThreads = clientThreads;
+            m_regInfo = regInfo;
+            m_regionHandle = m_regInfo.RegionHandle;
+            m_regionName = m_regInfo.RegionName;
+            this.m_datastore = m_regInfo.DataStore;
+            this.RegisterRegionWithComms();
 
-                parcelManager = new ParcelManager(this, this.m_regInfo);
-                estateManager = new EstateManager(this, this.m_regInfo);
-                scriptManager = new ScriptManager(this);
-                eventManager = new EventManager();
+            parcelManager = new ParcelManager(this, this.m_regInfo);
+            estateManager = new EstateManager(this, this.m_regInfo);
+            scriptManager = new ScriptManager(this);
+            eventManager = new EventManager();
 
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating new entitities instance");
-                Entities = new Dictionary<libsecondlife.LLUUID, EntityBase>();
-                Avatars = new Dictionary<LLUUID, ScenePresence>();
-                Prims = new Dictionary<LLUUID, SceneObject>();
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating new entitities instance");
+            Entities = new Dictionary<libsecondlife.LLUUID, EntityBase>();
+            Avatars = new Dictionary<LLUUID, ScenePresence>();
+            Prims = new Dictionary<LLUUID, SceneObject>();
 
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating LandMap");
-                Terrain = new TerrainEngine();
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating LandMap");
+            Terrain = new TerrainEngine();
 
-                ScenePresence.LoadAnims();
-                this.httpListener = httpServer;
-
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainLog.Instance.Error("World.cs: Constructor failed with exception " + e.ToString());
-            }
+            ScenePresence.LoadAnims();
+            this.httpListener = httpServer;
         }
         #endregion
 
@@ -218,7 +210,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool Backup()
         {
-          
+
             return true;
         }
         #endregion
@@ -432,12 +424,19 @@ namespace OpenSim.Region.Environment.Scenes
                 this._primCount++;
 
                 // Trigger event for listeners
-               // eventManager.TriggerOnNewPrimitive(prim);
+                // eventManager.TriggerOnNewPrimitive(prim);
             }
             catch (Exception e)
             {
                 OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
             }
+        }
+
+        public override uint AddNewPrim(LLUUID ownerId, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID texture, int flags)
+        {
+            uint id = NextLocalId;
+            
+            throw new NotImplementedException("Not implemented yet.");                       
         }
 
         #endregion
@@ -670,7 +669,7 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
                     this.commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
-                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint );
+                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint);
                     //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
                 }
             }
@@ -733,7 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
                     this.commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     this.commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
 
-                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));               
+                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));
 
                 }
                 //remoteClient.SendTeleportCancel();
@@ -752,5 +751,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
     }
 }

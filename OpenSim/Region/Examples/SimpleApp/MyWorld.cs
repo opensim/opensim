@@ -78,6 +78,9 @@ namespace SimpleApp
                                            pos, null);
                                                          
                      client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero );
+
+          
+                                                         
                  };
 
             client.SendRegionHandshake(m_regionInfo);

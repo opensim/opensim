@@ -16,6 +16,7 @@ using OpenSim.Region.Communications.Local;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Physics.BasicPhysicsPlugin;
 using System.Net;
+using libsecondlife.Packets;
 
 namespace SimpleApp
 {
@@ -23,6 +24,7 @@ namespace SimpleApp
     {
         private LogBase m_log;
         AuthenticateSessionsBase m_circuitManager;
+        uint m_localId;
         
         private void Run()
         {
@@ -65,6 +67,12 @@ namespace SimpleApp
             
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
+
+            PrimData primData = new PrimData();
+            primData.Scale = new LLVector3(1, 1, 1);
+
+            m_localId = world.AddNewPrim( LLUUID.Zero, primData, LLVector3.Zero, new LLQuaternion(0, 0, 0, 0), LLUUID.Zero, 0);
+
         }
 
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
