@@ -193,8 +193,41 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="childPrims"></param>
         public void LinkObjects(uint parentPrim, List<uint> childPrims)
         {
-            
+            SceneObject parenPrim = null; 
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    if (((SceneObject)ent).rootLocalID == parentPrim)
+                    {
+                        parenPrim = (SceneObject)ent;
+                        break;
+                    }
+                }
+            }
 
+            List<SceneObject> children = new List<SceneObject>();
+            if (parenPrim != null)
+            {
+                for (int i = 0; i < childPrims.Count; i++)
+                {
+                    foreach (EntityBase ent in Entities.Values)
+                    {
+                        if (ent is SceneObject)
+                        {
+                            if (((SceneObject)ent).rootLocalID == childPrims[i])
+                            {
+                                children.Add((SceneObject)ent);
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (SceneObject sceneObj in children)
+            {
+                parenPrim.AddNewChildPrims(sceneObj);
+            }
         }
 
         /// <summary>
@@ -275,7 +308,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (this.Entities.ContainsKey(objectID))
             {
-                ((PrimitiveOld)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
+                if (this.Entities[objectID] is SceneObject)
+                {
+                    ((SceneObject)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
+                }
             }
         }
 

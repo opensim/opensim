@@ -36,7 +36,6 @@ namespace OpenSim.Framework.Types
         public LLVector3 Scale;
         public byte PathCurve;
         public byte ProfileCurve;
-        public uint ParentID = 0;
         public ushort ProfileHollow;
         public sbyte PathRadiusOffset;
         public byte PathRevolutions;
@@ -73,13 +72,13 @@ namespace OpenSim.Framework.Types
 
         }
 
-        public static PrimitiveBaseShape DefaultCube()
+        public static PrimitiveBaseShape DefaultBox()
         {
             PrimitiveBaseShape primShape = new PrimitiveBaseShape();
 
+            primShape.type = ShapeType.Box;
             primShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             primShape.PCode = 9;
-            primShape.ParentID = 0;
             primShape.PathBegin = 0;
             primShape.PathEnd = 0;
             primShape.PathScaleX = 0;

@@ -461,10 +461,11 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRequestMapBlocks += this.RequestMapBlocks;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
             client.OnObjectSelect += this.SelectPrim;
-           // client.OnGrapUpdate += this.MoveObject;
+            client.OnGrapUpdate += this.MoveObject;
             client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += this.PrimDescription;
             client.OnObjectName += this.PrimName;
+            client.OnLinkObjects += this.LinkObjects;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
@@ -584,6 +585,21 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entID"></param>
+        /// <returns></returns>
+        public bool DeleteEntity(LLUUID entID)
+        {
+            if (this.Entities.ContainsKey(entID))
+            {
+                this.Entities.Remove(entID);
+                return true;
+            }
+            return false;
+        }
 
         #region RegionCommsHost
 

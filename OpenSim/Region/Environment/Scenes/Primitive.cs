@@ -22,8 +22,18 @@ namespace OpenSim.Region.Environment.Scenes
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
 
         private string description = "";
+
+        public string SitName = "";
+        public string TouchName = "";
+        public string Text = "";
+
+        public LLUUID CreatorID;
         public LLUUID OwnerID;
+        public LLUUID LastOwnerID;
         public Int32 CreationDate;
+
+        public uint ParentID = 0;
+
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
         public uint NextOwnerMask = FULL_MASK_PERMISSIONS;
         public uint GroupMask = FULL_MASK_PERMISSIONS;
@@ -32,9 +42,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private PrimitiveBaseShape m_Shape;
 
-        private SceneObject m_RootParent;
-        private bool isRootPrim;
-        private EntityBase m_Parent;
+        public SceneObject m_RootParent;
+        public  bool isRootPrim;
+        public EntityBase m_Parent;
 
         public override LLVector3 Pos
         {
@@ -51,7 +61,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set
             {
-                this.m_pos = value - m_Parent.Pos; //should we being subtracting the parent position
+                this.m_pos = m_Parent.Pos - value; //should we being subtracting the parent position
             }
 
         }
@@ -108,6 +118,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             this.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             this.OwnerID = ownerID;
+            this.CreatorID = this.OwnerID;
+            this.LastOwnerID = LLUUID.Zero;
             this.Pos = addPacket.ObjectData.RayEnd;
             this.uuid = LLUUID.Random();
             this.m_localId = (uint)(localID);
@@ -128,7 +140,6 @@ namespace OpenSim.Region.Environment.Scenes
             pShape.Scale = addPacket.ObjectData.Scale;
             pShape.PathCurve = addPacket.ObjectData.PathCurve;
             pShape.ProfileCurve = addPacket.ObjectData.ProfileCurve;
-            pShape.ParentID = 0;
             pShape.ProfileHollow = addPacket.ObjectData.ProfileHollow;
             pShape.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
             pShape.PathRevolutions = addPacket.ObjectData.PathRevolutions;
@@ -142,7 +153,37 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddToChildren(SceneObject linkObject)
         {
+           // Console.WriteLine("linking new prims " + linkObject.rootLocalID + " to me (" + this.LocalId + ")");
+            //TODO check permissions
+            this.children.Add(linkObject.rootPrimitive);
+            linkObject.rootPrimitive.SetNewParent(this, this.m_RootParent);
 
+            this.m_world.DeleteEntity(linkObject.rootUUID);
+            linkObject.rootPrimitive = null;
+        }
+
+        public void SetNewParent(Primitive newParent, SceneObject rootParent)
+        {
+            LLVector3 oldPos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
+            //Console.WriteLine("have a new parent and my old position is " + this.Pos.X + " , " + this.Pos.Y + " , " + this.Pos.Z);
+            this.isRootPrim = false;
+            this.m_Parent = newParent;
+            this.ParentID = newParent.LocalId;
+            this.SetRootParent(rootParent);
+          // Console.WriteLine("have a new parent and its position is " + this.m_Parent.Pos.X + " , " + this.m_Parent.Pos.Y + " , " + this.m_Parent.Pos.Z);
+            this.Pos = oldPos;
+          //  Console.WriteLine("have a new parent so my new offset position is " + this.Pos.X + " , " + this.Pos.Y + " , " + this.Pos.Z);
+            this.updateFlag = 1;
+
+        }
+
+        public void SetRootParent(SceneObject newRoot)
+        {
+            this.m_RootParent = newRoot;
+            foreach (Primitive child in children)
+            {
+                child.SetRootParent(newRoot);
+            }
         }
 
         /// <summary>
@@ -187,7 +228,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             lPos = this.Pos;
 
-            remoteClient.SendPrimitiveToClient2(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, new LLUUID("00000000-0000-0000-9999-000000000005"), this.flags, this.uuid, this.OwnerID);
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, new LLUUID("00000000-0000-0000-9999-000000000005"), this.flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
         }
 
         /// <summary>

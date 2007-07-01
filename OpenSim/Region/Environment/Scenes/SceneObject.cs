@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private System.Text.Encoding enc = System.Text.Encoding.ASCII;
         private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
-        protected Primitive rootPrimitive;
+        public Primitive rootPrimitive;
         private Scene m_world;
         protected ulong m_regionHandle;
 
@@ -99,6 +99,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primObject"></param>
+        public void AddNewChildPrims(SceneObject primObject)
+        {
+            this.rootPrimitive.AddToChildren(primObject);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -145,6 +155,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
             this.Pos = pos;
+            this.rootPrimitive.Pos = pos;
             this.rootPrimitive.SendTerseUpdateForAllChildren(remoteClient);
         }
 
@@ -161,17 +172,17 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
             proper.ObjectData[0].ItemID = LLUUID.Zero;
             proper.ObjectData[0].CreationDate = (ulong)this.rootPrimitive.CreationDate;
-            proper.ObjectData[0].CreatorID = this.rootPrimitive.OwnerID;
+            proper.ObjectData[0].CreatorID = this.rootPrimitive.CreatorID;
             proper.ObjectData[0].FolderID = LLUUID.Zero;
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
             proper.ObjectData[0].InventorySerial = 0;
-            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
+            proper.ObjectData[0].LastOwnerID = this.rootPrimitive.LastOwnerID;
             proper.ObjectData[0].ObjectID = this.rootUUID;
             proper.ObjectData[0].OwnerID = this.rootPrimitive.OwnerID;
-            proper.ObjectData[0].TouchName = new byte[0];
+            proper.ObjectData[0].TouchName = enc.GetBytes(this.rootPrimitive.TouchName + "\0");
             proper.ObjectData[0].TextureID = new byte[0];
-            proper.ObjectData[0].SitName = new byte[0];
+            proper.ObjectData[0].SitName = enc.GetBytes(this.rootPrimitive.SitName +"\0") ;
             proper.ObjectData[0].Name = enc.GetBytes(this.rootPrimitive.Name +"\0");
             proper.ObjectData[0].Description = enc.GetBytes(this.rootPrimitive.Description +"\0");
             proper.ObjectData[0].OwnerMask = this.rootPrimitive.OwnerMask;
