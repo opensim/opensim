@@ -16,12 +16,13 @@ namespace OpenSim.Framework.Types
         Torus,
         Prism,
         Scuplted,
-        Cylinder
+        Cylinder,
+        Unknown
     }
 
     public class PrimitiveBaseShape
     {
-        private ShapeType type;
+        private ShapeType type = ShapeType.Unknown;
 
         public byte PCode;
         public ushort PathBegin;

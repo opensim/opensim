@@ -94,7 +94,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void update() 
         {
-            if (this.updateFlag == 1) // is a new prim just been created/reloaded 
+            if (this.updateFlag == 1) // is a new prim just been created/reloaded or has major changes
             {
                 this.SendFullUpdateToAllClients();
                 this.updateFlag = 0;
@@ -151,7 +151,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.updateFlag = 1;
         }
 
-        public void AddToChildren(SceneObject linkObject)
+        public void AddNewChildren(SceneObject linkObject)
         {
            // Console.WriteLine("linking new prims " + linkObject.rootLocalID + " to me (" + this.LocalId + ")");
             //TODO check permissions
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
             linkObject.rootPrimitive.SetNewParent(this, this.m_RootParent);
 
             this.m_world.DeleteEntity(linkObject.rootUUID);
-            linkObject.rootPrimitive = null;
+            linkObject.DeleteAllChildren();
         }
 
         public void SetNewParent(Primitive newParent, SceneObject rootParent)

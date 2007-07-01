@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_world = world;
             this.Pos = addPacket.ObjectData.RayEnd;
-            this.CreateFromPacket(addPacket, ownerID, localID);
+            this.CreateRootFromPacket(addPacket, ownerID, localID);
 
         }
         /// <summary>
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="addPacket"></param>
         /// <param name="agentID"></param>
         /// <param name="localID"></param>
-        public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
+        public void CreateRootFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
         {
            this.rootPrimitive = new Primitive( this.m_regionHandle, this.m_world, addPacket, agentID, localID, true, this, this);
            this.children.Add(rootPrimitive);
@@ -99,6 +99,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public void DeleteAllChildren()
+        {
+            this.children.Clear();
+            this.ChildPrimitives.Clear();
+            this.rootPrimitive = null;
+        }
 
         /// <summary>
         /// 
@@ -106,7 +115,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="primObject"></param>
         public void AddNewChildPrims(SceneObject primObject)
         {
-            this.rootPrimitive.AddToChildren(primObject);
+            this.rootPrimitive.AddNewChildren(primObject);
         }
 
         /// <summary>
