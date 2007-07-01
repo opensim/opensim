@@ -25,11 +25,14 @@
                 <include name="../../../../bin/OpenSim.Framework.Communications.dll" />
                 <include name="../../../../bin/OpenSim.Framework.Console.dll" />
                 <include name="../../../../bin/OpenSim.Framework.Servers.dll" />
+                <include name="../../../../bin/OpenSim.Framework.UserManagement.dll" />
                 <include name="../../../../bin/OpenSim.Region.Caches.dll" />
                 <include name="../../../../bin/OpenSim.Region.ClientStack.dll" />
                 <include name="../../../../bin/OpenSim.Region.Communications.Local.dll" />
                 <include name="../../../../bin/OpenSim.Region.Environment.dll" />
                 <include name="../../../../bin/OpenSim.Region.GridInterfaces.Local.dll" />
+                <include name="../../../../bin/OpenSim.Region.Physics.BasicPhysicsPlugin.dll" />
+                <include name="../../../../bin/OpenSim.Region.Physics.Manager.dll" />
                 <include name="System.dll" />
                 <include name="System.Data.dll.dll" />
                 <include name="System.Xml.dll" />

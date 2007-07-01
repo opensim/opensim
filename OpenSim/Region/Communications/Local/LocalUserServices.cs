@@ -69,14 +69,14 @@ namespace OpenSim.Region.Communications.Local
             return profile;
         }
 
-        public override bool AuthenticateUser(ref UserProfileData profile, string password)
+        public override bool AuthenticateUser(UserProfileData profile, string password)
         {
             //for now we will accept any password in sandbox mode
             Console.WriteLine("authorising user");
             return true;
         }
 
-        public override void CustomiseResponse(ref LoginResponse response, ref UserProfileData theUser)
+        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
         {
             ulong currentRegion = theUser.currentAgent.currentHandle;
             RegionInfo reg = m_Parent.GridServer.RequestNeighbourInfo(currentRegion);

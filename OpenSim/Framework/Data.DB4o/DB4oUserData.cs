@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Data.DB4o
             {
                 return getUserByUUID(uuid).currentAgent;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -128,7 +128,7 @@ namespace OpenSim.Framework.Data.DB4o
             {
                 return getUserByName(fname,lname).currentAgent;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Data.DB4o
                 database.Close();
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Data.DB4o
                 database.Close();
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

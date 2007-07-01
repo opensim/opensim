@@ -493,19 +493,19 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param          
         /// <param name="agentID"></param>
         /// <param name="child"></param>
-        public override void AddNewClient(IClientAPI remoteClient, LLUUID agentID, bool child)
+        public override void AddNewClient(IClientAPI client, bool child)
         {
-            remoteClient.OnRegionHandShakeReply += this.SendLayerData;
+            client.OnRegionHandShakeReply += this.SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
-            remoteClient.OnChatFromViewer += this.SimChat;
-            remoteClient.OnRequestWearables += this.InformClientOfNeighbours;
-            remoteClient.OnAddPrim += this.AddNewPrim;
-            remoteClient.OnUpdatePrimPosition += this.UpdatePrimPosition;
-            remoteClient.OnRequestMapBlocks += this.RequestMapBlocks;
-            remoteClient.OnTeleportLocationRequest += this.RequestTeleportLocation;
+            client.OnChatFromViewer += this.SimChat;
+            client.OnRequestWearables += this.InformClientOfNeighbours;
+            client.OnAddPrim += this.AddNewPrim;
+            client.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            client.OnRequestMapBlocks += this.RequestMapBlocks;
+            client.OnTeleportLocationRequest += this.RequestTeleportLocation;
            //remoteClient.OnObjectSelect += this.SelectPrim;
-            remoteClient.OnGrapUpdate += this.MoveObject;
-            remoteClient.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
+            client.OnGrapUpdate += this.MoveObject;
+            client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
@@ -513,18 +513,20 @@ namespace OpenSim.Region.Environment.Scenes
             remoteClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
             remoteClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
             */
-            
-            ScenePresence newAvatar = null;
-            try
-            {
+            this.estateManager.sendRegionHandshake(client);
 
-                OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-                newAvatar = new ScenePresence(remoteClient, this, this.m_regInfo);
+            CreateAndAddScenePresence(client);
+            return;
+        }
+
+        protected void CreateAndAddScenePresence(IClientAPI client)
+        {
+            ScenePresence newAvatar = null;
+
+            OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
+                newAvatar = new ScenePresence(client, this, this.m_regInfo);
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Adding new avatar to world");
                 OpenSim.Framework.Console.MainLog.Instance.Verbose( "World.cs:AddViewerAgent() - Starting RegionHandshake ");
-
-                //newAvatar.SendRegionHandshake();
-                this.estateManager.sendRegionHandshake(remoteClient);
 
                 PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
                 lock (this.m_syncRoot)
@@ -534,34 +536,27 @@ namespace OpenSim.Region.Environment.Scenes
 
                 lock (Entities)
                 {
-                    if (!Entities.ContainsKey(agentID))
+                    if (!Entities.ContainsKey(client.AgentId))
                     {
-                        this.Entities.Add(agentID, newAvatar);
+                        this.Entities.Add(client.AgentId, newAvatar);
                     }
                     else
                     {
-                        Entities[agentID] = newAvatar;
+                        Entities[client.AgentId] = newAvatar;
                     }
                 }
                 lock (Avatars)
                 {
-                    if (Avatars.ContainsKey(agentID))
+                    if (Avatars.ContainsKey(client.AgentId))
                     {
-                        Avatars[agentID] = newAvatar;
+                        Avatars[client.AgentId] = newAvatar;
                     }
                     else
                     {
-                        this.Avatars.Add(agentID, newAvatar);
+                        this.Avatars.Add(client.AgentId, newAvatar);
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: AddViewerAgent() - Failed with exception " + e.ToString());
-            }
-            return;
         }
-
 
 
         /// <summary>
@@ -642,8 +637,8 @@ namespace OpenSim.Region.Environment.Scenes
             this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo,gridSettings);
             if (this.regionCommsHost != null)
             {
-                this.regionCommsHost.OnExpectUser += new ExpectUserDelegate(this.NewUserConnection);
-                this.regionCommsHost.OnAvatarCrossingIntoRegion += new AgentCrossing(this.AgentCrossing);
+                this.regionCommsHost.OnExpectUser += this.NewUserConnection;
+                this.regionCommsHost.OnAvatarCrossingIntoRegion += this.AgentCrossing;
             }
         }
 

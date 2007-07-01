@@ -75,18 +75,14 @@ namespace OpenSim.Region.Communications.OGS1
 
             foreach (Hashtable n in (Hashtable)respData.Values)
             {
-                RegionInfo neighbour = new RegionInfo();
+                RegionInfo neighbour = new RegionInfo( (uint)n["x"], (uint)n["y"], (string)n["sim_ip"], (int)n["sim_port"], (string)n["sim_uri"] );
 
                 //OGS1
-                neighbour.RegionHandle = (ulong)n["regionhandle"];
-                neighbour.RegionLocX = (uint)n["x"];
-                neighbour.RegionLocY = (uint)n["y"];
+                //neighbour.RegionHandle = (ulong)n["regionhandle"]; is now calculated locally
+
                 neighbour.RegionName = (string)n["name"];
 
                 //OGS1+
-                neighbour.CommsIPListenAddr = (string)n["sim_ip"];
-                neighbour.CommsIPListenPort = (int)n["sim_port"];
-                neighbour.CommsExternalAddress = (string)n["sim_uri"];
                 neighbour.SimUUID = (string)n["uuid"];
 
                 neighbours.Add(neighbour);

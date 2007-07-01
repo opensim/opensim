@@ -178,7 +178,7 @@ namespace OpenSim.Grid.UserServer
                 }
                 configData.Commit();
             }
-            catch (Exception e)
+            catch
             {
 
             }

@@ -211,7 +211,7 @@ namespace OpenSim.Region.ClientStack
         protected virtual void InitNewClient()
         {
             OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
-            this.m_world.AddNewClient(this, this.AgentID, false);
+            this.m_world.AddNewClient(this, false);
         }
 
         protected virtual void AuthUser()

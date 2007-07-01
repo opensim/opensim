@@ -35,7 +35,7 @@ namespace OpenSim.Framework.Interfaces
 {
     public interface IWorld
     {
-        void AddNewClient(IClientAPI remoteClient, LLUUID agentID, bool child);
+        void AddNewClient(IClientAPI client, bool child);
         void RemoveClient(LLUUID agentID);
         
         RegionInfo RegionInfo { get; }

@@ -11,8 +11,8 @@
             <resources prefix="OpenSim.Framework.UserManagement" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="UserManagerBase.cs" />
                 <include name="LoginResponse.cs" />
+                <include name="UserManagerBase.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>

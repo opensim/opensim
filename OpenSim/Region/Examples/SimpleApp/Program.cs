@@ -14,6 +14,7 @@ using OpenSim.Region.Caches;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.ClientStack;
+using OpenSim.Region.Physics.BasicPhysicsPlugin;
 
 namespace SimpleApp
 {
@@ -32,11 +33,7 @@ namespace SimpleApp
 
             string simAddr = "127.0.0.1";
             int simPort = 9000;
-            /*
-            LoginServer loginServer = new LoginServer( simAddr, simPort, 0, 0, false );
-            loginServer.Startup();
-            loginServer.SetSessionHandler( AddNewSessionHandler );*/
-
+            
             m_circuitManager = new AuthenticateSessionsBase();
 
             InventoryCache inventoryCache = new InventoryCache();
@@ -53,18 +50,17 @@ namespace SimpleApp
             
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
-            CommunicationsManager communicationsManager = new CommunicationsLocal(null);
+            NetworkServersInfo serverInfo = new NetworkServersInfo();
+            CommunicationsLocal communicationsManager = new CommunicationsLocal(serverInfo);
+
+            RegionInfo regionInfo = new RegionInfo( 1000, 1000, simAddr, simPort, simAddr );
             
-            RegionInfo regionInfo = new RegionInfo( );
             BaseHttpServer httpServer = new BaseHttpServer(simPort);
-            udpServer.LocalWorld = new MyWorld( packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer );
+            MyWorld world = new MyWorld(packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
+            world.PhysScene = new BasicScene();
+            udpServer.LocalWorld = world;
 
-            // World world = new World(udpServer.PacketServer.ClientAPIs, regionInfo);            
-            // PhysicsScene physicsScene = new NullPhysicsScene();
-            // world.PhysicsScene = physicsScene;
-            // udpServer.LocalWorld = world;
-
-          //  httpServer.AddXmlRPCHandler( "login_to_simulator", loginServer.XmlRpcLoginMethod );
+            httpServer.AddXmlRPCHandler("login_to_simulator", communicationsManager.UserServices.XmlRpcLoginMethod );
             httpServer.Start();
             
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");

@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
                 result.Dispose();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

@@ -43,7 +43,7 @@ using System.Security.Cryptography;
 
 namespace OpenSim.Framework.UserManagement
 {
-    public class UserManagerBase
+    public abstract class UserManagerBase
     {
         public OpenSim.Framework.Interfaces.UserConfig _config;
         Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
@@ -142,14 +142,9 @@ namespace OpenSim.Framework.UserManagement
                 try
                 {
                     UserProfileData profile = plugin.Value.getUserByName(fname,lname);
-                    try
-                    {
-                        profile.currentAgent = getUserAgent(profile.UUID);
-                    }
-                    catch (Exception e)
-                    {
-                        // Ignore
-                    }
+
+                    profile.currentAgent = getUserAgent(profile.UUID);
+
                     return profile;
                 }
                 catch (Exception e)
@@ -238,16 +233,14 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="profile">The users profile</param>
         /// <param name="request">The users loginrequest</param>
-        public void CreateAgent(ref UserProfileData profile, XmlRpcRequest request)
+        public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
 
             UserAgentData agent = new UserAgentData();
 
             // User connection
-            agent.agentIP = "";
             agent.agentOnline = true;
-            agent.agentPort = 0;
 
             // Generate sessions
             RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
@@ -282,7 +275,7 @@ namespace OpenSim.Framework.UserManagement
                         //SimProfile SimInfo = new SimProfile();
                         //SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
 
                     }
@@ -319,7 +312,7 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="profile">The users profile</param>
         /// <param name="password">The supplied password</param>
         /// <returns>Authenticated?</returns>
-        public virtual bool AuthenticateUser(ref UserProfileData profile, string password)
+        public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             OpenSim.Framework.Console.MainLog.Instance.Verbose(
                 "Authenticating " + profile.username + " " + profile.surname);
@@ -358,10 +351,7 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
-        public virtual void CustomiseResponse(ref LoginResponse response, ref UserProfileData theUser)
-        {
-       
-        }
+        public abstract void CustomiseResponse( LoginResponse response, UserProfileData theUser);
 
         /// <summary>
         /// Main user login function
@@ -379,7 +369,7 @@ namespace OpenSim.Framework.UserManagement
             string lastname = "";
             string passwd = "";
 
-            UserProfileData TheUser;
+            UserProfileData userProfile;
             LoginResponse logResponse = new LoginResponse();
 
             if (GoodXML)
@@ -388,11 +378,11 @@ namespace OpenSim.Framework.UserManagement
                 lastname = (string)requestData["last"];
                 passwd = (string)requestData["passwd"];
 
-                TheUser = GetTheUser(firstname, lastname);
-                if (TheUser == null)
+                userProfile = GetTheUser(firstname, lastname);
+                if (userProfile == null)
                     return logResponse.CreateLoginFailedResponse();
 
-                GoodLogin = AuthenticateUser(ref TheUser, passwd);
+                GoodLogin = AuthenticateUser(userProfile, passwd);
             }
             else
             {
@@ -406,19 +396,19 @@ namespace OpenSim.Framework.UserManagement
             else
             {
                 // If we already have a session...
-                if (TheUser.currentAgent != null && TheUser.currentAgent.agentOnline)
+                if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
                 {
                     // Reject the login
                     return logResponse.CreateAlreadyLoggedInResponse();
                 }
                 // Otherwise...
                 // Create a new agent session
-                CreateAgent(ref TheUser, request);
+                CreateAgent( userProfile, request);
 
                 try
                 {
 
-                    LLUUID AgentID = TheUser.UUID;
+                    LLUUID AgentID = userProfile.UUID;
 
                     // Inventory Library Section
                     ArrayList AgentInventoryArray = new ArrayList();
@@ -446,32 +436,32 @@ namespace OpenSim.Framework.UserManagement
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());
 
-                    logResponse.Lastname = TheUser.surname;
-                    logResponse.Firstname = TheUser.username;
+                    logResponse.Lastname = userProfile.surname;
+                    logResponse.Firstname = userProfile.username;
                     logResponse.AgentID = AgentID.ToStringHyphenated();
-                    logResponse.SessionID = TheUser.currentAgent.sessionID.ToStringHyphenated();
-                    logResponse.SecureSessionID = TheUser.currentAgent.secureSessionID.ToStringHyphenated();
+                    logResponse.SessionID = userProfile.currentAgent.sessionID.ToStringHyphenated();
+                    logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
                     logResponse.InventoryRoot = InventoryRoot;
                     logResponse.InventorySkeleton = AgentInventoryArray;
                     logResponse.CircuitCode = (Int32)circode;
-                    logResponse.RegionX = 0; //overwritten
-                    logResponse.RegionY = 0; //overwritten
+                    //logResponse.RegionX = 0; //overwritten
+                    //logResponse.RegionY = 0; //overwritten
                     logResponse.Home = "!!null temporary value {home}!!";   // Overwritten
                     //logResponse.LookAt = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
-                    logResponse.SimAddress = "127.0.0.1"; //overwritten
-                    logResponse.SimPort = 0; //overwritten
+                    //logResponse.SimAddress = "127.0.0.1"; //overwritten
+                    //logResponse.SimPort = 0; //overwritten
                     logResponse.Message = this.GetMessage();
                     
                     try
                     {
-                        this.CustomiseResponse(ref logResponse, ref TheUser);
+                        this.CustomiseResponse(  logResponse,   userProfile);
                     }
                     catch (Exception e)
                     {
                         System.Console.WriteLine(e.ToString());
                         return logResponse.CreateDeadRegionResponse();
                     }
-                    CommitAgent(ref TheUser);
+                    CommitAgent(ref userProfile);
                     return logResponse.ToXmlRpcResponse();
 
                 }

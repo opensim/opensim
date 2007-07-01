@@ -83,6 +83,9 @@
     <Compile Include="Prebuild.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\FatalException.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Core\Kernel.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -92,25 +95,19 @@
     <Compile Include="Core\WarningException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\FatalException.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Interfaces\ITarget.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Interfaces\IDataNode.cs">
+    <Compile Include="Core\Attributes\DataNodeAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Attributes\OptionNodeAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Attributes\DataNodeAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Core\Attributes\TargetAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Nodes\ProjectNode.cs">
+    <Compile Include="Core\Interfaces\IDataNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Interfaces\ITarget.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\ConfigurationNode.cs">
@@ -122,28 +119,40 @@
     <Compile Include="Core\Nodes\ExcludeNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Nodes\OptionsNode.cs">
+    <Compile Include="Core\Nodes\FileNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Nodes\ReferencePathNode.cs">
+    <Compile Include="Core\Nodes\FilesNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\MatchNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Nodes\SolutionNode.cs">
+    <Compile Include="Core\Nodes\OptionsNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\ProcessNode.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\Nodes\ProjectNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Core\Nodes\ReferenceNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Nodes\FileNode.cs">
+    <Compile Include="Core\Nodes\ReferencePathNode.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Nodes\FilesNode.cs">
+    <Compile Include="Core\Nodes\SolutionNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Parse\IfContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Parse\Preprocessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Targets\AutotoolsTarget.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Targets\DebugTarget.cs">
@@ -152,7 +161,10 @@
     <Compile Include="Core\Targets\MonoDevelopTarget.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Targets\AutotoolsTarget.cs">
+    <Compile Include="Core\Targets\NAntTarget.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Targets\SharpDevelop2Target.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Targets\SharpDevelopTarget.cs">
@@ -164,31 +176,19 @@
     <Compile Include="Core\Targets\VS2003Target.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Targets\SharpDevelop2Target.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Core\Targets\VS2005Target.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Targets\NAntTarget.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Parse\IfContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Parse\Preprocessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Utilities\Helper.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Core\Utilities\Log.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Utilities\CommandLineCollection.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Utilities\CurrentDirectory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Utilities\Helper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Utilities\Log.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

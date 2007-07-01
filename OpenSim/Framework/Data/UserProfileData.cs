@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// The IP address of the user
         /// </summary>
-        public string agentIP;
+        public string agentIP = String.Empty;
         /// <summary>
         /// The port of the user
         /// </summary>

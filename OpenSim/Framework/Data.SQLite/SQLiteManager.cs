@@ -198,7 +198,7 @@ namespace OpenSim.Framework.Data.SQLite
 
                 result.Dispose();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

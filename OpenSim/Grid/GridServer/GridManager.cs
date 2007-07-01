@@ -108,7 +108,7 @@ namespace OpenSim.Grid.GridServer
                 {
                     kvp.Value.saveLog("Gridserver", target, method, args, priority, message);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: unable to write log via " + kvp.Key);
                 }
@@ -127,7 +127,7 @@ namespace OpenSim.Grid.GridServer
                 {
                     return kvp.Value.GetProfileByLLUUID(uuid);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
                 }
@@ -148,7 +148,7 @@ namespace OpenSim.Grid.GridServer
                 {
                     return kvp.Value.GetProfileByHandle(handle);
                 }
-                catch (Exception e)
+                catch
                 {
                     OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
                 }
@@ -172,7 +172,7 @@ namespace OpenSim.Grid.GridServer
                         regions[neighbour.regionHandle] = neighbour;
                     }
                 }
-                catch (Exception e)
+                catch
                 {
                     OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to query regionblock via " + kvp.Key);
                 }

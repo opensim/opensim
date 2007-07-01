@@ -69,10 +69,10 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LogBase.cs">
+    <Compile Include="ConsoleCallbacksBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ConsoleCallbacksBase.cs">
+    <Compile Include="LogBase.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MainLog.cs">

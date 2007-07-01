@@ -104,6 +104,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Framework\UserManager\OpenSim.Framework.UserManagement.csproj">
+      <Name>OpenSim.Framework.UserManagement</Name>
+      <Project>{586E2916-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Caches\OpenSim.Region.Caches.csproj">
       <Name>OpenSim.Region.Caches</Name>
       <Project>{61FCCDB3-0000-0000-0000-000000000000}</Project>
@@ -131,6 +137,18 @@
     <ProjectReference Include="..\..\GridInterfaces\Local\OpenSim.Region.GridInterfaces.Local.csproj">
       <Name>OpenSim.Region.GridInterfaces.Local</Name>
       <Project>{241A8CDD-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Physics\BasicPhysicsPlugin\OpenSim.Region.Physics.BasicPhysicsPlugin.csproj">
+      <Name>OpenSim.Region.Physics.BasicPhysicsPlugin</Name>
+      <Project>{15B4FEF3-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Physics\Manager\OpenSim.Region.Physics.Manager.csproj">
+      <Name>OpenSim.Region.Physics.Manager</Name>
+      <Project>{F4FF31EB-0000-0000-0000-000000000000}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>

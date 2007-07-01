@@ -262,7 +262,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 configData.Commit();
             }
-            catch (Exception e)
+            catch
             {
 
             }

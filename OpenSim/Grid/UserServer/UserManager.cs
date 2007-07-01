@@ -56,7 +56,7 @@ namespace OpenSim.Grid.UserServer
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
-        public override void CustomiseResponse(ref LoginResponse response, ref UserProfileData theUser)
+        public override void CustomiseResponse(  LoginResponse response,   UserProfileData theUser)
         {
             // Load information from the gridserver
             SimProfile SimInfo = new SimProfile();

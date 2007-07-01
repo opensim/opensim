@@ -44,7 +44,7 @@ namespace SimpleApp
 
         #region IWorld Members
 
-        override public void AddNewClient(IClientAPI client, LLUUID agentID, bool child)
+        override public void AddNewClient(IClientAPI client, bool child)
 
         {
             LLVector3 pos = new LLVector3(128, 128, 128);
@@ -59,7 +59,13 @@ namespace SimpleApp
                     };
             
             client.OnRequestWearables += SendWearables;
-
+            client.OnAddPrim += AddNewPrim;
+            client.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            client.OnRequestMapBlocks += this.RequestMapBlocks;
+            client.OnTeleportLocationRequest += this.RequestTeleportLocation;
+            client.OnGrapUpdate += this.MoveObject;
+            client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
+            
             client.OnCompleteMovementToRegion += delegate()
                 {
                     client.MoveAgentIntoRegion(m_regionInfo, pos, LLVector3.Zero );
@@ -76,19 +82,13 @@ namespace SimpleApp
 
             client.SendRegionHandshake(m_regionInfo);
 
-            OpenSim.Region.Environment.Scenes.ScenePresence avatar = new Avatar( client, this, m_regionInfo );
+            CreateAndAddScenePresence(client);
             
         }
 
         private void SendWearables( IClientAPI client )
         {
             client.SendWearables( AvatarWearable.DefaultWearables );
-        }
-
-
-       override public void RemoveClient(LLUUID agentID)
-        {
-
         }
 
         public RegionInfo RegionInfo

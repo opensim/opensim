@@ -148,7 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="agentID"></param>
         /// <param name="child"></param>
-        public abstract void AddNewClient(IClientAPI remoteClient, LLUUID agentID, bool child);
+        public abstract void AddNewClient(IClientAPI client, bool child);
         
         /// <summary>
         /// 
