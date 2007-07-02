@@ -108,45 +108,6 @@ namespace OpenSim.Framework.Types
         public string MasterAvatarLastName = "";
         public string MasterAvatarSandboxPassword = "";
 
-        //private int? m_commsIPListenPort;
-
-        ///// <summary>
-        ///// Port used for listening (TCP and UDP)
-        ///// </summary>
-        ///// <remarks>Seperate TCP and UDP</remarks>
-        //public int CommsIPListenPort
-        //{
-        //    get
-        //    {
-        //        return m_commsIPListenPort.Value;
-        //    }
-        //}
-
-        //private string m_commsIPListenAddr;
-        ///// <summary>
-        ///// Address used for internal listening (default: 0.0.0.0?)
-        ///// </summary>
-        //public string CommsIPListenAddr        
-        //{
-        //    get
-        //    {
-        //        return m_commsIPListenAddr;
-        //    }            
-        //}
-
-        //private string m_commsExternalAddress;
-        ///// <summary>
-        ///// Address used for external addressing (DNS or IP)
-        ///// </summary>
-        //public string CommsExternalAddress
-        //{
-        //    get
-        //    {
-        //        return m_commsExternalAddress;
-        //    }
-        //}
-
-
         public EstateSettings estateSettings;
 
         public RegionInfo()
@@ -160,10 +121,6 @@ namespace OpenSim.Framework.Types
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
-            //m_commsIPListenAddr = simIp;
-            //m_commsIPListenPort = simPort;
-            //m_commsExternalAddress = simUri;
-
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
         }
@@ -173,32 +130,24 @@ namespace OpenSim.Framework.Types
             this.isSandbox = sandboxMode;
             try
             {
-                // Sim UUID
                 string attri = "";
-                attri = configData.GetAttribute("SimUUID");
-                if (attri == "")
+
+                // Sim UUID
+                string simId = configData.GetAttribute("SimUUID");
+                if (String.IsNullOrEmpty( simId ))
                 {
                     this.SimUUID = LLUUID.Random();
-                    configData.SetAttribute("SimUUID", this.SimUUID.ToString());
                 }
                 else
                 {
-                    this.SimUUID = new LLUUID(attri);
+                    this.SimUUID = new LLUUID(simId);
                 }
+                configData.SetAttribute("SimUUID", this.SimUUID.ToString());
 
-                // Sim name
-                attri = "";
-                attri = configData.GetAttribute("SimName");
-                if (attri == "")
-                {
-                    this.RegionName = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Name", "OpenSim test");
-                    configData.SetAttribute("SimName", this.RegionName);
-                }
-                else
-                {
-                    this.RegionName = attri;
-                }
-                // Sim/Grid location X
+                this.RegionName = GetString(configData, "SimName", "OpenSim test", "Region Name");
+
+                //m_regionLocX = (uint) GetInt(configData, "SimLocationX", 1000, "Grid Location X");
+                
                 attri = "";
                 attri = configData.GetAttribute("SimLocationX");
                 if (attri == "")
@@ -310,6 +259,11 @@ namespace OpenSim.Framework.Types
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Listening on IP end point: " + m_internalEndPoint.ToString() );
             OpenSim.Framework.Console.MainLog.Instance.Verbose("Sandbox Mode? " + isSandbox.ToString());
 
+        }
+
+        private uint GetInt(IGenericConfig configData, string p, int p_3, string p_4)
+        {
+            throw new Exception("The method or operation is not implemented.");
         }
 
         private string GetString(IGenericConfig configData, string attrName, string defaultvalue, string prompt)
