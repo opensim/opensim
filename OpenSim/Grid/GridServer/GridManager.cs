@@ -223,6 +223,7 @@ namespace OpenSim.Grid.GridServer
             SimProfileData TheSim = null;
             Hashtable requestData = (Hashtable)request.Params[0];
 
+            Console.WriteLine("WOOT: " + requestData.ToString());
             if (requestData.ContainsKey("UUID"))
             {
                 TheSim = getRegion(new LLUUID((string)requestData["UUID"]));

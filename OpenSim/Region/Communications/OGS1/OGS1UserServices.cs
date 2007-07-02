@@ -35,10 +35,10 @@ namespace OpenSim.Region.Communications.OGS1
             userData.userAssetURI = (string)data["server_asset"];
             userData.profileFirstText = (string)data["profile_firstlife_about"];
             userData.profileFirstImage = new LLUUID((string)data["profile_firstlife_image"]);
-            userData.profileCanDoMask = (uint)data["profile_can_do"];
-            userData.profileWantDoMask = (uint)data["profile_want_do"];
+            userData.profileCanDoMask = Convert.ToUInt32((string)data["profile_can_do"]);
+            userData.profileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
             userData.profileImage = new LLUUID((string)data["profile_image"]);
-            userData.lastLogin = (int)data["profile_lastlogin"];
+            userData.lastLogin = Convert.ToInt32((string)data["profile_lastlogin"]);
             userData.homeLocation = new LLVector3();
             userData.homeLookAt = new LLVector3();
 
@@ -51,8 +51,8 @@ namespace OpenSim.Region.Communications.OGS1
         public UserProfileData GetUserProfile(string name)
         {
 
-            try
-            {
+            //try
+            //{
                 Hashtable param = new Hashtable();
                 param["avatar_name"] = name;
                 IList parameters = new ArrayList();
@@ -62,12 +62,12 @@ namespace OpenSim.Region.Communications.OGS1
                 Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error when trying to fetch profile data by name from remote user server: " + e.Message);
-            }
-            return null;
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine("Error when trying to fetch profile data by name from remote user server: " + e.Message);
+            //}
+            //return null;
         }
         public UserProfileData GetUserProfile(LLUUID avatarID)
         {
