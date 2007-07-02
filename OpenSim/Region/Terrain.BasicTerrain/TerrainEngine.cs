@@ -192,7 +192,7 @@ namespace OpenSim.Region.Terrain
                         resultText += "terrain voronoi <points> <blocksize> - generates a worley fractal with X points per block";
                         resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
                         resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
-                        resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32', 'F64' or 'PNG'\n";
+                        resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32', 'F64', 'PNG', 'RAW' or 'HIRAW'\n";
                         resultText += "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
                         resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
                         resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
@@ -293,6 +293,10 @@ namespace OpenSim.Region.Terrain
 
                             case "raw":
                                 writeToFileRAW(args[2]);
+                                break;
+
+                            case "hiraw":
+                                writeToFileHiRAW(args[2]);
                                 break;
 
                             default:
@@ -532,6 +536,7 @@ namespace OpenSim.Region.Terrain
 
         /// <summary>
         /// A very fast LL-RAW file output mechanism - lower precision mechanism but wont take 5 minutes to run either.
+        /// (is also editable in an image application)
         /// </summary>
         /// <param name="filename">Filename to write to</param>
         public void writeToFileRAW(string filename)
@@ -590,6 +595,80 @@ namespace OpenSim.Region.Terrain
                     bs.Write(alpha10);
                 }
             }
+            bs.Close();
+            s.Close();
+        }
+
+        /// <summary>
+        /// Outputs to a LL compatible RAW in the most efficient manner possible
+        /// </summary>
+        /// <remarks>Does not calculate the revert map</remarks>
+        /// <param name="filename">The filename to output to</param>
+        public void writeToFileHiRAW(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
+            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+
+            // Generate a smegging big lookup table to speed the operation up (it needs it)
+            double[] lookupTable = new double[65536];
+            int i, j, x, y;
+            for (i = 0; i < 256; i++)
+            {
+                for (j = 0; j < 256; j++)
+                {
+                    lookupTable[i + (j * 256)] = ((double)i * ((double)j / 127.0));
+                }
+            }
+
+            // Output the calculated raw
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    double t = heightmap.get(x, y);
+                    double min = double.MaxValue;
+                    int index = 0;
+
+                    for (i = 0; i < 65536; i++)
+                    {
+                        if (Math.Abs(t - lookupTable[i]) < min)
+                        {
+                            min = Math.Abs(t - lookupTable[i]);
+                            index = i;
+                        }
+                    }
+
+                    byte red = (byte)(index & 0xFF);
+                    byte green = (byte)((index >> 8) & 0xFF);
+                    byte blue = (byte)watermap.get(x, y);
+                    byte alpha1 = 0; // Land Parcels
+                    byte alpha2 = 0; // For Sale Land
+                    byte alpha3 = 0; // Public Edit Object
+                    byte alpha4 = 0; // Public Edit Land
+                    byte alpha5 = 255; // Safe Land
+                    byte alpha6 = 255; // Flying Allowed
+                    byte alpha7 = 255; // Create Landmark
+                    byte alpha8 = 255; // Outside Scripts
+                    byte alpha9 = red;
+                    byte alpha10 = green;
+
+                    bs.Write(red);
+                    bs.Write(green);
+                    bs.Write(blue);
+                    bs.Write(alpha1);
+                    bs.Write(alpha2);
+                    bs.Write(alpha3);
+                    bs.Write(alpha4);
+                    bs.Write(alpha5);
+                    bs.Write(alpha6);
+                    bs.Write(alpha7);
+                    bs.Write(alpha8);
+                    bs.Write(alpha9);
+                    bs.Write(alpha10);
+                }
+            }
+
             bs.Close();
             s.Close();
         }
