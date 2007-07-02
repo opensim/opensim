@@ -50,5 +50,10 @@ namespace OpenSim.Physics.Manager
         }
 
         public static readonly PhysicsVector Zero = new PhysicsVector(0f, 0f, 0f);
+
+        public override string ToString()
+        {
+            return "<" + this.X + "," + this.Y + "," + this.Z + ">";
+        }
     }
 }
