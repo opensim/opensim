@@ -51,7 +51,7 @@ namespace OpenSim.Physics.Manager
 		{
             if (String.IsNullOrEmpty(engineName))
             {
-                return new NullPhysicsScene();
+                return PhysicsScene.Null;
             }
 
 			if(_plugins.ContainsKey(engineName))

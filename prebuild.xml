@@ -699,6 +699,7 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
+	<ReferencePath>../../../../bin/Physics/</ReferencePath>
 
       <Reference name="libsecondlife.dll"/>
       <Reference name="System" localCopy="false"/>
@@ -709,7 +710,6 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.UserManagement"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Physics.BasicPhysicsPlugin"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Region.GridInterfaces.Local"/>
       <Reference name="OpenSim.Framework.Servers"/>

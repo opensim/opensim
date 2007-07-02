@@ -94,7 +94,7 @@ namespace OpenSim.Grid.AssetServer
 
                     case "application/xml":
                         // probably LLSD we hope, otherwise it should be ignored by the parser
-                        responseString = ParseLLSDXML(requestBody);
+                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
                         response.AddHeader("Content-type", "application/xml");
                         break;
 

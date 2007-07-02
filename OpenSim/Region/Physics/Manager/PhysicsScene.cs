@@ -53,61 +53,61 @@ namespace OpenSim.Physics.Manager
         public abstract void GetResults();
 
         public abstract void SetTerrain(float[] heightMap);
-        
+
         public abstract void DeleteTerrain();
 
         public abstract bool IsThreaded
         {
             get;
         }
-    }
 
-    public class NullPhysicsScene : PhysicsScene
-    {
-        private static int m_workIndicator;
-
-        public override PhysicsActor AddAvatar(PhysicsVector position)
+        private class NullPhysicsScene : PhysicsScene
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
-            return PhysicsActor.Null;
-        }
+            private static int m_workIndicator;
 
-        public override void RemoveAvatar(PhysicsActor actor)
-        {
+            public override PhysicsActor AddAvatar(PhysicsVector position)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
+                return PhysicsActor.Null;
+            }
 
-        }
+            public override void RemoveAvatar(PhysicsActor actor)
+            {
 
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
-        {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "NullPhysicsScene : AddPrim({0},{1})", position, size);
-            return PhysicsActor.Null;
-        }
+            }
 
-        public override void Simulate(float timeStep)
-        {
-            m_workIndicator = (m_workIndicator + 1) % 10;
+            public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
+                return PhysicsActor.Null;
+            }
 
-            //OpenSim.Framework.Console.MainLog.Instance.SetStatus(m_workIndicator.ToString());
-        }
+            public override void Simulate(float timeStep)
+            {
+                m_workIndicator = (m_workIndicator + 1) % 10;
 
-        public override void GetResults()
-        {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "NullPhysicsScene : GetResults()");
-        }
+                //OpenSim.Framework.Console.MainLog.Instance.SetStatus(m_workIndicator.ToString());
+            }
 
-        public override void SetTerrain(float[] heightMap)
-        {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
-        }
+            public override void GetResults()
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : GetResults()");
+            }
 
-        public override void DeleteTerrain()
-        {
+            public override void SetTerrain(float[] heightMap)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
+            }
 
-        }
+            public override void DeleteTerrain()
+            {
 
-        public override bool IsThreaded
-        {
-            get { return false; }
+            }
+
+            public override bool IsThreaded
+            {
+                get { return false; }
+            }
         }
     }
 }

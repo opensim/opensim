@@ -140,12 +140,6 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Physics\BasicPhysicsPlugin\OpenSim.Region.Physics.BasicPhysicsPlugin.csproj">
-      <Name>OpenSim.Region.Physics.BasicPhysicsPlugin</Name>
-      <Project>{15B4FEF3-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\Physics\Manager\OpenSim.Region.Physics.Manager.csproj">
       <Name>OpenSim.Region.Physics.Manager</Name>
       <Project>{F4FF31EB-0000-0000-0000-000000000000}</Project>

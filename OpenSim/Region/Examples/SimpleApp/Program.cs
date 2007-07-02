@@ -14,9 +14,9 @@ using OpenSim.Region.Caches;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.ClientStack;
-using OpenSim.Region.Physics.BasicPhysicsPlugin;
 using System.Net;
 using libsecondlife.Packets;
+using OpenSim.Physics.Manager;
 
 namespace SimpleApp
 {
@@ -59,7 +59,7 @@ namespace SimpleApp
 
             BaseHttpServer httpServer = new BaseHttpServer( internalEndPoint.Port );
             MyWorld world = new MyWorld(packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
-            world.PhysScene = new BasicScene();
+            world.PhysScene = PhysicsScene.Null;
             udpServer.LocalWorld = world;
 
             httpServer.AddXmlRPCHandler("login_to_simulator", communicationsManager.UserServices.XmlRpcLoginMethod );
