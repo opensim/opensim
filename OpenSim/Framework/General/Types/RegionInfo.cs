@@ -55,7 +55,25 @@ namespace OpenSim.Framework.Types
         {
             get
             {
-                return new IPEndPoint( Dns.GetHostAddresses( m_externalHostName )[0], m_internalEndPoint.Port );
+                // Old one defaults to IPv6
+                //return new IPEndPoint( Dns.GetHostAddresses( m_externalHostName )[0], m_internalEndPoint.Port );
+
+                // New method favors IPv4
+                IPAddress ia = null;
+                foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
+                {
+                    if (ia == null)
+                        ia = Adr;
+
+                    if (Adr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        ia = Adr;
+                        break;
+                    }
+
+                }
+                
+                return new IPEndPoint(ia, m_internalEndPoint.Port);
             }
         }
         
