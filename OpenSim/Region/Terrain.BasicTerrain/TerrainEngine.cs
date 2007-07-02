@@ -178,7 +178,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="args">Commandline arguments (space seperated)</param>
         /// <param name="resultText">Reference that returns error or help text if returning false</param>
         /// <returns>If the operation was successful (if not, the error is placed into resultText)</returns>
-        public bool RunTerrainCmd(string[] args, ref string resultText)
+        public bool RunTerrainCmd(string[] args, ref string resultText, string simName)
         {
             string command = args[0];
 
@@ -248,6 +248,7 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "load":
+                        args[2].Replace("%name%", simName);
                         switch (args[1].ToLower())
                         {
                             case "f32":
@@ -273,6 +274,7 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "save":
+                        args[2].Replace("%name%", simName);
                         switch (args[1].ToLower())
                         {
                             case "f32":

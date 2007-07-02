@@ -429,7 +429,7 @@ namespace OpenSim
                     string result = "";
                     for (int i = 0; i < m_localWorld.Count; i++)
                     {
-                        if (!((Scene)m_localWorld[i]).Terrain.RunTerrainCmd(cmdparams, ref result))
+                        if (!((Scene)m_localWorld[i]).Terrain.RunTerrainCmd(cmdparams, ref result,m_localWorld[i].RegionInfo.RegionName))
                         {
                             m_log.Error(result);
                         }
