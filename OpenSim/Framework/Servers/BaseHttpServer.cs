@@ -224,15 +224,9 @@ namespace OpenSim.Framework.Servers
                         break;
 
                     case "application/xml":
-                        // probably LLSD we hope, otherwise it should be ignored by the parser
-                       // responseString = ParseLLSDXML(requestBody);
-                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                        response.AddHeader("Content-type", "application/xml");
-                        break;
-
                     case "application/octet-stream":
                         // probably LLSD we hope, otherwise it should be ignored by the parser
-                        // responseString = ParseLLSDXML(requestBody);
+                       // responseString = ParseLLSDXML(requestBody);
                         responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
                         response.AddHeader("Content-type", "application/xml");
                         break;

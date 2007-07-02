@@ -13,7 +13,7 @@
             <sources failonempty="true">
                 <include name="BaseHttpServer.cs" />
                 <include name="CheckSumServer.cs" />
-                <include name="IRestHandler.cs" />
+                <include name="RestMethod.cs" />
                 <include name="UDPServerBase.cs" />
                 <include name="XmlRpcMethod.cs" />
             </sources>
