@@ -291,6 +291,10 @@ namespace OpenSim.Region.Terrain
                                 heightmap.saveImage(args[2]);
                                 break;
 
+                            case "raw":
+                                writeToFileRAW(args[2]);
+                                break;
+
                             default:
                                 resultText = "Unknown image or data format";
                                 return false;
@@ -522,6 +526,70 @@ namespace OpenSim.Region.Terrain
                 }
             }
 
+            bs.Close();
+            s.Close();
+        }
+
+        /// <summary>
+        /// A very fast LL-RAW file output mechanism - lower precision mechanism but wont take 5 minutes to run either.
+        /// </summary>
+        /// <param name="filename">Filename to write to</param>
+        public void writeToFileRAW(string filename)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filename);
+            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
+            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+
+            int x, y;
+
+            // Used for the 'green' channel.
+            byte avgMultiplier = (byte)heightmap.avg();
+            byte backupMultiplier = (byte)revertmap.avg();
+
+            // Limit the multiplier so it can represent points >64m.
+            if (avgMultiplier > 196)
+                avgMultiplier = 196;
+            if(backupMultiplier > 196) 
+                backupMultiplier = 196;
+            // Make sure it's at least one to prevent a div by zero
+            if (avgMultiplier < 1)
+                avgMultiplier = 1;
+            if(backupMultiplier < 1)
+                backupMultiplier = 1;
+
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    byte red = (byte)(heightmap.get(x, y) / ((double)avgMultiplier / 128.0));
+                    byte green = avgMultiplier;
+                    byte blue = (byte)watermap.get(x, y);
+                    byte alpha1 = 0; // Land Parcels
+                    byte alpha2 = 0; // For Sale Land
+                    byte alpha3 = 0; // Public Edit Object
+                    byte alpha4 = 0; // Public Edit Land
+                    byte alpha5 = 255; // Safe Land
+                    byte alpha6 = 255; // Flying Allowed
+                    byte alpha7 = 255; // Create Landmark
+                    byte alpha8 = 255; // Outside Scripts
+                    byte alpha9 = (byte)(revertmap.get(x, y) / ((double)backupMultiplier / 128.0));
+                    byte alpha10 = backupMultiplier;
+
+                    bs.Write(red);
+                    bs.Write(green);
+                    bs.Write(blue);
+                    bs.Write(alpha1);
+                    bs.Write(alpha2);
+                    bs.Write(alpha3);
+                    bs.Write(alpha4);
+                    bs.Write(alpha5);
+                    bs.Write(alpha6);
+                    bs.Write(alpha7);
+                    bs.Write(alpha8);
+                    bs.Write(alpha9);
+                    bs.Write(alpha10);
+                }
+            }
             bs.Close();
             s.Close();
         }
