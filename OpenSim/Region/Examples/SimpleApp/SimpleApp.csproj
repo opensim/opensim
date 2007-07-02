@@ -116,6 +116,12 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 			<Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Capabilities\OpenSim.Region.Capabilities.csproj">
+      <Name>OpenSim.Region.Capabilities</Name>
+      <Project>{39038E85-0000-0000-0000-000000000000}</Project>
+      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+			<Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\ClientStack\OpenSim.Region.ClientStack.csproj">
       <Name>OpenSim.Region.ClientStack</Name>
       <Project>{DC3698B2-0000-0000-0000-000000000000}</Project>

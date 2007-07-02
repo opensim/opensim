@@ -27,6 +27,7 @@
                 <include name="../../../../bin/OpenSim.Framework.Servers.dll" />
                 <include name="../../../../bin/OpenSim.Framework.UserManagement.dll" />
                 <include name="../../../../bin/OpenSim.Region.Caches.dll" />
+                <include name="../../../../bin/OpenSim.Region.Capabilities.dll" />
                 <include name="../../../../bin/OpenSim.Region.ClientStack.dll" />
                 <include name="../../../../bin/OpenSim.Region.Communications.Local.dll" />
                 <include name="../../../../bin/OpenSim.Region.Environment.dll" />

@@ -289,5 +289,10 @@ namespace OpenSim.Framework.Servers
                 OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
             }
         }
+
+        public void AddLlsdMethod<TResponse, TRequest>(string path, LlsdMethod<TResponse, TRequest> handler )
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }

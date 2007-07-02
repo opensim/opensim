@@ -17,6 +17,7 @@ using OpenSim.Region.ClientStack;
 using System.Net;
 using libsecondlife.Packets;
 using OpenSim.Physics.Manager;
+using OpenSim.Region.Capabilities;
 
 namespace SimpleApp
 {
@@ -63,6 +64,7 @@ namespace SimpleApp
             udpServer.LocalWorld = world;
 
             httpServer.AddXmlRPCHandler("login_to_simulator", communicationsManager.UserServices.XmlRpcLoginMethod );
+            httpServer.AddLlsdMethod<LLSDMapLayerResponse, LLSDMapRequest>("/Caps/test/", LlsdMethodDemo);
             httpServer.Start();
             
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
@@ -75,6 +77,11 @@ namespace SimpleApp
 
         }
 
+        private LLSDMapLayerResponse LlsdMethodDemo(LLSDMapRequest request)
+        {
+            return new LLSDMapLayerResponse();
+        }
+        
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
             m_log.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
