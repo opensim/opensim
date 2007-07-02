@@ -815,6 +815,17 @@ namespace OpenSim.Region.Terrain
         }
 
         /// <summary>
+        /// Wrapper to heightmap.get()
+        /// </summary>
+        /// <param name="x">X coord</param>
+        /// <param name="y">Y coord</param>
+        /// <returns>Height at specified coordinates</returns>
+        public double get(int x, int y)
+        {
+            return heightmap.get(x, y);
+        }
+
+        /// <summary>
         /// Multiplies the heightfield by val
         /// </summary>
         /// <param name="meep">The heightfield</param>
@@ -825,25 +836,6 @@ namespace OpenSim.Region.Terrain
             meep.heightmap *= val;
             meep.tainted++;
             return meep;
-        }
-
-        /// <summary>
-        /// Returns the height at the coordinates x,y
-        /// </summary>
-        /// <param name="x">X Coordinate</param>
-        /// <param name="y">Y Coordinate</param>
-        /// <returns></returns>
-        public float this[int x, int y]
-        {
-            get
-            {
-                return (float)heightmap.get(x, y);
-            }
-            set
-            {
-                tainted++;
-                heightmap.set(x, y, (double)value);
-            }
         }
 
         /// <summary>

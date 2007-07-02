@@ -682,8 +682,8 @@ namespace OpenSim.Region.Environment
                     }
                 }
             }
-            parcelData.AABBMin = new LLVector3((float)(min_x * 4), (float)(min_y * 4), m_world.Terrain[(min_x * 4), (min_y * 4)]);
-            parcelData.AABBMax = new LLVector3((float)(max_x * 4), (float)(max_y * 4), m_world.Terrain[(max_x * 4), (max_y * 4)]);
+            parcelData.AABBMin = new LLVector3((float)(min_x * 4), (float)(min_y * 4), (float)m_world.Terrain.get((min_x * 4), (min_y * 4)));
+            parcelData.AABBMax = new LLVector3((float)(max_x * 4), (float)(max_y * 4), (float)m_world.Terrain.get((max_x * 4), (max_y * 4)));
             parcelData.area = tempArea;
         }
 
