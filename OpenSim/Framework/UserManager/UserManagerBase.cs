@@ -28,24 +28,21 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Data;
-using libsecondlife;
 using System.Reflection;
-
-using System.Xml;
+using System.Security.Cryptography;
+using libsecondlife;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Sims;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Data;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-
-using System.Security.Cryptography;
 
 namespace OpenSim.Framework.UserManagement
 {
     public abstract class UserManagerBase
     {
-        public OpenSim.Framework.Interfaces.UserConfig _config;
+        public UserConfig _config;
         Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
 
         /// <summary>
@@ -54,10 +51,10 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="FileName">The filename to the user server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Userstorage: Attempting to load " + FileName);
+            MainLog.Instance.Verbose( "Userstorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            MainLog.Instance.Verbose( "Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -69,7 +66,7 @@ namespace OpenSim.Framework.UserManagement
                         IUserData plug = (IUserData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         this._plugins.Add(plug.getName(), plug);
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose( "Userstorage: Added IUserData Interface");
+                        MainLog.Instance.Verbose( "Userstorage: Added IUserData Interface");
                     }
 
                     typeInterface = null;
@@ -97,7 +94,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -122,7 +119,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -149,7 +146,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -173,7 +170,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -195,7 +192,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -218,7 +215,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -314,7 +311,7 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Authenticated?</returns>
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose(
+            MainLog.Instance.Verbose(
                 "Authenticating " + profile.username + " " + profile.surname);
 
             password = password.Remove(0, 3); //remove $1$
@@ -517,7 +514,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
         }

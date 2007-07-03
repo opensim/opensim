@@ -29,20 +29,10 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Timers;
-using System.Net;
-using System.Reflection;
-using System.Threading;
+using Db4objects.Db4o;
 using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Framework.Sims;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Servers;
-using Db4objects.Db4o;
-using Db4objects.Db4o.Query;
 
 namespace OpenSim.Grid.AssetServer
 {
@@ -81,7 +71,7 @@ namespace OpenSim.Grid.AssetServer
         private OpenAsset_Main()
         {
             m_console = new LogBase("opengrid-AssetServer-console.log", "OpenAsset", this, false);
-            OpenSim.Framework.Console.MainLog.Instance = m_console;
+            MainLog.Instance = m_console;
         }
 
         public void Startup()
@@ -161,17 +151,17 @@ namespace OpenSim.Grid.AssetServer
 
         public void setupDB()
         {
-            bool yapfile = System.IO.File.Exists("assets.yap");
+            bool yapfile = File.Exists("assets.yap");
             try
             {
                 db = Db4oFactory.OpenFile("assets.yap");
-                OpenSim.Framework.Console.MainLog.Instance.Verbose( "Main.cs:setupDB() - creation");
+                MainLog.Instance.Verbose( "Main.cs:setupDB() - creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainLog.Instance.Warn("Main.cs:setupDB() - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("Main.cs:setupDB() - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
             if (!yapfile)
             {
@@ -273,7 +263,7 @@ namespace OpenSim.Grid.AssetServer
         {
 
 
-            string dataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
+            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
             string fileName = Path.Combine(dataPath, filename);
             FileInfo fInfo = new FileInfo(fileName);
             long numBytes = fInfo.Length;

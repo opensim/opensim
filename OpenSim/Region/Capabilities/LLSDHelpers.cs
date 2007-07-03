@@ -27,9 +27,8 @@
 */
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 using libsecondlife;
 
@@ -43,7 +42,7 @@ namespace OpenSim.Region.Capabilities
             XmlTextWriter writer = new XmlTextWriter(sw);
             writer.Formatting = Formatting.None;
             writer.WriteStartElement(String.Empty, "llsd", String.Empty);
-            LLSDHelpers.SerializeLLSDType(writer, obj);
+            SerializeLLSDType(writer, obj);
             writer.WriteEndElement();
             writer.Close();
             return sw.ToString();
@@ -59,7 +58,7 @@ namespace OpenSim.Region.Capabilities
                 {
                     case "MAP":
                         writer.WriteStartElement(String.Empty, "map", String.Empty);
-                        System.Reflection.FieldInfo[] fields = myType.GetFields();
+                        FieldInfo[] fields = myType.GetFields();
                         for (int i = 0; i < fields.Length; i++)
                         {
                             object fieldValue = fields[i].GetValue(obj);
@@ -115,7 +114,7 @@ namespace OpenSim.Region.Capabilities
                         IDictionaryEnumerator enumerator = llsd.GetEnumerator();
                         while (enumerator.MoveNext())
                         {
-                            System.Reflection.FieldInfo field = myType.GetField((string)enumerator.Key);
+                            FieldInfo field = myType.GetField((string)enumerator.Key);
                             if (field != null)
                             {
                                 if (enumerator.Value is Hashtable)

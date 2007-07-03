@@ -27,18 +27,13 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.IO;
-using System.Text;
 using libsecondlife;
-using OpenSim.Framework.User;
-using OpenSim.Framework.Sims;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.User;
 using OpenSim.Framework.Utilities;
 using OpenSim.GenericConfig;
 
@@ -73,7 +68,7 @@ namespace OpenSim.Grid.UserServer
         private OpenUser_Main()
         {
             m_console = new LogBase("opengrid-userserver-console.log", "OpenUser", this , false);
-            OpenSim.Framework.Console.MainLog.Instance = m_console;
+            MainLog.Instance = m_console;
         }
 
         private void Work()
@@ -93,16 +88,16 @@ namespace OpenSim.Grid.UserServer
             this.ConfigDB(this.localXMLConfig);
             this.localXMLConfig.Close();
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Main.cs:Startup() - Loading configuration");
+            MainLog.Instance.Verbose("Main.cs:Startup() - Loading configuration");
             Cfg = this.LoadConfigDll(this.ConfigDll);
             Cfg.InitConfig();
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
+            MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(StorageDll);
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
+            MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);

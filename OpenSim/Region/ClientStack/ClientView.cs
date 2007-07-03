@@ -25,24 +25,22 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
-using Nwc.XmlRpc;
 using System.Net;
-using System.Net.Sockets;
-using System.IO;
+using System.Text;
 using System.Threading;
 using System.Timers;
-using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Utilities;
+using libsecondlife;
+using libsecondlife.Packets;
 using OpenSim.Assets;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 using OpenSim.Region.Caches;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -79,7 +77,7 @@ namespace OpenSim.Region.ClientStack
         private int cachedtextureserial = 0;
         private RegionInfo m_regionData;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
-        private System.Text.Encoding enc = System.Text.Encoding.ASCII;
+        private Encoding enc = Encoding.ASCII;
 
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions )
         {
@@ -91,7 +89,7 @@ namespace OpenSim.Region.ClientStack
             m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs - Started up new client thread to handle incoming request");
+            MainLog.Instance.Verbose( "OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
@@ -100,7 +98,7 @@ namespace OpenSim.Region.ClientStack
             PacketQueue = new BlockingQueue<QueItem>();
 
             this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
-            AckTimer = new System.Timers.Timer(500);
+            AckTimer = new Timer(500);
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();
 
@@ -189,7 +187,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void ClientLoop()
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:ClientLoop() - Entered loop");
+            MainLog.Instance.Verbose( "OpenSimClient.cs:ClientLoop() - Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
@@ -211,7 +209,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void InitNewClient()
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
+            MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
             this.m_world.AddNewClient(this, false);
         }
 
@@ -222,12 +220,12 @@ namespace OpenSim.Region.ClientStack
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                OpenSim.Framework.Console.MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+                MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
                 ClientThread.Abort();
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+                MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 this.AgentID = cirpack.CircuitCode.ID;
                 this.SessionID = cirpack.CircuitCode.SessionID;

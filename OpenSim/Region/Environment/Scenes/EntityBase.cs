@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Axiom.MathLib;
 using libsecondlife;
 
@@ -8,7 +6,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class EntityBase
     {
-        public libsecondlife.LLUUID uuid;
+        public LLUUID uuid;
        
         protected List<EntityBase> children;
 
@@ -83,7 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public EntityBase()
         {
-            uuid = new libsecondlife.LLUUID();
+            uuid = new LLUUID();
 
             m_pos = new LLVector3();
             velocity = new LLVector3();

@@ -29,15 +29,10 @@
 // BDB Support
 // Apparently broken on Mono
 
-using System;
-using System.Collections.Generic;
-using System.Data;
+using BerkeleyDb;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using BerkeleyDb;
-using Kds.Serialization;
-using Kds.Serialization.Buffer;
 
 namespace OpenSim.Region.Storage.LocalStorageBDB
 {
@@ -52,7 +47,7 @@ namespace OpenSim.Region.Storage.LocalStorageBDB
         public BDBLocalStorage()
         {
             DB = new Db(DbCreateFlags.None);
-            sim = (DbHash)DB.Open(null, simDbName, null, BerkeleyDb.DbType.Hash, Db.OpenFlags.Create, 0);
+            sim = (DbHash)DB.Open(null, simDbName, null, DbType.Hash, Db.OpenFlags.Create, 0);
             //vendorDb = (DbBTree)db.Open(null, VendorDbName, null, DbType.BTree, Db.OpenFlags.Create, 0);
         }
 

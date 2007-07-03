@@ -26,25 +26,20 @@
 * 
 */
 using System;
-using libsecondlife;
-using libsecondlife.Packets;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
-using System.IO;
-using System.Threading;
-using OpenSim.Physics.Manager;
+using libsecondlife;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Inventory;
-using OpenSim.Region.Terrain;
 using OpenSim.Region.Caches;
+using OpenSim.Region.Terrain;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase :  IWorld 
     {
-        public Dictionary<libsecondlife.LLUUID, EntityBase> Entities;
+        public Dictionary<LLUUID, EntityBase> Entities;
         protected Dictionary<uint, IClientAPI> m_clientThreads;
         protected ulong m_regionHandle;
         protected string m_regionName;
@@ -113,7 +108,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
                 return false;
             }
         }
@@ -191,7 +186,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(OpenSim.Framework.Console.LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
+                MainLog.Instance.WriteLine(LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
             }
         }
 

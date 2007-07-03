@@ -27,14 +27,10 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Physics.Manager;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -253,7 +249,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (((SceneObject)ent).rootLocalID == primLocalID)
                     {
-                      ((OpenSim.Region.Environment.Scenes.SceneObject)ent).GetProperites(remoteClient);
+                      ((SceneObject)ent).GetProperites(remoteClient);
                         break;
                     }
                 }
@@ -349,7 +345,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent.LocalId == localID)
                 {
-                    ((OpenSim.Region.Environment.Scenes.PrimitiveOld)ent).UpdatePosition(pos);
+                    ((PrimitiveOld)ent).UpdatePosition(pos);
                     break;
                 }
             }

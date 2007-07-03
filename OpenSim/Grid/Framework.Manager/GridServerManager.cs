@@ -28,10 +28,9 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Nwc.XmlRpc;
 using System.Threading;
 using libsecondlife;
+using Nwc.XmlRpc;
 
 namespace OpenSim.Framework.Manager {
 

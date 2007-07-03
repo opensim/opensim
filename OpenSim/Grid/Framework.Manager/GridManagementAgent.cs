@@ -25,12 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using Nwc.XmlRpc;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using System.Collections;
-using System.Collections.Generic;
 using libsecondlife;
+using Nwc.XmlRpc;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Manager
 {

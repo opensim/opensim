@@ -25,15 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Communications.Local
 {

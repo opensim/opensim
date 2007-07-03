@@ -25,14 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Inventory;
+using System.Net;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Types;
-using System.Net;
 
 namespace OpenSim.Framework.Interfaces
 {

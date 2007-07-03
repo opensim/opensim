@@ -29,12 +29,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Axiom.MathLib;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Physics.Manager;
-using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Types;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -174,9 +175,9 @@ namespace OpenSim.Region.Environment.Scenes
             dataArrays.Add(primData.ToBytes());
             foreach (Entity child in children)
             {
-                if (child is OpenSim.Region.Environment.Scenes.PrimitiveOld)
+                if (child is PrimitiveOld)
                 {
-                    dataArrays.Add(((OpenSim.Region.Environment.Scenes.PrimitiveOld)child).GetByteArray());
+                    dataArrays.Add(((PrimitiveOld)child).GetByteArray());
                 }
             }
             byte[] primstart = Helpers.StringToField("<Prim>");
@@ -351,7 +352,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public byte[] ConvertInventoryToBytes()
         {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
+            Encoding enc = Encoding.ASCII;
             byte[] result = new byte[0];
             List<byte[]> inventoryData = new List<byte[]>();
             int totallength = 0;
@@ -434,7 +435,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
             LLVector3 lPos;
-            Axiom.MathLib.Quaternion lRot;
+            Quaternion lRot;
             if (this._physActor != null && this.physicsEnabled) //is this needed ? doesn't the property fields do this for us?
             {
                 PhysicsVector pPos = this._physActor.Position;

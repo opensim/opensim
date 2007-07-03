@@ -25,13 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
 using System.Net.Sockets;
-using libsecondlife;
-
 
 namespace OpenSim.Region.ClientStack
 {

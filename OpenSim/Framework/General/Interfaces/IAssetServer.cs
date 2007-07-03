@@ -25,11 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
-using System.Threading;
 using libsecondlife;
 using OpenSim.Framework.Types;
 

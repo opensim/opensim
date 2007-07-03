@@ -26,14 +26,13 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
+using libsecondlife;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Console;
-using libsecondlife;
-using System.Net;
 
 namespace OpenSim.Framework.Types
 {
@@ -65,7 +64,7 @@ namespace OpenSim.Framework.Types
                     if (ia == null)
                         ia = Adr;
 
-                    if (Adr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
                     {
                         ia = Adr;
                         break;
@@ -170,7 +169,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimLocationX");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location X", "1000");
+                    string location = MainLog.Instance.CmdPrompt("Grid Location X", "1000");
                     configData.SetAttribute("SimLocationX", location);
                     m_regionLocX = (uint)Convert.ToUInt32(location);
                 }
@@ -183,7 +182,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("SimLocationY");
                 if (attri == "")
                 {
-                    string location = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Grid Location Y", "1000");
+                    string location = MainLog.Instance.CmdPrompt("Grid Location Y", "1000");
                     configData.SetAttribute("SimLocationY", location);
                     m_regionLocY = (uint)Convert.ToUInt32(location);
                 }
@@ -209,7 +208,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("TerrainMultiplier");
                 if (attri == "")
                 {
-                    string re = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("GENERAL SETTING: Terrain Height Multiplier", "60.0");
+                    string re = MainLog.Instance.CmdPrompt("GENERAL SETTING: Terrain Height Multiplier", "60.0");
                     this.estateSettings.terrainMultiplier = Convert.ToDouble(re, CultureInfo.InvariantCulture);
                     configData.SetAttribute("TerrainMultiplier", this.estateSettings.terrainMultiplier.ToString());
                 }
@@ -222,7 +221,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("MasterAvatarFirstName");
                 if (attri == "")
                 {
-                    this.MasterAvatarFirstName = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("First name of Master Avatar (Land and Region Owner)", "Test");
+                    this.MasterAvatarFirstName = MainLog.Instance.CmdPrompt("First name of Master Avatar (Land and Region Owner)", "Test");
 
                     configData.SetAttribute("MasterAvatarFirstName", this.MasterAvatarFirstName);
                 }
@@ -235,7 +234,7 @@ namespace OpenSim.Framework.Types
                 attri = configData.GetAttribute("MasterAvatarLastName");
                 if (attri == "")
                 {
-                    this.MasterAvatarLastName = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Last name of Master Avatar (Land and Region Owner)", "User");
+                    this.MasterAvatarLastName = MainLog.Instance.CmdPrompt("Last name of Master Avatar (Land and Region Owner)", "User");
 
                     configData.SetAttribute("MasterAvatarLastName", this.MasterAvatarLastName);
                 }
@@ -250,7 +249,7 @@ namespace OpenSim.Framework.Types
                     attri = configData.GetAttribute("MasterAvatarSandboxPassword");
                     if (attri == "")
                     {
-                        this.MasterAvatarSandboxPassword = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt("Password of Master Avatar (Needed for sandbox mode account creation only)", "test");
+                        this.MasterAvatarSandboxPassword = MainLog.Instance.CmdPrompt("Password of Master Avatar (Needed for sandbox mode account creation only)", "test");
 
                         //Should I store this?
                         configData.SetAttribute("MasterAvatarSandboxPassword", this.MasterAvatarSandboxPassword);
@@ -265,17 +264,17 @@ namespace OpenSim.Framework.Types
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Sim settings loaded:");
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("UUID: " + this.SimUUID.ToStringHyphenated());
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Name: " + this.RegionName);
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Region Handle: " + this.RegionHandle.ToString());
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Listening on IP end point: " + m_internalEndPoint.ToString() );
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Sandbox Mode? " + isSandbox.ToString());
+            MainLog.Instance.Verbose("Sim settings loaded:");
+            MainLog.Instance.Verbose("UUID: " + this.SimUUID.ToStringHyphenated());
+            MainLog.Instance.Verbose("Name: " + this.RegionName);
+            MainLog.Instance.Verbose("Region Location: [" + this.RegionLocX.ToString() + "," + this.RegionLocY + "]");
+            MainLog.Instance.Verbose("Region Handle: " + this.RegionHandle.ToString());
+            MainLog.Instance.Verbose("Listening on IP end point: " + m_internalEndPoint.ToString() );
+            MainLog.Instance.Verbose("Sandbox Mode? " + isSandbox.ToString());
 
         }
 

@@ -27,8 +27,9 @@
 */
 using System;
 using System.Collections.Generic;
-using OpenSim.Physics.Manager;
+using Axiom.MathLib;
 using Ode.NET;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -194,13 +195,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
             d.Matrix3 R = new d.Matrix3();
             
-            Axiom.MathLib.Quaternion q1 =Axiom.MathLib.Quaternion.FromAngleAxis(1.5707f, new Axiom.MathLib.Vector3(1,0,0));
-            Axiom.MathLib.Quaternion q2 =Axiom.MathLib.Quaternion.FromAngleAxis(1.5707f, new Axiom.MathLib.Vector3(0,1,0));
+            Quaternion q1 =Quaternion.FromAngleAxis(1.5707f, new Vector3(1,0,0));
+            Quaternion q2 =Quaternion.FromAngleAxis(1.5707f, new Vector3(0,1,0));
            //Axiom.MathLib.Quaternion q3 = Axiom.MathLib.Quaternion.FromAngleAxis(3.14f, new Axiom.MathLib.Vector3(0, 0, 1));
             
             q1 = q1 * q2;
             //q1 = q1 * q3;
-            Axiom.MathLib.Vector3 v3 = new Axiom.MathLib.Vector3();
+            Vector3 v3 = new Vector3();
             float angle = 0;
             q1.ToAngleAxis(ref angle, ref v3);
 
@@ -287,11 +288,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override Axiom.MathLib.Quaternion Orientation
+        public override Quaternion Orientation
         {
             get
             {
-                return Axiom.MathLib.Quaternion.Identity;
+                return Quaternion.Identity;
             }
             set
             {
@@ -414,11 +415,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override Axiom.MathLib.Quaternion Orientation
+        public override Quaternion Orientation
         {
             get
             {
-                Axiom.MathLib.Quaternion res = new Axiom.MathLib.Quaternion();
+                Quaternion res = new Quaternion();
                 return res;
             }
             set

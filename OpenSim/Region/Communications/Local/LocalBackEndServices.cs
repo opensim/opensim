@@ -25,13 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
-using OpenSim.Framework.Types;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -163,7 +161,7 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (this.regionHosts.ContainsKey(regionHandle))
             {

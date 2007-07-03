@@ -1,13 +1,8 @@
 using System;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Collections;
-using System.Xml;
 using libsecondlife;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Interfaces;
 using Nwc.XmlRpc;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -227,7 +222,7 @@ namespace OpenSim.Framework.UserManagement
 
                 responseData["sim_port"] =(Int32) this.SimPort;
                 responseData["sim_ip"] = this.SimAddress;
-                Console.MainLog.Instance.Warn("SIM IP: " + responseData["sim_ip"] + "; SIM PORT: " + responseData["sim_port"]);
+                MainLog.Instance.Warn("SIM IP: " + responseData["sim_ip"] + "; SIM PORT: " + responseData["sim_port"]);
                 responseData["agent_id"] = this.AgentID.ToStringHyphenated();
                 responseData["session_id"] = this.SessionID.ToStringHyphenated();
                 responseData["secure_session_id"] = this.SecureSessionID.ToStringHyphenated();
@@ -266,8 +261,8 @@ namespace OpenSim.Framework.UserManagement
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(
-                    OpenSim.Framework.Console.LogPriority.LOW,
+                MainLog.Instance.WriteLine(
+                    LogPriority.LOW,
                     "LoginResponse: Error creating XML-RPC Response: " + e.Message
                 );
                 return (this.GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));

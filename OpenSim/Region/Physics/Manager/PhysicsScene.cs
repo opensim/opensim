@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Physics.Manager
@@ -67,7 +64,7 @@ namespace OpenSim.Physics.Manager
 
             public override PhysicsActor AddAvatar(PhysicsVector position)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
+                MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
                 return PhysicsActor.Null;
             }
 
@@ -78,7 +75,7 @@ namespace OpenSim.Physics.Manager
 
             public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
+                MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
             }
 
@@ -91,12 +88,12 @@ namespace OpenSim.Physics.Manager
 
             public override void GetResults()
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : GetResults()");
+                MainLog.Instance.Verbose("NullPhysicsScene : GetResults()");
             }
 
             public override void SetTerrain(float[] heightMap)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
+                MainLog.Instance.Verbose("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
             }
 
             public override void DeleteTerrain()

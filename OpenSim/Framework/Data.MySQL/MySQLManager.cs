@@ -27,16 +27,9 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
-
-// MySQL Native
-using MySql;
-using MySql.Data;
-using MySql.Data.Types;
+using libsecondlife;
 using MySql.Data.MySqlClient;
-
-using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Data.MySQL
 {
@@ -71,7 +64,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 dbcon.Open();
 
-                System.Console.WriteLine("MySQL connection established");
+                Console.WriteLine("MySQL connection established");
             }
             catch (Exception e)
             {
@@ -187,7 +180,7 @@ namespace OpenSim.Framework.Data.MySQL
                 // Region Main
                 retval.regionHandle = Convert.ToUInt64(reader["regionHandle"].ToString());
                 retval.regionName = (string)reader["regionName"];
-                retval.UUID = new libsecondlife.LLUUID((string)reader["uuid"]);
+                retval.UUID = new LLUUID((string)reader["uuid"]);
 
                 // Secrets
                 retval.regionRecvKey = (string)reader["regionRecvKey"];
@@ -226,11 +219,11 @@ namespace OpenSim.Framework.Data.MySQL
                 string tempRegionMap = reader["regionMapTexture"].ToString();
                 if (tempRegionMap != "")
                 {
-                    retval.regionMapTextureID = new libsecondlife.LLUUID(tempRegionMap);
+                    retval.regionMapTextureID = new LLUUID(tempRegionMap);
                 }
                 else
                 {
-                    retval.regionMapTextureID = new libsecondlife.LLUUID();
+                    retval.regionMapTextureID = new LLUUID();
                 }
             }
             else
@@ -259,7 +252,7 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.reservationMinY = (int)reader["resYMin"];
                 retval.reservationName = (string)reader["resName"];
                 retval.status = (bool)reader["status"];
-                retval.userUUID = new libsecondlife.LLUUID((string)reader["userUUID"]);
+                retval.userUUID = new LLUUID((string)reader["userUUID"]);
 
             }
             else
@@ -280,9 +273,9 @@ namespace OpenSim.Framework.Data.MySQL
             if (reader.Read())
             {
                 // Agent IDs
-                retval.UUID = new libsecondlife.LLUUID((string)reader["UUID"]);
-                retval.sessionID = new libsecondlife.LLUUID((string)reader["sessionID"]);
-                retval.secureSessionID = new libsecondlife.LLUUID((string)reader["secureSessionID"]);
+                retval.UUID = new LLUUID((string)reader["UUID"]);
+                retval.sessionID = new LLUUID((string)reader["sessionID"]);
+                retval.secureSessionID = new LLUUID((string)reader["secureSessionID"]);
 
                 // Agent Who?
                 retval.agentIP = (string)reader["agentIP"];
@@ -296,7 +289,7 @@ namespace OpenSim.Framework.Data.MySQL
                 // Current position
                 retval.currentRegion = (string)reader["currentRegion"];
                 retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                libsecondlife.LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
+                LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
             }
             else
             {
@@ -316,7 +309,7 @@ namespace OpenSim.Framework.Data.MySQL
 
             if (reader.Read())
             {
-                retval.UUID = new libsecondlife.LLUUID((string)reader["UUID"]);
+                retval.UUID = new LLUUID((string)reader["UUID"]);
                 retval.username = (string)reader["username"];
                 retval.surname = (string)reader["lastname"];
 
@@ -324,11 +317,11 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.passwordSalt = (string)reader["passwordSalt"];
 
                 retval.homeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
-                retval.homeLocation = new libsecondlife.LLVector3(
+                retval.homeLocation = new LLVector3(
                     Convert.ToSingle(reader["homeLocationX"].ToString()),
                     Convert.ToSingle(reader["homeLocationY"].ToString()),
                     Convert.ToSingle(reader["homeLocationZ"].ToString()));
-                retval.homeLookAt = new libsecondlife.LLVector3(
+                retval.homeLookAt = new LLVector3(
                     Convert.ToSingle(reader["homeLookAtX"].ToString()),
                     Convert.ToSingle(reader["homeLookAtY"].ToString()),
                     Convert.ToSingle(reader["homeLookAtZ"].ToString()));
@@ -345,8 +338,8 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.profileAboutText = (string)reader["profileAboutText"];
                 retval.profileFirstText = (string)reader["profileFirstText"];
 
-                retval.profileImage = new libsecondlife.LLUUID((string)reader["profileImage"]);
-                retval.profileFirstImage = new libsecondlife.LLUUID((string)reader["profileFirstImage"]);
+                retval.profileImage = new LLUUID((string)reader["profileImage"]);
+                retval.profileFirstImage = new LLUUID((string)reader["profileFirstImage"]);
 
             }
             else
@@ -371,9 +364,9 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     InventoryFolderBase folder = new InventoryFolderBase();
 
-                    folder.agentID = new libsecondlife.LLUUID((string)reader["agentID"]);
-                    folder.parentID = new libsecondlife.LLUUID((string)reader["parentFolderID"]);
-                    folder.folderID = new libsecondlife.LLUUID((string)reader["folderID"]);
+                    folder.agentID = new LLUUID((string)reader["agentID"]);
+                    folder.parentID = new LLUUID((string)reader["parentFolderID"]);
+                    folder.folderID = new LLUUID((string)reader["folderID"]);
                     folder.name = (string)reader["folderName"];
 
                     rows.Add(folder);
@@ -402,14 +395,14 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     InventoryItemBase item = new InventoryItemBase();
 
-                    item.assetID = new libsecondlife.LLUUID((string)reader["assetID"]);
-                    item.avatarID = new libsecondlife.LLUUID((string)reader["avatarID"]);
+                    item.assetID = new LLUUID((string)reader["assetID"]);
+                    item.avatarID = new LLUUID((string)reader["avatarID"]);
                     item.inventoryCurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"].ToString());
                     item.inventoryDescription = (string)reader["inventoryDescription"];
-                    item.inventoryID = new libsecondlife.LLUUID((string)reader["inventoryID"]);
+                    item.inventoryID = new LLUUID((string)reader["inventoryID"]);
                     item.inventoryName = (string)reader["inventoryName"];
                     item.inventoryNextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"].ToString());
-                    item.parentFolderID = new libsecondlife.LLUUID((string)reader["parentFolderID"]);
+                    item.parentFolderID = new LLUUID((string)reader["parentFolderID"]);
                     item.type = Convert.ToInt32(reader["type"].ToString());
 
                     rows.Add(item);

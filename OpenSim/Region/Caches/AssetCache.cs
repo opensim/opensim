@@ -28,13 +28,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Reflection;
+using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Caches
 {
@@ -45,8 +44,8 @@ namespace OpenSim.Region.Caches
     /// </summary>
     public class AssetCache : IAssetReceiver
     {
-        public Dictionary<libsecondlife.LLUUID, AssetInfo> Assets;
-        public Dictionary<libsecondlife.LLUUID, TextureImage> Textures;
+        public Dictionary<LLUUID, AssetInfo> Assets;
+        public Dictionary<LLUUID, TextureImage> Textures;
 
         public List<AssetRequest> AssetRequests = new List<AssetRequest>();  //assets ready to be sent to viewers
         public List<AssetRequest> TextureRequests = new List<AssetRequest>(); //textures ready to be sent
@@ -67,8 +66,8 @@ namespace OpenSim.Region.Caches
             Console.WriteLine("Creating Asset cache");
             _assetServer = assetServer;
             _assetServer.SetReceiver(this);
-            Assets = new Dictionary<libsecondlife.LLUUID, AssetInfo>();
-            Textures = new Dictionary<libsecondlife.LLUUID, TextureImage>();
+            Assets = new Dictionary<LLUUID, AssetInfo>();
+            Textures = new Dictionary<LLUUID, TextureImage>();
             this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();
@@ -81,8 +80,8 @@ namespace OpenSim.Region.Caches
             _assetServer = this.LoadAssetDll(assetServerDLLName);
             _assetServer.SetServerInfo(assetServerURL, assetServerKey);
             _assetServer.SetReceiver(this);
-            Assets = new Dictionary<libsecondlife.LLUUID, AssetInfo>();
-            Textures = new Dictionary<libsecondlife.LLUUID, TextureImage>();
+            Assets = new Dictionary<LLUUID, AssetInfo>();
+            Textures = new Dictionary<LLUUID, TextureImage>();
             this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();
@@ -216,7 +215,7 @@ namespace OpenSim.Region.Caches
         /// Event handler, called by a TextureSender object to say that texture has been sent
         /// </summary>
         /// <param name="sender"></param>
-        public void TextureSent(AssetCache.TextureSender sender)
+        public void TextureSent(TextureSender sender)
         {
             if (this.SendingTextures.ContainsKey(sender.request.ImageInfo.FullID))
             {

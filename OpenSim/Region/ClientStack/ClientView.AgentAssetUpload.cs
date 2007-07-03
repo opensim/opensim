@@ -27,14 +27,13 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Assets;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
-using OpenSim.Region.Caches;
 using libsecondlife;
 using libsecondlife.Packets;
+using OpenSim.Assets;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
+using OpenSim.Region.Caches;
 
 namespace OpenSim.Region.ClientStack
 {

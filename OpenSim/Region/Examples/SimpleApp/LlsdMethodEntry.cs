@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Capabilities;
-using libsecondlife;
 using System.Collections;
+using System.Text;
+using libsecondlife;
+using OpenSim.Region.Capabilities;
 
 namespace OpenSim.Framework.Servers
 {
@@ -28,7 +25,7 @@ namespace OpenSim.Framework.Servers
 
         public string Handle(string body, string path)
         {
-            Encoding _enc = System.Text.Encoding.UTF8;
+            Encoding _enc = Encoding.UTF8;
             Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(_enc.GetBytes( body ));
             TRequest request = new TRequest();
             

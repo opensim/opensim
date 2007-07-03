@@ -28,13 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim;
 using libsecondlife;
 using libsecondlife.Packets;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
+using OpenSim.Region.Environment.Scenes;
 using Avatar = OpenSim.Region.Environment.Scenes.ScenePresence;
 
 
@@ -79,30 +78,30 @@ namespace OpenSim.Region.Environment
                     case "setregioninfo":
                         if (packet.ParamList.Length != 9)
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
+                            MainLog.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
                         }
                         else
                         {
-                            m_regInfo.estateSettings.regionFlags = libsecondlife.Simulator.RegionFlags.None;
+                            m_regInfo.estateSettings.regionFlags = Simulator.RegionFlags.None;
 
                             if (convertParamStringToBool(packet.ParamList[0].Parameter))
                             {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | libsecondlife.Simulator.RegionFlags.BlockTerraform;
+                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.BlockTerraform;
                             }
 
                             if (convertParamStringToBool(packet.ParamList[1].Parameter))
                             {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | libsecondlife.Simulator.RegionFlags.NoFly;
+                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.NoFly;
                             }
 
                             if (convertParamStringToBool(packet.ParamList[2].Parameter))
                             {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | libsecondlife.Simulator.RegionFlags.AllowDamage;
+                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.AllowDamage;
                             }
 
                             if (convertParamStringToBool(packet.ParamList[3].Parameter) == false)
                             {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | libsecondlife.Simulator.RegionFlags.BlockLandResell;
+                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.BlockLandResell;
                             }
 
 
@@ -113,17 +112,17 @@ namespace OpenSim.Region.Environment
                             m_regInfo.estateSettings.objectBonusFactor = tempObjectBonusFactor;
 
                             int tempMatureLevel = Convert.ToInt16(Helpers.FieldToUTF8String(packet.ParamList[6].Parameter));
-                            m_regInfo.estateSettings.simAccess = (libsecondlife.Simulator.SimAccess)tempMatureLevel;
+                            m_regInfo.estateSettings.simAccess = (Simulator.SimAccess)tempMatureLevel;
                             
 
                             if (convertParamStringToBool(packet.ParamList[7].Parameter))
                             {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | libsecondlife.Simulator.RegionFlags.RestrictPushObject;
+                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.RestrictPushObject;
                             }
 
                             if (convertParamStringToBool(packet.ParamList[8].Parameter))
                             {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | libsecondlife.Simulator.RegionFlags.AllowParcelChanges;
+                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.AllowParcelChanges;
                             }
 
                             sendRegionInfoPacketToAll();
@@ -223,7 +222,7 @@ namespace OpenSim.Region.Environment
                     case "setregionterrain":
                         if (packet.ParamList.Length != 9)
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
+                            MainLog.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
                         }
                         else
                         {
@@ -237,7 +236,7 @@ namespace OpenSim.Region.Environment
                         }
                         break;
                     default:
-                        OpenSim.Framework.Console.MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
+                        MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                         break;
                 }
             }
@@ -265,7 +264,7 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionInfoPacket(IClientAPI remote_client)
         {
-            Encoding _enc = System.Text.Encoding.ASCII;
+            Encoding _enc = Encoding.ASCII;
 
             AgentCircuitData circuitData = remote_client.RequestClientInfo();
 

@@ -26,21 +26,13 @@
 * 
 */
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
-using Nwc.XmlRpc;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
-using System.Threading;
-using System.Timers;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Assets;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -64,7 +56,7 @@ namespace OpenSim.Region.ClientStack
             }
             else
             {
-                System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+                Encoding _enc = Encoding.ASCII;
 
                 switch (Pack.Type)
                 {
@@ -452,7 +444,7 @@ namespace OpenSim.Region.ClientStack
                         this.OutPacket(tpStart);
 
                         TeleportProgressPacket tpProgress = new TeleportProgressPacket();
-                        tpProgress.Info.Message = (new System.Text.ASCIIEncoding()).GetBytes("sending_landmark");
+                        tpProgress.Info.Message = (new ASCIIEncoding()).GetBytes("sending_landmark");
                         tpProgress.Info.TeleportFlags = 8;
                         tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
                         this.OutPacket(tpProgress);

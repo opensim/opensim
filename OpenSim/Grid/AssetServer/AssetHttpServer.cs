@@ -26,15 +26,10 @@
 * 
 */
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-//using OpenSim.CAPS;
-using Nwc.XmlRpc;
-using System.Collections;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetServer
@@ -69,9 +64,9 @@ namespace OpenSim.Grid.AssetServer
                 response.KeepAlive = false;
                 response.SendChunked = false;
 
-                System.IO.Stream body = request.InputStream;
-                System.Text.Encoding encoding = System.Text.Encoding.UTF8;
-                System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
+                Stream body = request.InputStream;
+                Encoding encoding = Encoding.UTF8;
+                StreamReader reader = new StreamReader(body, encoding);
 
                 string requestBody = reader.ReadToEnd();
                 body.Close();
@@ -114,7 +109,7 @@ namespace OpenSim.Grid.AssetServer
 
                 Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
                 byte[] buffer = Windows1252Encoding.GetBytes(responseString);
-                System.IO.Stream output = response.OutputStream;
+                Stream output = response.OutputStream;
                 response.SendChunked = false;
                 response.ContentLength64 = buffer.Length;
                 output.Write(buffer, 0, buffer.Length);

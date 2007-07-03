@@ -27,14 +27,14 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Types;
-
+using Axiom.MathLib;
 using libsecondlife;
 using libsecondlife.Packets;
-using System.Net;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -137,7 +137,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="regionInfo"></param>
         public void SendRegionHandshake(RegionInfo regionInfo)
         {
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+            Encoding _enc = Encoding.ASCII;
             RegionHandshakePacket handshake = new RegionHandshakePacket();
 
             handshake.RegionInfo.BillableFactor = regionInfo.estateSettings.billableFactor;
@@ -219,8 +219,8 @@ namespace OpenSim.Region.ClientStack
         /// <param name="fromAgentID"></param>
         public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
-            libsecondlife.Packets.ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
+            Encoding enc = Encoding.ASCII;
+            ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
             reply.ChatData.Audible = 1;
             reply.ChatData.Message = message;
             reply.ChatData.ChatType = type;
@@ -260,7 +260,7 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -286,7 +286,7 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -298,7 +298,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="neighbourPort"></param>
         public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint )
         {
-            System.Net.IPAddress neighbourIP = neighbourEndPoint.Address;
+            IPAddress neighbourIP = neighbourEndPoint.Address;
             ushort neighbourPort = (ushort) neighbourEndPoint.Port;
             
             EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
@@ -343,7 +343,7 @@ namespace OpenSim.Region.ClientStack
             newSimPack.Info = new CrossedRegionPacket.InfoBlock();
             newSimPack.Info.Position = pos;
             newSimPack.Info.LookAt = look; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
-            newSimPack.RegionData = new libsecondlife.Packets.CrossedRegionPacket.RegionDataBlock();
+            newSimPack.RegionData = new CrossedRegionPacket.RegionDataBlock();
             newSimPack.RegionData.RegionHandle = newRegionHandle;
             byte[] byteIP = externalIPEndPoint.Address.GetAddressBytes();
             newSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
@@ -359,7 +359,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
         {
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+            Encoding _enc = Encoding.ASCII;
 
             MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
             mapReply.AgentData.AgentID = this.AgentID;
@@ -514,20 +514,20 @@ namespace OpenSim.Region.ClientStack
         /// <param name="Pos"></param>
         public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry)
         {
-            System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+            Encoding _enc = Encoding.ASCII;
             //send a objectupdate packet with information about the clients avatar
 
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
-            objupdate.ObjectData = new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock[1];
+            objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = this.CreateDefaultAvatarPacket(textureEntry);
             //give this avatar object a local id and assign the user a name
 
             objupdate.ObjectData[0].ID = avatarLocalID;
             objupdate.ObjectData[0].FullID = avatarID;
             objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName + " \0");
-            libsecondlife.LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
+            LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
 
@@ -716,9 +716,9 @@ namespace OpenSim.Region.ClientStack
             ushort InternVelocityX;
             ushort InternVelocityY;
             ushort InternVelocityZ;
-            Axiom.MathLib.Vector3 internDirec = new Axiom.MathLib.Vector3(0, 0, 0);
+            Vector3 internDirec = new Vector3(0, 0, 0);
 
-            internDirec = new Axiom.MathLib.Vector3(velocity.X, velocity.Y, velocity.Z);
+            internDirec = new Vector3(velocity.X, velocity.Y, velocity.Z);
 
             internDirec = internDirec / 128.0f;
             internDirec.x += 1;
@@ -961,7 +961,7 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
         {
-            libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
+            ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
             SetDefaultAvatarPacketValues(ref objdata);
             objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);
@@ -977,12 +977,12 @@ namespace OpenSim.Region.ClientStack
             {
                 objdata.TextureEntry = textureEntry;
             }
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
-            libsecondlife.LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
+            Encoding enc = Encoding.ASCII;
+            LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
             pos.X = 100f;
             objdata.ID = 8880000;
             objdata.NameValue = enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
-            libsecondlife.LLVector3 pos2 = new LLVector3(100f, 100f, 23f);
+            LLVector3 pos2 = new LLVector3(100f, 100f, 23f);
             //objdata.FullID=user.AgentID;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);

@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 using libsecondlife;
 
 namespace OpenSim.Framework.Types
@@ -46,8 +42,8 @@ namespace OpenSim.Framework.Types
 
         public int redirectGridX = 0; //??
         public int redirectGridY = 0; //??
-        public libsecondlife.Simulator.RegionFlags regionFlags = libsecondlife.Simulator.RegionFlags.None; //Booleam values of various region settings
-        public libsecondlife.Simulator.SimAccess simAccess = libsecondlife.Simulator.SimAccess.Mature; //Is sim PG, Mature, etc? Mature by default.
+        public Simulator.RegionFlags regionFlags = Simulator.RegionFlags.None; //Booleam values of various region settings
+        public Simulator.SimAccess simAccess = Simulator.SimAccess.Mature; //Is sim PG, Mature, etc? Mature by default.
         public float sunHour = 0;
 
         public float terrainRaiseLimit = 0;

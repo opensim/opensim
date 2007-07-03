@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
+using Axiom.MathLib;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Physics.Manager;
-using OpenSim.Framework.Types;
 using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -266,7 +265,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
             LLVector3 lPos;
-            Axiom.MathLib.Quaternion lRot;
+            Quaternion lRot;
 
             lPos = this.Pos;
             lRot = this.rotation;

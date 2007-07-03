@@ -27,8 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Data;
+using System.Data;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data.MySQL
@@ -87,8 +86,8 @@ namespace OpenSim.Framework.Data.MySQL
                     param["?first"] = user;
                     param["?second"] = last;
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM users WHERE username = ?first AND lastname = ?second", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM users WHERE username = ?first AND lastname = ?second", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
                     
@@ -120,8 +119,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = uuid.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
 
@@ -175,8 +174,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = uuid.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     UserAgentData row = database.readAgentRow(reader);
 

@@ -25,14 +25,12 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
 using libsecondlife;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
@@ -53,7 +51,7 @@ namespace OpenSim.Region.GridInterfaces.Remote
             this._remoteAssetServerThread = new Thread(new ThreadStart(RunRequests));
             this._remoteAssetServerThread.IsBackground = true;
             this._remoteAssetServerThread.Start();
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Remote Asset Server class created");
+            MainLog.Instance.Verbose("Remote Asset Server class created");
         }
 
         public void SetReceiver(IAssetReceiver receiver)

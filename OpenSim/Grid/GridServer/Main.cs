@@ -27,20 +27,14 @@
 */
 
 using System;
-using System.IO;
-using System.Text;
-using System.Timers;
-using System.Net;
-using System.Threading;
 using System.Reflection;
-using libsecondlife;
-using OpenSim.Framework.Manager;
-using OpenSim.Framework;
-using OpenSim.Framework.Sims;
+using System.Threading;
+using System.Timers;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.GenericConfig;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -156,7 +150,7 @@ namespace OpenSim.Grid.GridServer
 
             m_console.Verbose( "Main.cs:Startup() - Starting sim status checker");
 
-            System.Timers.Timer simCheckTimer = new System.Timers.Timer(3600000 * 3); // 3 Hours between updates.
+            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }

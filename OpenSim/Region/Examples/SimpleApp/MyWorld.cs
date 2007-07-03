@@ -1,23 +1,19 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Console;
 using libsecondlife;
-using OpenSim.Region.Environment;
-using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
-using OpenSim.Region.Caches;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
+using OpenSim.Region.Caches;
+using OpenSim.Region.Environment.Scenes;
+using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
 
 namespace SimpleApp
 {
     public class MyWorld : Scene
     {
-        private List<OpenSim.Region.Environment.Scenes.ScenePresence> m_avatars;
+        private List<ScenePresence> m_avatars;
 
         public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
             : base(clientThreads, regionInfo, authen, commsMan, assetCach, httpServer)

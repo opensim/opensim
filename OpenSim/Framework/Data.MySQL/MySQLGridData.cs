@@ -27,8 +27,10 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Security.Cryptography;
 using System.Text;
-using OpenSim.Framework.Data;
+using libsecondlife;
 
 namespace OpenSim.Framework.Data.MySQL
 {
@@ -104,8 +106,8 @@ namespace OpenSim.Framework.Data.MySQL
                     param["?xmax"] = xmax.ToString();
                     param["?ymax"] = ymax.ToString();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     SimProfileData row;
 
@@ -144,8 +146,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?handle"] = handle.ToString();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     SimProfileData row = database.readSimRow(reader);
                     reader.Close();
@@ -167,7 +169,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        public SimProfileData GetProfileByLLUUID(libsecondlife.LLUUID uuid)
+        public SimProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             try
             {
@@ -176,8 +178,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = uuid.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     SimProfileData row = database.readSimRow(reader);
                     reader.Close();
@@ -221,7 +223,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="handle">The attempted regionHandle of the challenger</param>
         /// <param name="authkey">The secret</param>
         /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
-        public bool AuthenticateSim(libsecondlife.LLUUID uuid, ulong handle, string authkey)
+        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
@@ -242,10 +244,10 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="authhash"></param>
         /// <param name="challenge"></param>
         /// <returns></returns>
-        public bool AuthenticateSim(libsecondlife.LLUUID uuid, ulong handle, string authhash, string challenge)
+        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authhash, string challenge)
         {
-            System.Security.Cryptography.SHA512Managed HashProvider = new System.Security.Cryptography.SHA512Managed();
-            System.Text.ASCIIEncoding TextProvider = new ASCIIEncoding();
+            SHA512Managed HashProvider = new SHA512Managed();
+            ASCIIEncoding TextProvider = new ASCIIEncoding();
 
             byte[] stream = TextProvider.GetBytes(uuid.ToStringHyphenated() + ":" + handle.ToString() + ":" + challenge);
             byte[] hash = HashProvider.ComputeHash(stream);
@@ -262,8 +264,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?x"] = x.ToString();
                     param["?y"] = y.ToString();
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     ReservationData row = database.readReservationRow(reader);
                     reader.Close();

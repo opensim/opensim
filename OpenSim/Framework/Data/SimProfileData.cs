@@ -25,9 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 
 namespace OpenSim.Framework.Data
 {
@@ -49,7 +47,7 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// OGS/OpenSim Specific ID for a region
         /// </summary>
-        public libsecondlife.LLUUID UUID;
+        public LLUUID UUID;
 
         /// <summary>
         /// Coordinates of the region
@@ -109,6 +107,6 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// Region Map Texture Asset
         /// </summary>
-        public libsecondlife.LLUUID regionMapTextureID = new libsecondlife.LLUUID("00000000-0000-0000-9999-000000000006");
+        public LLUUID regionMapTextureID = new LLUUID("00000000-0000-0000-9999-000000000006");
     }
 }

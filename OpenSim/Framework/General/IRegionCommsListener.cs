@@ -25,9 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
@@ -35,7 +34,7 @@ namespace OpenSim.Framework
 {
     public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
-    public delegate void AgentCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position);
+    public delegate void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position);
 
     public interface IRegionCommsListener
     {

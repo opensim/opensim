@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -18,7 +16,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnNewPrimitiveDelegate(PrimitiveOld prim);
         public event OnNewPrimitiveDelegate OnNewPrimitive;
 
-        public delegate void OnRemovePresenceDelegate(libsecondlife.LLUUID uuid);
+        public delegate void OnRemovePresenceDelegate(LLUUID uuid);
         public event OnRemovePresenceDelegate OnRemovePresence;
 
         public void TriggerOnFrame()
@@ -41,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
                 OnNewPresence(presence);
         }
 
-        public void TriggerOnRemovePresence(libsecondlife.LLUUID uuid)
+        public void TriggerOnRemovePresence(LLUUID uuid)
         {
             if (OnRemovePresence != null)
             {

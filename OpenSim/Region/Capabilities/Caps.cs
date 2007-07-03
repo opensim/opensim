@@ -29,14 +29,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using System.IO;
-using System.Xml;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Types;
-using OpenSim.Region.Caches;
 using libsecondlife;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
+using OpenSim.Region.Caches;
 
 namespace OpenSim.Region.Capabilities
 {
@@ -126,7 +123,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string MapLayer(string request, string path, string param)
         {
-            Encoding _enc = System.Text.Encoding.UTF8;
+            Encoding _enc = Encoding.UTF8;
             Hashtable hash =(Hashtable) LLSD.LLSDDeserialize(_enc.GetBytes(request));
             LLSDMapRequest mapReq = new LLSDMapRequest();
             LLSDHelpers.DeserialiseLLSDMap(hash, mapReq );
@@ -252,7 +249,7 @@ namespace OpenSim.Region.Capabilities
 
             public string uploaderCaps(string request, string path, string param)
             {
-                Encoding _enc = System.Text.Encoding.UTF8;
+                Encoding _enc = Encoding.UTF8;
                 byte[] data = _enc.GetBytes(request);
                 //Console.WriteLine("recieved upload " + Util.FieldToString(data));
                 LLUUID inv = this.inventoryItemID;

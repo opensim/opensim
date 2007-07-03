@@ -26,13 +26,10 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
-
-// Compilation stuff
-using System.CodeDom;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using Microsoft.CSharp;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Enviorment.Scripting
 {
@@ -60,10 +57,10 @@ namespace OpenSim.Region.Enviorment.Scripting
 
             if (compilerResults.Errors.Count > 0)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Error("Compile errors");
+                MainLog.Instance.Error("Compile errors");
                 foreach (CompilerError error in compilerResults.Errors)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Error(error.Line.ToString() + ": " + error.ErrorText.ToString());
+                    MainLog.Instance.Error(error.Line.ToString() + ": " + error.ErrorText.ToString());
                 }
             }
             else

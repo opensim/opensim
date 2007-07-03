@@ -25,16 +25,12 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text;
-using OpenSim.Framework;
+using libsecondlife;
+using libsecondlife.Packets;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using libsecondlife;
-using libsecondlife.Packets;
 
 namespace OpenSim.Framework.Communications
 {
@@ -54,7 +50,7 @@ namespace OpenSim.Framework.Communications
         #region Packet Handlers
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
-            System.Text.Encoding enc = System.Text.Encoding.ASCII;
+            Encoding enc = Encoding.ASCII;
             UserProfileData profileData = this.UserServer.GetUserProfile(uuid);
             if (profileData != null)
             {

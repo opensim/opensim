@@ -27,7 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Data;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data.MySQL
@@ -98,8 +98,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = folderID.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     List<InventoryItemBase> items = database.readInventoryItems(reader);
 
@@ -132,8 +132,8 @@ namespace OpenSim.Framework.Data.MySQL
                     param["?uuid"] = user.ToStringHyphenated();
                     param["?zero"] = LLUUID.Zero.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = database.readInventoryFolders(reader);
 
@@ -165,8 +165,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = parentID.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = database.readInventoryFolders(reader);
 
@@ -198,8 +198,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = item.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE inventoryID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE inventoryID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     List<InventoryItemBase> items = database.readInventoryItems(reader);
 
@@ -238,8 +238,8 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?uuid"] = folder.ToStringHyphenated();
 
-                    System.Data.IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = ?uuid", param);
-                    System.Data.IDataReader reader = result.ExecuteReader();
+                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = database.readInventoryFolders(reader);
 

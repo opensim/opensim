@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using libsecondlife;
 //using OpenSim.world;
 
 namespace OpenSim.Framework.Interfaces

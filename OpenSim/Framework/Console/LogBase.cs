@@ -120,7 +120,7 @@ namespace OpenSim.Framework.Console
             return;
         }
 
-        private void WriteNewLine(System.ConsoleColor color, string format, params object[] args)
+        private void WriteNewLine(ConsoleColor color, string format, params object[] args)
         {
             Log.WriteLine(format, args);
             Log.Flush();
@@ -132,7 +132,7 @@ namespace OpenSim.Framework.Console
                     System.Console.WriteLine(format, args);
                     System.Console.ResetColor();
                 }
-                catch (System.ArgumentNullException)
+                catch (ArgumentNullException)
                 {
                     // Some older systems dont support coloured text.
                     System.Console.WriteLine(format, args);
@@ -162,14 +162,14 @@ namespace OpenSim.Framework.Console
 
             while (true)
             {
-                addressStr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                addressStr = MainLog.Instance.CmdPrompt(prompt, defaultvalue);
                 if (IPAddress.TryParse(addressStr, out address))
                 {
                     break;
                 }
                 else
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Error("Illegal address. Please re-enter.");
+                    MainLog.Instance.Error("Illegal address. Please re-enter.");
                 }
             }
 
@@ -183,7 +183,7 @@ namespace OpenSim.Framework.Console
 
             while (true)
             {
-                portStr = OpenSim.Framework.Console.MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                portStr = MainLog.Instance.CmdPrompt(prompt, defaultvalue);
                 if (int.TryParse(portStr, out port))
                 {
                     if (port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort)
@@ -192,7 +192,7 @@ namespace OpenSim.Framework.Console
                     }
                 }
 
-                OpenSim.Framework.Console.MainLog.Instance.Error("Illegal address. Please re-enter.");
+                MainLog.Instance.Error("Illegal address. Please re-enter.");
             }
 
             return port;

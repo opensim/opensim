@@ -26,7 +26,6 @@
 * 
 */
 
-using System;
 using libsecondlife;
 using OpenSim.Framework.Types;
 

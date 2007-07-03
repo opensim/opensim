@@ -27,7 +27,6 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
@@ -43,7 +42,7 @@ namespace OpenSim.Region.Environment
     /// <summary>
     /// Handles Parcel objects and operations requiring information from other Parcel objects (divide, join, etc)
     /// </summary>
-    public class ParcelManager : OpenSim.Framework.Interfaces.ILocalStorageParcelReceiver
+    public class ParcelManager : ILocalStorageParcelReceiver
     {
 
         #region Constants
@@ -420,7 +419,7 @@ namespace OpenSim.Region.Environment
             {
                 for (y = 0; y < inc_y; y++)
                 {
-                    OpenSim.Region.Environment.Parcel currentParcel = getParcel(start_x + x, start_y + y);
+                    Parcel currentParcel = getParcel(start_x + x, start_y + y);
                     if (!temp.Contains(currentParcel))
                     {
                         currentParcel.forceUpdateParcelInfo();
@@ -429,10 +428,10 @@ namespace OpenSim.Region.Environment
                 }
             }
 
-            int requestResult = ParcelManager.PARCEL_RESULT_ONE_PARCEL;
+            int requestResult = PARCEL_RESULT_ONE_PARCEL;
             if (temp.Count > 1)
             {
-                requestResult = ParcelManager.PARCEL_RESULT_MULTIPLE_PARCELS;
+                requestResult = PARCEL_RESULT_MULTIPLE_PARCELS;
             }
 
             for (i = 0; i < temp.Count; i++)
@@ -571,7 +570,7 @@ namespace OpenSim.Region.Environment
 
             updatePacket.ParcelData.Bitmap = parcelData.parcelBitmapByteArray;
 
-            updatePacket.ParcelData.Desc = libsecondlife.Helpers.StringToField(parcelData.parcelDesc);
+            updatePacket.ParcelData.Desc = Helpers.StringToField(parcelData.parcelDesc);
             updatePacket.ParcelData.Category = (byte)parcelData.category;
             updatePacket.ParcelData.ClaimDate = parcelData.claimDate;
             updatePacket.ParcelData.ClaimPrice = parcelData.claimPrice;
@@ -631,7 +630,7 @@ namespace OpenSim.Region.Environment
                 parcelData.mediaID = packet.ParcelData.MediaID;
                 parcelData.mediaURL = Helpers.FieldToUTF8String(packet.ParcelData.MediaURL);
                 parcelData.musicURL = Helpers.FieldToUTF8String(packet.ParcelData.MusicURL);
-                parcelData.parcelName = libsecondlife.Helpers.FieldToUTF8String(packet.ParcelData.Name);
+                parcelData.parcelName = Helpers.FieldToUTF8String(packet.ParcelData.Name);
                 parcelData.parcelFlags = (libsecondlife.Parcel.ParcelFlags)packet.ParcelData.ParcelFlags;
                 parcelData.passHours = packet.ParcelData.PassHours;
                 parcelData.passPrice = packet.ParcelData.PassPrice;

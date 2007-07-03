@@ -25,16 +25,16 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
+using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Enviorment.Scripting
 {
     public class ScriptManager
     {
         List<IScript> scripts = new List<IScript>();
-        OpenSim.Region.Environment.Scenes.Scene scene;
+        Scene scene;
         Dictionary<string, IScriptCompiler> compilers = new Dictionary<string, IScriptCompiler>();
 
         private void LoadFromCompiler(Dictionary<string, IScript> compiledscripts)
@@ -42,14 +42,14 @@ namespace OpenSim.Region.Enviorment.Scripting
             foreach (KeyValuePair<string, IScript> script in compiledscripts)
             {
                 ScriptInfo scriptInfo = new ScriptInfo(scene); // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("Loading " + script.Key);
+                MainLog.Instance.Verbose("Loading " + script.Key);
                 script.Value.Initialise(scriptInfo);
                 scripts.Add(script.Value);
             }
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Finished loading " + compiledscripts.Count.ToString() + " script(s)");
+            MainLog.Instance.Verbose("Finished loading " + compiledscripts.Count.ToString() + " script(s)");
         }
 
-        public ScriptManager(OpenSim.Region.Environment.Scenes.Scene world)
+        public ScriptManager(Scene world)
         {
             scene = world;
 
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Enviorment.Scripting
                     break;
 
                 default:
-                    OpenSim.Framework.Console.MainLog.Instance.Error("Unknown script command");
+                    MainLog.Instance.Error("Unknown script command");
                     break;
             }
         }

@@ -25,21 +25,18 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Physics.Manager;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Inventory;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public class SceneObject : EntityBase
     {
-        private System.Text.Encoding enc = System.Text.Encoding.ASCII;
+        private Encoding enc = Encoding.ASCII;
         private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
         public Primitive rootPrimitive;
         private Scene m_world;

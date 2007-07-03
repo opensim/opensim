@@ -25,22 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using Nwc.XmlRpc;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
-using System.Threading;
-using System.Timers;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Utilities;
-using OpenSim.Assets;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -55,7 +42,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual bool Logout(ClientView simClient, Packet packet)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+            MainLog.Instance.Verbose( "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
             //send reply to let the client logout
             LogoutReplyPacket logReply = new LogoutReplyPacket();
             logReply.AgentData.AgentID = this.AgentID;
@@ -120,7 +107,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if (OnUpdatePrimPosition != null)
                     {
-                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
                         OnUpdatePrimPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                     //should update stored position of the prim
@@ -129,7 +116,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if (OnUpdatePrimRotation != null)
                     {
-                        libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
                         OnUpdatePrimRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
@@ -137,7 +124,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if (OnUpdatePrimScale != null)
                     {
-                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
                     }
                 }

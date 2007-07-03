@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework;
-using OpenSim.Framework.Types;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment
 {
@@ -17,7 +15,7 @@ namespace OpenSim.Region.Environment
         protected List<Caps> capsHandlers = new List<Caps>();
         protected BaseHttpServer httpListener;
 
-        protected Scenes.Scene m_Scene;
+        protected Scene m_Scene;
 
         public ParcelManager parcelManager;
         public EstateManager estateManager;

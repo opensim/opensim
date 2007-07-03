@@ -27,12 +27,9 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
-
 using System.Data.SqlClient;
-
-using OpenSim.Framework.Data;
+using libsecondlife;
 
 namespace OpenSim.Framework.Data.MSSQL
 {
@@ -110,7 +107,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 // Region Main
                 regionprofile.regionHandle = (ulong)reader["regionHandle"];
                 regionprofile.regionName = (string)reader["regionName"];
-                regionprofile.UUID = new libsecondlife.LLUUID((string)reader["uuid"]);
+                regionprofile.UUID = new LLUUID((string)reader["uuid"]);
 
                 // Secrets
                 regionprofile.regionRecvKey = (string)reader["regionRecvKey"];

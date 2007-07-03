@@ -28,14 +28,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using Axiom.MathLib;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Physics.Manager;
-using OpenSim.Framework.Inventory;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using Axiom.MathLib;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -53,7 +52,7 @@ namespace OpenSim.Region.Environment.Scenes
         private byte movementflag = 0;
         private List<NewForce> forcesList = new List<NewForce>();
         private short _updateCount = 0;
-        private Axiom.MathLib.Quaternion bodyRot;
+        private Quaternion bodyRot;
         private LLObject.TextureEntry avatarAppearanceTexture = null;
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
@@ -110,7 +109,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_regionInfo = reginfo;
             m_regionHandle = reginfo.RegionHandle;
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Avatar.cs ");
+            MainLog.Instance.Verbose("Avatar.cs ");
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
@@ -240,7 +239,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool update_rotation = false;
             bool DCFlagKeyPressed = false;
             Vector3 agent_control_v3 = new Vector3(0, 0, 0);
-            Axiom.MathLib.Quaternion q = new Axiom.MathLib.Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
+            Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
 
             this.PhysActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
@@ -278,10 +277,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
-        protected void AddNewMovement(Axiom.MathLib.Vector3 vec, Axiom.MathLib.Quaternion rotation)
+        protected void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
             NewForce newVelocity = new NewForce();
-            Axiom.MathLib.Vector3 direc = rotation * vec;
+            Vector3 direc = rotation * vec;
             direc.Normalize();
 
             direc = direc * ((0.03f) * 128f);

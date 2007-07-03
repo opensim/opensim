@@ -25,8 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
+using Axiom.MathLib;
 using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BasicPhysicsPlugin
@@ -250,11 +250,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 			}
 		}
 		
-		public override Axiom.MathLib.Quaternion Orientation
+		public override Quaternion Orientation
 		{
 			get
 			{
-				return Axiom.MathLib.Quaternion.Identity;
+				return Quaternion.Identity;
 			}
 			set
 			{

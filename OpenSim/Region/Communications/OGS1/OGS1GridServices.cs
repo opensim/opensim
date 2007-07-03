@@ -1,19 +1,17 @@
 using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.Text;
+using System.Collections.Generic;
+using System.Net;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
-
-using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Communications;
-
-using Nwc.XmlRpc;
 using libsecondlife;
-using System.Net;
+using Nwc.XmlRpc;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Communications.OGS1
 {
@@ -52,7 +50,7 @@ namespace OpenSim.Region.Communications.OGS1
             if (GridRespData.ContainsKey("error"))
             {
                 string errorstring = (string)GridRespData["error"];
-                OpenSim.Framework.Console.MainLog.Instance.Error("Unable to connect to grid: " + errorstring);
+                MainLog.Instance.Error("Unable to connect to grid: " + errorstring);
                 return null;
             }  
 
@@ -103,7 +101,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         public RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Warn("Unimplemented - RequestNeighbourInfo()");
+            MainLog.Instance.Warn("Unimplemented - RequestNeighbourInfo()");
             return null;
         }
 
@@ -184,7 +182,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Error("ExpectUser() - Unknown region " + ((ulong)requestData["regionhandle"]).ToString());
+                MainLog.Instance.Error("ExpectUser() - Unknown region " + ((ulong)requestData["regionhandle"]).ToString());
             }
 
             return new XmlRpcResponse();
@@ -215,7 +213,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (this.listeners.ContainsKey(regionHandle))
             {
@@ -239,7 +237,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool IncomingArrival(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public bool IncomingArrival(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (this.listeners.ContainsKey(regionHandle))
             {

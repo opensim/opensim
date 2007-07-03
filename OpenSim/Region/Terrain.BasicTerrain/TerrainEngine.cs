@@ -27,8 +27,9 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using libTerrain;
 using OpenJPEGNet;
 
@@ -421,9 +422,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">The filename of the double array to import</param>
         public void loadFromFileF64(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.Open, System.IO.FileAccess.Read);
-            System.IO.BinaryReader bs = new System.IO.BinaryReader(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            BinaryReader bs = new BinaryReader(s);
             int x, y;
             for (x = 0; x < w; x++)
             {
@@ -446,9 +447,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">The filename of the float array to import</param>
         public void loadFromFileF32(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.Open, System.IO.FileAccess.Read);
-            System.IO.BinaryReader bs = new System.IO.BinaryReader(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            BinaryReader bs = new BinaryReader(s);
             int x, y;
             for (x = 0; x < w; x++)
             {
@@ -471,9 +472,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">A path to the .RAW format</param>
         public void loadFromFileSLRAW(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.Open, System.IO.FileAccess.Read);
-            System.IO.BinaryReader bs = new System.IO.BinaryReader(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            BinaryReader bs = new BinaryReader(s);
             int x, y;
             for (x = 0; x < w; x++)
             {
@@ -496,9 +497,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">The desired output filename</param>
         public void writeToFileF64(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
-            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
+            BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
             for (x = 0; x < w; x++)
@@ -519,9 +520,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">The desired output filename</param>
         public void writeToFileF32(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
-            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
+            BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
             for (x = 0; x < w; x++)
@@ -543,9 +544,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">Filename to write to</param>
         public void writeToFileRAW(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
-            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
+            BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
 
@@ -608,9 +609,9 @@ namespace OpenSim.Region.Terrain
         /// <param name="filename">The filename to output to</param>
         public void writeToFileHiRAW(string filename)
         {
-            System.IO.FileInfo file = new System.IO.FileInfo(filename);
-            System.IO.FileStream s = file.Open(System.IO.FileMode.CreateNew, System.IO.FileAccess.Write);
-            System.IO.BinaryWriter bs = new System.IO.BinaryWriter(s);
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
+            BinaryWriter bs = new BinaryWriter(s);
 
             // Generate a smegging big lookup table to speed the operation up (it needs it)
             double[] lookupTable = new double[65536];
@@ -872,7 +873,7 @@ namespace OpenSim.Region.Terrain
                     }
                 }
 
-                bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
+                bmp.Save(filename, ImageFormat.Png);
             }
             catch (Exception e)
             {
@@ -913,7 +914,7 @@ namespace OpenSim.Region.Terrain
                 }
 
                 //bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
-                imageData = OpenJPEGNet.OpenJPEG.EncodeFromImage(bmp, "map");
+                imageData = OpenJPEG.EncodeFromImage(bmp, "map");
                 
             }
             catch (Exception e)

@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
-using libsecondlife.Packets;
-using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Framework.Types
 {

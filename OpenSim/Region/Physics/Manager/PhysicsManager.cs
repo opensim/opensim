@@ -27,10 +27,8 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Collections;
 using System.IO;
 using System.Reflection;
-using Axiom.MathLib;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Physics.Manager
@@ -56,19 +54,19 @@ namespace OpenSim.Physics.Manager
 
 			if(_plugins.ContainsKey(engineName))
 			{
-				OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.LOW,"creating "+engineName);
+				MainLog.Instance.WriteLine(LogPriority.LOW,"creating "+engineName);
 				return _plugins[engineName].GetScene();
 			}
 			else
             {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.MEDIUM,"couldn't find physicsEngine: {0}",engineName);
+                MainLog.Instance.WriteLine(LogPriority.MEDIUM,"couldn't find physicsEngine: {0}",engineName);
                 throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}",engineName));
 			}
 		}
 		
 		public void LoadPlugins()
 		{
-			string path = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory ,"Physics");
+			string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ,"Physics");
        		string[] pluginFiles = Directory.GetFiles(path, "*.dll");
         
 

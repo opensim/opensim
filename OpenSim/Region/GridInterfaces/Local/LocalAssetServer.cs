@@ -26,17 +26,15 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.IO;
+using System.Threading;
+using Db4objects.Db4o;
+using Db4objects.Db4o.Query;
+using libsecondlife;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Console;
-using libsecondlife;
-using Db4objects.Db4o;
-using Db4objects.Db4o.Query;
 
 namespace OpenSim.Region.GridInterfaces.Local
 {
@@ -64,19 +62,19 @@ namespace OpenSim.Region.GridInterfaces.Local
         {
             bool yapfile;
             this._assetRequests = new BlockingQueue<ARequest>();
-            yapfile = System.IO.File.Exists("assets.yap");
+            yapfile = File.Exists("assets.yap");
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose( "Local Asset Server class created");
+            MainLog.Instance.Verbose( "Local Asset Server class created");
             try
             {
                 db = Db4oFactory.OpenFile("assets.yap");
-                OpenSim.Framework.Console.MainLog.Instance.Verbose( "Db4 Asset database  creation");
+                MainLog.Instance.Verbose( "Db4 Asset database  creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.MEDIUM, "Db4 Asset server :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.WriteLine(LogPriority.MEDIUM, "Db4 Asset server :Constructor - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
             if (!yapfile)
             {
@@ -124,7 +122,7 @@ namespace OpenSim.Region.GridInterfaces.Local
         {
             if (db != null)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose( "Closing local asset server database");
+                MainLog.Instance.Verbose( "Closing local asset server database");
                 db.Close();
             }
         }
@@ -168,7 +166,7 @@ namespace OpenSim.Region.GridInterfaces.Local
             try
             {
 
-                OpenSim.Framework.Console.MainLog.Instance.Verbose( "Setting up asset database");
+                MainLog.Instance.Verbose( "Setting up asset database");
 
                 AssetBase Image = new AssetBase();
                 Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
@@ -281,7 +279,7 @@ namespace OpenSim.Region.GridInterfaces.Local
             //should request Asset from storage manager
             //but for now read from file
 
-            string dataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
+            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
             string fileName = Path.Combine(dataPath, filename);
             FileInfo fInfo = new FileInfo(fileName);
             long numBytes = fInfo.Length;

@@ -27,10 +27,8 @@
 */
 using System;
 using System.Security.Cryptography;
-using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
-using libsecondlife.Packets;
 
 namespace OpenSim.Framework.Utilities
 {

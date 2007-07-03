@@ -25,10 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenSim.Framework.Servers
 {
     public delegate string RestMethod( string request, string path, string param );

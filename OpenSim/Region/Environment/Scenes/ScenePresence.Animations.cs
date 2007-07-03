@@ -25,11 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
-using libsecondlife;
 using System.Xml;
+using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -66,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 // OpenSim.Framework.Console.MainLog.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
-                foreach (KeyValuePair<string, LLUUID> kp in OpenSim.Region.Environment.Scenes.ScenePresence.Animations.AnimsLLUUID)
+                foreach (KeyValuePair<string, LLUUID> kp in Animations.AnimsLLUUID)
                 {
                     AnimsNames.Add(kp.Value, kp.Key);
                 }

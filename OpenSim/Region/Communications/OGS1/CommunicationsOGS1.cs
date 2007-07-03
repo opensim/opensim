@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Types;
+
 namespace OpenSim.Region.Communications.OGS1
 {
     public class CommunicationsOGS1 : CommunicationsManager

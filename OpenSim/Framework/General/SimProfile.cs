@@ -26,10 +26,7 @@
 * 
 */
 using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.Xml;
-using System.Text;
 using libsecondlife;
 using Nwc.XmlRpc;
 

@@ -25,21 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Text;
-using System.IO;
-using System.Threading;
-using System.Net;
-using System.Net.Sockets;
-using System.Timers;
-using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
-using OpenSim.Framework.Console;
-
-
 namespace OpenSim.Framework.Servers
 {
 /*    public class CheckSumServer : UDPServerBase

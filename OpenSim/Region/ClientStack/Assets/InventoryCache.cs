@@ -28,13 +28,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using libsecondlife;
-using OpenSim;
 using libsecondlife.Packets;
-//using OpenSim.GridServers;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Region.ClientStack;
 
 namespace OpenSim.Assets
@@ -46,7 +45,7 @@ namespace OpenSim.Assets
     {
         private Dictionary<LLUUID, AgentInventory> _agentsInventory;
         private List<UserServerRequest> _serverRequests; //list of requests made to user server.
-        private System.Text.Encoding _enc = System.Text.Encoding.ASCII;
+        private Encoding _enc = Encoding.ASCII;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
         public InventoryCache()
@@ -127,7 +126,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public LLUUID AddNewInventoryItem(ClientView remoteClient, LLUUID folderID, OpenSim.Framework.Types.AssetBase asset)
+        public LLUUID AddNewInventoryItem(ClientView remoteClient, LLUUID folderID, AssetBase asset)
         {
             LLUUID newItem = null;
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
@@ -163,7 +162,7 @@ namespace OpenSim.Assets
             return res;
         }
 
-        public bool UpdateInventoryItemAsset(ClientView remoteClient, LLUUID itemID, OpenSim.Framework.Types.AssetBase asset)
+        public bool UpdateInventoryItemAsset(ClientView remoteClient, LLUUID itemID, AssetBase asset)
         {
             if (this._agentsInventory.ContainsKey(remoteClient.AgentID))
             {
@@ -238,7 +237,7 @@ namespace OpenSim.Assets
                             Descend.ItemData[i].SalePrice = 100;
                             Descend.ItemData[i].SaleType = 0;
                             Descend.ItemData[i].Type = Item.Type;
-                            Descend.ItemData[i].CRC = libsecondlife.Helpers.InventoryCRC(1000, 0, Descend.ItemData[i].InvType, Descend.ItemData[i].Type, Descend.ItemData[i].AssetID, Descend.ItemData[i].GroupID, 100, Descend.ItemData[i].OwnerID, Descend.ItemData[i].CreatorID, Descend.ItemData[i].ItemID, Descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+                            Descend.ItemData[i].CRC = Helpers.InventoryCRC(1000, 0, Descend.ItemData[i].InvType, Descend.ItemData[i].Type, Descend.ItemData[i].AssetID, Descend.ItemData[i].GroupID, 100, Descend.ItemData[i].OwnerID, Descend.ItemData[i].CreatorID, Descend.ItemData[i].ItemID, Descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
                         }
                         
                         userInfo.OutPacket(Descend);
@@ -286,7 +285,7 @@ namespace OpenSim.Assets
                         InventoryReply.InventoryData[0].SalePrice = 100;
                         InventoryReply.InventoryData[0].SaleType = 0;
                         InventoryReply.InventoryData[0].Type = Item.Type;
-                        InventoryReply.InventoryData[0].CRC = libsecondlife.Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+                        InventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
                         userInfo.OutPacket(InventoryReply);
                     }
                 }
@@ -320,7 +319,7 @@ namespace OpenSim.Assets
             InventoryReply.InventoryData[0].SalePrice = 100;
             InventoryReply.InventoryData[0].SaleType = 0;
             InventoryReply.InventoryData[0].Type = Item.Type;
-            InventoryReply.InventoryData[0].CRC = libsecondlife.Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+            InventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
             remoteClient.OutPacket(InventoryReply);
         }

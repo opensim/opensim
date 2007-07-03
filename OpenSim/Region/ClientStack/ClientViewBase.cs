@@ -27,17 +27,14 @@
 * 
 */
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
-using System.Threading;
 using System.Timers;
+using libsecondlife;
+using libsecondlife.Packets;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -47,7 +44,7 @@ namespace OpenSim.Region.ClientStack
         protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         protected Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
 
-        protected System.Timers.Timer AckTimer;
+        protected Timer AckTimer;
         protected uint Sequence = 0;
         protected object SequenceLock = new object();
         protected const int MAX_APPENDED_ACKS = 10;
@@ -159,7 +156,7 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
+                MainLog.Instance.Warn("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
                 this.KillThread();
             }
 
@@ -195,8 +192,8 @@ namespace OpenSim.Region.ClientStack
             else if ((NewPack.Type == PacketType.StartPingCheck))
             {
                 //reply to pingcheck
-                libsecondlife.Packets.StartPingCheckPacket startPing = (libsecondlife.Packets.StartPingCheckPacket)NewPack;
-                libsecondlife.Packets.CompletePingCheckPacket endPing = new CompletePingCheckPacket();
+                StartPingCheckPacket startPing = (StartPingCheckPacket)NewPack;
+                CompletePingCheckPacket endPing = new CompletePingCheckPacket();
                 endPing.PingID.PingID = startPing.PingID.PingID;
                 OutPacket(endPing);
             }
@@ -224,7 +221,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (Pack.Header.Reliable)
             {
-                libsecondlife.Packets.PacketAckPacket ack_it = new PacketAckPacket();
+                PacketAckPacket ack_it = new PacketAckPacket();
                 ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
                 ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
                 ack_it.Packets[0].ID = Pack.Header.Sequence;
@@ -254,7 +251,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose( "Resending " + packet.Type.ToString() + " packet, " +
+                        MainLog.Instance.Verbose( "Resending " + packet.Type.ToString() + " packet, " +
                          (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
@@ -273,7 +270,7 @@ namespace OpenSim.Region.ClientStack
                     if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose( "Too many ACKs queued up!");
+                        MainLog.Instance.Verbose( "Too many ACKs queued up!");
                         return;
                     }
 

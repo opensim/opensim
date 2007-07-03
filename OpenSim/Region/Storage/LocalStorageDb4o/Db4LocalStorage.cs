@@ -26,15 +26,11 @@
 * 
 */
 using System;
-using System.Collections.Generic;
 using Db4objects.Db4o;
-using Db4objects.Db4o.Query;
-
 using libsecondlife;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Console;
-
 
 namespace OpenSim.Region.Storage.LocalStorageDb4o
 {
@@ -53,18 +49,18 @@ namespace OpenSim.Region.Storage.LocalStorageDb4o
 
         public void Initialise(string dfile)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Warn("Db4LocalStorage Opening " + dfile);
+            MainLog.Instance.Warn("Db4LocalStorage Opening " + dfile);
             datastore = dfile;
             try
             {
                 db = Db4oFactory.OpenFile(datastore);
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("Db4LocalStorage creation");
+                MainLog.Instance.Verbose("Db4LocalStorage creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainLog.Instance.Warn("Db4LocalStorage :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("Db4LocalStorage :Constructor - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
         }
 
@@ -123,7 +119,7 @@ namespace OpenSim.Region.Storage.LocalStorageDb4o
         public void LoadPrimitives(ILocalStorageReceiver receiver)
         {
             IObjectSet result = db.Get(typeof(PrimData));
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is " + result.Count);
+            MainLog.Instance.Verbose("Db4LocalStorage.cs: LoadPrimitives() - number of prims in storages is " + result.Count);
             foreach (PrimData prim in result)
             {
                 receiver.PrimFromStorage(prim);
@@ -132,13 +128,13 @@ namespace OpenSim.Region.Storage.LocalStorageDb4o
 
         public float[] LoadWorld()
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("LoadWorld() - Loading world....");
+            MainLog.Instance.Verbose("LoadWorld() - Loading world....");
             float[] heightmap = null;
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("LoadWorld() - Looking for a heightmap in local DB");
+            MainLog.Instance.Verbose("LoadWorld() - Looking for a heightmap in local DB");
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("LoadWorld() - Found a heightmap in local database, loading");
+                MainLog.Instance.Verbose("LoadWorld() - Found a heightmap in local database, loading");
                 MapStorage map = (MapStorage)world_result.Next();
                 //blank.LandMap = map.Map;
                 heightmap = map.Map;
@@ -151,7 +147,7 @@ namespace OpenSim.Region.Storage.LocalStorageDb4o
             IObjectSet world_result = db.Get(typeof(MapStorage));
             if (world_result.Count > 0)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("SaveWorld() - updating saved copy of heightmap in local database");
+                MainLog.Instance.Verbose("SaveWorld() - updating saved copy of heightmap in local database");
                 MapStorage map = (MapStorage)world_result.Next();
                 db.Delete(map);
             }

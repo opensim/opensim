@@ -25,13 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-using OpenSim.Framework.Console;
-using OpenSim.Framework;
-using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Enviorment.Scripting
@@ -54,7 +47,7 @@ namespace OpenSim.Region.Enviorment.Scripting
         public void Initialise(ScriptInfo scriptInfo)
         {
             script = scriptInfo;
-            script.events.OnFrame += new OpenSim.Region.Environment.Scenes.EventManager.OnFrameDelegate(events_OnFrame);
+            script.events.OnFrame += new EventManager.OnFrameDelegate(events_OnFrame);
             script.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
         }
 

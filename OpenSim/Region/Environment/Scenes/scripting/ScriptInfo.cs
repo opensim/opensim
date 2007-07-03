@@ -25,12 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Enviorment.Scripting
 {
@@ -52,7 +48,7 @@ namespace OpenSim.Region.Enviorment.Scripting
         {
             world = scene;
             events = world.eventManager;
-            logger = OpenSim.Framework.Console.MainLog.Instance;
+            logger = MainLog.Instance;
         }
     }
 }

@@ -30,10 +30,10 @@
 // A bad idea, but the IRC people told me to!
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using libsecondlife;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
@@ -54,8 +54,8 @@ namespace OpenSim.Region.Storage.LocalStorageSQLite
             catch (Exception e)
             {
                 db.Close();
-                OpenSim.Framework.Console.MainLog.Instance.Warn("SQLiteLocalStorage :Constructor - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("SQLiteLocalStorage :Constructor - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
         }
 
@@ -117,8 +117,8 @@ namespace OpenSim.Region.Storage.LocalStorageSQLite
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("SQLiteLocalStorage :StorePrim - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("SQLiteLocalStorage :StorePrim - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
 
             cmd.Dispose();
@@ -144,8 +144,8 @@ namespace OpenSim.Region.Storage.LocalStorageSQLite
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("SQLiteLocalStorage :RemovePrim - Exception occured");
-                OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("SQLiteLocalStorage :RemovePrim - Exception occured");
+                MainLog.Instance.Warn(e.ToString());
             }
 
             cmd.Dispose();

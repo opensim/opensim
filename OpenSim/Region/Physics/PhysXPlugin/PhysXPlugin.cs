@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Physics.Manager;
 using PhysXWrapper;
+using Quaternion=Axiom.MathLib.Quaternion;
 
 namespace OpenSim.Region.Physics.PhysXPlugin
 {
@@ -240,11 +241,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 			}
 		}
 		
-		public override Axiom.MathLib.Quaternion Orientation
+		public override Quaternion Orientation
 		{
 			get
 			{
-				return Axiom.MathLib.Quaternion.Identity;
+				return Quaternion.Identity;
 			}
 			set
 			{
@@ -377,11 +378,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 			}
 		}
 		
-		public override Axiom.MathLib.Quaternion Orientation
+		public override Quaternion Orientation
 		{
 			get
 			{
-				Axiom.MathLib.Quaternion res = new Axiom.MathLib.Quaternion();
+				Quaternion res = new Quaternion();
 				PhysXWrapper.Quaternion quat = this._prim.GetOrientation();
 				res.w = quat.W;
 				res.x = quat.X;

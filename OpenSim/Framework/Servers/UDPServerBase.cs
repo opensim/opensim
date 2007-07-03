@@ -26,16 +26,8 @@
 * 
 */
 using System;
-using System.Text;
-using System.IO;
-using System.Threading;
 using System.Net;
 using System.Net.Sockets;
-using System.Timers;
-using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
-using libsecondlife;
 using libsecondlife.Packets;
 
 namespace OpenSim.Framework.Servers

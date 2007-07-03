@@ -26,11 +26,8 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Axiom.MathLib;
-using OpenSim.Physics.Manager;
 using libsecondlife;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {

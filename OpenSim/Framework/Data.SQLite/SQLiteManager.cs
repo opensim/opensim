@@ -27,12 +27,9 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
-
 using System.Data.SQLite;
-
-using OpenSim.Framework.Data;
+using libsecondlife;
 
 namespace OpenSim.Framework.Data.SQLite
 {
@@ -105,7 +102,7 @@ namespace OpenSim.Framework.Data.SQLite
                 // Region Main
                 retval.regionHandle = (ulong)reader["regionHandle"];
                 retval.regionName = (string)reader["regionName"];
-                retval.UUID = new libsecondlife.LLUUID((string)reader["uuid"]);
+                retval.UUID = new LLUUID((string)reader["uuid"]);
 
                 // Secrets
                 retval.regionRecvKey = (string)reader["regionRecvKey"];

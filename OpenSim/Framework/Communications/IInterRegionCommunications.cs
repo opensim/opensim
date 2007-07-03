@@ -25,17 +25,14 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 using OpenSim.Framework.Types;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications
 {
     public  interface IInterRegionCommunications
     {
          bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
-         bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position); 
+         bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position); 
     }
 }

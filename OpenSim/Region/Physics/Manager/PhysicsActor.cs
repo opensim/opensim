@@ -25,15 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Axiom.MathLib;
 
 namespace OpenSim.Physics.Manager
 {
     public delegate void PositionUpdate(PhysicsVector position);
     public delegate void VelocityUpdate(PhysicsVector velocity);
-    public delegate void OrientationUpdate(Axiom.MathLib.Quaternion orientation);
+    public delegate void OrientationUpdate(Quaternion orientation);
 
     public abstract class PhysicsActor
     {
@@ -66,7 +64,7 @@ namespace OpenSim.Physics.Manager
             get;
         }
 
-        public abstract Axiom.MathLib.Quaternion Orientation
+        public abstract Quaternion Orientation
         {
             get;
             set;
@@ -115,11 +113,11 @@ namespace OpenSim.Physics.Manager
             }
         }
 
-        public override Axiom.MathLib.Quaternion Orientation
+        public override Quaternion Orientation
         {
             get
             {
-                return Axiom.MathLib.Quaternion.Identity;
+                return Quaternion.Identity;
             }
             set
             {

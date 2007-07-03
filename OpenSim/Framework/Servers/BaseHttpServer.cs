@@ -26,13 +26,14 @@
 * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Nwc.XmlRpc;
-using System.Collections;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Servers
@@ -199,9 +200,9 @@ namespace OpenSim.Framework.Servers
                 response.KeepAlive = false;
                 response.SendChunked = false;
 
-                System.IO.Stream body = request.InputStream;
-                System.Text.Encoding encoding = System.Text.Encoding.UTF8;
-                System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
+                Stream body = request.InputStream;
+                Encoding encoding = Encoding.UTF8;
+                StreamReader reader = new StreamReader(body, encoding);
 
                 string requestBody = reader.ReadToEnd();
                 body.Close();
@@ -245,8 +246,8 @@ namespace OpenSim.Framework.Servers
 
                 }
 
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                System.IO.Stream output = response.OutputStream;
+                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+                Stream output = response.OutputStream;
                 response.SendChunked = false;
                 response.ContentLength64 = buffer.Length;
                 output.Write(buffer, 0, buffer.Length);
@@ -260,7 +261,7 @@ namespace OpenSim.Framework.Servers
 
         public void Start()
         {
-            OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: Starting up HTTP Server");
+            MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: Starting up HTTP Server");
 
             m_workerThread = new Thread(new ThreadStart(StartHTTP));
             m_workerThread.IsBackground = true;
@@ -271,7 +272,7 @@ namespace OpenSim.Framework.Servers
         {
             try
             {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
+                MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
                 m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
@@ -286,7 +287,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
+                MainLog.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
             }
         }
 

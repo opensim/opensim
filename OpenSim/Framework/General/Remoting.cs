@@ -26,9 +26,8 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace OpenSim.Framework
 {

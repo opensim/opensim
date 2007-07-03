@@ -26,27 +26,16 @@
 * 
 */
 using System;
-using System.Text;
-using System.IO;
-using System.Threading;
-using System.Net;
-using System.Net.Sockets;
-using System.Timers;
-using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
-using OpenSim.Region.Terrain;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework;
+using System.Net;
 using OpenSim.Assets;
-using OpenSim.Region.Caches;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Physics.Manager;
-using Nwc.XmlRpc;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
+using OpenSim.Physics.Manager;
+using OpenSim.Region.Caches;
 
 namespace OpenSim.Region.ClientStack
 {

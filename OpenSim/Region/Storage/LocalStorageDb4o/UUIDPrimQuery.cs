@@ -25,13 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Storage.LocalStorageDb4o

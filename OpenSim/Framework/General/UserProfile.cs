@@ -25,12 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Security.Cryptography;
 using libsecondlife;
 using OpenSim.Framework.Inventory;
-using System.Security.Cryptography;
 
 namespace OpenSim.Framework.User
 {

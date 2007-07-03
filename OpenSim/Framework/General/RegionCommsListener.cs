@@ -25,9 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
@@ -57,7 +55,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (OnAvatarCrossingIntoRegion != null)
             {

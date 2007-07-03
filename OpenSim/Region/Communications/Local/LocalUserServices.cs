@@ -1,16 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-
+using libsecondlife;
 using OpenSim.Framework.Communications;
-//using OpenSim.Framework.User;
-using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;
-
-using libsecondlife;
 
 namespace OpenSim.Region.Communications.Local
 {

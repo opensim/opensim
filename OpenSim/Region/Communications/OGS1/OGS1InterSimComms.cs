@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Communications;
+
 namespace OpenSim.Region.Communications.OGS1
 {
     public delegate bool InformRegionChild(ulong regionHandle, AgentCircuitData agentData);
-    public delegate bool ExpectArrival(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position);
+    public delegate bool ExpectArrival(ulong regionHandle, LLUUID agentID, LLVector3 position);
 
     public sealed class InterRegionSingleton
     {
@@ -40,7 +39,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (OnArrival != null)
             {
@@ -62,7 +61,7 @@ namespace OpenSim.Region.Communications.OGS1
             return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, agentData);
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position);
         }

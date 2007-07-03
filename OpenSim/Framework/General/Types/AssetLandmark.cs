@@ -25,8 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 
@@ -51,7 +49,7 @@ namespace OpenSim.Framework.Types
 
         private void InternData()
         {
-            string temp = System.Text.Encoding.UTF8.GetString(Data).Trim(); 
+            string temp = Encoding.UTF8.GetString(Data).Trim(); 
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
             LLUUID.TryParse(parts[1].Substring(10, 36), out RegionID);

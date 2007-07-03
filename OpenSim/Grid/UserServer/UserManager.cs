@@ -27,21 +27,10 @@
 */
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Data;
-using libsecondlife;
-using System.Reflection;
-
-using System.Xml;
 using Nwc.XmlRpc;
+using OpenSim.Framework.Data;
 using OpenSim.Framework.Sims;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Utilities;
-
 using OpenSim.Framework.UserManagement;
-
-using System.Security.Cryptography;
 
 namespace OpenSim.Grid.UserServer
 {

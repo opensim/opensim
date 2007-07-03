@@ -25,9 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 
 namespace OpenSim.Framework.Data
 {
@@ -56,7 +54,7 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <param name="UUID">A 128bit UUID</param>
         /// <returns>A sim profile</returns>
-        SimProfileData GetProfileByLLUUID(libsecondlife.LLUUID UUID);
+        SimProfileData GetProfileByLLUUID(LLUUID UUID);
 
         /// <summary>
         /// Returns all profiles within the specified range
@@ -76,7 +74,7 @@ namespace OpenSim.Framework.Data
         /// <param name="regionHandle">The regionhandle sent by the sim</param>
         /// <param name="simrecvkey">The recieving key sent by the sim</param>
         /// <returns>Whether the sim has been authenticated</returns>
-        bool AuthenticateSim(libsecondlife.LLUUID UUID, ulong regionHandle, string simrecvkey);
+        bool AuthenticateSim(LLUUID UUID, ulong regionHandle, string simrecvkey);
 
         /// <summary>
         /// Initialises the interface

@@ -25,14 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
-using libsecondlife;
-using OpenSim;
 using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces

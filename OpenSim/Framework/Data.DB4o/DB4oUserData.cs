@@ -26,9 +26,6 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Data;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data.DB4o

@@ -27,37 +27,23 @@
 */
 
 using System;
-using System.Text;
 using System.IO;
-using System.Threading;
-using System.Net;
-using System.Net.Sockets;
-using System.Timers;
-using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
 using libsecondlife;
-using libsecondlife.Packets;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Terrain;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Data;
-
-using OpenSim.Framework.Types;
-using OpenSim.Framework;
 using OpenSim.Assets;
-using OpenSim.Region.Caches;
-using OpenSim.Framework.Console;
-using OpenSim.Physics.Manager;
-using Nwc.XmlRpc;
-using OpenSim.Framework.Servers;
-using OpenSim.GenericConfig;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Communications.Local;
-
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Data;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
+using OpenSim.GenericConfig;
+using OpenSim.Physics.Manager;
+using OpenSim.Region.Caches;
 using OpenSim.Region.ClientStack;
+using OpenSim.Region.Communications.Local;
+using OpenSim.Region.Communications.OGS1;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim
 {
@@ -96,7 +82,7 @@ namespace OpenSim
             }
 
             m_log = new LogBase(m_logFilename, "Region", this, m_silent);
-            OpenSim.Framework.Console.MainLog.Instance = m_log;
+            MainLog.Instance = m_log;
 
             m_log.Verbose( "Main.cs:Startup() - Loading configuration");
             this.serversData.InitConfig(this.m_sandbox, this.localConfig);
@@ -121,7 +107,7 @@ namespace OpenSim
 
             startuptime = DateTime.Now;
 
-            this.physManager = new OpenSim.Physics.Manager.PhysicsManager();
+            this.physManager = new PhysicsManager();
             this.physManager.LoadPlugins();
 
             this.SetupHttpListener();
@@ -187,12 +173,12 @@ namespace OpenSim
             RegionInfo regionDat = new RegionInfo();
             AuthenticateSessionsBase authenBase;
 
-            string path = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Regions");
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
             string[] configFiles = Directory.GetFiles(path, "*.xml");
 
             if (configFiles.Length == 0)
             {
-                string path2 = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Regions");
+                string path2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
                 string path3 = Path.Combine(path2, "default.xml");
                 Console.WriteLine("Creating default region config file");
                 //TODO create default region
@@ -361,23 +347,23 @@ namespace OpenSim
                 case "":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = false;
+                    ScenePresence.PhysicsEngineFlying = false;
                     break;
 
                 case "basicphysics":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = false;
+                    ScenePresence.PhysicsEngineFlying = false;
                     break;
 
                 case "RealPhysX":
                     this.m_physicsEngine = "RealPhysX";
-                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = true;
+                    ScenePresence.PhysicsEngineFlying = true;
                     break;
 
                 case "OpenDynamicsEngine":
                     this.m_physicsEngine = "OpenDynamicsEngine";
-                    OpenSim.Region.Environment.Scenes.ScenePresence.PhysicsEngineFlying = true;
+                    ScenePresence.PhysicsEngineFlying = true;
                     break;
             }
 
@@ -459,7 +445,7 @@ namespace OpenSim
                     m_log.Error( "That is " + (DateTime.Now - startuptime).ToString());
                     break;
                 case "users":
-                    OpenSim.Region.Environment.Scenes.ScenePresence TempAv;
+                    ScenePresence TempAv;
                     m_log.Error( String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
                     /* foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
                      {

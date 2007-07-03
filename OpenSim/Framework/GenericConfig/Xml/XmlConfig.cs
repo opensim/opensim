@@ -26,8 +26,7 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Xml;
 using OpenSim.Framework.Interfaces;
 
@@ -50,7 +49,7 @@ namespace OpenSim.GenericConfig
         {
             doc = new XmlDocument();
 
-            if (System.IO.File.Exists(fileName))
+            if (File.Exists(fileName))
             {
                 XmlTextReader reader = new XmlTextReader(fileName);
                 reader.WhitespaceHandling = WhitespaceHandling.None;

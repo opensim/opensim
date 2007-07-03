@@ -26,27 +26,23 @@
 * 
 */
 using System;
-using libsecondlife;
-using libsecondlife.Packets;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-using System.IO;
 using System.Threading;
 using System.Timers;
-using OpenSim.Physics.Manager;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Inventory;
+using libsecondlife;
+using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Region.Terrain;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.Caches;
-using OpenSim.Region.Environment;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
+using OpenSim.Physics.Manager;
+using OpenSim.Region.Caches;
 using OpenSim.Region.Enviorment.Scripting;
-using OpenSim.Region.Capabilities;
-using Caps = OpenSim.Region.Capabilities.Caps;
+using OpenSim.Region.Terrain;
+using Caps=OpenSim.Region.Capabilities.Caps;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -54,9 +50,9 @@ namespace OpenSim.Region.Environment.Scenes
 
     public partial class Scene : SceneBase, ILocalStorageReceiver
     {
-        protected System.Timers.Timer m_heartbeatTimer = new System.Timers.Timer();
-        protected Dictionary<libsecondlife.LLUUID, ScenePresence> Avatars;
-        protected Dictionary<libsecondlife.LLUUID, SceneObject> Prims;
+        protected Timer m_heartbeatTimer = new Timer();
+        protected Dictionary<LLUUID, ScenePresence> Avatars;
+        protected Dictionary<LLUUID, SceneObject> Prims;
         private PhysicsScene phyScene;
         private float timeStep = 0.1f;
         private Random Rand = new Random();
@@ -119,12 +115,12 @@ namespace OpenSim.Region.Environment.Scenes
             scriptManager = new ScriptManager(this);
             eventManager = new EventManager();
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating new entitities instance");
-            Entities = new Dictionary<libsecondlife.LLUUID, EntityBase>();
+            MainLog.Instance.Verbose("World.cs - creating new entitities instance");
+            Entities = new Dictionary<LLUUID, EntityBase>();
             Avatars = new Dictionary<LLUUID, ScenePresence>();
             Prims = new Dictionary<LLUUID, SceneObject>();
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs - creating LandMap");
+            MainLog.Instance.Verbose("World.cs - creating LandMap");
             Terrain = new TerrainEngine();
 
             ScenePresence.LoadAnims();
@@ -151,7 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Heartbeat(object sender, System.EventArgs e)
+        void Heartbeat(object sender, EventArgs e)
         {
             this.Update();
         }
@@ -170,7 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 }
 
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].updateMovement();
                 }
@@ -180,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
                     this.phyScene.Simulate(timeStep);
                 }
 
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].update();
                 }
@@ -198,7 +194,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: Update() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
 
@@ -237,14 +233,14 @@ namespace OpenSim.Region.Environment.Scenes
                     this.SendLayerData(client);
                 }
 
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].LandRenegerated();
                 }
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -268,14 +264,14 @@ namespace OpenSim.Region.Environment.Scenes
                     this.SendLayerData(client);
                 }
 
-                foreach (libsecondlife.LLUUID UUID in Entities.Keys)
+                foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].LandRenegerated();
                 }
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -301,7 +297,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -351,7 +347,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
@@ -382,12 +378,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
+                MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
                 this.localStorage.LoadPrimitives(this);
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: LoadPrimsFromStorage() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: LoadPrimsFromStorage() - Failed with exception " + e.ToString());
             }
         }
 
@@ -428,7 +424,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
             }
         }
 
@@ -482,10 +478,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence newAvatar = null;
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
+            MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
             newAvatar = new ScenePresence(client, this, this.m_regInfo);
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Adding new avatar to world");
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Starting RegionHandshake ");
+            MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Adding new avatar to world");
+            MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Starting RegionHandshake ");
 
             PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
             lock (this.m_syncRoot)
@@ -638,7 +634,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AgentCrossing(ulong regionHandle, libsecondlife.LLUUID agentID, libsecondlife.LLVector3 position)
+        public void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (regionHandle == this.m_regInfo.RegionHandle)
             {
