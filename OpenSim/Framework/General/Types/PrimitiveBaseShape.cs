@@ -12,6 +12,7 @@ namespace OpenSim.Framework.Types
         Prism,
         Scuplted,
         Cylinder,
+        Foliage,
         Unknown
     }
 

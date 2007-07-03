@@ -51,7 +51,7 @@ namespace OpenSim
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
         protected CommunicationsManager commsManager;
-      //  private CheckSumServer checkServer;
+       // private CheckSumServer checkServer;
 
         private bool m_silent;
         private string m_logFilename = "region-console-" + Guid.NewGuid().ToString() + ".log";
@@ -96,7 +96,7 @@ namespace OpenSim
             {
                 this.SetupLocalGridServers();
               //  this.checkServer = new CheckSumServer(12036);
-              //  this.checkServer.ServerListener();
+               // this.checkServer.ServerListener();
                 this.commsManager = new CommunicationsLocal(this.serversData);
             }
             else

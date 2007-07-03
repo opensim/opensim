@@ -56,6 +56,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
     public delegate void UpdateVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
     public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimGroupRotation(uint localID,LLVector3 pos, LLQuaternion rot, IClientAPI remoteClient);
     public delegate void StatusChange(bool status);
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
     public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
@@ -100,6 +101,7 @@ namespace OpenSim.Framework.Interfaces
         event UpdatePrimTexture OnUpdatePrimTexture;
         event UpdateVector OnUpdatePrimPosition;
         event UpdatePrimRotation OnUpdatePrimRotation;
+        event UpdatePrimGroupRotation OnUpdatePrimGroupRotation;
         event UpdateVector OnUpdatePrimScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;

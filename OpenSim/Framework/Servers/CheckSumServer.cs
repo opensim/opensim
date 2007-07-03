@@ -26,8 +26,8 @@
 * 
 */
 namespace OpenSim.Framework.Servers
-{
-/*    public class CheckSumServer : UDPServerBase
+{/*
+   public class CheckSumServer : UDPServerBase
     {
         //protected ConsoleBase m_log;
 
@@ -121,6 +121,7 @@ namespace OpenSim.Framework.Servers
         {
             this.Server.SendTo(buffer, size, flags, endp);
         }
- * 
-    }*/
+  * }
+ */
+    
 }

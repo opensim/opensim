@@ -452,7 +452,11 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnChatFromViewer += this.SimChat;
             client.OnRequestWearables += this.InformClientOfNeighbours;
             client.OnAddPrim += this.AddNewPrim;
-            //client.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            client.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            client.OnUpdatePrimRotation += this.UpdatePrimRotation;
+            client.OnUpdatePrimGroupRotation += this.UpdatePrimRotation;
+            client.OnUpdatePrimScale += this.UpdatePrimScale;
+            client.OnUpdatePrimShape += this.UpdatePrimShape;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
             client.OnObjectSelect += this.SelectPrim;
@@ -594,6 +598,17 @@ namespace OpenSim.Region.Environment.Scenes
                 return true;
             }
             return false;
+        }
+
+        public void SendAllSceneObjectsToClient(IClientAPI client)
+        {
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    ((SceneObject)ent).SendAllChildPrimsToClient(client);
+                }
+            }
         }
 
         #region RegionCommsHost

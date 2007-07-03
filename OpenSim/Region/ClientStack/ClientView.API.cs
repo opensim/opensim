@@ -64,6 +64,7 @@ namespace OpenSim.Region.ClientStack
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimPosition;
         public event UpdatePrimRotation OnUpdatePrimRotation;
+        public event UpdatePrimGroupRotation OnUpdatePrimGroupRotation;
         public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
@@ -644,7 +645,7 @@ namespace OpenSim.Region.ClientStack
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
             byte[] rot = rotation.GetBytes();
-            Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 48, rot.Length);
+            Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
             OutPacket(outPacket);
         }
 

@@ -98,13 +98,6 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         protected LLSDCapsDetails GetCapabilities()
         {
-           /* string capURLS = "";
-            capURLS += "<key>MapLayer</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + mapLayerPath + "</string>";
-            capURLS += "<key>NewFileAgentInventory</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + newInventory + "</string>";
-            //capURLS += "<key>RequestTextureDownload</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + requestTexture + "</string>";
-            //capURLS += "<key>EventQueueGet</key><string>http://" + httpListenerAddress + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath + eventQueue + "</string>";
-            return capURLS;*/
-
             LLSDCapsDetails caps = new LLSDCapsDetails();
             string capsBaseUrl = "http://" + httpListenerHostName + ":" + httpListenPort.ToString() + "/CAPS/" + capsObjectPath;
             
@@ -131,8 +124,6 @@ namespace OpenSim.Region.Capabilities
             LLSDMapLayerResponse mapResponse= new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
             string res = LLSDHelpers.SerialiseLLSDReply(mapResponse);
-            
-            //Console.WriteLine(" Maplayer response is " + res);
           
             return res;
         }
@@ -172,27 +163,23 @@ namespace OpenSim.Region.Capabilities
 
         public string CreateEstablishAgentComms(string caps, string ipAddressPort)
         {
-            string res = "<llsd><map><key>id</key><integer>" + eventQueueCount + "</integer>";
-            res += "<key>events</key><array><map>";
-            res += "<key>message</key><string>EstablishAgentCommunication</string>";
-            res += "<key>body</key><map>";
-            res += "<key>sim-ip-and-port</key><string>" + ipAddressPort + "</string>";
-            res += "<key>seed-capability</key><string>" + caps + "</string>";
-            res += "<key>agent-id</key><uuid>" + this.agentID.ToStringHyphenated() + "</uuid>";
-            res += "</map>";
-            res += "</map></array>";
-            res += "</map></llsd>";
+            LLSDCapEvent eventItem = new LLSDCapEvent();
+            eventItem.id = eventQueueCount;
+            //should be creating a EstablishAgentComms item, but there isn't a class for it yet
+            eventItem.events.Array.Add(new LLSDEmpty());
+            string res = LLSDHelpers.SerialiseLLSDReply(eventItem);
             eventQueueCount++;
+            
             this.CapsEventQueue.Enqueue(res);
             return res;
         }
 
         public string CreateEmptyEventResponse()
         {
-            string res = "<llsd><map><key>id</key><integer>" + eventQueueCount + "</integer>";
-            res += "<key>events</key><array><map>";
-            res += "</map></array>";
-            res += "</map></llsd>";
+            LLSDCapEvent eventItem = new LLSDCapEvent();
+            eventItem.id = eventQueueCount;
+            eventItem.events.Array.Add(new LLSDEmpty());
+            string res = LLSDHelpers.SerialiseLLSDReply(eventItem);
             eventQueueCount++;
             return res;
         }

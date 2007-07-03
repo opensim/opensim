@@ -384,6 +384,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendOurAppearance(IClientAPI OurClient)
         {
             this.ControllingClient.SendWearables(this.Wearables);
+            this.m_world.SendAllSceneObjectsToClient(this.ControllingClient);
         }
 
         /// <summary>

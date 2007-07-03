@@ -63,6 +63,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return this.LocalId;
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -72,8 +73,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_world = world;
             this.Pos = addPacket.ObjectData.RayEnd;
             this.CreateRootFromPacket(addPacket, ownerID, localID);
-
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -115,6 +116,13 @@ namespace OpenSim.Region.Environment.Scenes
             this.rootPrimitive.AddNewChildren(primObject);
         }
 
+        public void AddChildToList(Primitive prim)
+        {
+            if (!this.ChildPrimitives.ContainsKey(prim.uuid))
+            {
+                this.ChildPrimitives.Add(prim.uuid, prim);
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -130,10 +138,15 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
         public Primitive HasChildPrim(uint localID)
         {
             Primitive returnPrim = null;
-            foreach (Primitive prim in this.children)
+            foreach (Primitive prim in this.ChildPrimitives.Values)
             {
                 if (prim.LocalId == localID)
                 {
@@ -142,6 +155,11 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return returnPrim;
+        }
+
+        public void SendAllChildPrimsToClient(IClientAPI client)
+        {
+            this.rootPrimitive.SendFullUpdateForAllChildren(client);
         }
 
         /// <summary>
@@ -160,7 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            this.Pos = pos;
+            //this.Pos = pos;
             this.rootPrimitive.Pos = pos;
             this.rootPrimitive.SendTerseUpdateForAllChildren(remoteClient);
         }

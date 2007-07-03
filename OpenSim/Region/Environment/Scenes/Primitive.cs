@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
         private PrimitiveBaseShape m_Shape;
 
         public SceneObject m_RootParent;
-        public  bool isRootPrim;
+        public bool isRootPrim;
         public EntityBase m_Parent;
 
         public override LLVector3 Pos
@@ -60,7 +60,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set
             {
-                this.m_pos = m_Parent.Pos - value; //should we being subtracting the parent position
+                if (isRootPrim)
+                {
+                    m_Parent.Pos = value;
+                }
+                this.m_pos = value - m_Parent.Pos;
             }
 
         }
@@ -77,7 +81,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public Primitive(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent , SceneObject rootObject)
+        public LLVector3 Scale
+        {
+            set
+            {
+                this.m_Shape.Scale = value;
+            }
+            get
+            {
+                return this.m_Shape.Scale;
+            }
+        }
+
+        public Primitive(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject)
         {
             m_regionHandle = regionHandle;
             m_world = world;
@@ -86,12 +102,13 @@ namespace OpenSim.Region.Environment.Scenes
             this.isRootPrim = isRoot;
             this.m_RootParent = rootObject;
             this.CreateFromPacket(addPacket, ownerID, localID);
+            this.rotation = Axiom.MathLib.Quaternion.Identity;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public override void update() 
+        public override void update()
         {
             if (this.updateFlag == 1) // is a new prim just been created/reloaded or has major changes
             {
@@ -104,7 +121,10 @@ namespace OpenSim.Region.Environment.Scenes
                 this.updateFlag = 0;
             }
 
-            base.update();
+            foreach (EntityBase child in children)
+            {
+                child.update();
+            }
         }
 
         /// <summary>
@@ -150,9 +170,13 @@ namespace OpenSim.Region.Environment.Scenes
             this.updateFlag = 1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="linkObject"></param>
         public void AddNewChildren(SceneObject linkObject)
         {
-           // Console.WriteLine("linking new prims " + linkObject.rootLocalID + " to me (" + this.LocalId + ")");
+            // Console.WriteLine("linking new prims " + linkObject.rootLocalID + " to me (" + this.LocalId + ")");
             //TODO check permissions
             this.children.Add(linkObject.rootPrimitive);
             linkObject.rootPrimitive.SetNewParent(this, this.m_RootParent);
@@ -161,29 +185,72 @@ namespace OpenSim.Region.Environment.Scenes
             linkObject.DeleteAllChildren();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newParent"></param>
+        /// <param name="rootParent"></param>
         public void SetNewParent(Primitive newParent, SceneObject rootParent)
         {
             LLVector3 oldPos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
-            //Console.WriteLine("have a new parent and my old position is " + this.Pos.X + " , " + this.Pos.Y + " , " + this.Pos.Z);
             this.isRootPrim = false;
             this.m_Parent = newParent;
             this.ParentID = newParent.LocalId;
             this.SetRootParent(rootParent);
-          // Console.WriteLine("have a new parent and its position is " + this.m_Parent.Pos.X + " , " + this.m_Parent.Pos.Y + " , " + this.m_Parent.Pos.Z);
             this.Pos = oldPos;
-          //  Console.WriteLine("have a new parent so my new offset position is " + this.Pos.X + " , " + this.Pos.Y + " , " + this.Pos.Z);
+            Axiom.MathLib.Vector3 axPos = new Axiom.MathLib.Vector3(this.m_pos.X, m_pos.Y, m_pos.Z);
+            axPos = this.m_Parent.rotation.Inverse() * axPos;
+            this.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
+            this.rotation = this.rotation * this.m_Parent.rotation.Inverse();
             this.updateFlag = 1;
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newRoot"></param>
         public void SetRootParent(SceneObject newRoot)
         {
             this.m_RootParent = newRoot;
+            this.m_RootParent.AddChildToList(this);
             foreach (Primitive child in children)
             {
                 child.SetRootParent(newRoot);
             }
         }
+
+        public void AddOffsetToChildren(LLVector3 offset)
+        {
+            foreach (Primitive prim in this.children)
+            {
+                prim.m_pos += offset;
+                prim.updateFlag = 2;
+            }
+        }
+
+        #region Resizing/Scale
+        public void ResizeGoup(LLVector3 scale)
+        {
+            LLVector3 offset = (scale - this.m_Shape.Scale);
+            offset.X /= 2;
+            offset.Y /= 2;
+            offset.Z /= 2;
+            if (this.isRootPrim)
+            {
+                this.m_Parent.Pos += offset;
+            }
+            else
+            {
+                this.m_pos += offset;
+            }
+
+            this.AddOffsetToChildren(new LLVector3(-offset.X, -offset.Y, -offset.Z));
+            this.m_Shape.Scale = scale;
+
+            this.updateFlag = 1;
+        }
+        #endregion
 
         /// <summary>
         /// 
@@ -192,12 +259,45 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdatePosition(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-            if (this.isRootPrim)
-            {
-                this.m_Parent.Pos = newPos;
-            }
+
             this.Pos = newPos;
             this.updateFlag = 2;
+        }
+
+        public void UpdateRotation(LLQuaternion rot)
+        {
+            this.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            this.updateFlag = 2;
+        }
+
+        public void UpdateGroupMouseRotation(LLVector3 pos,  LLQuaternion rot)
+        {
+            this.rotation = new Axiom.MathLib.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            this.Pos = pos;
+            this.updateFlag = 2;
+        }
+
+        public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock)
+        {
+            this.m_Shape.PathBegin = shapeBlock.PathBegin;
+            this.m_Shape.PathEnd = shapeBlock.PathEnd;
+            this.m_Shape.PathScaleX = shapeBlock.PathScaleX;
+            this.m_Shape.PathScaleY = shapeBlock.PathScaleY;
+            this.m_Shape.PathShearX = shapeBlock.PathShearX;
+            this.m_Shape.PathShearY = shapeBlock.PathShearY;
+            this.m_Shape.PathSkew = shapeBlock.PathSkew;
+            this.m_Shape.ProfileBegin = shapeBlock.ProfileBegin;
+            this.m_Shape.ProfileEnd = shapeBlock.ProfileEnd;
+            this.m_Shape.PathCurve = shapeBlock.PathCurve;
+            this.m_Shape.ProfileCurve = shapeBlock.ProfileCurve;
+            this.m_Shape.ProfileHollow = shapeBlock.ProfileHollow;
+            this.m_Shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
+            this.m_Shape.PathRevolutions = shapeBlock.PathRevolutions;
+            this.m_Shape.PathTaperX = shapeBlock.PathTaperX;
+            this.m_Shape.PathTaperY = shapeBlock.PathTaperY;
+            this.m_Shape.PathTwist = shapeBlock.PathTwist;
+            this.m_Shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+            this.updateFlag = 1;
         }
 
         #region Client Update Methods
@@ -226,8 +326,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 lPos;
             lPos = this.Pos;
+            LLQuaternion lRot;
+            lRot = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z, this.rotation.w);
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, new LLUUID("00000000-0000-0000-9999-000000000005"), this.flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, lRot, new LLUUID("00000000-0000-0000-9999-000000000005"), this.flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
         }
 
         /// <summary>
