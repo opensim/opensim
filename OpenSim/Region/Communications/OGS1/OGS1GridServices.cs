@@ -20,7 +20,6 @@ namespace OpenSim.Region.Communications.OGS1
         public Dictionary<ulong, RegionCommsListener> listeners = new Dictionary<ulong, RegionCommsListener>();
         public GridInfo grid;
         public BaseHttpServer httpListener;
-        private bool initialised = false;
 
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo, GridInfo gridInfo)
         {
@@ -44,6 +43,7 @@ namespace OpenSim.Region.Communications.OGS1
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(gridInfo.GridServerURI, 3000);
             Hashtable GridRespData = (Hashtable)GridResp.Value;
+            
             Hashtable griddatahash = GridRespData;
 
             // Process Response

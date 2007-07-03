@@ -123,7 +123,7 @@ namespace OpenSim.Grid.GridServer
             BaseHttpServer httpServer = new BaseHttpServer(8001);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
-            httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcLoginToSimulatorMethod);
+            httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
 
             httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
