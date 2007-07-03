@@ -121,7 +121,7 @@ namespace OpenSim.Grid.GridServer
             m_gridManager.config = Cfg;
 
             m_console.Verbose( "Main.cs:Startup() - Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(13801);
+            BaseHttpServer httpServer = new BaseHttpServer(8001);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
@@ -143,9 +143,9 @@ namespace OpenSim.Grid.GridServer
             //break;
 
             // lbsa71 : I guess these were never used?
-            //Listener.Prefixes.Add("http://+:13801/gods/");
-            //Listener.Prefixes.Add("http://+:13801/highestuuid/");
-            //Listener.Prefixes.Add("http://+:13801/uuidblocks/");
+            //Listener.Prefixes.Add("http://+:8001/gods/");
+            //Listener.Prefixes.Add("http://+:8001/highestuuid/");
+            //Listener.Prefixes.Add("http://+:8001/uuidblocks/");
 
             httpServer.Start();
 

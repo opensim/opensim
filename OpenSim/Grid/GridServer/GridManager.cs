@@ -126,9 +126,9 @@ namespace OpenSim.Grid.GridServer
                 {
                     return kvp.Value.GetProfileByLLUUID(uuid);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    MainLog.Instance.Warn("Storage: Unable to find region " + uuid.ToStringHyphenated() + " via " + kvp.Key);
+                    MainLog.Instance.Warn("Message from Storage: " + e.Message);
                 }
             }
             return null;
@@ -225,10 +225,10 @@ namespace OpenSim.Grid.GridServer
             SimProfileData TheSim = null;
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            Console.WriteLine(requestData.ToString());
             if (requestData.ContainsKey("UUID"))
             {
                 TheSim = getRegion(new LLUUID((string)requestData["UUID"]));
+                
                 logToDB((new LLUUID((string)requestData["UUID"])).ToStringHyphenated(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
             }
             else if (requestData.ContainsKey("region_handle"))
@@ -269,6 +269,7 @@ namespace OpenSim.Grid.GridServer
                 TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
                 TheSim.regionName = (string)requestData["sim_name"];
+                TheSim.UUID = new LLUUID((string)requestData["UUID"]);
 
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
