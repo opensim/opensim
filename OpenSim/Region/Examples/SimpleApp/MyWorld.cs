@@ -17,13 +17,11 @@ namespace SimpleApp
 {
     public class MyWorld : Scene
     {
-        private RegionInfo m_regionInfo;
         private List<OpenSim.Region.Environment.Scenes.ScenePresence> m_avatars;
 
         public MyWorld(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
             : base(clientThreads, regionInfo, authen, commsMan, assetCach, httpServer)
         {
-            m_regionInfo = regionInfo;
             m_avatars = new List<Avatar>();
         }
 
@@ -68,12 +66,12 @@ namespace SimpleApp
             
             client.OnCompleteMovementToRegion += delegate()
                 {
-                    client.MoveAgentIntoRegion(m_regionInfo, pos, LLVector3.Zero );
+                    client.MoveAgentIntoRegion(m_regInfo, pos, LLVector3.Zero );
                 };
 
             client.OnCompleteMovementToRegion += delegate()
                  {
-                     client.SendAvatarData(m_regionInfo.RegionHandle, client.FirstName,
+                     client.SendAvatarData(m_regInfo.RegionHandle, client.FirstName,
                                            client.LastName, client.AgentId, 0,
                                            pos, null);
                                                          
@@ -83,7 +81,7 @@ namespace SimpleApp
                                                          
                  };
 
-            client.SendRegionHandshake(m_regionInfo);
+            client.SendRegionHandshake(m_regInfo);
 
             CreateAndAddScenePresence(client);
             
@@ -92,23 +90,6 @@ namespace SimpleApp
         private void SendWearables( IClientAPI client )
         {
             client.SendWearables( AvatarWearable.DefaultWearables );
-        }
-
-        public RegionInfo RegionInfo
-        {
-            get { return m_regionInfo; }
-        }
-
-        public object SyncRoot
-        {
-            get { return this; }
-        }
-
-        private uint m_nextLocalId = 1;
-
-        public uint NextLocalId
-        {
-            get { return m_nextLocalId++; }
         }
 
         #endregion

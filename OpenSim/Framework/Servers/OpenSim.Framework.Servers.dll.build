@@ -13,6 +13,7 @@
             <sources failonempty="true">
                 <include name="BaseHttpServer.cs" />
                 <include name="CheckSumServer.cs" />
+                <include name="ILlsdMethodHandler.cs" />
                 <include name="LlsdMethod.cs" />
                 <include name="RestMethod.cs" />
                 <include name="UDPServerBase.cs" />

@@ -96,6 +96,9 @@
     <Compile Include="CheckSumServer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ILlsdMethodHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LlsdMethod.cs">
       <SubType>Code</SubType>
     </Compile>

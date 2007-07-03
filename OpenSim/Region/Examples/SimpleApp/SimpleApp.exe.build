@@ -11,6 +11,7 @@
             <resources prefix="SimpleApp" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="LlsdMethodEntry.cs" />
                 <include name="MyWorld.cs" />
                 <include name="Program.cs" />
                 <include name="Properties/AssemblyInfo.cs" />

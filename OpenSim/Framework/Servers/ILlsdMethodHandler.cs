@@ -4,5 +4,10 @@ using System.Text;
 
 namespace OpenSim.Framework.Servers
 {
-    public delegate TResponse LlsdMethod<TResponse, TRequest>( TRequest request );
+    public interface ILlsdMethodHandler
+    {
+        string Handle(string request, string path);
+    }
+
+
 }
