@@ -18,20 +18,28 @@ namespace OpenSim.Region.Communications.OGS1
     public class OGS1GridServices : IGridServices, IInterRegionCommunications
     {
         public Dictionary<ulong, RegionCommsListener> listeners = new Dictionary<ulong, RegionCommsListener>();
-        public GridInfo grid;
         public BaseHttpServer httpListener;
+        public NetworkServersInfo serversInfo;
 
-        public RegionCommsListener RegisterRegion(RegionInfo regionInfo, GridInfo gridInfo)
+        public OGS1GridServices(NetworkServersInfo servers_info)
+        {
+            serversInfo = servers_info;
+        }
+
+        public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             Hashtable GridParams = new Hashtable();
 
-            grid = gridInfo;
 
             // Login / Authentication
-            GridParams["authkey"] = gridInfo.GridServerSendKey;
+            
+            GridParams["authkey"] =  serversInfo.GridSendKey;
             GridParams["UUID"] = regionInfo.SimUUID.ToStringHyphenated();
             GridParams["sim_ip"] = regionInfo.InternalEndPoint.Address.ToString();
             GridParams["sim_port"] = regionInfo.InternalEndPoint.Port.ToString();
+            GridParams["region_locx"] = regionInfo.RegionLocX.ToString();
+            GridParams["region_locy"] = regionInfo.RegionLocY.ToString();
+            GridParams["sim_name"] = regionInfo.RegionName;
 
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList(); 
@@ -41,7 +49,7 @@ namespace OpenSim.Region.Communications.OGS1
             
             // Send Request
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(gridInfo.GridServerURI, 3000);
+            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
             Hashtable GridRespData = (Hashtable)GridResp.Value;
             
             Hashtable griddatahash = GridRespData;
@@ -149,7 +157,7 @@ namespace OpenSim.Region.Communications.OGS1
             IList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
-            XmlRpcResponse resp = req.Send(grid.GridServerURI, 3000);
+            XmlRpcResponse resp = req.Send(serversInfo.GridURL, 3000);
             Hashtable respData = (Hashtable)resp.Value;
             return respData;
         }

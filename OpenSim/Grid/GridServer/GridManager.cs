@@ -217,7 +217,6 @@ namespace OpenSim.Grid.GridServer
         /// <returns>Startup parameters</returns>
         public XmlRpcResponse XmlRpcSimulatorLoginMethod(XmlRpcRequest request)
         {
-            Console.WriteLine("XMLRPC SIMULATOR LOGIN METHOD CALLED");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -229,7 +228,6 @@ namespace OpenSim.Grid.GridServer
             Console.WriteLine(requestData.ToString());
             if (requestData.ContainsKey("UUID"))
             {
-                Console.WriteLine("...VIA UUID");
                 TheSim = getRegion(new LLUUID((string)requestData["UUID"]));
                 logToDB((new LLUUID((string)requestData["UUID"])).ToStringHyphenated(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
             }
@@ -248,7 +246,6 @@ namespace OpenSim.Grid.GridServer
             if (TheSim == null)
             {
                 //NEW REGION
-                Console.WriteLine("THIS IS A NEW REGION...ADDING");
                 TheSim = new SimProfileData();
 
                 TheSim.regionRecvKey = config.SimRecvKey;
@@ -277,7 +274,23 @@ namespace OpenSim.Grid.GridServer
                 {
                     try
                     {
-                        Console.WriteLine("ADDED");kvp.Value.AddProfile(TheSim);
+                        DataResponse insertResponse = kvp.Value.AddProfile(TheSim);
+                        switch(insertResponse)
+                        {
+                            case DataResponse.RESPONSE_OK:
+                                Console.WriteLine("New sim creation successful: " + TheSim.regionName);
+                                break;
+                            case DataResponse.RESPONSE_ERROR:
+                                Console.WriteLine("New sim creation failed (Error): " + TheSim.regionName);
+                                break;
+                            case DataResponse.RESPONSE_INVALIDCREDENTIALS:
+                                Console.WriteLine("New sim creation failed (Invalid Credentials): " + TheSim.regionName);
+                                break;
+                            case DataResponse.RESPONSE_AUTHREQUIRED:
+                                Console.WriteLine("New sim creation failed (Authentication Required): " + TheSim.regionName);
+                                break;
+                        }
+                        
                     }
                     catch (Exception)
                     {

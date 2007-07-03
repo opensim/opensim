@@ -31,16 +31,11 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Communications
 {
-    public class GridInfo
-    {
-        public string GridServerURI = "http://grid.deepgrid.com:8001/"; // Temporarily hardcoded.
-        public string GridServerSendKey = "badger";
-        public string GridServerRecvKey = "badger";
-    }
+    
 
     public interface IGridServices
     {
-        RegionCommsListener RegisterRegion(RegionInfo regionInfo, GridInfo gridInfo);
+        RegionCommsListener RegisterRegion(RegionInfo regionInfos);
         List<RegionInfo> RequestNeighbours(RegionInfo regionInfo);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);

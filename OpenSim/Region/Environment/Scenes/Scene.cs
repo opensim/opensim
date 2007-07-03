@@ -603,8 +603,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            GridInfo gridSettings = new GridInfo();
-            this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo, gridSettings);
+            
+            this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo);
             if (this.regionCommsHost != null)
             {
                 this.regionCommsHost.OnExpectUser += this.NewUserConnection;

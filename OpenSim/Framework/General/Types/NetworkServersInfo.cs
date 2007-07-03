@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Types
                     attri = configData.GetAttribute("GridServerURL");
                     if (attri == "")
                     {
-                        this.GridURL = MainLog.Instance.CmdPrompt("Grid server URL", "http://127.0.0.1:8001/");
+                        this.GridURL = MainLog.Instance.CmdPrompt("Grid server URL", "http://127.0.0.1:13801/");
                         configData.SetAttribute("GridServerURL", this.GridURL);
                     }
                     else

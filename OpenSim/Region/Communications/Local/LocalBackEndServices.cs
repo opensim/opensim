@@ -49,7 +49,7 @@ namespace OpenSim.Region.Communications.Local
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public RegionCommsListener RegisterRegion(RegionInfo regionInfo, GridInfo gridInfo)
+        public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
             if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
