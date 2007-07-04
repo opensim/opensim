@@ -14,8 +14,11 @@
                 <include name="BaseHttpServer.cs" />
                 <include name="CheckSumServer.cs" />
                 <include name="ILlsdMethodHandler.cs" />
+                <include name="IStreamHandler.cs" />
                 <include name="LlsdMethod.cs" />
                 <include name="RestMethod.cs" />
+                <include name="RestMethodEntry.cs" />
+                <include name="RestStreamHandler.cs" />
                 <include name="UDPServerBase.cs" />
                 <include name="XmlRpcMethod.cs" />
             </sources>

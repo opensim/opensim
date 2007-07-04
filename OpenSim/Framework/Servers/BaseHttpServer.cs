@@ -40,27 +40,6 @@ namespace OpenSim.Framework.Servers
 {
     public class BaseHttpServer
     {
-        protected class RestMethodEntry
-        {
-            private string m_path;
-            public string Path
-            {
-                get { return m_path; }
-            }
-
-            private RestMethod m_restMethod;
-            public RestMethod RestMethod
-            {
-                get { return m_restMethod; }
-            }
-
-            public RestMethodEntry(string path, RestMethod restMethod)
-            {
-                m_path = path;
-                m_restMethod = restMethod;
-            }
-        }
-
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
         protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
@@ -74,9 +53,10 @@ namespace OpenSim.Framework.Servers
             m_port = port;
         }
 
-        private void AddStreamHandler(string path, IStreamHandler handler)
+        public void AddStreamHandler( string path, IStreamHandler handler)
         {
-            m_streamHandlers.Add(path, handler);
+            string handlerKey = handler.HttpMethod + ":" + path;
+            m_streamHandlers.Add(handlerKey, handler);
         }
 
         public bool AddRestHandler(string method, string path, RestMethod handler)
@@ -179,18 +159,12 @@ namespace OpenSim.Framework.Servers
         {
             string responseString = String.Empty;
 
-            try
-            {
-                XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+            XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
 
-                string methodName = request.MethodName;
+            string methodName = request.MethodName;
 
-                responseString = ProcessXMLRPCMethod(methodName, request);
-            }
-            catch
-            {
-                //Console.WriteLine(e.ToString());
-            }
+            responseString = ProcessXMLRPCMethod(methodName, request);
+
             return responseString;
         }
 
@@ -205,12 +179,19 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
 
             string path = request.RawUrl;
+            string handlerKey = request.HttpMethod + ":" + path;
 
             IStreamHandler streamHandler;
 
-            if(TryGetStreamHandler(path, out streamHandler))
+            if (TryGetStreamHandler( handlerKey, out streamHandler))
             {
-                streamHandler.Handle(path, request.InputStream, response.OutputStream );
+                byte[] buffer = streamHandler.Handle(path, request.InputStream );
+                request.InputStream.Close();
+
+                response.ContentType = streamHandler.ContentType;
+                response.ContentLength64 = buffer.LongLength;
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+                response.OutputStream.Close();
             }
             else
             {
@@ -218,22 +199,22 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private bool TryGetStreamHandler(string path, out IStreamHandler streamHandler )
+        private bool TryGetStreamHandler(string handlerKey, out IStreamHandler streamHandler)
         {
             string bestMatch = null;
-            
+
             foreach (string pattern in m_streamHandlers.Keys)
             {
-                if (path.StartsWith(pattern))
-                {                    
-                    if (String.IsNullOrEmpty( bestMatch ) || pattern.Length > bestMatch.Length)
+                if (handlerKey.StartsWith(pattern))
+                {
+                    if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
                     {
                         bestMatch = pattern;
                     }
                 }
             }
 
-            if( String.IsNullOrEmpty( bestMatch ) )
+            if (String.IsNullOrEmpty(bestMatch))
             {
                 streamHandler = null;
                 return false;

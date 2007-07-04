@@ -7,6 +7,13 @@ namespace OpenSim.Framework.Servers
 {
     public interface IStreamHandler
     {
-        void Handle(string path, Stream request, Stream response);
+        // Handle request stream, return byte array
+        byte[] Handle(string path, Stream request );
+        
+        // Return response content type
+        string ContentType { get; }
+        
+        // Return required http method
+        string HttpMethod { get;}
     }
 }
