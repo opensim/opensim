@@ -243,7 +243,7 @@ namespace OpenSim.Grid.GridServer
                 return response;
             }
 
-            if (TheSim == null)
+            if (TheSim == null) // Shouldnt this be in the REST Simulator Set method?
             {
                 //NEW REGION
                 TheSim = new SimProfileData();
@@ -279,21 +279,21 @@ namespace OpenSim.Grid.GridServer
                         switch(insertResponse)
                         {
                             case DataResponse.RESPONSE_OK:
-                                Console.WriteLine("New sim creation successful: " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("New sim creation successful: " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_ERROR:
-                                Console.WriteLine("New sim creation failed (Error): " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Warn("New sim creation failed (Error): " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_INVALIDCREDENTIALS:
-                                Console.WriteLine("New sim creation failed (Invalid Credentials): " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Warn("New sim creation failed (Invalid Credentials): " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_AUTHREQUIRED:
-                                Console.WriteLine("New sim creation failed (Authentication Required): " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Warn("New sim creation failed (Authentication Required): " + TheSim.regionName);
                                 break;
                         }
                         
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to add region " + TheSim.UUID.ToStringHyphenated() + " via " + kvp.Key);
                     }
@@ -541,7 +541,7 @@ namespace OpenSim.Grid.GridServer
         /// <returns>"OK" or an error</returns>
         public string RestSetSimMethod(string request, string path, string param)
         {
-            Console.WriteLine("Processing region update");
+            Console.WriteLine("Processing region update via REST method");
             SimProfileData TheSim;
             TheSim = getRegion(new LLUUID(param));
             if ((TheSim) == null)
@@ -569,6 +569,7 @@ namespace OpenSim.Grid.GridServer
 
             if (authkeynode.InnerText != TheSim.regionRecvKey)
             {
+                MainLog.Instance.Warn("Invalid Key Attempt on region update");
                 return "ERROR! invalid key";
             }
 
@@ -640,6 +641,7 @@ namespace OpenSim.Grid.GridServer
                         }
                         else
                         {
+                            MainLog.Instance.Warn("Unable to update region (RestSetSimMethod): Incorrect reservation auth key.");// Wanted: " + reserveData.gridRecvKey + ", Got: " + TheSim.regionRecvKey + ".");
                             return "Unable to update region (RestSetSimMethod): Incorrect auth key.";
                         }
                     }

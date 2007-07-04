@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 database.insertLogRow(serverDaemon, target, methodCall, arguments, priority, logMessage);
             }
-            catch (Exception e)
+            catch
             {
                 database.Reconnect();
             }

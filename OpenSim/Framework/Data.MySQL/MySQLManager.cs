@@ -246,12 +246,12 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.gridRecvKey = (string)reader["gridRecvKey"];
                 retval.gridSendKey = (string)reader["gridSendKey"];
                 retval.reservationCompany = (string)reader["resCompany"];
-                retval.reservationMaxX = (int)reader["resXMax"];
-                retval.reservationMaxY = (int)reader["resYMax"];
-                retval.reservationMinX = (int)reader["resXMin"];
-                retval.reservationMinY = (int)reader["resYMin"];
+                retval.reservationMaxX = Convert.ToInt32(reader["resXMax"].ToString());
+                retval.reservationMaxY = Convert.ToInt32(reader["resYMax"].ToString());
+                retval.reservationMinX = Convert.ToInt32(reader["resXMin"].ToString());
+                retval.reservationMinY = Convert.ToInt32(reader["resYMin"].ToString());
                 retval.reservationName = (string)reader["resName"];
-                retval.status = (bool)reader["status"];
+                retval.status = Convert.ToInt32(reader["status"].ToString()) == 1;
                 retval.userUUID = new LLUUID((string)reader["userUUID"]);
 
             }

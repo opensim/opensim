@@ -64,6 +64,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (!this.listeners.ContainsKey(regionInfo.RegionHandle))
             {
+                MainLog.Instance.Verbose("OGS1 - Registering new HTTP listener on port " + regionInfo.InternalEndPoint.Port.ToString());
                // initialised = true;
                 httpListener = new BaseHttpServer( regionInfo.InternalEndPoint.Port );
                 httpListener.AddXmlRPCHandler("expect_user", this.ExpectUser);
@@ -192,6 +193,8 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 MainLog.Instance.Error("ExpectUser() - Unknown region " + ((ulong)requestData["regionhandle"]).ToString());
             }
+
+            MainLog.Instance.Verbose("ExpectUser() - Welcoming new user...");
 
             return new XmlRpcResponse();
         }
