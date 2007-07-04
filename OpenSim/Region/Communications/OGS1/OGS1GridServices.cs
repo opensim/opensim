@@ -200,7 +200,7 @@ namespace OpenSim.Region.Communications.OGS1
         private void StartRemoting()
         {
             TcpChannel ch = new TcpChannel(8895);
-            ChannelServices.RegisterChannel(ch);
+            ChannelServices.RegisterChannel(ch, true);
 
             WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry( Type.GetType("OGS1InterRegionRemoting"), "InterRegions", WellKnownObjectMode.Singleton);
             RemotingConfiguration.RegisterWellKnownServiceType(wellType);

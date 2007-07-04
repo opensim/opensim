@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Encoding enc = Encoding.ASCII;
         private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
         public Primitive rootPrimitive;
-        private Scene m_world;
+        private new Scene m_world;
         protected ulong m_regionHandle;
 
         private bool physicsEnabled = false;

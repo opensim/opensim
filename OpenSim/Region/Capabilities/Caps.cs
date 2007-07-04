@@ -75,6 +75,7 @@ namespace OpenSim.Region.Capabilities
             httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + mapLayerPath, MapLayer);
             httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + newInventory, NewAgentInventory);
             httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + eventQueue, ProcessEventQueue);
+            httpListener.AddRestHandler("POST", "/CAPS/" + capsObjectPath + requestTexture, RequestTexture);
         }
 
         /// <summary>
@@ -126,6 +127,19 @@ namespace OpenSim.Region.Capabilities
             string res = LLSDHelpers.SerialiseLLSDReply(mapResponse);
           
             return res;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string RequestTexture(string request, string path, string param)
+        {
+            // Needs implementing (added to remove compiler warning)
+            return "";
         }
 
         /// <summary>

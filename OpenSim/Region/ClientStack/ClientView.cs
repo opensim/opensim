@@ -75,7 +75,6 @@ namespace OpenSim.Region.ClientStack
         private AssetCache m_assetCache;
         private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
-        private RegionInfo m_regionData;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
         private Encoding enc = Encoding.ASCII;
 

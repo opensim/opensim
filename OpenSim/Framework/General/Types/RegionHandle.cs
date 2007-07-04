@@ -20,7 +20,10 @@ namespace OpenSim.Framework.Types
         {
             IPAddress addr = IPAddress.Parse(ip);
 
-            long baseHandle = addr.Address;
+            if (addr.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+                throw new Exception("Bad RegionHandle Parameter - must be an IPv4 address");
+
+            uint baseHandle = BitConverter.ToUInt32(addr.GetAddressBytes(), 0);
 
             // Split the IP address in half
             short a = (short)((baseHandle << 16) & 0xFFFF);
