@@ -378,7 +378,7 @@ namespace OpenSim.Region.ClientStack
                         // Console.WriteLine(Pack.ToString());
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
                         ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
-                        bool foundent = false;
+                        //bool foundent = false;
                         /* foreach (Entity ent in m_world.Entities.Values)
                          {
                              if (ent.localid == requesttask.InventoryData.LocalID)

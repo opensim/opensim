@@ -446,15 +446,18 @@ namespace OpenSim
                     break;
                 case "users":
                     ScenePresence TempAv;
-                    m_log.Error( String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP"));
-                    /* foreach (libsecondlife.LLUUID UUID in LocalWorld.Entities.Keys)
+                    m_log.Error( String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP","World"));
+                    for (int i = 0; i < m_localWorld.Count; i++)
+                    {
+                    foreach (libsecondlife.LLUUID UUID in ((Scene)m_localWorld[i]).Entities.Keys)
                      {
-                         if (LocalWorld.Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                         if (((Scene)m_localWorld[i]).Entities[UUID].ToString() == "OpenSim.world.Avatar")
                          {
-                             TempAv = (OpenSim.world.Avatar)LocalWorld.Entities[UUID];
-                             m_log.Error( String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.SessionID, TempAv.ControllingClient.CircuitCode, TempAv.ControllingClient.userEP.ToString()));
+                             TempAv = (ScenePresence)((Scene)m_localWorld[i]).Entities[UUID];
+                             m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.AgentId, "Unknown", "Unknown"), ((Scene)m_localWorld[i]).RegionInfo.RegionName);
                          }
-                     }*/
+                     }
+                    }
                     break;
             }
         }

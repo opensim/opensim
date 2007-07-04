@@ -40,7 +40,7 @@ namespace OpenSim.Region.Enviorment.Scripting
             return ".cs";
         }
 
-        private Dictionary<string,IScript> LoadDotNetScript(ICodeCompiler compiler, string filename)
+        private Dictionary<string,IScript> LoadDotNetScript(CodeDomProvider compiler, string filename)
         {
             CompilerParameters compilerParams = new CompilerParameters();
             CompilerResults compilerResults;
@@ -96,7 +96,7 @@ namespace OpenSim.Region.Enviorment.Scripting
         public Dictionary<string,IScript> compile(string filename)
         {
             CSharpCodeProvider csharpProvider = new CSharpCodeProvider();
-            return LoadDotNetScript(csharpProvider.CreateCompiler(), filename);
+            return LoadDotNetScript(csharpProvider, filename);
         }
     }
 }

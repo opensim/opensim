@@ -63,7 +63,7 @@ namespace OpenSim.Region.Terrain
     {
         public Dictionary<string, ITerrainFilter> filters = new Dictionary<string, ITerrainFilter>();
 
-        private void LoadFilter(ICodeCompiler compiler, string filename)
+        private void LoadFilter(CodeDomProvider compiler, string filename)
         {
             CompilerParameters compilerParams = new CompilerParameters();
             CompilerResults compilerResults;
@@ -114,13 +114,13 @@ namespace OpenSim.Region.Terrain
         public void LoadFilterCSharp(string filename)
         {
             CSharpCodeProvider compiler = new CSharpCodeProvider();
-            LoadFilter(compiler.CreateCompiler(), filename);
+            LoadFilter(compiler, filename);
         }
 
         public void LoadFilterJScript(string filename)
         {
             JScriptCodeProvider compiler = new JScriptCodeProvider();
-            LoadFilter(compiler.CreateCompiler(), filename);
+            LoadFilter(compiler, filename);
         }
     }
 }

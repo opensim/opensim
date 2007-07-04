@@ -187,7 +187,7 @@ namespace OpenSim.Framework.Servers
 
                 responseString = ProcessXMLRPCMethod(methodName, request);
             }
-            catch (Exception e)
+            catch
             {
                 //Console.WriteLine(e.ToString());
             }
