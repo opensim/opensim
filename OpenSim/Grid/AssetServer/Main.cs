@@ -33,13 +33,14 @@ using Db4objects.Db4o;
 using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetServer
 {
     /// <summary>
     /// An asset server
     /// </summary>
-    public class OpenAsset_Main :  conscmd_callback
+    public class OpenAsset_Main : conscmd_callback
     {
         private IObjectContainer db;
 
@@ -76,58 +77,60 @@ namespace OpenSim.Grid.AssetServer
 
         public void Startup()
         {
-            m_console.Verbose( "Main.cs:Startup() - Setting up asset DB");
+            m_console.Verbose("Main.cs:Startup() - Setting up asset DB");
             setupDB();
 
-            m_console.Verbose( "Main.cs:Startup() - Starting HTTP process");
-            AssetHttpServer httpServer = new AssetHttpServer(8003);
+            m_console.Verbose("Main.cs:Startup() - Starting HTTP process");
+            BaseHttpServer httpServer = new BaseHttpServer(8003);
 
+            httpServer.AddStreamHandler( new GetAssetStreamHandler(this));
+            httpServer.AddStreamHandler(new PostAssetStreamHandler( this ));
 
-            httpServer.AddRestHandler("GET", "/assets/", this.assetGetMethod);
-            httpServer.AddRestHandler("POST", "/assets/", this.assetPostMethod);
+            //httpServer.AddRestHandler("GET", "/assets/", this.assetGetMethod);
+            //httpServer.AddRestHandler("POST", "/assets/", this.assetPostMethod);
 
             httpServer.Start();
 
         }
 
-        public string assetPostMethod(string requestBody, string path, string param)
-        {
-            AssetBase asset = new AssetBase();
-            asset.Name = "";
-            asset.FullID = new LLUUID(param);
-            Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
-            byte[] buffer = Windows1252Encoding.GetBytes(requestBody);
-            asset.Data = buffer;
-            AssetStorage store = new AssetStorage();
-            store.Data = asset.Data;
-            store.Name = asset.Name;
-            store.UUID = asset.FullID;
-            db.Set(store);
-            db.Commit();
-            return "";
-        }
+        //public string AssetPostMethod(string requestBody, string path, string param)
+        //{
+        //    AssetBase asset = new AssetBase();
+        //    asset.Name = "";
+        //    asset.FullID = new LLUUID(param);
+        //    Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
+        //    byte[] buffer = Windows1252Encoding.GetBytes(requestBody);
+        //    asset.Data = buffer;
+        //    AssetStorage store = new AssetStorage();
+        //    store.Data = asset.Data;
+        //    store.Name = asset.Name;
+        //    store.UUID = asset.FullID;
+        //    db.Set(store);
+        //    db.Commit();
+        //    return "";
+        //}
 
-        public string assetGetMethod(string request, string path, string param)
-        {
-            Console.WriteLine("got a request " + param);
-            byte[] assetdata = getAssetData(new LLUUID(param), false);
-            if (assetdata != null)
-            {
-                 Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
-                 string ret = Windows1252Encoding.GetString(assetdata);
-                //string ret = System.Text.Encoding.Unicode.GetString(assetdata);
+        //public string AssetGetMethod(string request, string path, string param)
+        //{
+        //    Console.WriteLine("got a request " + param);
+        //    byte[] assetdata = GetAssetData(new LLUUID(param), false);
+        //    if (assetdata != null)
+        //    {
+        //        Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
+        //        string ret = Windows1252Encoding.GetString(assetdata);
+        //        //string ret = System.Text.Encoding.Unicode.GetString(assetdata);
 
-                return ret;
-               
-            }
-            else
-            {
-                return "";
-            }
+        //        return ret;
 
-        }
+        //    }
+        //    else
+        //    {
+        //        return "";
+        //    }
 
-        public byte[] getAssetData(LLUUID assetID, bool isTexture)
+        //}
+
+        public byte[] GetAssetData(LLUUID assetID, bool isTexture)
         {
             bool found = false;
             AssetStorage foundAsset = null;
@@ -155,7 +158,7 @@ namespace OpenSim.Grid.AssetServer
             try
             {
                 db = Db4oFactory.OpenFile("assets.yap");
-                MainLog.Instance.Verbose( "Main.cs:setupDB() - creation");
+                MainLog.Instance.Verbose("Main.cs:setupDB() - creation");
             }
             catch (Exception e)
             {
@@ -305,6 +308,21 @@ namespace OpenSim.Grid.AssetServer
             return config;
         }*/
 
+        public void CreateAsset(LLUUID assetId, byte[] assetData)
+        {
+            AssetBase asset = new AssetBase();
+            asset.Name = "";
+            asset.FullID = assetId;
+            asset.Data = assetData;
+                    
+            AssetStorage store = new AssetStorage();
+            store.Data = asset.Data;
+            store.Name = asset.Name;
+            store.UUID = asset.FullID;
+            db.Set(store);
+            db.Commit();
+        }
+        
         public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
@@ -322,6 +340,67 @@ namespace OpenSim.Grid.AssetServer
 
         public void Show(string ShowWhat)
         {
+        }
+    }
+
+    public class GetAssetStreamHandler : BaseStreamHandler
+    {
+        OpenAsset_Main m_assetManager;
+
+        override public byte[] Handle(string path, Stream request)
+        {
+            string param = GetParam(path);
+
+            byte[] assetdata = m_assetManager.GetAssetData(new LLUUID(param), false);
+            if (assetdata != null)
+            {
+                return assetdata;
+            }
+            else
+            {
+                return new byte[]{};
+            }
+        }
+
+        public GetAssetStreamHandler(OpenAsset_Main assetManager):base( "/assets/", "GET")
+        {
+            m_assetManager = assetManager;
+        }
+    }
+
+    public class PostAssetStreamHandler : BaseStreamHandler
+    {
+        OpenAsset_Main m_assetManager;
+
+        override public byte[] Handle(string path, Stream request)
+        {
+            string param = GetParam(path);
+            LLUUID assetId = new LLUUID(param);
+            byte[] txBuffer = new byte[4096];
+                
+            using( BinaryReader binReader = new BinaryReader( request ) )
+            {
+                using (MemoryStream memoryStream = new MemoryStream(4096))
+                {
+                    int count;
+                    while ((count = binReader.Read(txBuffer, 0, 4096)) > 0)
+                    {
+                        memoryStream.Write(txBuffer, 0, count);
+                    }                    
+
+                    byte[] assetData = memoryStream.ToArray();
+
+                    m_assetManager.CreateAsset(assetId, assetData);
+                }
+            }
+            
+            return new byte[]{};
+        }
+
+        public PostAssetStreamHandler( OpenAsset_Main assetManager )
+            : base("/assets/", "POST")
+        {
+            m_assetManager = assetManager;
         }
     }
 }

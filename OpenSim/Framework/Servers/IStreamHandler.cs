@@ -15,5 +15,8 @@ namespace OpenSim.Framework.Servers
         
         // Return required http method
         string HttpMethod { get;}
+
+        // Return path
+        string Path { get; }
     }
 }

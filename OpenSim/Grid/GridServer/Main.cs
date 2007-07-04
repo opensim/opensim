@@ -127,25 +127,16 @@ namespace OpenSim.Grid.GridServer
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
 
-            httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
-            httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);
-            httpServer.AddRestHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod);
-            httpServer.AddRestHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod);
+            httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod ));
+            httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod ));
 
+            httpServer.AddStreamHandler( new RestStreamHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod  ));
+            httpServer.AddStreamHandler( new RestStreamHandler("POST","/regions/", m_gridManager.RestSetRegionMethod  ));
 
-            // lbsa71 : This code snippet taken from old http server.
-            // I have no idea what this was supposed to do - looks like an infinite recursion to me.
-            //        case "regions":
-            //// DIRTY HACK ALERT
-            //Console.Notice("/regions/ accessed");
-            //TheSim = OpenGrid_Main.thegrid._regionmanager.GetProfileByHandle((ulong)Convert.ToUInt64(rest_params[1]));
-            //respstring = ParseREST("/regions/" + rest_params[1], requestBody, HTTPmethod);
-            //break;
-
-            // lbsa71 : I guess these were never used?
-            //Listener.Prefixes.Add("http://+:8001/gods/");
-            //Listener.Prefixes.Add("http://+:8001/highestuuid/");
-            //Listener.Prefixes.Add("http://+:8001/uuidblocks/");
+            //httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
+            //httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);
+            //httpServer.AddRestHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod);
+            //httpServer.AddRestHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod);
 
             httpServer.Start();
 

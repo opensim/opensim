@@ -82,7 +82,7 @@ namespace OpenSim.Region.Capabilities
         private void AddCapsHandler( BaseHttpServer httpListener, string path, RestMethod restMethod )
         {
             string capsBase = "/CAPS/" + m_capsObjectPath;
-            httpListener.AddStreamHandler(capsBase + path, new RestStreamHandler(restMethod, "POST", "application/xml"));
+            httpListener.AddStreamHandler(new RestStreamHandler("POST", capsBase + path, restMethod));
         }
         
         /// <summary>
@@ -211,9 +211,11 @@ namespace OpenSim.Region.Capabilities
             string res = "";
             LLUUID newAsset = LLUUID.Random();
             LLUUID newInvItem = LLUUID.Random();
-            string uploaderPath = m_capsObjectPath + Util.RandomClass.Next(5000, 8000).ToString("0000");
+            string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
             AssetUploader uploader = new AssetUploader(newAsset, newInvItem, uploaderPath, this.httpListener);
-            httpListener.AddRestHandler("POST", "/CAPS/" + uploaderPath, uploader.uploaderCaps);
+            
+            AddCapsHandler( httpListener, uploaderPath, uploader.uploaderCaps);
+            
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + uploaderPath;
             //Console.WriteLine("uploader url is " + uploaderURL);
             res += "<llsd><map>";
@@ -269,7 +271,8 @@ namespace OpenSim.Region.Capabilities
                 res += "</map></llsd>";
 
                // Console.WriteLine("asset " + newAssetID.ToStringHyphenated() + " , inventory item " + inv.ToStringHyphenated());
-                httpListener.RemoveRestHandler("POST", "/CAPS/" + uploaderPath);
+                httpListener.RemoveStreamHandler("POST", "/CAPS/" + uploaderPath);
+                
                 if (OnUpLoad != null)
                 {
                     OnUpLoad(newAssetID, inv, data);

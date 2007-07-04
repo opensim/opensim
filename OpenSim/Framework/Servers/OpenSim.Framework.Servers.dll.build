@@ -12,6 +12,7 @@
             </resources>
             <sources failonempty="true">
                 <include name="BaseHttpServer.cs" />
+                <include name="BaseStreamHandler.cs" />
                 <include name="CheckSumServer.cs" />
                 <include name="ILlsdMethodHandler.cs" />
                 <include name="IStreamHandler.cs" />

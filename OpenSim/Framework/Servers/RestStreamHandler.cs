@@ -5,41 +5,27 @@ using System.IO;
 
 namespace OpenSim.Framework.Servers
 {
-    public class RestStreamHandler : IStreamHandler
+    public class RestStreamHandler : BaseStreamHandler
     {
         RestMethod m_restMethod;
 
-        private string m_contentType;
-        public string ContentType
-        {
-            get { return m_contentType; }
-        }
-
-        private string m_httpMethod;
-        public string HttpMethod
-        {
-            get { return m_httpMethod; }
-        }
-
-
-        public byte[] Handle(string path, Stream request )
+        override public byte[] Handle(string path, Stream request )
         {
             Encoding encoding = Encoding.UTF8;
-            StreamReader reader = new StreamReader(request, encoding);
+            StreamReader streamReader = new StreamReader(request, encoding);
 
-            string requestBody = reader.ReadToEnd();
-            reader.Close();
+            string requestBody = streamReader.ReadToEnd();
+            streamReader.Close();
 
-            string responseString = m_restMethod(requestBody, path, m_httpMethod);
+            string param = GetParam(path);
+            string responseString = m_restMethod(requestBody, path, param );
 
             return Encoding.UTF8.GetBytes(responseString);
         }
 
-        public RestStreamHandler(RestMethod restMethod, string httpMethod, string contentType)
+        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod) : base( path, httpMethod )
         {
             m_restMethod = restMethod;
-            m_httpMethod = httpMethod;
-            m_contentType = contentType;
         }
     }
 }

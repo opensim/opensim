@@ -42,48 +42,56 @@ namespace OpenSim.Framework.Servers
     {
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
-        protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
+        //protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected Dictionary<string, IStreamHandler> m_streamHandlers = new Dictionary<string, IStreamHandler>();
         protected int m_port;
-        protected bool firstcaps = true;
+        protected bool m_firstcaps = true;
 
         public BaseHttpServer(int port)
         {
             m_port = port;
         }
 
-        public void AddStreamHandler( string path, IStreamHandler handler)
+        public void AddStreamHandler( IStreamHandler handler)
         {
-            string handlerKey = handler.HttpMethod + ":" + path;
+            string httpMethod = handler.HttpMethod;
+            string path = handler.Path;
+            
+            string handlerKey = GetHandlerKey(httpMethod, path);
             m_streamHandlers.Add(handlerKey, handler);
         }
 
-        public bool AddRestHandler(string method, string path, RestMethod handler)
+        private static string GetHandlerKey(string httpMethod, string path)
         {
-            //Console.WriteLine("adding new REST handler for path " + path);
-            string methodKey = String.Format("{0}: {1}", method, path);
-
-            if (!this.m_restHandlers.ContainsKey(methodKey))
-            {
-                this.m_restHandlers.Add(methodKey, new RestMethodEntry(path, handler));
-                return true;
-            }
-
-            //must already have a handler for that path so return false
-            return false;
+            return httpMethod + ":" + path;
         }
 
-        public bool RemoveRestHandler(string method, string path)
-        {
-            string methodKey = String.Format("{0}: {1}", method, path);
-            if (this.m_restHandlers.ContainsKey(methodKey))
-            {
-                this.m_restHandlers.Remove(methodKey);
-                return true;
-            }
-            return false;
-        }
+        //public bool AddRestHandler(string method, string path, RestMethod handler)
+        //{
+        //    //Console.WriteLine("adding new REST handler for path " + path);
+        //    string methodKey = String.Format("{0}: {1}", method, path);
+
+        //    if (!this.m_restHandlers.ContainsKey(methodKey))
+        //    {
+        //        this.m_restHandlers.Add(methodKey, new RestMethodEntry(path, handler));
+        //        return true;
+        //    }
+
+        //    //must already have a handler for that path so return false
+        //    return false;
+        //}
+
+        //public bool RemoveRestHandler(string method, string path)
+        //{
+        //    string methodKey = String.Format("{0}: {1}", method, path);
+        //    if (this.m_restHandlers.ContainsKey(methodKey))
+        //    {
+        //        this.m_restHandlers.Remove(methodKey);
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
@@ -119,40 +127,40 @@ namespace OpenSim.Framework.Servers
             return XmlRpcResponseSerializer.Singleton.Serialize(response);
         }
 
-        protected virtual string ParseREST(string request, string path, string method)
-        {
-            string response;
+        //protected virtual string ParseREST(string request, string path, string method)
+        //{
+        //    string response;
 
-            string requestKey = String.Format("{0}: {1}", method, path);
+        //    string requestKey = String.Format("{0}: {1}", method, path);
 
-            string bestMatch = String.Empty;
-            foreach (string currentKey in m_restHandlers.Keys)
-            {
-                if (requestKey.StartsWith(currentKey))
-                {
-                    if (currentKey.Length > bestMatch.Length)
-                    {
-                        bestMatch = currentKey;
-                    }
-                }
-            }
+        //    string bestMatch = String.Empty;
+        //    foreach (string currentKey in m_restHandlers.Keys)
+        //    {
+        //        if (requestKey.StartsWith(currentKey))
+        //        {
+        //            if (currentKey.Length > bestMatch.Length)
+        //            {
+        //                bestMatch = currentKey;
+        //            }
+        //        }
+        //    }
 
-            RestMethodEntry restMethodEntry;
-            if (m_restHandlers.TryGetValue(bestMatch, out restMethodEntry))
-            {
-                RestMethod restMethod = restMethodEntry.RestMethod;
+        //    RestMethodEntry restMethodEntry;
+        //    if (m_restHandlers.TryGetValue(bestMatch, out restMethodEntry))
+        //    {
+        //        RestMethod restMethod = restMethodEntry.RestMethod;
 
-                string param = path.Substring(restMethodEntry.Path.Length);
-                response = restMethod(request, path, param);
+        //        string param = path.Substring(restMethodEntry.Path.Length);
+        //        response = restMethod(request, path, param);
 
-            }
-            else
-            {
-                response = String.Empty;
-            }
+        //    }
+        //    else
+        //    {
+        //        response = String.Empty;
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
 
         protected virtual string ParseXMLRPC(string requestBody)
@@ -179,13 +187,13 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
 
             string path = request.RawUrl;
-            string handlerKey = request.HttpMethod + ":" + path;
+            string handlerKey = GetHandlerKey( request.HttpMethod, path );
 
             IStreamHandler streamHandler;
 
             if (TryGetStreamHandler( handlerKey, out streamHandler))
             {
-                byte[] buffer = streamHandler.Handle(path, request.InputStream );
+                byte[] buffer = streamHandler.Handle(path, request.InputStream);
                 request.InputStream.Close();
 
                 response.ContentType = streamHandler.ContentType;
@@ -253,25 +261,25 @@ namespace OpenSim.Framework.Servers
                     response.AddHeader("Content-type", "text/xml");
                     break;
 
-                case "application/xml":
-                case "application/octet-stream":
-                    // probably LLSD we hope, otherwise it should be ignored by the parser
-                    // responseString = ParseLLSDXML(requestBody);
-                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                    response.AddHeader("Content-type", "application/xml");
-                    break;
+                //case "application/xml":
+                //case "application/octet-stream":
+                //    // probably LLSD we hope, otherwise it should be ignored by the parser
+                //    // responseString = ParseLLSDXML(requestBody);
+                //    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                //    response.AddHeader("Content-type", "application/xml");
+                //    break;
 
-                case "application/x-www-form-urlencoded":
-                    // a form data POST so send to the REST parser
-                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                    response.AddHeader("Content-type", "text/html");
-                    break;
+                //case "application/x-www-form-urlencoded":
+                //    // a form data POST so send to the REST parser
+                //    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                //    response.AddHeader("Content-type", "text/html");
+                //    break;
 
-                case null:
-                    // must be REST or invalid crap, so pass to the REST parser
-                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                    response.AddHeader("Content-type", "text/html");
-                    break;
+                //case null:
+                //    // must be REST or invalid crap, so pass to the REST parser
+                //    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                //    response.AddHeader("Content-type", "text/html");
+                //    break;
 
             }
 
@@ -318,5 +326,10 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+
+        public void RemoveStreamHandler(string httpMethod, string path)
+        {
+            m_streamHandlers.Remove(GetHandlerKey(httpMethod, path));
+        }
     }
 }
