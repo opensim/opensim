@@ -65,6 +65,7 @@ namespace OpenSim.Framework.Servers
         protected HttpListener m_httpListener;
         protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
+        protected Dictionary<string, IStreamHandler> m_streamHandlers = new Dictionary<string, IStreamHandler>();
         protected int m_port;
         protected bool firstcaps = true;
 
@@ -73,9 +74,14 @@ namespace OpenSim.Framework.Servers
             m_port = port;
         }
 
+        private void AddStreamHandler(string path, IStreamHandler handler)
+        {
+            m_streamHandlers.Add(path, handler);
+        }
+
         public bool AddRestHandler(string method, string path, RestMethod handler)
         {
-           //Console.WriteLine("adding new REST handler for path " + path);
+            //Console.WriteLine("adding new REST handler for path " + path);
             string methodKey = String.Format("{0}: {1}", method, path);
 
             if (!this.m_restHandlers.ContainsKey(methodKey))
@@ -190,73 +196,113 @@ namespace OpenSim.Framework.Servers
 
         public virtual void HandleRequest(Object stateinfo)
         {
-            try
+            HttpListenerContext context = (HttpListenerContext)stateinfo;
+
+            HttpListenerRequest request = context.Request;
+            HttpListenerResponse response = context.Response;
+
+            response.KeepAlive = false;
+            response.SendChunked = false;
+
+            string path = request.RawUrl;
+
+            IStreamHandler streamHandler;
+
+            if(TryGetStreamHandler(path, out streamHandler))
             {
-                HttpListenerContext context = (HttpListenerContext)stateinfo;
+                streamHandler.Handle(path, request.InputStream, response.OutputStream );
+            }
+            else
+            {
+                HandleLegacyRequests(request, response);
+            }
+        }
 
-                HttpListenerRequest request = context.Request;
-                HttpListenerResponse response = context.Response;
-
-                response.KeepAlive = false;
-                response.SendChunked = false;
-
-                Stream body = request.InputStream;
-                Encoding encoding = Encoding.UTF8;
-                StreamReader reader = new StreamReader(body, encoding);
-
-                string requestBody = reader.ReadToEnd();
-                body.Close();
-                reader.Close();
-
-                //Console.WriteLine(request.HttpMethod + " " + request.RawUrl + " Http/" + request.ProtocolVersion.ToString() + " content type: " + request.ContentType);
-                //Console.WriteLine(requestBody);
-
-                string responseString = "";
-               // Console.WriteLine("new request " + request.ContentType +" at "+ request.RawUrl);
-                switch (request.ContentType)
-                {
-                    case "text/xml":
-                        // must be XML-RPC, so pass to the XML-RPC parser
-
-                        responseString = ParseXMLRPC(requestBody);
-                        responseString = Regex.Replace(responseString, "utf-16", "utf-8");
-
-                        response.AddHeader("Content-type", "text/xml");
-                        break;
-
-                    case "application/xml":
-                    case "application/octet-stream":
-                        // probably LLSD we hope, otherwise it should be ignored by the parser
-                       // responseString = ParseLLSDXML(requestBody);
-                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                        response.AddHeader("Content-type", "application/xml");
-                        break;
-
-                    case "application/x-www-form-urlencoded":
-                        // a form data POST so send to the REST parser
-                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                        response.AddHeader("Content-type", "text/html");
-                        break;
-
-                    case null:
-                        // must be REST or invalid crap, so pass to the REST parser
-                        responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                        response.AddHeader("Content-type", "text/html");
-                        break;
-
+        private bool TryGetStreamHandler(string path, out IStreamHandler streamHandler )
+        {
+            string bestMatch = null;
+            
+            foreach (string pattern in m_streamHandlers.Keys)
+            {
+                if (path.StartsWith(pattern))
+                {                    
+                    if (String.IsNullOrEmpty( bestMatch ) || pattern.Length > bestMatch.Length)
+                    {
+                        bestMatch = pattern;
+                    }
                 }
+            }
 
-                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-                Stream output = response.OutputStream;
-                response.SendChunked = false;
-                response.ContentLength64 = buffer.Length;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-            }
-            catch (Exception e)
+            if( String.IsNullOrEmpty( bestMatch ) )
             {
-                //Console.WriteLine(e.ToString());
+                streamHandler = null;
+                return false;
             }
+            else
+            {
+                streamHandler = m_streamHandlers[bestMatch];
+                return true;
+            }
+        }
+
+        private void HandleLegacyRequests(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            Stream body = request.InputStream;
+
+            Encoding encoding = Encoding.UTF8;
+            StreamReader reader = new StreamReader(body, encoding);
+
+            string requestBody = reader.ReadToEnd();
+            body.Close();
+            reader.Close();
+
+            //Console.WriteLine(request.HttpMethod + " " + request.RawUrl + " Http/" + request.ProtocolVersion.ToString() + " content type: " + request.ContentType);
+            //Console.WriteLine(requestBody);
+
+            string responseString = "";
+            // Console.WriteLine("new request " + request.ContentType +" at "+ request.RawUrl);
+            switch (request.ContentType)
+            {
+                case "text/xml":
+                    // must be XML-RPC, so pass to the XML-RPC parser
+
+                    responseString = ParseXMLRPC(requestBody);
+                    responseString = Regex.Replace(responseString, "utf-16", "utf-8");
+
+                    response.AddHeader("Content-type", "text/xml");
+                    break;
+
+                case "application/xml":
+                case "application/octet-stream":
+                    // probably LLSD we hope, otherwise it should be ignored by the parser
+                    // responseString = ParseLLSDXML(requestBody);
+                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                    response.AddHeader("Content-type", "application/xml");
+                    break;
+
+                case "application/x-www-form-urlencoded":
+                    // a form data POST so send to the REST parser
+                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                    response.AddHeader("Content-type", "text/html");
+                    break;
+
+                case null:
+                    // must be REST or invalid crap, so pass to the REST parser
+                    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
+                    response.AddHeader("Content-type", "text/html");
+                    break;
+
+            }
+
+            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+            Stream output = response.OutputStream;
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+
+
+
+            output.Write(buffer, 0, buffer.Length);
+            output.Close();
         }
 
         public void Start()
@@ -291,9 +337,5 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public void AddLlsdMethod<TResponse, TRequest>(string path, LlsdMethod<TResponse, TRequest> handler )
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
     }
 }
