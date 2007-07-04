@@ -73,6 +73,7 @@ namespace OpenSim.Region.Capabilities
             Console.WriteLine("registering CAPS handlers");
             string capsBase = "/CAPS/" + m_capsObjectPath;
 
+
             AddLegacyCapsHandler( httpListener, m_mapLayerPath, MapLayer);
 
             //httpListener.AddStreamHandler(
@@ -82,6 +83,7 @@ namespace OpenSim.Region.Capabilities
             AddLegacyCapsHandler(httpListener, m_newInventory, NewAgentInventory);
             AddLegacyCapsHandler( httpListener, eventQueue, ProcessEventQueue);
             AddLegacyCapsHandler( httpListener, m_requestTexture, RequestTexture);
+
         }
 
         public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
@@ -153,6 +155,20 @@ namespace OpenSim.Region.Capabilities
         /// <summary>
         /// 
         /// </summary>
+        /// <returns></returns>
+        protected LLSDMapLayer BuildLLSDMapLayerResponse()
+        {
+            LLSDMapLayer mapLayer = new LLSDMapLayer();
+            mapLayer.Right = 5000;
+            mapLayer.Top = 5000;
+            mapLayer.ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
+
+            return mapLayer;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
         /// <param name="param"></param>
@@ -166,17 +182,10 @@ namespace OpenSim.Region.Capabilities
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
         /// <returns></returns>
-        protected LLSDMapLayer BuildLLSDMapLayerResponse()
-        {
-            LLSDMapLayer mapLayer = new LLSDMapLayer();
-            mapLayer.Right = 5000;
-            mapLayer.Top = 5000;
-            mapLayer.ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
-
-            return mapLayer;
-        }
-
         public string ProcessEventQueue(string request, string path, string param)
         {
             string res = "";
@@ -196,6 +205,12 @@ namespace OpenSim.Region.Capabilities
             return res;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="caps"></param>
+        /// <param name="ipAddressPort"></param>
+        /// <returns></returns>
         public string CreateEstablishAgentComms(string caps, string ipAddressPort)
         {
             LLSDCapEvent eventItem = new LLSDCapEvent();
@@ -209,6 +224,10 @@ namespace OpenSim.Region.Capabilities
             return res;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string CreateEmptyEventResponse()
         {
             LLSDCapEvent eventItem = new LLSDCapEvent();
@@ -219,6 +238,13 @@ namespace OpenSim.Region.Capabilities
             return res;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string NewAgentInventory(string request, string path, string param)
         {
             //Console.WriteLine("received upload request:"+ request);
@@ -241,6 +267,12 @@ namespace OpenSim.Region.Capabilities
             return res;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="inventoryItem"></param>
+        /// <param name="data"></param>
         public void UploadHandler(LLUUID assetID, LLUUID inventoryItem, byte[] data)
         {
             // Console.WriteLine("upload handler called");

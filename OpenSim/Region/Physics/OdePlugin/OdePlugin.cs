@@ -27,7 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
-using Axiom.MathLib;
+using Axiom.Math;
 using Ode.NET;
 using OpenSim.Physics.Manager;
 
@@ -197,7 +197,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             Quaternion q1 =Quaternion.FromAngleAxis(1.5707f, new Vector3(1,0,0));
             Quaternion q2 =Quaternion.FromAngleAxis(1.5707f, new Vector3(0,1,0));
-           //Axiom.MathLib.Quaternion q3 = Axiom.MathLib.Quaternion.FromAngleAxis(3.14f, new Axiom.MathLib.Vector3(0, 0, 1));
+           //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
             
             q1 = q1 * q2;
             //q1 = q1 * q3;

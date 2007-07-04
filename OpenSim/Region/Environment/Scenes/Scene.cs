@@ -453,8 +453,10 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRequestWearables += this.InformClientOfNeighbours;
             client.OnAddPrim += this.AddNewPrim;
             client.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            client.OnUpdatePrimSinglePosition += this.UpdatePrimSinglePosition;
             client.OnUpdatePrimRotation += this.UpdatePrimRotation;
             client.OnUpdatePrimGroupRotation += this.UpdatePrimRotation;
+            client.OnUpdatePrimSingleRotation += this.UpdatePrimSingleRotation;
             client.OnUpdatePrimScale += this.UpdatePrimScale;
             client.OnUpdatePrimShape += this.UpdatePrimShape;
             client.OnRequestMapBlocks += this.RequestMapBlocks;

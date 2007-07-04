@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Physics.Manager;
 using PhysXWrapper;
-using Quaternion=Axiom.MathLib.Quaternion;
+using Quaternion=Axiom.Math.Quaternion;
 
 namespace OpenSim.Region.Physics.PhysXPlugin
 {

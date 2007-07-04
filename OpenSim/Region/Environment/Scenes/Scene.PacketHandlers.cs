@@ -107,7 +107,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            Console.WriteLine("Chat message");
+           // Console.WriteLine("Chat message");
             ScenePresence avatar = null;
             foreach (IClientAPI client in m_clientThreads.Values)
             {
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes
                     avatar = this.Avatars[client.AgentId];
                     // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
                     dis= (int)avatar.Pos.GetDistanceTo(fromPos);
-                    Console.WriteLine("found avatar at " +dis);
+                    //Console.WriteLine("found avatar at " +dis);
 
                 }
              
@@ -314,13 +314,27 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
+             Primitive prim = null;
+             foreach (EntityBase ent in Entities.Values)
+             {
+                 if (ent is SceneObject)
+                 {
+                     prim = ((SceneObject)ent).HasChildPrim(objectID);
+                     if (prim != null)
+                     {
+                         ((SceneObject)ent).GrapMovement(offset, pos, remoteClient);
+                         break;
+                     }
+                 }
+             }
+            /*
             if (this.Entities.ContainsKey(objectID))
             {
                 if (this.Entities[objectID] is SceneObject)
                 {
                     ((SceneObject)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
                 }
-            }
+            }*/
         }
 
         /// <summary>
@@ -368,6 +382,23 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void UpdatePrimSinglePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
+        {
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(localID);
+                    if (prim != null)
+                    {
+                        prim.UpdateSinglePosition(pos);
+                        break;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -409,6 +440,29 @@ namespace OpenSim.Region.Environment.Scenes
                     if (prim != null)
                     {
                         prim.UpdateRotation(rot);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="rot"></param>
+        /// <param name="remoteClient"></param>
+        public void UpdatePrimSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
+        {
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(localID);
+                    if (prim != null)
+                    {
+                        prim.UpdateSingleRotation(rot);
                         break;
                     }
                 }

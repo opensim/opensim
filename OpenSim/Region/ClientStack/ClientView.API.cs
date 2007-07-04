@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using Axiom.MathLib;
+using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
@@ -63,7 +63,9 @@ namespace OpenSim.Region.ClientStack
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimPosition;
+        public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimRotation;
+        public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
         public event UpdatePrimGroupRotation OnUpdatePrimGroupRotation;
         public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;

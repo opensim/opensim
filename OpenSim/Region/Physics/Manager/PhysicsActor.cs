@@ -25,7 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using Axiom.MathLib;
+using Axiom.Math;
 
 namespace OpenSim.Physics.Manager
 {

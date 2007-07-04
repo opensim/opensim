@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Axiom.MathLib;
+using Axiom.Math;
 using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes

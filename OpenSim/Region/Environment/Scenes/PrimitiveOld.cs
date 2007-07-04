@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Axiom.MathLib;
+using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;

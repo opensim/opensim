@@ -178,8 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            //this.Pos = pos;
-            this.rootPrimitive.Pos = pos;
+            this.rootPrimitive.Pos = pos ;
             this.rootPrimitive.SendTerseUpdateForAllChildren(remoteClient);
         }
 

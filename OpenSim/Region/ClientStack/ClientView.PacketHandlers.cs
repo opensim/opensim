@@ -101,7 +101,7 @@ namespace OpenSim.Region.ClientStack
         protected bool MultipleObjUpdate(ClientView simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
-           // Console.WriteLine("new multi update packet " + multipleupdate.ToString());
+            //System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
             {
                 #region position
@@ -116,30 +116,31 @@ namespace OpenSim.Region.ClientStack
                 }
                 else if (multipleupdate.ObjectData[i].Type == 1) //single item of group change position
                 {
-                    if (OnUpdatePrimPosition != null)
+                    if (OnUpdatePrimSinglePosition != null)
                     {
-                       // libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        //OnUpdatePrimPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                       // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                        OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                 }
                 #endregion position
                 #region rotation
                 else if (multipleupdate.ObjectData[i].Type == 2)// single item of group rotation from tab
                 {
-                    if (OnUpdatePrimRotation != null)
+                    if (OnUpdatePrimSingleRotation != null)
                     {
                         LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
                        // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
                 else if (multipleupdate.ObjectData[i].Type == 3)// single item of group rotation from mouse
                 {
-                    if (OnUpdatePrimRotation != null)
+                    if (OnUpdatePrimSingleRotation != null)
                     {
                         libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
                       //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
                 else if (multipleupdate.ObjectData[i].Type == 10)//group rotation from object tab
@@ -182,7 +183,7 @@ namespace OpenSim.Region.ClientStack
                        // OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 5)//single scale from object tab
+                else if (multipleupdate.ObjectData[i].Type == 5)//single prim scale from object tab
                 {
                     if (OnUpdatePrimScale != null)
                     {
@@ -191,7 +192,7 @@ namespace OpenSim.Region.ClientStack
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 21)//single scale from mouse
+                else if (multipleupdate.ObjectData[i].Type == 21)//single prim scale from mouse
                 {
                     if (OnUpdatePrimScale != null)
                     {
