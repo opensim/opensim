@@ -392,11 +392,11 @@ namespace OpenGridServices.GridServer
                             simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
 
                             // For Sugilite compatibility
-                            simProfileBlock["regionhandle"] = aSim.Value.regionHandle.ToString();
-                            simProfileBlock["sim_ip"] = aSim.Value.serverIP.ToString();
-                            simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
-                            simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
-                            simProfileBlock["uuid"] = aSim.Value.UUID.ToStringHyphenated();
+                            simProfileBlock["regionhandle"] = simProfile.regionHandle.ToString();
+                            simProfileBlock["sim_ip"] = simProfile.serverIP.ToString();
+                            simProfileBlock["sim_port"] = simProfile.serverPort.ToString();
+                            simProfileBlock["sim_uri"] = simProfile.serverURI.ToString();
+                            simProfileBlock["uuid"] = simProfile.UUID.ToStringHyphenated();
 
                             simProfileList.Add(simProfileBlock);
                         }
