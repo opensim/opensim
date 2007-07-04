@@ -71,20 +71,33 @@ namespace OpenSim.Region.Capabilities
         public void RegisterHandlers()
         {
             Console.WriteLine("registering CAPS handlers");
+            string capsBase = "/CAPS/" + m_capsObjectPath;
 
-            AddCapsHandler( httpListener, m_requestPath, CapsRequest);
-            AddCapsHandler( httpListener, m_mapLayerPath, MapLayer);
-            AddCapsHandler( httpListener, m_newInventory, NewAgentInventory);
-            AddCapsHandler( httpListener, eventQueue, ProcessEventQueue);
-            AddCapsHandler( httpListener, m_requestTexture, RequestTexture);
+            AddLegacyCapsHandler( httpListener, m_mapLayerPath, MapLayer);
+
+            //httpListener.AddStreamHandler(
+            //    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, this.GetMapLayer ));
+
+            AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);                       
+            AddLegacyCapsHandler(httpListener, m_newInventory, NewAgentInventory);
+            AddLegacyCapsHandler( httpListener, eventQueue, ProcessEventQueue);
+            AddLegacyCapsHandler( httpListener, m_requestTexture, RequestTexture);
         }
 
-        private void AddCapsHandler( BaseHttpServer httpListener, string path, RestMethod restMethod )
+        public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
+        {
+            LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
+            mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
+            return mapResponse;
+        }
+
+        [Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
+        private void AddLegacyCapsHandler(BaseHttpServer httpListener, string path, RestMethod restMethod)
         {
             string capsBase = "/CAPS/" + m_capsObjectPath;
             httpListener.AddStreamHandler(new RestStreamHandler("POST", capsBase + path, restMethod));
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -125,17 +138,18 @@ namespace OpenSim.Region.Capabilities
         public string MapLayer(string request, string path, string param)
         {
             Encoding _enc = Encoding.UTF8;
-            Hashtable hash =(Hashtable) LLSD.LLSDDeserialize(_enc.GetBytes(request));
+            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(_enc.GetBytes(request));
             LLSDMapRequest mapReq = new LLSDMapRequest();
-            LLSDHelpers.DeserialiseLLSDMap(hash, mapReq );
+            LLSDHelpers.DeserialiseLLSDMap(hash, mapReq);
 
-            LLSDMapLayerResponse mapResponse= new LLSDMapLayerResponse();
+            LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
             string res = LLSDHelpers.SerialiseLLSDReply(mapResponse);
-          
+
             return res;
         }
 
+        
         /// <summary>
         /// 
         /// </summary>
@@ -214,7 +228,7 @@ namespace OpenSim.Region.Capabilities
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
             AssetUploader uploader = new AssetUploader(newAsset, newInvItem, uploaderPath, this.httpListener);
             
-            AddCapsHandler( httpListener, uploaderPath, uploader.uploaderCaps);
+            AddLegacyCapsHandler( httpListener, uploaderPath, uploader.uploaderCaps);
             
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + uploaderPath;
             //Console.WriteLine("uploader url is " + uploaderURL);

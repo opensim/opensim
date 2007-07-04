@@ -123,6 +123,12 @@
     <Compile Include="LLSDMapRequest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LLSDMethod.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LLSDStreamHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LLSDTest.cs">
       <SubType>Code</SubType>
     </Compile>

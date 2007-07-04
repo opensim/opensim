@@ -60,8 +60,6 @@ namespace SimpleApp
 
             httpServer.AddXmlRPCHandler("login_to_simulator", communicationsManager.UserServices.XmlRpcLoginMethod );
             
-            RegisterLlsdHandler<LLSDMapLayerResponse, LLSDMapRequest>("/Caps/test/", LlsdMethodDemo);
-            
             httpServer.Start();
             
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
@@ -74,27 +72,6 @@ namespace SimpleApp
 
         }
 
-        private LLSDMapLayerResponse LlsdMethodDemo(LLSDMapRequest request)
-        {
-            return new LLSDMapLayerResponse();
-        }
-
-        ILlsdMethodHandler m_handler;
-        
-        private void RegisterLlsdHandler<TResponse, TRequest>( string path, LlsdMethod<TResponse, TRequest> method )
-            where TRequest : new()
-        {
-            // path should be handler key, but for now just conceptually store it.
-            m_handler = new LlsdMethodEntry<TResponse, TRequest>( method );
-        }
-        
-        private string ProcessLlsdMethod( string request,string path )
-        {
-            LlsdMethodEntry<LLSDMapLayerResponse, LLSDMapRequest> concreteHandler = new LlsdMethodEntry<LLSDMapLayerResponse, LLSDMapRequest>( LlsdMethodDemo );
-
-            return m_handler.Handle(request, path);
-        }
-                       
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
             m_log.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);

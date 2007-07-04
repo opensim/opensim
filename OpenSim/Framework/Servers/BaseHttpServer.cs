@@ -42,7 +42,6 @@ namespace OpenSim.Framework.Servers
     {
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
-        //protected Dictionary<string, RestMethodEntry> m_restHandlers = new Dictionary<string, RestMethodEntry>();
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected Dictionary<string, IStreamHandler> m_streamHandlers = new Dictionary<string, IStreamHandler>();
         protected int m_port;
@@ -67,32 +66,6 @@ namespace OpenSim.Framework.Servers
             return httpMethod + ":" + path;
         }
 
-        //public bool AddRestHandler(string method, string path, RestMethod handler)
-        //{
-        //    //Console.WriteLine("adding new REST handler for path " + path);
-        //    string methodKey = String.Format("{0}: {1}", method, path);
-
-        //    if (!this.m_restHandlers.ContainsKey(methodKey))
-        //    {
-        //        this.m_restHandlers.Add(methodKey, new RestMethodEntry(path, handler));
-        //        return true;
-        //    }
-
-        //    //must already have a handler for that path so return false
-        //    return false;
-        //}
-
-        //public bool RemoveRestHandler(string method, string path)
-        //{
-        //    string methodKey = String.Format("{0}: {1}", method, path);
-        //    if (this.m_restHandlers.ContainsKey(methodKey))
-        //    {
-        //        this.m_restHandlers.Remove(methodKey);
-        //        return true;
-        //    }
-        //    return false;
-        //}
-
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
             if (!this.m_rpcHandlers.ContainsKey(method))
@@ -105,76 +78,6 @@ namespace OpenSim.Framework.Servers
             return false;
         }
 
-        protected virtual string ProcessXMLRPCMethod(string methodName, XmlRpcRequest request)
-        {
-            XmlRpcResponse response;
-
-            XmlRpcMethod method;
-            if (this.m_rpcHandlers.TryGetValue(methodName, out method))
-            {
-                response = method(request);
-            }
-            else
-            {
-                response = new XmlRpcResponse();
-                Hashtable unknownMethodError = new Hashtable();
-                unknownMethodError["reason"] = "XmlRequest"; ;
-                unknownMethodError["message"] = "Unknown Rpc request";
-                unknownMethodError["login"] = "false";
-                response.Value = unknownMethodError;
-            }
-
-            return XmlRpcResponseSerializer.Singleton.Serialize(response);
-        }
-
-        //protected virtual string ParseREST(string request, string path, string method)
-        //{
-        //    string response;
-
-        //    string requestKey = String.Format("{0}: {1}", method, path);
-
-        //    string bestMatch = String.Empty;
-        //    foreach (string currentKey in m_restHandlers.Keys)
-        //    {
-        //        if (requestKey.StartsWith(currentKey))
-        //        {
-        //            if (currentKey.Length > bestMatch.Length)
-        //            {
-        //                bestMatch = currentKey;
-        //            }
-        //        }
-        //    }
-
-        //    RestMethodEntry restMethodEntry;
-        //    if (m_restHandlers.TryGetValue(bestMatch, out restMethodEntry))
-        //    {
-        //        RestMethod restMethod = restMethodEntry.RestMethod;
-
-        //        string param = path.Substring(restMethodEntry.Path.Length);
-        //        response = restMethod(request, path, param);
-
-        //    }
-        //    else
-        //    {
-        //        response = String.Empty;
-        //    }
-
-        //    return response;
-        //}
-
-
-        protected virtual string ParseXMLRPC(string requestBody)
-        {
-            string responseString = String.Empty;
-
-            XmlRpcRequest request = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
-
-            string methodName = request.MethodName;
-
-            responseString = ProcessXMLRPCMethod(methodName, request);
-
-            return responseString;
-        }
 
         public virtual void HandleRequest(Object stateinfo)
         {
@@ -203,7 +106,7 @@ namespace OpenSim.Framework.Servers
             }
             else
             {
-                HandleLegacyRequests(request, response);
+                HandleXmlRpcRequests(request, response);
             }
         }
 
@@ -234,64 +137,54 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private void HandleLegacyRequests(HttpListenerRequest request, HttpListenerResponse response)
+        private void HandleXmlRpcRequests(HttpListenerRequest request, HttpListenerResponse response)
         {
-            Stream body = request.InputStream;
+            Stream requestStream = request.InputStream;
 
             Encoding encoding = Encoding.UTF8;
-            StreamReader reader = new StreamReader(body, encoding);
+            StreamReader reader = new StreamReader(requestStream, encoding);
 
             string requestBody = reader.ReadToEnd();
-            body.Close();
             reader.Close();
+            requestStream.Close();
 
-            //Console.WriteLine(request.HttpMethod + " " + request.RawUrl + " Http/" + request.ProtocolVersion.ToString() + " content type: " + request.ContentType);
-            //Console.WriteLine(requestBody);
+            XmlRpcRequest xmlRprcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
 
-            string responseString = "";
-            // Console.WriteLine("new request " + request.ContentType +" at "+ request.RawUrl);
-            switch (request.ContentType)
+            string methodName = xmlRprcRequest.MethodName;
+
+            XmlRpcResponse xmlRpcResponse;
+
+            XmlRpcMethod method;
+            if (this.m_rpcHandlers.TryGetValue(methodName, out method))
             {
-                case "text/xml":
-                    // must be XML-RPC, so pass to the XML-RPC parser
-
-                    responseString = ParseXMLRPC(requestBody);
-                    responseString = Regex.Replace(responseString, "utf-16", "utf-8");
-
-                    response.AddHeader("Content-type", "text/xml");
-                    break;
-
-                //case "application/xml":
-                //case "application/octet-stream":
-                //    // probably LLSD we hope, otherwise it should be ignored by the parser
-                //    // responseString = ParseLLSDXML(requestBody);
-                //    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                //    response.AddHeader("Content-type", "application/xml");
-                //    break;
-
-                //case "application/x-www-form-urlencoded":
-                //    // a form data POST so send to the REST parser
-                //    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                //    response.AddHeader("Content-type", "text/html");
-                //    break;
-
-                //case null:
-                //    // must be REST or invalid crap, so pass to the REST parser
-                //    responseString = ParseREST(requestBody, request.RawUrl, request.HttpMethod);
-                //    response.AddHeader("Content-type", "text/html");
-                //    break;
-
+                xmlRpcResponse = method(xmlRprcRequest);
+            }
+            else
+            {
+                xmlRpcResponse = new XmlRpcResponse();
+                Hashtable unknownMethodError = new Hashtable();
+                unknownMethodError["reason"] = "XmlRequest"; ;
+                unknownMethodError["message"] = "Unknown Rpc Request ["+methodName+"]";
+                unknownMethodError["login"] = "false";
+                xmlRpcResponse.Value = unknownMethodError;
             }
 
+            response.AddHeader("Content-type", "text/xml");
+
+            string responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
+            
+            // This must be absolutely fuggliest hack in this project. Don't just stand there, DO SOMETHING!
+            responseString = Regex.Replace(responseString, "utf-16", "utf-8");
+            
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-            Stream output = response.OutputStream;
+           
+            
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
 
-
-
-            output.Write(buffer, 0, buffer.Length);
-            output.Close();
+            response.OutputStream.Write(buffer, 0, buffer.Length);
+            response.OutputStream.Close();
         }
 
         public void Start()

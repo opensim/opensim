@@ -20,6 +20,8 @@
                 <include name="LLSDMapLayer.cs" />
                 <include name="LLSDMapLayerResponse.cs" />
                 <include name="LLSDMapRequest.cs" />
+                <include name="LLSDMethod.cs" />
+                <include name="LLSDStreamHandler.cs" />
                 <include name="LLSDTest.cs" />
                 <include name="LLSDType.cs" />
                 <include name="LLSDUploadReply.cs" />

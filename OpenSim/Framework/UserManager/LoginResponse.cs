@@ -222,7 +222,9 @@ namespace OpenSim.Framework.UserManagement
 
                 responseData["sim_port"] =(Int32) this.SimPort;
                 responseData["sim_ip"] = this.SimAddress;
+                
                 MainLog.Instance.Warn("SIM IP: " + responseData["sim_ip"] + "; SIM PORT: " + responseData["sim_port"]);
+                
                 responseData["agent_id"] = this.AgentID.ToStringHyphenated();
                 responseData["session_id"] = this.SessionID.ToStringHyphenated();
                 responseData["secure_session_id"] = this.SecureSessionID.ToStringHyphenated();

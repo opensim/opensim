@@ -7,19 +7,19 @@ namespace OpenSim.Framework.Servers
 {
     public abstract class BaseStreamHandler : IStreamHandler
     {
-        public string ContentType
+        virtual public string ContentType
         {
             get { return "application/xml"; }
         }
 
         private string m_httpMethod;
-        public string HttpMethod
+        virtual public string HttpMethod
         {
             get { return m_httpMethod; }
         }
 
         private string m_path;
-        public string Path
+        virtual public string Path
         {
             get { return m_path; }
         }
