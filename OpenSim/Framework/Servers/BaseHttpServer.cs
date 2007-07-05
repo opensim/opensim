@@ -173,12 +173,8 @@ namespace OpenSim.Framework.Servers
 
             string responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
             
-            // This must be absolutely fuggliest hack in this project. Don't just stand there, DO SOMETHING!
-            responseString = Regex.Replace(responseString, "utf-16", "utf-8");
-            
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-           
-            
+
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
