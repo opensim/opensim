@@ -47,11 +47,6 @@ namespace OpenSim.Scripting.EmbeddedJVM
 
         ScriptInfo scriptInfo;
 
-        public JVMScript()
-        {
-
-        }
-
         public void Initialise(ScriptInfo info)
         {
             scriptInfo = info;
@@ -59,10 +54,42 @@ namespace OpenSim.Scripting.EmbeddedJVM
             _mainMemory = new MainMemory();
             Thread.GlobalMemory = this._mainMemory;
             Thread.World = info.world;
-            compileThread = new System.Threading.Thread(new ThreadStart(CompileScript));
-            compileThread.IsBackground = true;
-            compileThread.Start();
+            CompileScript();
 
+            scriptInfo.events.OnFrame += new EventManager.OnFrameDelegate(events_OnFrame);
+            scriptInfo.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
+        }
+
+        void events_OnNewPresence(ScenePresence presence)
+        {
+            for (int i = 0; i < this._threads.Count; i++)
+            {
+                if (!this._threads[i].running)
+                {
+                    this._threads[i].StartMethod("OnNewPresence");
+                    bool run = true;
+                    while (run)
+                    {
+                        run = this._threads[i].Excute();
+                    }
+                }
+            }
+        }
+
+        void events_OnFrame()
+        {
+            for (int i = 0; i < this._threads.Count; i++)
+            {
+                if (!this._threads[i].running)
+                {
+                    this._threads[i].StartMethod("OnFrame");
+                    bool run = true;
+                    while (run)
+                    {
+                        run = this._threads[i].Excute();
+                    }
+                }
+            }
         }
 
         public string getName()
@@ -81,71 +108,52 @@ namespace OpenSim.Scripting.EmbeddedJVM
 
         public void CompileScript()
         {
-            while (true)
+            CompileInfo comp = this.CompileScripts.Dequeue();
+            string script = comp.script;
+            string scriptName = comp.scriptName;
+            try
             {
-                CompileInfo comp = this.CompileScripts.Dequeue();
-                string script = comp.script;
-                string scriptName = comp.scriptName;
-                try
-                {
-                    //need to compile the script into a java class file
+                //need to compile the script into a java class file
 
-                    //first save it to a java source file
-                    TextWriter tw = new StreamWriter(scriptName + ".java");
-                    tw.WriteLine(script);
-                    tw.Close();
+                //first save it to a java source file
+                TextWriter tw = new StreamWriter(scriptName + ".java");
+                tw.WriteLine(script);
+                tw.Close();
 
-                    //now compile
-                    System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("javac.exe", "*.java");
-                   // psi.RedirectStandardOutput = true;
-                    psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                    psi.UseShellExecute = false;
+                //now compile
+                System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("javac.exe", "*.java");
+                // psi.RedirectStandardOutput = true;
+                psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                psi.UseShellExecute = false;
 
-                    System.Diagnostics.Process javacomp;
-                    javacomp = System.Diagnostics.Process.Start(psi);
-                    javacomp.WaitForExit();
+                System.Diagnostics.Process javacomp;
+                javacomp = System.Diagnostics.Process.Start(psi);
+                javacomp.WaitForExit();
 
-                    
-                    //now load in class file
-                    ClassRecord class1 = new ClassRecord();
-                    class1.LoadClassFromFile(scriptName + ".class");
-                    class1.PrintToConsole();
-                    //Console.WriteLine();
-                    this._mainMemory.MethodArea.Classes.Add(class1);
-                    class1.AddMethodsToMemory(this._mainMemory.MethodArea);
 
-                    Thread newThread = new Thread();
-                    this._threads.Add(newThread);
-                    newThread.currentClass = class1;
-                    newThread.scriptInfo = scriptInfo;
+                //now load in class file
+                ClassRecord class1 = new ClassRecord();
+                class1.LoadClassFromFile(scriptName + ".class");
+                class1.PrintToConsole();
+                //Console.WriteLine();
+                this._mainMemory.MethodArea.Classes.Add(class1);
+                class1.AddMethodsToMemory(this._mainMemory.MethodArea);
 
-                    //now delete the created files
-                    System.IO.File.Delete(scriptName + ".java");
-                    System.IO.File.Delete(scriptName + ".class");
-                    //this.OnFrame();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("exception");
-                    Console.WriteLine(e.StackTrace);
-                    Console.WriteLine(e.Message);
-                }
+                Thread newThread = new Thread();
+                this._threads.Add(newThread);
+                newThread.currentClass = class1;
+                newThread.scriptInfo = scriptInfo;
+
+                //now delete the created files
+                System.IO.File.Delete(scriptName + ".java");
+                System.IO.File.Delete(scriptName + ".class");
+                //this.OnFrame();
             }
-        }
-
-        public void OnFrame()
-        {
-            for (int i = 0; i < this._threads.Count; i++)
+            catch (Exception e)
             {
-                if (!this._threads[i].running)
-                {
-                    this._threads[i].StartMethod("OnFrame");
-                    bool run = true;
-                    while (run)
-                    {
-                        run = this._threads[i].Excute();
-                    }
-                }
+                Console.WriteLine("exception");
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(e.Message);
             }
         }
 
