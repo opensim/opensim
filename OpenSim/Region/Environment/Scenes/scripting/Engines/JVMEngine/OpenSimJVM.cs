@@ -38,7 +38,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Scripting.EmbeddedJVM
 {
-    public class OpenSimJVM : IScript
+    public class JVMScript : IScript
     {
         private List<Thread> _threads = new List<Thread>();
         private BlockingQueue<CompileInfo> CompileScripts = new BlockingQueue<CompileInfo>();
@@ -47,7 +47,7 @@ namespace OpenSim.Scripting.EmbeddedJVM
 
         ScriptInfo scriptInfo;
 
-        public OpenSimJVM()
+        public JVMScript()
         {
 
         }
@@ -55,6 +55,14 @@ namespace OpenSim.Scripting.EmbeddedJVM
         public void Initialise(ScriptInfo info)
         {
             scriptInfo = info;
+
+            _mainMemory = new MainMemory();
+            Thread.GlobalMemory = this._mainMemory;
+            Thread.World = info.world;
+            compileThread = new System.Threading.Thread(new ThreadStart(CompileScript));
+            compileThread.IsBackground = true;
+            compileThread.Start();
+
         }
 
         public string getName()
@@ -62,30 +70,12 @@ namespace OpenSim.Scripting.EmbeddedJVM
             return "JVM Scripting Engine";
         }
 
-        public bool Init(Scene world)
+        public void LoadScript(string script)
         {
-            Console.WriteLine("Creating OpenSim JVM scripting engine");
-            _mainMemory = new MainMemory();
-            Thread.GlobalMemory = this._mainMemory;
-            Thread.World = world;
-            compileThread = new System.Threading.Thread(new ThreadStart(CompileScript));
-            compileThread.IsBackground = true;
-            compileThread.Start();
-            return true;
-        }
-
-        public string GetName()
-        {
-            return "OpenSimJVM";
-        }
-
-        public void LoadScript(string script, string scriptName, uint entityID)
-        {
-            Console.WriteLine("OpenSimJVM - loading new script: " + scriptName);
+            Console.WriteLine("OpenSimJVM - loading new script: " + script);
             CompileInfo comp = new CompileInfo();
-            comp.entityId = entityID;
             comp.script = script;
-            comp.scriptName = scriptName;
+            comp.scriptName = script;
             this.CompileScripts.Enqueue(comp);
         }
 
@@ -96,7 +86,6 @@ namespace OpenSim.Scripting.EmbeddedJVM
                 CompileInfo comp = this.CompileScripts.Dequeue();
                 string script = comp.script;
                 string scriptName = comp.scriptName;
-                uint entityID = comp.entityId;
                 try
                 {
                     //need to compile the script into a java class file
@@ -127,7 +116,6 @@ namespace OpenSim.Scripting.EmbeddedJVM
 
                     Thread newThread = new Thread();
                     this._threads.Add(newThread);
-                    newThread.EntityId = entityID;
                     newThread.currentClass = class1;
                     newThread.scriptInfo = scriptInfo;
 
@@ -165,7 +153,6 @@ namespace OpenSim.Scripting.EmbeddedJVM
         {
             public string script;
             public string scriptName;
-            public uint entityId;
 
             public CompileInfo()
             {

@@ -50,7 +50,6 @@ namespace OpenSim.Scripting.EmbeddedJVM
         private StackFrame currentFrame;
         public int excutionCounter = 0;
         public bool running = false;
-        public uint EntityId = 0;
 
         public ScriptInfo scriptInfo;
 
