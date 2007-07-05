@@ -186,9 +186,9 @@ namespace OpenSim.Region.Communications.OGS1
 
             }
 
-            if (listeners.ContainsKey((ulong)requestData["regionhandle"]))
+            if (listeners.ContainsKey(Convert.ToUInt64((string)requestData["regionhandle"])))
             {
-                this.listeners[(ulong)requestData["regionhandle"]].TriggerExpectUser((ulong)requestData["regionhandle"], agentData);
+                this.listeners[Convert.ToUInt64((string)requestData["regionhandle"])].TriggerExpectUser(Convert.ToUInt64((string)requestData["regionhandle"]), agentData);
             }
             else
             {
