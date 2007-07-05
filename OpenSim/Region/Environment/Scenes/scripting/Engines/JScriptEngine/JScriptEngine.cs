@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using Microsoft.JScript;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Region.Enviorment.Scripting
+namespace OpenSim.Region.Environment.Scripting
 {
     public class JScriptEngine : IScriptCompiler
     {

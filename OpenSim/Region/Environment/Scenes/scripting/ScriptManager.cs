@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Enviorment.Scripting
+namespace OpenSim.Region.Environment.Scripting
 {
     public class ScriptManager
     {

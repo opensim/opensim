@@ -39,7 +39,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
-using OpenSim.Region.Enviorment.Scripting;
+using OpenSim.Region.Environment.Scripting;
 using OpenSim.Region.Terrain;
 using Caps=OpenSim.Region.Capabilities.Caps;
 using Timer=System.Timers.Timer;

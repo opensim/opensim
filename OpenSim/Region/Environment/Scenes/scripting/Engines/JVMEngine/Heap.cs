@@ -25,40 +25,19 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using OpenSim.Region.Environment.Scenes;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Scripting.EmbeddedJVM
 {
-    public interface IScript
+    public class Heap
     {
-        void Initialise(ScriptInfo scriptInfo);
-        string getName();
-    }
+        public List<ClassInstance> ClassObjects = new List<ClassInstance>();
 
-    public class TestScript : IScript
-    {
-        ScriptInfo script;
-
-        public string getName()
+        public Heap()
         {
-            return "TestScript 0.1";
-        }
 
-        public void Initialise(ScriptInfo scriptInfo)
-        {
-            script = scriptInfo;
-            script.events.OnFrame += new EventManager.OnFrameDelegate(events_OnFrame);
-            script.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
-        }
-
-        void events_OnNewPresence(ScenePresence presence)
-        {
-            script.logger.Verbose("Hello " + presence.firstname.ToString() + "!");
-        }
-
-        void events_OnFrame()
-        {
-            //script.logger.Verbose("Hello World!");
         }
     }
 }

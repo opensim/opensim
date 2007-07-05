@@ -28,7 +28,7 @@
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Enviorment.Scripting
+namespace OpenSim.Region.Environment.Scripting
 {
     /// <summary>
     /// Class which provides access to the world
@@ -44,11 +44,15 @@ namespace OpenSim.Region.Enviorment.Scripting
         // The console
         public LogBase logger;
 
+        // API Access
+        public ScriptAPI api;
+
         public ScriptInfo(Scene scene)
         {
             world = scene;
             events = world.eventManager;
             logger = MainLog.Instance;
+            api = new ScriptAPI(scene);
         }
     }
 }

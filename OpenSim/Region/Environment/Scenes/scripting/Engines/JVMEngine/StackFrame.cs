@@ -25,40 +25,25 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using OpenSim.Region.Environment.Scenes;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using OpenSim.Scripting.EmbeddedJVM.Types;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Scripting.EmbeddedJVM
 {
-    public interface IScript
+    public class StackFrame
     {
-        void Initialise(ScriptInfo scriptInfo);
-        string getName();
-    }
+        public BaseType[] LocalVariables;
+        public Stack<BaseType> OpStack = new Stack<BaseType>();
 
-    public class TestScript : IScript
-    {
-        ScriptInfo script;
+        public int ReturnPC = 0;
+        public ClassRecord CallingClass = null;
 
-        public string getName()
+        public StackFrame()
         {
-            return "TestScript 0.1";
+            LocalVariables = new BaseType[20];
         }
 
-        public void Initialise(ScriptInfo scriptInfo)
-        {
-            script = scriptInfo;
-            script.events.OnFrame += new EventManager.OnFrameDelegate(events_OnFrame);
-            script.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
-        }
-
-        void events_OnNewPresence(ScenePresence presence)
-        {
-            script.logger.Verbose("Hello " + presence.firstname.ToString() + "!");
-        }
-
-        void events_OnFrame()
-        {
-            //script.logger.Verbose("Hello World!");
-        }
     }
 }

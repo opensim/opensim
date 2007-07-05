@@ -28,10 +28,32 @@
                 <include name="Scenes/ScenePresence.Body.cs" />
                 <include name="Scenes/ScenePresence.cs" />
                 <include name="Scenes/scripting/Script.cs" />
+                <include name="Scenes/scripting/ScriptAPI.cs" />
                 <include name="Scenes/scripting/ScriptInfo.cs" />
                 <include name="Scenes/scripting/ScriptManager.cs" />
-                <include name="Scenes/scripting/Engines/CSharpScriptEngine.cs" />
-                <include name="Scenes/scripting/Engines/JScriptEngine.cs" />
+                <include name="Scenes/scripting/Engines/CSharpEngine/CSharpScriptEngine.cs" />
+                <include name="Scenes/scripting/Engines/JScriptEngine/JScriptEngine.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/ClassInstance.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/ClassRecord.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Heap.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Interpreter.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/InterpreterLogic.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/InterpreterMethods.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/InterpreterReturn.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/MainMemory.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/MethodMemory.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Object.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/OpenSimJVM.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Stack.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/StackFrame.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Thread.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/ArrayReference.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/BaseType.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/ObjectReference.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/PrimitiveTypes/Byte.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/PrimitiveTypes/Char.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/PrimitiveTypes/Float.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/Types/PrimitiveTypes/Int.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
