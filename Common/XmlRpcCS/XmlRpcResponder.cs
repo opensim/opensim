@@ -30,6 +30,7 @@ namespace Nwc.XmlRpc
     using System;
     using System.Xml;
     using System.Net.Sockets;
+    using System.Text;
 
     /// <summary>The class is a container of the context of an XML-RPC dialog on the server side.</summary>
     /// <remarks>Instances of this class maintain the context for an individual XML-RPC server
@@ -98,8 +99,9 @@ namespace Nwc.XmlRpc
             if (Logger.Delegate != null)
                 Logger.WriteEntry(xmlRpcResp.ToString(), LogLevel.Information);
 
-            XmlRpcServer.HttpHeader(httpReq.Protocol, "text/xml", 0, " 200 OK", httpReq.Output);
+            XmlRpcServer.HttpHeader(httpReq.Protocol, "text/xml", 0, " 200 OK", httpReq.Output);            
             httpReq.Output.Flush();
+            
             XmlTextWriter xml = new XmlTextWriter(httpReq.Output);
             _serializer.Serialize(xml, xmlRpcResp);
             xml.Flush();

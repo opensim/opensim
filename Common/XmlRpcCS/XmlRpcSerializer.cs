@@ -31,6 +31,7 @@ namespace Nwc.XmlRpc
     using System.Collections;
     using System.IO;
     using System.Xml;
+    using System.Text;
 
     /// <summary>Base class of classes serializing data to XML-RPC's XML format.</summary>
     /// <remarks>This class handles the basic type conversions like Integer to &lt;i4&gt;. </remarks>
@@ -53,15 +54,22 @@ namespace Nwc.XmlRpc
         /// <seealso cref="XmlRpcRequest"/>
         public String Serialize(Object obj)
         {
-            StringWriter strBuf = new StringWriter();
-            XmlTextWriter xml = new XmlTextWriter(strBuf);
-            xml.Formatting = Formatting.Indented;
-            xml.Indentation = 4;
-            Serialize(xml, obj);
-            xml.Flush();
-            String returns = strBuf.ToString();
-            xml.Close();
-            return returns;
+            using (MemoryStream memStream = new MemoryStream(4096))
+            {
+                XmlTextWriter xml = new XmlTextWriter(memStream, Encoding.UTF8);
+                xml.Formatting = Formatting.Indented;
+                xml.Indentation = 4;
+                Serialize(xml, obj);
+                xml.Flush();
+
+                byte[] resultBytes = memStream.ToArray();
+                
+                UTF8Encoding encoder = new UTF8Encoding();
+                
+                String returns = encoder.GetString( resultBytes, 0, resultBytes.Length );
+                xml.Close();
+                return returns;
+            }
         }
 
         /// <remarks>Serialize the object to the output stream.</remarks>

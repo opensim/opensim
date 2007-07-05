@@ -56,7 +56,7 @@ namespace Nwc.XmlRpc
     public class XmlRpcRequest
     {
         private String _methodName = null;
-        private Encoding _encoding = new ASCIIEncoding();
+        private Encoding _encoding = new UTF8Encoding();
         private XmlRpcRequestSerializer _serializer = new XmlRpcRequestSerializer();
         private XmlRpcResponseDeserializer _deserializer = new XmlRpcResponseDeserializer();
 

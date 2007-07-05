@@ -31,6 +31,7 @@ namespace Nwc.XmlRpc
     using System.IO;
     using System.Net.Sockets;
     using System.Collections;
+    using System.Text;
 
     ///<summary>Very basic HTTP request handler.</summary>
     ///<remarks>This class is designed to accept a TcpClient and treat it as an HTTP request.
@@ -55,8 +56,10 @@ namespace Nwc.XmlRpc
         public SimpleHttpRequest(TcpClient client)
         {
             _client = client;
-            _output = new StreamWriter(client.GetStream());
-            _input = new StreamReader(client.GetStream());
+            
+            _output = new StreamWriter(client.GetStream(), Encoding.UTF8 );            
+            _input = new StreamReader(client.GetStream(), Encoding.UTF8 );
+            
             GetRequestMethod();
             GetRequestHeaders();
         }
