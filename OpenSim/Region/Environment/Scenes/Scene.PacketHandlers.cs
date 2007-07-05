@@ -454,6 +454,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
         {
+           //Console.WriteLine("trying to update single prim rotation");
             Primitive prim = null;
             foreach (EntityBase ent in Entities.Values)
             {

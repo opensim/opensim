@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool physicsEnabled = false;
         private PhysicsScene m_PhysScene;
         private PhysicsActor m_PhysActor;
-
+        
         public LLUUID rootUUID
         {
             get

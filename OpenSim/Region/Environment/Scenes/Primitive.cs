@@ -46,12 +46,17 @@ namespace OpenSim.Region.Environment.Scenes
         public EntityBase m_Parent;
 
         #region Properties
-        public override LLVector3 Pos
+        /// <summary>
+        /// If rootprim will return world position
+        /// otherwise will return local offset from rootprim
+        /// </summary>
+        public override LLVector3 Pos 
         {
             get
             {
                 if (isRootPrim)
                 {
+                    //if we are rootprim then our offset should be zero
                     return this.m_pos + m_Parent.Pos;
                 }
                 else
@@ -77,7 +82,9 @@ namespace OpenSim.Region.Environment.Scenes
                 if (!this.isRootPrim)
                 {
                     Primitive parentPrim = (Primitive)this.m_Parent;
-                    return this.m_pos + parentPrim.WorldPos;
+                    Axiom.Math.Vector3 offsetPos = new Vector3(this.m_pos.X, this.m_pos.Y, this.m_pos.Z);
+                    offsetPos = parentPrim.rotation * offsetPos;
+                    return parentPrim.WorldPos + new LLVector3(offsetPos.x, offsetPos.y, offsetPos.z);
                 }
                 else
                 {
@@ -112,6 +119,17 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="world"></param>
+        /// <param name="addPacket"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="localID"></param>
+        /// <param name="isRoot"></param>
+        /// <param name="parent"></param>
+        /// <param name="rootObject"></param>
         public Primitive(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject)
         {
             m_regionHandle = regionHandle;
@@ -227,12 +245,13 @@ namespace OpenSim.Region.Environment.Scenes
             Axiom.Math.Vector3 axPos = new Axiom.Math.Vector3(this.m_pos.X, m_pos.Y, m_pos.Z);
             axPos = this.m_Parent.rotation.Inverse() * axPos;
             this.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
-            this.rotation = this.rotation * this.m_Parent.rotation.Inverse();
+            Axiom.Math.Quaternion oldRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
+            this.rotation =  this.m_Parent.rotation.Inverse() * this.rotation;
             this.updateFlag = 1;
 
             foreach (Primitive child in children)
             {
-                child.SetRootParent(rootParent, newParent, oldPos);
+                child.SetRootParent(rootParent, newParent, oldPos, oldRot);
             }
             children.Clear();
            
@@ -243,10 +262,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="newRoot"></param>
-        public void SetRootParent(SceneObject newRoot , Primitive newParent, LLVector3 oldParentPosition)
+        public void SetRootParent(SceneObject newRoot , Primitive newParent, LLVector3 oldParentPosition, Axiom.Math.Quaternion oldParentRotation)
         {
             LLVector3 oldPos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
+            Axiom.Math.Vector3 axOldPos = new Vector3(oldPos.X, oldPos.Y, oldPos.Z);
+            axOldPos = oldParentRotation * axOldPos;
+            oldPos = new LLVector3(axOldPos.x, axOldPos.y, axOldPos.z);
             oldPos += oldParentPosition;
+            Axiom.Math.Quaternion oldRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
             this.isRootPrim = false;
             this.m_Parent = newParent;
             this.ParentID = newParent.LocalId;
@@ -257,15 +280,20 @@ namespace OpenSim.Region.Environment.Scenes
             Axiom.Math.Vector3 axPos = new Axiom.Math.Vector3(this.m_pos.X, m_pos.Y, m_pos.Z);
             axPos = this.m_Parent.rotation.Inverse() * axPos;
             this.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
-            this.rotation = this.rotation * this.m_Parent.rotation.Inverse();
+            this.rotation = oldParentRotation * this.rotation;
+            this.rotation =  this.m_Parent.rotation.Inverse()* this.rotation ;
             this.updateFlag = 1;
             foreach (Primitive child in children)
             {
-                child.SetRootParent(newRoot, newParent, oldPos);
+                child.SetRootParent(newRoot, newParent, oldPos, oldRot);
             }
             children.Clear();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
         public void AddOffsetToChildren(LLVector3 offset)
         {
             foreach (Primitive prim in this.children)
@@ -275,6 +303,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prim"></param>
         public void AddToChildrenList(Primitive prim)
         {
             this.children.Add(prim);
@@ -282,6 +314,10 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Resizing/Scale
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scale"></param>
         public void ResizeGoup(LLVector3 scale)
         {
             LLVector3 offset = (scale - this.m_Shape.Scale);
@@ -317,9 +353,13 @@ namespace OpenSim.Region.Environment.Scenes
             this.updateFlag = 2;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
         public void UpdateSinglePosition(LLVector3 pos)
         {
-            //Console.WriteLine("updating single prim position");
+           // Console.WriteLine("updating single prim position");
             if (this.isRootPrim)
             {
                 LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
@@ -350,14 +390,23 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Rotation
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rot"></param>
         public void UpdateRotation(LLQuaternion rot)
         {
             this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             this.updateFlag = 2;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rot"></param>
         public void UpdateSingleRotation(LLQuaternion rot)
         {
+            //Console.WriteLine("updating single prim rotation");
             Axiom.Math.Quaternion axRot = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             Axiom.Math.Quaternion oldParentRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
             this.rotation = axRot;
@@ -367,13 +416,18 @@ namespace OpenSim.Region.Environment.Scenes
                 axPos = oldParentRot * axPos;
                 axPos = axRot.Inverse() * axPos;
                 prim.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
-                prim.rotation = prim.rotation * oldParentRot;
-                prim.rotation = prim.rotation * axRot.Inverse();
+                prim.rotation = oldParentRot * prim.rotation ;
+                prim.rotation = axRot.Inverse()* prim.rotation;
                 prim.updateFlag = 2;
             }
             this.updateFlag = 2;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="rot"></param>
         public void UpdateGroupMouseRotation(LLVector3 pos,  LLQuaternion rot)
         {
             this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
@@ -384,6 +438,10 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Shape
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
             this.m_Shape.PathBegin = shapeBlock.PathBegin;
