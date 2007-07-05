@@ -35,7 +35,7 @@ namespace OpenSim.Region.Communications.OGS1
             
             GridParams["authkey"] =  serversInfo.GridSendKey;
             GridParams["UUID"] = regionInfo.SimUUID.ToStringHyphenated();
-            GridParams["sim_ip"] = regionInfo.InternalEndPoint.Address.ToString();
+            GridParams["sim_ip"] = regionInfo.ExternalHostName;
             GridParams["sim_port"] = regionInfo.InternalEndPoint.Port.ToString();
             GridParams["region_locx"] = regionInfo.RegionLocX.ToString();
             GridParams["region_locy"] = regionInfo.RegionLocY.ToString();
@@ -166,6 +166,7 @@ namespace OpenSim.Region.Communications.OGS1
         // Grid Request Processing
         public XmlRpcResponse ExpectUser(XmlRpcRequest request)
         {
+            Console.WriteLine("Expecting User...");
             Hashtable requestData = (Hashtable)request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.SessionID = new LLUUID((string)requestData["session_id"]);

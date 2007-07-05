@@ -98,13 +98,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LocalUserServices.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="CommunicationsLocal.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LocalBackEndServices.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LocalUserServices.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

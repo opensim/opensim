@@ -26,6 +26,10 @@
 * 
 */
 using libsecondlife;
+using Nwc.XmlRpc;
+
+using System;
+using System.Collections;
 
 namespace OpenSim.Framework.Data
 {
@@ -108,5 +112,71 @@ namespace OpenSim.Framework.Data
         /// Region Map Texture Asset
         /// </summary>
         public LLUUID regionMapTextureID = new LLUUID("00000000-0000-0000-9999-000000000006");
+
+        /// <summary>
+        /// Get Sim profile data from grid server when in grid mode
+        /// </summary>
+        /// <param name="region_uuid"></param>
+        /// <param name="gridserver_url"></param>
+        /// <param name="?"></param>
+        /// <returns></returns>
+        public SimProfileData RequestSimProfileData(LLUUID region_uuid, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
+        {
+            Hashtable requestData = new Hashtable();
+            requestData["region_uuid"] = region_uuid.UUID.ToString();
+            requestData["authkey"] = gridserver_sendkey;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(requestData);
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+            XmlRpcResponse GridResp = GridReq.Send(gridserver_url, 3000);
+
+            Hashtable responseData = (Hashtable)GridResp.Value;
+
+            if (responseData.ContainsKey("error"))
+            {
+                return null;
+            }
+
+            SimProfileData simData = new SimProfileData();
+            simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
+            simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
+            simData.serverIP = (string)responseData["sim_ip"];
+            simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
+            simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
+            simData.UUID = new LLUUID((string)responseData["region_UUID"]);
+            simData.regionName = (string)responseData["region_name"];
+
+            return simData;            
+        }
+        public SimProfileData RequestSimProfileData(ulong region_handle, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
+        {
+            Hashtable requestData = new Hashtable();
+            requestData["region_handle"] = region_handle.ToString();
+            requestData["authkey"] = gridserver_sendkey;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(requestData);
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+            XmlRpcResponse GridResp = GridReq.Send(gridserver_url, 3000);
+
+            Hashtable responseData = (Hashtable)GridResp.Value;
+
+            if (responseData.ContainsKey("error"))
+            {
+                return null;
+            }
+
+            SimProfileData simData = new SimProfileData();
+            simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
+            simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
+            simData.serverIP = (string)responseData["sim_ip"];
+            simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
+            simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
+            simData.UUID = new LLUUID((string)responseData["region_UUID"]);
+            simData.regionName = (string)responseData["region_name"];
+
+            return simData; 
+        }
     }
 }

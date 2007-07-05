@@ -116,16 +116,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommunicationsOGS1.cs">
+    <Compile Include="OGS1UserServices.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OGS1GridServices.cs">
+    <Compile Include="CommunicationsOGS1.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="OGS1InterSimComms.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OGS1UserServices.cs">
+    <Compile Include="OGS1GridServices.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

@@ -11,10 +11,10 @@
             <resources prefix="OpenSim.Region.Communications.OGS1" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="CommunicationsOGS1.cs" />
-                <include name="OGS1GridServices.cs" />
-                <include name="OGS1InterSimComms.cs" />
                 <include name="OGS1UserServices.cs" />
+                <include name="CommunicationsOGS1.cs" />
+                <include name="OGS1InterSimComms.cs" />
+                <include name="OGS1GridServices.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

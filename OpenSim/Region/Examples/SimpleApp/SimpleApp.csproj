@@ -154,10 +154,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LlsdMethodEntry.cs">
+    <Compile Include="MyWorld.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MyWorld.cs">
+    <Compile Include="LlsdMethodEntry.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Program.cs">

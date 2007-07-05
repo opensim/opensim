@@ -11,14 +11,14 @@
             <resources prefix="OpenSim.Framework.Data" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="ReservationData.cs" />
                 <include name="GridData.cs" />
                 <include name="ILogData.cs" />
                 <include name="IniConfig.cs" />
                 <include name="InventoryData.cs" />
-                <include name="ReservationData.cs" />
-                <include name="SimProfileData.cs" />
                 <include name="UserData.cs" />
                 <include name="UserProfileData.cs" />
+                <include name="SimProfileData.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

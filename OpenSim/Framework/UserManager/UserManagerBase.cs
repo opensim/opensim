@@ -357,6 +357,8 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>The response to send</returns>
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
+
+            System.Console.WriteLine("Attempting login now...");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 
@@ -457,11 +459,13 @@ namespace OpenSim.Framework.UserManagement
                     {
                         System.Console.WriteLine(e.ToString());
                         return logResponse.CreateDeadRegionResponse();
+                        //return logResponse.ToXmlRpcResponse();
                     }
                     CommitAgent(ref userProfile);
                     return logResponse.ToXmlRpcResponse();
 
                 }
+                
                 catch (Exception E)
                 {
                     System.Console.WriteLine(E.ToString());

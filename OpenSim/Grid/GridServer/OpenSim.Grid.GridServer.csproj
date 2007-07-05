@@ -114,10 +114,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GridManager.cs">
+    <Compile Include="Main.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Main.cs">
+    <Compile Include="GridManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

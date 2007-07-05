@@ -29,7 +29,6 @@ using System;
 using System.Collections;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Data;
-using OpenSim.Framework.Sims;
 using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Grid.UserServer
@@ -48,23 +47,23 @@ namespace OpenSim.Grid.UserServer
         public override void CustomiseResponse(  LoginResponse response,   UserProfileData theUser)
         {
             // Load information from the gridserver
-            SimProfile SimInfo = new SimProfile();
-            SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
+            SimProfileData SimInfo = new SimProfileData();
+            SimInfo = SimInfo.RequestSimProfileData(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
 
             // Customise the response
             // Home Location
-            response.Home = "{'region_handle':[r" + (SimInfo.RegionLocX * 256).ToString() + ",r" + (SimInfo.RegionLocY * 256).ToString() + "], " +
+            response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" + (SimInfo.regionLocY * 256).ToString() + "], " +
                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
             // Destination
-            response.SimAddress = SimInfo.sim_ip;
-            response.SimPort = (Int32)SimInfo.sim_port;
-            response.RegionX = SimInfo.RegionLocY ;
-            response.RegionY = SimInfo.RegionLocX ;
+            response.SimAddress = SimInfo.serverIP;
+            response.SimPort = (Int32)SimInfo.serverPort;
+            response.RegionX = SimInfo.regionLocX;
+            response.RegionY = SimInfo.regionLocX;
 
             // Notify the target of an incoming user
-            Console.WriteLine("Notifying " + SimInfo.regionname + " (" + SimInfo.caps_url + ")");
+            Console.WriteLine("Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI+ ")");
 
             // Prepare notification
             Hashtable SimParams = new Hashtable();
@@ -83,11 +82,11 @@ namespace OpenSim.Grid.UserServer
 
             // Update agent with target sim
             theUser.currentAgent.currentRegion = SimInfo.UUID;
-            theUser.currentAgent.currentHandle = SimInfo.regionhandle;
+            theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
             // Send
             XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(SimInfo.caps_url, 3000);
+            XmlRpcResponse GridResp = GridReq.Send(SimInfo.serverURI, 3000);
         }
     }
 }

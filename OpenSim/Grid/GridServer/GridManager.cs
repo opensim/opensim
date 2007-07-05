@@ -268,6 +268,7 @@ namespace OpenSim.Grid.GridServer
                 TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
                 TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
+                Console.WriteLine("NEW SIM: " + TheSim.serverURI);
                 TheSim.regionName = (string)requestData["sim_name"];
                 TheSim.UUID = new LLUUID((string)requestData["UUID"]);
 
@@ -374,6 +375,40 @@ namespace OpenSim.Grid.GridServer
         
 
         return response;
+        }
+
+        public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+            SimProfileData simData = null;
+            if (requestData.ContainsKey("region_UUID"))
+            {
+                simData = getRegion(new LLUUID((string)requestData["region_UUID"]));
+            }
+            else if (requestData.ContainsKey("region_handle"))
+            {
+                simData = getRegion(Convert.ToUInt64((string)requestData["region_handle"]));
+            }
+
+            if (simData == null)
+            {
+                //Sim does not exist
+                responseData["error"] = "Sim does not exist";
+            }
+            else
+            {
+                responseData["sim_ip"] = simData.serverIP;
+                responseData["sim_port"] = simData.serverPort.ToString();
+                responseData["region_locx"] = simData.regionLocX;
+                responseData["region_locy"] = simData.regionLocY;
+                responseData["region_UUID"] = simData.UUID.UUID.ToString();
+                responseData["region_name"] = simData.regionName;
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = responseData;
+            return response;
         }
 
         public XmlRpcResponse XmlRpcMapBlockMethod(XmlRpcRequest request)

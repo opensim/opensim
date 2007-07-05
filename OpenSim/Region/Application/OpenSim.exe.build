@@ -11,9 +11,9 @@
             <resources prefix="OpenSim" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
+                <include name="VersionInfo.cs" />
                 <include name="Application.cs" />
                 <include name="OpenSimMain.cs" />
-                <include name="VersionInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">
                 <lib>
