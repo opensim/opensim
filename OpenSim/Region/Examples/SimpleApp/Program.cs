@@ -51,7 +51,7 @@ namespace SimpleApp
             NetworkServersInfo serverInfo = new NetworkServersInfo();
             CommunicationsLocal communicationsManager = new CommunicationsLocal(serverInfo);
 
-            RegionInfo regionInfo = new RegionInfo( 1000, 1000, internalEndPoint, "localhost" );
+            RegionInfo regionInfo = new RegionInfo( 1000, 1000, internalEndPoint, "127.0.0.1" );
 
             BaseHttpServer httpServer = new BaseHttpServer( internalEndPoint.Port );
             MyWorld world = new MyWorld(packetServer.ClientAPIs, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);

@@ -199,7 +199,7 @@ namespace OpenSim.Framework.Types
                 int internalPort = GetIPPort(configData, "InternalIPPort", "9000", "Internal IP Port for UDP client connections");
                 m_internalEndPoint = new IPEndPoint(internalAddress, internalPort);
 
-                m_externalHostName = GetString(configData, "ExternalHostName", "localhost", "External Host Name");
+                m_externalHostName = GetString(configData, "ExternalHostName", "127.0.0.1", "External Host Name");
 
                 estateSettings.terrainFile =
                     GetString(configData, "TerrainFile", "default.r32", "GENERAL SETTING: Default Terrain File");                
