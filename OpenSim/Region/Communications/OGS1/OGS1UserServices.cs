@@ -35,8 +35,9 @@ namespace OpenSim.Region.Communications.OGS1
             userData.profileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
             userData.profileImage = new LLUUID((string)data["profile_image"]);
             userData.lastLogin = Convert.ToInt32((string)data["profile_lastlogin"]);
-            userData.homeLocation = new LLVector3();
-            userData.homeLookAt = new LLVector3();
+            userData.homeRegion = Convert.ToUInt64((string)data["home_region"]);
+            userData.homeLocation = new LLVector3((float)Convert.ToDecimal((string)data["home_coordinates_x"]), (float)Convert.ToDecimal((string)data["home_coordinates_y"]), (float)Convert.ToDecimal((string)data["home_coordinates_z"]));
+            userData.homeLookAt = new LLVector3((float)Convert.ToDecimal((string)data["home_look_x"]), (float)Convert.ToDecimal((string)data["home_look_y"]), (float)Convert.ToDecimal((string)data["home_look_z"]));
 
             return userData;
         }

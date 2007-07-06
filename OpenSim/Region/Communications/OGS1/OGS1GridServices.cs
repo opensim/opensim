@@ -83,26 +83,29 @@ namespace OpenSim.Region.Communications.OGS1
 
             List<RegionInfo> neighbours = new List<RegionInfo>();
 
-            foreach (Hashtable n in (Hashtable)respData.Values)
+            foreach (ArrayList a in respData.Values)
             {
-                string internalIpStr = (string)n["sim_ip"];
-                int port = (int)n["sim_port"];
-                string externalUri = (string)n["sim_uri"];
-                
-                IPEndPoint neighbourInternalEndPoint = new IPEndPoint( IPAddress.Parse( internalIpStr ), port);
-                string neighbourExternalUri = externalUri;
+                foreach (Hashtable n in a)
+                {
+                    string internalIpStr = (string)n["sim_ip"];
+                    int port = (int)n["sim_port"];
+                    string externalUri = (string)n["sim_uri"];
 
-                RegionInfo neighbour = new RegionInfo((uint)n["x"], (uint)n["y"], neighbourInternalEndPoint, neighbourExternalUri );
+                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), port);
+                    string neighbourExternalUri = externalUri;
 
-                //OGS1
-                //neighbour.RegionHandle = (ulong)n["regionhandle"]; is now calculated locally
+                    RegionInfo neighbour = new RegionInfo((uint)n["x"], (uint)n["y"], neighbourInternalEndPoint, neighbourExternalUri);
 
-                neighbour.RegionName = (string)n["name"];
+                    //OGS1
+                    //neighbour.RegionHandle = (ulong)n["regionhandle"]; is now calculated locally
 
-                //OGS1+
-                neighbour.SimUUID = (string)n["uuid"];
+                    neighbour.RegionName = (string)n["name"];
 
-                neighbours.Add(neighbour);
+                    //OGS1+
+                    neighbour.SimUUID = (string)n["uuid"];
+
+                    neighbours.Add(neighbour);
+                }
             }
 
             return neighbours;

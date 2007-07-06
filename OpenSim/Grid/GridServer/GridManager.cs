@@ -400,8 +400,8 @@ namespace OpenSim.Grid.GridServer
             {
                 responseData["sim_ip"] = simData.serverIP;
                 responseData["sim_port"] = simData.serverPort.ToString();
-                responseData["region_locx"] = simData.regionLocX;
-                responseData["region_locy"] = simData.regionLocY;
+                responseData["region_locx"] = simData.regionLocX.ToString() ;
+                responseData["region_locy"] = simData.regionLocY.ToString();
                 responseData["region_UUID"] = simData.UUID.UUID.ToString();
                 responseData["region_name"] = simData.regionName;
             }

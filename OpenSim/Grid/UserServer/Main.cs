@@ -120,8 +120,8 @@ namespace OpenSim.Grid.UserServer
                     string tempfirstname;
                     string templastname;
                     string tempMD5Passwd;
-                    uint regX = 997;
-                    uint regY = 996;
+                    uint regX = 1000;
+                    uint regY = 1000;
 
                     tempfirstname = m_console.CmdPrompt("First name");
                     templastname = m_console.CmdPrompt("Last name");

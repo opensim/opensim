@@ -565,10 +565,15 @@ namespace OpenSim.Framework.UserManagement
             responseData["profile_created"] = profile.created.ToString();
             responseData["profile_lastlogin"] = profile.lastLogin.ToString();
             // Home region information
-            responseData["home_coordinates"]  = profile.homeLocation.ToString();
-            responseData["home_region"]  = profile.homeRegion.ToString();
-            responseData["home_look"]  = profile.homeLookAt.ToString();
+            responseData["home_coordinates_x"] = profile.homeLocation.X.ToString();
+            responseData["home_coordinates_y"] = profile.homeLocation.Y.ToString();
+            responseData["home_coordinates_z"] = profile.homeLocation.Z.ToString();
 
+            responseData["home_region"]  = profile.homeRegion.ToString();
+
+            responseData["home_look_x"] = profile.homeLookAt.X.ToString();
+            responseData["home_look_y"] = profile.homeLookAt.Y.ToString();
+            responseData["home_look_z"] = profile.homeLookAt.Z.ToString();
             response.Value = responseData;
             return response;
         }

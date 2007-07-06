@@ -57,6 +57,7 @@ namespace OpenSim.Grid.UserServer
                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
             // Destination
+            Console.WriteLine("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " + SimInfo.regionLocY);
             response.SimAddress = SimInfo.serverIP;
             response.SimPort = (Int32)SimInfo.serverPort;
             response.RegionX = SimInfo.regionLocX;

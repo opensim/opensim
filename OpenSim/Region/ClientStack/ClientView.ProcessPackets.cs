@@ -41,11 +41,12 @@ namespace OpenSim.Region.ClientStack
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
+            debug = true;
             if (debug)
             {
                 if (Pack.Type != PacketType.AgentUpdate)
                 {
-                    Console.WriteLine(Pack.Type.ToString());
+                    Console.WriteLine("IN: " + Pack.Type.ToString());
                 }
             }
 
