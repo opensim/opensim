@@ -527,21 +527,6 @@ namespace OpenSim.Region.ClientStack
             OutPacket(avp);
         }
 
-	public void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
-	{
-	    AvatarAnimationPacket ani = new AvatarAnimationPacket();
-	    ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
-	    ani.AnimationSourceList[0] = new AvatarAnimationPacket.AnimationSourceListBlock();
-	    ani.AnimationSourceList[0].ObjectID = sourceAgentId;
-	    ani.Sender = new AvatarAnimationPacket.SenderBlock();
-	    ani.Sender.ID = sourceAgentId;
-	    ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
-	    ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
-	    ani.AnimationList[0].AnimID = animID;
-	    ani.AnimationList[0].AnimSequenceID = seq;
-	    this.OutPacket(ani);
-	}
-
         #endregion
 
         #region Avatar Packet/data sending Methods
