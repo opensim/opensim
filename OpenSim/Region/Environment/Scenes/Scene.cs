@@ -450,6 +450,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRegionHandShakeReply += this.SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnChatFromViewer += this.SimChat;
+            client.OnInstantMessage += this.InstantMessage;
             client.OnRequestWearables += this.InformClientOfNeighbours;
             client.OnAddPrim += this.AddNewPrim;
             client.OnUpdatePrimPosition += this.UpdatePrimPosition;

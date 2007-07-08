@@ -92,6 +92,20 @@ namespace OpenSim.Region.ClientStack
                             this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
                         }
                         break;
+                    case PacketType.ImprovedInstantMessage:
+                        ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
+
+                        string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
+                        string IMmessage = Util.FieldToString(msgpack.MessageBlock.Message);
+
+                        if (OnInstantMessage != null)
+                        {
+                            this.OnInstantMessage(msgpack.AgentData.AgentID, msgpack.MessageBlock.ToAgentID,
+                                msgpack.MessageBlock.Timestamp, IMfromName, IMmessage);
+                        }
+
+                        break;
+
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
                         AgentInventory inven = this.m_inventoryCache.GetAgentsInventory(this.AgentID);

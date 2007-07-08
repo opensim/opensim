@@ -100,6 +100,30 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        /// <remarks>Inefficient. TODO: Fixme</remarks>
+        /// <param name="fromAgentID"></param>
+        /// <param name="toAgentID"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="fromAgentName"></param>
+        /// <param name="message"></param>
+        public void InstantMessage(LLUUID fromAgentID, LLUUID toAgentID, uint timestamp, string fromAgentName, string message)
+        {
+            if (this.Avatars.ContainsKey(toAgentID))
+            {
+                // Local sim message
+                ScenePresence avatar = this.Avatars[toAgentID];
+
+                
+            }
+            else
+            {
+                // Grid message
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="message"></param>
         /// <param name="type"></param>
         /// <param name="fromPos"></param>

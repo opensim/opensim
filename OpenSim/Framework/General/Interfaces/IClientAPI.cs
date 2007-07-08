@@ -34,6 +34,7 @@ using OpenSim.Framework.Types;
 namespace OpenSim.Framework.Interfaces
 {
     public delegate void ChatFromViewer(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
+    public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID toAgentID, uint timestamp, string fromAgentName, string message); // Cut down from full list
     public delegate void RezObject(AssetBase primAsset, LLVector3 pos);
     public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west);
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
@@ -74,6 +75,7 @@ namespace OpenSim.Framework.Interfaces
 
     public interface IClientAPI
     {
+        event ImprovedInstantMessage OnInstantMessage;
         event ChatFromViewer OnChatFromViewer;
         event RezObject OnRezObject;
         event ModifyTerrain OnModifyTerrain;
@@ -146,6 +148,7 @@ namespace OpenSim.Framework.Interfaces
         void SendRegionHandshake(RegionInfo regionInfo);
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
+        void SendInstantMessage(string message, LLUUID target);
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);

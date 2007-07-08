@@ -40,6 +40,7 @@ namespace OpenSim.Region.ClientStack
 {
     partial class ClientView
     {
+        public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
         public event RezObject OnRezObject;
         public event GenericCall4 OnDeRezObject;
@@ -236,6 +237,30 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(reply);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>TODO</remarks>
+        /// <param name="message"></param>
+        /// <param name="target"></param>
+        public void SendInstantMessage(string message, LLUUID target)
+        {
+            ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
+            msg.AgentData.AgentID = this.AgentID;
+            msg.AgentData.SessionID = this.SessionID;
+
+            msg.MessageBlock.Dialog = 0;
+            msg.MessageBlock.FromGroup = false;
+            msg.MessageBlock.ID = target.Combine(this.AgentID);
+            msg.MessageBlock.Offline = 0;
+            msg.MessageBlock.ParentEstateID = 0;
+            msg.MessageBlock.Position = new LLVector3();
+            msg.MessageBlock.RegionID = new LLUUID();
+            msg.MessageBlock.Timestamp = 0;
+            msg.MessageBlock.ToAgentID = target;
+
+            this.OutPacket(msg);
+        }
 
         /// <summary>
         ///  Send the region heightmap to the client
