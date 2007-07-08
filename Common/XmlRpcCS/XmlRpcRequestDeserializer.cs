@@ -56,6 +56,7 @@ namespace Nwc.XmlRpc
         override public Object Deserialize(TextReader xmlData)
         {
             XmlTextReader reader = new XmlTextReader(xmlData);
+            
             XmlRpcRequest request = new XmlRpcRequest();
             bool done = false;
 

@@ -57,8 +57,8 @@ namespace Nwc.XmlRpc
         {
             _client = client;
             
-            _output = new StreamWriter(client.GetStream(), Encoding.UTF8 );            
-            _input = new StreamReader(client.GetStream(), Encoding.UTF8 );
+            _output = new StreamWriter(client.GetStream() );            
+            _input = new StreamReader(client.GetStream() );
             
             GetRequestMethod();
             GetRequestHeaders();

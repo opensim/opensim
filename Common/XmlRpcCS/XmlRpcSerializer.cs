@@ -56,16 +56,15 @@ namespace Nwc.XmlRpc
         {
             using (MemoryStream memStream = new MemoryStream(4096))
             {
-                XmlTextWriter xml = new XmlTextWriter(memStream, Encoding.UTF8);
+                XmlTextWriter xml = new XmlTextWriter( memStream, null );
                 xml.Formatting = Formatting.Indented;
-                xml.Indentation = 4;
+                xml.Indentation = 4;                
                 Serialize(xml, obj);
                 xml.Flush();
 
                 byte[] resultBytes = memStream.ToArray();
                 
                 UTF8Encoding encoder = new UTF8Encoding();
-                
                 String returns = encoder.GetString( resultBytes, 0, resultBytes.Length );
                 xml.Close();
                 return returns;
