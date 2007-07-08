@@ -110,10 +110,16 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (this.Avatars.ContainsKey(toAgentID))
             {
-                // Local sim message
-                ScenePresence avatar = this.Avatars[toAgentID];
-
-                avatar.ControllingClient.SendInstantMessage(message, toAgentID);
+                if (this.Avatars.ContainsKey(fromAgentID))
+                {
+                    // Local sim message
+                    ScenePresence avatar = this.Avatars[fromAgentID];
+                    avatar.ControllingClient.SendInstantMessage(message, toAgentID);
+                }
+                else
+                {
+                    // Message came from a user outside the sim, ignore?
+                }
             }
             else
             {
