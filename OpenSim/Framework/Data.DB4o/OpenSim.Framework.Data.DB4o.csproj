@@ -66,6 +66,10 @@
       <HintPath>..\..\..\bin\libsecondlife.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="OpenSim.Framework.Data" >
+      <HintPath>OpenSim.Framework.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" >
       <HintPath>System.dll</HintPath>
       <Private>False</Private>
@@ -80,12 +84,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Data\OpenSim.Framework.Data.csproj">
-      <Name>OpenSim.Framework.Data</Name>
-      <Project>{36B72A9B-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-			<Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DB4oGridData.cs">

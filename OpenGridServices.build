@@ -46,7 +46,6 @@
         <echo message="Deleting all builds from all configurations" />
         <delete dir="${bin.dir}" failonerror="false" />
         <delete dir="${obj.dir}" failonerror="false" />
-        <nant buildfile="OpenSim/Framework/Data/OpenSim.Framework.Data.dll.build" target="clean" />
         <nant buildfile="OpenSim/Framework/Data.DB4o/OpenSim.Framework.Data.DB4o.dll.build" target="clean" />
         <nant buildfile="OpenSim/Framework/Data.MSSQL/OpenSim.Framework.Data.MSSQL.dll.build" target="clean" />
         <nant buildfile="OpenSim/Framework/Data.MySQL/OpenSim.Framework.Data.MySQL.dll.build" target="clean" />
@@ -61,7 +60,6 @@
     </target>
 
     <target name="build" depends="init" description="">
-        <nant buildfile="OpenSim/Framework/Data/OpenSim.Framework.Data.dll.build" target="build" />
         <nant buildfile="OpenSim/Framework/Data.MySQL/OpenSim.Framework.Data.MySQL.dll.build" target="build" />
         <nant buildfile="OpenSim/Framework/Data.DB4o/OpenSim.Framework.Data.DB4o.dll.build" target="build" />
         <nant buildfile="OpenSim/Framework/Data.MSSQL/OpenSim.Framework.Data.MSSQL.dll.build" target="build" />
@@ -83,7 +81,6 @@
 
     <target name="doc" depends="build-release">
         <echo message="Generating all documentation from all builds" />
-        <nant buildfile="OpenSim/Framework/Data/OpenSim.Framework.Data.dll.build" target="doc" />
         <nant buildfile="OpenSim/Framework/Data.DB4o/OpenSim.Framework.Data.DB4o.dll.build" target="doc" />
         <nant buildfile="OpenSim/Framework/Data.MSSQL/OpenSim.Framework.Data.MSSQL.dll.build" target="doc" />
         <nant buildfile="OpenSim/Framework/Data.MySQL/OpenSim.Framework.Data.MySQL.dll.build" target="doc" />

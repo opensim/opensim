@@ -25,7 +25,7 @@
                 </lib>
                 <include name="../../../bin/libsecondlife.dll" />
                 <include name="../../../bin/MySql.Data.dll" />
-                <include name="../../../bin/OpenSim.Framework.Data.dll" />
+                <include name="OpenSim.Framework.Data.dll" />
                 <include name="System.dll" />
                 <include name="System.Data.dll" />
                 <include name="System.Xml.dll" />
