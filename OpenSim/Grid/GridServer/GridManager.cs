@@ -602,12 +602,6 @@ namespace OpenSim.Grid.GridServer
                 return "ERROR! bad XML - expected sim tag";
             }
 
-            if (authkeynode.InnerText != TheSim.regionRecvKey)
-            {
-                MainLog.Instance.Warn("Invalid Key Attempt on region update");
-                return "ERROR! invalid key";
-            }
-
             //TheSim.regionSendKey = Cfg;
             TheSim.regionRecvKey = config.SimRecvKey;
             TheSim.regionSendKey = config.SimSendKey;
@@ -668,7 +662,7 @@ namespace OpenSim.Grid.GridServer
                     {
                         //Check reservations
                         ReservationData reserveData = kvp.Value.GetReservationAtPoint(TheSim.regionLocX, TheSim.regionLocY);
-                        if ((reserveData != null && reserveData.gridRecvKey == TheSim.regionRecvKey) || (reserveData == null))
+                        if ((reserveData != null && reserveData.gridRecvKey == TheSim.regionRecvKey) || (reserveData == null && authkeynode.InnerText != TheSim.regionRecvKey))
                         {
                             kvp.Value.AddProfile(TheSim);
                             MainLog.Instance.Verbose("New sim added to grid (" + TheSim.regionName + ")");
