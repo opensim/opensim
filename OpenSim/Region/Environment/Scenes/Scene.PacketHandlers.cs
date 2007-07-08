@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Local sim message
                 ScenePresence avatar = this.Avatars[toAgentID];
 
-                
+                avatar.ControllingClient.SendInstantMessage(message, toAgentID);
             }
             else
             {
