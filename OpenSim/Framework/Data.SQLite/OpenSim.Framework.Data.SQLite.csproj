@@ -88,10 +88,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SQLiteManager.cs">
+    <Compile Include="SQLiteGridData.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SQLiteGridData.cs">
+    <Compile Include="SQLiteManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

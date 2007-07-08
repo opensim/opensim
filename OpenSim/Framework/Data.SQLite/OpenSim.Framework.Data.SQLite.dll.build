@@ -11,8 +11,8 @@
             <resources prefix="OpenSim.Framework.Data.SQLite" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="SQLiteManager.cs" />
                 <include name="SQLiteGridData.cs" />
+                <include name="SQLiteManager.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

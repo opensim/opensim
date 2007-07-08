@@ -88,13 +88,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DB4oUserData.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DB4oGridData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DB4oManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DB4oUserData.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

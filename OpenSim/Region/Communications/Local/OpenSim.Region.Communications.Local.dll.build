@@ -11,9 +11,9 @@
             <resources prefix="OpenSim.Region.Communications.Local" dynamicprefix="true" >
             </resources>
             <sources failonempty="true">
-                <include name="LocalUserServices.cs" />
                 <include name="CommunicationsLocal.cs" />
                 <include name="LocalBackEndServices.cs" />
+                <include name="LocalUserServices.cs" />
                 <include name="Properties/AssemblyInfo.cs" />
             </sources>
             <references basedir="${project::get-base-directory()}">

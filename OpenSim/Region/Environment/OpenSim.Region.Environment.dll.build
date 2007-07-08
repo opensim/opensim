@@ -40,6 +40,7 @@
                 <include name="Scenes/scripting/Engines/JVMEngine/InterpreterLogic.cs" />
                 <include name="Scenes/scripting/Engines/JVMEngine/InterpreterMethods.cs" />
                 <include name="Scenes/scripting/Engines/JVMEngine/InterpreterReturn.cs" />
+                <include name="Scenes/scripting/Engines/JVMEngine/JavaEngine.cs" />
                 <include name="Scenes/scripting/Engines/JVMEngine/MainMemory.cs" />
                 <include name="Scenes/scripting/Engines/JVMEngine/MethodMemory.cs" />
                 <include name="Scenes/scripting/Engines/JVMEngine/Object.cs" />
