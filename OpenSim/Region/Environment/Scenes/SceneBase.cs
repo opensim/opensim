@@ -34,13 +34,14 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Terrain;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase :  IWorld 
     {
         public Dictionary<LLUUID, EntityBase> Entities;
-        protected Dictionary<uint, IClientAPI> m_clientThreads;
+        protected ClientManager m_clientThreads;
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected RegionInfo m_regInfo;

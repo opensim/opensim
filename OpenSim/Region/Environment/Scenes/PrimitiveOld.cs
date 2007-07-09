@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         internal PrimData primData;
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
-       // private Dictionary<uint, IClientAPI> m_clientThreads;
+       // private ClientManager m_clientThreads;
         private ulong m_regionHandle;
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
         private bool physicsEnabled = false;

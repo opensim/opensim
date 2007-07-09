@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(Dictionary<uint, IClientAPI> clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
+        public Scene(ClientManager clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
         {
             updateLock = new Mutex(false);
             this.authenticateHandler = authen;
@@ -229,11 +229,11 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                foreach (IClientAPI client in m_clientThreads.Values)
-                {
-                    this.SendLayerData(client);
-                }
-
+                m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                                                  {
+                                                      this.SendLayerData(client);
+                                                  });
+                
                 foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].LandRenegerated();
@@ -260,10 +260,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                foreach (IClientAPI client in m_clientThreads.Values)
-                {
-                    this.SendLayerData(client);
-                }
+                m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                                                  {
+                                                      this.SendLayerData(client);
+                                                  });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -290,10 +290,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     /* Dont save here, rely on tainting system instead */
 
-                    foreach (IClientAPI client in m_clientThreads.Values)
-                    {
-                        this.SendLayerData(pointx, pointy, client);
-                    }
+                    m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                                                      {
+                                                          this.SendLayerData(pointx, pointy, client);
+                                                      });
                 }
             }
             catch (Exception e)

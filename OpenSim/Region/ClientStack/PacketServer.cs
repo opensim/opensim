@@ -41,7 +41,7 @@ namespace OpenSim.Region.ClientStack
         private ClientStackNetworkHandler _networkHandler;
         private IWorld _localWorld;
         public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
-        public Dictionary<uint, IClientAPI> ClientAPIs = new Dictionary<uint, IClientAPI>();
+        public ClientManager ClientAPIs = new ClientManager();
 
         public PacketServer(ClientStackNetworkHandler networkHandler)
         {

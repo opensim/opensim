@@ -139,48 +139,50 @@ namespace OpenSim.Region.Environment.Scenes
         {
            // Console.WriteLine("Chat message");
             ScenePresence avatar = null;
-            foreach (IClientAPI client in m_clientThreads.Values)
-            {
-                int dis = -1000;
-                if (this.Avatars.ContainsKey(client.AgentId))
-                {
-                    
-                    avatar = this.Avatars[client.AgentId];
-                    // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
-                    dis= (int)avatar.Pos.GetDistanceTo(fromPos);
-                    //Console.WriteLine("found avatar at " +dis);
 
-                }
-             
-                switch (type)
-                {
-                    case 0: // Whisper
-                        if ((dis < 10) && (dis > -10))
-                        {
-                            //should change so the message is sent through the avatar rather than direct to the ClientView
-                            client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
-                        }
-                        break;
-                    case 1: // Say
-                        if ((dis < 30) && (dis > -30))
-                        {
-                            Console.WriteLine("sending chat");
-                            client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
-                        }
-                        break;
-                    case 2: // Shout
-                        if ((dis < 100) && (dis > -100))
-                        {
-                            client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
-                        }
-                        break;
+            m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                                              {
+                                                  int dis = -1000;
+                                                  if (this.Avatars.ContainsKey(client.AgentId))
+                                                  {
+                                                      avatar = this.Avatars[client.AgentId];
+                                                      // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                                                      dis = (int) avatar.Pos.GetDistanceTo(fromPos);
+                                                      //Console.WriteLine("found avatar at " +dis);
+                                                  }
 
-                    case 0xff: // Broadcast
-                        client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
-                        break;
-                }
+                                                  switch (type)
+                                                  {
+                                                      case 0: // Whisper
+                                                          if ((dis < 10) && (dis > -10))
+                                                          {
+                                                              //should change so the message is sent through the avatar rather than direct to the ClientView
+                                                              client.SendChatMessage(message, type, fromPos, fromName,
+                                                                                     fromAgentID);
+                                                          }
+                                                          break;
+                                                      case 1: // Say
+                                                          if ((dis < 30) && (dis > -30))
+                                                          {
+                                                              Console.WriteLine("sending chat");
+                                                              client.SendChatMessage(message, type, fromPos, fromName,
+                                                                                     fromAgentID);
+                                                          }
+                                                          break;
+                                                      case 2: // Shout
+                                                          if ((dis < 100) && (dis > -100))
+                                                          {
+                                                              client.SendChatMessage(message, type, fromPos, fromName,
+                                                                                     fromAgentID);
+                                                          }
+                                                          break;
 
-            }
+                                                      case 0xff: // Broadcast
+                                                          client.SendChatMessage(message, type, fromPos, fromName,
+                                                                                 fromAgentID);
+                                                          break;
+                                                  }
+                                              });
         }
 
         /// <summary>
