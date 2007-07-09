@@ -98,13 +98,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(ClientManager clientThreads, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
+        public Scene(ClientManager clientManager, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
         {
             updateLock = new Mutex(false);
             this.authenticateHandler = authen;
             this.commsManager = commsMan;
             this.assetCache = assetCach;
-            m_clientThreads = clientThreads;
+            m_clientManager = clientManager;
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                m_clientManager.ForEachClient(delegate(IClientAPI client)
                                                   {
                                                       this.SendLayerData(client);
                                                   });
@@ -260,7 +260,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 this.localStorage.SaveMap(this.Terrain.getHeights1D());
 
-                m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                m_clientManager.ForEachClient(delegate(IClientAPI client)
                                                   {
                                                       this.SendLayerData(client);
                                                   });
@@ -290,7 +290,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     /* Dont save here, rely on tainting system instead */
 
-                    m_clientThreads.ForEachClient(delegate(IClientAPI client)
+                    m_clientManager.ForEachClient(delegate(IClientAPI client)
                                                       {
                                                           this.SendLayerData(pointx, pointy, client);
                                                       });

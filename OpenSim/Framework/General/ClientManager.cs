@@ -8,11 +8,11 @@ namespace OpenSim.Framework
     public delegate void ForEachClientDelegate( IClientAPI client );
     public class ClientManager
     {
-        private Dictionary<uint, IClientAPI> m_clientThreads;
+        private Dictionary<uint, IClientAPI> m_clients;
                 
         public void ForEachClient(ForEachClientDelegate whatToDo)
         {
-            foreach (IClientAPI client in m_clientThreads.Values)
+            foreach (IClientAPI client in m_clients.Values)
             {
                 whatToDo(client);
             }
@@ -20,12 +20,12 @@ namespace OpenSim.Framework
         
         public ClientManager()
         {
-            m_clientThreads = new Dictionary<uint, IClientAPI>();
+            m_clients = new Dictionary<uint, IClientAPI>();
         }
 
         public void Add(uint id, IClientAPI client )
         {
-            m_clientThreads.Add( id, client );
+            m_clients.Add( id, client );
         }
     }
 }

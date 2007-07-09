@@ -41,7 +41,11 @@ namespace OpenSim.Region.ClientStack
         private ClientStackNetworkHandler _networkHandler;
         private IWorld _localWorld;
         public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
-        public ClientManager ClientAPIs = new ClientManager();
+        private ClientManager m_clientManager = new ClientManager();
+        public ClientManager ClientManager
+        {
+            get { return m_clientManager; }
+        }
 
         public PacketServer(ClientStackNetworkHandler networkHandler)
         {
@@ -150,7 +154,7 @@ namespace OpenSim.Region.ClientStack
                                 authenticateSessionsClass);
             
             this.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
-            this.ClientAPIs.Add(useCircuit.CircuitCode.Code, (IClientAPI)newuser);
+            this.m_clientManager.Add(useCircuit.CircuitCode.Code, (IClientAPI)newuser);
 
             return true;
         }

@@ -217,7 +217,7 @@ namespace OpenSim
                 m_udpServer.Add(udpServer);
                 this.regionData.Add(regionDat);
 
-                LocalWorld = new Scene(udpServer.PacketServer.ClientAPIs, regionDat, authenBase, commsManager, this.AssetCache, httpServer);
+                LocalWorld = new Scene(udpServer.PacketServer.ClientManager, regionDat, authenBase, commsManager, this.AssetCache, httpServer);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;
