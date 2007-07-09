@@ -141,7 +141,42 @@ namespace OpenSim.Region.Environment.Scenes
             this.CreateFromPacket(addPacket, ownerID, localID);
             this.rotation = Axiom.Math.Quaternion.Identity;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>Empty constructor for duplication</remarks>
+        public Primitive()
+        {
+
+        }
+
         #endregion
+
+        #region Duplication
+
+        public Primitive Copy(EntityBase parent, SceneObject rootParent)
+        {
+            Primitive dupe = (Primitive)this.MemberwiseClone();
+            // TODO: Copy this properly.
+            dupe.inventoryItems = this.inventoryItems;
+            dupe.m_Parent = parent;
+            dupe.m_RootParent = rootParent;
+            // TODO: Copy this properly.
+            dupe.m_Shape = this.m_Shape;
+
+            uint newLocalID = this.m_world.PrimIDAllocate();
+            dupe.LocalId = newLocalID;
+
+            dupe.Scale = new LLVector3(this.Scale.X, this.Scale.Y, this.Scale.Z);
+            dupe.rotation = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
+            dupe.Pos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
+
+            return dupe;
+        }
+
+        #endregion
+
 
         #region Override from EntityBase
         /// <summary>

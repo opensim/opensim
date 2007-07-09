@@ -57,6 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
         private float timeStep = 0.1f;
         private Random Rand = new Random();
         private uint _primCount = 702000;
+        private System.Threading.Mutex _primAllocateMutex = new Mutex(false);
         private int storageCount;
         private Mutex updateLock;
 
@@ -397,6 +398,22 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// Returns a new unallocated primitive ID
+        /// </summary>
+        /// <returns>A brand new primitive ID</returns>
+        public uint PrimIDAllocate()
+        {
+            uint myID;
+
+            _primAllocateMutex.WaitOne();
+            ++_primCount;
+            myID = _primCount;
+            _primAllocateMutex.ReleaseMutex();
+
+            return myID;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="addPacket"></param>
@@ -415,9 +432,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                SceneObject sceneOb = new SceneObject(m_regionHandle, this, addPacket, ownerID, this._primCount);
+                SceneObject sceneOb = new SceneObject(m_regionHandle, this, addPacket, ownerID, this.PrimIDAllocate());
                 this.Entities.Add(sceneOb.rootUUID, sceneOb);
-                this._primCount++;
 
                 // Trigger event for listeners
                 // eventManager.TriggerOnNewPrimitive(prim);
@@ -468,6 +484,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectDescription += this.PrimDescription;
             client.OnObjectName += this.PrimName;
             client.OnLinkObjects += this.LinkObjects;
+            client.OnObjectDuplicate += this.DuplicateObject;
 
             /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);

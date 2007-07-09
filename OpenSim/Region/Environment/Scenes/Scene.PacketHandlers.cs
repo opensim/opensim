@@ -215,6 +215,39 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="originalPrim"></param>
+        /// <param name="offset"></param>
+        /// <param name="flags"></param>
+        public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags)
+        {
+            SceneObject originPrim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    if (((SceneObject)ent).rootLocalID == originalPrim)
+                    {
+                        originPrim = (SceneObject)ent;
+                        break;
+                    }
+                }
+            }
+
+            if (originPrim != null)
+            {
+                //SceneObject copy = originPrim.Copy();
+
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Warn("Attempted to duplicate nonexistant prim");
+            }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="parentPrim"></param>
         /// <param name="childPrims"></param>
         public void LinkObjects(uint parentPrim, List<uint> childPrims)

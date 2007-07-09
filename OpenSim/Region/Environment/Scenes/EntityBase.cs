@@ -74,6 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint LocalId
         {
             get { return m_localId; }
+            set { m_localId = value; }
         }
 
         /// <summary>
@@ -119,6 +120,15 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void BackUp()
         {
 
+        }
+
+        /// <summary>
+        /// Copies the entity
+        /// </summary>
+        /// <returns></returns>
+        public virtual EntityBase Copy()
+        {
+            return (EntityBase)this.MemberwiseClone();
         }
 
         /// <summary>

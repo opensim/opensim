@@ -78,6 +78,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        /// <remarks>Need a null constructor for duplication</remarks>
+        public SceneObject()
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="addPacket"></param>
         /// <param name="agentID"></param>
         /// <param name="localID"></param>
@@ -95,6 +104,25 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateFromBytes(byte[] data)
         {
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>A complete copy of the object</returns>
+        public SceneObject Copy()
+        {
+            SceneObject dupe = new SceneObject();
+
+            Primitive newRoot = this.rootPrimitive.Copy((EntityBase)dupe, dupe);
+
+            foreach (EntityBase child in this.children)
+            {
+                EntityBase newChild = child.Copy();
+                dupe.children.Add(newChild);
+            }
+
+            return dupe;
         }
 
         /// <summary>

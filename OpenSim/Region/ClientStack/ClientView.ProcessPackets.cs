@@ -233,6 +233,18 @@ namespace OpenSim.Region.ClientStack
                             }
                         }
                         break;
+                    case PacketType.ObjectDuplicate:
+                        ObjectDuplicatePacket dupe = (ObjectDuplicatePacket)Pack;
+                        for (int i = 0; i < dupe.ObjectData.Length; i++)
+                        {
+                            if (OnObjectDuplicate != null)
+                            {
+                                OnObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset, dupe.SharedData.DuplicateFlags);
+                            }
+                        }
+
+                        break;
+
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
                         for (int i = 0; i < incomingselect.ObjectData.Length; i++)
