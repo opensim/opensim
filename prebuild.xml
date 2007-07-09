@@ -918,35 +918,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.UserManagement" path="OpenSim/Framework/UserManager" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Framework.GenericConfig.Xml"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Db4objects.Db4o.dll"/>
-      <Reference name="XMLRPC.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
 
     <Project name="OpenSim.Grid.UserServer" path="OpenSim/Grid/UserServer" type="Exe">
       <Configuration name="Debug">
