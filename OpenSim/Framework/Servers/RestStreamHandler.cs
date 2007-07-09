@@ -23,7 +23,7 @@ namespace OpenSim.Framework.Servers
             return Encoding.UTF8.GetBytes(responseString);
         }
 
-        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod) : base( path, httpMethod )
+        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod) : base( httpMethod, path )
         {
             m_restMethod = restMethod;
         }

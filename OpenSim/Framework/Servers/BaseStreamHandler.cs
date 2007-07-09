@@ -31,7 +31,7 @@ namespace OpenSim.Framework.Servers
         
         public abstract byte[] Handle(string path, Stream request);
 
-        protected BaseStreamHandler(string path, string httpMethod )
+        protected BaseStreamHandler(string httpMethod, string path)
         {
             m_httpMethod = httpMethod;
             m_path = path;

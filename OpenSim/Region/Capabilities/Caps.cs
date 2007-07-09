@@ -74,23 +74,16 @@ namespace OpenSim.Region.Capabilities
             string capsBase = "/CAPS/" + m_capsObjectPath;
 
 
-            AddLegacyCapsHandler( httpListener, m_mapLayerPath, MapLayer);
+            //AddLegacyCapsHandler( httpListener, m_mapLayerPath, MapLayer);
 
-            //httpListener.AddStreamHandler(
-            //    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, this.GetMapLayer ));
+            httpListener.AddStreamHandler(
+                new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, this.GetMapLayer ));
 
             AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);                       
             AddLegacyCapsHandler(httpListener, m_newInventory, NewAgentInventory);
             AddLegacyCapsHandler( httpListener, eventQueue, ProcessEventQueue);
             AddLegacyCapsHandler( httpListener, m_requestTexture, RequestTexture);
 
-        }
-
-        public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
-        {
-            LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
-            mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
-            return mapResponse;
         }
 
         [Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
@@ -149,6 +142,13 @@ namespace OpenSim.Region.Capabilities
             string res = LLSDHelpers.SerialiseLLSDReply(mapResponse);
 
             return res;
+        }
+
+        public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
+        {
+            LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
+            mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
+            return mapResponse;
         }
 
         
