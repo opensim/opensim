@@ -54,7 +54,7 @@ namespace SimpleApp
             
             client.OnRequestWearables += SendWearables;
             client.OnAddPrim += AddNewPrim;
-            client.OnUpdatePrimPosition += this.UpdatePrimPosition;
+            client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
             client.OnGrapUpdate += this.MoveObject;

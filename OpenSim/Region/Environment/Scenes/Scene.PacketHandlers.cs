@@ -438,7 +438,7 @@ namespace OpenSim.Region.Environment.Scenes
                     prim = ((SceneObject)ent).HasChildPrim(localID);
                     if (prim != null)
                     {
-                        prim.UpdatePosition(pos);
+                        prim.UpdateGroupPosition(pos);
                         break;
                     }
                 }
@@ -502,7 +502,7 @@ namespace OpenSim.Region.Environment.Scenes
                     prim = ((SceneObject)ent).HasChildPrim(localID);
                     if (prim != null)
                     {
-                        prim.UpdateRotation(rot);
+                        prim.UpdateGroupRotation(rot);
                         break;
                     }
                 }

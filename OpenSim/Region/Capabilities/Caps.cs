@@ -125,7 +125,7 @@ namespace OpenSim.Region.Capabilities
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath;
             
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
-            caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
+          //  caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
             
             return caps;
         }

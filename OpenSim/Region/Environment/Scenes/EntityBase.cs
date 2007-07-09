@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public LLVector3 velocity;
+        public LLVector3 m_velocity;
 
         /// <summary>
         /// 
@@ -47,25 +47,25 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                return velocity;
+                return m_velocity;
             }
             set
             {
-                velocity = value;
+                m_velocity = value;
             }
         }
 
-        public Quaternion _rotation = new Quaternion(0,0,1,0);
+        protected Quaternion m_rotation = new Quaternion(0,0,1,0);
 
         public virtual Quaternion rotation
         {
             get
             {
-                return _rotation;
+                return m_rotation;
             }
             set
             {
-                _rotation = value;
+                m_rotation = value;
             }
         }
 
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Scenes
             uuid = new LLUUID();
 
             m_pos = new LLVector3();
-            velocity = new LLVector3();
+            m_velocity = new LLVector3();
             rotation = new Quaternion();
             m_name = "(basic entity)";
             children = new List<EntityBase>();

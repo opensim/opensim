@@ -83,12 +83,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (this._physActor != null)
                 {
-                    velocity.X = _physActor.Velocity.X;
-                    velocity.Y = _physActor.Velocity.Y;
-                    velocity.Z = _physActor.Velocity.Z;
+                    m_velocity.X = _physActor.Velocity.X;
+                    m_velocity.Y = _physActor.Velocity.Y;
+                    m_velocity.Z = _physActor.Velocity.Z;
                 }
 
-                return velocity;
+                return m_velocity;
             }
             set
             {
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
 
-                velocity = value;
+                m_velocity = value;
             }
         }
     }

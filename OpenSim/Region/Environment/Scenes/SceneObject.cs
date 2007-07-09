@@ -216,8 +216,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
-
-            //needs changing
             ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
             proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
@@ -242,9 +240,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].EveryoneMask = this.rootPrimitive.EveryoneMask;
             proper.ObjectData[0].BaseMask = this.rootPrimitive.BaseMask;
 
-            client.OutPacket(proper);
-            
+            client.OutPacket(proper);  
         }
-
     }
 }

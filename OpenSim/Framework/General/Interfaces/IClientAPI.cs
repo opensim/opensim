@@ -104,11 +104,11 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall7 OnObjectName;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
-        event UpdateVector OnUpdatePrimPosition;
+        event UpdateVector OnUpdatePrimGroupPosition;
         event UpdateVector OnUpdatePrimSinglePosition;
-        event UpdatePrimRotation OnUpdatePrimRotation;
+        event UpdatePrimRotation OnUpdatePrimGroupRotation;
         event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
-        event UpdatePrimGroupRotation OnUpdatePrimGroupRotation;
+        event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         event UpdateVector OnUpdatePrimScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;

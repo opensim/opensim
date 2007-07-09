@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.Scenes
                 newpos.Y = 1;
             }
 
-            LLVector3 vel = this.velocity;
+            LLVector3 vel = this.m_velocity;
             ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * 256), (uint)(neighboury * 256));
             RegionInfo neighbourRegion = this.m_world.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)

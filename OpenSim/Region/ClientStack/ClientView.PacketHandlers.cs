@@ -107,10 +107,10 @@ namespace OpenSim.Region.ClientStack
                 #region position
                 if (multipleupdate.ObjectData[i].Type == 9) //change position
                 {
-                    if (OnUpdatePrimPosition != null)
+                    if (OnUpdatePrimGroupPosition != null)
                     {
                         LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        OnUpdatePrimPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        OnUpdatePrimGroupPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
 
                 }
@@ -145,22 +145,22 @@ namespace OpenSim.Region.ClientStack
                 }
                 else if (multipleupdate.ObjectData[i].Type == 10)//group rotation from object tab
                 {
-                    if (OnUpdatePrimRotation != null)
+                    if (OnUpdatePrimGroupRotation != null)
                     {
                         libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
                       //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        OnUpdatePrimGroupRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
                 else if (multipleupdate.ObjectData[i].Type == 11)//group rotation from mouse
                 {
-                    if (OnUpdatePrimGroupRotation != null)
+                    if (OnUpdatePrimGroupMouseRotation != null)
                     {
                         libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
                         libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
                         //Console.WriteLine("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                        // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimGroupRotation(multipleupdate.ObjectData[i].ObjectLocalID, pos, rot, this);
+                        OnUpdatePrimGroupMouseRotation(multipleupdate.ObjectData[i].ObjectLocalID, pos, rot, this);
                     }
                 }
                 #endregion

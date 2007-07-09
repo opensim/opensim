@@ -16,11 +16,11 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private ulong m_regionHandle;
         private byte updateFlag = 0;
-        private uint flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
+        private uint m_flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
 
         private Dictionary<LLUUID, InventoryItem> inventoryItems;
 
-        private string description = "";
+        private string m_description = "";
 
         public string SitName = "";
         public string TouchName = "";
@@ -42,19 +42,19 @@ namespace OpenSim.Region.Environment.Scenes
         private PrimitiveBaseShape m_Shape;
 
         public SceneObject m_RootParent;
-        public bool isRootPrim;
+        public bool m_isRootPrim;
         public EntityBase m_Parent;
 
         #region Properties
         /// <summary>
-        /// If rootprim will return world position
+        /// If rootprim, will return world position
         /// otherwise will return local offset from rootprim
         /// </summary>
         public override LLVector3 Pos 
         {
             get
             {
-                if (isRootPrim)
+                if (m_isRootPrim)
                 {
                     //if we are rootprim then our offset should be zero
                     return this.m_pos + m_Parent.Pos;
@@ -66,7 +66,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set
             {
-                if (isRootPrim)
+                if (m_isRootPrim)
                 {
                     m_Parent.Pos = value;
                 }
@@ -79,7 +79,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                if (!this.isRootPrim)
+                if (!this.m_isRootPrim)
                 {
                     Primitive parentPrim = (Primitive)this.m_Parent;
                     Axiom.Math.Vector3 offsetPos = new Vector3(this.m_pos.X, this.m_pos.Y, this.m_pos.Z);
@@ -97,11 +97,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                return this.description;
+                return this.m_description;
             }
             set
             {
-                this.description = value;
+                this.m_description = value;
             }
         }
 
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_world = world;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
             this.m_Parent = parent;
-            this.isRootPrim = isRoot;
+            this.m_isRootPrim = isRoot;
             this.m_RootParent = rootObject;
             this.CreateFromPacket(addPacket, ownerID, localID);
             this.rotation = Axiom.Math.Quaternion.Identity;
@@ -271,7 +271,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetNewParent(Primitive newParent, SceneObject rootParent)
         {
             LLVector3 oldPos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
-            this.isRootPrim = false;
+            this.m_isRootPrim = false;
             this.m_Parent = newParent;
             this.ParentID = newParent.LocalId;
             this.m_RootParent = rootParent;
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Environment.Scenes
             oldPos = new LLVector3(axOldPos.x, axOldPos.y, axOldPos.z);
             oldPos += oldParentPosition;
             Axiom.Math.Quaternion oldRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
-            this.isRootPrim = false;
+            this.m_isRootPrim = false;
             this.m_Parent = newParent;
             this.ParentID = newParent.LocalId;
             newParent.AddToChildrenList(this);
@@ -359,7 +359,7 @@ namespace OpenSim.Region.Environment.Scenes
             offset.X /= 2;
             offset.Y /= 2;
             offset.Z /= 2;
-            if (this.isRootPrim)
+            if (this.m_isRootPrim)
             {
                 this.m_Parent.Pos += offset;
             }
@@ -380,7 +380,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="pos"></param>
-        public void UpdatePosition(LLVector3 pos)
+        public void UpdateGroupPosition(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
 
@@ -395,7 +395,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateSinglePosition(LLVector3 pos)
         {
            // Console.WriteLine("updating single prim position");
-            if (this.isRootPrim)
+            if (this.m_isRootPrim)
             {
                 LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
                 LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
@@ -429,9 +429,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="rot"></param>
-        public void UpdateRotation(LLQuaternion rot)
+        public void UpdateGroupRotation(LLQuaternion rot)
         {
             this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            this.updateFlag = 2;
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="rot"></param>
+        public void UpdateGroupMouseRotation(LLVector3 pos, LLQuaternion rot)
+        {
+            this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            this.Pos = pos;
             this.updateFlag = 2;
         }
 
@@ -457,19 +470,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             this.updateFlag = 2;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="rot"></param>
-        public void UpdateGroupMouseRotation(LLVector3 pos,  LLQuaternion rot)
-        {
-            this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
-            this.Pos = pos;
-            this.updateFlag = 2;
-        }
-
         #endregion
 
         #region Shape
@@ -530,7 +530,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion lRot;
             lRot = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z, this.rotation.w);
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, lRot, new LLUUID("00000000-0000-0000-9999-000000000005"), this.flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, lRot, new LLUUID("00000000-0000-0000-9999-000000000005"), this.m_flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
         }
 
         /// <summary>

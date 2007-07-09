@@ -64,11 +64,11 @@ namespace OpenSim.Region.ClientStack
         public event GenericCall7 OnObjectName;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
-        public event UpdateVector OnUpdatePrimPosition;
+        public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
-        public event UpdatePrimRotation OnUpdatePrimRotation;
+        public event UpdatePrimRotation OnUpdatePrimGroupRotation;
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
-        public event UpdatePrimGroupRotation OnUpdatePrimGroupRotation;
+        public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
