@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     Primitive parentPrim = (Primitive)this.m_Parent;
                     Axiom.Math.Vector3 offsetPos = new Vector3(this.m_pos.X, this.m_pos.Y, this.m_pos.Z);
-                    offsetPos = parentPrim.rotation * offsetPos;
+                    offsetPos = parentPrim.Rotation * offsetPos;
                     return parentPrim.WorldPos + new LLVector3(offsetPos.x, offsetPos.y, offsetPos.z);
                 }
                 else
@@ -139,7 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_isRootPrim = isRoot;
             this.m_RootParent = rootObject;
             this.CreateFromPacket(addPacket, ownerID, localID);
-            this.rotation = Axiom.Math.Quaternion.Identity;
+            this.Rotation = Axiom.Math.Quaternion.Identity;
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.LocalId = newLocalID;
 
             dupe.Scale = new LLVector3(this.Scale.X, this.Scale.Y, this.Scale.Z);
-            dupe.rotation = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
+            dupe.Rotation = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
             dupe.Pos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
 
             return dupe;
@@ -278,10 +278,10 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_RootParent.AddChildToList(this);
             this.Pos = oldPos;
             Axiom.Math.Vector3 axPos = new Axiom.Math.Vector3(this.m_pos.X, m_pos.Y, m_pos.Z);
-            axPos = this.m_Parent.rotation.Inverse() * axPos;
+            axPos = this.m_Parent.Rotation.Inverse() * axPos;
             this.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
-            Axiom.Math.Quaternion oldRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
-            this.rotation =  this.m_Parent.rotation.Inverse() * this.rotation;
+            Axiom.Math.Quaternion oldRot = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
+            this.Rotation =  this.m_Parent.Rotation.Inverse() * this.Rotation;
             this.updateFlag = 1;
 
             foreach (Primitive child in children)
@@ -304,7 +304,7 @@ namespace OpenSim.Region.Environment.Scenes
             axOldPos = oldParentRotation * axOldPos;
             oldPos = new LLVector3(axOldPos.x, axOldPos.y, axOldPos.z);
             oldPos += oldParentPosition;
-            Axiom.Math.Quaternion oldRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
+            Axiom.Math.Quaternion oldRot = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
             this.m_isRootPrim = false;
             this.m_Parent = newParent;
             this.ParentID = newParent.LocalId;
@@ -313,10 +313,10 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_RootParent.AddChildToList(this);
             this.Pos = oldPos;
             Axiom.Math.Vector3 axPos = new Axiom.Math.Vector3(this.m_pos.X, m_pos.Y, m_pos.Z);
-            axPos = this.m_Parent.rotation.Inverse() * axPos;
+            axPos = this.m_Parent.Rotation.Inverse() * axPos;
             this.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
-            this.rotation = oldParentRotation * this.rotation;
-            this.rotation =  this.m_Parent.rotation.Inverse()* this.rotation ;
+            this.Rotation = oldParentRotation * this.Rotation;
+            this.Rotation =  this.m_Parent.Rotation.Inverse()* this.Rotation ;
             this.updateFlag = 1;
             foreach (Primitive child in children)
             {
@@ -401,7 +401,7 @@ namespace OpenSim.Region.Environment.Scenes
                 LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
                 LLVector3 diff = oldPos - newPos;
                 Axiom.Math.Vector3 axDiff = new Vector3(diff.X, diff.Y, diff.Z);
-                axDiff = this.rotation.Inverse() * axDiff;
+                axDiff = this.Rotation.Inverse() * axDiff;
                 diff.X = axDiff.x;
                 diff.Y = axDiff.y;
                 diff.Z = axDiff.z;
@@ -431,7 +431,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotation(LLQuaternion rot)
         {
-            this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            this.Rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             this.updateFlag = 2;
 
         }
@@ -443,7 +443,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupMouseRotation(LLVector3 pos, LLQuaternion rot)
         {
-            this.rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            this.Rotation = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             this.Pos = pos;
             this.updateFlag = 2;
         }
@@ -456,16 +456,16 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //Console.WriteLine("updating single prim rotation");
             Axiom.Math.Quaternion axRot = new Axiom.Math.Quaternion(rot.W, rot.X, rot.Y, rot.Z);
-            Axiom.Math.Quaternion oldParentRot = new Quaternion(this.rotation.w, this.rotation.x, this.rotation.y, this.rotation.z);
-            this.rotation = axRot;
+            Axiom.Math.Quaternion oldParentRot = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
+            this.Rotation = axRot;
             foreach (Primitive prim in this.children)
             {
                 Axiom.Math.Vector3 axPos = new Vector3(prim.m_pos.X, prim.m_pos.Y, prim.m_pos.Z);
                 axPos = oldParentRot * axPos;
                 axPos = axRot.Inverse() * axPos;
                 prim.m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
-                prim.rotation = oldParentRot * prim.rotation ;
-                prim.rotation = axRot.Inverse()* prim.rotation;
+                prim.Rotation = oldParentRot * prim.Rotation ;
+                prim.Rotation = axRot.Inverse()* prim.Rotation;
                 prim.updateFlag = 2;
             }
             this.updateFlag = 2;
@@ -528,7 +528,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             lPos = this.Pos;
             LLQuaternion lRot;
-            lRot = new LLQuaternion(this.rotation.x, this.rotation.y, this.rotation.z, this.rotation.w);
+            lRot = new LLQuaternion(this.Rotation.x, this.Rotation.y, this.Rotation.z, this.Rotation.w);
 
             remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, lRot, new LLUUID("00000000-0000-0000-9999-000000000005"), this.m_flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
         }
@@ -571,7 +571,7 @@ namespace OpenSim.Region.Environment.Scenes
             Quaternion lRot;
 
             lPos = this.Pos;
-            lRot = this.rotation;
+            lRot = this.Rotation;
 
             LLQuaternion mRot = new LLQuaternion(lRot.x, lRot.y, lRot.z, lRot.w);
             RemoteClient.SendPrimTerseUpdate(this.m_regionHandle, 64096, this.LocalId, lPos, mRot);

@@ -261,12 +261,16 @@ namespace OpenSim.Grid.GridServer
 
                 TheSim.serverIP = (string)requestData["sim_ip"];
                 TheSim.serverPort = Convert.ToUInt32((string)requestData["sim_port"]);
+                TheSim.httpPort = Convert.ToUInt32((string)requestData["http_port"]);
+                TheSim.remotingPort = Convert.ToUInt32((string)requestData["remoting_port"]);
                 TheSim.regionLocX = Convert.ToUInt32((string)requestData["region_locx"]);
                 TheSim.regionLocY = Convert.ToUInt32((string)requestData["region_locy"]);
                 TheSim.regionLocZ = 0;
 
                 TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
+                System.Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " + TheSim.regionHandle);
                 TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
+                TheSim.httpServerURI = "http://" + TheSim.serverIP + ":" + TheSim.httpPort + "/";
 
                 Console.WriteLine("NEW SIM: " + TheSim.serverURI);
                 TheSim.regionName = (string)requestData["sim_name"];
@@ -400,6 +404,8 @@ namespace OpenSim.Grid.GridServer
             {
                 responseData["sim_ip"] = simData.serverIP;
                 responseData["sim_port"] = simData.serverPort.ToString();
+                responseData["http_port"] = simData.httpPort.ToString();
+                responseData["remoting_port"] = simData.remotingPort.ToString();
                 responseData["region_locx"] = simData.regionLocX.ToString() ;
                 responseData["region_locy"] = simData.regionLocY.ToString();
                 responseData["region_UUID"] = simData.UUID.UUID.ToString();
@@ -438,7 +444,7 @@ namespace OpenSim.Grid.GridServer
             response.Value = responseData;
             IList simProfileList = new ArrayList();
 
-            bool fastMode = true; // MySQL Only
+            bool fastMode = false; // MySQL Only
 
             if (fastMode)
             {
@@ -449,6 +455,7 @@ namespace OpenSim.Grid.GridServer
                     Hashtable simProfileBlock = new Hashtable();
                     simProfileBlock["x"] = aSim.Value.regionLocX.ToString();
                     simProfileBlock["y"] = aSim.Value.regionLocY.ToString();
+                    System.Console.WriteLine("send neighbour info for " + aSim.Value.regionLocX.ToString() + " , " + aSim.Value.regionLocY.ToString());
                     simProfileBlock["name"] = aSim.Value.regionName;
                     simProfileBlock["access"] = 21;
                     simProfileBlock["region-flags"] = 512;
@@ -470,11 +477,12 @@ namespace OpenSim.Grid.GridServer
             else
             {
                 SimProfileData simProfile;
-                for (int x = xmin; x < xmax; x++)
+                for (int x = xmin; x < xmax+1; x++)
                 {
-                    for (int y = ymin; y < ymax; y++)
+                    for (int y = ymin; y < ymax+1; y++)
                     {
-                        simProfile = getRegion(Helpers.UIntsToLong((uint)(x * 256), (uint)(y * 256)));
+                        ulong regHandle = Helpers.UIntsToLong((uint)(x * 256), (uint)(y * 256));
+                        simProfile = getRegion(regHandle);
                         if (simProfile != null)
                         {
                             Hashtable simProfileBlock = new Hashtable();

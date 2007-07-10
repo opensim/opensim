@@ -47,7 +47,6 @@ namespace OpenSim.Region.Communications.OGS1
         }
         public UserProfileData GetUserProfile(string name)
         {
-
             //try
             //{
                 Hashtable param = new Hashtable();

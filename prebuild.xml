@@ -512,6 +512,7 @@
       <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Data" />
+      <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="libsecondlife.dll"/>
 
       <Files>
@@ -567,6 +568,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.UserManagement" />
       <Reference name="OpenSim.Framework.Data" />
+      <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
 

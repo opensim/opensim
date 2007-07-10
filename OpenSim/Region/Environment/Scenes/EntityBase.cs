@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected Quaternion m_rotation = new Quaternion(0,0,1,0);
 
-        public virtual Quaternion rotation
+        public virtual Quaternion Rotation
         {
             get
             {
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_pos = new LLVector3();
             m_velocity = new LLVector3();
-            rotation = new Quaternion();
+            Rotation = new Quaternion();
             m_name = "(basic entity)";
             children = new List<EntityBase>();
         }

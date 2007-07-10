@@ -31,6 +31,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications
 {
@@ -42,7 +43,7 @@ namespace OpenSim.Framework.Communications
         public IInterRegionCommunications InterRegion;
 
         public NetworkServersInfo ServersInfo;
-        public CommunicationsManager(NetworkServersInfo serversInfo)
+        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer)
         {
             ServersInfo = serversInfo;
         }

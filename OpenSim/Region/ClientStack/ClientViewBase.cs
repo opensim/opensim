@@ -71,7 +71,8 @@ namespace OpenSim.Region.ClientStack
             // Keep track of when this packet was sent out
             Pack.TickCount = Environment.TickCount;
 
-            Console.WriteLine("OUT: " + Pack.Type.ToString());
+          
+          //  Console.WriteLine("OUT: " + Pack.Type.ToString());
 
             if (!Pack.Header.Resent)
             {

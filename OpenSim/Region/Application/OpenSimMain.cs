@@ -93,17 +93,17 @@ namespace OpenSim
 
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
+            this.SetupHttpListener();
+
             if (m_sandbox)
             {
                 this.SetupLocalGridServers();
                 //  this.checkServer = new CheckSumServer(12036);
                 // this.checkServer.ServerListener();
-                this.commsManager = new CommunicationsLocal(this.serversData);
             }
             else
             {
                 this.SetupRemoteGridServers();
-                this.commsManager = new CommunicationsOGS1(this.serversData);
             }
 
             startuptime = DateTime.Now;
@@ -111,13 +111,9 @@ namespace OpenSim
             this.physManager = new PhysicsManager();
             this.physManager.LoadPlugins();
 
-            this.SetupHttpListener();
-
             this.SetupWorld();
 
             m_log.Verbose("Main.cs:Startup() - Initialising HTTP server");
-
-
 
             if (m_sandbox)
             {
@@ -143,6 +139,7 @@ namespace OpenSim
             {
                 AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
                 InventoryCache = new InventoryCache();
+                this.commsManager = new CommunicationsLocal(this.serversData, httpServer);
             }
             catch (Exception e)
             {
@@ -156,8 +153,9 @@ namespace OpenSim
         {
             try
             {
-                AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Remote.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
+                AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
                 InventoryCache = new InventoryCache();
+                this.commsManager = new CommunicationsOGS1(this.serversData, httpServer);
             }
             catch (Exception e)
             {

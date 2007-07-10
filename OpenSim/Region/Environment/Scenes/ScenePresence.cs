@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
             Wearables = AvatarWearable.DefaultWearables;
             Animations = new ScenePresence.AvatarAnimations();
             Animations.LoadAnims();
-            
+
             this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
 
             //register for events
@@ -160,7 +160,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 this.Velocity = new LLVector3(0, 0, 0);
                 this.Pos = new LLVector3(128, 128, 70);
-                
+
             }
         }
 
@@ -276,25 +276,31 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 this.AddNewMovement(agent_control_v3, q);
             }
-	    UpdateMovementAnimations(update_movementflag);
+            UpdateMovementAnimations(update_movementflag);
         }
 
-	protected void UpdateMovementAnimations(bool update_movementflag)
-	{
-	    if (update_movementflag)
-	    {
-	        if (movementflag != 0) {
-		    if (this._physActor.Flying) {
-		    	this.SendAnimPack(Animations.AnimsLLUUID["FLY"], 1);
-		    } else {
-		        this.SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
-		    }
-		} else {
-		    this.SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
-		}
-	    }
-	
-	}
+        protected void UpdateMovementAnimations(bool update_movementflag)
+        {
+            if (update_movementflag)
+            {
+                if (movementflag != 0)
+                {
+                    if (this._physActor.Flying)
+                    {
+                        this.SendAnimPack(Animations.AnimsLLUUID["FLY"], 1);
+                    }
+                    else
+                    {
+                        this.SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                    }
+                }
+                else
+                {
+                    this.SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
+                }
+            }
+
+        }
 
 
         protected void AddNewMovement(Vector3 vec, Quaternion rotation)
@@ -423,13 +429,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seq"></param>
         public void SendAnimPack(LLUUID animID, int seq)
         {
-	    this.current_anim = animID;
-	    this.anim_seq = anim_seq;
-	    List<ScenePresence> avatars = this.m_world.RequestAvatarList();
-	    for (int i = 0; i < avatars.Count; i++)
-	    {
-	    	avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
-	    }
+            this.current_anim = animID;
+            this.anim_seq = anim_seq;
+            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
+            }
         }
 
         /// <summary>
@@ -437,7 +443,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAnimPack()
         {
-	    this.SendAnimPack(this.current_anim, this.anim_seq);
+            this.SendAnimPack(this.current_anim, this.anim_seq);
         }
         #endregion
 
@@ -506,7 +512,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (res)
                 {
                     this.MakeChildAgent();
-                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.InternalEndPoint );
+                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.InternalEndPoint);
                 }
             }
         }

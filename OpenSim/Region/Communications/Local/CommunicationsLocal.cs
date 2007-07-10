@@ -27,6 +27,7 @@
 */
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -35,8 +36,8 @@ namespace OpenSim.Region.Communications.Local
         public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
         public LocalUserServices UserServices;
 
-        public CommunicationsLocal(NetworkServersInfo serversInfo)
-            : base(serversInfo)
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer )
+            : base(serversInfo, httpServer)
         {
             UserServices = new LocalUserServices(this, serversInfo);
             UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");

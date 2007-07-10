@@ -80,6 +80,10 @@ namespace OpenSim.Framework.Data
         public uint serverPort;
         public string serverURI = "";
 
+        public uint httpPort;
+        public uint remotingPort;
+        public string httpServerURI = "";
+
         /// <summary>
         /// Set of optional overrides. Can be used to create non-eulicidean spaces.
         /// </summary>
@@ -143,7 +147,10 @@ namespace OpenSim.Framework.Data
             simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
             simData.serverIP = (string)responseData["sim_ip"];
             simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
+            simData.httpPort = Convert.ToUInt32((string)responseData["http_port"]);
+            simData.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
             simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
+            simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
             simData.UUID = new LLUUID((string)responseData["region_UUID"]);
             simData.regionName = (string)responseData["region_name"];
 
@@ -172,6 +179,9 @@ namespace OpenSim.Framework.Data
             simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
             simData.serverIP = (string)responseData["sim_ip"];
             simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
+            simData.httpPort = Convert.ToUInt32((string)responseData["http_port"]);
+            simData.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+            simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
             simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
             simData.UUID = new LLUUID((string)responseData["region_UUID"]);
             simData.regionName = (string)responseData["region_name"];

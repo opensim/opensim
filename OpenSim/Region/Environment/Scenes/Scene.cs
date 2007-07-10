@@ -685,15 +685,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void InformClientOfNeighbours(IClientAPI remoteClient)
         {
-            // Console.WriteLine("informing client of neighbouring regions");
             List<RegionInfo> neighbours = this.commsManager.GridServer.RequestNeighbours(this.m_regInfo);
 
-            //Console.WriteLine("we have " + neighbours.Count + " neighbouring regions");
             if (neighbours != null)
             {
                 for (int i = 0; i < neighbours.Count; i++)
                 {
-                    // Console.WriteLine("sending neighbours data");
                     AgentCircuitData agent = remoteClient.RequestClientInfo();
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;

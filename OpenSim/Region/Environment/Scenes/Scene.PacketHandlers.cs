@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                       case 1: // Say
                                                           if ((dis < 30) && (dis > -30))
                                                           {
-                                                              Console.WriteLine("sending chat");
+                                                              //Console.WriteLine("sending chat");
                                                               client.SendChatMessage(message, type, fromPos, fromName,
                                                                                      fromAgentID);
                                                           }

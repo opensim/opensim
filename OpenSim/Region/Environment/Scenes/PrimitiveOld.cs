@@ -445,7 +445,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 lPos = this.Pos;
-                lRot = this.rotation;
+                lRot = this.Rotation;
             }
             LLQuaternion mRot = new LLQuaternion(lRot.x, lRot.y, lRot.z, lRot.w);
             RemoteClient.SendPrimTerseUpdate(this.m_regionHandle, 64096, this.LocalId, lPos, mRot);
