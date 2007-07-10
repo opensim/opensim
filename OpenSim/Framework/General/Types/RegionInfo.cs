@@ -117,6 +117,20 @@ namespace OpenSim.Framework.Types
             }
         }
 
+        // Only used for remote regions , ie ones not in the current instance
+        private uint m_remotingPort;
+        public uint RemotingPort
+        {
+            get
+            {
+                return m_remotingPort;
+            }
+            set
+            {
+                m_remotingPort = value;
+            }
+        }
+
         public string DataStore = "";
         public bool isSandbox = false;
 

@@ -151,20 +151,23 @@ namespace OpenSim.Region.Communications.OGS1
 
             List<MapBlockData> neighbours = new List<MapBlockData>();
 
-            foreach (Hashtable n in (Hashtable)respData.Values)
+            foreach (ArrayList a in respData.Values)
             {
-                MapBlockData neighbour = new MapBlockData();
+                foreach (Hashtable n in a)
+                {
+                    MapBlockData neighbour = new MapBlockData();
 
-                neighbour.X = (ushort)n["x"];
-                neighbour.Y = (ushort)n["y"];
+                    neighbour.X = Convert.ToUInt16(n["x"]);
+                    neighbour.Y = Convert.ToUInt16(n["y"]);
 
-                neighbour.Name = (string)n["name"];
-                neighbour.Access = (byte)n["access"];
-                neighbour.RegionFlags = (uint)n["region-flags"];
-                neighbour.WaterHeight = (byte)n["water-height"];
-                neighbour.MapImageId = (string)n["map-image-id"];
+                    neighbour.Name = (string)n["name"];
+                    neighbour.Access = Convert.ToByte(n["access"]);
+                    neighbour.RegionFlags = Convert.ToUInt32(n["region-flags"]);
+                    neighbour.WaterHeight = Convert.ToByte(n["water-height"]);
+                    neighbour.MapImageId = (string)n["map-image-id"];
 
-                neighbours.Add(neighbour);
+                    neighbours.Add(neighbour);
+                }
             }
 
             return neighbours;
