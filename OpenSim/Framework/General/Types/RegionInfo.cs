@@ -130,6 +130,7 @@ namespace OpenSim.Framework.Types
                 m_remotingPort = value;
             }
         }
+        public string RemotingAddress;
 
         public string DataStore = "";
         public bool isSandbox = false;

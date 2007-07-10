@@ -266,6 +266,7 @@ namespace OpenSim.Grid.GridServer
                 TheSim.regionLocX = Convert.ToUInt32((string)requestData["region_locx"]);
                 TheSim.regionLocY = Convert.ToUInt32((string)requestData["region_locy"]);
                 TheSim.regionLocZ = 0;
+                TheSim.regionMapTextureID = new LLUUID((string)requestData["map-image-id"]);
 
                 TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
                 System.Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " + TheSim.regionHandle);
@@ -392,16 +393,19 @@ namespace OpenSim.Grid.GridServer
             }
             else if (requestData.ContainsKey("region_handle"))
             {
+                Console.WriteLine("requesting data for region " + (string)requestData["region_handle"]);
                 simData = getRegion(Convert.ToUInt64((string)requestData["region_handle"]));
             }
 
             if (simData == null)
             {
                 //Sim does not exist
+                Console.WriteLine("region not found");
                 responseData["error"] = "Sim does not exist";
             }
             else
             {
+                Console.WriteLine("found region");
                 responseData["sim_ip"] = simData.serverIP;
                 responseData["sim_port"] = simData.serverPort.ToString();
                 responseData["http_port"] = simData.httpPort.ToString();
@@ -493,7 +497,7 @@ namespace OpenSim.Grid.GridServer
                             simProfileBlock["region-flags"] = 0;
                             simProfileBlock["water-height"] = 20;
                             simProfileBlock["agents"] = 1;
-                            simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
+                            simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToStringHyphenated();
 
                             // For Sugilite compatibility
                             simProfileBlock["regionhandle"] = simProfile.regionHandle.ToString();

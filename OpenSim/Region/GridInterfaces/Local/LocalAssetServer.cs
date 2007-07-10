@@ -269,6 +269,7 @@ namespace OpenSim.Region.GridInterfaces.Local
             }
             catch (Exception e)
             {
+                Console.WriteLine("exception loading default assets into database");
                 Console.WriteLine(e.Message);
             }
 

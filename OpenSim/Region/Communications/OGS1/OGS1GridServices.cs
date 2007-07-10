@@ -29,6 +29,7 @@ namespace OpenSim.Region.Communications.OGS1
             serversInfo = servers_info;
             httpServer = httpServe;
             httpServer.AddXmlRPCHandler("expect_user", this.ExpectUser);
+            this.StartRemoting();
         }
 
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
@@ -52,6 +53,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["sim_name"] = regionInfo.RegionName;
             GridParams["http_port"] = serversInfo.HttpListenerPort.ToString();
             GridParams["remoting_port"] = serversInfo.RemotingListenerPort.ToString();
+            GridParams["map-image-id"] = regionInfo.estateSettings.terrainImageID.ToStringHyphenated();
 
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
@@ -97,7 +99,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         public List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
-           
+
             Hashtable respData = MapBlockQuery((int)regionInfo.RegionLocX - 1, (int)regionInfo.RegionLocY - 1, (int)regionInfo.RegionLocX + 1, (int)regionInfo.RegionLocY + 1);
 
             List<RegionInfo> neighbours = new List<RegionInfo>();
@@ -141,8 +143,40 @@ namespace OpenSim.Region.Communications.OGS1
                 return this.regions[regionHandle];
             }
             //TODO not a region in this instance so ask remote grid server
-            MainLog.Instance.Warn("Unimplemented - RequestNeighbourInfo()");
-            return null;
+
+            Hashtable requestData = new Hashtable();
+            requestData["region_handle"] = regionHandle.ToString();
+            requestData["authkey"] = this.serversInfo.GridSendKey;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(requestData);
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+            XmlRpcResponse GridResp = GridReq.Send(this.serversInfo.GridURL, 3000);
+
+            Hashtable responseData = (Hashtable)GridResp.Value;
+
+            if (responseData.ContainsKey("error"))
+            {
+                Console.WriteLine("error received from grid server" + responseData["error"]);
+                return null;
+            }
+
+            uint regX = Convert.ToUInt32((string)responseData["region_locx"]);
+            uint regY = Convert.ToUInt32((string)responseData["region_locy"]);
+            string internalIpStr = (string)responseData["sim_ip"];
+            uint port = Convert.ToUInt32(responseData["sim_port"]);
+            string externalUri = (string)responseData["sim_uri"];
+
+            IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int)port);
+            string neighbourExternalUri = externalUri;
+            RegionInfo regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+
+            regionInfo.RemotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+            regionInfo.RemotingAddress = internalIpStr;
+
+            regionInfo.SimUUID = new LLUUID((string)responseData["region_UUID"]);
+            regionInfo.RegionName = (string)responseData["region_name"];
+
+            return regionInfo;
         }
 
         public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
@@ -164,7 +198,7 @@ namespace OpenSim.Region.Communications.OGS1
                     neighbour.Access = Convert.ToByte(n["access"]);
                     neighbour.RegionFlags = Convert.ToUInt32(n["region-flags"]);
                     neighbour.WaterHeight = Convert.ToByte(n["water-height"]);
-                    neighbour.MapImageId = (string)n["map-image-id"];
+                    neighbour.MapImageId = new LLUUID((string)n["map-image-id"]);
 
                     neighbours.Add(neighbour);
                 }
@@ -237,10 +271,10 @@ namespace OpenSim.Region.Communications.OGS1
         #region InterRegion Comms
         private void StartRemoting()
         {
-            TcpChannel ch = new TcpChannel(8895);
+            TcpChannel ch = new TcpChannel(this.serversInfo.RemotingListenerPort);
             ChannelServices.RegisterChannel(ch, true);
 
-            WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry(Type.GetType("OGS1InterRegionRemoting"), "InterRegions", WellKnownObjectMode.Singleton);
+            WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry(typeof(OGS1InterRegionRemoting), "InterRegions", WellKnownObjectMode.Singleton);
             RemotingConfiguration.RegisterWellKnownServiceType(wellType);
             InterRegionSingleton.Instance.OnArrival += this.IncomingArrival;
             InterRegionSingleton.Instance.OnChildAgent += this.IncomingChildAgent;
@@ -254,9 +288,31 @@ namespace OpenSim.Region.Communications.OGS1
                 this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
                 return true;
             }
-            //TODO need to see if we know about where this region is and use .net remoting 
-            // to inform it. 
-            Console.WriteLine("Inform remote region of child agent not implemented yet");
+            RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
+            if (regInfo != null)
+            {
+                //don't want to be creating a new link to the remote instance every time like we are here
+                bool retValue = false;
+
+               
+                OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                    typeof(OGS1InterRegionRemoting),
+                    "tcp://"+ regInfo.RemotingAddress+":"+regInfo.RemotingPort+"/InterRegions");
+                if (remObject != null)
+                {
+                    
+                    retValue = remObject.InformRegionOfChildAgent(regionHandle, agentData);
+                }
+                else
+                {
+                    Console.WriteLine("remoting object not found");
+                }
+                remObject = null;
+
+
+                return retValue;
+            }
+ 
             return false;
         }
 
@@ -266,6 +322,29 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
                 return true;
+            }
+            RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
+            if (regInfo != null)
+            {
+                bool retValue = false;
+
+
+                OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                    typeof(OGS1InterRegionRemoting),
+                    "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
+                if (remObject != null)
+                {
+
+                    retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position);
+                }
+                else
+                {
+                    Console.WriteLine("remoting object not found");
+                }
+                remObject = null;
+
+
+                return retValue;
             }
             //TODO need to see if we know about where this region is and use .net remoting 
             // to inform it. 

@@ -26,9 +26,11 @@
 * 
 */
 using libsecondlife;
+using System;
 
 namespace OpenSim.Framework.Types
 {
+    [Serializable]
     public class AgentCircuitData
     {
         public AgentCircuitData() { }
