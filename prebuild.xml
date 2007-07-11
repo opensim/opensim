@@ -103,6 +103,29 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.Caches" path="OpenSim/Region/Caches" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -120,6 +143,7 @@
       <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
+       <Reference name="OpenSim.Framework.Data"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -417,28 +441,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="libsecondlife.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
 
     <Project name="OpenSim.Framework.Data.DB4o" path="OpenSim/Framework/Data.DB4o" type="Library">
       <Configuration name="Debug">

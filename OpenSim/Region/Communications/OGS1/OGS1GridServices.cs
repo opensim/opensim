@@ -24,6 +24,11 @@ namespace OpenSim.Region.Communications.OGS1
         public NetworkServersInfo serversInfo;
         public BaseHttpServer httpServer;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="servers_info"></param>
+        /// <param name="httpServe"></param>
         public OGS1GridServices(NetworkServersInfo servers_info, BaseHttpServer httpServe)
         {
             serversInfo = servers_info;
@@ -32,6 +37,11 @@ namespace OpenSim.Region.Communications.OGS1
             this.StartRemoting();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <returns></returns>
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
@@ -40,8 +50,6 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             Hashtable GridParams = new Hashtable();
-
-
             // Login / Authentication
 
             GridParams["authkey"] = serversInfo.GridSendKey;
@@ -74,15 +82,6 @@ namespace OpenSim.Region.Communications.OGS1
                 return null;
             }
 
-            /* if (!this.listeners.ContainsKey(regionInfo.RegionHandle))
-             {
-                 MainLog.Instance.Verbose("OGS1 - Registering new HTTP listener on port " + regionInfo.InternalEndPoint.Port.ToString());
-                // initialised = true;
-                 httpListener = new BaseHttpServer( regionInfo.InternalEndPoint.Port );
-                 httpListener.AddXmlRPCHandler("expect_user", this.ExpectUser);
-                 httpListener.Start();
-             }*/
-
             // Initialise the background listeners
             RegionCommsListener regListener = new RegionCommsListener();
             if (this.listeners.ContainsKey(regionInfo.RegionHandle))
@@ -97,6 +96,11 @@ namespace OpenSim.Region.Communications.OGS1
             return regListener;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <returns></returns>
         public List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
         {
 
@@ -136,6 +140,11 @@ namespace OpenSim.Region.Communications.OGS1
             return neighbours;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
         public RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
             if (this.regions.ContainsKey(regionHandle))
@@ -179,6 +188,14 @@ namespace OpenSim.Region.Communications.OGS1
             return regionInfo;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="minX"></param>
+        /// <param name="minY"></param>
+        /// <param name="maxX"></param>
+        /// <param name="maxY"></param>
+        /// <returns></returns>
         public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
         {
             Hashtable respData = MapBlockQuery(minX, minY, maxX, maxY);
@@ -232,6 +249,11 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         // Grid Request Processing
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public XmlRpcResponse ExpectUser(XmlRpcRequest request)
         {
             Console.WriteLine("Expecting User...");
@@ -269,6 +291,9 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         #region InterRegion Comms
+        /// <summary>
+        /// 
+        /// </summary>
         private void StartRemoting()
         {
             TcpChannel ch = new TcpChannel(this.serversInfo.RemotingListenerPort);
@@ -281,6 +306,12 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         #region Methods called by regions in this instance
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentData"></param>
+        /// <returns></returns>
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
             if (this.listeners.ContainsKey(regionHandle))
@@ -316,6 +347,13 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentID"></param>
+        /// <param name="position"></param>
+        /// <returns></returns>
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (this.listeners.ContainsKey(regionHandle))
@@ -353,6 +391,12 @@ namespace OpenSim.Region.Communications.OGS1
         #endregion
 
         #region Methods triggered by calls from external instances
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentData"></param>
+        /// <returns></returns>
         public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
             if (this.listeners.ContainsKey(regionHandle))
@@ -363,6 +407,13 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentID"></param>
+        /// <param name="position"></param>
+        /// <returns></returns>
         public bool IncomingArrival(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
             if (this.listeners.ContainsKey(regionHandle))

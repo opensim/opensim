@@ -56,6 +56,10 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public LLUUID avatarID;
         /// <summary>
+        /// The creator of this folder
+        /// </summary>
+        public LLUUID creatorsID;
+        /// <summary>
         /// The name of the inventory item (must be less than 64 characters)
         /// </summary>
         public string inventoryName;
@@ -94,6 +98,14 @@ namespace OpenSim.Framework.Data
         /// The UUID for this folder
         /// </summary>
         public LLUUID folderID;
+        /// <summary>
+        /// Tyep of Items normally stored in this folder
+        /// </summary>
+        public ushort type;
+        /// <summary>
+        /// 
+        /// </summary>
+        public ushort version;
     }
 
     /// <summary>
