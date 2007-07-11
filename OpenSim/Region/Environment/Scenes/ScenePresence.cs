@@ -91,6 +91,12 @@ namespace OpenSim.Region.Environment.Scenes
                 return _physActor;
             }
         }
+
+	public ulong RegionHandle
+	{
+	    get { return m_regionHandle; }
+	}
+
         #endregion
 
         #region Constructor(s)
@@ -390,6 +396,16 @@ namespace OpenSim.Region.Environment.Scenes
             remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos, DefaultTexture);
         }
 
+        public void SendFullUpdateToALLClients()
+        {
+            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
+            foreach (ScenePresence avatar in this.m_world.RequestAvatarList())
+            {
+                this.SendFullUpdateToOtherClient(avatar);
+                avatar.SendFullUpdateToOtherClient(this);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -410,6 +426,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendOurAppearance(IClientAPI OurClient)
         {
             this.ControllingClient.SendWearables(this.Wearables);
+            this.SendFullUpdateToALLClients();
             this.m_world.SendAllSceneObjectsToClient(this.ControllingClient);
         }
 
@@ -429,13 +446,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seq"></param>
         public void SendAnimPack(LLUUID animID, int seq)
         {
-            this.current_anim = animID;
-            this.anim_seq = anim_seq;
-            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
-            }
+	    this.current_anim = animID;
+	    this.anim_seq = seq;
+	    List<ScenePresence> avatars = this.m_world.RequestAvatarList();
+	    for (int i = 0; i < avatars.Count; i++)
+	    {
+	    	avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
+	    }
         }
 
         /// <summary>

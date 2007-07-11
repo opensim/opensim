@@ -178,6 +178,7 @@ namespace OpenSim.Region.ClientStack
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
             this._networkHandler.RemoveClientCircuit(circuitcode);
+            this.m_clientManager.Remove(circuitcode);
         }
     }
 }

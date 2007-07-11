@@ -476,6 +476,23 @@ namespace OpenSim.Region.ClientStack
             OutPacket(money);
         }
 
+        public void SendStartPingCheck(byte seq)
+        {
+            StartPingCheckPacket pc = new StartPingCheckPacket();
+            pc.PingID.PingID = seq;
+            OutPacket(pc);
+        }
+
+        public void SendKillObject(ulong regionHandle, uint avatarLocalID)
+        {
+            KillObjectPacket kill = new KillObjectPacket();
+            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
+            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
+            kill.ObjectData[0].ID = avatarLocalID;
+            OutPacket(kill);
+        }
+
+
         #region Appearance/ Wearables Methods
 
         /// <summary>

@@ -45,7 +45,7 @@ namespace OpenSim.Region.ClientStack
             {
                 if (Pack.Type != PacketType.AgentUpdate)
                 {
-                    Console.WriteLine("IN: " + Pack.Type.ToString());
+                    Console.WriteLine(CircuitCode + ":IN: " + Pack.Type.ToString());
                 }
             }
 

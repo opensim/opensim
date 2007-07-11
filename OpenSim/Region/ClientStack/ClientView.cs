@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -77,6 +78,11 @@ namespace OpenSim.Region.ClientStack
         private int cachedtextureserial = 0;
         protected AuthenticateSessionsBase m_authenticateSessionsHandler;
         private Encoding enc = Encoding.ASCII;
+        // Dead client detection vars
+        private Timer clientPingTimer;
+        private int packetsReceived = 0;
+        private int probesWithNoIngressPackets = 0;
+        private int lastPacketsReceived = 0;
 
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions )
         {
@@ -112,15 +118,7 @@ namespace OpenSim.Region.ClientStack
 
         public void KillClient()
         {
-            KillObjectPacket kill = new KillObjectPacket();
-            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            //kill.ObjectData[0].ID = this.ClientAvatar.localid;
-            foreach (ClientView client in m_clientThreads.Values)
-            {
-                client.OutPacket(kill);
-            }
-
+            clientPingTimer.Stop();
             this.m_inventoryCache.ClientLeaving(this.AgentID, null);
             m_world.RemoveClient(this.AgentId);
 
@@ -193,6 +191,9 @@ namespace OpenSim.Region.ClientStack
                 if (nextPacket.Incoming)
                 {
                     //is a incoming packet
+                    if (nextPacket.Packet.Type != PacketType.AgentUpdate) {
+                        packetsReceived++;
+                    }
                     ProcessInPacket(nextPacket.Packet);
                 }
                 else
@@ -204,10 +205,31 @@ namespace OpenSim.Region.ClientStack
         }
         # endregion
 
+        protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
+        {
+            if (packetsReceived == lastPacketsReceived) {
+                probesWithNoIngressPackets++;
+                if (probesWithNoIngressPackets > 30) {
+                    this.KillClient();
+                 } else {
+                    // this will normally trigger at least one packet (ping response)
+                    SendStartPingCheck(0);
+                 }
+            } else {
+                // Something received in the meantime - we can reset the counters
+                probesWithNoIngressPackets = 0;
+                lastPacketsReceived = packetsReceived;
+            }
+        }
+
         # region Setup
 
         protected virtual void InitNewClient()
         {
+            clientPingTimer = new Timer(1000);
+            clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
+            clientPingTimer.Enabled = true;
+
             MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
             this.m_world.AddNewClient(this, false);
         }

@@ -51,29 +51,8 @@ namespace OpenSim.Region.ClientStack
             logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
             logReply.InventoryData[0].ItemID = LLUUID.Zero;
             OutPacket(logReply);
-            //tell all clients to kill our object
-            KillObjectPacket kill = new KillObjectPacket();
-            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            // kill.ObjectData[0].ID = this.ClientAvatar.localid;
-            foreach (ClientView client in m_clientThreads.Values)
-            {
-                client.OutPacket(kill);
-            }
-
-            this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-
-
-           // m_gridServer.LogoutSession(this.SessionID, this.AgentID, this.CircuitCode);
-            /*lock (m_world.Entities)
-            {
-                m_world.Entities.Remove(this.AgentID);
-            }*/
-            // m_world.RemoveViewerAgent(this);
-            //need to do other cleaning up here too
-            m_clientThreads.Remove(this.CircuitCode);
-            m_networkServer.RemoveClientCircuit(this.CircuitCode);
-            this.ClientThread.Abort();
+	    //
+	    this.KillClient();
             return true;
         }
 

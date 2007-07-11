@@ -546,6 +546,28 @@ namespace OpenSim.Region.Environment.Scenes
         {
             eventManager.TriggerOnRemovePresence(agentID);
 
+	    ScenePresence avatar = this.RequestAvatar(agentID);
+
+            m_clientManager.ForEachClient(
+	        delegate(IClientAPI client)
+                {
+                    client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                });
+ 
+            lock (Avatars) {
+                 if (Avatars.ContainsKey(agentID)) {
+                    Avatars.Remove(agentID);
+                }
+            }
+             lock (Entities) {
+                 if (Entities.ContainsKey(agentID)) {
+                    Entities.Remove(agentID);
+                }
+            }
+            // TODO: Add the removal from physics ?
+ 
+
+
             return;
         }
         #endregion
