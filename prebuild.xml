@@ -54,6 +54,29 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="libsecondlife.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework" path="OpenSim/Framework/General" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -73,6 +96,7 @@
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Data"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -98,29 +122,6 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC.dll"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="libsecondlife.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -603,6 +604,7 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Caches"/>
+      <Reference name="OpenSim.Framework.Data"/>
       <Reference name="XMLRPC.dll"/>
 
       <Files>

@@ -4,7 +4,7 @@ namespace OpenSim.Region.Capabilities
     public class LLSDCapsDetails
     {
         public string MapLayer = "";
-        //public string NewFileAgentInventory = "";
+        public string NewFileAgentInventory = "";
         //public string EventQueueGet = "";
 
         public LLSDCapsDetails()

@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public int type;
         /// <summary>
-        /// The folder this item is contained in (NULL_KEY = Inventory Root)
+        /// The folder this item is contained in 
         /// </summary>
         public LLUUID parentFolderID;
         /// <summary>
@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public LLUUID avatarID;
         /// <summary>
-        /// The creator of this folder
+        /// The creator of this item
         /// </summary>
         public LLUUID creatorsID;
         /// <summary>
@@ -91,7 +91,7 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public LLUUID agentID;
         /// <summary>
-        /// The folder this folder is contained in (NULL_KEY for root)
+        /// The folder this folder is contained in 
         /// </summary>
         public LLUUID parentID;
         /// <summary>

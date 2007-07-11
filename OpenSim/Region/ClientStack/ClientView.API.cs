@@ -35,6 +35,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -76,7 +77,7 @@ namespace OpenSim.Region.ClientStack
         public event GenericCall6 OnRemoveAvatar;
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
-        
+
         public event UUIDNameRequest OnNameFromUUIDRequest;
 
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
@@ -188,7 +189,7 @@ namespace OpenSim.Region.ClientStack
             mov.Data.RegionHandle = regInfo.RegionHandle;
             mov.Data.Timestamp = 1172750370; // TODO - dynamicalise this
 
-            if ((pos.X  == 0) && (pos.Y  == 0) && (pos.Z  == 0))
+            if ((pos.X == 0) && (pos.Y == 0) && (pos.Z == 0))
             {
                 mov.Data.Position = this.startpos;
             }
@@ -325,11 +326,11 @@ namespace OpenSim.Region.ClientStack
         /// <param name="neighbourHandle"></param>
         /// <param name="neighbourIP"></param>
         /// <param name="neighbourPort"></param>
-        public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint )
+        public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint)
         {
             IPAddress neighbourIP = neighbourEndPoint.Address;
-            ushort neighbourPort = (ushort) neighbourEndPoint.Port;
-            
+            ushort neighbourPort = (ushort)neighbourEndPoint.Port;
+
             EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
             enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
             enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
@@ -405,7 +406,7 @@ namespace OpenSim.Region.ClientStack
                 mapReply.Data[i].Name = _enc.GetBytes(mapBlocks[i].Name);
                 mapReply.Data[i].RegionFlags = mapBlocks[i].RegionFlags;
                 mapReply.Data[i].Access = mapBlocks[i].Access;
-                mapReply.Data[i].Agents = mapBlocks[i].Agents; 
+                mapReply.Data[i].Agents = mapBlocks[i].Agents;
             }
             this.OutPacket(mapReply);
         }
@@ -421,7 +422,7 @@ namespace OpenSim.Region.ClientStack
             OutPacket(tpLocal);
         }
 
-        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags)        
+        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags)
         {
             TeleportFinishPacket teleport = new TeleportFinishPacket();
             teleport.Info.AgentID = this.AgentID;
@@ -439,7 +440,7 @@ namespace OpenSim.Region.ClientStack
             teleport.Info.SimIP = ip;
             teleport.Info.SimPort = (ushort)newRegionEndPoint.Port;
             teleport.Info.LocationID = 4;
-            teleport.Info.TeleportFlags = 1 << 4; 
+            teleport.Info.TeleportFlags = 1 << 4;
             OutPacket(teleport);
         }
 
@@ -490,6 +491,81 @@ namespace OpenSim.Region.ClientStack
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
             kill.ObjectData[0].ID = avatarLocalID;
             OutPacket(kill);
+        }
+
+        public void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items)
+        {
+            Encoding enc = Encoding.ASCII;
+            uint FULL_MASK_PERMISSIONS = 2147483647;
+            InventoryDescendentsPacket descend =  new InventoryDescendentsPacket();
+            descend.AgentData.AgentID = this.AgentId;
+            descend.AgentData.OwnerID = ownerID;
+            descend.AgentData.FolderID = folderID;
+            descend.AgentData.Descendents = items.Count;
+            descend.AgentData.Version = 0;
+            descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
+            int i = 0;
+            foreach (InventoryItemBase item in items)
+            {
+                descend.ItemData[i] = new InventoryDescendentsPacket.ItemDataBlock();
+                descend.ItemData[i].ItemID = item.inventoryID;
+                descend.ItemData[i].AssetID = item.assetID;
+                descend.ItemData[i].CreatorID = item.creatorsID;
+                descend.ItemData[i].BaseMask = FULL_MASK_PERMISSIONS;
+                descend.ItemData[i].CreationDate = 1000;
+                descend.ItemData[i].Description = enc.GetBytes(item.inventoryDescription+ "\0");
+                descend.ItemData[i].EveryoneMask = FULL_MASK_PERMISSIONS;
+                descend.ItemData[i].Flags = 1;
+                descend.ItemData[i].FolderID = item.parentFolderID;
+                descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+                descend.ItemData[i].GroupMask = FULL_MASK_PERMISSIONS;
+                descend.ItemData[i].InvType = (sbyte)item.type;
+                descend.ItemData[i].Name = enc.GetBytes(item.inventoryName+ "\0");
+                descend.ItemData[i].NextOwnerMask = FULL_MASK_PERMISSIONS;
+                descend.ItemData[i].OwnerID = item.avatarID;
+                descend.ItemData[i].OwnerMask = FULL_MASK_PERMISSIONS;
+                descend.ItemData[i].SalePrice = 0;
+                descend.ItemData[i].SaleType = 0;
+                descend.ItemData[i].Type = (sbyte)item.type;
+                descend.ItemData[i].CRC = Helpers.InventoryCRC(1000, 0, descend.ItemData[i].InvType, descend.ItemData[i].Type, descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, 100,descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID, descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+                
+                i++;
+            }
+
+            this.OutPacket(descend);
+
+        }
+
+        public void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item)
+        {
+            Encoding enc = Encoding.ASCII;
+            uint FULL_MASK_PERMISSIONS = 2147483647;
+            FetchInventoryReplyPacket inventoryReply = new FetchInventoryReplyPacket();
+            inventoryReply.AgentData.AgentID = this.AgentId;
+            inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[1];
+            inventoryReply.InventoryData[0] = new FetchInventoryReplyPacket.InventoryDataBlock();
+            inventoryReply.InventoryData[0].ItemID = item.inventoryID;
+            inventoryReply.InventoryData[0].AssetID = item.assetID;
+            inventoryReply.InventoryData[0].CreatorID = item.creatorsID;
+            inventoryReply.InventoryData[0].BaseMask = FULL_MASK_PERMISSIONS;
+            inventoryReply.InventoryData[0].CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            inventoryReply.InventoryData[0].Description = enc.GetBytes(item.inventoryDescription + "\0");
+            inventoryReply.InventoryData[0].EveryoneMask = FULL_MASK_PERMISSIONS;
+            inventoryReply.InventoryData[0].Flags = 0;
+            inventoryReply.InventoryData[0].FolderID = item.parentFolderID;
+            inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            inventoryReply.InventoryData[0].GroupMask = FULL_MASK_PERMISSIONS;
+            inventoryReply.InventoryData[0].InvType = (sbyte)item.type;
+            inventoryReply.InventoryData[0].Name = enc.GetBytes(item.inventoryName + "\0");
+            inventoryReply.InventoryData[0].NextOwnerMask = FULL_MASK_PERMISSIONS;
+            inventoryReply.InventoryData[0].OwnerID = item.avatarID;
+            inventoryReply.InventoryData[0].OwnerMask = FULL_MASK_PERMISSIONS;
+            inventoryReply.InventoryData[0].SalePrice = 0;
+            inventoryReply.InventoryData[0].SaleType = 0;
+            inventoryReply.InventoryData[0].Type = (sbyte)item.type;
+            inventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType, inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID, inventoryReply.InventoryData[0].GroupID, 100, inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID, inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+
+            this.OutPacket(inventoryReply);
         }
 
 
@@ -545,20 +621,20 @@ namespace OpenSim.Region.ClientStack
             OutPacket(avp);
         }
 
-	public void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
-	{
-	    AvatarAnimationPacket ani = new AvatarAnimationPacket();
-	    ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
-	    ani.AnimationSourceList[0] = new AvatarAnimationPacket.AnimationSourceListBlock();
-	    ani.AnimationSourceList[0].ObjectID = sourceAgentId;
-	    ani.Sender = new AvatarAnimationPacket.SenderBlock();
-	    ani.Sender.ID = sourceAgentId;
-	    ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
-	    ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
-	    ani.AnimationList[0].AnimID = animID;
-	    ani.AnimationList[0].AnimSequenceID = seq;
-	    this.OutPacket(ani);
-	}
+        public void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
+        {
+            AvatarAnimationPacket ani = new AvatarAnimationPacket();
+            ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
+            ani.AnimationSourceList[0] = new AvatarAnimationPacket.AnimationSourceListBlock();
+            ani.AnimationSourceList[0].ObjectID = sourceAgentId;
+            ani.Sender = new AvatarAnimationPacket.SenderBlock();
+            ani.Sender.ID = sourceAgentId;
+            ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
+            ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
+            ani.AnimationList[0].AnimID = animID;
+            ani.AnimationList[0].AnimSequenceID = seq;
+            this.OutPacket(ani);
+        }
 
         #endregion
 
@@ -674,7 +750,7 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         /// <param name="primData"></param>
         /// <param name="pos"></param>
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID , uint flags)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID, uint flags)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;

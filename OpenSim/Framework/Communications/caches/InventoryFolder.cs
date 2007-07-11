@@ -4,7 +4,7 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Data;
 
-namespace OpenSim.Region.Caches
+namespace OpenSim.Framework.Communications.Caches
 {
     public class InventoryFolder : InventoryFolderBase
     {

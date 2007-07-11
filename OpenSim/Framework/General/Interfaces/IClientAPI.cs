@@ -30,6 +30,7 @@ using System.Net;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Interfaces
 {
@@ -176,5 +177,8 @@ namespace OpenSim.Framework.Interfaces
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID);
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation);
+    
+        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items);
+        void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item);
     }
 }

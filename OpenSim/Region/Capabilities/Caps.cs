@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using libsecondlife;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
@@ -118,7 +119,7 @@ namespace OpenSim.Region.Capabilities
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath;
             
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
-          //  caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
+            caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
             
             return caps;
         }
@@ -253,10 +254,12 @@ namespace OpenSim.Region.Capabilities
             LLUUID newInvItem = LLUUID.Random();
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
             AssetUploader uploader = new AssetUploader(newAsset, newInvItem, uploaderPath, this.httpListener);
+
+            string capsBase = "/CAPS/" + m_capsObjectPath;
+            httpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
             
-            AddLegacyCapsHandler( httpListener, uploaderPath, uploader.uploaderCaps);
-            
-            string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + uploaderPath;
+
+            string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath +uploaderPath;
             //Console.WriteLine("uploader url is " + uploaderURL);
             res += "<llsd><map>";
             res += "<key>uploader</key><string>" + uploaderURL + "</string>";
@@ -303,10 +306,10 @@ namespace OpenSim.Region.Capabilities
 
             }
 
-            public string uploaderCaps(string request, string path, string param)
+            public string uploaderCaps(byte[] data, string path, string param)
             {
-                Encoding _enc = Encoding.UTF8;
-                byte[] data = _enc.GetBytes(request);
+                //Encoding _enc = Encoding.UTF8;
+                //byte[] data = _enc.GetBytes(request);
                 //Console.WriteLine("recieved upload " + Util.FieldToString(data));
                 LLUUID inv = this.inventoryItemID;
                 string res = "";
@@ -324,7 +327,8 @@ namespace OpenSim.Region.Capabilities
                     OnUpLoad(newAssetID, inv, data);
                 }
 
-                /*FileStream fs = File.Create("upload.jp2");
+                /*
+                FileStream fs = File.Create("upload.jp2");
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);
                 bw.Close();

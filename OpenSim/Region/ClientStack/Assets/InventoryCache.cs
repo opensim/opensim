@@ -196,6 +196,7 @@ namespace OpenSim.Assets
 
         public void FetchInventoryDescendents(ClientView userInfo, FetchInventoryDescendentsPacket FetchDescend)
         {
+            
             if (this._agentsInventory.ContainsKey(userInfo.AgentID))
             {
                 AgentInventory agentInventory = this._agentsInventory[userInfo.AgentID];
