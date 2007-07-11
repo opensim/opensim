@@ -1,0 +1,3 @@
+<Root>
+  <Config SimUUID="e24110fd35684a8ba79651a8c81bf3d4" SimName="980" SimLocationX="1020" SimLocationY="1030" Datastore="store_980_x04_y61.yap" SimListenPort="10080" SimListenAddress="SYSTEMIP" TerrainFile="terrain_x04_y-46.r32" TerrainMultiplier="177.8" MasterAvatarFirstName="Adam" MasterAvatarLastName="Omega" MasterAvatarSandboxPassword="bork" />
+</Root>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<UserCombinePreferences filename="/home/gareth/OpenGridServices.Manager/OpenGridServices.Manager.mds">
+  <Files>
+    <File filename="Welcome" />
+    <File filename="./OpenGridServices.Manager/MainWindow.cs" />
+    <File filename="./OpenGridServices.Manager/ConnectToGridServerDialog.cs" />
+    <File filename="./OpenGridServices.Manager/Main.cs" />
+  </Files>
+  <Views>
+    <ViewMemento Id="MonoDevelop.Ide.Gui.Pads.ProjectPad">
+      <TreeView>
+        <Node expanded="True">
+          <Node name="OpenGridServices.Manager" expanded="True">
+            <Node name="References" expanded="True" />
+            <Node name="Resources" expanded="True" />
+            <Node name="UserInterface" expanded="True" />
+            <Node name="ConnectToGridServerDialog.cs" expanded="False" selected="True" />
+          </Node>
+        </Node>
+      </TreeView>
+    </ViewMemento>
+    <ViewMemento Id="MonoDevelop.Ide.Gui.Pads.ClassPad">
+      <TreeView>
+        <Node expanded="True" />
+      </TreeView>
+    </ViewMemento>
+    <ViewMemento Id="MonoDevelop.NUnit.TestPad">
+      <TreeView>
+        <Node expanded="False" />
+      </TreeView>
+    </ViewMemento>
+  </Views>
+  <Properties>
+    <Properties>
+      <Property key="ActiveConfiguration" value="Debug" />
+      <Property key="ActiveWindow" value="/home/gareth/OpenGridServices.Manager/OpenGridServices.Manager/ConnectToGridServerDialog.cs" />
+    </Properties>
+  </Properties>
+</UserCombinePreferences>
