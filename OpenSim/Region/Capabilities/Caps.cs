@@ -75,10 +75,10 @@ namespace OpenSim.Region.Capabilities
             string capsBase = "/CAPS/" + m_capsObjectPath;
 
 
-            //AddLegacyCapsHandler( httpListener, m_mapLayerPath, MapLayer);
+            AddLegacyCapsHandler( httpListener, m_mapLayerPath, MapLayer);
 
-            httpListener.AddStreamHandler(
-                new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, this.GetMapLayer ));
+          //  httpListener.AddStreamHandler(
+               // new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, this.GetMapLayer ));
 
             AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);                       
             AddLegacyCapsHandler(httpListener, m_newInventory, NewAgentInventory);
@@ -133,6 +133,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string MapLayer(string request, string path, string param)
         {
+            Console.WriteLine("map request: " + request);
             Encoding _enc = Encoding.UTF8;
             Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(_enc.GetBytes(request));
             LLSDMapRequest mapReq = new LLSDMapRequest();
@@ -147,6 +148,7 @@ namespace OpenSim.Region.Capabilities
 
         public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
         {
+            Console.WriteLine("Map request " + mapReq.Flags);
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(this.BuildLLSDMapLayerResponse());
             return mapResponse;

@@ -421,7 +421,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
-            
+             Primitive prim = null;
+             foreach (EntityBase ent in Entities.Values)
+             {
+                 if (ent is SceneObject)
+                 {
+                     prim = ((SceneObject)ent).HasChildPrim(localID);
+                     if (prim != null)
+                     {
+                         prim.UpdateTextureEntry(texture);
+                     }
+                 }
+             }
         }
 
         /// <summary>

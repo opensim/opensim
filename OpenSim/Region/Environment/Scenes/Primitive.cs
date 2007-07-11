@@ -242,7 +242,8 @@ namespace OpenSim.Region.Environment.Scenes
             pShape.PathTaperY = addPacket.ObjectData.PathTaperY;
             pShape.PathTwist = addPacket.ObjectData.PathTwist;
             pShape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
+            pShape.TextureEntry = ntex.ToBytes();
             this.updateFlag = 1;
         }
         #endregion
@@ -501,6 +502,17 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Texture
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="textureEntry"></param>
+        public void UpdateTextureEntry(byte[] textureEntry)
+        {
+            this.m_Shape.TextureEntry = textureEntry;
+            this.updateFlag = 1;
+        }
+        #endregion
         #region Client Update Methods
 
         /// <summary>

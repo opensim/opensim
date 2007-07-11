@@ -1042,8 +1042,8 @@ namespace OpenSim.Region.ClientStack
 
         protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimitiveBaseShape primData, LLUUID textureID)
         {
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
-            objectData.TextureEntry = ntex.ToBytes();
+            
+            objectData.TextureEntry = primData.TextureEntry;
             objectData.PCode = primData.PCode;
             objectData.PathBegin = primData.PathBegin;
             objectData.PathEnd = primData.PathEnd;

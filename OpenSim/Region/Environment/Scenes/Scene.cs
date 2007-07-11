@@ -477,6 +477,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdatePrimScale += this.UpdatePrimScale;
             client.OnUpdatePrimShape += this.UpdatePrimShape;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
+            client.OnUpdatePrimTexture += this.UpdatePrimTexture;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
             client.OnObjectSelect += this.SelectPrim;
             client.OnGrapUpdate += this.MoveObject;
