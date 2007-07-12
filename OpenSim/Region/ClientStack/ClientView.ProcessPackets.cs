@@ -564,6 +564,7 @@ namespace OpenSim.Region.ClientStack
                         if (OnParcelPropertiesUpdateRequest != null)
                         {
                             OnParcelPropertiesUpdateRequest(updatePacket, this);
+                            
                         }
                         break;
                     #endregion

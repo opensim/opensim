@@ -40,6 +40,9 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class ScenePresence : Entity
     {
+
+
+
         public static bool PhysicsEngineFlying = false;
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
@@ -75,7 +78,10 @@ namespace OpenSim.Region.Environment.Scenes
             DIR_CONTROL_FLAG_UP = MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS,
             DIR_CONTROL_FLAG_DOWN = MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG
         }
-
+        /// <summary>
+        /// Position at which a significant movement was made
+        /// </summary>
+        private LLVector3 posLastSignificantMove = new LLVector3();
         #region Properties
         /// <summary>
         /// 
@@ -359,7 +365,9 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
 
+                this.CheckForSignificantMovement();
                 this.CheckForBorderCrossing();
+                
             }
         }
         #endregion
@@ -465,6 +473,18 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Significant Movement Method
+
+        protected void CheckForSignificantMovement()
+        {
+            if (libsecondlife.Helpers.VecDist(this.Pos, this.posLastSignificantMove) > 2.0)
+            {
+                this.posLastSignificantMove = this.Pos;
+                this.m_world.parcelManager.handleSignificantClientMovement(this.ControllingClient);
+                
+            }
+        }
+        #endregion
         #region Border Crossing Methods
         /// <summary>
         /// 

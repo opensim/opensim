@@ -356,11 +356,11 @@ namespace OpenSim.Region.Environment
                         //Sale Flag
                         tempByte = Convert.ToByte(tempByte | PARCEL_TYPE_IS_FOR_SALE);
                     }
-                    /*else if (currentParcelBlock.parcelData.ownerID == LLUUID.Zero)
+                    else if (currentParcelBlock.parcelData.ownerID == LLUUID.Zero)
                     {
                         //Public Flag
                         tempByte = Convert.ToByte(tempByte | PARCEL_TYPE_PUBLIC);
-                    }*/
+                    }
                     else
                     {
                         //Other Flag
@@ -395,7 +395,6 @@ namespace OpenSim.Region.Environment
                         packet = new ParcelOverlayPacket();
                         packet.ParcelData.Data = byteArray;
                         packet.ParcelData.SequenceID = sequenceID;
-                        Console.WriteLine("SENT #" + sequenceID);
                         remote_client.OutPacket((Packet)packet);
                         sequenceID++;
                         byteArray = new byte[PARCEL_BLOCKS_PER_PACKET];
@@ -482,6 +481,20 @@ namespace OpenSim.Region.Environment
 
             addParcel(fullSimParcel);
 
+        }
+
+
+        public void handleSignificantClientMovement(IClientAPI remote_client)
+        {
+            Avatar clientAvatar = m_world.RequestAvatar(remote_client.AgentId);
+            if (clientAvatar != null)
+            {
+                Parcel over = getParcel(Convert.ToInt32(clientAvatar.Pos.X), Convert.ToInt32(clientAvatar.Pos.Y));
+                if (over != null)
+                {
+                    over.sendParcelProperties(0, false, 0, remote_client); //TODO: correctly send the sequence ID!!!
+                }
+            }
         }
         #endregion
     }
@@ -638,7 +651,6 @@ namespace OpenSim.Region.Environment
                 parcelData.userLookAt = packet.ParcelData.UserLookAt;
 
                 List<Avatar> avatars = m_world.RequestAvatarList();
-
                 for (int i = 0; i < avatars.Count; i++)
                 {
                     Parcel over = m_world.parcelManager.getParcel((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));

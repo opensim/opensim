@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
 
+
     public interface IClientAPI
     {
         event ImprovedInstantMessage OnInstantMessage;
@@ -124,7 +125,6 @@ namespace OpenSim.Framework.Interfaces
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
-
         LLVector3 StartPos
         {
             get;
