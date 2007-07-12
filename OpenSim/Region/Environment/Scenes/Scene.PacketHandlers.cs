@@ -113,8 +113,10 @@ namespace OpenSim.Region.Environment.Scenes
                 if (this.Avatars.ContainsKey(fromAgentID))
                 {
                     // Local sim message
-                    ScenePresence avatar = this.Avatars[fromAgentID];
-                    avatar.ControllingClient.SendInstantMessage(message, toAgentID);
+                    ScenePresence fromAvatar = this.Avatars[fromAgentID];
+                    ScenePresence toAvatar = this.Avatars[toAgentID];
+                    string fromName = fromAvatar.firstname + " " + fromAvatar.lastname;
+                    toAvatar.ControllingClient.SendInstantMessage(message, toAgentID, fromName);
                 }
                 else
                 {

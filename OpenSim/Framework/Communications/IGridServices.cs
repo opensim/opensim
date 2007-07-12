@@ -31,8 +31,6 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Communications
 {
-    
-
     public interface IGridServices
     {
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);

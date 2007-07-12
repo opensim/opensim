@@ -79,7 +79,7 @@ namespace OpenSim.Region.Capabilities
 
             AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);                       
           //  AddLegacyCapsHandler( httpListener, eventQueue, ProcessEventQueue);
-          //  AddLegacyCapsHandler( httpListener, m_requestTexture, RequestTexture);
+         //  AddLegacyCapsHandler( httpListener, m_requestTexture, RequestTexture);
         }
 
         [Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
@@ -98,6 +98,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string CapsRequest(string request, string path, string param)
         {
+           // Console.WriteLine("caps request " + request);
             string result = LLSDHelpers.SerialiseLLSDReply(this.GetCapabilities());
             return result;
         }
@@ -112,6 +113,8 @@ namespace OpenSim.Region.Capabilities
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath;
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
             caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
+            //caps.RequestTextureDownload = capsBaseUrl + m_requestTexture;
+           // caps.ChatSessionRequest = capsBaseUrl + m_requestTexture;
             return caps;
         }
 
@@ -149,6 +152,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string RequestTexture(string request, string path, string param)
         {
+            Console.WriteLine("texture request " + request);
             // Needs implementing (added to remove compiler warning)
             return "";
         }

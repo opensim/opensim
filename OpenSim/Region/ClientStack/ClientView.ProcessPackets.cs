@@ -102,9 +102,7 @@ namespace OpenSim.Region.ClientStack
                             this.OnInstantMessage(msgpack.AgentData.AgentID, msgpack.MessageBlock.ToAgentID,
                                 msgpack.MessageBlock.Timestamp, IMfromName, IMmessage);
                         }
-
                         break;
-
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
                         AgentInventory inven = this.m_inventoryCache.GetAgentsInventory(this.AgentID);

@@ -6,6 +6,8 @@ namespace OpenSim.Region.Capabilities
         public string MapLayer = "";
         public string NewFileAgentInventory = "";
         //public string EventQueueGet = "";
+        //public string RequestTextureDownload = "";
+        //public string ChatSessionRequest = "";
 
         public LLSDCapsDetails()
         {

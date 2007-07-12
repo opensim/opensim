@@ -245,23 +245,29 @@ namespace OpenSim.Region.ClientStack
         /// <remarks>TODO</remarks>
         /// <param name="message"></param>
         /// <param name="target"></param>
-        public void SendInstantMessage(string message, LLUUID target)
+        public void SendInstantMessage(string message, LLUUID target, string fromName)
         {
-            ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
-            msg.AgentData.AgentID = this.AgentID;
-            msg.AgentData.SessionID = this.SessionID;
+            if (message != "typing")
+            {
+                Encoding enc = Encoding.ASCII;
+                ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
+                msg.AgentData.AgentID = this.AgentID;
+                msg.AgentData.SessionID = this.SessionID;
+                msg.MessageBlock.FromAgentName = enc.GetBytes(fromName + " \0");
+                msg.MessageBlock.Dialog = 0;
+                msg.MessageBlock.FromGroup = false;
+                msg.MessageBlock.ID = target.Combine(this.SecureSessionID);
+                msg.MessageBlock.Offline = 0;
+                msg.MessageBlock.ParentEstateID = 0;
+                msg.MessageBlock.Position = new LLVector3();
+                msg.MessageBlock.RegionID = new LLUUID();
+                msg.MessageBlock.Timestamp = 0;
+                msg.MessageBlock.ToAgentID = target;
+                msg.MessageBlock.Message = enc.GetBytes(message + "\0");
+                msg.MessageBlock.BinaryBucket = new byte[0];
 
-            msg.MessageBlock.Dialog = 0;
-            msg.MessageBlock.FromGroup = false;
-            msg.MessageBlock.ID = target.Combine(this.AgentID);
-            msg.MessageBlock.Offline = 0;
-            msg.MessageBlock.ParentEstateID = 0;
-            msg.MessageBlock.Position = new LLVector3();
-            msg.MessageBlock.RegionID = new LLUUID();
-            msg.MessageBlock.Timestamp = 0;
-            msg.MessageBlock.ToAgentID = target;
-
-            this.OutPacket(msg);
+                this.OutPacket(msg);
+            }
         }
 
         /// <summary>
