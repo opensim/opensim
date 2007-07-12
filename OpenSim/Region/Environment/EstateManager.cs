@@ -71,7 +71,6 @@ namespace OpenSim.Region.Environment
                 switch (Helpers.FieldToUTF8String(packet.MethodData.Method))
                 {
                     case "getinfo":
-                        Console.WriteLine("GETINFO Requested");
                         this.sendRegionInfoPacketToAll();
 
                         break;

@@ -487,15 +487,17 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnLinkObjects += this.LinkObjects;
             client.OnObjectDuplicate += this.DuplicateObject;
 
-            /* remoteClient.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
-            remoteClient.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
-            remoteClient.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
-            remoteClient.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
-            remoteClient.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
-            */
+            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
+            client.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
+            client.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
+            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
+            client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
+            
             this.estateManager.sendRegionHandshake(client);
-
             CreateAndAddScenePresence(client);
+
+            this.parcelManager.sendParcelOverlay(client);
+            
             return;
         }
 

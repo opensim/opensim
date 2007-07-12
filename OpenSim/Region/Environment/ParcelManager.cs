@@ -356,11 +356,11 @@ namespace OpenSim.Region.Environment
                         //Sale Flag
                         tempByte = Convert.ToByte(tempByte | PARCEL_TYPE_IS_FOR_SALE);
                     }
-                    else if (currentParcelBlock.parcelData.ownerID == LLUUID.Zero)
+                    /*else if (currentParcelBlock.parcelData.ownerID == LLUUID.Zero)
                     {
                         //Public Flag
                         tempByte = Convert.ToByte(tempByte | PARCEL_TYPE_PUBLIC);
-                    }
+                    }*/
                     else
                     {
                         //Other Flag
@@ -395,6 +395,7 @@ namespace OpenSim.Region.Environment
                         packet = new ParcelOverlayPacket();
                         packet.ParcelData.Data = byteArray;
                         packet.ParcelData.SequenceID = sequenceID;
+                        Console.WriteLine("SENT #" + sequenceID);
                         remote_client.OutPacket((Packet)packet);
                         sequenceID++;
                         byteArray = new byte[PARCEL_BLOCKS_PER_PACKET];
@@ -402,10 +403,7 @@ namespace OpenSim.Region.Environment
                 }
             }
 
-            packet = new ParcelOverlayPacket();
-            packet.ParcelData.Data = byteArray;
-            packet.ParcelData.SequenceID = sequenceID; //Eh?
-            remote_client.OutPacket((Packet)packet);
+            
         }
 
         public void handleParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client)

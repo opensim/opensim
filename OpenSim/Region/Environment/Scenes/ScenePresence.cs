@@ -274,6 +274,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         movementflag -= (byte)(uint)DCF;
                         update_movementflag = true;
+                      
                     }
                 }
                 i++;
