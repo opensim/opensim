@@ -115,11 +115,6 @@ namespace OpenSim
 
             m_log.Verbose("Main.cs:Startup() - Initialising HTTP server");
 
-            if (m_sandbox)
-            {
-                httpServer.AddXmlRPCHandler("login_to_simulator", ((CommunicationsLocal)this.commsManager).UserServices.XmlRpcLoginMethod);
-            }
-
             //Start http server
             m_log.Verbose("Main.cs:Startup() - Starting HTTP server");
             httpServer.Start();

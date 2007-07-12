@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Interfaces
         void SendRegionHandshake(RegionInfo regionInfo);
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
-        void SendInstantMessage(string message, LLUUID target, string fromName, LLUUID id);
+        void SendInstantMessage(string message, LLUUID target, string fromName);
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);

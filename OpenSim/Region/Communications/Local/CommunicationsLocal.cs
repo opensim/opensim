@@ -44,6 +44,7 @@ namespace OpenSim.Region.Communications.Local
             UserServer = UserServices;
             GridServer = SandBoxServices;
             InterRegion = SandBoxServices;
+            httpServer.AddXmlRPCHandler("login_to_simulator", UserServices.XmlRpcLoginMethod);
         }
 
         internal void InformRegionOfLogin(ulong regionHandle, Login login)

@@ -574,6 +574,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="XMLRPC.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
