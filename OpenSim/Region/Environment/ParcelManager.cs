@@ -123,7 +123,7 @@ namespace OpenSim.Region.Environment
         /// Adds a parcel to the stored list and adds them to the parcelIDList to what they own
         /// </summary>
         /// <param name="new_parcel">The parcel being added</param>
-        public void addParcel(Parcel new_parcel)
+        public Parcel addParcel(Parcel new_parcel)
         {
             lastParcelLocalID++;
             new_parcel.parcelData.localID = lastParcelLocalID;
@@ -144,6 +144,7 @@ namespace OpenSim.Region.Environment
             }
             parcelList[lastParcelLocalID].forceUpdateParcelInfo();
 
+            return new_parcel;
 
         }
         /// <summary>
@@ -182,6 +183,7 @@ namespace OpenSim.Region.Environment
                 }
             }
             removeParcel(slave.parcelData.localID);
+            master.sendParcelUpdateToAvatarsOverMe();
         }
         /// <summary>
         /// Get the parcel at the specified point
@@ -260,10 +262,10 @@ namespace OpenSim.Region.Environment
             parcelList[startParcelIndex].setParcelBitmap(Parcel.modifyParcelBitmapSquare(startParcel.getParcelBitmap(), start_x, start_y, end_x, end_y, false));
             parcelList[startParcelIndex].forceUpdateParcelInfo();
 
-
             //Now add the new parcel
-            addParcel(newParcel);
+            Parcel result = addParcel(newParcel);
 
+            result.sendParcelUpdateToAvatarsOverMe();
 
 
 
@@ -492,7 +494,7 @@ namespace OpenSim.Region.Environment
                 Parcel over = getParcel(Convert.ToInt32(clientAvatar.Pos.X), Convert.ToInt32(clientAvatar.Pos.Y));
                 if (over != null)
                 {
-                    over.sendParcelProperties(0, false, 0, remote_client); //TODO: correctly send the sequence ID!!!
+                    over.sendParcelProperties(0, false, 0, remote_client);
                 }
             }
         }
@@ -649,17 +651,22 @@ namespace OpenSim.Region.Environment
                 parcelData.snapshotID = packet.ParcelData.SnapshotID;
                 parcelData.userLocation = packet.ParcelData.UserLocation;
                 parcelData.userLookAt = packet.ParcelData.UserLookAt;
+                sendParcelUpdateToAvatarsOverMe();
+                
 
-                List<Avatar> avatars = m_world.RequestAvatarList();
-                for (int i = 0; i < avatars.Count; i++)
+            }
+        }
+
+        public void sendParcelUpdateToAvatarsOverMe()
+        {
+            List<Avatar> avatars = m_world.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                Parcel over = m_world.parcelManager.getParcel((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
+                if (over.parcelData.localID == this.parcelData.localID)
                 {
-                    Parcel over = m_world.parcelManager.getParcel((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
-                    if (over == this)
-                    {
-                        sendParcelProperties(0, false, 0, avatars[i].ControllingClient);
-                    }
+                    sendParcelProperties(0, false, 0, avatars[i].ControllingClient);
                 }
-
             }
         }
         #endregion
