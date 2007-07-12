@@ -766,13 +766,13 @@ namespace OpenSim.Region.ClientStack
         }
 
 
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, textureID, flags);
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, flags);
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
@@ -785,13 +785,13 @@ namespace OpenSim.Region.ClientStack
             OutPacket(outPacket);
         }
 
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLUUID textureID, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, textureID, flags);
+            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, flags);
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
@@ -996,12 +996,12 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         /// <param name="primData"></param>
         /// <returns></returns>
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimitiveBaseShape primShape, LLUUID textureID, uint flags)
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimitiveBaseShape primShape, uint flags)
         {
             ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
             this.SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = flags;
-            this.SetPrimPacketShapeData(objupdate, primShape, textureID);
+            this.SetPrimPacketShapeData(objupdate, primShape);
 
             return objupdate;
         }
@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.ClientStack
             objectData.PathTwistBegin = primData.PathTwistBegin;
         }
 
-        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimitiveBaseShape primData, LLUUID textureID)
+        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimitiveBaseShape primData)
         {
             
             objectData.TextureEntry = primData.TextureEntry;

@@ -542,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion lRot;
             lRot = new LLQuaternion(this.Rotation.x, this.Rotation.y, this.Rotation.z, this.Rotation.w);
 
-            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, lRot, new LLUUID("00000000-0000-0000-9999-000000000005"), this.m_flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
+            remoteClient.SendPrimitiveToClient(this.m_regionHandle, 64096, this.LocalId, this.m_Shape, lPos, lRot, this.m_flags, this.uuid, this.OwnerID, this.Text, this.ParentID);
         }
 
         /// <summary>
