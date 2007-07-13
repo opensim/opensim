@@ -74,6 +74,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_world = world;
             this.Pos = pos;
             this.CreateRootFromShape(ownerID, localID, shape, pos);
+
+            // Setup a backup event listener
+            world.eventManager.OnBackup += new EventManager.OnBackupDelegate(ProcessBackup);
+        }
+
+        /// <summary>
+        /// Processes backup
+        /// </summary>
+        /// <param name="datastore"></param>
+        void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
+        {
+            datastore.StoreObject(this);
         }
 
         /// <summary>
