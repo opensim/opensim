@@ -68,7 +68,7 @@ namespace SimpleApp
             PrimData primData = new PrimData();
             primData.Scale = new LLVector3(1, 1, 1);
 
-            m_localId = world.AddNewPrim( LLUUID.Zero, primData, LLVector3.Zero, new LLQuaternion(0, 0, 0, 0), LLUUID.Zero, 0);
+            //m_localId = world.AddNewPrim( LLUUID.Zero, primData, LLVector3.Zero, new LLQuaternion(0, 0, 0, 0), LLUUID.Zero, 0);
 
         }
 

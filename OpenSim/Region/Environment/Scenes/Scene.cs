@@ -417,22 +417,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="addPacket"></param>
-        /// <param name="agentClient"></param>
-        public void AddNewPrim(Packet addPacket, IClientAPI agentClient)
-        {
-            AddNewPrim((ObjectAddPacket)addPacket, agentClient.AgentId);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="addPacket"></param>
         /// <param name="ownerID"></param>
-        public void AddNewPrim(ObjectAddPacket addPacket, LLUUID ownerID)
+        public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             try
             {
-                SceneObject sceneOb = new SceneObject(m_regionHandle, this, addPacket, ownerID, this.PrimIDAllocate());
+                SceneObject sceneOb = new SceneObject(m_regionHandle, this, ownerID, this.PrimIDAllocate(), pos, shape);
                 this.Entities.Add(sceneOb.rootUUID, sceneOb);
 
                 // Trigger event for listeners
@@ -442,13 +432,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
             }
-        }
-
-        public override uint AddNewPrim(LLUUID ownerId, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID texture, int flags)
-        {
-            uint id = NextLocalId;
-            
-            throw new NotImplementedException("Not implemented yet.");                       
         }
 
         #endregion

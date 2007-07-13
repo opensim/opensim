@@ -30,6 +30,7 @@ using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -67,12 +68,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public SceneObject(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
+        public SceneObject(ulong regionHandle, Scene world, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = regionHandle;
             m_world = world;
-            this.Pos = addPacket.ObjectData.RayEnd;
-            this.CreateRootFromPacket(addPacket, ownerID, localID);
+            this.Pos = pos;
+            this.CreateRootFromPacket(ownerID, localID, shape, pos );
         }
 
         /// <summary>
@@ -90,9 +91,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="addPacket"></param>
         /// <param name="agentID"></param>
         /// <param name="localID"></param>
-        public void CreateRootFromPacket(ObjectAddPacket addPacket, LLUUID agentID, uint localID)
+        public void CreateRootFromPacket(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
-           this.rootPrimitive = new Primitive( this.m_regionHandle, this.m_world, addPacket, agentID, localID, true, this, this);
+            this.rootPrimitive = new Primitive( this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
            this.children.Add(rootPrimitive);
            this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }

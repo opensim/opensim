@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
 
+    public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape);
 
     public interface IClientAPI
     {
@@ -94,7 +95,7 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall2 OnCompleteMovementToRegion;
         event UpdateAgent OnAgentUpdate;
         event GenericCall OnRequestAvatarsData;
-        event GenericCall4 OnAddPrim;
+        event AddNewPrim OnAddPrim;
         event ObjectDuplicate OnObjectDuplicate;
         event UpdateVector OnGrapObject;
         event ObjectSelect OnDeGrapObject;

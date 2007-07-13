@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack
         public event ObjectSelect OnDeGrapObject;
         public event ObjectDuplicate OnObjectDuplicate;
         public event MoveObject OnGrapUpdate;
-        public event GenericCall4 OnAddPrim;
+        public event AddNewPrim OnAddPrim;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectSelect OnObjectSelect;
         public event GenericCall7 OnObjectDescription;

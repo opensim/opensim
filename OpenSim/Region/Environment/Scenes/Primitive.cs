@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="isRoot"></param>
         /// <param name="parent"></param>
         /// <param name="rootObject"></param>
-        public Primitive(ulong regionHandle, Scene world, ObjectAddPacket addPacket, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject)
+        public Primitive(ulong regionHandle, Scene world, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
         {
             m_regionHandle = regionHandle;
             m_world = world;
@@ -138,7 +138,8 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_Parent = parent;
             this.m_isRootPrim = isRoot;
             this.m_RootParent = rootObject;
-            this.CreateFromPacket(addPacket, ownerID, localID);
+
+            this.CreateFromPacket(ownerID, localID, pos, shape);
             this.Rotation = Axiom.Math.Quaternion.Identity;
         }
 
@@ -209,43 +210,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="addPacket"></param>
         /// <param name="ownerID"></param>
         /// <param name="localID"></param>
-        public void CreateFromPacket(ObjectAddPacket addPacket, LLUUID ownerID, uint localID)
+        public void CreateFromPacket(LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             this.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             this.OwnerID = ownerID;
             this.CreatorID = this.OwnerID;
             this.LastOwnerID = LLUUID.Zero;
-            this.Pos = addPacket.ObjectData.RayEnd;
+            this.Pos = pos;
             this.uuid = LLUUID.Random();
             this.m_localId = (uint)(localID);
 
-            PrimitiveBaseShape pShape = new PrimitiveBaseShape();
-            this.m_Shape = pShape;
-
-            pShape.PCode = addPacket.ObjectData.PCode;
-            pShape.PathBegin = addPacket.ObjectData.PathBegin;
-            pShape.PathEnd = addPacket.ObjectData.PathEnd;
-            pShape.PathScaleX = addPacket.ObjectData.PathScaleX;
-            pShape.PathScaleY = addPacket.ObjectData.PathScaleY;
-            pShape.PathShearX = addPacket.ObjectData.PathShearX;
-            pShape.PathShearY = addPacket.ObjectData.PathShearY;
-            pShape.PathSkew = addPacket.ObjectData.PathSkew;
-            pShape.ProfileBegin = addPacket.ObjectData.ProfileBegin;
-            pShape.ProfileEnd = addPacket.ObjectData.ProfileEnd;
-            pShape.Scale = addPacket.ObjectData.Scale;
-            pShape.PathCurve = addPacket.ObjectData.PathCurve;
-            pShape.ProfileCurve = addPacket.ObjectData.ProfileCurve;
-            pShape.ProfileHollow = addPacket.ObjectData.ProfileHollow;
-            pShape.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
-            pShape.PathRevolutions = addPacket.ObjectData.PathRevolutions;
-            pShape.PathTaperX = addPacket.ObjectData.PathTaperX;
-            pShape.PathTaperY = addPacket.ObjectData.PathTaperY;
-            pShape.PathTwist = addPacket.ObjectData.PathTwist;
-            pShape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
-            pShape.TextureEntry = ntex.ToBytes();
+            this.m_Shape = shape;
             this.updateFlag = 1;
         }
+
         #endregion
 
         #region Linking / unlinking

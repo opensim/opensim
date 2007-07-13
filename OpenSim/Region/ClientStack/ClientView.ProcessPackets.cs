@@ -217,7 +217,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectAdd:
                         if (OnAddPrim != null)
                         {
-                            OnAddPrim(Pack, this);
+                            ObjectAddPacket packet = (ObjectAddPacket) Pack ;
+                            PrimitiveBaseShape primShape = PrimitiveBaseShape.FromAddPacket( packet );
+
+                            OnAddPrim(this.AgentId, packet.ObjectData.RayEnd, primShape );
                         }
                         break;
                     case PacketType.ObjectShape:
