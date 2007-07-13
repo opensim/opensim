@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Scripting.EmbeddedJVM
+namespace OpenSim.Region.Scripting.EmbeddedJVM
 {
     partial class Thread
     {

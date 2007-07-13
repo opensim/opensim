@@ -28,7 +28,7 @@
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Region.Scripting
 {
     /// <summary>
     /// Class which provides access to the world

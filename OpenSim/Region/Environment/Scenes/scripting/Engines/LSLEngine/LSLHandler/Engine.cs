@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
 
-using OpenSim.Region.Environment.Scripting;
+using OpenSim.Region.Scripting;
 
 namespace OpenSim.ScriptEngines.LSL
 {

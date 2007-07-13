@@ -4,7 +4,7 @@
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
-using OpenSim.Region.Environment.Scripting;
+using OpenSim.Region.Scripting;
 
     namespace OpenSim.ScriptEngines.LSL
     {

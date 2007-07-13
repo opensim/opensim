@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using OpenSim.Region.Environment.Scripting;
-using OpenSim.Scripting.EmbeddedJVM;
+using OpenSim.Region.Scripting;
+using OpenSim.Region.Scripting.EmbeddedJVM;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Region.Scripting
 {
     public class JavaEngine : IScriptCompiler
     {

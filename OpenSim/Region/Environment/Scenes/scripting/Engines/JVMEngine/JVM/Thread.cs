@@ -28,14 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Scripting.EmbeddedJVM.Types;
-using OpenSim.Scripting.EmbeddedJVM.Types.PrimitiveTypes;
+using OpenSim.Region.Scripting.EmbeddedJVM.Types;
+using OpenSim.Region.Scripting.EmbeddedJVM.Types.PrimitiveTypes;
 using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scripting;
+using OpenSim.Region.Scripting;
 
-namespace OpenSim.Scripting.EmbeddedJVM
+namespace OpenSim.Region.Scripting.EmbeddedJVM
 {
     public partial class Thread
     {

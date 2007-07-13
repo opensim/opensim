@@ -33,10 +33,10 @@ using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-using OpenSim.Region.Environment.Scripting;
+using OpenSim.Region.Scripting;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Scripting.EmbeddedJVM
+namespace OpenSim.Region.Scripting.EmbeddedJVM
 {
     public class JVMScript : IScript
     {

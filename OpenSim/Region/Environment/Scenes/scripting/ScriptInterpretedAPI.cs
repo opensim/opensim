@@ -8,7 +8,7 @@ using LSLList = System.Collections.Generic.List<string>;
 
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Region.Scripting
 {
     /// <summary>
     /// A class inteded to act as an API for LSL-styled interpreted languages

@@ -29,9 +29,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Scripting.EmbeddedJVM.Types;
+using OpenSim.Region.Scripting.EmbeddedJVM.Types;
 
-namespace OpenSim.Scripting.EmbeddedJVM
+namespace OpenSim.Region.Scripting.EmbeddedJVM
 {
     public class ClassRecord
     {

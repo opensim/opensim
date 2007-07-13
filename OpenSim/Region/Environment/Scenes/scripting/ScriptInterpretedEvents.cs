@@ -5,7 +5,7 @@ using OpenSim.Region.Environment.Scenes;
 using libsecondlife;
 using Key = libsecondlife.LLUUID;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Region.Scripting
 {
 
     class ScriptInterpretedEvents

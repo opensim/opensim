@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Scripting.EmbeddedJVM.Types.PrimitiveTypes
+namespace OpenSim.Region.Scripting.EmbeddedJVM.Types.PrimitiveTypes
 {
     public class Int : BaseType
     {

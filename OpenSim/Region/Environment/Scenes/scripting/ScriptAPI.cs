@@ -9,7 +9,7 @@ using LSLList = System.Collections.Generic.List<string>;
 
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Region.Scripting
 {
     // This class is to be used for engines which may not be able to access the Scene directly.
     // Scene access is preffered, but obviously not possible on some non-.NET languages.

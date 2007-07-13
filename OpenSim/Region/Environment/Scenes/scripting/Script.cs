@@ -27,7 +27,7 @@
 */
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Scripting
+namespace OpenSim.Region.Scripting
 {
     public interface IScript
     {
