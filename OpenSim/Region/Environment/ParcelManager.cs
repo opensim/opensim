@@ -183,7 +183,6 @@ namespace OpenSim.Region.Environment
                 }
             }
             removeParcel(slave.parcelData.localID);
-            master.sendParcelUpdateToAvatarsOverMe();
         }
         /// <summary>
         /// Get the parcel at the specified point
@@ -217,6 +216,7 @@ namespace OpenSim.Region.Environment
         /// <returns>Returns true if successful</returns>
         private bool subdivide(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
         {
+           
             //First, lets loop through the points and make sure they are all in the same parcel
             //Get the parcel at start
             Parcel startParcel = getParcel(start_x, start_y);
@@ -286,39 +286,47 @@ namespace OpenSim.Region.Environment
             end_x -= 4;
             end_y -= 4;
 
-            //NOTE: The following only connects the parcels in each corner and not all the parcels that are within the selection box!
-            //This should be fixed later -- somewhat "incomplete code" --Ming
-            Parcel startParcel, endParcel;
+            List<Parcel> selectedParcels = new List<Parcel>();
+            int stepXSelected = 0;
+            int stepYSelected = 0;
+            for (stepYSelected = start_y; stepYSelected <= end_y; stepYSelected += 4)
+            {
+                for (stepXSelected = start_x; stepXSelected <= end_x; stepXSelected += 4)
+                {
+                    Parcel p = getParcel(stepXSelected,stepYSelected);
+                    if (!selectedParcels.Contains(p))
+                    {
+                        selectedParcels.Add(p);
+                    }
+                }
+            }
+            Parcel masterParcel = selectedParcels[0];
+            selectedParcels.RemoveAt(0);
 
-            try
+            
+            if (selectedParcels.Count < 1)
             {
-                startParcel = getParcel(start_x, start_y);
-                endParcel = getParcel(end_x, end_y);
+                return false; //Only one parcel selected
             }
-            catch (Exception)
+            if (masterParcel.parcelData.ownerID != attempting_user_id)
             {
-                return false; //Error occured when trying to get the start and end parcels
+                return false; //Not the same owner
             }
-            if (startParcel == endParcel)
+            foreach (Parcel p in selectedParcels)
             {
-                return false; //Subdivision of the same parcel is not allowed
+                if (p.parcelData.ownerID != masterParcel.parcelData.ownerID)
+                {
+                    return false; //Over multiple users. TODO: make this just ignore this parcel?
+                }
             }
-
-            //Check the parcel owners:
-            if (startParcel.parcelData.ownerID != endParcel.parcelData.ownerID)
+            foreach (Parcel slaveParcel in selectedParcels)
             {
-                return false;
-            }
-            if (startParcel.parcelData.ownerID != attempting_user_id)
-            {
-                //TODO: Group editing stuff. Avatar owner support for now
-                return false;
+                parcelList[masterParcel.parcelData.localID].setParcelBitmap(Parcel.mergeParcelBitmaps(masterParcel.getParcelBitmap(), slaveParcel.getParcelBitmap()));
+                performFinalParcelJoin(masterParcel, slaveParcel);
             }
 
-            //Same owners! Lets join them
-            //Merge them to startParcel
-            parcelList[startParcel.parcelData.localID].setParcelBitmap(Parcel.mergeParcelBitmaps(startParcel.getParcelBitmap(), endParcel.getParcelBitmap()));
-            performFinalParcelJoin(startParcel, endParcel);
+
+            masterParcel.sendParcelUpdateToAvatarsOverMe();
 
             return true;
 

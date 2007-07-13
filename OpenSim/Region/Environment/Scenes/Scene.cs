@@ -484,6 +484,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
             client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
+
+            client.OnSignificantClientMovement += new SignificantClientMovement(parcelManager.handleSignificantClientMovement);
         }
 
         protected void CreateAndAddScenePresence(IClientAPI client)

@@ -77,6 +77,8 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape);
 
+    public delegate void SignificantClientMovement(IClientAPI remote_client);
+
     public interface IClientAPI
     {
         event ImprovedInstantMessage OnInstantMessage;
@@ -126,6 +128,8 @@ namespace OpenSim.Framework.Interfaces
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
+        event SignificantClientMovement OnSignificantClientMovement;
+
         LLVector3 StartPos
         {
             get;
@@ -182,5 +186,7 @@ namespace OpenSim.Framework.Interfaces
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items);
         void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item);
         void SendNameReply(LLUUID profileId, string firstname, string lastname);
+
+        void TriggerSignificantClientMovement(IClientAPI remote_client);
     }
 }

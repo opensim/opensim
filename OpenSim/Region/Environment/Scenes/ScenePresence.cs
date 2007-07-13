@@ -479,8 +479,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (libsecondlife.Helpers.VecDist(this.Pos, this.posLastSignificantMove) > 2.0)
             {
                 this.posLastSignificantMove = this.Pos;
-                this.m_world.parcelManager.handleSignificantClientMovement(this.ControllingClient);
-                
+                this.ControllingClient.TriggerSignificantClientMovement(this.ControllingClient);
             }
         }
         #endregion

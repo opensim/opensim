@@ -87,6 +87,7 @@ namespace OpenSim.Region.ClientStack
 
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
+        public event SignificantClientMovement OnSignificantClientMovement;
 
         /// <summary>
         /// 
@@ -1176,6 +1177,14 @@ namespace OpenSim.Region.ClientStack
             packet.UUIDNameBlock[0].LastName = Helpers.StringToField( lastname );
             
             OutPacket( packet );
+        }
+
+        public void TriggerSignificantClientMovement(IClientAPI remote_client)
+        {
+            if (OnSignificantClientMovement != null)
+            {
+                OnSignificantClientMovement(remote_client);
+            }
         }
     }
 }
