@@ -65,10 +65,13 @@ namespace SimpleApp
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
 
-            PrimData primData = new PrimData();
-            primData.Scale = new LLVector3(1, 1, 1);
+            PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
+            
+            shape.Scale = new LLVector3(1, 1, 1);
+            
+            LLVector3 pos = new LLVector3(1,1,1);
 
-            //m_localId = world.AddNewPrim( LLUUID.Zero, primData, LLVector3.Zero, new LLQuaternion(0, 0, 0, 0), LLUUID.Zero, 0);
+            world.AddNewPrim( LLUUID.Zero, pos, shape );
 
         }
 

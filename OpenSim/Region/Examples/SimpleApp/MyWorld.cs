@@ -30,7 +30,7 @@ namespace SimpleApp
                 int x = i % 256;
                 int y = i / 256;
 
-                map[i] = (float)(x + y / 2);
+                map[i] = 0f;
             }
 
             remoteClient.SendLayerData(map);
