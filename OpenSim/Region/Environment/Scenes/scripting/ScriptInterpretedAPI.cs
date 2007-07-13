@@ -148,7 +148,7 @@ namespace OpenSim.Region.Environment.Scripting
         [Obsolete("Unimplemented")]
         public float osCloud(Vector offset)
         {
-            return 0.0;
+            return 0.0f;
         }
 
         [Obsolete("Unimplemented")]
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Scripting
         [Obsolete("Unimplemented")]
         public void osCreateLink(Key target, int parent)
         {
-            return false;
+            return;
         }
 
         [Obsolete("Partially Unimplemented")]
