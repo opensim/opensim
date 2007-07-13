@@ -41,6 +41,9 @@ namespace SimpleApp
             assetServer.SetReceiver(this);
 
             AssetCache assetCache = new AssetCache(assetServer);
+
+            PhysicsManager physManager = new PhysicsManager();
+            physManager.LoadPlugins();
             
             UDPServer udpServer = new UDPServer( internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager );
             PacketServer packetServer = new PacketServer(udpServer);
@@ -55,7 +58,7 @@ namespace SimpleApp
             RegionInfo regionInfo = new RegionInfo( 1000, 1000, internalEndPoint, "127.0.0.1" );
 
             MyWorld world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
-            world.PhysScene = PhysicsScene.Null;
+            world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
             udpServer.LocalWorld = world;
             
             httpServer.Start();

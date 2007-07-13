@@ -233,7 +233,6 @@ namespace OpenSim
                     LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
                 }
 
-
                 LocalWorld.StartTimer();
             }
         }

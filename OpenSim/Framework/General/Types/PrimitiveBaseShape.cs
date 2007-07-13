@@ -70,6 +70,11 @@ namespace OpenSim.Framework.Types
 
         }
 
+        public PrimitiveBaseShape Copy()
+        {
+            return (PrimitiveBaseShape) this.MemberwiseClone();
+        }
+
         public static PrimitiveBaseShape DefaultBox()
         {
             PrimitiveBaseShape primShape = new PrimitiveBaseShape();

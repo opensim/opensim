@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool physicsEnabled = false;
         private PhysicsScene m_PhysScene;
         private PhysicsActor m_PhysActor;
-        
+
         public LLUUID rootUUID
         {
             get
@@ -73,7 +73,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_world = world;
             this.Pos = pos;
-            this.CreateRootFromPacket(ownerID, localID, shape, pos );
+            this.CreateRootFromShape(ownerID, localID, shape, pos);
         }
 
         /// <summary>
@@ -91,11 +91,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="addPacket"></param>
         /// <param name="agentID"></param>
         /// <param name="localID"></param>
-        public void CreateRootFromPacket(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
+        public void CreateRootFromShape(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
-            this.rootPrimitive = new Primitive( this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
-           this.children.Add(rootPrimitive);
-           this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
+            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
+            this.children.Add(rootPrimitive);
+            this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
 
         /// <summary>
@@ -207,7 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            this.rootPrimitive.Pos = pos ;
+            this.rootPrimitive.Pos = pos;
             this.rootPrimitive.SendTerseUpdateForAllChildren(remoteClient);
         }
 
@@ -232,16 +232,16 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].OwnerID = this.rootPrimitive.OwnerID;
             proper.ObjectData[0].TouchName = enc.GetBytes(this.rootPrimitive.TouchName + "\0");
             proper.ObjectData[0].TextureID = new byte[0];
-            proper.ObjectData[0].SitName = enc.GetBytes(this.rootPrimitive.SitName +"\0") ;
-            proper.ObjectData[0].Name = enc.GetBytes(this.rootPrimitive.Name +"\0");
-            proper.ObjectData[0].Description = enc.GetBytes(this.rootPrimitive.Description +"\0");
+            proper.ObjectData[0].SitName = enc.GetBytes(this.rootPrimitive.SitName + "\0");
+            proper.ObjectData[0].Name = enc.GetBytes(this.rootPrimitive.Name + "\0");
+            proper.ObjectData[0].Description = enc.GetBytes(this.rootPrimitive.Description + "\0");
             proper.ObjectData[0].OwnerMask = this.rootPrimitive.OwnerMask;
             proper.ObjectData[0].NextOwnerMask = this.rootPrimitive.NextOwnerMask;
             proper.ObjectData[0].GroupMask = this.rootPrimitive.GroupMask;
             proper.ObjectData[0].EveryoneMask = this.rootPrimitive.EveryoneMask;
             proper.ObjectData[0].BaseMask = this.rootPrimitive.BaseMask;
 
-            client.OutPacket(proper);  
+            client.OutPacket(proper);
         }
     }
 }

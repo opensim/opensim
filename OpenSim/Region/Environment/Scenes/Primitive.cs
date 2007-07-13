@@ -139,7 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_isRootPrim = isRoot;
             this.m_RootParent = rootObject;
 
-            this.CreateFromPacket(ownerID, localID, pos, shape);
+            this.CreateFromShape(ownerID, localID, pos, shape);
             this.Rotation = Axiom.Math.Quaternion.Identity;
         }
 
@@ -164,14 +164,22 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_Parent = parent;
             dupe.m_RootParent = rootParent;
             // TODO: Copy this properly.
-            dupe.m_Shape = this.m_Shape;
-
+            dupe.m_Shape = this.m_Shape.Copy();
+            dupe.children = new List<EntityBase>();
             uint newLocalID = this.m_world.PrimIDAllocate();
+            dupe.uuid = LLUUID.Random();
             dupe.LocalId = newLocalID;
 
             dupe.Scale = new LLVector3(this.Scale.X, this.Scale.Y, this.Scale.Z);
             dupe.Rotation = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
             dupe.Pos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
+            rootParent.AddChildToList(dupe);
+
+            foreach (Primitive prim in this.children)
+            {
+                Primitive primClone = prim.Copy(this, rootParent);
+                dupe.children.Add(primClone);
+            }
 
             return dupe;
         }
@@ -210,7 +218,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="addPacket"></param>
         /// <param name="ownerID"></param>
         /// <param name="localID"></param>
-        public void CreateFromPacket(LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public void CreateFromShape(LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             this.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             this.OwnerID = ownerID;

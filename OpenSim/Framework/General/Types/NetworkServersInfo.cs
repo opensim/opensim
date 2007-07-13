@@ -44,8 +44,8 @@ namespace OpenSim.Framework.Types
         public string UserRecvKey = "";
         public bool isSandbox;
 
-        public uint DefaultHomeLocX = 0;
-        public uint DefaultHomeLocY = 0;
+        public uint DefaultHomeLocX = 1000;
+        public uint DefaultHomeLocY = 1000;
 
         public int HttpListenerPort = 9000;
         public int RemotingListenerPort = 8895;
