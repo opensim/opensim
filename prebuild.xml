@@ -733,41 +733,6 @@
       </Files>
     </Project>
 
-  </Solution>
-
-
-  <Solution name="OpenGridServices" activeConfig="Debug" path="./">
-    <Configuration name="Debug">
-      <Options>
-        <CompilerDefines>TRACE;DEBUG</CompilerDefines>
-        <OptimizeCode>false</OptimizeCode>
-        <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
-        <AllowUnsafe>false</AllowUnsafe>
-        <WarningLevel>4</WarningLevel>
-        <WarningsAsErrors>false</WarningsAsErrors>
-        <SuppressWarnings></SuppressWarnings>
-        <OutputPath>bin</OutputPath>
-        <DebugInformation>true</DebugInformation>
-        <IncrementalBuild>true</IncrementalBuild>
-        <NoStdLib>false</NoStdLib>
-      </Options>
-    </Configuration>
-    <Configuration name="Release">
-      <Options>
-        <CompilerDefines>TRACE</CompilerDefines>
-        <OptimizeCode>true</OptimizeCode>
-        <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
-        <AllowUnsafe>false</AllowUnsafe>
-        <WarningLevel>4</WarningLevel>
-        <WarningsAsErrors>false</WarningsAsErrors>
-        <SuppressWarnings></SuppressWarnings>
-        <OutputPath>bin</OutputPath>
-        <DebugInformation>false</DebugInformation>
-        <IncrementalBuild>true</IncrementalBuild>
-        <NoStdLib>false</NoStdLib>
-      </Options>
-    </Configuration>
-
     <Project name="OpenSim.Framework.Data.MySQL" path="OpenSim/Framework/Data.MySQL" type="Library">
       <Configuration name="Debug">
         <Options>
