@@ -117,11 +117,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             dupe.m_world = this.m_world;
             dupe.m_regionHandle = this.m_regionHandle;
-            Primitive newRoot = this.rootPrimitive.Copy((EntityBase)dupe, dupe);
+            Primitive newRoot = this.rootPrimitive.Copy(dupe, dupe);
             dupe.rootPrimitive = newRoot;
-            dupe.rootPrimitive.Pos =( this.Pos + new LLVector3(0,0,1));
+            dupe.children.Add(dupe.rootPrimitive);
+            dupe.rootPrimitive.Pos = this.Pos;
             dupe.Rotation = this.Rotation;
-
+           LLUUID rootu=  dupe.rootUUID;
+           uint rooti = dupe.rootLocalID;
             return dupe;
         }
 

@@ -139,7 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-           // Console.WriteLine("Chat message");
+            // Console.WriteLine("Chat message");
             ScenePresence avatar = null;
 
             m_clientManager.ForEachClient(delegate(IClientAPI client)
@@ -149,7 +149,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                   {
                                                       avatar = this.Avatars[client.AgentId];
                                                       // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
-                                                      dis = (int) avatar.Pos.GetDistanceTo(fromPos);
+                                                      dis = (int)avatar.Pos.GetDistanceTo(fromPos);
                                                       //Console.WriteLine("found avatar at " +dis);
                                                   }
 
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void RezObject(AssetBase primAsset, LLVector3 pos)
         {
-          
+
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="simClient"></param>
         public void DeRezObject(Packet packet, IClientAPI simClient)
         {
-           
+
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SendAvatarsToClient(IClientAPI remoteClient)
         {
-            
+
         }
 
         /// <summary>
@@ -239,7 +239,15 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (originPrim != null)
             {
-                //SceneObject copy = originPrim.Copy();
+                SceneObject copy = originPrim.Copy();
+                copy.Pos = copy.Pos + offset;
+                this.Entities.Add(copy.rootUUID, copy);
+
+                List<ScenePresence> avatars = this.RequestAvatarList();
+                for (int i = 0; i < avatars.Count; i++)
+                {
+                    copy.SendAllChildPrimsToClient(avatars[i].ControllingClient);
+                }
 
             }
             else
@@ -256,7 +264,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="childPrims"></param>
         public void LinkObjects(uint parentPrim, List<uint> childPrims)
         {
-            SceneObject parenPrim = null; 
+            SceneObject parenPrim = null;
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObject)
@@ -328,7 +336,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (((SceneObject)ent).rootLocalID == primLocalID)
                     {
-                      ((SceneObject)ent).GetProperites(remoteClient);
+                        ((SceneObject)ent).GetProperites(remoteClient);
                         break;
                     }
                 }
@@ -342,7 +350,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="description"></param>
         public void PrimDescription(uint primLocalID, string description)
         {
-           Primitive prim = null;
+            Primitive prim = null;
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObject)
@@ -350,7 +358,7 @@ namespace OpenSim.Region.Environment.Scenes
                     prim = ((SceneObject)ent).HasChildPrim(primLocalID);
                     if (prim != null)
                     {
-                         prim.Description = description;
+                        prim.Description = description;
                         break;
                     }
                 }
@@ -381,19 +389,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-             Primitive prim = null;
-             foreach (EntityBase ent in Entities.Values)
-             {
-                 if (ent is SceneObject)
-                 {
-                     prim = ((SceneObject)ent).HasChildPrim(objectID);
-                     if (prim != null)
-                     {
-                         ((SceneObject)ent).GrapMovement(offset, pos, remoteClient);
-                         break;
-                     }
-                 }
-             }
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(objectID);
+                    if (prim != null)
+                    {
+                        ((SceneObject)ent).GrapMovement(offset, pos, remoteClient);
+                        break;
+                    }
+                }
+            }
             /*
             if (this.Entities.ContainsKey(objectID))
             {
@@ -412,7 +420,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient)
         {
-           
+
         }
 
         /// <summary>
@@ -423,18 +431,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
-             Primitive prim = null;
-             foreach (EntityBase ent in Entities.Values)
-             {
-                 if (ent is SceneObject)
-                 {
-                     prim = ((SceneObject)ent).HasChildPrim(localID);
-                     if (prim != null)
-                     {
-                         prim.UpdateTextureEntry(texture);
-                     }
-                 }
-             }
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(localID);
+                    if (prim != null)
+                    {
+                        prim.UpdateTextureEntry(texture);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -494,7 +502,7 @@ namespace OpenSim.Region.Environment.Scenes
                     prim = ((SceneObject)ent).HasChildPrim(localID);
                     if (prim != null)
                     {
-                        prim.UpdateGroupMouseRotation( pos, rot);
+                        prim.UpdateGroupMouseRotation(pos, rot);
                         break;
                     }
                 }
@@ -532,7 +540,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
         {
-           //Console.WriteLine("trying to update single prim rotation");
+            //Console.WriteLine("trying to update single prim rotation");
             Primitive prim = null;
             foreach (EntityBase ent in Entities.Values)
             {

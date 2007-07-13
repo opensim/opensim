@@ -163,21 +163,33 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.inventoryItems = this.inventoryItems;
             dupe.m_Parent = parent;
             dupe.m_RootParent = rootParent;
-            // TODO: Copy this properly.
+
             dupe.m_Shape = this.m_Shape.Copy();
             dupe.children = new List<EntityBase>();
             uint newLocalID = this.m_world.PrimIDAllocate();
             dupe.uuid = LLUUID.Random();
             dupe.LocalId = newLocalID;
+            dupe.m_regionHandle = this.m_regionHandle;
+
+            if (parent is SceneObject)
+            {
+               dupe.m_isRootPrim = true;
+                dupe.ParentID = 0;
+            }
+            else
+            {
+                dupe.m_isRootPrim = false;
+                dupe.ParentID = ((Primitive)parent).LocalId;
+            }
 
             dupe.Scale = new LLVector3(this.Scale.X, this.Scale.Y, this.Scale.Z);
             dupe.Rotation = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
-            dupe.Pos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
+            dupe.m_pos = new LLVector3(this.m_pos.X, this.m_pos.Y, this.m_pos.Z);
             rootParent.AddChildToList(dupe);
             
             foreach (Primitive prim in this.children)
             {
-                Primitive primClone = prim.Copy(this, rootParent);
+                Primitive primClone = prim.Copy(dupe, rootParent);
                 dupe.children.Add(primClone);
             }
 
