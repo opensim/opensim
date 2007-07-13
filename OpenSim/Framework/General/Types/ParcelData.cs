@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Types
             public int groupPrims = 0; //Unemplemented
             public int salePrice = 0; //Unemeplemented. Parcels price.
             public Parcel.ParcelStatus parcelStatus = Parcel.ParcelStatus.None;
-            public Parcel.ParcelFlags parcelFlags = Parcel.ParcelFlags.AllowFly | Parcel.ParcelFlags.AllowLandmark | Parcel.ParcelFlags.AllowAllObjectEntry | Parcel.ParcelFlags.AllowDeedToGroup | Parcel.ParcelFlags.AllowTerraform | Parcel.ParcelFlags.CreateObjects | Parcel.ParcelFlags.AllowOtherScripts;
+            public uint parcelFlags = (uint)Parcel.ParcelFlags.AllowFly | (uint)Parcel.ParcelFlags.AllowLandmark | (uint)Parcel.ParcelFlags.AllowAllObjectEntry | (uint)Parcel.ParcelFlags.AllowDeedToGroup | (uint)Parcel.ParcelFlags.AllowTerraform | (uint)Parcel.ParcelFlags.CreateObjects | (uint)Parcel.ParcelFlags.AllowOtherScripts;
             public byte landingType = 0;
             public byte mediaAutoScale = 0;
             public LLUUID mediaID = LLUUID.Zero;

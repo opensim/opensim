@@ -478,7 +478,7 @@ namespace OpenSim.Region.Environment
 
             fullSimParcel.parcelData.ownerID = m_regInfo.MasterAvatarAssignedUUID;
             fullSimParcel.parcelData.salePrice = 1;
-            fullSimParcel.parcelData.parcelFlags = libsecondlife.Parcel.ParcelFlags.ForSale;
+            fullSimParcel.parcelData.parcelFlags |= (uint)libsecondlife.Parcel.ParcelFlags.ForSale;
             fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Leased;
 
             addParcel(fullSimParcel);
@@ -603,7 +603,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.OtherPrims = 0; //unemplented
             updatePacket.ParcelData.OwnerID = parcelData.ownerID;
             updatePacket.ParcelData.OwnerPrims = 0; //unemplemented
-            updatePacket.ParcelData.ParcelFlags = (uint)parcelData.parcelFlags; //unemplemented
+            updatePacket.ParcelData.ParcelFlags = parcelData.parcelFlags; //unemplemented
             updatePacket.ParcelData.ParcelPrimBonus = (float)1.0; //unemplemented
             updatePacket.ParcelData.PassHours = parcelData.passHours;
             updatePacket.ParcelData.PassPrice = parcelData.passPrice;
@@ -644,7 +644,7 @@ namespace OpenSim.Region.Environment
                 parcelData.mediaURL = Helpers.FieldToUTF8String(packet.ParcelData.MediaURL);
                 parcelData.musicURL = Helpers.FieldToUTF8String(packet.ParcelData.MusicURL);
                 parcelData.parcelName = Helpers.FieldToUTF8String(packet.ParcelData.Name);
-                parcelData.parcelFlags = (libsecondlife.Parcel.ParcelFlags)packet.ParcelData.ParcelFlags;
+                parcelData.parcelFlags = packet.ParcelData.ParcelFlags;
                 parcelData.passHours = packet.ParcelData.PassHours;
                 parcelData.passPrice = packet.ParcelData.PassPrice;
                 parcelData.salePrice = packet.ParcelData.SalePrice;
