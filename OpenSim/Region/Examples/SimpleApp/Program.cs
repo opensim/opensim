@@ -57,8 +57,6 @@ namespace SimpleApp
             MyWorld world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
             world.PhysScene = PhysicsScene.Null;
             udpServer.LocalWorld = world;
-
-            httpServer.AddXmlRPCHandler("login_to_simulator", communicationsManager.UserServices.XmlRpcLoginMethod );
             
             httpServer.Start();
             
