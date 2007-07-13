@@ -4,6 +4,7 @@ using System.Text;
 using Key = libsecondlife.LLUUID;
 using Rotation = libsecondlife.LLQuaternion;
 using Vector = libsecondlife.LLVector3;
+using LSLList = System.Collections.Generic.List<string>;
 
 
 using OpenSim.Region.Environment.Scenes;
@@ -130,6 +131,37 @@ namespace OpenSim.Region.Environment.Scripting
         public void osBreakAllLinks()
         {
             return;
+        }
+
+        [Obsolete("Unimplemented")]
+        public void osBreakLink()
+        {
+            return;
+        }
+
+        public LSLList osCSV2List(string src)
+        {
+            LSLList retVal = new LSLList();
+            retVal.AddRange(src.Split(','));
+
+            return retVal;
+        }
+
+        public int osCeil(float val)
+        {
+            return (int)Math.Ceiling(val);
+        }
+
+        [Obsolete("Unimplemented")]
+        public void osCloseRemoteDataChannel(Key channel)
+        {
+            return;
+        }
+
+        [Obsolete("Unimplemented")]
+        public float osCloud(Vector offset)
+        {
+            return 0.0;
         }
     }
 }
