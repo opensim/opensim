@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C# Express 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoXnaCompactMaths", "MonoXnaCompactMaths\MonoXnaCompactMaths.csproj", "{121147BC-B06B-406C-84E9-907F268CF0EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modified.XnaDevRu.BulletX", "ModifiedBulletX\Modified.XnaDevRu.BulletX.csproj", "{44270344-ACA7-4875-B585-81D5C06D0489}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{121147BC-B06B-406C-84E9-907F268CF0EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{44270344-ACA7-4875-B585-81D5C06D0489}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
