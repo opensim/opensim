@@ -207,7 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool Backup()
         {
-
+            //eventManager.TriggerOnBackup(some engine);
             return true;
         }
         #endregion
