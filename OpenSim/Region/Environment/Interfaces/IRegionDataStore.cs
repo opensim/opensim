@@ -27,43 +27,37 @@
 */
 
 using libsecondlife;
+
 using OpenSim.Framework.Types;
+using OpenSim.Region;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Framework.Interfaces
+using System.Collections.Generic;
+
+namespace OpenSim.Region.Interfaces
 {
-    /// <summary>
-    /// ILocalStorage. Really hacked together right now needs cleaning up
-    /// </summary>
-    [System.Obsolete("Redundant, use IRegionDataStore instead")]
-    public interface ILocalStorage
+    public interface IRegionDataStore
     {
-        void Initialise(string datastore);
+        /// <summary>
+        /// Initialises the data storage engine
+        /// </summary>
+        /// <param name="filename">The file to save the database to (may not be applicable)</param>
+        /// <param name="dbname">The name of the database to store to (may not be applicable)</param>
+        void Initialise(string filename, string dbname);
 
-        void StorePrim(PrimData prim);
-        void RemovePrim(LLUUID primID);
-        void LoadPrimitives(ILocalStorageReceiver receiver);
+        void StoreObject(SceneObject obj);
+        void DeleteObject(LLUUID uuid);
 
-        float[] LoadWorld();
-        void SaveMap(float[] heightmap);
+        List<SceneObject> LoadObjects();
 
-        void SaveParcels(ParcelData[] parcels);
-        void SaveParcel(ParcelData parcel);
-        void RemoveParcel(ParcelData parcel);
-        void RemoveAllParcels();
-        void LoadParcels(ILocalStorageParcelReceiver recv);
+        void StoreTerrain(double[,] terrain);
+        double[,] LoadTerrain();
 
-        void ShutDown();
-    }
+        void StoreParcel(OpenSim.Region.Environment.Parcel Parcel);
+        void RemoveParcel(uint ID);
+        List<OpenSim.Region.Environment.Parcel> LoadParcels();
 
-    public interface ILocalStorageReceiver
-    {
-        void PrimFromStorage(PrimData prim);
-    }
-
-    public interface ILocalStorageParcelReceiver
-    {
-        void ParcelFromStorage(ParcelData data);
-        void NoParcelDataFromStorage();
+        void Shutdown();
     }
 }
-

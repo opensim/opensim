@@ -10,6 +10,9 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnFrameDelegate();
         public event OnFrameDelegate OnFrame;
 
+        public delegate void OnBackupDelegate(Interfaces.IRegionDataStore datastore);
+        public event OnBackupDelegate OnBackup;
+
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
         public event OnNewPresenceDelegate OnNewPresence;
 
@@ -35,6 +38,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (OnRemovePresence != null)
             {
                 OnRemovePresence(uuid);
+            }
+        }
+
+        public void TriggerOnBackup(Interfaces.IRegionDataStore dstore)
+        {
+            if (OnBackup != null)
+            {
+                OnBackup(dstore);
             }
         }
     }
