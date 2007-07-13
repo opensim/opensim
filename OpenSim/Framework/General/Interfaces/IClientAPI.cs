@@ -180,5 +180,6 @@ namespace OpenSim.Framework.Interfaces
     
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items);
         void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item);
+        void SendNameReply(LLUUID profileId, string firstname, string lastname);
     }
 }

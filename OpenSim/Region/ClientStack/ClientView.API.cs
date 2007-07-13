@@ -576,7 +576,6 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(inventoryReply);
         }
 
-
         #region Appearance/ Wearables Methods
 
         /// <summary>
@@ -1202,5 +1201,16 @@ namespace OpenSim.Region.ClientStack
         }
         #endregion
 
+        public void SendNameReply(LLUUID profileId, string firstname, string lastname)
+        {
+            Encoding enc = Encoding.ASCII;
+            UUIDNameReplyPacket packet = new UUIDNameReplyPacket();
+            packet.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[1];
+            packet.UUIDNameBlock[0] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
+            packet.UUIDNameBlock[0].ID = profileId;
+            packet.UUIDNameBlock[0].FirstName = enc.GetBytes(firstname + "\0");
+            packet.UUIDNameBlock[0].LastName = enc.GetBytes(lastname + "\0");
+            OutPacket((Packet)packet);
+        }
     }
 }

@@ -28,5 +28,4 @@
 namespace OpenSim.Framework.Servers
 {
     public delegate string RestMethod( string request, string path, string param );
-    public delegate string BinaryMethod(byte[] data, string path, string param);
 }
