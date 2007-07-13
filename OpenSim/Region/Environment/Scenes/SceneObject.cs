@@ -115,13 +115,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObject dupe = new SceneObject();
 
+            dupe.m_world = this.m_world;
+            dupe.m_regionHandle = this.m_regionHandle;
             Primitive newRoot = this.rootPrimitive.Copy((EntityBase)dupe, dupe);
-
-            foreach (EntityBase child in this.children)
-            {
-                EntityBase newChild = child.Copy();
-                dupe.children.Add(newChild);
-            }
+            dupe.rootPrimitive = newRoot;
+            dupe.rootPrimitive.Pos =( this.Pos + new LLVector3(0,0,1));
+            dupe.Rotation = this.Rotation;
 
             return dupe;
         }

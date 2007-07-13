@@ -355,7 +355,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        private void CreateTerrainTexture()
+        public void CreateTerrainTexture()
         {
             //create a texture asset of the terrain 
             byte[] data = this.Terrain.exportJpegImage("defaultstripe.png");
@@ -446,6 +446,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="child"></param>
         public override void AddNewClient(IClientAPI client, bool child)
         {
+            SubscribeToClientEvents(client);
+            this.estateManager.sendRegionHandshake(client);
+            CreateAndAddScenePresence(client);
+            this.parcelManager.sendParcelOverlay(client);
+            
+        }
+
+        protected override void SubscribeToClientEvents(IClientAPI client)
+        {
             client.OnRegionHandShakeReply += this.SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnChatFromViewer += this.SimChat;
@@ -475,14 +484,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
             client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
-
-
-            this.estateManager.sendRegionHandshake(client);
-            CreateAndAddScenePresence(client);
-
-            this.parcelManager.sendParcelOverlay(client);
-            
-            return;
         }
 
         protected void CreateAndAddScenePresence(IClientAPI client)
@@ -772,7 +773,6 @@ namespace OpenSim.Region.Environment.Scenes
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));
 
                 }
-                //remoteClient.SendTeleportCancel();
             }
         }
 
