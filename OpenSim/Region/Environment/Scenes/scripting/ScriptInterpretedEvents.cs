@@ -8,7 +8,9 @@ using Key = libsecondlife.LLUUID;
 namespace OpenSim.Region.Scripting
 {
 
-    class ScriptInterpretedEvents
+    public class ScriptInterpretedEvents
     {
+        public delegate void OnTouchStartDelegate(Key user);
+        public event OnTouchStartDelegate OnTouchStart;
     }
 }
