@@ -154,10 +154,10 @@ namespace OpenSim.Grid.AssetServer
 
         public void setupDB()
         {
-            bool yapfile = File.Exists("assets.yap");
+            bool yapfile = File.Exists("gridassets.yap");
             try
             {
-                db = Db4oFactory.OpenFile("assets.yap");
+                db = Db4oFactory.OpenFile("gridassets.yap");
                 MainLog.Instance.Verbose("Main.cs:setupDB() - creation");
             }
             catch (Exception e)

@@ -62,12 +62,12 @@ namespace OpenSim.Region.GridInterfaces.Local
         {
             bool yapfile;
             this._assetRequests = new BlockingQueue<ARequest>();
-            yapfile = File.Exists("assets.yap");
+            yapfile = File.Exists("regionassets.yap");
 
             MainLog.Instance.Verbose( "Local Asset Server class created");
             try
             {
-                db = Db4oFactory.OpenFile("assets.yap");
+                db = Db4oFactory.OpenFile("regionassets.yap");
                 MainLog.Instance.Verbose( "Db4 Asset database  creation");
             }
             catch (Exception e)
