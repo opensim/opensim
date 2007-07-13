@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns>A complete copy of the object</returns>
-        public SceneObject Copy()
+        public new SceneObject Copy()
         {
             SceneObject dupe = new SceneObject();
 

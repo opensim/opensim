@@ -43,7 +43,6 @@ namespace OpenSim.Scripting.EmbeddedJVM
         private List<Thread> _threads = new List<Thread>();
         private BlockingQueue<CompileInfo> CompileScripts = new BlockingQueue<CompileInfo>();
         private MainMemory _mainMemory;
-        private System.Threading.Thread compileThread;
 
         ScriptInfo scriptInfo;
 

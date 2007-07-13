@@ -29,6 +29,8 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
+using System.Collections.Generic;
+
 namespace OpenSim.Framework
 {
     public class RegionCommsListener :IRegionCommsListener
@@ -62,6 +64,39 @@ namespace OpenSim.Framework
                 OnAvatarCrossingIntoRegion(regionHandle, agentID, position);
                 return true;
             }
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>TODO: Doesnt take any args??</remarks>
+        /// <returns></returns>
+        public virtual bool TriggerExpectChildAgent()
+        {
+            if (OnExpectChildAgent != null)
+            {
+                OnExpectChildAgent();
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>Added to avoid a unused compiler warning on OnNeighboursUpdate, TODO: Check me</remarks>
+        /// <param name="neighbours"></param>
+        /// <returns></returns>
+        public virtual bool TriggerOnNeighboursUpdate(List<RegionInfo> neighbours)
+        {
+            if (OnNeighboursUpdate != null)
+            {
+                OnNeighboursUpdate(neighbours);
+                return true;
+            }
+
             return false;
         }
     }
