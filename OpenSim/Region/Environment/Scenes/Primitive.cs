@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.Rotation = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
             dupe.Pos = new LLVector3(this.Pos.X, this.Pos.Y, this.Pos.Z);
             rootParent.AddChildToList(dupe);
-
+            
             foreach (Primitive prim in this.children)
             {
                 Primitive primClone = prim.Copy(this, rootParent);

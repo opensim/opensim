@@ -453,7 +453,7 @@ namespace OpenSim.Region.Environment.Scenes
             
         }
 
-        protected override void SubscribeToClientEvents(IClientAPI client)
+        protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += this.SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);

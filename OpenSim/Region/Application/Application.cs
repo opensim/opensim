@@ -71,6 +71,11 @@ namespace OpenSim
                     physicsEngine = "RealPhysX";
                     allowFlying = true;
                 }
+                if (args[i] == "-bulletX")
+                {
+                    physicsEngine = "BulletXEngine";
+                    allowFlying = true;
+                }
                 if (args[i] == "-ode")
                 {
                     physicsEngine = "OpenDynamicsEngine";

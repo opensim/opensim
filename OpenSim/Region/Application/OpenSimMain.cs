@@ -373,6 +373,11 @@ namespace OpenSim
                     this.m_physicsEngine = "OpenDynamicsEngine";
                     ScenePresence.PhysicsEngineFlying = true;
                     break;
+
+                case "BulletXEngine":
+                    this.m_physicsEngine = "BulletXEngine";
+                    ScenePresence.PhysicsEngineFlying = true;
+                    break;
             }
 
             configData.Commit();
