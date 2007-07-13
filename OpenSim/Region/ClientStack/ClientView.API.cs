@@ -1166,51 +1166,19 @@ namespace OpenSim.Region.ClientStack
             objdata.ObjectData[64] = 189;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="addPacket"></param>
-        /// <returns></returns>
-        protected PrimData CreatePrimFromObjectAdd(ObjectAddPacket addPacket)
-        {
-            PrimData PData = new PrimData();
-            PData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            PData.PCode = addPacket.ObjectData.PCode;
-            PData.PathBegin = addPacket.ObjectData.PathBegin;
-            PData.PathEnd = addPacket.ObjectData.PathEnd;
-            PData.PathScaleX = addPacket.ObjectData.PathScaleX;
-            PData.PathScaleY = addPacket.ObjectData.PathScaleY;
-            PData.PathShearX = addPacket.ObjectData.PathShearX;
-            PData.PathShearY = addPacket.ObjectData.PathShearY;
-            PData.PathSkew = addPacket.ObjectData.PathSkew;
-            PData.ProfileBegin = addPacket.ObjectData.ProfileBegin;
-            PData.ProfileEnd = addPacket.ObjectData.ProfileEnd;
-            PData.Scale = addPacket.ObjectData.Scale;
-            PData.PathCurve = addPacket.ObjectData.PathCurve;
-            PData.ProfileCurve = addPacket.ObjectData.ProfileCurve;
-            PData.ParentID = 0;
-            PData.ProfileHollow = addPacket.ObjectData.ProfileHollow;
-            PData.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
-            PData.PathRevolutions = addPacket.ObjectData.PathRevolutions;
-            PData.PathTaperX = addPacket.ObjectData.PathTaperX;
-            PData.PathTaperY = addPacket.ObjectData.PathTaperY;
-            PData.PathTwist = addPacket.ObjectData.PathTwist;
-            PData.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-
-            return PData;
-        }
         #endregion
 
         public void SendNameReply(LLUUID profileId, string firstname, string lastname)
         {
-            Encoding enc = Encoding.ASCII;
             UUIDNameReplyPacket packet = new UUIDNameReplyPacket();
+            
             packet.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[1];
             packet.UUIDNameBlock[0] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
             packet.UUIDNameBlock[0].ID = profileId;
-            packet.UUIDNameBlock[0].FirstName = enc.GetBytes(firstname + "\0");
-            packet.UUIDNameBlock[0].LastName = enc.GetBytes(lastname + "\0");
-            OutPacket((Packet)packet);
+            packet.UUIDNameBlock[0].FirstName = Helpers.StringToField( firstname );
+            packet.UUIDNameBlock[0].LastName = Helpers.StringToField( lastname );
+            
+            OutPacket( packet );
         }
     }
 }

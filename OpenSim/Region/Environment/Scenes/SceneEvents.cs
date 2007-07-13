@@ -13,9 +13,6 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
         public event OnNewPresenceDelegate OnNewPresence;
 
-        public delegate void OnNewPrimitiveDelegate(PrimitiveOld prim);
-        public event OnNewPrimitiveDelegate OnNewPrimitive;
-
         public delegate void OnRemovePresenceDelegate(LLUUID uuid);
         public event OnRemovePresenceDelegate OnRemovePresence;
 
@@ -25,12 +22,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 OnFrame();
             }
-        }
-
-        public void TriggerOnNewPrimitive(PrimitiveOld prim)
-        {
-            if (OnNewPrimitive != null)
-                OnNewPrimitive(prim);
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)
