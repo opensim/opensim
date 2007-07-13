@@ -302,6 +302,7 @@ namespace OpenSim.Grid.GridServer
                     catch (Exception e)
                     {
                         OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to add region " + TheSim.UUID.ToStringHyphenated() + " via " + kvp.Key);
+                        OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
                     }
                 }
 
