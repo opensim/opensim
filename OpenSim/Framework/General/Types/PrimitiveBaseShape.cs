@@ -98,34 +98,5 @@ namespace OpenSim.Framework.Types
 
             return primShape;
         }
-
-        public static PrimitiveBaseShape FromAddPacket(ObjectAddPacket addPacket)
-        {
-            PrimitiveBaseShape pShape = new PrimitiveBaseShape();
-
-            pShape.PCode = addPacket.ObjectData.PCode;
-            pShape.PathBegin = addPacket.ObjectData.PathBegin;
-            pShape.PathEnd = addPacket.ObjectData.PathEnd;
-            pShape.PathScaleX = addPacket.ObjectData.PathScaleX;
-            pShape.PathScaleY = addPacket.ObjectData.PathScaleY;
-            pShape.PathShearX = addPacket.ObjectData.PathShearX;
-            pShape.PathShearY = addPacket.ObjectData.PathShearY;
-            pShape.PathSkew = addPacket.ObjectData.PathSkew;
-            pShape.ProfileBegin = addPacket.ObjectData.ProfileBegin;
-            pShape.ProfileEnd = addPacket.ObjectData.ProfileEnd;
-            pShape.Scale = addPacket.ObjectData.Scale;
-            pShape.PathCurve = addPacket.ObjectData.PathCurve;
-            pShape.ProfileCurve = addPacket.ObjectData.ProfileCurve;
-            pShape.ProfileHollow = addPacket.ObjectData.ProfileHollow;
-            pShape.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
-            pShape.PathRevolutions = addPacket.ObjectData.PathRevolutions;
-            pShape.PathTaperX = addPacket.ObjectData.PathTaperX;
-            pShape.PathTaperY = addPacket.ObjectData.PathTaperY;
-            pShape.PathTwist = addPacket.ObjectData.PathTwist;
-            pShape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
-            pShape.TextureEntry = ntex.ToBytes();
-            return pShape;
-        }
     }
 }
