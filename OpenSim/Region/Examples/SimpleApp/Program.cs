@@ -68,9 +68,9 @@ namespace SimpleApp
 
             PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
             
-            shape.Scale = new LLVector3(1, 1, 1);
+            shape.Scale = new LLVector3(10, 10, 10);
             
-            LLVector3 pos = new LLVector3(1,1,1);
+            LLVector3 pos = new LLVector3(128,128,72);
 
             world.AddNewPrim( LLUUID.Zero, pos, shape );
 

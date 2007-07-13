@@ -52,7 +52,6 @@ namespace SimpleApp
                         client.SendChatMessage("Ready.", 1, pos, "System", LLUUID.Zero );
                     };
             
-            client.OnRequestWearables += SendWearables;
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
@@ -61,31 +60,14 @@ namespace SimpleApp
             client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
             
             client.OnCompleteMovementToRegion += delegate()
-                {
-                    client.MoveAgentIntoRegion(m_regInfo, pos, LLVector3.Zero );
-                };
-
-            client.OnCompleteMovementToRegion += delegate()
                  {
-                     client.SendAvatarData(m_regInfo.RegionHandle, client.FirstName,
-                                           client.LastName, client.AgentId, 0,
-                                           pos, null);
-                                                         
                      client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero );
-
-          
-                                                         
                  };
 
             client.SendRegionHandshake(m_regInfo);
 
             CreateAndAddScenePresence(client);
             
-        }
-
-        private void SendWearables( IClientAPI client )
-        {
-            client.SendWearables( AvatarWearable.DefaultWearables );
         }
 
         #endregion

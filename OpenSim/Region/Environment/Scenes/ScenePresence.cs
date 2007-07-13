@@ -59,7 +59,6 @@ namespace OpenSim.Region.Environment.Scenes
         private LLObject.TextureEntry avatarAppearanceTexture = null;
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
-        private LLVector3 positionLastFrame = new LLVector3(0, 0, 0);
         private ulong m_regionHandle;
         private bool childAgent = false;
         private bool newForce = false;

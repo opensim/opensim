@@ -648,7 +648,7 @@ namespace OpenSim.Region.ClientStack
         #region Avatar Packet/data sending Methods
 
         /// <summary>
-        /// 
+        /// send a objectupdate packet with information about the clients avatar
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <param name="firstName"></param>
@@ -658,19 +658,16 @@ namespace OpenSim.Region.ClientStack
         /// <param name="Pos"></param>
         public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry)
         {
-            Encoding _enc = Encoding.ASCII;
-            //send a objectupdate packet with information about the clients avatar
-
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = this.CreateDefaultAvatarPacket(textureEntry);
-            //give this avatar object a local id and assign the user a name
 
+            //give this avatar object a local id and assign the user a name
             objupdate.ObjectData[0].ID = avatarLocalID;
             objupdate.ObjectData[0].FullID = avatarID;
-            objupdate.ObjectData[0].NameValue = _enc.GetBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName + " \0");
+            objupdate.ObjectData[0].NameValue = Helpers.StringToField("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName );
             LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
