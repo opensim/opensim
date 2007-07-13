@@ -475,10 +475,10 @@ namespace OpenSim.Region.Environment
             fullSimParcel.setParcelBitmap(Parcel.getSquareParcelBitmap(0, 0, 256, 256));
             fullSimParcel.parcelData.parcelName = "Your Sim Parcel";
             fullSimParcel.parcelData.parcelDesc = "";
-
             fullSimParcel.parcelData.ownerID = m_regInfo.MasterAvatarAssignedUUID;
             fullSimParcel.parcelData.salePrice = 1;
-            fullSimParcel.parcelData.parcelFlags |= (uint)libsecondlife.Parcel.ParcelFlags.ForSale;
+
+            fullSimParcel.parcelData.parcelFlags |=(uint)libsecondlife.Parcel.ParcelFlags.ForSale;
             fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Leased;
 
             addParcel(fullSimParcel);

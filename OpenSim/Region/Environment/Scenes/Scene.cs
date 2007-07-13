@@ -478,7 +478,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectName += this.PrimName;
             client.OnLinkObjects += this.LinkObjects;
             client.OnObjectDuplicate += this.DuplicateObject;
-
+            
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
             client.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);

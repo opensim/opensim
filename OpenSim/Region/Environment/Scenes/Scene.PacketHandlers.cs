@@ -141,6 +141,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Console.WriteLine("Chat message");
             ScenePresence avatar = null;
+            if (this.Avatars.ContainsKey(fromAgentID))
+            {
+                avatar = this.Avatars[fromAgentID];
+                fromPos = avatar.Pos;
+                fromName = avatar.firstname + " " + avatar.lastname;
+            }
 
             m_clientManager.ForEachClient(delegate(IClientAPI client)
                                               {
