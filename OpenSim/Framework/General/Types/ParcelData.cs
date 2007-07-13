@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Types
         public class ParcelData
         {
             public byte[] parcelBitmapByteArray = new byte[512];
-            public string parcelName = "";
+            public string parcelName = "Your Parcel";
             public string parcelDesc = "";
             public LLUUID ownerID = new LLUUID();
             public bool isGroupOwned = false;
@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Types
             public LLUUID groupID = new LLUUID(); //Unemplemented
             public int groupPrims = 0; //Unemplemented
             public int salePrice = 0; //Unemeplemented. Parcels price.
-            public Parcel.ParcelStatus parcelStatus = Parcel.ParcelStatus.None;
+            public Parcel.ParcelStatus parcelStatus = Parcel.ParcelStatus.Leased;
             public uint parcelFlags = (uint)Parcel.ParcelFlags.AllowFly | (uint)Parcel.ParcelFlags.AllowLandmark | (uint)Parcel.ParcelFlags.AllowAllObjectEntry | (uint)Parcel.ParcelFlags.AllowDeedToGroup | (uint)Parcel.ParcelFlags.AllowTerraform | (uint)Parcel.ParcelFlags.CreateObjects | (uint)Parcel.ParcelFlags.AllowOtherScripts;
             public byte landingType = 0;
             public byte mediaAutoScale = 0;

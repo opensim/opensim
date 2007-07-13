@@ -81,6 +81,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// Position at which a significant movement was made
         /// </summary>
         private LLVector3 posLastSignificantMove = new LLVector3();
+
+        public delegate void SignificantClientMovement(IClientAPI remote_client);
+        public event SignificantClientMovement OnSignificantClientMovement;
+
         #region Properties
         /// <summary>
         /// 
@@ -147,7 +151,7 @@ namespace OpenSim.Region.Environment.Scenes
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
-
+            OnSignificantClientMovement += new SignificantClientMovement(m_world.parcelManager.handleSignificantClientMovement);
             Dir_Vectors[0] = new Vector3(1, 0, 0);  //FOWARD
             Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
             Dir_Vectors[2] = new Vector3(0, 1, 0);  //LEFT
@@ -479,7 +483,10 @@ namespace OpenSim.Region.Environment.Scenes
             if (libsecondlife.Helpers.VecDist(this.Pos, this.posLastSignificantMove) > 2.0)
             {
                 this.posLastSignificantMove = this.Pos;
-                this.ControllingClient.TriggerSignificantClientMovement(this.ControllingClient);
+                if (OnSignificantClientMovement != null)
+                {
+                    OnSignificantClientMovement(this.ControllingClient);
+                }
             }
         }
         #endregion

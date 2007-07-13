@@ -481,13 +481,7 @@ namespace OpenSim.Region.Environment
             Parcel fullSimParcel = new Parcel(LLUUID.Zero, false, m_world);
 
             fullSimParcel.setParcelBitmap(Parcel.getSquareParcelBitmap(0, 0, 256, 256));
-            fullSimParcel.parcelData.parcelName = "Your Sim Parcel";
-            fullSimParcel.parcelData.parcelDesc = "";
             fullSimParcel.parcelData.ownerID = m_regInfo.MasterAvatarAssignedUUID;
-            fullSimParcel.parcelData.salePrice = 1;
-
-            fullSimParcel.parcelData.parcelFlags |=(uint)libsecondlife.Parcel.ParcelFlags.ForSale;
-            fullSimParcel.parcelData.parcelStatus = libsecondlife.Parcel.ParcelStatus.Leased;
 
             addParcel(fullSimParcel);
 
@@ -611,16 +605,16 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.OtherPrims = 0; //unemplented
             updatePacket.ParcelData.OwnerID = parcelData.ownerID;
             updatePacket.ParcelData.OwnerPrims = 0; //unemplemented
-            updatePacket.ParcelData.ParcelFlags = parcelData.parcelFlags; //unemplemented
-            updatePacket.ParcelData.ParcelPrimBonus = (float)1.0; //unemplemented
+            updatePacket.ParcelData.ParcelFlags = parcelData.parcelFlags;
+            updatePacket.ParcelData.ParcelPrimBonus = m_world.RegionInfo.estateSettings.objectBonusFactor;
             updatePacket.ParcelData.PassHours = parcelData.passHours;
             updatePacket.ParcelData.PassPrice = parcelData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
-            updatePacket.ParcelData.RegionDenyAnonymous = false; //unemplemented
-            updatePacket.ParcelData.RegionDenyIdentified = false; //unemplemented
-            updatePacket.ParcelData.RegionDenyTransacted = false; //unemplemented
-            updatePacket.ParcelData.RegionPushOverride = true; //unemplemented
-            updatePacket.ParcelData.RentPrice = 0; //??
+            updatePacket.ParcelData.RegionDenyAnonymous = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.DenyAnonymous) > 0);
+            updatePacket.ParcelData.RegionDenyIdentified = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.DenyIdentified) > 0);
+            updatePacket.ParcelData.RegionDenyTransacted = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.DenyTransacted) > 0);
+            updatePacket.ParcelData.RegionPushOverride = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.RestrictPushObject) > 0);
+            updatePacket.ParcelData.RentPrice = 0;
             updatePacket.ParcelData.RequestResult = request_result;
             updatePacket.ParcelData.SalePrice = parcelData.salePrice; //unemplemented
             updatePacket.ParcelData.SelectedPrims = 0; //unemeplemented
