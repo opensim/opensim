@@ -105,6 +105,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.OnBackup += new EventManager.OnBackupDelegate(ProcessBackup);
             m_eventManager.OnParcelPrimCountUpdate += new EventManager.OnParcelPrimCountUpdateDelegate(ProcessParcelPrimCountUpdate);
         }
+
         public void unregisterEvents()
         {
             m_eventManager.OnBackup -= new EventManager.OnBackupDelegate(ProcessBackup);
@@ -162,6 +163,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObject dupe = new SceneObject();
 
             dupe.m_world = this.m_world;
+            dupe.m_eventManager = this.m_eventManager;
             dupe.m_regionHandle = this.m_regionHandle;
             Primitive newRoot = this.rootPrimitive.Copy(dupe, dupe);
             dupe.rootPrimitive = newRoot;
