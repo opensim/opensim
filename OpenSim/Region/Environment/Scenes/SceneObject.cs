@@ -47,6 +47,9 @@ namespace OpenSim.Region.Environment.Scenes
         private PhysicsScene m_PhysScene;
         private PhysicsActor m_PhysActor;
 
+        private EventManager m_eventManager;
+        private ParcelManager m_parcelManager;
+
         public LLUUID rootUUID
         {
             get
@@ -65,27 +68,29 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public SceneObject(ulong regionHandle, Scene world, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public int primCount
         {
-            m_regionHandle = regionHandle;
-            m_world = world;
-            this.Pos = pos;
-            this.CreateRootFromShape(ownerID, localID, shape, pos);
-
-            // Setup a backup event listener
-            world.EventManager.OnBackup += new EventManager.OnBackupDelegate(ProcessBackup);
+            get
+            {
+                return this.ChildPrimitives.Count;
+            }
         }
 
         /// <summary>
-        /// Processes backup
+        /// 
         /// </summary>
-        /// <param name="datastore"></param>
-        void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
+        public SceneObject(ulong regionHandle, Scene world, EventManager eventManager, ParcelManager parcelManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-            datastore.StoreObject(this);
+            m_regionHandle = regionHandle;
+            m_world = world;
+            m_eventManager = eventManager;
+            m_parcelManager = parcelManager;
+
+            this.Pos = pos;
+            this.CreateRootFromShape(ownerID, localID, shape, pos);
+
+            registerEvents();
+            
         }
 
         /// <summary>
@@ -94,8 +99,39 @@ namespace OpenSim.Region.Environment.Scenes
         /// <remarks>Need a null constructor for duplication</remarks>
         public SceneObject()
         {
-
+            
         }
+
+        public void registerEvents()
+        {
+            m_eventManager.OnBackup += new EventManager.OnBackupDelegate(ProcessBackup);
+            m_eventManager.OnParcelPrimCountUpdate += new EventManager.OnParcelPrimCountUpdateDelegate(ProcessParcelPrimCountUpdate);
+        }
+        public void unregisterEvents()
+        {
+            m_eventManager.OnBackup -= new EventManager.OnBackupDelegate(ProcessBackup);
+            m_eventManager.OnParcelPrimCountUpdate -= new EventManager.OnParcelPrimCountUpdateDelegate(ProcessParcelPrimCountUpdate);
+        }
+        /// <summary>
+        /// Processes backup
+        /// </summary>
+        /// <param name="datastore"></param>
+        public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
+        {
+            datastore.StoreObject(this);
+        }
+
+
+        /// <summary>
+        /// Sends my primitive info to the parcel manager for it to keep tally of all of the prims!
+        /// </summary>
+        private void ProcessParcelPrimCountUpdate()
+        {
+            m_parcelManager.addPrimToParcelCounts(this);            
+        }
+
+
+        
 
         /// <summary>
         /// 
@@ -105,7 +141,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void CreateRootFromShape(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
-            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
+            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world,this.m_parcelManager, agentID, localID, true, this, this, shape, pos);
             this.children.Add(rootPrimitive);
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
@@ -120,7 +156,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Copies a prim or group of prims (SceneObject) -- TODO: cleanup code
         /// </summary>
         /// <returns>A complete copy of the object</returns>
         public new SceneObject Copy()
@@ -136,6 +172,8 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.Rotation = this.Rotation;
            LLUUID rootu=  dupe.rootUUID;
            uint rooti = dupe.rootLocalID;
+
+            dupe.registerEvents();
             return dupe;
         }
 
@@ -147,6 +185,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.children.Clear();
             this.ChildPrimitives.Clear();
             this.rootPrimitive = null;
+            unregisterEvents();
         }
 
         /// <summary>
@@ -256,5 +295,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OutPacket(proper);
         }
+
     }
 }

@@ -45,6 +45,8 @@ namespace OpenSim.Region.Environment.Scenes
         public bool m_isRootPrim;
         public EntityBase m_Parent;
 
+        private ParcelManager m_parcelManager;
+
         #region Properties
         /// <summary>
         /// If rootprim, will return world position
@@ -130,10 +132,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="isRoot"></param>
         /// <param name="parent"></param>
         /// <param name="rootObject"></param>
-        public Primitive(ulong regionHandle, Scene world, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
+        public Primitive(ulong regionHandle, Scene world, ParcelManager parcelManager, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
         {
+
             m_regionHandle = regionHandle;
             m_world = world;
+            m_parcelManager = parcelManager;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
             this.m_Parent = parent;
             this.m_isRootPrim = isRoot;
@@ -141,6 +145,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             this.CreateFromShape(ownerID, localID, pos, shape);
             this.Rotation = Axiom.Math.Quaternion.Identity;
+
+            
+            m_parcelManager.setPrimsTainted();
         }
 
         /// <summary>
@@ -149,9 +156,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// <remarks>Empty constructor for duplication</remarks>
         public Primitive()
         {
-
+            m_parcelManager.setPrimsTainted();
         }
 
+        #endregion
+
+        #region Destructors
+
+        ~Primitive()
+        {
+            m_parcelManager.setPrimsTainted();
+        }
         #endregion
 
         #region Duplication
@@ -260,6 +275,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             this.m_world.DeleteEntity(linkObject.rootUUID);
             linkObject.DeleteAllChildren();
+
+            m_parcelManager.setPrimsTainted();
         }
 
         /// <summary>
@@ -335,6 +352,7 @@ namespace OpenSim.Region.Environment.Scenes
                 prim.m_pos += offset;
                 prim.updateFlag = 2;
             }
+            m_parcelManager.setPrimsTainted();
         }
 
         /// <summary>
@@ -385,6 +403,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             this.Pos = newPos;
             this.updateFlag = 2;
+
+            m_parcelManager.setPrimsTainted();
         }
 
         /// <summary>
@@ -419,6 +439,8 @@ namespace OpenSim.Region.Environment.Scenes
                 this.m_pos = newPos;
                 this.updateFlag = 2;
             }
+
+            m_parcelManager.setPrimsTainted();
         }
 
         #endregion

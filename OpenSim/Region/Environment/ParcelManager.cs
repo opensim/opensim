@@ -75,6 +75,11 @@ namespace OpenSim.Region.Environment
         private int lastParcelLocalID = START_PARCEL_LOCAL_ID - 1;
         private int[,] parcelIDList = new int[64, 64];
 
+        /// <summary>
+        /// Set to true when a prim is moved, created, added. Performs a prim count update
+        /// </summary>
+        public bool parcelPrimCountTainted = false;
+
         private Scene m_world;
         private RegionInfo m_regInfo;
 
@@ -190,6 +195,13 @@ namespace OpenSim.Region.Environment
         /// <param name="x">Value between 0 - 256 on the x axis of the point</param>
         /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Parcel at the point supplied</returns>
+        public Parcel getParcel(float x_float, float y_float)
+        {
+            int x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float)));
+            int y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float)));
+
+            return getParcel(x, y);
+        }
         public Parcel getParcel(int x, int y)
         {
             if (x > 256 || y > 256 || x < 0 || y < 0)
@@ -200,7 +212,6 @@ namespace OpenSim.Region.Environment
             {
                 return parcelList[parcelIDList[x / 4, y / 4]];
             }
-
         }
         #endregion
 
@@ -262,9 +273,11 @@ namespace OpenSim.Region.Environment
             parcelList[startParcelIndex].setParcelBitmap(Parcel.modifyParcelBitmapSquare(startParcel.getParcelBitmap(), start_x, start_y, end_x, end_y, false));
             parcelList[startParcelIndex].forceUpdateParcelInfo();
 
+
+            this.setPrimsTainted();
+
             //Now add the new parcel
             Parcel result = addParcel(newParcel);
-
             result.sendParcelUpdateToAvatarsOverMe();
 
 
@@ -325,6 +338,8 @@ namespace OpenSim.Region.Environment
                 performFinalParcelJoin(masterParcel, slaveParcel);
             }
 
+
+            this.setPrimsTainted();
 
             masterParcel.sendParcelUpdateToAvatarsOverMe();
 
@@ -493,12 +508,45 @@ namespace OpenSim.Region.Environment
             Avatar clientAvatar = m_world.RequestAvatar(remote_client.AgentId);
             if (clientAvatar != null)
             {
-                Parcel over = getParcel(Convert.ToInt32(clientAvatar.Pos.X), Convert.ToInt32(clientAvatar.Pos.Y));
+                Parcel over = getParcel(clientAvatar.Pos.X,clientAvatar.Pos.Y);
                 if (over != null)
                 {
                     over.sendParcelProperties(0, false, 0, remote_client);
                 }
             }
+        }
+
+        public void resetAllParcelPrimCounts()
+        {
+            foreach (Parcel p in parcelList.Values)
+            {
+                p.resetParcelPrimCounts();
+            }
+        }
+
+        public void addPrimToParcelCounts(SceneObject obj)
+        {
+            LLVector3 position = obj.rootPrimitive.Pos;
+            int pos_x = Convert.ToInt32(Math.Round(position.X));
+            int pos_y = Convert.ToInt32(Math.Round(position.Y));
+            Parcel parcelUnderPrim = getParcel(pos_x, pos_y);
+            if (parcelUnderPrim != null)
+            {
+                parcelUnderPrim.addPrimToCount(obj);
+            }
+        }
+
+        public void removePrimFromParcelCounts(SceneObject obj)
+        {
+            foreach (Parcel p in parcelList.Values)
+            {
+                p.removePrimFromCount(obj);
+            }
+        }
+
+        public void setPrimsTainted()
+        {
+            this.parcelPrimCountTainted = true;
         }
         #endregion
     }
@@ -513,6 +561,8 @@ namespace OpenSim.Region.Environment
     {
         #region Member Variables
         public ParcelData parcelData = new ParcelData();
+        public List<SceneObject> primsOverMe = new List<SceneObject>();
+
         public Scene m_world;
 
         private bool[,] parcelBitmap = new bool[64, 64];
@@ -602,9 +652,9 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.Name = Helpers.StringToField(parcelData.parcelName);
             updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
             updatePacket.ParcelData.OtherCount = 0; //unemplemented
-            updatePacket.ParcelData.OtherPrims = 0; //unemplented
+            updatePacket.ParcelData.OtherPrims = parcelData.groupPrims;
             updatePacket.ParcelData.OwnerID = parcelData.ownerID;
-            updatePacket.ParcelData.OwnerPrims = 0; //unemplemented
+            updatePacket.ParcelData.OwnerPrims = parcelData.ownerPrims;
             updatePacket.ParcelData.ParcelFlags = parcelData.parcelFlags;
             updatePacket.ParcelData.ParcelPrimBonus = m_world.RegionInfo.estateSettings.objectBonusFactor;
             updatePacket.ParcelData.PassHours = parcelData.passHours;
@@ -616,7 +666,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.RegionPushOverride = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.RestrictPushObject) > 0);
             updatePacket.ParcelData.RentPrice = 0;
             updatePacket.ParcelData.RequestResult = request_result;
-            updatePacket.ParcelData.SalePrice = parcelData.salePrice; //unemplemented
+            updatePacket.ParcelData.SalePrice = parcelData.salePrice;
             updatePacket.ParcelData.SelectedPrims = 0; //unemeplemented
             updatePacket.ParcelData.SelfCount = 0;//unemplemented
             updatePacket.ParcelData.SequenceID = sequence_id;
@@ -625,7 +675,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.SnapSelection = snap_selection;
             updatePacket.ParcelData.SnapshotID = parcelData.snapshotID;
             updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus;
-            updatePacket.ParcelData.TotalPrims = 0; //unemplemented
+            updatePacket.ParcelData.TotalPrims = parcelData.ownerPrims + parcelData.groupPrims + parcelData.otherPrims;
             updatePacket.ParcelData.UserLocation = parcelData.userLocation;
             updatePacket.ParcelData.UserLookAt = parcelData.userLookAt;
             remote_client.OutPacket((Packet)updatePacket);
@@ -899,6 +949,59 @@ namespace OpenSim.Region.Environment
             return bitmap_base;
         }
         #endregion
+
+        public void resetParcelPrimCounts()
+        {
+            parcelData.groupPrims = 0;
+            parcelData.ownerPrims = 0;
+            parcelData.groupPrims = 0;
+            primsOverMe.Clear();
+        }
+
+        public void addPrimToCount(SceneObject obj)
+        {
+            LLUUID prim_owner = obj.rootPrimitive.OwnerID;
+            int prim_count = obj.primCount;
+
+            if(prim_owner == parcelData.ownerID)
+            {
+                parcelData.ownerPrims += prim_count;
+            }
+            else if (prim_owner == parcelData.groupID)
+            {
+                parcelData.groupPrims += prim_count;
+            }
+            else
+            {
+                parcelData.otherPrims += prim_count;
+            }
+            primsOverMe.Add(obj);
+
+        }
+
+        public void removePrimFromCount(SceneObject obj)
+        {
+            if (primsOverMe.Contains(obj))
+            {
+                LLUUID prim_owner = obj.rootPrimitive.OwnerID;
+                int prim_count = obj.primCount;
+
+                if (prim_owner == parcelData.ownerID)
+                {
+                    parcelData.ownerPrims -= prim_count;
+                }
+                else if (prim_owner == parcelData.groupID)
+                {
+                    parcelData.groupPrims -= prim_count;
+                }
+                else
+                {
+                    parcelData.otherPrims -= prim_count;
+                }
+
+                primsOverMe.Remove(obj);
+            }
+        }
 
         #endregion
 

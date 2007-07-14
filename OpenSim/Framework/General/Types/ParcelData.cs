@@ -47,6 +47,8 @@ namespace OpenSim.Framework.Types
             public int claimPrice = 0; //Unemplemented
             public LLUUID groupID = new LLUUID(); //Unemplemented
             public int groupPrims = 0; //Unemplemented
+            public int otherPrims = 0; //Unemplemented
+            public int ownerPrims = 0; //Unemplemented
             public int salePrice = 0; //Unemeplemented. Parcels price.
             public Parcel.ParcelStatus parcelStatus = Parcel.ParcelStatus.Leased;
             public uint parcelFlags = (uint)Parcel.ParcelFlags.AllowFly | (uint)Parcel.ParcelFlags.AllowLandmark | (uint)Parcel.ParcelFlags.AllowAllObjectEntry | (uint)Parcel.ParcelFlags.AllowDeedToGroup | (uint)Parcel.ParcelFlags.AllowTerraform | (uint)Parcel.ParcelFlags.CreateObjects | (uint)Parcel.ParcelFlags.AllowOtherScripts;
@@ -84,6 +86,8 @@ namespace OpenSim.Framework.Types
                 parcelData.globalID = this.globalID;
                 parcelData.groupID = this.groupID;
                 parcelData.groupPrims = this.groupPrims;
+                parcelData.otherPrims = this.otherPrims;
+                parcelData.ownerPrims = this.ownerPrims;
                 parcelData.isGroupOwned = this.isGroupOwned;
                 parcelData.localID = this.localID;
                 parcelData.landingType = this.landingType;

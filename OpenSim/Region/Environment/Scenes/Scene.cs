@@ -59,6 +59,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint _primCount = 702000;
         private System.Threading.Mutex _primAllocateMutex = new Mutex(false);
         private int storageCount;
+        private int parcelPrimCheckCount;
         private Mutex updateLock;
 
         protected AuthenticateSessionsBase authenticateHandler;
@@ -144,6 +145,8 @@ namespace OpenSim.Region.Environment.Scenes
             Terrain = new TerrainEngine();
 
             ScenePresence.LoadAnims();
+
+            this.performParcelPrimCountUpdate();
             this.httpListener = httpServer;
         }
         #endregion
@@ -211,6 +214,18 @@ namespace OpenSim.Region.Environment.Scenes
                     this.Backup();
                     storageCount = 0;
                 }
+
+                this.parcelPrimCheckCount++;
+                if (this.parcelPrimCheckCount > 50) //check every 5 seconds for tainted prims
+                {
+                    if (m_parcelManager.parcelPrimCountTainted)
+                    {
+                        //Perform parcel update of prim count
+                        performParcelPrimCountUpdate();
+                        this.parcelPrimCheckCount = 0;
+                    }
+                }
+
             }
             catch (Exception e)
             {
@@ -441,7 +456,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                SceneObject sceneOb = new SceneObject(m_regionHandle, this, ownerID, this.PrimIDAllocate(), pos, shape);
+                SceneObject sceneOb = new SceneObject(m_regionHandle, this, this.m_eventManager,this.m_parcelManager, ownerID, this.PrimIDAllocate(), pos, shape);
                 this.Entities.Add(sceneOb.rootUUID, sceneOb);
 
                 // Trigger event for listeners
@@ -809,6 +824,12 @@ namespace OpenSim.Region.Environment.Scenes
             return this.commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
         }
 
+        public void performParcelPrimCountUpdate()
+        {
+            m_parcelManager.resetAllParcelPrimCounts();
+            m_eventManager.TriggerParcelPrimCountUpdate();
+            m_parcelManager.parcelPrimCountTainted = false;
+        }
         #endregion
 
     }

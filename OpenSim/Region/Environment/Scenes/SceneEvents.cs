@@ -19,6 +19,9 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnRemovePresenceDelegate(LLUUID uuid);
         public event OnRemovePresenceDelegate OnRemovePresence;
 
+        public delegate void OnParcelPrimCountUpdateDelegate();
+        public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
+
         public void TriggerOnFrame()
         {
             if (OnFrame != null)
@@ -46,6 +49,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (OnBackup != null)
             {
                 OnBackup(dstore);
+            }
+        }
+
+        public void TriggerParcelPrimCountUpdate()
+        {
+            if (OnParcelPrimCountUpdate != null)
+            {
+                OnParcelPrimCountUpdate();
             }
         }
     }
