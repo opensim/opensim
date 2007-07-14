@@ -13,7 +13,8 @@ using OpenSim.Region.Capabilities;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.GridInterfaces.Local;
-using OpenSim.Framework.Data;
+using System.Timers;
+using OpenSim.Region.Environment.Scenes;
 
 namespace SimpleApp
 {
@@ -23,16 +24,17 @@ namespace SimpleApp
         AuthenticateSessionsBase m_circuitManager;
         uint m_localId;
         public MyWorld world;
+        private SceneObject m_sceneObject;
         
         private void Run()
         {
             m_log = new LogBase(null, "SimpleApp", this, false);
             MainLog.Instance = m_log;
 
-          //  CheckSumServer checksumServer = new CheckSumServer(12036);
-           // checksumServer.ServerListener();
+            //  CheckSumServer checksumServer = new CheckSumServer(12036);
+            // checksumServer.ServerListener();
 
-            IPEndPoint internalEndPoint = new IPEndPoint( IPAddress.Parse( "127.0.0.1" ), 9000 );
+            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
 
             m_circuitManager = new AuthenticateSessionsBase();
 
@@ -46,42 +48,40 @@ namespace SimpleApp
 
             PhysicsManager physManager = new PhysicsManager();
             physManager.LoadPlugins();
-            
-            UDPServer udpServer = new UDPServer( internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager );
+
+            UDPServer udpServer = new UDPServer(internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager);
             PacketServer packetServer = new PacketServer(udpServer);
-           
-            
+
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
             BaseHttpServer httpServer = new BaseHttpServer(internalEndPoint.Port);
 
             NetworkServersInfo serverInfo = new NetworkServersInfo();
             CommunicationsLocal communicationsManager = new CommunicationsLocal(serverInfo, httpServer);
 
-            RegionInfo regionInfo = new RegionInfo( 1000, 1000, internalEndPoint, "127.0.0.1" );
+            RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "127.0.0.1");
 
             world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
-            
+
             world.LoadWorldMap();
-            
+            world.ParcelManager.NoParcelDataFromStorage();
+
             udpServer.LocalWorld = world;
 
             httpServer.Start();
             udpServer.ServerListener();
 
-            UserProfileData masterAvatar = communicationsManager.UserServer.SetupMasterUser("Test", "User", "test");
-            if (masterAvatar != null)
-            {
-                world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                world.ParcelManager.NoParcelDataFromStorage();
-            }
+            PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
+            shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
+            LLVector3 pos = new LLVector3(129, 129, 27);
 
-            world.CustomStartup();
-            m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
+            m_sceneObject = new MySceneObject(world, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
+            world.AddNewEntity(m_sceneObject);            
+            
+            m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
-
         }
-
+        
         private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
         {
             m_log.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
@@ -101,15 +101,15 @@ namespace SimpleApp
 
             return true;
         }
-        
+
         #region IAssetReceiver Members
 
-        public void AssetReceived( AssetBase asset, bool IsTexture)
+        public void AssetReceived(AssetBase asset, bool IsTexture)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public void AssetNotFound( AssetBase asset)
+        public void AssetNotFound(AssetBase asset)
         {
             throw new Exception("The method or operation is not implemented.");
         }
@@ -134,7 +134,7 @@ namespace SimpleApp
         {
             Program app = new Program();
 
-            app.Run();     
+            app.Run();
         }
     }
 }

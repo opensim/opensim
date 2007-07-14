@@ -41,8 +41,8 @@ using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
-using Caps=OpenSim.Region.Capabilities.Caps;
-using Timer=System.Timers.Timer;
+using Caps = OpenSim.Region.Capabilities.Caps;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -223,7 +223,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //Perform parcel update of prim count
                         performParcelPrimCountUpdate();
                         this.parcelPrimCheckCount = 0;
-                    }
+            }
                 }
 
             }
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                   {
                                                       this.SendLayerData(client);
                                                   });
-                
+
                 foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].LandRenegerated();
@@ -454,18 +454,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-            try
-            {
-                SceneObject sceneOb = new SceneObject(m_regionHandle, this, this.m_eventManager,this.m_parcelManager, ownerID, this.PrimIDAllocate(), pos, shape);
-                this.Entities.Add(sceneOb.rootUUID, sceneOb);
+                SceneObject sceneOb = new SceneObject(this, ownerID, this.PrimIDAllocate(), pos, shape);
+            AddNewEntity(sceneOb);
+        }
 
-                // Trigger event for listeners
-                // eventManager.TriggerOnNewPrimitive(prim);
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Warn("World.cs: AddNewPrim() - Failed with exception " + e.ToString());
-            }
+        public void AddNewEntity(SceneObject sceneObject)
+        {
+            this.Entities.Add(sceneObject.rootUUID, sceneObject);
         }
 
         #endregion
@@ -484,7 +479,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
             this.m_parcelManager.sendParcelOverlay(client);
-            
+
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -512,7 +507,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectName += this.PrimName;
             client.OnLinkObjects += this.LinkObjects;
             client.OnObjectDuplicate += this.DuplicateObject;
-            
+
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_parcelManager.handleParcelPropertiesRequest);
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_parcelManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_parcelManager.handleParcelJoinRequest);
@@ -571,26 +566,30 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_eventManager.TriggerOnRemovePresence(agentID);
 
-	    ScenePresence avatar = this.RequestAvatar(agentID);
+            ScenePresence avatar = this.RequestAvatar(agentID);
 
             m_clientManager.ForEachClient(
-	        delegate(IClientAPI client)
+            delegate(IClientAPI client)
+            {
+                client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+            });
+
+            lock (Avatars)
+            {
+                if (Avatars.ContainsKey(agentID))
                 {
-                    client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                });
- 
-            lock (Avatars) {
-                 if (Avatars.ContainsKey(agentID)) {
                     Avatars.Remove(agentID);
                 }
             }
-             lock (Entities) {
-                 if (Entities.ContainsKey(agentID)) {
+            lock (Entities)
+            {
+                if (Entities.ContainsKey(agentID))
+                {
                     Entities.Remove(agentID);
                 }
             }
             // TODO: Add the removal from physics ?
- 
+
 
 
             return;
@@ -685,7 +684,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            
+
             this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo);
             if (this.regionCommsHost != null)
             {

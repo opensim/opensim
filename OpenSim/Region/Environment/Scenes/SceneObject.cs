@@ -79,12 +79,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public SceneObject(ulong regionHandle, Scene world, EventManager eventManager, ParcelManager parcelManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public SceneObject(Scene world, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-            m_regionHandle = regionHandle;
+            m_regionHandle = world.RegionInfo.RegionHandle;
             m_world = world;
-            m_eventManager = eventManager;
-            m_parcelManager = parcelManager;
+            m_eventManager = world.EventManager;
+            m_parcelManager = world.ParcelManager;
 
             this.Pos = pos;
             this.CreateRootFromShape(ownerID, localID, shape, pos);
