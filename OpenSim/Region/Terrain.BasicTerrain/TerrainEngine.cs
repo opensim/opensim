@@ -914,7 +914,7 @@ namespace OpenSim.Region.Terrain
                 }
 
                 //bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
-                imageData = OpenJPEG.EncodeFromImage(bmp, "map");
+                imageData = OpenJPEG.EncodeFromImage(bmp, true );
                 
             }
             catch (Exception e)
