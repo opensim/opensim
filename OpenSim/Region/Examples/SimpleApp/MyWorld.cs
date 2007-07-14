@@ -8,13 +8,12 @@ using OpenSim.Framework.Types;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Terrain;
-using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
+using Avatar = OpenSim.Region.Environment.Scenes.ScenePresence;
 
 namespace SimpleApp
 {
     public class MyWorld : Scene
     {
-        private bool firstlogin = true;
         private List<ScenePresence> m_avatars;
 
         public MyWorld(ClientManager clientManager, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
@@ -58,53 +57,46 @@ namespace SimpleApp
         #region IWorld Members
 
         override public void AddNewClient(IClientAPI client, bool child)
-
         {
-            NewLoggin();
-
             LLVector3 pos = new LLVector3(128, 128, 128);
-            
+
             client.OnRegionHandShakeReply += SendLayerData;
             client.OnChatFromViewer +=
                 delegate(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
-                    {
-                        // Echo it (so you know what you typed)
-                        client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
-                        client.SendChatMessage("Ready.", 1, pos, "System", LLUUID.Zero );
-                    };
-            
+                {
+                    // Echo it (so you know what you typed)
+                    client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
+                    client.SendChatMessage("Ready.", 1, pos, "System", LLUUID.Zero);
+                };
+
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
             client.OnGrapUpdate += this.MoveObject;
             client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
-            
+
             client.OnCompleteMovementToRegion += delegate()
                  {
-                     client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero );
+                     client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero);
                  };
 
             client.SendRegionHandshake(m_regInfo);
 
-            ScenePresence avatar =CreateAndAddScenePresence(client);
-            avatar.Pos = new LLVector3(128, 128, 26);        
+            ScenePresence avatar = CreateAndAddScenePresence(client);
+            avatar.Pos = new LLVector3(128, 128, 26);
         }
 
-        public void NewLoggin()
+        public void CustomStartup()
         {
-            if (firstlogin)
-            {
-                this.StartTimer();
+            this.StartTimer();
 
-                ScriptManager.AddPreCompiledScript(new PulseScript());
+            ScriptManager.AddPreCompiledScript(new PulseScript());
 
-                PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
-                shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-                LLVector3 pos1 = new LLVector3(129, 129, 27);
-                AddNewPrim(LLUUID.Random(), pos1, shape);
-                firstlogin = false;
-            }
+            PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
+            shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
+            LLVector3 pos1 = new LLVector3(129, 129, 27);
+            AddNewPrim(LLUUID.Random(), pos1, shape);
         }
 
         public override void Update()

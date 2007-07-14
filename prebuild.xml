@@ -716,6 +716,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.UserManagement"/>
+      <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Region.Capabilities"/>
       <Reference name="XMLRPC.dll"/>

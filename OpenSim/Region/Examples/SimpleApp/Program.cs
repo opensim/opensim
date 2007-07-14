@@ -13,6 +13,7 @@ using OpenSim.Region.Capabilities;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.GridInterfaces.Local;
+using OpenSim.Framework.Data;
 
 namespace SimpleApp
 {
@@ -48,7 +49,7 @@ namespace SimpleApp
             
             UDPServer udpServer = new UDPServer( internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager );
             PacketServer packetServer = new PacketServer(udpServer);
-            udpServer.ServerListener();
+           
             
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
             BaseHttpServer httpServer = new BaseHttpServer(internalEndPoint.Port);
@@ -62,25 +63,22 @@ namespace SimpleApp
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
             
             world.LoadWorldMap();
-            world.ParcelManager.NoParcelDataFromStorage();
             
             udpServer.LocalWorld = world;
-            
+
             httpServer.Start();
-            
+            udpServer.ServerListener();
+
+            UserProfileData masterAvatar = communicationsManager.UserServer.SetupMasterUser("Test", "User", "test");
+            if (masterAvatar != null)
+            {
+                world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                world.ParcelManager.NoParcelDataFromStorage();
+            }
+
+            world.CustomStartup();
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
-
-
-            /*
-            PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
-            
-            shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-            
-            LLVector3 pos = new LLVector3(129,130,25);
-
-            world.AddNewPrim( LLUUID.Random(), pos, shape );
-             */
 
         }
 
@@ -136,8 +134,7 @@ namespace SimpleApp
         {
             Program app = new Program();
 
-            app.Run();
-            
+            app.Run();     
         }
     }
 }
