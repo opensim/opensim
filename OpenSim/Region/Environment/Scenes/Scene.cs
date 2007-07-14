@@ -68,10 +68,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
 
-        public EstateManager estateManager;
-        public EventManager eventManager;
-        public ScriptManager scriptManager;
-
         #region Properties
         /// <summary>
         /// 
@@ -89,10 +85,27 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private ParcelManager m_parcelManager;
-
         public ParcelManager ParcelManager
         {
             get { return m_parcelManager; }
+        }
+
+        private EstateManager m_estateManager;
+        public EstateManager EstateManager
+        {
+            get { return m_estateManager; }
+        }
+
+        private EventManager m_eventManager;
+        public EventManager EventManager
+        {
+            get { return m_eventManager; }
+        }
+
+        private ScriptManager m_scriptManager;
+        public ScriptManager ScriptManager
+        {
+            get { return m_scriptManager; }
         }
 
         #endregion
@@ -118,9 +131,9 @@ namespace OpenSim.Region.Environment.Scenes
             this.RegisterRegionWithComms();
 
             m_parcelManager = new ParcelManager(this, this.m_regInfo);
-            estateManager = new EstateManager(this, this.m_regInfo);
-            scriptManager = new ScriptManager(this);
-            eventManager = new EventManager();
+            m_estateManager = new EstateManager(this, this.m_regInfo);
+            m_scriptManager = new ScriptManager(this);
+            m_eventManager = new EventManager();
 
             MainLog.Instance.Verbose("World.cs - creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -189,7 +202,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 // General purpose event manager
-                eventManager.TriggerOnFrame();
+                m_eventManager.TriggerOnFrame();
 
                 //backup world data
                 this.storageCount++;
@@ -453,7 +466,7 @@ namespace OpenSim.Region.Environment.Scenes
         public override void AddNewClient(IClientAPI client, bool child)
         {
             SubscribeToClientEvents(client);
-            this.estateManager.sendRegionHandshake(client);
+            this.m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
             this.m_parcelManager.sendParcelOverlay(client);
             
@@ -489,7 +502,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_parcelManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_parcelManager.handleParcelJoinRequest);
             client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_parcelManager.handleParcelPropertiesUpdateRequest);
-            client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
+            client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
         }
 
@@ -541,7 +554,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         public override void RemoveClient(LLUUID agentID)
         {
-            eventManager.TriggerOnRemovePresence(agentID);
+            m_eventManager.TriggerOnRemovePresence(agentID);
 
 	    ScenePresence avatar = this.RequestAvatar(agentID);
 

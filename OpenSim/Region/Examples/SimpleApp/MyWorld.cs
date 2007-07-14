@@ -97,7 +97,7 @@ namespace SimpleApp
             {
                 this.StartTimer();
 
-                scriptManager.AddPreCompiledScript(new PulseScript());
+                ScriptManager.AddPreCompiledScript(new PulseScript());
 
                 PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
                 shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
@@ -113,7 +113,7 @@ namespace SimpleApp
             {
                 Entities[UUID].update();
             }
-            eventManager.TriggerOnFrame();
+            EventManager.TriggerOnFrame();
         }
 
         #endregion

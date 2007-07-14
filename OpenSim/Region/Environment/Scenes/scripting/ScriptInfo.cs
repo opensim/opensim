@@ -50,7 +50,7 @@ namespace OpenSim.Region.Scripting
         public ScriptInfo(Scene scene)
         {
             world = scene;
-            events = world.eventManager;
+            events = world.EventManager;
             logger = MainLog.Instance;
             api = new ScriptAPI(scene);
         }
