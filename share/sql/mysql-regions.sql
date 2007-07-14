@@ -6,7 +6,7 @@ CREATE TABLE `regions` (
   `regionSendKey` varchar(128) default NULL,
   `regionSecret` varchar(128) default NULL,
   `regionDataURI` varchar(255) default NULL,
-  `serverIP` varchar(16) default NULL,
+  `serverIP` varchar(64) default NULL,
   `serverPort` int(10) unsigned default NULL,
   `serverURI` varchar(255) default NULL,
   `locX` int(10) unsigned default NULL,
