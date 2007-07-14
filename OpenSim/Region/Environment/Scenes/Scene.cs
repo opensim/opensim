@@ -711,7 +711,16 @@ namespace OpenSim.Region.Environment.Scenes
                     //Console.WriteLine("new user, so creating caps handler for it");
                     Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.ExternalHostName, this.m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
-                    this.capsHandlers.Add(agent.AgentID, cap);
+                    if (capsHandlers.ContainsKey(agent.AgentID))
+                    {
+                        OpenSim.Framework.Console.MainLog.Instance.Warn("Adding duplicate CAPS entry for user " + agent.AgentID.ToStringHyphenated());
+                        this.capsHandlers[agent.AgentID] = cap;
+                    }
+                    else
+                    {
+                        this.capsHandlers.Add(agent.AgentID, cap);
+                    }
+
                 }
                 this.authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
