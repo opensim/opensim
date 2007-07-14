@@ -197,11 +197,20 @@ namespace OpenSim.Region.Environment
         /// <returns>Parcel at the point supplied</returns>
         public Parcel getParcel(float x_float, float y_float)
         {
-            int x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float)));
-            int y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float)));
-
-            return getParcel(x, y);
+            int x = Convert.ToInt32(Math.Floor(Convert.ToDecimal(x_float) / Convert.ToDecimal(4.0)));
+            int y = Convert.ToInt32(Math.Floor(Convert.ToDecimal(y_float) / Convert.ToDecimal(4.0)));
+            
+            if (x > 63 || y > 63 || x < 0 || y < 0)
+            {
+                throw new Exception("Error: Parcel not found at point " + x + ", " + y);
+            }
+            else
+            {
+                Console.WriteLine("Point (" + x + ", " + y + ") determined from point (" + x_float + ", " + y_float + ")");
+                return parcelList[parcelIDList[x, y]];
+            }
         }
+
         public Parcel getParcel(int x, int y)
         {
             if (x > 256 || y > 256 || x < 0 || y < 0)
@@ -527,9 +536,7 @@ namespace OpenSim.Region.Environment
         public void addPrimToParcelCounts(SceneObject obj)
         {
             LLVector3 position = obj.rootPrimitive.Pos;
-            int pos_x = Convert.ToInt32(Math.Round(position.X));
-            int pos_y = Convert.ToInt32(Math.Round(position.Y));
-            Parcel parcelUnderPrim = getParcel(pos_x, pos_y);
+            Parcel parcelUnderPrim = getParcel(position.X, position.Y);
             if (parcelUnderPrim != null)
             {
                 parcelUnderPrim.addPrimToCount(obj);
