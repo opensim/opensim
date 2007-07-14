@@ -664,7 +664,7 @@ namespace OpenSim.Region.Environment
             List<Avatar> avatars = m_world.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-                Parcel over = m_world.parcelManager.getParcel((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
+                Parcel over = m_world.ParcelManager.getParcel((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
                 if (over.parcelData.localID == this.parcelData.localID)
                 {
                     sendParcelProperties(0, false, 0, avatars[i].ControllingClient);

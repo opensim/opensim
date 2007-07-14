@@ -68,7 +68,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
 
-        public ParcelManager parcelManager;
         public EstateManager estateManager;
         public EventManager eventManager;
         public ScriptManager scriptManager;
@@ -87,6 +86,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return (this.phyScene);
             }
+        }
+
+        private ParcelManager m_parcelManager;
+
+        public ParcelManager ParcelManager
+        {
+            get { return m_parcelManager; }
         }
 
         #endregion
@@ -111,7 +117,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_datastore = m_regInfo.DataStore;
             this.RegisterRegionWithComms();
 
-            parcelManager = new ParcelManager(this, this.m_regInfo);
+            m_parcelManager = new ParcelManager(this, this.m_regInfo);
             estateManager = new EstateManager(this, this.m_regInfo);
             scriptManager = new ScriptManager(this);
             eventManager = new EventManager();
@@ -449,7 +455,7 @@ namespace OpenSim.Region.Environment.Scenes
             SubscribeToClientEvents(client);
             this.estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
-            this.parcelManager.sendParcelOverlay(client);
+            this.m_parcelManager.sendParcelOverlay(client);
             
         }
 
@@ -479,10 +485,10 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnLinkObjects += this.LinkObjects;
             client.OnObjectDuplicate += this.DuplicateObject;
             
-            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(parcelManager.handleParcelPropertiesRequest);
-            client.OnParcelDivideRequest += new ParcelDivideRequest(parcelManager.handleParcelDivideRequest);
-            client.OnParcelJoinRequest += new ParcelJoinRequest(parcelManager.handleParcelJoinRequest);
-            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(parcelManager.handleParcelPropertiesUpdateRequest);
+            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_parcelManager.handleParcelPropertiesRequest);
+            client.OnParcelDivideRequest += new ParcelDivideRequest(m_parcelManager.handleParcelDivideRequest);
+            client.OnParcelJoinRequest += new ParcelJoinRequest(m_parcelManager.handleParcelJoinRequest);
+            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_parcelManager.handleParcelPropertiesUpdateRequest);
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(estateManager.handleEstateOwnerMessage);
 
         }
@@ -524,7 +530,7 @@ namespace OpenSim.Region.Environment.Scenes
                     this.Avatars.Add(client.AgentId, newAvatar);
                 }
             }
-            newAvatar.OnSignificantClientMovement += parcelManager.handleSignificantClientMovement;
+            newAvatar.OnSignificantClientMovement += m_parcelManager.handleSignificantClientMovement;
             return newAvatar;
         }
 

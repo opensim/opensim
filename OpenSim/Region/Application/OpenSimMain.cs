@@ -230,7 +230,7 @@ namespace OpenSim
                 if (masterAvatar != null)
                 {
                     LocalWorld.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                    LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.parcelManager);
+                    LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.ParcelManager);
                 }
 
                 LocalWorld.StartTimer();

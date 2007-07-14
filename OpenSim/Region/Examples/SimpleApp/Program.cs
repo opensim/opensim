@@ -60,7 +60,10 @@ namespace SimpleApp
 
             world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
+            
             world.LoadWorldMap();
+            world.ParcelManager.NoParcelDataFromStorage();
+            
             udpServer.LocalWorld = world;
             
             httpServer.Start();
