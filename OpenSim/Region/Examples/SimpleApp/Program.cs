@@ -21,6 +21,7 @@ namespace SimpleApp
         private LogBase m_log;
         AuthenticateSessionsBase m_circuitManager;
         uint m_localId;
+        public MyWorld world;
         
         private void Run()
         {
@@ -57,8 +58,9 @@ namespace SimpleApp
 
             RegionInfo regionInfo = new RegionInfo( 1000, 1000, internalEndPoint, "127.0.0.1" );
 
-            MyWorld world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
+            world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
+            world.LoadWorldMap();
             udpServer.LocalWorld = world;
             
             httpServer.Start();
@@ -66,13 +68,16 @@ namespace SimpleApp
             m_log.WriteLine( LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
 
+
+            /*
             PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
             
-            shape.Scale = new LLVector3(10, 10, 10);
+            shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             
-            LLVector3 pos = new LLVector3(128,128,72);
+            LLVector3 pos = new LLVector3(129,130,25);
 
-            world.AddNewPrim( LLUUID.Zero, pos, shape );
+            world.AddNewPrim( LLUUID.Random(), pos, shape );
+             */
 
         }
 
@@ -129,6 +134,7 @@ namespace SimpleApp
             Program app = new Program();
 
             app.Run();
+            
         }
     }
 }

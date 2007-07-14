@@ -487,7 +487,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
-        protected void CreateAndAddScenePresence(IClientAPI client)
+        protected ScenePresence CreateAndAddScenePresence(IClientAPI client)
         {
             ScenePresence newAvatar = null;
 
@@ -524,6 +524,8 @@ namespace OpenSim.Region.Environment.Scenes
                     this.Avatars.Add(client.AgentId, newAvatar);
                 }
             }
+            newAvatar.OnSignificantClientMovement += parcelManager.handleSignificantClientMovement;
+            return newAvatar;
         }
 
 

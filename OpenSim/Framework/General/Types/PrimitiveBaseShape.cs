@@ -100,6 +100,8 @@ namespace OpenSim.Framework.Types
             primShape.PathTaperY = 0;
             primShape.PathTwist = 0;
             primShape.PathTwistBegin = 0;
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
+            primShape.TextureEntry = ntex.ToBytes();
 
             return primShape;
         }

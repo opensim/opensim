@@ -726,6 +726,7 @@
       <Reference name="OpenSim.Region.Caches"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
 
 
       <Files>

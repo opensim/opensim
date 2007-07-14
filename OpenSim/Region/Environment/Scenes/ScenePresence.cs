@@ -40,9 +40,6 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class ScenePresence : Entity
     {
-
-
-
         public static bool PhysicsEngineFlying = false;
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
@@ -151,7 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
-            OnSignificantClientMovement += new SignificantClientMovement(m_world.parcelManager.handleSignificantClientMovement);
+            
             Dir_Vectors[0] = new Vector3(1, 0, 0);  //FOWARD
             Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
             Dir_Vectors[2] = new Vector3(0, 1, 0);  //LEFT

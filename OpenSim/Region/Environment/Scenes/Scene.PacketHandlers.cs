@@ -146,6 +146,7 @@ namespace OpenSim.Region.Environment.Scenes
                 avatar = this.Avatars[fromAgentID];
                 fromPos = avatar.Pos;
                 fromName = avatar.firstname + " " + avatar.lastname;
+                avatar = null;
             }
 
             m_clientManager.ForEachClient(delegate(IClientAPI client)
