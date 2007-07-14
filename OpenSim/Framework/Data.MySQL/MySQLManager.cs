@@ -193,6 +193,8 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.serverIP = (string)reader["serverIP"];
                 retval.serverPort = (uint)reader["serverPort"];
                 retval.serverURI = (string)reader["serverURI"];
+                retval.httpPort = Convert.ToUInt32(reader["serverHttpPort"].ToString());
+                retval.remotingPort = Convert.ToUInt32(reader["serverRemotingPort"].ToString());
 
                 // Location
                 retval.regionLocX = Convert.ToUInt32(reader["locX"].ToString());
@@ -543,11 +545,11 @@ namespace OpenSim.Framework.Data.MySQL
         {
             string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
-            sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture) VALUES ";
+            sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, ?serverHttpPort, ?serverRemotingPort) VALUES ";
 
             sql += "(?regionHandle, ?regionName, ?uuid, ?regionRecvKey, ?regionSecret, ?regionSendKey, ?regionDataURI, ";
             sql += "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
-            sql += "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture);";
+            sql += "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -575,6 +577,8 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?regionUserRecvKey"] = regiondata.regionUserRecvKey.ToString();
             parameters["?regionUserSendKey"] = regiondata.regionUserSendKey.ToString();
             parameters["?regionMapTexture"] = regiondata.regionMapTextureID.ToStringHyphenated();
+            parameters["?serverHttpPort"] = regiondata.httpPort.ToString();
+            parameters["?serverRemotingPort"] = regiondata.remotingPort.ToString();
 
             bool returnval = false;
 
