@@ -30,6 +30,7 @@ using System.Collections;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.UserManagement;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -63,6 +64,10 @@ namespace OpenSim.Grid.UserServer
             response.RegionX = SimInfo.regionLocX;
             response.RegionY = SimInfo.regionLocX;
 
+            //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
+            string capsPath = Util.GetRandomCapsPath();
+            response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
+
             // Notify the target of an incoming user
             Console.WriteLine("Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI+ ")");
 
@@ -78,6 +83,7 @@ namespace OpenSim.Grid.UserServer
             SimParams["startpos_y"] = theUser.currentAgent.currentPos.Y.ToString();
             SimParams["startpos_z"] = theUser.currentAgent.currentPos.Z.ToString();
             SimParams["regionhandle"] = theUser.currentAgent.currentHandle.ToString();
+            SimParams["caps_path"] = capsPath;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(SimParams);
 

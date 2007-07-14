@@ -265,6 +265,8 @@ namespace OpenSim.Region.Communications.OGS1
             agentData.lastname = (string)requestData["lastname"];
             agentData.AgentID = new LLUUID((string)requestData["agent_id"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+            agentData.CapsPath = (string)requestData["caps_path"];
+
             if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
             {
                 agentData.child = true;

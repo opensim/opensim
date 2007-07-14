@@ -659,10 +659,16 @@ namespace OpenSim.Grid.GridServer
             TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
             bool requirePublic = false;
+            bool requireValid = true;
 
             if (requirePublic && (TheSim.serverIP.StartsWith("172.16") || TheSim.serverIP.StartsWith("192.168") || TheSim.serverIP.StartsWith("10.") || TheSim.serverIP.StartsWith("0.") || TheSim.serverIP.StartsWith("255.")))
             {
                 return "ERROR! Servers must register with public addresses.";
+            }
+
+            if (requireValid && (TheSim.serverIP.StartsWith("0.")))
+            {
+                return "ERROR! 0.*.*.* Addresses are invalid, please check your server config and try again";
             }
 
             

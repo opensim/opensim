@@ -229,7 +229,14 @@ namespace OpenSim
                 UserProfileData masterAvatar = commsManager.UserServer.SetupMasterUser(LocalWorld.RegionInfo.MasterAvatarFirstName, LocalWorld.RegionInfo.MasterAvatarLastName, LocalWorld.RegionInfo.MasterAvatarSandboxPassword);
                 if (masterAvatar != null)
                 {
+                    m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
                     LocalWorld.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                    LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.ParcelManager);
+                }
+                else
+                {
+                    m_log.Notice("Parcels - No master avatar found, using null.");
+                    LocalWorld.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
                     LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.ParcelManager);
                 }
 
