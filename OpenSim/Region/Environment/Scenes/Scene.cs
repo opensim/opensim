@@ -136,6 +136,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
 
+            m_eventManager.OnParcelPrimCountTainted += new EventManager.OnParcelPrimCountTaintedDelegate(m_parcelManager.setPrimsTainted);
+            m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_parcelManager.addPrimToParcelCounts);
+
             MainLog.Instance.Verbose("World.cs - creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
             Avatars = new Dictionary<LLUUID, ScenePresence>();
@@ -453,7 +456,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-                SceneObject sceneOb = new SceneObject(this, ownerID, this.PrimIDAllocate(), pos, shape);
+                SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, this.PrimIDAllocate(), pos, shape);
             AddNewEntity(sceneOb);
         }
 

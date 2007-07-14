@@ -683,7 +683,14 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.IsGroupOwned = parcelData.isGroupOwned;
             updatePacket.ParcelData.LandingType = (byte)parcelData.landingType;
             updatePacket.ParcelData.LocalID = parcelData.localID;
-            updatePacket.ParcelData.MaxPrims = 1000; //unemplemented
+            if (parcelData.area > 0)
+            {
+                updatePacket.ParcelData.MaxPrims = Convert.ToInt32(Math.Round((Convert.ToDecimal(parcelData.area) / Convert.ToDecimal(65536)) * 15000 * Convert.ToDecimal(m_world.RegionInfo.estateSettings.objectBonusFactor)));
+            }
+            else
+            {
+                updatePacket.ParcelData.MaxPrims = 0;
+            }
             updatePacket.ParcelData.MediaAutoScale = parcelData.mediaAutoScale;
             updatePacket.ParcelData.MediaID = parcelData.mediaID;
             updatePacket.ParcelData.MediaURL = Helpers.StringToField(parcelData.mediaURL);
@@ -711,7 +718,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.SequenceID = sequence_id;
             if (parcelData.simwideArea > 0)
             {
-                updatePacket.ParcelData.SimWideMaxPrims = Convert.ToInt32(Math.Floor((Convert.ToDecimal(65536) / Convert.ToDecimal(parcelData.simwideArea)) * 15000));
+                updatePacket.ParcelData.SimWideMaxPrims = Convert.ToInt32(Math.Round((Convert.ToDecimal(parcelData.simwideArea) / Convert.ToDecimal(65536)) * 15000 * Convert.ToDecimal(m_world.RegionInfo.estateSettings.objectBonusFactor)));
             }
             else
             {

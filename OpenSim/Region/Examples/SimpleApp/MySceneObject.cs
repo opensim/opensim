@@ -13,8 +13,8 @@ namespace SimpleApp
     {
         private PerformanceCounter m_counter;
         
-        public MySceneObject(Scene world, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
-            : base(world, ownerID, localID, pos, shape )
+        public MySceneObject(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+            : base(world, eventManager, ownerID, localID, pos, shape )
         {
             String objectName = "Processor";
             String counterName = "% Processor Time";

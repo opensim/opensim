@@ -75,7 +75,7 @@ namespace SimpleApp
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(129, 129, 27);
 
-            m_sceneObject = new MySceneObject(world, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
+            m_sceneObject = new MySceneObject(world,world.EventManager, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
             world.AddNewEntity(m_sceneObject);            
             
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");

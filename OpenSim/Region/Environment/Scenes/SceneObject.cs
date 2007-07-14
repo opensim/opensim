@@ -48,7 +48,6 @@ namespace OpenSim.Region.Environment.Scenes
         private PhysicsActor m_PhysActor;
 
         private EventManager m_eventManager;
-        private ParcelManager m_parcelManager;
 
         public LLUUID rootUUID
         {
@@ -79,12 +78,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public SceneObject(Scene world, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public SceneObject(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = world.RegionInfo.RegionHandle;
             m_world = world;
-            m_eventManager = world.EventManager;
-            m_parcelManager = world.ParcelManager;
+            m_eventManager = eventManager;
 
             this.Pos = pos;
             this.CreateRootFromShape(ownerID, localID, shape, pos);
@@ -127,7 +125,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         private void ProcessParcelPrimCountUpdate()
         {
-            m_parcelManager.addPrimToParcelCounts(this);            
+            m_eventManager.TriggerParcelPrimCountAdd(this);         
         }
 
 
@@ -141,7 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void CreateRootFromShape(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
-            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world,this.m_parcelManager, agentID, localID, true, this, this, shape, pos);
+            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world,this.m_eventManager, agentID, localID, true, this, this, shape, pos);
             this.children.Add(rootPrimitive);
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
