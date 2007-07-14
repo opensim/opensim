@@ -548,6 +548,45 @@ namespace OpenSim.Region.Environment
         {
             this.parcelPrimCountTainted = true;
         }
+
+
+
+        public void finalizeParcelPrimCountUpdate()
+        {
+            //Get Simwide prim count for owner
+            Dictionary<LLUUID, List<Parcel>> parcelOwnersAndParcels = new Dictionary<LLUUID,List<Parcel>>();
+            foreach (Parcel p in parcelList.Values)
+            {
+                if(!parcelOwnersAndParcels.ContainsKey(p.parcelData.ownerID))
+                {
+                    List<Parcel> tempList = new List<Parcel>();
+                    tempList.Add(p);
+                    parcelOwnersAndParcels.Add(p.parcelData.ownerID,tempList);
+                }
+                else
+                {
+                    parcelOwnersAndParcels[p.parcelData.ownerID].Add(p);
+                }
+            }
+
+            foreach (LLUUID owner in parcelOwnersAndParcels.Keys)
+            {
+                int simArea = 0;
+                int simPrims = 0;
+                foreach (Parcel p in parcelOwnersAndParcels[owner])
+                {
+                    simArea += p.parcelData.area;
+                    simPrims += p.parcelData.ownerPrims + p.parcelData.otherPrims + p.parcelData.groupPrims;
+                }
+
+                foreach (Parcel p in parcelOwnersAndParcels[owner])
+                {
+                    p.parcelData.simwideArea = simArea;
+                    p.parcelData.simwidePrims = simPrims;
+                }
+            }
+
+        }
         #endregion
     }
     #endregion
@@ -670,8 +709,15 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.SelectedPrims = 0; //unemeplemented
             updatePacket.ParcelData.SelfCount = 0;//unemplemented
             updatePacket.ParcelData.SequenceID = sequence_id;
-            updatePacket.ParcelData.SimWideMaxPrims = 15000; //unemplemented
-            updatePacket.ParcelData.SimWideTotalPrims = 0; //unemplemented
+            if (parcelData.simwideArea > 0)
+            {
+                updatePacket.ParcelData.SimWideMaxPrims = Convert.ToInt32(Math.Floor((Convert.ToDecimal(65536) / Convert.ToDecimal(parcelData.simwideArea)) * 15000));
+            }
+            else
+            {
+                updatePacket.ParcelData.SimWideMaxPrims = 0;
+            }
+            updatePacket.ParcelData.SimWideTotalPrims = parcelData.simwidePrims;
             updatePacket.ParcelData.SnapSelection = snap_selection;
             updatePacket.ParcelData.SnapshotID = parcelData.snapshotID;
             updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus;
@@ -1002,6 +1048,7 @@ namespace OpenSim.Region.Environment
                 primsOverMe.Remove(obj);
             }
         }
+
 
         #endregion
 

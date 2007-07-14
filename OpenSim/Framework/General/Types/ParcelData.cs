@@ -46,9 +46,11 @@ namespace OpenSim.Framework.Types
             public int claimDate = 0; //Unemplemented
             public int claimPrice = 0; //Unemplemented
             public LLUUID groupID = new LLUUID(); //Unemplemented
-            public int groupPrims = 0; //Unemplemented
-            public int otherPrims = 0; //Unemplemented
-            public int ownerPrims = 0; //Unemplemented
+            public int groupPrims = 0;
+            public int otherPrims = 0;
+            public int ownerPrims = 0;
+            public int simwidePrims = 0;
+            public int simwideArea = 0;
             public int salePrice = 0; //Unemeplemented. Parcels price.
             public Parcel.ParcelStatus parcelStatus = Parcel.ParcelStatus.Leased;
             public uint parcelFlags = (uint)Parcel.ParcelFlags.AllowFly | (uint)Parcel.ParcelFlags.AllowLandmark | (uint)Parcel.ParcelFlags.AllowAllObjectEntry | (uint)Parcel.ParcelFlags.AllowDeedToGroup | (uint)Parcel.ParcelFlags.AllowTerraform | (uint)Parcel.ParcelFlags.CreateObjects | (uint)Parcel.ParcelFlags.AllowOtherScripts;

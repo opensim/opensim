@@ -146,7 +146,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScenePresence.LoadAnims();
 
-            this.performParcelPrimCountUpdate();
             this.httpListener = httpServer;
         }
         #endregion
@@ -827,6 +826,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_parcelManager.resetAllParcelPrimCounts();
             m_eventManager.TriggerParcelPrimCountUpdate();
+            m_parcelManager.finalizeParcelPrimCountUpdate();
             m_parcelManager.parcelPrimCountTainted = false;
         }
         #endregion
