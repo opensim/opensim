@@ -146,6 +146,15 @@ namespace OpenSim.Region.Environment.Scenes
             Avatars = new Dictionary<LLUUID, ScenePresence>();
             Prims = new Dictionary<LLUUID, SceneObject>();
 
+            MainLog.Instance.Verbose("World.cs - loading objects from datastore");
+            List<SceneObject> PrimsFromDB = storageManager.DataStore.LoadObjects();
+            foreach (SceneObject prim in PrimsFromDB)
+            {
+                Prims.Add(prim.uuid, prim);
+            }
+            MainLog.Instance.Verbose("World.cs - loaded " + PrimsFromDB.Count.ToString() + " object(s)");
+
+
             MainLog.Instance.Verbose("World.cs - creating LandMap");
             Terrain = new TerrainEngine();
 
