@@ -10,7 +10,7 @@ using libsecondlife;
 
 namespace OpenSim.DataStore.NullStorage
 {
-    class NullDataStore : IRegionDataStore
+    public class NullDataStore : IRegionDataStore
     {
         public void Initialise(string dbfile, string dbname)
         {

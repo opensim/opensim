@@ -38,20 +38,17 @@ namespace OpenSim.Region.Environment
             {
                 if (pluginType.IsPublic)
                 {
-                    if (!pluginType.IsAbstract)
+                    Type typeInterface = pluginType.GetInterface("IRegionDataStore", true);
+
+                    if (typeInterface != null)
                     {
-                        Type typeInterface = pluginType.GetInterface("IRegionDataStore", true);
+                        IRegionDataStore plug = (IRegionDataStore)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        plug.Initialise(dataStoreFile, dataStoreDB);
 
-                        if (typeInterface != null)
-                        {
-                            IRegionDataStore plug = (IRegionDataStore)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            plug.Initialise(dataStoreFile, dataStoreDB);
-
-                            m_dataStore = plug;
-                        }
-
-                        typeInterface = null;
+                        m_dataStore = plug;
                     }
+
+                    typeInterface = null;
                 }
             }
 
