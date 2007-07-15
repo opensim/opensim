@@ -124,6 +124,15 @@ namespace OpenSim.Region.Terrain
         }
 
         /// <summary>
+        /// Converts the heightmap to a 256x256 value 2D floating point array. Double precision version.
+        /// </summary>
+        /// <returns>An array of 256,256 values containing the heightmap</returns>
+        public double[,] getHeights2DD()
+        {
+            return heightmap.map;
+        }
+
+        /// <summary>
         /// Imports a 1D floating point array into the 2D heightmap array
         /// </summary>
         /// <param name="heights">The array to import (must have 65536 members)</param>
@@ -150,6 +159,23 @@ namespace OpenSim.Region.Terrain
                 for (y = 0; y < h; y++)
                 {
                     heightmap.set(x, y, (double)heights[x, y]);
+                }
+            }
+            tainted++;
+        }
+
+        /// <summary>
+        /// Loads a 2D array of values into the heightmap (Double Precision Version)
+        /// </summary>
+        /// <param name="heights">An array of 256,256 float values</param>
+        public void setHeights2D(double[,] heights)
+        {
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    heightmap.set(x, y, heights[x, y]);
                 }
             }
             tainted++;

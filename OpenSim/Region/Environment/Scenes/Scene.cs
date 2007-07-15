@@ -352,7 +352,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                float[] map = this.localStorage.LoadWorld();
+                double[,] map = this.storageManager.DataStore.LoadTerrain();
                 if (map == null)
                 {
                     if (string.IsNullOrEmpty(this.m_regInfo.estateSettings.terrainFile))
@@ -360,7 +360,7 @@ namespace OpenSim.Region.Environment.Scenes
                         Console.WriteLine("No default terrain, procedurally generating...");
                         this.Terrain.hills();
 
-                        this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        this.storageManager.DataStore.StoreTerrain(this.Terrain.getHeights2DD());
                     }
                     else
                     {
@@ -374,12 +374,12 @@ namespace OpenSim.Region.Environment.Scenes
                             Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
                             Terrain.hills();
                         }
-                        this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                        this.storageManager.DataStore.StoreTerrain(this.Terrain.getHeights2DD());
                     }
                 }
                 else
                 {
-                    this.Terrain.setHeights1D(map);
+                    this.Terrain.setHeights2D(map);
                 }
 
                 CreateTerrainTexture();

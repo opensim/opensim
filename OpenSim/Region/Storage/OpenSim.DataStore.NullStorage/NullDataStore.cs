@@ -29,7 +29,7 @@ namespace OpenSim.DataStore.NullStorage
 
         public List<SceneObject> LoadObjects()
         {
-            return null;
+            return new List<SceneObject>();
         }
 
         public void StoreTerrain(double[,] ter)
@@ -54,7 +54,7 @@ namespace OpenSim.DataStore.NullStorage
 
         public List<OpenSim.Region.Environment.Parcel> LoadParcels()
         {
-            return null;
+            return new List<OpenSim.Region.Environment.Parcel>();
         }
 
         public void Shutdown()
