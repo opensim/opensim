@@ -112,6 +112,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_scriptManager; }
         }
 
+        public Dictionary<LLUUID, SceneObject> Objects
+        {
+            get { return Prims; }
+        }
+
         #endregion
 
         #region Constructors

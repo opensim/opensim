@@ -75,6 +75,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public Dictionary<LLUUID, Primitive> Children
+        {
+            get
+            {
+                return this.ChildPrimitives;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

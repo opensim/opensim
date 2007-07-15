@@ -81,6 +81,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
+        public PrimitiveBaseShape Shape
+        {
+            get
+            {
+                return this.m_Shape;
+            }
+        }
+
         public LLVector3 WorldPos
         {
             get
