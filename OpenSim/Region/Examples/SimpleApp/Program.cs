@@ -47,6 +47,9 @@ namespace SimpleApp
 
             AssetCache assetCache = new AssetCache(assetServer);
 
+            ScenePresence.LoadTextureFile("avatar-texture.dat");
+            ScenePresence.PhysicsEngineFlying = true;
+
             PhysicsManager physManager = new PhysicsManager();
             physManager.LoadPlugins();
 
@@ -65,7 +68,7 @@ namespace SimpleApp
 
             world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
-
+           
             world.LoadWorldMap();
             world.PhysScene.SetTerrain(world.Terrain.getHeights1D());
 
@@ -81,6 +84,8 @@ namespace SimpleApp
                 world.ParcelManager.NoParcelDataFromStorage();
             }
 
+            world.StartTimer();
+
             PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(138, 129, 27);
@@ -91,8 +96,6 @@ namespace SimpleApp
             m_character = new MyNpcCharacter();
             world.AddNewClient(m_character, false);
           
-             world.StartTimer();
-
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
             

@@ -20,6 +20,7 @@ namespace SimpleApp
         private uint movementDirection = 0;
         private bool fly = true;
         private LLQuaternion bodyDirection = LLQuaternion.Identity;
+        private short count = 0;
 
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
@@ -144,13 +145,12 @@ namespace SimpleApp
         {
             Timer timer = new Timer();
             timer.Enabled = true;
-            timer.Interval = 10000;
+            timer.Interval = 500;
             timer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
         }
 
         public void Heartbeat(object sender, EventArgs e)
         {
-
             Encoding enc = Encoding.ASCII;
 
             this.OnAgentUpdate(this, movementDirection, bodyDirection);
@@ -165,10 +165,13 @@ namespace SimpleApp
                 movementDirection = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS;
                 fly = true;
             }
+            if (count >= 40)
+            {
+                this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
+                count = -1;
+            }
 
-            this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
-
-
+            count++;
         }
     }
 }

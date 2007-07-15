@@ -84,7 +84,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             // Initialise the background listeners
             RegionCommsListener regListener = new RegionCommsListener();
-            if (this.listeners.ContainsKey(regionInfo.RegionHandle))
+            if (!this.listeners.ContainsKey(regionInfo.RegionHandle))
             {
                 this.listeners.Add(regionInfo.RegionHandle, regListener);
             }
