@@ -15,6 +15,7 @@ using OpenSim.Region.Communications.Local;
 using OpenSim.Region.GridInterfaces.Local;
 using System.Timers;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Data;
 
 namespace SimpleApp
 {
@@ -25,6 +26,7 @@ namespace SimpleApp
         uint m_localId;
         public MyWorld world;
         private SceneObject m_sceneObject;
+        public MyNpcCharacter m_character;
         
         private void Run()
         {
@@ -65,22 +67,35 @@ namespace SimpleApp
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
 
             world.LoadWorldMap();
-            world.ParcelManager.NoParcelDataFromStorage();
+            world.PhysScene.SetTerrain(world.Terrain.getHeights1D());
 
             udpServer.LocalWorld = world;
 
             httpServer.Start();
             udpServer.ServerListener();
 
+            UserProfileData masterAvatar = communicationsManager.UserServer.SetupMasterUser("Test", "User", "test");
+            if (masterAvatar != null)
+            {
+                world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                world.ParcelManager.NoParcelDataFromStorage();
+            }
+
             PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-            LLVector3 pos = new LLVector3(129, 129, 27);
+            LLVector3 pos = new LLVector3(138, 129, 27);
 
-            m_sceneObject = new MySceneObject(world,world.EventManager, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
-            world.AddNewEntity(m_sceneObject);            
-            
+            m_sceneObject = new MySceneObject(world, world.EventManager, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
+            world.AddNewEntity(m_sceneObject);
+
+            m_character = new MyNpcCharacter();
+            world.AddNewClient(m_character, false);
+          
+             world.StartTimer();
+
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
+            
         }
 
         #region conscmd_callback Members

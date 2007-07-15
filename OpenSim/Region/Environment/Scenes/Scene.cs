@@ -55,8 +55,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected Timer m_heartbeatTimer = new Timer();
         protected Dictionary<LLUUID, ScenePresence> Avatars;
         protected Dictionary<LLUUID, SceneObject> Prims;
-        private PhysicsScene phyScene;
-        private float timeStep = 0.1f;
+        protected PhysicsScene phyScene;
+        protected float timeStep = 0.1f;
         private Random Rand = new Random();
         private uint _primCount = 702000;
         private System.Threading.Mutex _primAllocateMutex = new Mutex(false);

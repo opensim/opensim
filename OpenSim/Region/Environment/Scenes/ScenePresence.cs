@@ -57,7 +57,10 @@ namespace OpenSim.Region.Environment.Scenes
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
         private ulong m_regionHandle;
-        private bool childAgent = false;
+
+        public bool childAgent = false;
+        public bool IsRestrictedToRegion = false;
+
         private bool newForce = false;
         private bool newAvatar = false;
         private IScenePresenceBody m_body;
@@ -72,7 +75,7 @@ namespace OpenSim.Region.Environment.Scenes
             DIR_CONTROL_FLAG_LEFT = MainAvatar.ControlFlags.AGENT_CONTROL_LEFT_POS,
             DIR_CONTROL_FLAG_RIGHT = MainAvatar.ControlFlags.AGENT_CONTROL_LEFT_NEG,
             DIR_CONTROL_FLAG_UP = MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS,
-            DIR_CONTROL_FLAG_DOWN = MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG
+            DIR_CONTROL_FLAG_DOWN = MainAvatar.ControlFlags.AGENT_CONTROL_AT_NEG
         }
         /// <summary>
         /// Position at which a significant movement was made

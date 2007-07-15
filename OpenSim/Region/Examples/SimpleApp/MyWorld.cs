@@ -47,14 +47,15 @@ namespace SimpleApp
             LLVector3 pos = new LLVector3(128, 128, 128);
             
             client.OnRegionHandShakeReply += SendLayerData;
-            client.OnChatFromViewer +=
+            /*client.OnChatFromViewer +=
                 delegate(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
                     {
                         // Echo it (so you know what you typed)
                         client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
                         client.SendChatMessage("Ready.", 1, pos, "System", LLUUID.Zero );
                     };
-            
+            */
+            client.OnChatFromViewer += this.SimChat;
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
@@ -70,9 +71,27 @@ namespace SimpleApp
             client.SendRegionHandshake(m_regInfo);
 
             ScenePresence avatar = CreateAndAddScenePresence(client);
-            avatar.Pos = new LLVector3(128, 128, 26);        
+            avatar.Pos = new LLVector3(128, 128, 26);
         }
-        
+
+        public override void Update()
+        {
+            foreach (LLUUID UUID in Entities.Keys)
+            {
+                Entities[UUID].updateMovement();
+            }
+
+            lock (this.m_syncRoot)
+            {
+                this.phyScene.Simulate(timeStep);
+            }
+
+            foreach (LLUUID UUID in Entities.Keys)
+            {
+                Entities[UUID].update();
+            }
+        }
+
         #endregion
     }
 }

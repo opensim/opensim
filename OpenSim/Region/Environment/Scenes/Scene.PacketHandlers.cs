@@ -139,8 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            // Console.WriteLine("Chat message");
-            ScenePresence avatar = null;
+             ScenePresence avatar = null;
             if (this.Avatars.ContainsKey(fromAgentID))
             {
                 avatar = this.Avatars[fromAgentID];
