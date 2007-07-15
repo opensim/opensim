@@ -43,7 +43,9 @@ namespace OpenSim.Framework.Interfaces
         void RemovePrim(LLUUID primID);
         void LoadPrimitives(ILocalStorageReceiver receiver);
 
+        [System.Obsolete("Use DataStorage instead")]
         float[] LoadWorld();
+        [System.Obsolete("Use DataStorage instead")]
         void SaveMap(float[] heightmap);
 
         void SaveParcels(ParcelData[] parcels);

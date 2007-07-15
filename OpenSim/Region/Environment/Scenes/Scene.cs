@@ -266,7 +266,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     this.phyScene.SetTerrain(Terrain.getHeights1D());
                 }
-                this.localStorage.SaveMap(this.Terrain.getHeights1D());
+
+                this.storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
 
                 m_clientManager.ForEachClient(delegate(IClientAPI client)
                                                   {
@@ -297,7 +298,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     this.phyScene.SetTerrain(this.Terrain.getHeights1D());
                 }
-                this.localStorage.SaveMap(this.Terrain.getHeights1D());
+                this.storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
 
                 m_clientManager.ForEachClient(delegate(IClientAPI client)
                                                   {
