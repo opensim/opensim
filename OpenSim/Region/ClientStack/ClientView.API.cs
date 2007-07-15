@@ -84,6 +84,7 @@ namespace OpenSim.Region.ClientStack
         public event ParcelDivideRequest OnParcelDivideRequest;
         public event ParcelJoinRequest OnParcelJoinRequest;
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
+        public event ParcelSelectObjects OnParcelSelectObjects;
 
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
 

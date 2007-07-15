@@ -594,6 +594,13 @@ namespace OpenSim.Region.ClientStack
                             
                         }
                         break;
+                    case PacketType.ParcelSelectObjects:
+                        ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket)Pack;
+                        if (OnParcelSelectObjects != null)
+                        {
+                            OnParcelSelectObjects(selectPacket.ParcelData.LocalID, Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
+                        }
+                        break;
                     #endregion
 
                     #region Estate Packets

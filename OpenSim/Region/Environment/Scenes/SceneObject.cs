@@ -170,8 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.children.Add(dupe.rootPrimitive);
             dupe.rootPrimitive.Pos = this.Pos;
             dupe.Rotation = this.Rotation;
-            LLUUID rootu = dupe.rootUUID;
-            uint rooti = dupe.rootLocalID;
+            dupe.LocalId = m_world.PrimIDAllocate();
 
             dupe.registerEvents();
             return dupe;

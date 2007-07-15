@@ -66,6 +66,12 @@ namespace OpenSim.Region.Environment
         public const int PARCEL_RESULT_ONE_PARCEL = 0;	// The request they made contained only one parcel
         public const int PARCEL_RESULT_MULTIPLE_PARCELS = 1;	// The request they made contained more than one parcel
 
+        //ParcelSelectObjects
+        public const int PARCEL_SELECT_OBJECTS_OWNER = 2;
+        public const int PARCEL_SELECT_OBJECTS_GROUP = 4;
+        public const int PARCEL_SELECT_OBJECTS_OTHER = 8;
+
+
         //These are other constants. Yay!
         public const int START_PARCEL_LOCAL_ID = 1;
         #endregion
@@ -490,6 +496,11 @@ namespace OpenSim.Region.Environment
             join(west, south, east, north, remote_client.AgentId);
 
         }
+
+        public void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client)
+        {
+            parcelList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
+        }
         #endregion
 
         /// <summary>
@@ -532,10 +543,14 @@ namespace OpenSim.Region.Environment
                 p.resetParcelPrimCounts();
             }
         }
+        public void setPrimsTainted()
+        {
+            this.parcelPrimCountTainted = true;
+        }
 
         public void addPrimToParcelCounts(SceneObject obj)
         {
-            LLVector3 position = obj.rootPrimitive.Pos;
+            LLVector3 position = obj.Pos;
             Parcel parcelUnderPrim = getParcel(position.X, position.Y);
             if (parcelUnderPrim != null)
             {
@@ -550,13 +565,6 @@ namespace OpenSim.Region.Environment
                 p.removePrimFromCount(obj);
             }
         }
-
-        public void setPrimsTainted()
-        {
-            this.parcelPrimCountTainted = true;
-        }
-
-
 
         public void finalizeParcelPrimCountUpdate()
         {
@@ -1010,6 +1018,67 @@ namespace OpenSim.Region.Environment
         }
         #endregion
 
+        public void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client)
+        {
+            List<uint> resultLocalIDs = new List<uint>();
+            foreach (SceneObject obj in primsOverMe)
+            {
+                if (obj.rootLocalID > 0)
+                {
+                    if (request_type == ParcelManager.PARCEL_SELECT_OBJECTS_OWNER && obj.rootPrimitive.OwnerID == this.parcelData.ownerID)
+                    {
+                        resultLocalIDs.Add(obj.rootLocalID);
+                    }
+                    else if (request_type == ParcelManager.PARCEL_SELECT_OBJECTS_GROUP && false) //TODO: change false to group support!
+                    {
+
+                    }
+                    else if (request_type == ParcelManager.PARCEL_SELECT_OBJECTS_OTHER && obj.rootPrimitive.OwnerID != remote_client.AgentId)
+                    {
+                        resultLocalIDs.Add(obj.rootLocalID);
+                    }
+                }
+            }
+
+
+            bool firstCall = true;
+            int MAX_OBJECTS_PER_PACKET = 255;
+            ForceObjectSelectPacket pack = new ForceObjectSelectPacket();
+            ForceObjectSelectPacket.DataBlock[] data;
+            while (resultLocalIDs.Count > 0)
+            {
+                if (firstCall)
+                {
+                    pack._Header.ResetList = true;
+                    firstCall = false;
+                }
+                else
+                {
+                    pack._Header.ResetList = false;
+                }
+
+                if (resultLocalIDs.Count > MAX_OBJECTS_PER_PACKET)
+                {
+                    data = new ForceObjectSelectPacket.DataBlock[MAX_OBJECTS_PER_PACKET];
+                }
+                else
+                {
+                    data = new ForceObjectSelectPacket.DataBlock[resultLocalIDs.Count];
+                }
+
+                int i;
+                for (i = 0; i < MAX_OBJECTS_PER_PACKET && resultLocalIDs.Count > 0; i++)
+                {
+                    data[i] = new ForceObjectSelectPacket.DataBlock();
+                    data[i].LocalID = Convert.ToUInt32(resultLocalIDs[0]);
+                    resultLocalIDs.RemoveAt(0);
+                }
+                pack.Data = data;
+
+                remote_client.OutPacket((Packet)pack);
+            }
+            
+        }
         public void resetParcelPrimCounts()
         {
             parcelData.groupPrims = 0;
@@ -1026,10 +1095,6 @@ namespace OpenSim.Region.Environment
             if(prim_owner == parcelData.ownerID)
             {
                 parcelData.ownerPrims += prim_count;
-            }
-            else if (prim_owner == parcelData.groupID)
-            {
-                parcelData.groupPrims += prim_count;
             }
             else
             {

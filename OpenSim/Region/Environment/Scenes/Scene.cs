@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 this.parcelPrimCheckCount++;
-                if (this.parcelPrimCheckCount > 100) //check every 10 seconds for tainted prims
+                if (this.parcelPrimCheckCount > 50) //check every 5 seconds for tainted prims
                 {
                     if (m_parcelManager.parcelPrimCountTainted)
                     {
@@ -534,6 +534,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_parcelManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_parcelManager.handleParcelJoinRequest);
             client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_parcelManager.handleParcelPropertiesUpdateRequest);
+            client.OnParcelSelectObjects += new ParcelSelectObjects(m_parcelManager.handleParcelSelectObjectsRequest);
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
         }

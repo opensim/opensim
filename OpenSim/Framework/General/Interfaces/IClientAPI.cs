@@ -69,7 +69,8 @@ namespace OpenSim.Framework.Interfaces
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
-    public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client); // NOTETOSELFremove the packet part
+    public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
+    public delegate void ParcelSelectObjects(int parcel_local_id, int request_type, IClientAPI remote_client);
 
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 
@@ -126,6 +127,7 @@ namespace OpenSim.Framework.Interfaces
         event ParcelDivideRequest OnParcelDivideRequest;
         event ParcelJoinRequest OnParcelJoinRequest;
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
+        event ParcelSelectObjects OnParcelSelectObjects;
 
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
