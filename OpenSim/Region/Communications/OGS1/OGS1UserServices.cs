@@ -95,11 +95,7 @@ namespace OpenSim.Region.Communications.OGS1
         public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             UserProfileData profile = GetUserProfile(firstName, lastName);
-            if (profile == null)
-            {
-                Console.WriteLine("Unknown Master User. Grid Mode: No clue what I should do. Probably would choose the grid owner UUID when that is implemented");
-            }
-            return null;
+            return profile;
         }
     }
 }

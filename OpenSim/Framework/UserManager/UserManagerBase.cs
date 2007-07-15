@@ -119,6 +119,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
+                    System.Console.WriteLine("EEK!");
                     MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
@@ -575,6 +576,7 @@ namespace OpenSim.Framework.UserManagement
             responseData["home_look_y"] = profile.homeLookAt.Y.ToString();
             responseData["home_look_z"] = profile.homeLookAt.Z.ToString();
             response.Value = responseData;
+
             return response;
         }
 
@@ -585,7 +587,6 @@ namespace OpenSim.Framework.UserManagement
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
             UserProfileData userProfile;
-
             if (requestData.Contains("avatar_name"))
             {
                 userProfile = getUserProfile((string)requestData["avatar_name"]);
@@ -598,7 +599,6 @@ namespace OpenSim.Framework.UserManagement
             {
                 return CreateUnknownUserErrorResponse();
             }
-            
 
             return ProfileToXmlRPCResponse(userProfile);
         }
@@ -608,6 +608,7 @@ namespace OpenSim.Framework.UserManagement
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
             UserProfileData userProfile;
+            System.Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
                 userProfile = getUserProfile((LLUUID)requestData["avatar_uuid"]);
