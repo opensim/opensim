@@ -116,13 +116,13 @@ namespace OpenSim.Region.Communications.OGS1
                     uint regY = Convert.ToUInt32(n["y"]);
                     if ((regionInfo.RegionLocX != regX) || (regionInfo.RegionLocY != regY))
                     {
-                        string internalIpStr = (string)n["sim_ip"];
+                        string externalIpStr = (string)n["sim_ip"];
                         uint port = Convert.ToUInt32(n["sim_port"]);
                         string externalUri = (string)n["sim_uri"];
 
-                        IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int)port);
+                        IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(externalIpStr), (int)port);
                         string neighbourExternalUri = externalUri;
-                        RegionInfo neighbour = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+                        RegionInfo neighbour = new RegionInfo(regX, regY, neighbourInternalEndPoint, externalIpStr);
 
                         //OGS1
                         //neighbour.RegionHandle = (ulong)n["regionhandle"]; is now calculated locally

@@ -187,7 +187,7 @@ namespace OpenSim.Framework.Types
                     if (attri == "")
                     {
                         this.UserRecvKey = MainLog.Instance.CmdPrompt("Key to expect from user server", "null");
-                        configData.SetAttribute("GridRecvKey", this.UserRecvKey);
+                        configData.SetAttribute("UserRecvKey", this.UserRecvKey);
                     }
                     else
                     {
