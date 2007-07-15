@@ -35,6 +35,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Utilities;
+using OpenSim.Region.Environment;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -69,7 +70,7 @@ namespace OpenSim.Region.ClientStack
         protected virtual void ProcessOutPacket(Packet Pack)
         {
             // Keep track of when this packet was sent out
-            Pack.TickCount = Environment.TickCount;
+            Pack.TickCount = System.Environment.TickCount;
 
           //  Console.WriteLine(CircuitCode + ":OUT: " + Pack.Type.ToString());
 
@@ -245,7 +246,7 @@ namespace OpenSim.Region.ClientStack
 
         protected void ResendUnacked()
         {
-            int now = Environment.TickCount;
+            int now = System.Environment.TickCount;
 
             lock (NeedAck)
             {

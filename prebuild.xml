@@ -626,6 +626,7 @@
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
+      <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>

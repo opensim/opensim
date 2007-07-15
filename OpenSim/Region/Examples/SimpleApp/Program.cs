@@ -60,7 +60,9 @@ namespace SimpleApp
 
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "127.0.0.1");
 
-            world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, httpServer);
+            OpenSim.Region.Environment.StorageManager storeMan = new OpenSim.Region.Environment.StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
+
+            world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
 
             world.LoadWorldMap();

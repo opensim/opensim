@@ -44,6 +44,7 @@ using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment;
 using System.Text;
 
 namespace OpenSim
@@ -210,7 +211,9 @@ namespace OpenSim
                 m_udpServer.Add(udpServer);
                 this.regionData.Add(regionDat);
 
-                LocalWorld = new Scene(udpServer.PacketServer.ClientManager, regionDat, authenBase, commsManager, this.AssetCache, httpServer);
+                StorageManager tmpStoreManager = new StorageManager("OpenSim.DataStore.NullStorage.dll", regionDat.DataStore, "base");
+
+                LocalWorld = new Scene(udpServer.PacketServer.ClientManager, regionDat, authenBase, commsManager, this.AssetCache, tmpStoreManager, httpServer);
                 this.m_localWorld.Add(LocalWorld);
                 //LocalWorld.InventoryCache = InventoryCache;
                 //LocalWorld.AssetCache = AssetCache;

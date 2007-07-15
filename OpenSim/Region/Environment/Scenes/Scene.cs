@@ -39,6 +39,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
 using Caps = OpenSim.Region.Capabilities.Caps;
@@ -65,6 +66,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
+        protected StorageManager storageManager;
 
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
@@ -118,11 +120,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(ClientManager clientManager, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
+        public Scene(ClientManager clientManager, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
         {
             updateLock = new Mutex(false);
             this.authenticateHandler = authen;
             this.commsManager = commsMan;
+            this.storageManager = storeManager;
             this.assetCache = assetCach;
             m_clientManager = clientManager;
             m_regInfo = regInfo;

@@ -36,6 +36,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
+using OpenSim.Region.Environment;
 
 namespace OpenSim.Region.ClientStack
 {

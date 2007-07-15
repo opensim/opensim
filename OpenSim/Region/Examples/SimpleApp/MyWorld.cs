@@ -8,6 +8,8 @@ using OpenSim.Framework.Types;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Terrain;
+using OpenSim.Region.Environment;
+
 using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
 
 namespace SimpleApp
@@ -16,8 +18,8 @@ namespace SimpleApp
     {
         private List<ScenePresence> m_avatars;
 
-        public MyWorld(ClientManager clientManager, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, BaseHttpServer httpServer)
-            : base(clientManager, regionInfo, authen, commsMan, assetCach, httpServer)
+        public MyWorld(ClientManager clientManager, RegionInfo regionInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer)
+            : base(clientManager, regionInfo, authen, commsMan, assetCach, storeMan, httpServer)
         {
             m_avatars = new List<Avatar>();
         }
