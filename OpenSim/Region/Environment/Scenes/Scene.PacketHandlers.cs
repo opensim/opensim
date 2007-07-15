@@ -149,15 +149,13 @@ namespace OpenSim.Region.Environment.Scenes
                 avatar = null;
             }
 
-            m_clientManager.ForEachClient(delegate(IClientAPI client)
+            this.ForEachScenePresence(delegate(ScenePresence presence)
                                               {
                                                   int dis = -1000;
-                                                  if (this.Avatars.ContainsKey(client.AgentId))
+                                                  if (this.Avatars.ContainsKey(presence.ControllingClient.AgentId))
                                                   {
-                                                      avatar = this.Avatars[client.AgentId];
-                                                      // int dis = Util.fast_distance2d((int)(client.ClientAvatar.Pos.X - simClient.ClientAvatar.Pos.X), (int)(client.ClientAvatar.Pos.Y - simClient.ClientAvatar.Pos.Y));
+                                                      avatar = this.Avatars[presence.ControllingClient.AgentId];
                                                       dis = (int)avatar.Pos.GetDistanceTo(fromPos);
-                                                      //Console.WriteLine("found avatar at " +dis);
                                                   }
 
                                                   switch (type)
@@ -166,7 +164,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                           if ((dis < 10) && (dis > -10))
                                                           {
                                                               //should change so the message is sent through the avatar rather than direct to the ClientView
-                                                              client.SendChatMessage(message, type, fromPos, fromName,
+                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
                                                                                      fromAgentID);
                                                           }
                                                           break;
@@ -174,20 +172,20 @@ namespace OpenSim.Region.Environment.Scenes
                                                           if ((dis < 30) && (dis > -30))
                                                           {
                                                               //Console.WriteLine("sending chat");
-                                                              client.SendChatMessage(message, type, fromPos, fromName,
+                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
                                                                                      fromAgentID);
                                                           }
                                                           break;
                                                       case 2: // Shout
                                                           if ((dis < 100) && (dis > -100))
                                                           {
-                                                              client.SendChatMessage(message, type, fromPos, fromName,
+                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
                                                                                      fromAgentID);
                                                           }
                                                           break;
 
                                                       case 0xff: // Broadcast
-                                                          client.SendChatMessage(message, type, fromPos, fromName,
+                                                          presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
                                                                                  fromAgentID);
                                                           break;
                                                   }

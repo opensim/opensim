@@ -48,6 +48,7 @@ using Timer = System.Timers.Timer;
 namespace OpenSim.Region.Environment.Scenes
 {
     public delegate bool FilterAvatarList(ScenePresence avatar);
+    public delegate void ForEachScenePresenceDelegate(ScenePresence presence);
 
     public partial class Scene : SceneBase, ILocalStorageReceiver
     {
@@ -120,14 +121,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(ClientManager clientManager, RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
+        public Scene(RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
         {
             updateLock = new Mutex(false);
             this.authenticateHandler = authen;
             this.commsManager = commsMan;
             this.storageManager = storeManager;
             this.assetCache = assetCach;
-            m_clientManager = clientManager;
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
@@ -268,9 +268,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                 this.storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
 
-                m_clientManager.ForEachClient(delegate(IClientAPI client)
+                this.ForEachScenePresence(delegate(ScenePresence presence)
                                                   {
-                                                      this.SendLayerData(client);
+                                                      this.SendLayerData(presence.ControllingClient);
                                                   });
 
                 foreach (LLUUID UUID in Entities.Keys)
@@ -299,9 +299,9 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 this.storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
 
-                m_clientManager.ForEachClient(delegate(IClientAPI client)
+                this.ForEachScenePresence(delegate(ScenePresence presence)
                                                   {
-                                                      this.SendLayerData(client);
+                                                      this.SendLayerData(presence.ControllingClient);
                                                   });
 
                 foreach (LLUUID UUID in Entities.Keys)
@@ -329,9 +329,9 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     /* Dont save here, rely on tainting system instead */
 
-                    m_clientManager.ForEachClient(delegate(IClientAPI client)
+                    this.ForEachScenePresence(delegate(ScenePresence presence)
                                                       {
-                                                          this.SendLayerData(pointx, pointy, client);
+                                                          this.SendLayerData(pointx, pointy, presence.ControllingClient);
                                                       });
                 }
             }
@@ -581,10 +581,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScenePresence avatar = this.RequestAvatar(agentID);
 
-            m_clientManager.ForEachClient(
-            delegate(IClientAPI client)
+            this.ForEachScenePresence(
+            delegate(ScenePresence presence)
             {
-                client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
             });
 
             lock (Avatars)
@@ -660,6 +660,14 @@ namespace OpenSim.Region.Environment.Scenes
                 return Avatars[avatarID];
             }
             return null;
+        }
+
+        public void ForEachScenePresence(ForEachScenePresenceDelegate whatToDo)
+        {
+            foreach (ScenePresence presence in this.Avatars.Values)
+            {
+                whatToDo(presence);
+            }
         }
         #endregion
 

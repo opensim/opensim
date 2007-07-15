@@ -213,7 +213,7 @@ namespace OpenSim
 
                 StorageManager tmpStoreManager = new StorageManager("OpenSim.DataStore.NullStorage.dll", regionDat.DataStore, regionDat.RegionName);
 
-                LocalWorld = new Scene(udpServer.PacketServer.ClientManager, regionDat, authenBase, commsManager, this.AssetCache, tmpStoreManager, httpServer);
+                LocalWorld = new Scene( regionDat, authenBase, commsManager, this.AssetCache, tmpStoreManager, httpServer);
                 this.m_localWorld.Add(LocalWorld);
 
                 udpServer.LocalWorld = LocalWorld;

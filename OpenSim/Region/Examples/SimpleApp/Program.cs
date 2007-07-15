@@ -61,7 +61,7 @@ namespace SimpleApp
 
             OpenSim.Region.Environment.StorageManager storeMan = new OpenSim.Region.Environment.StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
 
-            world = new MyWorld(packetServer.ClientManager, regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
+            world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
             world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
 
             world.LoadWorldMap();
