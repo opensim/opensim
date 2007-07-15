@@ -19,9 +19,6 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnRemovePresenceDelegate(LLUUID uuid);
         public event OnRemovePresenceDelegate OnRemovePresence;
 
-        public delegate void OnParcelPrimCountTaintedDelegate();
-        public event OnParcelPrimCountTaintedDelegate OnParcelPrimCountTainted;
-
         public delegate void OnParcelPrimCountUpdateDelegate();
         public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
 
@@ -58,13 +55,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerParcelPrimCountTainted()
-        {
-            if (OnParcelPrimCountTainted != null)
-            {
-                OnParcelPrimCountTainted();
-            }
-        }
         public void TriggerParcelPrimCountUpdate()
         {
             if (OnParcelPrimCountUpdate != null)

@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.CreateRootFromShape(ownerID, localID, shape, pos);
 
             registerEvents();
-            
+
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <remarks>Need a null constructor for duplication</remarks>
         public SceneObject()
         {
-            
+
         }
 
         public void registerEvents()
@@ -121,17 +121,14 @@ namespace OpenSim.Region.Environment.Scenes
             datastore.StoreObject(this);
         }
 
-
         /// <summary>
         /// Sends my primitive info to the parcel manager for it to keep tally of all of the prims!
         /// </summary>
         private void ProcessParcelPrimCountUpdate()
         {
+
             m_eventManager.TriggerParcelPrimCountAdd(this);         
         }
-
-
-        
 
         /// <summary>
         /// 
@@ -141,7 +138,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void CreateRootFromShape(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
-            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world,this.m_eventManager, agentID, localID, true, this, this, shape, pos);
+
+            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
+
             this.children.Add(rootPrimitive);
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
@@ -156,7 +155,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Copies a prim or group of prims (SceneObject) -- TODO: cleanup code
+        /// Makes a copy of this SceneObject (and child primitives)
         /// </summary>
         /// <returns>A complete copy of the object</returns>
         public new SceneObject Copy()
@@ -171,8 +170,8 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.children.Add(dupe.rootPrimitive);
             dupe.rootPrimitive.Pos = this.Pos;
             dupe.Rotation = this.Rotation;
-           LLUUID rootu=  dupe.rootUUID;
-           uint rooti = dupe.rootLocalID;
+            LLUUID rootu = dupe.rootUUID;
+            uint rooti = dupe.rootLocalID;
 
             dupe.registerEvents();
             return dupe;

@@ -206,7 +206,7 @@ namespace OpenSim.Region.Environment
             }
             else
             {
-                Console.WriteLine("Point (" + x + ", " + y + ") determined from point (" + x_float + ", " + y_float + ")");
+              // Console.WriteLine("Point (" + x + ", " + y + ") determined from point (" + x_float + ", " + y_float + ")");
                 return parcelList[parcelIDList[x, y]];
             }
         }

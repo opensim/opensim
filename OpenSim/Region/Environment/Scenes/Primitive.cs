@@ -9,6 +9,8 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    public delegate void PrimCountTaintedDelegate();
+
     public class Primitive : EntityBase
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
@@ -46,6 +48,8 @@ namespace OpenSim.Region.Environment.Scenes
         public EntityBase m_Parent;
 
         private EventManager m_eventManager;
+
+        public event PrimCountTaintedDelegate OnPrimCountTainted;
 
         #region Properties
         /// <summary>
@@ -132,22 +136,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="isRoot"></param>
         /// <param name="parent"></param>
         /// <param name="rootObject"></param>
-        public Primitive(ulong regionHandle, Scene world, EventManager eventManager, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
+        public Primitive(ulong regionHandle, Scene world, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent, SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
         {
 
             m_regionHandle = regionHandle;
             m_world = world;
-            m_eventManager = eventManager;
             inventoryItems = new Dictionary<LLUUID, InventoryItem>();
             this.m_Parent = parent;
             this.m_isRootPrim = isRoot;
             this.m_RootParent = rootObject;
-
             this.CreateFromShape(ownerID, localID, pos, shape);
             this.Rotation = Axiom.Math.Quaternion.Identity;
 
-            
-            m_eventManager.TriggerParcelPrimCountTainted();
+            m_world.AcknowledgeNewPrim(this);
+
+            this.OnPrimCountTainted();
         }
 
         /// <summary>
@@ -156,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <remarks>Empty constructor for duplication</remarks>
         public Primitive()
         {
-            m_eventManager.TriggerParcelPrimCountTainted();
+           
         }
 
         #endregion
@@ -165,7 +168,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         ~Primitive()
         {
-            m_eventManager.TriggerParcelPrimCountTainted();
+            this.OnPrimCountTainted();
         }
         #endregion
 
@@ -174,17 +177,20 @@ namespace OpenSim.Region.Environment.Scenes
         public Primitive Copy(EntityBase parent, SceneObject rootParent)
         {
             Primitive dupe = (Primitive)this.MemberwiseClone();
-            // TODO: Copy this properly.
-            dupe.inventoryItems = this.inventoryItems;
+            
             dupe.m_Parent = parent;
             dupe.m_RootParent = rootParent;
 
-            dupe.m_Shape = this.m_Shape.Copy();
+            // TODO: Copy this properly.
+            dupe.inventoryItems = this.inventoryItems;
             dupe.children = new List<EntityBase>();
+            dupe.m_Shape = this.m_Shape.Copy();
+            dupe.m_regionHandle = this.m_regionHandle;
+            dupe.m_world = this.m_world;
+
             uint newLocalID = this.m_world.PrimIDAllocate();
             dupe.uuid = LLUUID.Random();
             dupe.LocalId = newLocalID;
-            dupe.m_regionHandle = this.m_regionHandle;
 
             if (parent is SceneObject)
             {
@@ -200,7 +206,10 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.Scale = new LLVector3(this.Scale.X, this.Scale.Y, this.Scale.Z);
             dupe.Rotation = new Quaternion(this.Rotation.w, this.Rotation.x, this.Rotation.y, this.Rotation.z);
             dupe.m_pos = new LLVector3(this.m_pos.X, this.m_pos.Y, this.m_pos.Z);
+            
             rootParent.AddChildToList(dupe);
+            this.m_world.AcknowledgeNewPrim(dupe);
+            dupe.TriggerOnPrimCountTainted();
             
             foreach (Primitive prim in this.children)
             {
@@ -212,7 +221,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
-
 
         #region Override from EntityBase
         /// <summary>
@@ -276,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_world.DeleteEntity(linkObject.rootUUID);
             linkObject.DeleteAllChildren();
 
-            m_eventManager.TriggerParcelPrimCountTainted();
+            this.OnPrimCountTainted();
         }
 
         /// <summary>
@@ -352,7 +360,7 @@ namespace OpenSim.Region.Environment.Scenes
                 prim.m_pos += offset;
                 prim.updateFlag = 2;
             }
-            m_eventManager.TriggerParcelPrimCountTainted();
+            this.OnPrimCountTainted();
         }
 
         /// <summary>
@@ -404,7 +412,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.Pos = newPos;
             this.updateFlag = 2;
 
-            m_eventManager.TriggerParcelPrimCountTainted();
+            this.OnPrimCountTainted();
         }
 
         /// <summary>
@@ -533,6 +541,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.updateFlag = 1;
         }
         #endregion
+
         #region Client Update Methods
 
         /// <summary>
@@ -622,5 +631,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+        public void TriggerOnPrimCountTainted()
+        {
+            this.OnPrimCountTainted();
+        }
     }
 }

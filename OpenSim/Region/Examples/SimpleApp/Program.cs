@@ -18,7 +18,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace SimpleApp
 {
-    class Program : IAssetReceiver, conscmd_callback
+    class Program : conscmd_callback
     {
         private LogBase m_log;
         AuthenticateSessionsBase m_circuitManager;
@@ -42,7 +42,6 @@ namespace SimpleApp
 
             LocalAssetServer assetServer = new LocalAssetServer();
             assetServer.SetServerInfo("http://127.0.0.1:8003/", "");
-            assetServer.SetReceiver(this);
 
             AssetCache assetCache = new AssetCache(assetServer);
 
@@ -83,40 +82,6 @@ namespace SimpleApp
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
         }
-        
-        private bool AddNewSessionHandler(ulong regionHandle, Login loginData)
-        {
-            m_log.WriteLine(LogPriority.NORMAL, "Region [{0}] recieved Login from [{1}] [{2}]", regionHandle, loginData.First, loginData.Last);
-
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = loginData.Agent;
-            agent.firstname = loginData.First;
-            agent.lastname = loginData.Last;
-            agent.SessionID = loginData.Session;
-            agent.SecureSessionID = loginData.SecureSession;
-            agent.circuitcode = loginData.CircuitCode;
-            agent.BaseFolder = loginData.BaseFolder;
-            agent.InventoryFolder = loginData.InventoryFolder;
-            agent.startpos = new LLVector3(128, 128, 70);
-
-            m_circuitManager.AddNewCircuit(agent.circuitcode, agent);
-
-            return true;
-        }
-
-        #region IAssetReceiver Members
-
-        public void AssetReceived(AssetBase asset, bool IsTexture)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void AssetNotFound(AssetBase asset)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        #endregion
 
         #region conscmd_callback Members
 

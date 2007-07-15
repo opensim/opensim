@@ -139,7 +139,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
 
-            m_eventManager.OnParcelPrimCountTainted += new EventManager.OnParcelPrimCountTaintedDelegate(m_parcelManager.setPrimsTainted);
             m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_parcelManager.addPrimToParcelCounts);
 
             MainLog.Instance.Verbose("World.cs - creating new entitities instance");
@@ -221,14 +220,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 this.parcelPrimCheckCount++;
-                if (this.parcelPrimCheckCount > 50) //check every 5 seconds for tainted prims
+                if (this.parcelPrimCheckCount > 100) //check every 10 seconds for tainted prims
                 {
                     if (m_parcelManager.parcelPrimCountTainted)
                     {
                         //Perform parcel update of prim count
                         performParcelPrimCountUpdate();
                         this.parcelPrimCheckCount = 0;
-            }
+                    }
                 }
 
             }
@@ -434,7 +433,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="prim">The object to load</param>
         public void PrimFromStorage(PrimData prim)
         {
-
         }
 
         /// <summary>
@@ -460,7 +458,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-                SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, this.PrimIDAllocate(), pos, shape);
+
+            SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, this.PrimIDAllocate(), pos, shape);
             AddNewEntity(sceneOb);
         }
 
@@ -469,6 +468,14 @@ namespace OpenSim.Region.Environment.Scenes
             this.Entities.Add(sceneObject.rootUUID, sceneObject);
         }
 
+        /// <summary>
+        /// Called by a prim when it has been created/cloned, so that its events can be subscribed to
+        /// </summary>
+        /// <param name="prim"></param>
+        public void AcknowledgeNewPrim(Primitive prim)
+        {
+            prim.OnPrimCountTainted += m_parcelManager.setPrimsTainted;
+        }
         #endregion
 
         #region Add/Remove Avatar Methods
