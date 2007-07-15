@@ -47,7 +47,7 @@ namespace OpenSim.Region.Interfaces
         void Initialise(string filename, string dbname);
 
         void StoreObject(SceneObject obj);
-        void DeleteObject(LLUUID uuid);
+        void RemoveObject(LLUUID uuid);
 
         List<SceneObject> LoadObjects();
 

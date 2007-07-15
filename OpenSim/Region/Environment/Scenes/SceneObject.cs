@@ -111,6 +111,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.OnBackup -= new EventManager.OnBackupDelegate(ProcessBackup);
             m_eventManager.OnParcelPrimCountUpdate -= new EventManager.OnParcelPrimCountUpdateDelegate(ProcessParcelPrimCountUpdate);
         }
+
         /// <summary>
         /// Processes backup
         /// </summary>
