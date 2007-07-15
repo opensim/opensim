@@ -164,6 +164,15 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Script Handling Methods
+
+        public void SendCommandToScripts(string[] args)
+        {
+            m_eventManager.TriggerOnScriptConsole(args);
+        }
+
+        #endregion
+
         /// <summary>
         /// 
         /// </summary>

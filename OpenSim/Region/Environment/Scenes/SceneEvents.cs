@@ -25,6 +25,15 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnParcelPrimCountAddDelegate(SceneObject obj);
         public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
 
+        public delegate void OnScriptConsoleDelegate(string[] args);
+        public event OnScriptConsoleDelegate OnScriptConsole;
+
+        public void TriggerOnScriptConsole(string[] args)
+        {
+            if (OnScriptConsole != null)
+                OnScriptConsole(args);
+        }
+
         public void TriggerOnFrame()
         {
             if (OnFrame != null)

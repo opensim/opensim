@@ -422,7 +422,7 @@ namespace OpenSim
             {
                 case "help":
                     m_log.Error("show users - show info about connected users");
-                    m_log.Error("shutdown - disconnect all clients and shutdown");
+                    m_log.Error("quit - disconnect all clients and shutdown");
                     break;
 
                 case "show":
@@ -440,6 +440,12 @@ namespace OpenSim
                         {
                             m_log.Error(result);
                         }
+                    }
+                    break;
+                case "script":
+                    for (int i = 0; i < m_localWorld.Count; i++)
+                    {
+                        ((Scene)m_localWorld[i]).SendCommandToScripts(cmdparams);
                     }
                     break;
 

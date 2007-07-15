@@ -48,7 +48,7 @@ namespace OpenSim.Region.Scripting
             compilerParams.GenerateInMemory = true;
             compilerParams.IncludeDebugInformation = false;
             compilerParams.ReferencedAssemblies.Add("OpenSim.Region.dll");
-            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.Enviroment.dll");
+            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.Environment.dll");
             compilerParams.ReferencedAssemblies.Add("OpenSim.Framework.dll");
             compilerParams.ReferencedAssemblies.Add("libsecondlife.dll");
             compilerParams.ReferencedAssemblies.Add("System.dll");
