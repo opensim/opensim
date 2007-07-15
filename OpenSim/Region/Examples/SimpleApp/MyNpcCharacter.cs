@@ -17,8 +17,8 @@ namespace SimpleApp
 {
     public class MyNpcCharacter : IClientAPI
     {
-        private uint movementDirection = 0;
-        private bool fly = true;
+        private uint movementFlag = 0;
+        private short flyState = 0;
         private LLQuaternion bodyDirection = LLQuaternion.Identity;
         private short count = 0;
 
@@ -153,21 +153,27 @@ namespace SimpleApp
         {
             Encoding enc = Encoding.ASCII;
 
-            this.OnAgentUpdate(this, movementDirection, bodyDirection);
+            this.OnAgentUpdate(this, movementFlag, bodyDirection);
 
-            if (this.fly)
+            if (this.flyState == 0)
             {
-                movementDirection = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG;
-                fly = false;
+                movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG;
+                flyState = 1;
+            }
+            else if (this.flyState == 1)
+            {
+                movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS;
+                flyState = 2;
             }
             else
             {
-                movementDirection = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS;
-                fly = true;
+                movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY;
+                flyState = 0;
             }
+
             if (count >= 40)
             {
-                this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
+                this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here, isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
                 count = -1;
             }
 
