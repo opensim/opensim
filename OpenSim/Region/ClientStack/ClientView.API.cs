@@ -396,8 +396,6 @@ namespace OpenSim.Region.ClientStack
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
         {
-            Encoding _enc = Encoding.ASCII;
-
             MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
             mapReply.AgentData.AgentID = this.AgentID;
             mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks.Count];
@@ -410,7 +408,7 @@ namespace OpenSim.Region.ClientStack
                 mapReply.Data[i].X = mapBlocks[i].X;
                 mapReply.Data[i].Y = mapBlocks[i].Y;
                 mapReply.Data[i].WaterHeight = mapBlocks[i].WaterHeight;
-                mapReply.Data[i].Name = _enc.GetBytes(mapBlocks[i].Name);
+                mapReply.Data[i].Name = Helpers.StringToField(mapBlocks[i].Name);
                 mapReply.Data[i].RegionFlags = mapBlocks[i].RegionFlags;
                 mapReply.Data[i].Access = mapBlocks[i].Access;
                 mapReply.Data[i].Agents = mapBlocks[i].Agents;
