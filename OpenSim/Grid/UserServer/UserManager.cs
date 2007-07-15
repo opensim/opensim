@@ -62,7 +62,7 @@ namespace OpenSim.Grid.UserServer
             response.SimAddress = SimInfo.serverIP;
             response.SimPort = (Int32)SimInfo.serverPort;
             response.RegionX = SimInfo.regionLocX;
-            response.RegionY = SimInfo.regionLocX;
+            response.RegionY = SimInfo.regionLocY;
 
             //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
             string capsPath = Util.GetRandomCapsPath();
