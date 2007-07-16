@@ -8,7 +8,7 @@ using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment
 {
-    public class RegionManager //needs renaming , but first we need to rename the namespace
+    public class RegionManager
     {
         protected AuthenticateSessionsBase authenticateHandler;
         protected RegionCommsListener regionCommsHost;

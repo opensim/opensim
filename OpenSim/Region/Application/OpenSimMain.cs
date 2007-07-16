@@ -78,26 +78,16 @@ namespace OpenSim
             m_silent = silent;
         }
 
+        
         /// <summary>
         /// Performs initialisation of the world, such as loading configuration from disk.
         /// </summary>
-        public void StartUp()
+        public override void StartUp()
         {
-            this.m_serversData = new NetworkServersInfo();
-
-            this.localConfig = new XmlConfig(m_config);
-            this.localConfig.LoadData();
-
-            if (this.configFileSetup)
-            {
-                this.SetupFromConfigFile(this.localConfig);
-            }
-
-            m_log = new LogBase(m_logFilename, "Region", this, m_silent);
-            MainLog.Instance = m_log;
+            base.StartUp();
 
             m_log.Verbose("Main.cs:Startup() - Loading configuration");
-            this.m_serversData.InitConfig(this.m_sandbox, this.localConfig);
+            this.m_networkServersInfo.InitConfig(this.m_sandbox, this.localConfig);
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
             ScenePresence.LoadTextureFile("avatar-texture.dat");
@@ -106,18 +96,17 @@ namespace OpenSim
 
             this.SetupHttpListener();
 
+            m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+            m_inventoryCache = new InventoryCache();
+
             if (m_sandbox)
             {
-                this.SetupLocalGridServers();
-                //  this.checkServer = new CheckSumServer(12036);
-                // this.checkServer.ServerListener();
+                this.commsManager = new CommunicationsLocal( m_networkServersInfo, m_httpServer);
             }
             else
             {
-                this.SetupRemoteGridServers();
+                this.commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer );
             }
-
-            m_startuptime = DateTime.Now;
 
             this.SetupScene();
 
@@ -135,44 +124,30 @@ namespace OpenSim
 
         }
 
+        protected override void Initialize()
+        {
+            this.localConfig = new XmlConfig(m_config);
+            this.localConfig.LoadData();
+
+            if (this.configFileSetup)
+            {
+                this.SetupFromConfigFile(this.localConfig);
+            }
+        }
+
+        protected override LogBase CreateLog()
+        {
+            return new LogBase(m_logFilename, "Region", this, m_silent);
+        }
+
         # region Setup methods
-        protected void SetupLocalGridServers()
-        {
-            try
-            {
-                m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.m_serversData.AssetURL, this.m_serversData.AssetSendKey);
-                m_inventoryCache = new InventoryCache();
-                this.commsManager = new CommunicationsLocal(this.m_serversData, m_httpServer);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.Message + "\nSorry, could not setup local cache");
-                Environment.Exit(1);
-            }
-
-        }
-
-        protected void SetupRemoteGridServers()
-        {
-            try
-            {
-                m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.m_serversData.AssetURL, this.m_serversData.AssetSendKey);
-                m_inventoryCache = new InventoryCache();
-                this.commsManager = new CommunicationsOGS1(this.m_serversData, m_httpServer);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.Message + "\nSorry, could not setup remote cache");
-                Environment.Exit(1);
-            }
-        }
 
         protected void SetupScene()
         {
             IGenericConfig regionConfig;
-            Scene scene;
+
             UDPServer udpServer;
-            RegionInfo regionDat = new RegionInfo();
+            RegionInfo m_regionInfo = new RegionInfo();
             AuthenticateSessionsBase authenBase;
 
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
@@ -194,7 +169,7 @@ namespace OpenSim
 
             for (int i = 0; i < configFiles.Length; i++)
             {
-                regionDat = new RegionInfo();
+                m_regionInfo = new RegionInfo();
                 if (m_sandbox)
                 {
                     AuthenticateSessionsBase authen = new AuthenticateSessionsBase();  // new AuthenticateSessionsLocal();
@@ -210,17 +185,17 @@ namespace OpenSim
                 Console.WriteLine("Loading region config file");
                 regionConfig = new XmlConfig(configFiles[i]);
                 regionConfig.LoadData();
-                regionDat.InitConfig(this.m_sandbox, regionConfig);
+                m_regionInfo.InitConfig(this.m_sandbox, regionConfig);
                 regionConfig.Close();
 
-                udpServer = new UDPServer(regionDat.InternalEndPoint.Port, m_assetCache, this.m_inventoryCache, this.m_log, authenBase);
+                udpServer = new UDPServer(m_regionInfo.InternalEndPoint.Port, m_assetCache, this.m_inventoryCache, this.m_log, authenBase);
 
                 m_udpServer.Add(udpServer);
-                this.m_regionData.Add(regionDat);
+                this.m_regionData.Add(m_regionInfo);
 
-                StorageManager tmpStoreManager = new StorageManager("OpenSim.DataStore.NullStorage.dll", regionDat.DataStore, regionDat.RegionName);
+                StorageManager tmpStoreManager = new StorageManager("OpenSim.DataStore.NullStorage.dll", m_regionInfo.DataStore, m_regionInfo.RegionName);
 
-                scene = new Scene( regionDat, authenBase, commsManager, m_assetCache, tmpStoreManager, m_httpServer);
+                Scene scene = new Scene( m_regionInfo, authenBase, commsManager, m_assetCache, tmpStoreManager, m_httpServer);
                 this.m_localWorld.Add(scene);
 
                 udpServer.LocalWorld = scene;
@@ -253,12 +228,9 @@ namespace OpenSim
             }
         }
 
-        private static PhysicsScene GetPhysicsScene(string physicsEngine)
+        protected override PhysicsScene GetPhysicsScene( )
         {
-            PhysicsPluginManager physicsPluginManager;
-            physicsPluginManager = new PhysicsPluginManager();
-            physicsPluginManager.LoadPlugins();
-            return physicsPluginManager.GetPhysicsScene( physicsEngine );
+            return GetPhysicsScene( m_physicsEngine );
         }
 
         private class SimStatusHandler : IStreamHandler
@@ -286,7 +258,7 @@ namespace OpenSim
 
         protected void SetupHttpListener()
         {
-            m_httpServer = new BaseHttpServer(this.m_serversData.HttpListenerPort); //regionData[0].IPListenPort);
+            m_httpServer = new BaseHttpServer(this.m_networkServersInfo.HttpListenerPort); //regionData[0].IPListenPort);
 
             if (!this.m_sandbox)
             {
@@ -372,16 +344,9 @@ namespace OpenSim
             switch (attri)
             {
                 default:
-                    m_log.Warn("Main.cs: SetupFromConfig() - Invalid value for PhysicsEngine attribute, terminating");
-                    Environment.Exit(1);
-                    break;
+                    throw new ArgumentException(String.Format( "Invalid value [{0}] for PhysicsEngine attribute, terminating", attri ) );
 
                 case "":
-                    this.m_physicsEngine = "basicphysics";
-                    configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    ScenePresence.PhysicsEngineFlying = false;
-                    break;
-
                 case "basicphysics":
                     this.m_physicsEngine = "basicphysics";
                     configData.SetAttribute("PhysicsEngine", "basicphysics");

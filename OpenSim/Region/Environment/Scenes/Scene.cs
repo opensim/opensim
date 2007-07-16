@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return (this.phyScene);
             }
         }
-
+       
         private LandManager m_LandManager;
         public LandManager LandManager
         {

@@ -43,7 +43,7 @@ namespace OpenSim
             bool sandBoxMode = false;
             bool startLoginServer = false;
             string physicsEngine = "basicphysics";
-            bool allowFlying = false;
+
             bool userAccounts = false;
             bool gridLocalAsset = false;
             bool useConfigFile = false;

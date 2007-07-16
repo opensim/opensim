@@ -19,24 +19,28 @@ using OpenSim.Framework.Data;
 
 namespace SimpleApp
 {
-    class Program : conscmd_callback
+    class Program : RegionApplicationBase, conscmd_callback
     {
-        private LogBase m_log;
         AuthenticateSessionsBase m_circuitManager;
-        uint m_localId;
-        public MyWorld world;
+
+        public MyWorld m_world;
         private SceneObject m_sceneObject;
         public MyNpcCharacter m_character;
-        
-        private void Run()
+
+        protected override LogBase CreateLog()
         {
-            m_log = new LogBase(null, "SimpleApp", this, false);
+            return new LogBase(null, "SimpleApp", this, false);
+        }
+
+        protected override void Initialize()
+        {
+        }
+        
+        public void Run()
+        {
+            base.StartUp();
+
             MainLog.Instance = m_log;
-
-            //  CheckSumServer checksumServer = new CheckSumServer(12036);
-            // checksumServer.ServerListener();
-
-            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
 
             m_circuitManager = new AuthenticateSessionsBase();
 
@@ -50,30 +54,27 @@ namespace SimpleApp
             ScenePresence.LoadTextureFile("avatar-texture.dat");
             ScenePresence.PhysicsEngineFlying = true;
 
-            PhysicsPluginManager physManager = new PhysicsPluginManager();
-            physManager.LoadPlugins();
+            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
 
             UDPServer udpServer = new UDPServer(internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager);
             PacketServer packetServer = new PacketServer(udpServer);
 
-            ClientView.TerrainManager = new TerrainManager(new SecondLife());
             BaseHttpServer httpServer = new BaseHttpServer(internalEndPoint.Port);
 
-            NetworkServersInfo serverInfo = new NetworkServersInfo();
-            CommunicationsLocal communicationsManager = new CommunicationsLocal(serverInfo, httpServer);
+            CommunicationsLocal communicationsManager = new CommunicationsLocal(m_networkServersInfo, httpServer);
 
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "127.0.0.1");
 
             OpenSim.Region.Environment.StorageManager storeMan = new OpenSim.Region.Environment.StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
 
-            world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
-            world.PhysScene = physManager.GetPhysicsScene("basicphysics");  //PhysicsScene.Null;
+            m_world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
+            m_world.PhysScene = GetPhysicsScene( );
            
-            world.LoadWorldMap();
-            world.PhysScene.SetTerrain(world.Terrain.getHeights1D());
-            world.performParcelPrimCountUpdate();
+            m_world.LoadWorldMap();
+            m_world.PhysScene.SetTerrain(m_world.Terrain.getHeights1D());
+            m_world.performParcelPrimCountUpdate();
 
-            udpServer.LocalWorld = world;
+            udpServer.LocalWorld = m_world;
 
             httpServer.Start();
             udpServer.ServerListener();
@@ -81,25 +82,30 @@ namespace SimpleApp
             UserProfileData masterAvatar = communicationsManager.UserServer.SetupMasterUser("Test", "User", "test");
             if (masterAvatar != null)
             {
-                world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                world.LandManager.NoLandDataFromStorage();
+                m_world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                m_world.LandManager.NoLandDataFromStorage();
             }
 
-            world.StartTimer();
+            m_world.StartTimer();
 
             PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(138, 129, 27);
 
-            m_sceneObject = new MySceneObject(world, world.EventManager, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
-            world.AddEntity(m_sceneObject);
+            m_sceneObject = new MySceneObject(m_world, m_world.EventManager, LLUUID.Zero, m_world.PrimIDAllocate(), pos, shape);
+            m_world.AddEntity(m_sceneObject);
 
             m_character = new MyNpcCharacter();
-            world.AddNewClient(m_character, false);
+            m_world.AddNewClient(m_character, false);
           
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();
             
+        }
+
+        protected override PhysicsScene GetPhysicsScene( )
+        {
+            return GetPhysicsScene("basicphysics");
         }
 
         #region conscmd_callback Members
@@ -120,7 +126,7 @@ namespace SimpleApp
         {
             Program app = new Program();
 
-            app.Run();
+            app.StartUp();
         }
     }
 }

@@ -37,16 +37,17 @@ using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;
+using libsecondlife;
 
 namespace OpenSim.Region.ClientStack
 {
-    public class RegionApplicationBase
+    public abstract class RegionApplicationBase
     {
         protected AssetCache m_assetCache;
         protected InventoryCache m_inventoryCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected DateTime m_startuptime;
-        protected NetworkServersInfo m_serversData;
+        protected NetworkServersInfo m_networkServersInfo;
 
         protected List<UDPServer> m_udpServer = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
@@ -58,7 +59,40 @@ namespace OpenSim.Region.ClientStack
 
         public RegionApplicationBase( )
         {
-          
+            m_startuptime = DateTime.Now;          
         }
+
+        virtual public void StartUp()
+        {
+            ClientView.TerrainManager = new TerrainManager(new SecondLife());
+            m_networkServersInfo = new NetworkServersInfo();
+            RegionInfo m_regionInfo = new RegionInfo();
+
+            Initialize();
+
+            StartLog();
+
+        }
+
+        protected abstract void Initialize();
+
+        private void StartLog()
+        {
+            LogBase logBase = CreateLog();
+            m_log = logBase;
+            MainLog.Instance = m_log;
+        }
+
+        protected abstract LogBase CreateLog();
+        protected abstract PhysicsScene GetPhysicsScene( );
+
+        protected PhysicsScene GetPhysicsScene(string engine)
+        {
+            PhysicsPluginManager physicsPluginManager;
+            physicsPluginManager = new PhysicsPluginManager();
+            physicsPluginManager.LoadPlugins();
+            return physicsPluginManager.GetPhysicsScene( engine );
+        }
+
     }
 }
