@@ -54,6 +54,7 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
+    public delegate void ObjectDeselect(uint localID, IClientAPI remoteClient);
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
     public delegate void UpdateVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
@@ -71,7 +72,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
     public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
     public delegate void ParcelSelectObjects(int parcel_local_id, int request_type, IClientAPI remote_client);
-
+    public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
@@ -106,6 +107,7 @@ namespace OpenSim.Framework.Interfaces
 
         event UpdateShape OnUpdatePrimShape;
         event ObjectSelect OnObjectSelect;
+        event ObjectDeselect OnObjectDeselect;
         event GenericCall7 OnObjectDescription;
         event GenericCall7 OnObjectName;
         event UpdatePrimFlags OnUpdatePrimFlags;
@@ -128,7 +130,7 @@ namespace OpenSim.Framework.Interfaces
         event ParcelJoinRequest OnParcelJoinRequest;
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         event ParcelSelectObjects OnParcelSelectObjects;
-
+        event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
         LLVector3 StartPos

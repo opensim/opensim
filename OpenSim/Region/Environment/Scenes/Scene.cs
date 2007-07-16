@@ -537,6 +537,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdatePrimTexture += this.UpdatePrimTexture;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
             client.OnObjectSelect += this.SelectPrim;
+            client.OnObjectDeselect += this.DeselectPrim;
             client.OnGrapUpdate += this.MoveObject;
             client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += this.PrimDescription;
@@ -549,6 +550,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_parcelManager.handleParcelJoinRequest);
             client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_parcelManager.handleParcelPropertiesUpdateRequest);
             client.OnParcelSelectObjects += new ParcelSelectObjects(m_parcelManager.handleParcelSelectObjectsRequest);
+            client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(m_parcelManager.handleParcelObjectOwnersRequest);
+
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
         }

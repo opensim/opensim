@@ -49,6 +49,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         private EventManager m_eventManager;
 
+        public bool isSelected = false;
+
         public LLUUID rootUUID
         {
             get

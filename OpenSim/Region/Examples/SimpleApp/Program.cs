@@ -71,6 +71,7 @@ namespace SimpleApp
            
             world.LoadWorldMap();
             world.PhysScene.SetTerrain(world.Terrain.getHeights1D());
+            world.performParcelPrimCountUpdate();
 
             udpServer.LocalWorld = world;
 

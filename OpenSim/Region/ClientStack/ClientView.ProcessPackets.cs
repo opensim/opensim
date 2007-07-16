@@ -279,6 +279,16 @@ namespace OpenSim.Region.ClientStack
                             }
                         }
                         break;
+                    case PacketType.ObjectDeselect:
+                        ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket)Pack;
+                        for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
+                        {
+                            if (OnObjectDeselect != null)
+                            {
+                                OnObjectDeselect(incomingdeselect.ObjectData[i].ObjectLocalID, this);
+                            }
+                        }
+                        break;
                     case PacketType.ObjectFlagUpdate:
                         ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
                         if (OnUpdatePrimFlags != null)
@@ -599,6 +609,14 @@ namespace OpenSim.Region.ClientStack
                         if (OnParcelSelectObjects != null)
                         {
                             OnParcelSelectObjects(selectPacket.ParcelData.LocalID, Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
+                        }
+                        break;
+
+                    case PacketType.ParcelObjectOwnersRequest:
+                        ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
+                        if (OnParcelObjectOwnerRequest != null)
+                        {
+                            OnParcelObjectOwnerRequest(reqPacket.ParcelData.LocalID, this);
                         }
                         break;
                     #endregion

@@ -49,6 +49,7 @@ namespace OpenSim.Framework.Types
             public int groupPrims = 0;
             public int otherPrims = 0;
             public int ownerPrims = 0;
+            public int selectedPrims = 0;
             public int simwidePrims = 0;
             public int simwideArea = 0;
             public int salePrice = 0; //Unemeplemented. Parcels price.
@@ -90,6 +91,7 @@ namespace OpenSim.Framework.Types
                 parcelData.groupPrims = this.groupPrims;
                 parcelData.otherPrims = this.otherPrims;
                 parcelData.ownerPrims = this.ownerPrims;
+                parcelData.selectedPrims = this.selectedPrims;
                 parcelData.isGroupOwned = this.isGroupOwned;
                 parcelData.localID = this.localID;
                 parcelData.landingType = this.landingType;

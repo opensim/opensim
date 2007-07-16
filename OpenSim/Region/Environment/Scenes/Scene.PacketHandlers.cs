@@ -341,6 +341,29 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObject)ent).rootLocalID == primLocalID)
                     {
                         ((SceneObject)ent).GetProperites(remoteClient);
+                        ((SceneObject)ent).isSelected = true;
+                        this.ParcelManager.setPrimsTainted();
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="remoteClient"></param>
+        public void DeselectPrim(uint primLocalID, IClientAPI remoteClient)
+        {
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    if (((SceneObject)ent).rootLocalID == primLocalID)
+                    {
+                        ((SceneObject)ent).isSelected = false;
+                        this.ParcelManager.setPrimsTainted();
                         break;
                     }
                 }

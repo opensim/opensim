@@ -61,6 +61,7 @@ namespace OpenSim.Region.ClientStack
         public event AddNewPrim OnAddPrim;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectSelect OnObjectSelect;
+        public event ObjectDeselect OnObjectDeselect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
         public event UpdatePrimFlags OnUpdatePrimFlags;
@@ -85,7 +86,7 @@ namespace OpenSim.Region.ClientStack
         public event ParcelJoinRequest OnParcelJoinRequest;
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         public event ParcelSelectObjects OnParcelSelectObjects;
-
+        public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
         /// <summary>

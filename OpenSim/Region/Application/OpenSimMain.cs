@@ -240,7 +240,7 @@ namespace OpenSim
                     LocalWorld.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
                     LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.ParcelManager);
                 }
-
+                LocalWorld.performParcelPrimCountUpdate();
                 LocalWorld.StartTimer();
             }
         }

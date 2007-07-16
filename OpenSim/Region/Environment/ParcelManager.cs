@@ -33,6 +33,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes;
 using Avatar = OpenSim.Region.Environment.Scenes.ScenePresence;
+using System.IO;
 
 namespace OpenSim.Region.Environment
 {
@@ -501,6 +502,11 @@ namespace OpenSim.Region.Environment
         {
             parcelList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
         }
+
+        public void handleParcelObjectOwnersRequest(int local_id, IClientAPI remote_client)
+        {
+            parcelList[local_id].sendParcelObjectOwners(remote_client);
+        }
         #endregion
 
         /// <summary>
@@ -591,7 +597,7 @@ namespace OpenSim.Region.Environment
                 foreach (Parcel p in parcelOwnersAndParcels[owner])
                 {
                     simArea += p.parcelData.area;
-                    simPrims += p.parcelData.ownerPrims + p.parcelData.otherPrims + p.parcelData.groupPrims;
+                    simPrims += p.parcelData.ownerPrims + p.parcelData.otherPrims + p.parcelData.groupPrims + p.parcelData.selectedPrims;
                 }
 
                 foreach (Parcel p in parcelOwnersAndParcels[owner])
@@ -713,7 +719,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.Name = Helpers.StringToField(parcelData.parcelName);
             updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
             updatePacket.ParcelData.OtherCount = 0; //unemplemented
-            updatePacket.ParcelData.OtherPrims = parcelData.groupPrims;
+            updatePacket.ParcelData.OtherPrims = parcelData.otherPrims;
             updatePacket.ParcelData.OwnerID = parcelData.ownerID;
             updatePacket.ParcelData.OwnerPrims = parcelData.ownerPrims;
             updatePacket.ParcelData.ParcelFlags = parcelData.parcelFlags;
@@ -728,7 +734,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.RentPrice = 0;
             updatePacket.ParcelData.RequestResult = request_result;
             updatePacket.ParcelData.SalePrice = parcelData.salePrice;
-            updatePacket.ParcelData.SelectedPrims = 0; //unemeplemented
+            updatePacket.ParcelData.SelectedPrims = parcelData.selectedPrims;
             updatePacket.ParcelData.SelfCount = 0;//unemplemented
             updatePacket.ParcelData.SequenceID = sequence_id;
             if (parcelData.simwideArea > 0)
@@ -743,7 +749,7 @@ namespace OpenSim.Region.Environment
             updatePacket.ParcelData.SnapSelection = snap_selection;
             updatePacket.ParcelData.SnapshotID = parcelData.snapshotID;
             updatePacket.ParcelData.Status = (byte)parcelData.parcelStatus;
-            updatePacket.ParcelData.TotalPrims = parcelData.ownerPrims + parcelData.groupPrims + parcelData.otherPrims;
+            updatePacket.ParcelData.TotalPrims = parcelData.ownerPrims + parcelData.groupPrims + parcelData.otherPrims + parcelData.selectedPrims;
             updatePacket.ParcelData.UserLocation = parcelData.userLocation;
             updatePacket.ParcelData.UserLookAt = parcelData.userLookAt;
             remote_client.OutPacket((Packet)updatePacket);
@@ -1042,7 +1048,7 @@ namespace OpenSim.Region.Environment
 
 
             bool firstCall = true;
-            int MAX_OBJECTS_PER_PACKET = 255;
+            int MAX_OBJECTS_PER_PACKET = 251;
             ForceObjectSelectPacket pack = new ForceObjectSelectPacket();
             ForceObjectSelectPacket.DataBlock[] data;
             while (resultLocalIDs.Count > 0)
@@ -1074,16 +1080,55 @@ namespace OpenSim.Region.Environment
                     resultLocalIDs.RemoveAt(0);
                 }
                 pack.Data = data;
-
                 remote_client.OutPacket((Packet)pack);
             }
             
+        }
+        public void sendParcelObjectOwners(IClientAPI remote_client)
+        {
+            Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID,int>();
+            foreach(SceneObject obj in primsOverMe)
+            {
+                if(!ownersAndCount.ContainsKey(obj.rootPrimitive.OwnerID))
+                {
+                    ownersAndCount.Add(obj.rootPrimitive.OwnerID,0);
+                }
+                ownersAndCount[obj.rootPrimitive.OwnerID] += obj.primCount;
+            }
+            if (ownersAndCount.Count > 0)
+            {
+
+                ParcelObjectOwnersReplyPacket.DataBlock[] dataBlock = new ParcelObjectOwnersReplyPacket.DataBlock[32];
+                
+                if(ownersAndCount.Count < 32)
+                {
+                    dataBlock = new ParcelObjectOwnersReplyPacket.DataBlock[ownersAndCount.Count];
+                }
+
+            
+                int num = 0;
+                foreach (LLUUID owner in ownersAndCount.Keys)
+                {
+                    dataBlock[num] = new ParcelObjectOwnersReplyPacket.DataBlock();
+                    dataBlock[num].Count = ownersAndCount[owner];
+                    dataBlock[num].IsGroupOwned = false; //TODO: fix me when group support is added
+                    dataBlock[num].OnlineStatus = true; //TODO: fix me later
+                    dataBlock[num].OwnerID = owner;
+
+                    num++;
+                }
+
+                ParcelObjectOwnersReplyPacket pack = new ParcelObjectOwnersReplyPacket();
+                pack.Data = dataBlock;
+                remote_client.OutPacket(pack);
+            }
         }
         public void resetParcelPrimCounts()
         {
             parcelData.groupPrims = 0;
             parcelData.ownerPrims = 0;
-            parcelData.groupPrims = 0;
+            parcelData.otherPrims = 0;
+            parcelData.selectedPrims = 0;
             primsOverMe.Clear();
         }
 
@@ -1092,14 +1137,22 @@ namespace OpenSim.Region.Environment
             LLUUID prim_owner = obj.rootPrimitive.OwnerID;
             int prim_count = obj.primCount;
 
-            if(prim_owner == parcelData.ownerID)
+            if (obj.isSelected)
             {
-                parcelData.ownerPrims += prim_count;
+                parcelData.selectedPrims += prim_count;
             }
             else
             {
-                parcelData.otherPrims += prim_count;
+                if (prim_owner == parcelData.ownerID)
+                {
+                    parcelData.ownerPrims += prim_count;
+                }
+                else
+                {
+                    parcelData.otherPrims += prim_count;
+                }
             }
+
             primsOverMe.Add(obj);
 
         }
