@@ -42,7 +42,6 @@ namespace OpenSim.Region.ClientStack
 {
     public class RegionApplicationBase
     {
-        protected PhysicsPluginManager m_physicsManager;
         protected AssetCache AssetCache;
         protected InventoryCache InventoryCache;
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();

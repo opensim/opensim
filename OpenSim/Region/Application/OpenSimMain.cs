@@ -119,9 +119,6 @@ namespace OpenSim
 
             startuptime = DateTime.Now;
 
-            this.m_physicsManager = new PhysicsPluginManager();
-            this.m_physicsManager.LoadPlugins();
-
             this.SetupScene();
 
             m_log.Verbose("Main.cs:Startup() - Initialising HTTP server");
@@ -231,7 +228,9 @@ namespace OpenSim
                 scene.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
                 scene.LoadWorldMap();
 
-                scene.PhysScene = this.m_physicsManager.GetPhysicsScene( this.m_physicsEngine );
+                PhysicsScene physicsScene = GetPhysicsScene( m_physicsEngine );
+
+                scene.PhysScene = physicsScene;
                 scene.PhysScene.SetTerrain(scene.Terrain.getHeights1D());
                 scene.LoadPrimsFromStorage();
 
@@ -252,6 +251,14 @@ namespace OpenSim
                 scene.performParcelPrimCountUpdate();
                 scene.StartTimer();
             }
+        }
+
+        private static PhysicsScene GetPhysicsScene(string physicsEngine)
+        {
+            PhysicsPluginManager physicsPluginManager;
+            physicsPluginManager = new PhysicsPluginManager();
+            physicsPluginManager.LoadPlugins();
+            return physicsPluginManager.GetPhysicsScene( physicsEngine );
         }
 
         private class SimStatusHandler : IStreamHandler
@@ -359,7 +366,7 @@ namespace OpenSim
                 this.gridLocalAsset = Convert.ToBoolean(attri);
             }
 
-
+            
             attri = "";
             attri = configData.GetAttribute("PhysicsEngine");
             switch (attri)

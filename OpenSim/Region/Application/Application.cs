@@ -57,11 +57,7 @@ namespace OpenSim
                     sandBoxMode = true;
                     startLoginServer = true;
                 }
-                /*
-                if (args[i] == "-loginserver")
-                {
-                    startLoginServer = true;
-                }*/
+
                 if (args[i] == "-accounts")
                 {
                     userAccounts = true;
@@ -69,17 +65,14 @@ namespace OpenSim
                 if (args[i] == "-realphysx")
                 {
                     physicsEngine = "RealPhysX";
-                    allowFlying = true;
                 }
                 if (args[i] == "-bulletX")
                 {
                     physicsEngine = "BulletXEngine";
-                    allowFlying = true;
                 }
                 if (args[i] == "-ode")
                 {
                     physicsEngine = "OpenDynamicsEngine";
-                    allowFlying = true;
                 }
                 if (args[i] == "-localasset")
                 {
@@ -108,11 +101,9 @@ namespace OpenSim
             }
 
             OpenSimMain sim = new OpenSimMain(sandBoxMode, startLoginServer, physicsEngine, useConfigFile, silent, configFile);
-           // OpenSimRoot.Instance.Application = sim;
-            sim.m_sandbox = sandBoxMode;
+
             sim.user_accounts = userAccounts;
             sim.gridLocalAsset = gridLocalAsset;
-            ScenePresence.PhysicsEngineFlying = allowFlying;
 
             sim.StartUp();
 
