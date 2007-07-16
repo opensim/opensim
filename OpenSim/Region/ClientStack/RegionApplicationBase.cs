@@ -102,7 +102,7 @@ namespace OpenSim.Region.ClientStack
 
         }
 
-        protected virtual void SetupWorld()
+        protected virtual void SetupScene()
         {
         }
 

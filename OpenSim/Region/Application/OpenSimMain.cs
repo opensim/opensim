@@ -112,7 +112,7 @@ namespace OpenSim
             this.physManager = new PhysicsManager();
             this.physManager.LoadPlugins();
 
-            this.SetupWorld();
+            this.SetupScene();
 
             m_log.Verbose("Main.cs:Startup() - Initialising HTTP server");
 
@@ -160,10 +160,10 @@ namespace OpenSim
             }
         }
 
-        protected override void SetupWorld()
+        protected override void SetupScene()
         {
             IGenericConfig regionConfig;
-            Scene LocalWorld;
+            Scene scene;
             UDPServer udpServer;
             RegionInfo regionDat = new RegionInfo();
             AuthenticateSessionsBase authenBase;
@@ -213,35 +213,35 @@ namespace OpenSim
 
                 StorageManager tmpStoreManager = new StorageManager("OpenSim.DataStore.NullStorage.dll", regionDat.DataStore, regionDat.RegionName);
 
-                LocalWorld = new Scene( regionDat, authenBase, commsManager, this.AssetCache, tmpStoreManager, httpServer);
-                this.m_localWorld.Add(LocalWorld);
+                scene = new Scene( regionDat, authenBase, commsManager, this.AssetCache, tmpStoreManager, httpServer);
+                this.m_localWorld.Add(scene);
 
-                udpServer.LocalWorld = LocalWorld;
+                udpServer.LocalWorld = scene;
 
-                LocalWorld.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
-                LocalWorld.LoadWorldMap();
+                scene.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
+                scene.LoadWorldMap();
 
                 m_log.Verbose("Main.cs:Startup() - Starting up messaging system");
-                LocalWorld.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
-                LocalWorld.PhysScene.SetTerrain(LocalWorld.Terrain.getHeights1D());
-                LocalWorld.LoadPrimsFromStorage();
+                scene.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
+                scene.PhysScene.SetTerrain(scene.Terrain.getHeights1D());
+                scene.LoadPrimsFromStorage();
 
                 //Master Avatar Setup
-                UserProfileData masterAvatar = commsManager.UserServer.SetupMasterUser(LocalWorld.RegionInfo.MasterAvatarFirstName, LocalWorld.RegionInfo.MasterAvatarLastName, LocalWorld.RegionInfo.MasterAvatarSandboxPassword);
+                UserProfileData masterAvatar = commsManager.UserServer.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);
                 if (masterAvatar != null)
                 {
                     m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
-                    LocalWorld.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                    LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.ParcelManager);
+                    scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                    scene.localStorage.LoadParcels((ILocalStorageParcelReceiver)scene.ParcelManager);
                 }
                 else
                 {
                     m_log.Notice("Parcels - No master avatar found, using null.");
-                    LocalWorld.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
-                    LocalWorld.localStorage.LoadParcels((ILocalStorageParcelReceiver)LocalWorld.ParcelManager);
+                    scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
+                    scene.localStorage.LoadParcels((ILocalStorageParcelReceiver)scene.ParcelManager);
                 }
                 LocalWorld.performParcelPrimCountUpdate();
-                LocalWorld.StartTimer();
+                scene.StartTimer();
             }
         }
 
