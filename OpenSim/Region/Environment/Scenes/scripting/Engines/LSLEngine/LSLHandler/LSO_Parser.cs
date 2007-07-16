@@ -1,22 +1,48 @@
-    using System;
+/*
+* Copyright (c) Contributors, http://www.openmetaverse.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
+/* Original code: Tedd Hansen */
+using System;
     using System.Collections.Generic;
     using System.Text;
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
-using OpenSim.Region.Scripting;
 
-    namespace OpenSim.ScriptEngines.LSL
+    namespace OpenSim.Region.Scripting.LSL
     {
-        class LSO_Parser
+        partial class LSO_Parser
         {
-            private bool Debug = true;
             private FileStream fs;
             private BinaryReader br;
             private LSO_Struct.Header myHeader;
 
             private TypeBuilder typeBuilder;
-            private ScriptInfo WorldAPI;
+            private System.Collections.Generic.List<string> EventList = new System.Collections.Generic.List<string>();
 
             /// <summary>
             /// Parse LSO file.
@@ -24,12 +50,12 @@ using OpenSim.Region.Scripting;
             /// TODO: What else does it do?
             /// </summary>
             /// <param name="FileName">FileName of LSO ByteCode file</param>
-            public void ParseFile(string FileName, ScriptInfo _WorldAPI, ref TypeBuilder _typeBuilder)
+            public void ParseFile(string FileName, TypeBuilder _typeBuilder)
             {
                 typeBuilder = _typeBuilder;
-                WorldAPI = _WorldAPI;
+                //WorldAPI = _WorldAPI;
                 // Open
-                SendToDebug("Opening filename: " + FileName);
+                Common.SendToDebug("Opening filename: " + FileName);
                 fs = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 br = new BinaryReader(fs, Encoding.BigEndianUnicode);
                 
@@ -38,7 +64,7 @@ using OpenSim.Region.Scripting;
 
 
                 // HEADER BLOCK
-                SendToDebug("Reading HEADER BLOCK at: 0");
+                Common.SendToDebug("Reading HEADER BLOCK at: 0");
                 fs.Seek(0, SeekOrigin.Begin);
                 myHeader = new LSO_Struct.Header();
                 myHeader.TM = BitConverter.ToUInt32(br_read(4), 0); 
@@ -65,50 +91,50 @@ using OpenSim.Region.Scripting;
                 myHeader.NER = BitConverter.ToUInt64(br_read(8), 0);
 
                 // Print Header Block to debug
-                SendToDebug("TM - Top of memory (size): " + myHeader.TM);
-                SendToDebug("IP - Instruction Pointer (0=not running): " + myHeader.IP);
-                SendToDebug("VN - Version number: " + myHeader.VN);
-                SendToDebug("BP - Local Frame Pointer: " + myHeader.BP);
-                SendToDebug("SP - Stack Pointer: " + myHeader.SP);
-                SendToDebug("HR - Heap Register: " + myHeader.HR);
-                SendToDebug("HP - Heap Pointer: " + myHeader.HP);
-                SendToDebug("CS - Current State: " + myHeader.CS);
-                SendToDebug("NS - Next State: " + myHeader.NS);
-                SendToDebug("CE - Current Events: " + myHeader.CE);
-                SendToDebug("IE - In Event: " + myHeader.IE);
-                SendToDebug("ER - Event Register: " + myHeader.ER);
-                SendToDebug("FR - Fault Register: " + myHeader.FR);
-                SendToDebug("SLR - Sleep Register: " + myHeader.SLR);
-                SendToDebug("GVR - Global Variable Register: " + myHeader.GVR);
-                SendToDebug("GFR - Global Function Register: " + myHeader.GFR);
-                SendToDebug("PR - Parameter Register: " + myHeader.PR);
-                SendToDebug("ESR - Energy Supply Register: " + myHeader.ESR);
-                SendToDebug("SR - State Register: " + myHeader.SR);
-                SendToDebug("NCE - 64-bit Current Events: " + myHeader.NCE);
-                SendToDebug("NIE - 64-bit In Events: " + myHeader.NIE);
-                SendToDebug("NER - 64-bit Event Register: " + myHeader.NER);
-                SendToDebug("Read position when exiting HEADER BLOCK: " + fs.Position);
+                Common.SendToDebug("TM - Top of memory (size): " + myHeader.TM);
+                Common.SendToDebug("IP - Instruction Pointer (0=not running): " + myHeader.IP);
+                Common.SendToDebug("VN - Version number: " + myHeader.VN);
+                Common.SendToDebug("BP - Local Frame Pointer: " + myHeader.BP);
+                Common.SendToDebug("SP - Stack Pointer: " + myHeader.SP);
+                Common.SendToDebug("HR - Heap Register: " + myHeader.HR);
+                Common.SendToDebug("HP - Heap Pointer: " + myHeader.HP);
+                Common.SendToDebug("CS - Current State: " + myHeader.CS);
+                Common.SendToDebug("NS - Next State: " + myHeader.NS);
+                Common.SendToDebug("CE - Current Events: " + myHeader.CE);
+                Common.SendToDebug("IE - In Event: " + myHeader.IE);
+                Common.SendToDebug("ER - Event Register: " + myHeader.ER);
+                Common.SendToDebug("FR - Fault Register: " + myHeader.FR);
+                Common.SendToDebug("SLR - Sleep Register: " + myHeader.SLR);
+                Common.SendToDebug("GVR - Global Variable Register: " + myHeader.GVR);
+                Common.SendToDebug("GFR - Global Function Register: " + myHeader.GFR);
+                Common.SendToDebug("PR - Parameter Register: " + myHeader.PR);
+                Common.SendToDebug("ESR - Energy Supply Register: " + myHeader.ESR);
+                Common.SendToDebug("SR - State Register: " + myHeader.SR);
+                Common.SendToDebug("NCE - 64-bit Current Events: " + myHeader.NCE);
+                Common.SendToDebug("NIE - 64-bit In Events: " + myHeader.NIE);
+                Common.SendToDebug("NER - 64-bit Event Register: " + myHeader.NER);
+                Common.SendToDebug("Read position when exiting HEADER BLOCK: " + fs.Position);
 
                 // STATIC BLOCK
-                SendToDebug("Reading STATIC BLOCK at: " + myHeader.GVR);
+                Common.SendToDebug("Reading STATIC BLOCK at: " + myHeader.GVR);
                 fs.Seek(myHeader.GVR, SeekOrigin.Begin);
                 int StaticBlockCount = 0;
                 // Read function blocks until we hit GFR
                 while (fs.Position < myHeader.GFR)
                 {
                     StaticBlockCount++;
-                    SendToDebug("Reading Static Block " + StaticBlockCount + " at: " + fs.Position);
+                    Common.SendToDebug("Reading Static Block " + StaticBlockCount + " at: " + fs.Position);
                     //fs.Seek(myHeader.GVR, SeekOrigin.Begin);
                     LSO_Struct.StaticBlock myStaticBlock = new LSO_Struct.StaticBlock();
                     myStaticBlock.Static_Chunk_Header_Size = BitConverter.ToUInt32(br_read(4), 0);
                     myStaticBlock.ObjectType = br_read(1)[0];
-                    SendToDebug("Static Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myStaticBlock.ObjectType).ToString());
+                    Common.SendToDebug("Static Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myStaticBlock.ObjectType).ToString());
                     myStaticBlock.Unknown = br_read(1)[0];
                     // Size of datatype varies
                     if (myStaticBlock.ObjectType != 0)
                         myStaticBlock.BlockVariable = br_read(getObjectSize(myStaticBlock.ObjectType));
                 }
-                SendToDebug("Number of Static Blocks read: " + StaticBlockCount);
+                Common.SendToDebug("Number of Static Blocks read: " + StaticBlockCount);
 
 
                 // FUNCTION BLOCK
@@ -117,22 +143,22 @@ using OpenSim.Region.Scripting;
                 if (myHeader.GFR == myHeader.SR)
                 {
                     // If GFR and SR are at same position then there is no fuction block
-                    SendToDebug("No FUNCTION BLOCK found");
+                    Common.SendToDebug("No FUNCTION BLOCK found");
                 } else {
-                    SendToDebug("Reading FUNCTION BLOCK at: " + myHeader.GFR);
+                    Common.SendToDebug("Reading FUNCTION BLOCK at: " + myHeader.GFR);
                     fs.Seek(myHeader.GFR, SeekOrigin.Begin);
                     myFunctionBlock.FunctionCount = BitConverter.ToUInt32(br_read(4), 0);
-                    SendToDebug("Number of functions in Fuction Block: " + myFunctionBlock.FunctionCount);
+                    Common.SendToDebug("Number of functions in Fuction Block: " + myFunctionBlock.FunctionCount);
                     if (myFunctionBlock.FunctionCount > 0)
                     {
                         myFunctionBlock.CodeChunkPointer = new UInt32[myFunctionBlock.FunctionCount];
                         for (int i = 0; i < myFunctionBlock.FunctionCount; i++)
                         {
-                            SendToDebug("Reading function " + i + " at: " + fs.Position);
+                            Common.SendToDebug("Reading function " + i + " at: " + fs.Position);
                             // TODO: ADD TO FUNCTION LIST (How do we identify it later?)
                             // Note! Absolute position
                             myFunctionBlock.CodeChunkPointer[i] = BitConverter.ToUInt32(br_read(4), 0) + myHeader.GFR;
-                            SendToDebug("Fuction " + i + " code chunk position: " + myFunctionBlock.CodeChunkPointer[i]);
+                            Common.SendToDebug("Fuction " + i + " code chunk position: " + myFunctionBlock.CodeChunkPointer[i]);
                         }
                     }
                 }
@@ -140,7 +166,7 @@ using OpenSim.Region.Scripting;
 
                 // STATE FRAME BLOCK
                 // Always right after FUNCTION BLOCK
-                SendToDebug("Reading STATE BLOCK at: " + myHeader.SR);
+                Common.SendToDebug("Reading STATE BLOCK at: " + myHeader.SR);
                 fs.Seek(myHeader.SR, SeekOrigin.Begin);
                 LSO_Struct.StateFrameBlock myStateFrameBlock = new LSO_Struct.StateFrameBlock();
                 myStateFrameBlock.StateCount = BitConverter.ToUInt32(br_read(4), 0);
@@ -150,12 +176,12 @@ using OpenSim.Region.Scripting;
                     myStateFrameBlock.StatePointer = new LSO_Struct.StatePointerBlock[myStateFrameBlock.StateCount];
                     for (int i = 0; i < myStateFrameBlock.StateCount; i++)
                     {
-                        SendToDebug("Reading STATE POINTER BLOCK " + (i+1) + " at: " + fs.Position);
+                        Common.SendToDebug("Reading STATE POINTER BLOCK " + (i+1) + " at: " + fs.Position);
                         // Position is relative to state frame
                         myStateFrameBlock.StatePointer[i].Location = myHeader.SR + BitConverter.ToUInt32(br_read(4), 0);
                         myStateFrameBlock.StatePointer[i].EventMask = new System.Collections.BitArray(br_read(8));
-                        SendToDebug("Pointer: " + myStateFrameBlock.StatePointer[i].Location);
-                        SendToDebug("Total potential EventMask bits: " + myStateFrameBlock.StatePointer[i].EventMask.Count);
+                        Common.SendToDebug("Pointer: " + myStateFrameBlock.StatePointer[i].Location);
+                        Common.SendToDebug("Total potential EventMask bits: " + myStateFrameBlock.StatePointer[i].EventMask.Count);
 
                         //// Read STATE BLOCK
                         //long CurPos = fs.Position;
@@ -175,7 +201,7 @@ using OpenSim.Region.Scripting;
                     {
                         
                         fs.Seek(myStateFrameBlock.StatePointer[i].Location, SeekOrigin.Begin);
-                        SendToDebug("Reading STATE BLOCK " + (i + 1) + " at: " + fs.Position);
+                        Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " at: " + fs.Position);
 
                         // READ: STATE BLOCK HEADER
                         myStateFrameBlock.StatePointer[i].StateBlock = new LSO_Struct.StateBlock();
@@ -183,9 +209,9 @@ using OpenSim.Region.Scripting;
                         myStateFrameBlock.StatePointer[i].StateBlock.HeaderSize = BitConverter.ToUInt32(br_read(4), 0);
                         myStateFrameBlock.StatePointer[i].StateBlock.Unknown = br_read(1)[0];
                         myStateFrameBlock.StatePointer[i].StateBlock.EndPos = (UInt32)fs.Position; // Note
-                        SendToDebug("State block Start Pos: " + myStateFrameBlock.StatePointer[i].StateBlock.StartPos);
-                        SendToDebug("State block Header Size: " + myStateFrameBlock.StatePointer[i].StateBlock.HeaderSize);
-                        SendToDebug("State block Header End Pos: " + myStateFrameBlock.StatePointer[i].StateBlock.EndPos);
+                        Common.SendToDebug("State block Start Pos: " + myStateFrameBlock.StatePointer[i].StateBlock.StartPos);
+                        Common.SendToDebug("State block Header Size: " + myStateFrameBlock.StatePointer[i].StateBlock.HeaderSize);
+                        Common.SendToDebug("State block Header End Pos: " + myStateFrameBlock.StatePointer[i].StateBlock.EndPos);
 
                         // We need to count number of bits flagged in EventMask?
 
@@ -202,11 +228,11 @@ using OpenSim.Region.Scripting;
                             {
                                 // We got an event
                                 //  READ: STATE BLOCK HANDLER
-                                SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER matching EVENT MASK " + ii  + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") at: " + fs.Position);
+                                Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER matching EVENT MASK " + ii  + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") at: " + fs.Position);
                                 myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer = myStateFrameBlock.StatePointer[i].StateBlock.EndPos + BitConverter.ToUInt32(br_read(4), 0);
                                 myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CallFrameSize = BitConverter.ToUInt32(br_read(4), 0);
-                                SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") Code Chunk Pointer: " + myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer);
-                                SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") Call Frame Size: " + myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CallFrameSize );
+                                Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") Code Chunk Pointer: " + myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer);
+                                Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") Call Frame Size: " + myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CallFrameSize );
                             }
                         }
                     }
@@ -224,7 +250,7 @@ using OpenSim.Region.Scripting;
                 //    myFunctionCodeChunk = new LSO_Struct.CodeChunk[myFunctionBlock.FunctionCount];
                 //    for (int i = 0; i < myFunctionBlock.FunctionCount; i++)
                 //    {
-                //        SendToDebug("Reading Function Code Chunk " + i);
+                //        Common.SendToDebug("Reading Function Code Chunk " + i);
                 //        myFunctionCodeChunk[i] = GetCodeChunk((UInt32)myFunctionBlock.CodeChunkPointer[i]);
                 //    }
 
@@ -244,32 +270,23 @@ using OpenSim.Region.Scripting;
 
                             if (myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer > 0)
                             {
-                                    SendToDebug("Reading Event Code Chunk state " + i + ", event " + (LSO_Enums.Event_Mask_Values)ii);
+                                    Common.SendToDebug("Reading Event Code Chunk state " + i + ", event " + (LSO_Enums.Event_Mask_Values)ii);
 
 
                                     // Override a Method / Function
-                                    string eventname = "event_" + (LSO_Enums.Event_Mask_Values)ii;
-                                    SendToDebug("CLR:" + eventname + ":MethodBuilder methodBuilder = typeBuilder.DefineMethod...");
-                                    MethodBuilder methodBuilder = typeBuilder.DefineMethod(eventname,
-                                                 MethodAttributes.Private | MethodAttributes.Virtual,
-                                                 typeof(void),
-                                                 new Type[] { typeof(object) });
+                                    string eventname = i + "_event_" + (LSO_Enums.Event_Mask_Values)ii;
+                                    Common.SendToDebug("Event Name: " + eventname);
+                                    if (Common.IL_ProcessCodeChunks)
+                                    {
+                                        EventList.Add(eventname);
 
-                                    SendToDebug("CLR:" + eventname + ":typeBuilder.DefineMethodOverride(methodBuilder...");
-                                    typeBuilder.DefineMethodOverride(methodBuilder,
-                                            typeof(LSL_CLRInterface.LSLScript).GetMethod(eventname));
-
-                                    // Create the IL generator
-
-                                    SendToDebug("CLR:" + eventname + ":ILGenerator il = methodBuilder.GetILGenerator();");
-                                    ILGenerator il = methodBuilder.GetILGenerator();
-
-
-                                    LSO_Struct.CodeChunk myECC =
-                                        GetCodeChunk(myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer, il, eventname);
+                                        // JUMP TO CODE PROCESSOR
+                                        ProcessCodeChunk(myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer, typeBuilder, eventname);
+                                    }
                             }
                             
                         }
+
                     }
 
                 }
@@ -279,13 +296,16 @@ using OpenSim.Region.Scripting;
                 br.Close();
                 fs.Close();
 
+                if (Common.IL_CreateFunctionList)
+                    IL_INSERT_FUNCTIONLIST();
+
             }
 
             private LSO_Struct.HeapBlock GetHeap(UInt32 pos)
             {
                 // HEAP BLOCK
                 // TODO:? Special read for strings/keys (null terminated) and lists (pointers to other HEAP entries)
-                SendToDebug("Reading HEAP BLOCK at: " + pos);
+                Common.SendToDebug("Reading HEAP BLOCK at: " + pos);
                 fs.Seek(pos, SeekOrigin.Begin);
                 
                 LSO_Struct.HeapBlock myHeapBlock = new LSO_Struct.HeapBlock();
@@ -294,15 +314,12 @@ using OpenSim.Region.Scripting;
                 myHeapBlock.ReferenceCount = BitConverter.ToUInt16(br_read(2), 0);
                 myHeapBlock.Data = br_read(getObjectSize(myHeapBlock.ObjectType));
 
-                SendToDebug("Heap Block Data Block Size: " + myHeapBlock.DataBlockSize);
-                SendToDebug("Heap Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myHeapBlock.ObjectType).ToString());
-                SendToDebug("Heap Block Reference Count: " + myHeapBlock.ReferenceCount);
+                Common.SendToDebug("Heap Block Data Block Size: " + myHeapBlock.DataBlockSize);
+                Common.SendToDebug("Heap Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myHeapBlock.ObjectType).ToString());
+                Common.SendToDebug("Heap Block Reference Count: " + myHeapBlock.ReferenceCount);
 
                 return myHeapBlock;
             }
-
-     
-
             private byte[] br_read(int len)
             {
                 if (len <= 0)
@@ -317,7 +334,7 @@ using OpenSim.Region.Scripting;
                 }
                 catch (Exception e)
                 {
-                    SendToDebug("Exception: " + e.ToString());
+                    Common.SendToDebug("Exception: " + e.ToString());
                     throw (e);
                 }
             }
@@ -327,7 +344,25 @@ using OpenSim.Region.Scripting;
             //    br.Read(bytes,0, len);
             //    return bytes;
             //}
-
+            private Type getLLObjectType(byte objectCode)
+            {
+                switch ((LSO_Enums.Variable_Type_Codes)objectCode)
+                {
+                    case LSO_Enums.Variable_Type_Codes.Void: return typeof(void);
+                    case LSO_Enums.Variable_Type_Codes.Integer: return typeof(UInt32);
+                    case LSO_Enums.Variable_Type_Codes.Float: return typeof(float);
+                    case LSO_Enums.Variable_Type_Codes.String: return typeof(string);
+                    case LSO_Enums.Variable_Type_Codes.Key: return typeof(string);
+                    case LSO_Enums.Variable_Type_Codes.Vector: return typeof(LSO_Enums.Vector);
+                    case LSO_Enums.Variable_Type_Codes.Rotation: return typeof(LSO_Enums.Rotation);
+                    case LSO_Enums.Variable_Type_Codes.List:
+                        Common.SendToDebug("TODO: List datatype not implemented yet!");
+                        return typeof(System.Collections.ArrayList);
+                    default:
+                        Common.SendToDebug("Lookup of LSL datatype " + objectCode + " to .Net datatype failed: Unknown LSL datatype. Defaulting to object.");
+                        return typeof(object);
+                }
+            }
             private int getObjectSize(byte ObjectType)
             {
                 switch (ObjectType)
@@ -346,13 +381,6 @@ using OpenSim.Region.Scripting;
                         return 0;
                 }
             }
-            private void SendToDebug(string Message)
-            {
-                if (Debug == true)
-                    Console.WriteLine("Debug: " + Message);
-            }
-
-
             private string Read_String()
             {
                 string ret = "";
@@ -365,244 +393,235 @@ using OpenSim.Region.Scripting;
                 return ret;
             }
 
-             /// <summary>
-            /// Reads a code chunk into structure and returns it.
+            /// <summary>
+            /// Reads a code chunk and creates IL
             /// </summary>
             /// <param name="pos">Absolute position in file. REMEMBER TO ADD myHeader.GFR!</param>
-            /// <returns></returns>
-            private LSO_Struct.CodeChunk GetCodeChunk(UInt32 pos, ILGenerator il, string eventname)
+            /// <param name="typeBuilder">TypeBuilder for assembly</param>
+            /// <param name="eventname">Name of event (function) to generate</param>
+            private void ProcessCodeChunk(UInt32 pos, TypeBuilder typeBuilder, string eventname)
             {
-
-                /*
-                 * CLR TRY
-                 */
-                //SendToDebug("CLR:" + eventname + ":il.BeginExceptionBlock()");
-                il.BeginExceptionBlock();
-
-                // Push "Hello World!" string to stack
-                //SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Ldstr...");
-                il.Emit(OpCodes.Ldstr, "Starting CLR dynamic execution of: " + eventname);
-
-                // Push Console.WriteLine command to stack ... Console.WriteLine("Hello World!");
-                //SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
-                il.Emit(OpCodes.Call, typeof(Console).GetMethod
-                    ("WriteLine", new Type[] { typeof(string) }));
-
 
                 LSO_Struct.CodeChunk myCodeChunk = new LSO_Struct.CodeChunk();
 
-                SendToDebug("Reading Function Code Chunk at: " + pos);
+                Common.SendToDebug("Reading Function Code Chunk at: " + pos);
                 fs.Seek(pos, SeekOrigin.Begin);
                 myCodeChunk.CodeChunkHeaderSize = BitConverter.ToUInt32(br_read(4), 0);
-                SendToDebug("CodeChunk Header Size: " + myCodeChunk.CodeChunkHeaderSize );
+                Common.SendToDebug("CodeChunk Header Size: " + myCodeChunk.CodeChunkHeaderSize );
                 // Read until null
                 myCodeChunk.Comment = Read_String();
-                SendToDebug("Function comment: " + myCodeChunk.Comment);
+                Common.SendToDebug("Function comment: " + myCodeChunk.Comment);
                 myCodeChunk.ReturnType = br_read(1)[0];
-                SendToDebug("Return type: " + (LSO_Enums.Variable_Type_Codes)myCodeChunk.ReturnType);
+                Common.SendToDebug("Return type #" + myCodeChunk.ReturnType + ": " + (getLLObjectType(myCodeChunk.ReturnType).ToString()));
+                
                 // TODO: How to determine number of codechunks -- does this method work?
                 myCodeChunk.CodeChunkArguments = new System.Collections.Generic.List<LSO_Struct.CodeChunkArgument>();
                 byte reader = br_read(1)[0];
                 reader = br_read(1)[0];
+
+                // NOTE ON CODE CHUNK ARGUMENTS
+                // This determins type definition
                 int ccount = 0;
                 while (reader != 0x000)
                 {
                     ccount++;
-                    SendToDebug("Reading Code Chunk Argument " + ccount);
+                    Common.SendToDebug("Reading Code Chunk Argument " + ccount);
                     LSO_Struct.CodeChunkArgument CCA = new LSO_Struct.CodeChunkArgument();
                     CCA.FunctionReturnType = reader;
                     reader = br_read(1)[0];
                     CCA.NullString = reader;
                     myCodeChunk.CodeChunkArguments.Add(CCA);
-                    SendToDebug("Code Chunk Argument " + ccount + " return type: " + (LSO_Enums.Variable_Type_Codes)CCA.FunctionReturnType);
+                    Common.SendToDebug("Code Chunk Argument " + ccount + " type: " + (LSO_Enums.Variable_Type_Codes)CCA.FunctionReturnType);
+                }
+                // Create string array
+                Type[] MethodArgs = new Type[myCodeChunk.CodeChunkArguments.Count];
+                for (int _ic = 0; _ic < myCodeChunk.CodeChunkArguments.Count; _ic++)
+                {
+                    MethodArgs[_ic] = getLLObjectType(myCodeChunk.CodeChunkArguments[_ic].FunctionReturnType);
+                    Common.SendToDebug("Method argument " + _ic + ": " + getLLObjectType(myCodeChunk.CodeChunkArguments[_ic].FunctionReturnType).ToString());
                 }
                 // End marker is 0x000
                 myCodeChunk.EndMarker = reader;
-                // TODO: How to read and identify following code
-                // TODO: Code is read until a return of some sort is found
-                bool FoundRet = false;
-                while (FoundRet == false)
+
+
+                //
+                // Emit: START OF METHOD (FUNCTION)
+                //
+
+                Common.SendToDebug("CLR:" + eventname + ":MethodBuilder methodBuilder = typeBuilder.DefineMethod...");
+                MethodBuilder methodBuilder = typeBuilder.DefineMethod(eventname,
+                             MethodAttributes.Public,
+                typeof(void),
+                              MethodArgs);
+                             //typeof(void), //getLLObjectType(myCodeChunk.ReturnType),
+                             //                new Type[] { typeof(object) }, //);
+
+                //Common.SendToDebug("CLR:" + eventname + ":typeBuilder.DefineMethodOverride(methodBuilder...");
+                //typeBuilder.DefineMethodOverride(methodBuilder,
+                //        typeof(LSL_CLRInterface.LSLScript).GetMethod(eventname));
+
+                // Create the IL generator
+
+                Common.SendToDebug("CLR:" + eventname + ":ILGenerator il = methodBuilder.GetILGenerator();");
+                ILGenerator il = methodBuilder.GetILGenerator();
+
+
+                if (Common.IL_UseTryCatch)
+                    IL_INSERT_TRY(il, eventname);
+
+
+
+                // Push Console.WriteLine command to stack ... Console.WriteLine("Hello World!");
+                //Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
+                //il.Emit(OpCodes.Call, typeof(Console).GetMethod
+                //    ("WriteLine", new Type[] { typeof(string) }));
+
+                //Common.SendToDebug("STARTUP: il.Emit(OpCodes.Ldc_I4_S, 0);");
+
+                //il.Emit(OpCodes.Ldc_I4_S, 0);
+                for (int _ic = 0; _ic < myCodeChunk.CodeChunkArguments.Count; _ic++)
                 {
-                        //reader = br_read(1)[0];
-                    //UInt16  opcode = BitConverter.ToUInt16(br_read(1),0);
-                    UInt16 opcode = br_read(1)[0];
-                    //long rPos = fs.Position;
-                    SendToDebug("OPCODE: " + ((LSO_Enums.Operation_Table)opcode).ToString());
-                    switch (opcode)
-                    {
-                            // LONG
-                        case (UInt16)LSO_Enums.Operation_Table.POPARG:
-                        case (UInt16)LSO_Enums.Operation_Table.STORE:
-                        case (UInt16)LSO_Enums.Operation_Table.STORES:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREL:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREV:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREQ:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREG:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREGS:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREGL:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREGV:
-                        case (UInt16)LSO_Enums.Operation_Table.STOREGQ:
-                        case (UInt16)LSO_Enums.Operation_Table.LOADP:
-                        case (UInt16)LSO_Enums.Operation_Table.LOADSP:
-                        case (UInt16)LSO_Enums.Operation_Table.LOADLP:
-                        case (UInt16)LSO_Enums.Operation_Table.LOADVP:
-                        case (UInt16)LSO_Enums.Operation_Table.LOADQP:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSH:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHS:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHL:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHV:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHQ:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHG:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHGS:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHGL:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHGV:
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHGQ:
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // BYTE
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGB:
-                            SendToDebug("Param1: " + br_read(1)[0]);
-                            break;
-                            // INTEGER
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGI:
-                            // TODO: What is size of integer?
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // FLOAT
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGF:
-                            // TODO: What is size of float?
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // STRING
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGS:
-                            string s = Read_String();
-                            SendToDebug("Param1: " + s);
-                            il.Emit(OpCodes.Ldstr, s);
-                            break;
-                            // VECTOR z,y,x
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGV:
-                            SendToDebug("Param1 Z: " + BitConverter.ToUInt32(br_read(4),0));
-                            SendToDebug("Param1 Y: " + BitConverter.ToUInt32(br_read(4),0));
-                            SendToDebug("Param1 X: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // ROTATION s,z,y,x
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGQ:
-                            SendToDebug("Param1 S: " + BitConverter.ToUInt32(br_read(4),0));
-                            SendToDebug("Param1 Z: " + BitConverter.ToUInt32(br_read(4),0));
-                            SendToDebug("Param1 Y: " + BitConverter.ToUInt32(br_read(4),0));
-                            SendToDebug("Param1 X: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // LONG
-                        case (UInt16)LSO_Enums.Operation_Table.PUSHARGE:
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // BYTE
-                        case (UInt16)LSO_Enums.Operation_Table.ADD:
-                        case (UInt16)LSO_Enums.Operation_Table.SUB:
-                        case (UInt16)LSO_Enums.Operation_Table.MUL:
-                        case (UInt16)LSO_Enums.Operation_Table.DIV:
-                        case (UInt16)LSO_Enums.Operation_Table.MOD:
-                        case (UInt16)LSO_Enums.Operation_Table.EQ:
-                        case (UInt16)LSO_Enums.Operation_Table.NEQ:
-                        case (UInt16)LSO_Enums.Operation_Table.LEQ:
-                        case (UInt16)LSO_Enums.Operation_Table.GEQ:
-                        case (UInt16)LSO_Enums.Operation_Table.LESS:
-                        case (UInt16)LSO_Enums.Operation_Table.GREATER:
-                        case (UInt16)LSO_Enums.Operation_Table.BOOLOR:
-                            SendToDebug("Param1: " + br_read(1)[0]);
-                            break;
-                            // LONG
-                        case (UInt16)LSO_Enums.Operation_Table.JUMP:
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // BYTE, LONG
-                        case (UInt16)LSO_Enums.Operation_Table.JUMPIF:
-                        case (UInt16)LSO_Enums.Operation_Table.JUMPNIF:
-                            SendToDebug("Param1: " + br_read(1)[0]);
-                            SendToDebug("Param2: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // LONG
-                        case (UInt16)LSO_Enums.Operation_Table.STATE:
-                        case (UInt16)LSO_Enums.Operation_Table.CALL:
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // BYTE
-                        case (UInt16)LSO_Enums.Operation_Table.CAST:
-                            SendToDebug("Param1: " + br_read(1)[0]);
-                            break;
-                            // LONG
-                        case (UInt16)LSO_Enums.Operation_Table.STACKTOS:
-                        case (UInt16)LSO_Enums.Operation_Table.STACKTOL:
-                            SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4),0));
-                            break;
-                            // BYTE
-                        case (UInt16)LSO_Enums.Operation_Table.PRINT:
-                        case (UInt16)LSO_Enums.Operation_Table.CALLLIB:
-                            SendToDebug("Param1: " + br_read(1)[0]);
-                            break;
-                            // SHORT
-                        case (UInt16)LSO_Enums.Operation_Table.CALLLIB_TWO_BYTE:
-                            // TODO: What is size of short?
-                            UInt16 _i = BitConverter.ToUInt16(br_read(2), 0);
-                            SendToDebug("Param1: " + _i);
-                            switch (_i)
-                            {
-                                case (UInt16)LSO_Enums.BuiltIn_Functions.llSay:
-                                    il.Emit(OpCodes.Call, typeof(Console).GetMethod
-                                        ("WriteLine", new Type[] { typeof(string) }));
-                                    break;
-                            }
-                            break;
-
-
-                        // RETURN
-                        case (UInt16)LSO_Enums.Operation_Table.RETURN:
-                            SendToDebug("Last OPCODE was return command. Code chunk execution complete.");
-                            FoundRet = true;
-                            break;
-                    }
-                    //fs.Seek(rPos, SeekOrigin.Begin);
-
+                    Common.SendToDebug("PARAMS: il.Emit(OpCodes.Ldarg, " + _ic + ");");
+                    il.Emit(OpCodes.Ldarg, _ic);
                 }
 
 
+
+                //
+                // CALLING OPCODE PROCESSOR, one command at the time TO GENERATE IL
+                //
+                bool FoundRet = false;
+                while (FoundRet == false)
+                {
+                    FoundRet = LSL_PROCESS_OPCODE(il);
+                }
+
+
+                if (Common.IL_UseTryCatch)
+                    IL_INSERT_END_TRY(il, eventname);
+
+                // Emit: RETURN FROM METHOD
+                il.Emit(OpCodes.Ret);
+
+                return;
+
+            }
+
+            private void IL_INSERT_FUNCTIONLIST()
+            {
+
+                Common.SendToDebug("Creating function list");
+
+
+                string eventname = "GetFunctions";
+
+                Common.SendToDebug("Creating IL " + eventname);
+                // Define a private String field.
+                //FieldBuilder myField = myTypeBuilder.DefineField("EventList", typeof(String[]), FieldAttributes.Public);
+
+
+                //FieldBuilder mem = typeBuilder.DefineField("mem", typeof(Array), FieldAttributes.Private);
+
+
+
+                MethodBuilder methodBuilder = typeBuilder.DefineMethod(eventname,
+                                                 MethodAttributes.Public,
+                                                 typeof(string[]),
+                                                 null);
+
+                //typeBuilder.DefineMethodOverride(methodBuilder,
+                //                            typeof(LSL_CLRInterface.LSLScript).GetMethod(eventname));
+
+                ILGenerator il = methodBuilder.GetILGenerator();
+
+
+
+
+            //    IL_INSERT_TRY(il, eventname);
+
+            //                // Push string to stack
+            //    il.Emit(OpCodes.Ldstr, "Inside " + eventname);
+
+            //// Push Console.WriteLine command to stack ... Console.WriteLine("Hello World!");
+            //il.Emit(OpCodes.Call, typeof(Console).GetMethod
+            //    ("WriteLine", new Type[] { typeof(string) }));
+
+            //initIL.Emit(OpCodes.Newobj, typeof(string[]));
+
+                //string[] MyArray = new string[2] { "TestItem1" , "TestItem2" };
+
+                il.DeclareLocal(typeof(string[]));
+
+                //il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, EventList.Count);    // Specify array length
+                il.Emit(OpCodes.Newarr, typeof(String));    // create new string array
+                il.Emit(OpCodes.Stloc_0);                   // Store array as local variable 0 in stack
+
+                for (int lv = 0; lv < EventList.Count; lv++)
+                {
+                    il.Emit(OpCodes.Ldloc_0);                    // Load local variable 0 onto stack
+                    il.Emit(OpCodes.Ldc_I4, lv);                 // Push index position
+                    il.Emit(OpCodes.Ldstr, EventList[lv]);         // Push value
+                    il.Emit(OpCodes.Stelem_Ref);                 // Perform array[index] = value
+                }
+
+                               
+
+               // IL_INSERT_END_TRY(il, eventname);
+
+                il.Emit(OpCodes.Ldloc_0);                   // Load local variable 0 onto stack
+                il.Emit(OpCodes.Ret);                       // Return
+
+            }
+
+
+            private void IL_INSERT_TRY(ILGenerator il, string eventname)
+            {
+                /*
+                 * CLR TRY
+                 */
+                //Common.SendToDebug("CLR:" + eventname + ":il.BeginExceptionBlock()");
+                il.BeginExceptionBlock();
+
+                // Push "Hello World!" string to stack
+                //Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Ldstr...");
+                il.Emit(OpCodes.Ldstr, "Starting CLR dynamic execution of: " + eventname);
+
+            }
+            
+            private void IL_INSERT_END_TRY(ILGenerator il, string eventname)
+            {
                 /*
                  * CATCH
                  */
-                SendToDebug("CLR:" + eventname + ":il.BeginCatchBlock(typeof(Exception));");
+                Common.SendToDebug("CLR:" + eventname + ":il.BeginCatchBlock(typeof(Exception));");
                 il.BeginCatchBlock(typeof(Exception));
 
                 // Push "Hello World!" string to stack
-                SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Ldstr...");
+                Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Ldstr...");
                 il.Emit(OpCodes.Ldstr, "Execption executing dynamic CLR function " + eventname + ": ");
 
                 //call void [mscorlib]System.Console::WriteLine(string)
-                SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
+                Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
                 il.Emit(OpCodes.Call, typeof(Console).GetMethod
                     ("Write", new Type[] { typeof(string) }));
 
                 //callvirt instance string [mscorlib]System.Exception::get_Message()
-                SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Callvirt...");
+                Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Callvirt...");
                 il.Emit(OpCodes.Callvirt, typeof(Exception).GetMethod
                     ("get_Message"));
 
                 //call void [mscorlib]System.Console::WriteLine(string)
-                SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
+                Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
                 il.Emit(OpCodes.Call, typeof(Console).GetMethod
                     ("WriteLine", new Type[] { typeof(string) }));
 
                 /*
                  * CLR END TRY
                  */
-                //SendToDebug("CLR:" + eventname + ":il.EndExceptionBlock();");
+                //Common.SendToDebug("CLR:" + eventname + ":il.EndExceptionBlock();");
                 il.EndExceptionBlock();
-                // Push "Return from current method, with return value if present" to stack
-                il.Emit(OpCodes.Ret);
-
-
-
-                return myCodeChunk;
-
             }
+
     }
 }
