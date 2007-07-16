@@ -50,7 +50,7 @@ namespace SimpleApp
             ScenePresence.LoadTextureFile("avatar-texture.dat");
             ScenePresence.PhysicsEngineFlying = true;
 
-            PhysicsManager physManager = new PhysicsManager();
+            PhysicsPluginManager physManager = new PhysicsPluginManager();
             physManager.LoadPlugins();
 
             UDPServer udpServer = new UDPServer(internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager);

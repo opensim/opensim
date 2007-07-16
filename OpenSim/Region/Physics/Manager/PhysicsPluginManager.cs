@@ -36,11 +36,11 @@ namespace OpenSim.Physics.Manager
 	/// <summary>
 	/// Description of MyClass.
 	/// </summary>
-	public class PhysicsManager
+	public class PhysicsPluginManager
 	{
 		private Dictionary<string, IPhysicsPlugin> _plugins=new Dictionary<string, IPhysicsPlugin>();
 		
-		public PhysicsManager()
+		public PhysicsPluginManager()
 		{
 			
 		}

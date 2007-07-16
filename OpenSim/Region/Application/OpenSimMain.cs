@@ -119,7 +119,7 @@ namespace OpenSim
 
             startuptime = DateTime.Now;
 
-            this.m_physicsManager = new PhysicsManager();
+            this.m_physicsManager = new PhysicsPluginManager();
             this.m_physicsManager.LoadPlugins();
 
             this.SetupScene();
