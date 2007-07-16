@@ -42,21 +42,12 @@ namespace OpenSim.Region.ClientStack
 {
     public class RegionApplicationBase
     {
-        protected IGenericConfig localConfig;
-        protected PhysicsManager physManager;
+        protected PhysicsManager m_physicsManager;
         protected AssetCache AssetCache;
         protected InventoryCache InventoryCache;
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         protected DateTime startuptime;
         protected NetworkServersInfo serversData;
-
-        public string m_physicsEngine;
-        public bool m_sandbox = false;
-        public bool m_loginserver;
-        public bool user_accounts = false;
-        public bool gridLocalAsset = false;
-        protected bool configFileSetup = false;
-        public string m_config;
 
         protected List<UDPServer> m_udpServer = new List<UDPServer>();
         protected List<RegionInfo> regionData = new List<RegionInfo>();
@@ -66,53 +57,9 @@ namespace OpenSim.Region.ClientStack
 
         protected LogBase m_log;
 
-        public RegionApplicationBase()
+        public RegionApplicationBase( )
         {
-
-        }
-
-        public RegionApplicationBase(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
-        {
-            this.configFileSetup = useConfigFile;
-            m_sandbox = sandBoxMode;
-            m_loginserver = startLoginServer;
-            m_physicsEngine = physicsEngine;
-            m_config = configFile;
-        }
-
-        /*protected World m_localWorld;
-        public World LocalWorld
-        {
-            get { return m_localWorld; }
-        }*/
-
-        /// <summary>
-        /// Performs initialisation of the world, such as loading configuration from disk.
-        /// </summary>
-        public virtual void StartUp()
-        {
-        }
-
-        protected virtual void SetupLocalGridServers()
-        {
-        }
-
-        protected virtual void SetupRemoteGridServers()
-        {
-
-        }
-
-        protected virtual void SetupScene()
-        {
-        }
-
-        protected virtual void SetupHttpListener()
-        {
-        }
-
-        protected virtual void ConnectToRemoteGridServer()
-        {
-
+          
         }
     }
 }

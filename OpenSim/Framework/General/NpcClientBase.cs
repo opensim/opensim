@@ -9,7 +9,7 @@ using libsecondlife.Packets;
 
 namespace OpenSim.Framework
 {
-   public  class NpcClientBase :IClientAPI
+   public  class NpcClientBase : IClientAPI
    {
        public event ImprovedInstantMessage OnInstantMessage;
        public event ChatFromViewer OnChatFromViewer;

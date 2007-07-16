@@ -52,6 +52,15 @@ namespace OpenSim
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
+        public string m_physicsEngine;
+        protected IGenericConfig localConfig;
+        public bool m_sandbox = false;
+        public bool m_loginserver;
+        public bool user_accounts = false;
+        public bool gridLocalAsset = false;
+        protected bool configFileSetup = false;
+        public string m_config;
+
         protected CommunicationsManager commsManager;
         // private CheckSumServer checkServer;
 
@@ -59,6 +68,7 @@ namespace OpenSim
         private string m_logFilename = "region-console-" + Guid.NewGuid().ToString() + ".log";
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngine, bool useConfigFile, bool silent, string configFile)
+        :base( )
         {
             this.configFileSetup = useConfigFile;
             m_sandbox = sandBoxMode;
@@ -71,7 +81,7 @@ namespace OpenSim
         /// <summary>
         /// Performs initialisation of the world, such as loading configuration from disk.
         /// </summary>
-        public override void StartUp()
+        public void StartUp()
         {
             this.serversData = new NetworkServersInfo();
 
@@ -109,8 +119,8 @@ namespace OpenSim
 
             startuptime = DateTime.Now;
 
-            this.physManager = new PhysicsManager();
-            this.physManager.LoadPlugins();
+            this.m_physicsManager = new PhysicsManager();
+            this.m_physicsManager.LoadPlugins();
 
             this.SetupScene();
 
@@ -129,7 +139,7 @@ namespace OpenSim
         }
 
         # region Setup methods
-        protected override void SetupLocalGridServers()
+        protected void SetupLocalGridServers()
         {
             try
             {
@@ -145,7 +155,7 @@ namespace OpenSim
 
         }
 
-        protected override void SetupRemoteGridServers()
+        protected void SetupRemoteGridServers()
         {
             try
             {
@@ -160,7 +170,7 @@ namespace OpenSim
             }
         }
 
-        protected override void SetupScene()
+        protected void SetupScene()
         {
             IGenericConfig regionConfig;
             Scene scene;
@@ -221,8 +231,7 @@ namespace OpenSim
                 scene.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
                 scene.LoadWorldMap();
 
-                m_log.Verbose("Main.cs:Startup() - Starting up messaging system");
-                scene.PhysScene = this.physManager.GetPhysicsScene(this.m_physicsEngine);
+                scene.PhysScene = this.m_physicsManager.GetPhysicsScene( this.m_physicsEngine );
                 scene.PhysScene.SetTerrain(scene.Terrain.getHeights1D());
                 scene.LoadPrimsFromStorage();
 
@@ -268,7 +277,7 @@ namespace OpenSim
             }
         }
 
-        protected override void SetupHttpListener()
+        protected void SetupHttpListener()
         {
             httpServer = new BaseHttpServer(this.serversData.HttpListenerPort); //regionData[0].IPListenPort);
 
@@ -278,7 +287,7 @@ namespace OpenSim
             }
         }
 
-        protected override void ConnectToRemoteGridServer()
+        protected void ConnectToRemoteGridServer()
         {
 
         }
