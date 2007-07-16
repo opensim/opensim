@@ -12,6 +12,7 @@ namespace OpenSim.DataStore.NullStorage
 {
     public class NullDataStore : IRegionDataStore
     {
+        
         public void Initialise(string dbfile, string dbname)
         {
             return;
