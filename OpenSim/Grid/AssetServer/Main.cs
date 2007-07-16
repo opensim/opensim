@@ -246,6 +246,17 @@ namespace OpenSim.Grid.AssetServer
                 db.Commit();
 
                 Image = new AssetBase();
+                Image.FullID = new LLUUID("13371337-1337-1337-1337-133713371337");
+                Image.Name = "Peaches";
+                this.LoadAsset(Image, true, "peaches.jp2");
+                store = new AssetStorage();
+                store.Data = Image.Data;
+                store.Name = Image.Name;
+                store.UUID = Image.FullID;
+                db.Set(store);
+                db.Commit();
+
+                Image = new AssetBase();
                 Image.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
                 Image.Name = "Shape";
                 this.LoadAsset(Image, false, "base_shape.dat");
