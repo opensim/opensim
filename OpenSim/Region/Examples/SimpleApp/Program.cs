@@ -40,7 +40,7 @@ namespace SimpleApp
         {
             base.StartUp();
 
-            string ipaddr = "192.168.0.109";
+            string ipaddr = "127.0.0.1";
 
             MainLog.Instance = m_log;
 
