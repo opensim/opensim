@@ -57,6 +57,8 @@ namespace OpenSim.Framework
        public event ParcelJoinRequest OnParcelJoinRequest;
        public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
        public event ParcelSelectObjects OnParcelSelectObjects;
+       public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
+       public event ObjectDeselect OnObjectDeselect;
 
 
        public event EstateOwnerMessageRequest OnEstateOwnerMessage;

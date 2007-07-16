@@ -1024,6 +1024,7 @@ namespace OpenSim.Region.Environment
         }
         #endregion
 
+        #region Object Select and Object Owner Listing
         public void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client)
         {
             List<uint> resultLocalIDs = new List<uint>();
@@ -1123,6 +1124,19 @@ namespace OpenSim.Region.Environment
                 remote_client.OutPacket(pack);
             }
         }
+        #endregion
+        
+        #region Object Returning
+        public void returnObject(SceneObject obj)
+        {
+        }
+        public void returnParcelObjects(int type, LLUUID owner)
+        {
+
+        }
+        #endregion
+
+        #region Object Adding/Removing from Parcel
         public void resetParcelPrimCounts()
         {
             parcelData.groupPrims = 0;
@@ -1180,7 +1194,7 @@ namespace OpenSim.Region.Environment
                 primsOverMe.Remove(obj);
             }
         }
-
+        #endregion
 
         #endregion
 

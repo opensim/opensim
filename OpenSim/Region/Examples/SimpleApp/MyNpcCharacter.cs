@@ -69,7 +69,8 @@ namespace SimpleApp
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         public event ParcelSelectObjects OnParcelSelectObjects;
-
+        public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
+        public event ObjectDeselect OnObjectDeselect;
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
         private LLUUID myID = LLUUID.Random();

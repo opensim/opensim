@@ -92,7 +92,7 @@ namespace SimpleApp
             LLVector3 pos = new LLVector3(138, 129, 27);
 
             m_sceneObject = new MySceneObject(world, world.EventManager, LLUUID.Zero, world.PrimIDAllocate(), pos, shape);
-            world.AddNewEntity(m_sceneObject);
+            world.AddEntity(m_sceneObject);
 
             m_character = new MyNpcCharacter();
             world.AddNewClient(m_character, false);

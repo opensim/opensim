@@ -155,7 +155,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<SceneObject> PrimsFromDB = storageManager.DataStore.LoadObjects();
             foreach (SceneObject prim in PrimsFromDB)
             {
-                Prims.Add(prim.uuid, prim);
+                AddEntity(prim);
             }
             MainLog.Instance.Verbose("World.cs - loaded " + PrimsFromDB.Count.ToString() + " object(s)");
 
@@ -483,12 +483,38 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, this.PrimIDAllocate(), pos, shape);
-            AddNewEntity(sceneOb);
+            AddEntity(sceneOb);
         }
 
-        public void AddNewEntity(SceneObject sceneObject)
+        public void RemovePrim(uint localID, LLUUID avatar_deleter)
+        {
+            foreach (EntityBase obj in Entities.Values)
+            {
+                if (obj is SceneObject)
+                {
+                    if (((SceneObject)obj).LocalId == localID)
+                    {
+                        RemoveEntity((SceneObject)obj);
+                        return;
+                    }
+                }
+            }
+
+        }
+
+        public void AddEntity(SceneObject sceneObject)
         {
             this.Entities.Add(sceneObject.rootUUID, sceneObject);
+        }
+
+        public void RemoveEntity(SceneObject sceneObject)
+        {
+            if (this.Entities.ContainsKey(sceneObject.rootUUID))
+            {
+                m_parcelManager.removePrimFromParcelCounts(sceneObject);
+                this.Entities.Remove(sceneObject.rootUUID);
+                m_parcelManager.setPrimsTainted();
+            }
         }
 
         /// <summary>
