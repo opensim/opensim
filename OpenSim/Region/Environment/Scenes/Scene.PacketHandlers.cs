@@ -342,7 +342,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         ((SceneObject)ent).GetProperites(remoteClient);
                         ((SceneObject)ent).isSelected = true;
-                        this.ParcelManager.setPrimsTainted();
+                        this.LandManager.setPrimsTainted();
                         break;
                     }
                 }
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObject)ent).rootLocalID == primLocalID)
                     {
                         ((SceneObject)ent).isSelected = false;
-                        this.ParcelManager.setPrimsTainted();
+                        this.LandManager.setPrimsTainted();
                         break;
                     }
                 }

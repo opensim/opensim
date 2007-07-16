@@ -82,7 +82,7 @@ namespace SimpleApp
             if (masterAvatar != null)
             {
                 world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                world.ParcelManager.NoParcelDataFromStorage();
+                world.LandManager.NoParcelDataFromStorage();
             }
 
             world.StartTimer();

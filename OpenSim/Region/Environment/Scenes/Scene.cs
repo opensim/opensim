@@ -45,6 +45,8 @@ using OpenSim.Region.Terrain;
 using Caps = OpenSim.Region.Capabilities.Caps;
 using Timer = System.Timers.Timer;
 
+using OpenSim.Region.Environment.Parcels;
+
 namespace OpenSim.Region.Environment.Scenes
 {
     public delegate bool FilterAvatarList(ScenePresence avatar);
@@ -88,10 +90,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private ParcelManager m_parcelManager;
-        public ParcelManager ParcelManager
+        private LandManager m_LandManager;
+        public LandManager LandManager
         {
-            get { return m_parcelManager; }
+            get { return m_LandManager; }
         }
 
         private EstateManager m_estateManager;
@@ -139,12 +141,12 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_datastore = m_regInfo.DataStore;
             this.RegisterRegionWithComms();
 
-            m_parcelManager = new ParcelManager(this, this.m_regInfo);
+            m_LandManager = new LandManager(this, this.m_regInfo);
             m_estateManager = new EstateManager(this, this.m_regInfo);
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
 
-            m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_parcelManager.addPrimToParcelCounts);
+            m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_LandManager.addPrimToParcelCounts);
 
             MainLog.Instance.Verbose("World.cs - creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -245,7 +247,7 @@ namespace OpenSim.Region.Environment.Scenes
                 this.parcelPrimCheckCount++;
                 if (this.parcelPrimCheckCount > 50) //check every 5 seconds for tainted prims
                 {
-                    if (m_parcelManager.parcelPrimCountTainted)
+                    if (m_LandManager.parcelPrimCountTainted)
                     {
                         //Perform parcel update of prim count
                         performParcelPrimCountUpdate();
@@ -511,9 +513,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (this.Entities.ContainsKey(sceneObject.rootUUID))
             {
-                m_parcelManager.removePrimFromParcelCounts(sceneObject);
+                m_LandManager.removePrimFromParcelCounts(sceneObject);
                 this.Entities.Remove(sceneObject.rootUUID);
-                m_parcelManager.setPrimsTainted();
+                m_LandManager.setPrimsTainted();
             }
         }
 
@@ -523,7 +525,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="prim"></param>
         public void AcknowledgeNewPrim(Primitive prim)
         {
-            prim.OnPrimCountTainted += m_parcelManager.setPrimsTainted;
+            prim.OnPrimCountTainted += m_LandManager.setPrimsTainted;
         }
         #endregion
 
@@ -540,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
             SubscribeToClientEvents(client);
             this.m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
-            this.m_parcelManager.sendParcelOverlay(client);
+            this.m_LandManager.sendParcelOverlay(client);
 
         }
 
@@ -571,12 +573,12 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnLinkObjects += this.LinkObjects;
             client.OnObjectDuplicate += this.DuplicateObject;
 
-            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_parcelManager.handleParcelPropertiesRequest);
-            client.OnParcelDivideRequest += new ParcelDivideRequest(m_parcelManager.handleParcelDivideRequest);
-            client.OnParcelJoinRequest += new ParcelJoinRequest(m_parcelManager.handleParcelJoinRequest);
-            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_parcelManager.handleParcelPropertiesUpdateRequest);
-            client.OnParcelSelectObjects += new ParcelSelectObjects(m_parcelManager.handleParcelSelectObjectsRequest);
-            client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(m_parcelManager.handleParcelObjectOwnersRequest);
+            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_LandManager.handleParcelPropertiesRequest);
+            client.OnParcelDivideRequest += new ParcelDivideRequest(m_LandManager.handleParcelDivideRequest);
+            client.OnParcelJoinRequest += new ParcelJoinRequest(m_LandManager.handleParcelJoinRequest);
+            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_LandManager.handleParcelPropertiesUpdateRequest);
+            client.OnParcelSelectObjects += new ParcelSelectObjects(m_LandManager.handleParcelSelectObjectsRequest);
+            client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
@@ -619,7 +621,7 @@ namespace OpenSim.Region.Environment.Scenes
                     this.Avatars.Add(client.AgentId, newAvatar);
                 }
             }
-            newAvatar.OnSignificantClientMovement += m_parcelManager.handleSignificantClientMovement;
+            newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
             return newAvatar;
         }
 
@@ -908,10 +910,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void performParcelPrimCountUpdate()
         {
-            m_parcelManager.resetAllParcelPrimCounts();
+            m_LandManager.resetAllParcelPrimCounts();
             m_eventManager.TriggerParcelPrimCountUpdate();
-            m_parcelManager.finalizeParcelPrimCountUpdate();
-            m_parcelManager.parcelPrimCountTainted = false;
+            m_LandManager.finalizeParcelPrimCountUpdate();
+            m_LandManager.parcelPrimCountTainted = false;
         }
         #endregion
 

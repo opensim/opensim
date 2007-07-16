@@ -4,6 +4,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Parcels;
 
 namespace OpenSim.Region.Environment
 {
@@ -17,7 +18,7 @@ namespace OpenSim.Region.Environment
 
         protected Scene m_Scene;
 
-        public ParcelManager parcelManager;
+        public LandManager LandManager;
         public EstateManager estateManager;
 
         public RegionManager()

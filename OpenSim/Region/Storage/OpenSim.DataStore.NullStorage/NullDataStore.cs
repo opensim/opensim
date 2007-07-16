@@ -48,14 +48,14 @@ namespace OpenSim.DataStore.NullStorage
 
         }
 
-        public void StoreParcel(OpenSim.Region.Environment.Parcel parcel)
+        public void StoreParcel(OpenSim.Region.Environment.Parcels.Parcel parcel)
         {
 
         }
 
-        public List<OpenSim.Region.Environment.Parcel> LoadParcels()
+        public List<OpenSim.Region.Environment.Parcels.Parcel> LoadParcels()
         {
-            return new List<OpenSim.Region.Environment.Parcel>();
+            return new List<OpenSim.Region.Environment.Parcels.Parcel>();
         }
 
         public void Shutdown()
