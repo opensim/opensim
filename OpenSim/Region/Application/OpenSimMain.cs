@@ -240,13 +240,13 @@ namespace OpenSim
                 {
                     m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
                     scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                    scene.localStorage.LoadParcels((ILocalStorageParcelReceiver)scene.LandManager);
+                    scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
                 }
                 else
                 {
                     m_log.Notice("Parcels - No master avatar found, using null.");
                     scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
-                    scene.localStorage.LoadParcels((ILocalStorageParcelReceiver)scene.LandManager);
+                    scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
                 }
                 scene.performParcelPrimCountUpdate();
                 scene.StartTimer();

@@ -167,26 +167,26 @@ namespace OpenSim.Region.Storage.LocalStorageSQLite
 
         }
 
-        public void SaveParcels(ParcelData[] parcel_manager)
+        public void SaveLandObjects(LandData[] land_manager)
         {
 
         }
 
-        public void SaveParcel(ParcelData parcel)
+        public void SaveLandObject(LandData land)
         {
         }
 
-        public void RemoveParcel(ParcelData parcel)
+        public void RemoveLandObject(LandData land)
         {
         }
 
-        public void RemoveAllParcels()
+        public void RemoveAllLandObjects()
         {
         }
 
-        public void LoadParcels(ILocalStorageParcelReceiver recv)
+        public void LoadLandObjects(ILocalStorageLandObjectReceiver recv)
         {
-            recv.NoParcelDataFromStorage();
+            recv.NoLandDataFromStorage();
         }
 
         public void ShutDown()

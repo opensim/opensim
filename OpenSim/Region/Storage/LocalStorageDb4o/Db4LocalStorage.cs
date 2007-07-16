@@ -157,106 +157,106 @@ namespace OpenSim.Region.Storage.LocalStorageDb4o
             db.Commit();
         }
 
-        public void SaveParcel(ParcelData parcel)
+        public void SaveLandObject(LandData landObject)
         {
-            IObjectSet result = db.Query(new UUIDParcelQuery(parcel.globalID));
+            IObjectSet result = db.Query(new UUIDLandQuery(landObject.globalID));
             if (result.Count > 0)
             {
-                //Old Parcel
-                ParcelData updateParcel = (ParcelData)result.Next();
-                updateParcel.AABBMax = parcel.AABBMax;
-                updateParcel.AABBMin = parcel.AABBMin;
-                updateParcel.area = parcel.area;
-                updateParcel.auctionID = parcel.auctionID;
-                updateParcel.authBuyerID = parcel.authBuyerID;
-                updateParcel.category = parcel.category;
-                updateParcel.claimDate = parcel.claimDate;
-                updateParcel.claimPrice = parcel.claimPrice;
-                updateParcel.groupID = parcel.groupID;
-                updateParcel.groupPrims = parcel.groupPrims;
-                updateParcel.isGroupOwned = parcel.isGroupOwned;
-                updateParcel.landingType = parcel.landingType;
-                updateParcel.mediaAutoScale = parcel.mediaAutoScale;
-                updateParcel.mediaID = parcel.mediaID;
-                updateParcel.mediaURL = parcel.mediaURL;
-                updateParcel.musicURL = parcel.musicURL;
-                updateParcel.localID = parcel.localID;
-                updateParcel.ownerID = parcel.ownerID;
-                updateParcel.passHours = parcel.passHours;
-                updateParcel.passPrice = parcel.passPrice;
-                updateParcel.parcelBitmapByteArray = (byte[])parcel.parcelBitmapByteArray.Clone();
-                updateParcel.parcelDesc = parcel.parcelDesc;
-                updateParcel.parcelFlags = parcel.parcelFlags;
-                updateParcel.parcelName = parcel.parcelName;
-                updateParcel.parcelStatus = parcel.parcelStatus;
-                updateParcel.salePrice = parcel.salePrice;
-                updateParcel.snapshotID = parcel.snapshotID;
-                updateParcel.userLocation = parcel.userLocation;
-                updateParcel.userLookAt = parcel.userLookAt;
+                //Old Land
+                LandData updateLand = (LandData)result.Next();
+                updateLand.AABBMax = landObject.AABBMax;
+                updateLand.AABBMin = landObject.AABBMin;
+                updateLand.area = landObject.area;
+                updateLand.auctionID = landObject.auctionID;
+                updateLand.authBuyerID = landObject.authBuyerID;
+                updateLand.category = landObject.category;
+                updateLand.claimDate = landObject.claimDate;
+                updateLand.claimPrice = landObject.claimPrice;
+                updateLand.groupID = landObject.groupID;
+                updateLand.groupPrims = landObject.groupPrims;
+                updateLand.isGroupOwned = landObject.isGroupOwned;
+                updateLand.landingType = landObject.landingType;
+                updateLand.mediaAutoScale = landObject.mediaAutoScale;
+                updateLand.mediaID = landObject.mediaID;
+                updateLand.mediaURL = landObject.mediaURL;
+                updateLand.musicURL = landObject.musicURL;
+                updateLand.localID = landObject.localID;
+                updateLand.ownerID = landObject.ownerID;
+                updateLand.passHours = landObject.passHours;
+                updateLand.passPrice = landObject.passPrice;
+                updateLand.landBitmapByteArray = (byte[])landObject.landBitmapByteArray.Clone();
+                updateLand.landDesc = landObject.landDesc;
+                updateLand.landFlags = landObject.landFlags;
+                updateLand.landName = landObject.landName;
+                updateLand.landStatus = landObject.landStatus;
+                updateLand.salePrice = landObject.salePrice;
+                updateLand.snapshotID = landObject.snapshotID;
+                updateLand.userLocation = landObject.userLocation;
+                updateLand.userLookAt = landObject.userLookAt;
 
-                db.Set(updateParcel);
+                db.Set(updateLand);
             }
             else
             {
-                db.Set(parcel);
+                db.Set(landObject);
             }
             db.Commit();
         }
 
-        public void SaveParcels(ParcelData[] parcel_data)
+        public void SaveLandObjects(LandData[] landObject_data)
         {
-            MainLog.Instance.Notice("Parcel Backup: Saving Parcels...");
+            MainLog.Instance.Notice("Land Backup: Saving Lands...");
             int i;
-            for (i = 0; i < parcel_data.GetLength(0); i++)
+            for (i = 0; i < landObject_data.GetLength(0); i++)
             {
 
-                SaveParcel(parcel_data[i]);
+                SaveLandObject(landObject_data[i]);
 
             }
-            MainLog.Instance.Notice("Parcel Backup: Parcel Save Complete");
+            MainLog.Instance.Notice("Land Backup: Land Save Complete");
         }
 
-        public void RemoveParcel(ParcelData parcel)
+        public void RemoveLandObject(LandData landObject)
         {
-            IObjectSet result = db.Query(new UUIDParcelQuery(parcel.globalID));
+            IObjectSet result = db.Query(new UUIDLandQuery(landObject.globalID));
             if (result.Count > 0)
             {
                 db.Delete(result[0]);
             }
             db.Commit();
         }
-        public void RemoveAllParcels()
+        public void RemoveAllLandObjects()
         {
-            MainLog.Instance.Notice("Parcel Backup: Removing all parcels...");
-            IObjectSet result = db.Get(typeof(ParcelData));
+            MainLog.Instance.Notice("Land Backup: Removing all land objects...");
+            IObjectSet result = db.Get(typeof(LandData));
             if (result.Count > 0)
             {
-                foreach (ParcelData parcelData in result)
+                foreach (LandData landData in result)
                 {
-                    RemoveParcel(parcelData);
+                    RemoveLandObject(landData);
                 }
             }
         }
 
-        public void LoadParcels(ILocalStorageParcelReceiver recv)
+        public void LoadLandObjects(ILocalStorageLandObjectReceiver recv)
         {
-            MainLog.Instance.Notice("Parcel Backup: Loading Parcels...");
-            IObjectSet result = db.Get(typeof(ParcelData));
+            MainLog.Instance.Notice("Land Backup: Loading Lands...");
+            IObjectSet result = db.Get(typeof(LandData));
             if (result.Count > 0)
             {
-                MainLog.Instance.Notice("Parcel Backup: Parcels exist in database.");
-                foreach (ParcelData parcelData in result)
+                MainLog.Instance.Notice("Land Backup: Lands exist in database.");
+                foreach (LandData landData in result)
                 {
 
-                    recv.ParcelFromStorage(parcelData);
+                    recv.LandFromStorage(landData);
                 }
             }
             else
             {
-                MainLog.Instance.Notice("Parcel Backup: No parcels exist. Creating basic parcel.");
-                recv.NoParcelDataFromStorage();
+                MainLog.Instance.Notice("Land Backup: No landObjects exist. Creating basic landObject.");
+                recv.NoLandDataFromStorage();
             }
-            MainLog.Instance.Notice("Parcel Backup: Parcels Restored");
+            MainLog.Instance.Notice("Land Backup: Lands Restored");
         }
         public void ShutDown()
         {

@@ -4,7 +4,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Parcels;
+using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment
 {

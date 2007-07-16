@@ -48,11 +48,11 @@ namespace OpenSim.Framework.Interfaces
         [System.Obsolete("Use DataStorage instead")]
         void SaveMap(float[] heightmap);
 
-        void SaveParcels(ParcelData[] parcels);
-        void SaveParcel(ParcelData parcel);
-        void RemoveParcel(ParcelData parcel);
-        void RemoveAllParcels();
-        void LoadParcels(ILocalStorageParcelReceiver recv);
+        void SaveLandObjects(LandData[] lands);
+        void SaveLandObject(LandData land);
+        void RemoveLandObject(LandData land);
+        void RemoveAllLandObjects();
+        void LoadLandObjects(ILocalStorageLandObjectReceiver recv);
 
         void ShutDown();
     }
@@ -62,10 +62,10 @@ namespace OpenSim.Framework.Interfaces
         void PrimFromStorage(PrimData prim);
     }
 
-    public interface ILocalStorageParcelReceiver
+    public interface ILocalStorageLandObjectReceiver
     {
-        void ParcelFromStorage(ParcelData data);
-        void NoParcelDataFromStorage();
+        void LandFromStorage(LandData data);
+        void NoLandDataFromStorage();
     }
 }
 

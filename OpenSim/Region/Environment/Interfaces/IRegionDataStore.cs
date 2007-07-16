@@ -32,7 +32,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Region;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Parcels;
+using OpenSim.Region.Environment.LandManagement;
 
 using System.Collections.Generic;
 
@@ -55,9 +55,9 @@ namespace OpenSim.Region.Interfaces
         void StoreTerrain(double[,] terrain);
         double[,] LoadTerrain();
 
-        void StoreParcel(Environment.Parcels.Parcel Parcel);
-        void RemoveParcel(uint ID);
-        List<Environment.Parcels.Parcel> LoadParcels();
+        void StoreParcel(Land Parcel);
+        void RemoveLandObject(uint ID);
+        List<Land> LoadLandObjects();
 
         void Shutdown();
     }

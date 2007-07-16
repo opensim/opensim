@@ -583,17 +583,17 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ParcelDivide:
-                        ParcelDividePacket parcelDivide = (ParcelDividePacket)Pack;
+                        ParcelDividePacket landDivide = (ParcelDividePacket)Pack;
                         if (OnParcelDivideRequest != null)
                         {
-                            OnParcelDivideRequest((int)Math.Round(parcelDivide.ParcelData.West), (int)Math.Round(parcelDivide.ParcelData.South), (int)Math.Round(parcelDivide.ParcelData.East), (int)Math.Round(parcelDivide.ParcelData.North), this);
+                            OnParcelDivideRequest((int)Math.Round(landDivide.ParcelData.West), (int)Math.Round(landDivide.ParcelData.South), (int)Math.Round(landDivide.ParcelData.East), (int)Math.Round(landDivide.ParcelData.North), this);
                         }
                         break;
                     case PacketType.ParcelJoin:
-                        ParcelJoinPacket parcelJoin = (ParcelJoinPacket)Pack;
+                        ParcelJoinPacket landJoin = (ParcelJoinPacket)Pack;
                         if (OnParcelJoinRequest != null)
                         {
-                            OnParcelJoinRequest((int)Math.Round(parcelJoin.ParcelData.West), (int)Math.Round(parcelJoin.ParcelData.South), (int)Math.Round(parcelJoin.ParcelData.East), (int)Math.Round(parcelJoin.ParcelData.North), this);
+                            OnParcelJoinRequest((int)Math.Round(landJoin.ParcelData.West), (int)Math.Round(landJoin.ParcelData.South), (int)Math.Round(landJoin.ParcelData.East), (int)Math.Round(landJoin.ParcelData.North), this);
                         }
                         break;
                     case PacketType.ParcelPropertiesUpdate:

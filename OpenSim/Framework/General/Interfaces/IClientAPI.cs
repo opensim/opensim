@@ -71,7 +71,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
     public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
-    public delegate void ParcelSelectObjects(int parcel_local_id, int request_type, IClientAPI remote_client);
+    public delegate void ParcelSelectObjects(int land_local_id, int request_type, IClientAPI remote_client);
     public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Interfaces;
 using OpenSim.Framework.Console;
 using libsecondlife;
@@ -43,19 +43,19 @@ namespace OpenSim.DataStore.NullStorage
             return null;
         }
 
-        public void RemoveParcel(uint id)
+        public void RemoveLandObject(uint id)
         {
 
         }
 
-        public void StoreParcel(OpenSim.Region.Environment.Parcels.Parcel parcel)
+        public void StoreParcel(Land land)
         {
 
         }
 
-        public List<OpenSim.Region.Environment.Parcels.Parcel> LoadParcels()
+        public List<Land> LoadLandObjects()
         {
-            return new List<OpenSim.Region.Environment.Parcels.Parcel>();
+            return new List<Land>();
         }
 
         public void Shutdown()

@@ -45,7 +45,7 @@ using OpenSim.Region.Terrain;
 using Caps = OpenSim.Region.Capabilities.Caps;
 using Timer = System.Timers.Timer;
 
-using OpenSim.Region.Environment.Parcels;
+using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint _primCount = 702000;
         private System.Threading.Mutex _primAllocateMutex = new Mutex(false);
         private int storageCount;
-        private int parcelPrimCheckCount;
+        private int landPrimCheckCount;
         private Mutex updateLock;
 
         protected AuthenticateSessionsBase authenticateHandler;
@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
 
-            m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_LandManager.addPrimToParcelCounts);
+            m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_LandManager.addPrimToLandPrimCounts);
 
             MainLog.Instance.Verbose("World.cs - creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -244,14 +244,14 @@ namespace OpenSim.Region.Environment.Scenes
                     storageCount = 0;
                 }
 
-                this.parcelPrimCheckCount++;
-                if (this.parcelPrimCheckCount > 50) //check every 5 seconds for tainted prims
+                this.landPrimCheckCount++;
+                if (this.landPrimCheckCount > 50) //check every 5 seconds for tainted prims
                 {
-                    if (m_LandManager.parcelPrimCountTainted)
+                    if (m_LandManager.landPrimCountTainted)
                     {
-                        //Perform parcel update of prim count
+                        //Perform land update of prim count
                         performParcelPrimCountUpdate();
-                        this.parcelPrimCheckCount = 0;
+                        this.landPrimCheckCount = 0;
                     }
                 }
 
@@ -513,7 +513,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (this.Entities.ContainsKey(sceneObject.rootUUID))
             {
-                m_LandManager.removePrimFromParcelCounts(sceneObject);
+                m_LandManager.removePrimFromLandPrimCounts(sceneObject);
                 this.Entities.Remove(sceneObject.rootUUID);
                 m_LandManager.setPrimsTainted();
             }
@@ -910,10 +910,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void performParcelPrimCountUpdate()
         {
-            m_LandManager.resetAllParcelPrimCounts();
+            m_LandManager.resetAllLandPrimCounts();
             m_eventManager.TriggerParcelPrimCountUpdate();
-            m_LandManager.finalizeParcelPrimCountUpdate();
-            m_LandManager.parcelPrimCountTainted = false;
+            m_LandManager.finalizeLandPrimCountUpdate();
+            m_LandManager.landPrimCountTainted = false;
         }
         #endregion
 

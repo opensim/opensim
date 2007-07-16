@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Sends my primitive info to the parcel manager for it to keep tally of all of the prims!
+        /// Sends my primitive info to the land manager for it to keep tally of all of the prims!
         /// </summary>
         private void ProcessParcelPrimCountUpdate()
         {
