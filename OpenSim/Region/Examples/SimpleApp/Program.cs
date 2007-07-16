@@ -16,6 +16,7 @@ using OpenSim.Region.GridInterfaces.Local;
 using System.Timers;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data;
+using OpenSim.Region.Environment;
 
 namespace SimpleApp
 {
@@ -34,42 +35,38 @@ namespace SimpleApp
 
         protected override void Initialize()
         {
+            m_httpServerPort = 9000;
         }
         
         public void Run()
         {
             base.StartUp();
 
-            string ipaddr = "127.0.0.1";
-
-            MainLog.Instance = m_log;
-
             m_circuitManager = new AuthenticateSessionsBase();
 
             InventoryCache inventoryCache = new InventoryCache();
 
             LocalAssetServer assetServer = new LocalAssetServer();
-            assetServer.SetServerInfo("http://" + ipaddr + ":8003/", "");
+            assetServer.SetServerInfo("http://localhost:8003/", "");
 
             AssetCache assetCache = new AssetCache(assetServer);
 
             ScenePresence.LoadTextureFile("avatar-texture.dat");
             ScenePresence.PhysicsEngineFlying = true;
 
-            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse(ipaddr), 9000);
+            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
+            RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
 
             UDPServer udpServer = new UDPServer(internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager);
             PacketServer packetServer = new PacketServer(udpServer);
 
-            BaseHttpServer httpServer = new BaseHttpServer(internalEndPoint.Port);
+            CommunicationsLocal communicationsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
 
-            CommunicationsLocal communicationsManager = new CommunicationsLocal(m_networkServersInfo, httpServer);
+            StorageManager storeMan = GetStoreManager(regionInfo);
 
-            RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, ipaddr);
 
-            OpenSim.Region.Environment.StorageManager storeMan = new OpenSim.Region.Environment.StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
 
-            m_world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, httpServer);
+            m_world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, m_httpServer);
             m_world.PhysScene = GetPhysicsScene( );
            
             m_world.LoadWorldMap();
@@ -78,7 +75,7 @@ namespace SimpleApp
 
             udpServer.LocalWorld = m_world;
 
-            httpServer.Start();
+            m_httpServer.Start();
             udpServer.ServerListener();
 
             UserProfileData masterAvatar = communicationsManager.UserServer.SetupMasterUser("Test", "User", "test");
@@ -105,6 +102,11 @@ namespace SimpleApp
             
         }
 
+        protected override StorageManager GetStoreManager(RegionInfo regionInfo)
+        {
+            return new StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
+        }
+        
         protected override PhysicsScene GetPhysicsScene( )
         {
             return GetPhysicsScene("basicphysics");
@@ -128,8 +130,7 @@ namespace SimpleApp
         {
             Program app = new Program();
 
-            //app.StartUp();
-            app.Run();
+            app.StartUp();
         }
     }
 }

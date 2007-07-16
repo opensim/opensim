@@ -38,6 +38,7 @@ using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;
 using libsecondlife;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -49,10 +50,11 @@ namespace OpenSim.Region.ClientStack
         protected DateTime m_startuptime;
         protected NetworkServersInfo m_networkServersInfo;
 
-        protected List<UDPServer> m_udpServer = new List<UDPServer>();
+        protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
         protected List<IWorld> m_localWorld = new List<IWorld>();
         protected BaseHttpServer m_httpServer;
+        protected int m_httpServerPort;
         protected List<AuthenticateSessionsBase> AuthenticateSessionsHandler = new List<AuthenticateSessionsBase>();
 
         protected LogBase m_log;
@@ -72,20 +74,26 @@ namespace OpenSim.Region.ClientStack
 
             StartLog();
 
+            ScenePresence.LoadTextureFile("avatar-texture.dat");
+
+            m_httpServer = new BaseHttpServer( m_httpServerPort );
+
+            m_log.Verbose("Starting HTTP server");
+            m_httpServer.Start();
         }
 
         protected abstract void Initialize();
 
         private void StartLog()
         {
-            LogBase logBase = CreateLog();
-            m_log = logBase;
+            m_log = CreateLog();
             MainLog.Instance = m_log;
         }
 
         protected abstract LogBase CreateLog();
         protected abstract PhysicsScene GetPhysicsScene( );
-
+        protected abstract StorageManager GetStoreManager(RegionInfo regionInfo);
+        
         protected PhysicsScene GetPhysicsScene(string engine)
         {
             PhysicsPluginManager physicsPluginManager;

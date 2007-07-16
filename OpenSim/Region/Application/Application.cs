@@ -103,7 +103,7 @@ namespace OpenSim
             OpenSimMain sim = new OpenSimMain(sandBoxMode, startLoginServer, physicsEngine, useConfigFile, silent, configFile);
 
             sim.user_accounts = userAccounts;
-            sim.gridLocalAsset = gridLocalAsset;
+            sim.m_gridLocalAsset = gridLocalAsset;
 
             sim.StartUp();
 
