@@ -83,7 +83,7 @@ namespace OpenSim
         /// </summary>
         public void StartUp()
         {
-            this.serversData = new NetworkServersInfo();
+            this.m_serversData = new NetworkServersInfo();
 
             this.localConfig = new XmlConfig(m_config);
             this.localConfig.LoadData();
@@ -97,7 +97,7 @@ namespace OpenSim
             MainLog.Instance = m_log;
 
             m_log.Verbose("Main.cs:Startup() - Loading configuration");
-            this.serversData.InitConfig(this.m_sandbox, this.localConfig);
+            this.m_serversData.InitConfig(this.m_sandbox, this.localConfig);
             this.localConfig.Close();//for now we can close it as no other classes read from it , but this should change
 
             ScenePresence.LoadTextureFile("avatar-texture.dat");
@@ -117,7 +117,7 @@ namespace OpenSim
                 this.SetupRemoteGridServers();
             }
 
-            startuptime = DateTime.Now;
+            m_startuptime = DateTime.Now;
 
             this.SetupScene();
 
@@ -125,7 +125,7 @@ namespace OpenSim
 
             //Start http server
             m_log.Verbose("Main.cs:Startup() - Starting HTTP server");
-            httpServer.Start();
+            m_httpServer.Start();
 
             // Start UDP servers
             for (int i = 0; i < m_udpServer.Count; i++)
@@ -140,9 +140,9 @@ namespace OpenSim
         {
             try
             {
-                AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
-                InventoryCache = new InventoryCache();
-                this.commsManager = new CommunicationsLocal(this.serversData, httpServer);
+                m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.m_serversData.AssetURL, this.m_serversData.AssetSendKey);
+                m_inventoryCache = new InventoryCache();
+                this.commsManager = new CommunicationsLocal(this.m_serversData, m_httpServer);
             }
             catch (Exception e)
             {
@@ -156,9 +156,9 @@ namespace OpenSim
         {
             try
             {
-                AssetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.serversData.AssetURL, this.serversData.AssetSendKey);
-                InventoryCache = new InventoryCache();
-                this.commsManager = new CommunicationsOGS1(this.serversData, httpServer);
+                m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", this.m_serversData.AssetURL, this.m_serversData.AssetSendKey);
+                m_inventoryCache = new InventoryCache();
+                this.commsManager = new CommunicationsOGS1(this.m_serversData, m_httpServer);
             }
             catch (Exception e)
             {
@@ -213,14 +213,14 @@ namespace OpenSim
                 regionDat.InitConfig(this.m_sandbox, regionConfig);
                 regionConfig.Close();
 
-                udpServer = new UDPServer(regionDat.InternalEndPoint.Port, this.AssetCache, this.InventoryCache, this.m_log, authenBase);
+                udpServer = new UDPServer(regionDat.InternalEndPoint.Port, m_assetCache, this.m_inventoryCache, this.m_log, authenBase);
 
                 m_udpServer.Add(udpServer);
-                this.regionData.Add(regionDat);
+                this.m_regionData.Add(regionDat);
 
                 StorageManager tmpStoreManager = new StorageManager("OpenSim.DataStore.NullStorage.dll", regionDat.DataStore, regionDat.RegionName);
 
-                scene = new Scene( regionDat, authenBase, commsManager, this.AssetCache, tmpStoreManager, httpServer);
+                scene = new Scene( regionDat, authenBase, commsManager, m_assetCache, tmpStoreManager, m_httpServer);
                 this.m_localWorld.Add(scene);
 
                 udpServer.LocalWorld = scene;
@@ -286,11 +286,11 @@ namespace OpenSim
 
         protected void SetupHttpListener()
         {
-            httpServer = new BaseHttpServer(this.serversData.HttpListenerPort); //regionData[0].IPListenPort);
+            m_httpServer = new BaseHttpServer(this.m_serversData.HttpListenerPort); //regionData[0].IPListenPort);
 
             if (!this.m_sandbox)
             {
-                httpServer.AddStreamHandler( new SimStatusHandler() );
+                m_httpServer.AddStreamHandler( new SimStatusHandler() );
             }
         }
 
@@ -485,8 +485,8 @@ namespace OpenSim
             switch (ShowWhat)
             {
                 case "uptime":
-                    m_log.Error("OpenSim has been running since " + startuptime.ToString());
-                    m_log.Error("That is " + (DateTime.Now - startuptime).ToString());
+                    m_log.Error("OpenSim has been running since " + m_startuptime.ToString());
+                    m_log.Error("That is " + (DateTime.Now - m_startuptime).ToString());
                     break;
                 case "users":
                     ScenePresence TempAv;

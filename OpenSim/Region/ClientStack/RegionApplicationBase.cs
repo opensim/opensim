@@ -42,16 +42,16 @@ namespace OpenSim.Region.ClientStack
 {
     public class RegionApplicationBase
     {
-        protected AssetCache AssetCache;
-        protected InventoryCache InventoryCache;
-        protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-        protected DateTime startuptime;
-        protected NetworkServersInfo serversData;
+        protected AssetCache m_assetCache;
+        protected InventoryCache m_inventoryCache;
+        protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
+        protected DateTime m_startuptime;
+        protected NetworkServersInfo m_serversData;
 
         protected List<UDPServer> m_udpServer = new List<UDPServer>();
-        protected List<RegionInfo> regionData = new List<RegionInfo>();
+        protected List<RegionInfo> m_regionData = new List<RegionInfo>();
         protected List<IWorld> m_localWorld = new List<IWorld>();
-        protected BaseHttpServer httpServer;
+        protected BaseHttpServer m_httpServer;
         protected List<AuthenticateSessionsBase> AuthenticateSessionsHandler = new List<AuthenticateSessionsBase>();
 
         protected LogBase m_log;
