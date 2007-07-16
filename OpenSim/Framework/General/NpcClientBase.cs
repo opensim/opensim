@@ -11,6 +11,7 @@ namespace OpenSim.Framework
 {
    public  class NpcClientBase : IClientAPI
    {
+#pragma warning disable 67
        public event ImprovedInstantMessage OnInstantMessage;
        public event ChatFromViewer OnChatFromViewer;
        public event RezObject OnRezObject;
@@ -62,6 +63,7 @@ namespace OpenSim.Framework
 
 
        public event EstateOwnerMessageRequest OnEstateOwnerMessage;
+#pragma warning restore 67
 
        public virtual LLVector3 StartPos
        {

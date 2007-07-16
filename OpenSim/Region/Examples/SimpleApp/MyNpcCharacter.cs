@@ -22,6 +22,8 @@ namespace SimpleApp
         private LLQuaternion bodyDirection = LLQuaternion.Identity;
         private short count = 0;
 
+#pragma warning disable 67
+
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
         public event RezObject OnRezObject;
@@ -72,6 +74,8 @@ namespace SimpleApp
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ObjectDeselect OnObjectDeselect;
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
+
+#pragma warning restore 67
 
         private LLUUID myID = LLUUID.Random();
         public MyNpcCharacter()
