@@ -40,6 +40,8 @@ namespace SimpleApp
         {
             base.StartUp();
 
+            string ipaddr = "127.0.0.1";
+
             MainLog.Instance = m_log;
 
             m_circuitManager = new AuthenticateSessionsBase();
@@ -47,14 +49,14 @@ namespace SimpleApp
             InventoryCache inventoryCache = new InventoryCache();
 
             LocalAssetServer assetServer = new LocalAssetServer();
-            assetServer.SetServerInfo("http://127.0.0.1:8003/", "");
+            assetServer.SetServerInfo("http://" + ipaddr + ":8003/", "");
 
             AssetCache assetCache = new AssetCache(assetServer);
 
             ScenePresence.LoadTextureFile("avatar-texture.dat");
             ScenePresence.PhysicsEngineFlying = true;
 
-            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
+            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse(ipaddr), 9000);
 
             UDPServer udpServer = new UDPServer(internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager);
             PacketServer packetServer = new PacketServer(udpServer);
@@ -63,7 +65,7 @@ namespace SimpleApp
 
             CommunicationsLocal communicationsManager = new CommunicationsLocal(m_networkServersInfo, httpServer);
 
-            RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "127.0.0.1");
+            RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, ipaddr);
 
             OpenSim.Region.Environment.StorageManager storeMan = new OpenSim.Region.Environment.StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
 
