@@ -46,6 +46,7 @@ using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment;
 using System.Text;
+using System.Collections.Generic;
 
 namespace OpenSim
 {
@@ -60,7 +61,9 @@ namespace OpenSim
         protected bool m_useConfigFile;
         public string m_configFileName;
 
-        protected CommunicationsManager commsManager;
+        protected List<UDPServer> m_udpServers = new List<UDPServer>();
+        protected List<RegionInfo> m_regionData = new List<RegionInfo>();
+        protected List<IWorld> m_localWorld = new List<IWorld>();
 
         private bool m_silent;
         private string m_logFilename = "region-console-" + Guid.NewGuid().ToString() + ".log";
@@ -89,17 +92,13 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
-            AssetCache assetCache = m_assetCache;
-            assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
-            m_inventoryCache = new InventoryCache();
-
             if (m_sandbox)
             {
-                this.commsManager = new CommunicationsLocal( m_networkServersInfo, m_httpServer);
+                m_commsManager = new CommunicationsLocal( m_networkServersInfo, m_httpServer);
             }
             else
             {
-                this.commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer );
+                m_commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer );
             }
 
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
@@ -129,60 +128,15 @@ namespace OpenSim
                 regionInfo.InitConfig(this.m_sandbox, regionConfig);
                 regionConfig.Close();
 
+
+                UDPServer udpServer;
+                Scene scene = SetupScene(regionInfo, out udpServer);
+                
+                m_localWorld.Add(scene);
                 
                 
-                AuthenticateSessionsBase authenBase;
-
-                if (m_sandbox)
-                {
-                    AuthenticateSessionsBase authen = new AuthenticateSessionsBase();  // new AuthenticateSessionsLocal();
-                    this.AuthenticateSessionsHandler.Add(authen);
-                    authenBase = authen;
-                }
-                else
-                {
-                    AuthenticateSessionsBase authen = new AuthenticateSessionsBase(); //new AuthenticateSessionsRemote();
-                    this.AuthenticateSessionsHandler.Add(authen);
-                    authenBase = authen;
-                }
-
-                UDPServer udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, assetCache, this.m_inventoryCache, this.m_log, authenBase);
-
                 m_udpServers.Add(udpServer);
                 m_regionData.Add(regionInfo);
-
-                StorageManager tmpStoreManager = GetStoreManager(regionInfo);
-
-                Scene scene = new Scene(regionInfo, authenBase, commsManager, assetCache, tmpStoreManager, m_httpServer);
-                m_localWorld.Add(scene);
-
-                udpServer.LocalWorld = scene;
-
-                scene.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll"); //all these dll names shouldn't be hard coded.
-                scene.LoadWorldMap();
-
-                PhysicsScene physicsScene = GetPhysicsScene(m_physicsEngine);
-
-                scene.PhysScene = physicsScene;
-                scene.PhysScene.SetTerrain(scene.Terrain.getHeights1D());
-                scene.LoadPrimsFromStorage();
-
-                //Master Avatar Setup
-                UserProfileData masterAvatar = commsManager.UserServer.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);
-                if (masterAvatar != null)
-                {
-                    m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
-                    scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                    scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
-                }
-                else
-                {
-                    m_log.Notice("Parcels - No master avatar found, using null.");
-                    scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
-                    scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
-                }
-                scene.performParcelPrimCountUpdate();
-                scene.StartTimer();
             }
 
             // Start UDP servers
@@ -193,15 +147,18 @@ namespace OpenSim
 
         }
 
-        protected override StorageManager GetStoreManager(RegionInfo regionInfo)
+        protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
         {
             return new StorageManager("OpenSim.DataStore.NullStorage.dll", regionInfo.DataStore, regionInfo.RegionName);
         }
 
+        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
+        {
+            return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer);
+        }
+        
         protected override void Initialize()
         {
-            m_log.Verbose("Loading Configuration [{0}]", m_configFileName);
-
             IGenericConfig localConfig = new XmlConfig(m_configFileName);
             localConfig.LoadData();
 
@@ -210,11 +167,14 @@ namespace OpenSim
                 SetupFromConfigFile(localConfig);
             }
 
+            StartLog();
+
             m_networkServersInfo.InitConfig(m_sandbox, localConfig);
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
             localConfig.Close();
 
+            m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
 
         protected override LogBase CreateLog()

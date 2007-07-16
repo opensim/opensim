@@ -32,11 +32,11 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework
 {
-    public class AuthenticateSessionsBase
+    public class AgentCircuitManager
     {
         public Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
 
-        public AuthenticateSessionsBase()
+        public AgentCircuitManager()
         {
 
         }

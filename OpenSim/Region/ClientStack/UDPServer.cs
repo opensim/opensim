@@ -56,7 +56,7 @@ namespace OpenSim.Region.ClientStack
         protected AssetCache m_assetCache;
         protected InventoryCache m_inventoryCache;
         protected LogBase m_log;
-        protected AuthenticateSessionsBase m_authenticateSessionsClass;
+        protected AgentCircuitManager m_authenticateSessionsClass;
 
         public PacketServer PacketServer
         {
@@ -83,7 +83,7 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        public UDPServer(int port, AssetCache assetCache, InventoryCache inventoryCache, LogBase console, AuthenticateSessionsBase authenticateClass)
+        public UDPServer(int port, AssetCache assetCache, InventoryCache inventoryCache, LogBase console, AgentCircuitManager authenticateClass)
         {
             listenPort = port;
             this.m_assetCache = assetCache;
@@ -91,7 +91,6 @@ namespace OpenSim.Region.ClientStack
             this.m_log = console;
             this.m_authenticateSessionsClass = authenticateClass;
             this.CreatePacketServer();
-
         }
 
         protected virtual void CreatePacketServer()

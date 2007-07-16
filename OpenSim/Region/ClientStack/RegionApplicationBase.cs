@@ -31,6 +31,7 @@ using System.Net;
 using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
@@ -39,6 +40,7 @@ using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;
 using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -50,14 +52,11 @@ namespace OpenSim.Region.ClientStack
         protected DateTime m_startuptime;
         protected NetworkServersInfo m_networkServersInfo;
 
-        protected List<UDPServer> m_udpServers = new List<UDPServer>();
-        protected List<RegionInfo> m_regionData = new List<RegionInfo>();
-        protected List<IWorld> m_localWorld = new List<IWorld>();
         protected BaseHttpServer m_httpServer;
         protected int m_httpServerPort;
-        protected List<AuthenticateSessionsBase> AuthenticateSessionsHandler = new List<AuthenticateSessionsBase>();
 
         protected LogBase m_log;
+        protected CommunicationsManager m_commsManager;
 
         public RegionApplicationBase( )
         {
@@ -72,19 +71,19 @@ namespace OpenSim.Region.ClientStack
 
             Initialize();
 
-            StartLog();
-
             ScenePresence.LoadTextureFile("avatar-texture.dat");
 
             m_httpServer = new BaseHttpServer( m_httpServerPort );
 
             m_log.Verbose("Starting HTTP server");
             m_httpServer.Start();
+
+            m_inventoryCache = new InventoryCache();
         }
 
         protected abstract void Initialize();
 
-        private void StartLog()
+        protected void StartLog()
         {
             m_log = CreateLog();
             MainLog.Instance = m_log;
@@ -92,7 +91,7 @@ namespace OpenSim.Region.ClientStack
 
         protected abstract LogBase CreateLog();
         protected abstract PhysicsScene GetPhysicsScene( );
-        protected abstract StorageManager GetStoreManager(RegionInfo regionInfo);
+        protected abstract StorageManager CreateStorageManager(RegionInfo regionInfo);
         
         protected PhysicsScene GetPhysicsScene(string engine)
         {
@@ -102,5 +101,42 @@ namespace OpenSim.Region.ClientStack
             return physicsPluginManager.GetPhysicsScene( engine );
         }
 
+        protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer)
+        {
+            AgentCircuitManager authen = new AgentCircuitManager();
+            udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_inventoryCache, m_log, authen);
+
+            StorageManager storageManager = CreateStorageManager(regionInfo);
+            Scene scene = CreateScene(regionInfo, storageManager, authen);
+
+            udpServer.LocalWorld = scene;
+
+            scene.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll");
+            scene.LoadWorldMap();
+
+            scene.PhysScene = GetPhysicsScene( );
+            scene.PhysScene.SetTerrain(scene.Terrain.getHeights1D());
+            scene.LoadPrimsFromStorage();
+
+            //Master Avatar Setup
+            UserProfileData masterAvatar = m_commsManager.UserServer.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);
+            if (masterAvatar != null)
+            {
+                m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
+                scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
+                scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
+            }
+            else
+            {
+                m_log.Notice("Parcels - No master avatar found, using null.");
+                scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
+                scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
+            }
+            scene.performParcelPrimCountUpdate();
+            scene.StartTimer();
+            return scene;
+        }
+
+        protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager);
     }
 }

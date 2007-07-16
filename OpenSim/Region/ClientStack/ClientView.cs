@@ -76,7 +76,7 @@ namespace OpenSim.Region.ClientStack
         private AssetCache m_assetCache;
         private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
-        protected AuthenticateSessionsBase m_authenticateSessionsHandler;
+        protected AgentCircuitManager m_authenticateSessionsHandler;
         private Encoding enc = Encoding.ASCII;
         // Dead client detection vars
         private Timer clientPingTimer;
@@ -84,7 +84,7 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions )
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions )
         {
             m_world = world;
             m_clientThreads = clientThreads;

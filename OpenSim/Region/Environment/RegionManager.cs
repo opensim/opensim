@@ -10,7 +10,7 @@ namespace OpenSim.Region.Environment
 {
     public class RegionManager
     {
-        protected AuthenticateSessionsBase authenticateHandler;
+        protected AgentCircuitManager authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
         protected List<Caps> capsHandlers = new List<Caps>();

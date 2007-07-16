@@ -66,7 +66,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int landPrimCheckCount;
         private Mutex updateLock;
 
-        protected AuthenticateSessionsBase authenticateHandler;
+        protected AgentCircuitManager authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
         protected StorageManager storageManager;
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(RegionInfo regInfo, AuthenticateSessionsBase authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
         {
             updateLock = new Mutex(false);
             this.authenticateHandler = authen;

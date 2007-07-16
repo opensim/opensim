@@ -22,9 +22,7 @@ namespace SimpleApp
 {
     class Program : RegionApplicationBase, conscmd_callback
     {
-        AuthenticateSessionsBase m_circuitManager;
-
-        public MyWorld m_world;
+        public MyWorld m_scene;
         private SceneObject m_sceneObject;
         public MyNpcCharacter m_character;
 
@@ -36,73 +34,52 @@ namespace SimpleApp
         protected override void Initialize()
         {
             m_httpServerPort = 9000;
+
+            StartLog();
+
+            LocalAssetServer assetServer = new LocalAssetServer();
+            assetServer.SetServerInfo("http://localhost:8003/", "");
+
+            AssetCache m_assetCache = new AssetCache(assetServer);
         }
         
         public void Run()
         {
             base.StartUp();
 
-            m_circuitManager = new AuthenticateSessionsBase();
+            CommunicationsLocal m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
 
-            InventoryCache inventoryCache = new InventoryCache();
-
-            LocalAssetServer assetServer = new LocalAssetServer();
-            assetServer.SetServerInfo("http://localhost:8003/", "");
-
-            AssetCache assetCache = new AssetCache(assetServer);
-
-            ScenePresence.LoadTextureFile("avatar-texture.dat");
             ScenePresence.PhysicsEngineFlying = true;
 
             IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
 
-            UDPServer udpServer = new UDPServer(internalEndPoint.Port, assetCache, inventoryCache, m_log, m_circuitManager);
-            PacketServer packetServer = new PacketServer(udpServer);
+            UDPServer udpServer;
 
-            CommunicationsLocal communicationsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
-
-            StorageManager storeMan = GetStoreManager(regionInfo);
-
-
-
-            m_world = new MyWorld( regionInfo, m_circuitManager, communicationsManager, assetCache, storeMan, m_httpServer);
-            m_world.PhysScene = GetPhysicsScene( );
-           
-            m_world.LoadWorldMap();
-            m_world.PhysScene.SetTerrain(m_world.Terrain.getHeights1D());
-            m_world.performParcelPrimCountUpdate();
-
-            udpServer.LocalWorld = m_world;
-
-            m_httpServer.Start();
+            Scene scene = SetupScene(regionInfo, out udpServer);
+            
             udpServer.ServerListener();
-
-            UserProfileData masterAvatar = communicationsManager.UserServer.SetupMasterUser("Test", "User", "test");
-            if (masterAvatar != null)
-            {
-                m_world.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                m_world.LandManager.NoLandDataFromStorage();
-            }
-
-            m_world.StartTimer();
-
+            
             PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(138, 129, 27);
 
-            m_sceneObject = new MySceneObject(m_world, m_world.EventManager, LLUUID.Zero, m_world.PrimIDAllocate(), pos, shape);
-            m_world.AddEntity(m_sceneObject);
+            m_sceneObject = new MySceneObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
+            scene.AddEntity(m_sceneObject);
 
             m_character = new MyNpcCharacter();
-            m_world.AddNewClient(m_character, false);
+            scene.AddNewClient(m_character, false);
           
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
-            m_log.ReadLine();
-            
+            m_log.ReadLine();            
         }
 
-        protected override StorageManager GetStoreManager(RegionInfo regionInfo)
+        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
+        {
+            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer);
+        }
+
+        protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
         {
             return new StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
         }

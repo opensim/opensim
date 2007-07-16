@@ -133,7 +133,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="inventoryCache"></param>
         /// <param name="authenSessions"></param>
         /// <returns></returns>
-        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AuthenticateSessionsBase authenSessions)
+        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions)
         {
             return new ClientView(remoteEP, initialcirpack, clientThreads, world, assetCache, packServer, inventoryCache, authenSessions );
         }
@@ -147,7 +147,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="inventoryCache"></param>
         /// <param name="authenticateSessionsClass"></param>
         /// <returns></returns>
-        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AuthenticateSessionsBase authenticateSessionsClass)
+        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AgentCircuitManager authenticateSessionsClass)
         {
             ClientView newuser =
                 CreateNewClient(epSender, useCircuit, ClientThreads, _localWorld, assetCache, this, inventoryCache,
