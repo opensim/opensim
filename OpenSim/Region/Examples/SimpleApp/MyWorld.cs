@@ -74,24 +74,6 @@ namespace SimpleApp
             avatar.Pos = new LLVector3(128, 128, 26);
         }
 
-        public override void Update()
-        {
-            foreach (LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].updateMovement();
-            }
-
-            lock (this.m_syncRoot)
-            {
-                this.phyScene.Simulate(timeStep);
-            }
-
-            foreach (LLUUID UUID in Entities.Keys)
-            {
-                Entities[UUID].update();
-            }
-        }
-
         #endregion
     }
 }

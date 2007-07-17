@@ -21,20 +21,15 @@ namespace SimpleApp
             String instanceName = "_Total";
 
             m_counter = new PerformanceCounter(objectName, counterName, instanceName);
-
-            Timer timer = new Timer();
-            timer.Enabled = true;
-            timer.Interval = 100;
-            timer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
-
         }
 
-        public void Heartbeat(object sender, EventArgs e)
+        public override void Update( )
         {
             float cpu = m_counter.NextValue() / 40f;
             LLVector3 size = new LLVector3(cpu, cpu, cpu);            
             rootPrimitive.ResizeGoup( size );
-            update();
+            
+            base.Update();
         }
     }
 }

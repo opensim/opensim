@@ -6,9 +6,9 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class EntityBase
     {
-        public LLUUID uuid;
+        public LLUUID m_uuid;
        
-        protected List<EntityBase> children;
+        protected List<EntityBase> m_children;
 
         protected Scene m_world;
         protected string m_name;
@@ -82,13 +82,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public EntityBase()
         {
-            uuid = new LLUUID();
+            m_uuid = new LLUUID();
 
             m_pos = new LLVector3();
             m_velocity = new LLVector3();
             Rotation = new Quaternion();
             m_name = "(basic entity)";
-            children = new List<EntityBase>();
+            m_children = new List<EntityBase>();
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual void updateMovement()
         {
-            foreach (EntityBase child in children)
+            foreach (EntityBase child in m_children)
             {
                 child.updateMovement();
             }
@@ -105,12 +105,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Performs any updates that need to be done at each frame. This function is overridable from it's children.
         /// </summary>
-        public virtual void update()
+        public virtual void Update()
         {
             // Do any per-frame updates needed that are applicable to every type of entity
-            foreach (EntityBase child in children)
+            foreach (EntityBase child in m_children)
             {
-                child.update();
+                child.Update();
             }
         }
 

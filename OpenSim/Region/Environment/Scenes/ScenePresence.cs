@@ -120,7 +120,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             m_world = world;
-            this.uuid = theClient.AgentId;
+            this.m_uuid = theClient.AgentId;
 
             m_regionInfo = reginfo;
             m_regionHandle = reginfo.RegionHandle;
@@ -349,7 +349,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public override void update()
+        public override void Update()
         {
             if (this.childAgent == false)
             {
@@ -405,7 +405,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
-            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos, DefaultTexture);
+            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, DefaultTexture);
         }
 
         public void SendFullUpdateToALLClients()
@@ -423,7 +423,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.uuid, this.LocalId, this.Pos, DefaultTexture);
+            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, DefaultTexture);
             if (this.newAvatar)
             {
                 this.m_world.InformClientOfNeighbours(this.ControllingClient);

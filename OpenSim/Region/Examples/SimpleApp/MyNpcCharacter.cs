@@ -12,6 +12,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Utilities;
+using OpenSim.Region.Environment.Scenes;
 
 namespace SimpleApp
 {
@@ -78,9 +79,9 @@ namespace SimpleApp
 #pragma warning restore 67
 
         private LLUUID myID = LLUUID.Random();
-        public MyNpcCharacter()
+        public MyNpcCharacter( EventManager eventManager )
         {
-
+            eventManager.OnFrame += Update;
         }
 
         public virtual LLVector3 StartPos
@@ -143,18 +144,9 @@ namespace SimpleApp
         {
             this.OnRegionHandShakeReply(this);
             this.OnCompleteMovementToRegion();
-            this.StartMovement();
         }
 
-        public void StartMovement()
-        {
-            Timer timer = new Timer();
-            timer.Enabled = true;
-            timer.Interval = 500;
-            timer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
-        }
-
-        public void Heartbeat(object sender, EventArgs e)
+        private void Update( )
         {
             Encoding enc = Encoding.ASCII;
 

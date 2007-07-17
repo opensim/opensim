@@ -54,6 +54,7 @@ namespace SimpleApp
             UDPServer udpServer;
 
             Scene scene = SetupScene(regionInfo, out udpServer);
+            scene.StartTimer();
             
             udpServer.ServerListener();
             
@@ -64,7 +65,7 @@ namespace SimpleApp
             SceneObject m_sceneObject = new MySceneObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
             scene.AddEntity(m_sceneObject);
 
-            MyNpcCharacter m_character = new MyNpcCharacter();
+            MyNpcCharacter m_character = new MyNpcCharacter( scene.EventManager );
             scene.AddNewClient(m_character, false);
           
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");

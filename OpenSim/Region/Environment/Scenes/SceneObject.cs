@@ -55,8 +55,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                this.uuid = this.rootPrimitive.uuid;
-                return this.uuid;
+                this.m_uuid = this.rootPrimitive.m_uuid;
+                return this.m_uuid;
             }
         }
 
@@ -151,7 +151,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
 
-            this.children.Add(rootPrimitive);
+            this.m_children.Add(rootPrimitive);
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
 
@@ -177,7 +177,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = this.m_regionHandle;
             Primitive newRoot = this.rootPrimitive.Copy(dupe, dupe);
             dupe.rootPrimitive = newRoot;
-            dupe.children.Add(dupe.rootPrimitive);
+            dupe.m_children.Add(dupe.rootPrimitive);
             dupe.rootPrimitive.Pos = this.Pos;
             dupe.Rotation = this.Rotation;
             dupe.LocalId = m_world.PrimIDAllocate();
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void DeleteAllChildren()
         {
-            this.children.Clear();
+            this.m_children.Clear();
             this.ChildPrimitives.Clear();
             this.rootPrimitive = null;
             unregisterEvents();
@@ -208,9 +208,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddChildToList(Primitive prim)
         {
-            if (!this.ChildPrimitives.ContainsKey(prim.uuid))
+            if (!this.ChildPrimitives.ContainsKey(prim.m_uuid))
             {
-                this.ChildPrimitives.Add(prim.uuid, prim);
+                this.ChildPrimitives.Add(prim.m_uuid, prim);
             }
         }
         /// <summary>

@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Timers;
 using libsecondlife;
-using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
@@ -39,17 +38,16 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
-using OpenSim.Region.Interfaces;
+using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
-using Caps = OpenSim.Region.Capabilities.Caps;
-using Timer = System.Timers.Timer;
-
-using OpenSim.Region.Environment.LandManagement;
+using Caps=OpenSim.Region.Capabilities.Caps;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public delegate bool FilterAvatarList(ScenePresence avatar);
+
     public delegate void ForEachScenePresenceDelegate(ScenePresence presence);
 
     public partial class Scene : SceneBase, ILocalStorageReceiver
@@ -61,7 +59,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected float timeStep = 0.1f;
         private Random Rand = new Random();
         private uint _primCount = 702000;
-        private System.Threading.Mutex _primAllocateMutex = new Mutex(false);
+        private Mutex _primAllocateMutex = new Mutex(false);
         private int storageCount;
         private int landPrimCheckCount;
         private Mutex updateLock;
@@ -75,40 +73,39 @@ namespace OpenSim.Region.Environment.Scenes
         protected BaseHttpServer httpListener;
 
         #region Properties
+
         /// <summary>
         /// 
         /// </summary>
         public PhysicsScene PhysScene
         {
-            set
-            {
-                this.phyScene = value;
-            }
-            get
-            {
-                return (this.phyScene);
-            }
+            set { phyScene = value; }
+            get { return (phyScene); }
         }
 
         private LandManager m_LandManager;
+
         public LandManager LandManager
         {
             get { return m_LandManager; }
         }
 
         private EstateManager m_estateManager;
+
         public EstateManager EstateManager
         {
             get { return m_estateManager; }
         }
 
         private EventManager m_eventManager;
+
         public EventManager EventManager
         {
             get { return m_eventManager; }
         }
 
         private ScriptManager m_scriptManager;
+
         public ScriptManager ScriptManager
         {
             get { return m_scriptManager; }
@@ -122,31 +119,34 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Creates a new World class, and a region to go with it.
         /// </summary>
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan,
+                     AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
         {
             updateLock = new Mutex(false);
-            this.authenticateHandler = authen;
-            this.commsManager = commsMan;
-            this.storageManager = storeManager;
-            this.assetCache = assetCach;
+            authenticateHandler = authen;
+            commsManager = commsMan;
+            storageManager = storeManager;
+            assetCache = assetCach;
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
-            this.m_datastore = m_regInfo.DataStore;
-            this.RegisterRegionWithComms();
+            m_datastore = m_regInfo.DataStore;
+            RegisterRegionWithComms();
 
-            m_LandManager = new LandManager(this, this.m_regInfo);
-            m_estateManager = new EstateManager(this, this.m_regInfo);
+            m_LandManager = new LandManager(this, m_regInfo);
+            m_estateManager = new EstateManager(this, m_regInfo);
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
 
-            m_eventManager.OnParcelPrimCountAdd += new EventManager.OnParcelPrimCountAddDelegate(m_LandManager.addPrimToLandPrimCounts);
+            m_eventManager.OnParcelPrimCountAdd +=
+                new EventManager.OnParcelPrimCountAddDelegate(m_LandManager.addPrimToLandPrimCounts);
 
             MainLog.Instance.Verbose("World.cs - creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -167,8 +167,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScenePresence.LoadAnims();
 
-            this.httpListener = httpServer;
+            httpListener = httpServer;
         }
+
         #endregion
 
         #region Script Handling Methods
@@ -187,21 +188,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = 100;
-            m_heartbeatTimer.Elapsed += new ElapsedEventHandler(this.Heartbeat);
+            m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
         }
 
-
         #region Update Methods
-
 
         /// <summary>
         /// Performs per-frame updates regularly
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Heartbeat(object sender, EventArgs e)
+        private void Heartbeat(object sender, EventArgs e)
         {
-            this.Update();
+            Update();
         }
 
         /// <summary>
@@ -212,10 +211,9 @@ namespace OpenSim.Region.Environment.Scenes
             updateLock.WaitOne();
             try
             {
-                if (this.phyScene.IsThreaded)
+                if (phyScene.IsThreaded)
                 {
-                    this.phyScene.GetResults();
-
+                    phyScene.GetResults();
                 }
 
                 foreach (LLUUID UUID in Entities.Keys)
@@ -223,45 +221,43 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities[UUID].updateMovement();
                 }
 
-                lock (this.m_syncRoot)
+                lock (m_syncRoot)
                 {
-                    this.phyScene.Simulate(timeStep);
+                    phyScene.Simulate(timeStep);
                 }
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
-                    Entities[UUID].update();
+                    Entities[UUID].Update();
                 }
 
                 // General purpose event manager
                 m_eventManager.TriggerOnFrame();
 
                 //backup world data
-                this.storageCount++;
+                storageCount++;
                 if (storageCount > 1200) //set to how often you want to backup 
                 {
-                    this.Backup();
+                    Backup();
                     storageCount = 0;
                 }
 
-                this.landPrimCheckCount++;
-                if (this.landPrimCheckCount > 50) //check every 5 seconds for tainted prims
+                landPrimCheckCount++;
+                if (landPrimCheckCount > 50) //check every 5 seconds for tainted prims
                 {
                     if (m_LandManager.landPrimCountTainted)
                     {
                         //Perform land update of prim count
                         performParcelPrimCountUpdate();
-                        this.landPrimCheckCount = 0;
+                        landPrimCheckCount = 0;
                     }
                 }
-
             }
             catch (Exception e)
             {
                 MainLog.Instance.Warn("World.cs: Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
-
         }
 
         /// <summary>
@@ -270,9 +266,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool Backup()
         {
-            EventManager.TriggerOnBackup(this.storageManager.DataStore);
+            EventManager.TriggerOnBackup(storageManager.DataStore);
             return true;
         }
+
         #endregion
 
         #region Regenerate Terrain
@@ -286,17 +283,17 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 Terrain.hills();
 
-                lock (this.m_syncRoot)
+                lock (m_syncRoot)
                 {
-                    this.phyScene.SetTerrain(Terrain.getHeights1D());
+                    phyScene.SetTerrain(Terrain.getHeights1D());
                 }
 
-                this.storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
 
-                this.ForEachScenePresence(delegate(ScenePresence presence)
-                                                  {
-                                                      this.SendLayerData(presence.ControllingClient);
-                                                  });
+                ForEachScenePresence(delegate(ScenePresence presence)
+                                         {
+                                             SendLayerData(presence.ControllingClient);
+                                         });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -317,17 +314,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                this.Terrain.setHeights2D(newMap);
-                lock (this.m_syncRoot)
+                Terrain.setHeights2D(newMap);
+                lock (m_syncRoot)
                 {
-                    this.phyScene.SetTerrain(this.Terrain.getHeights1D());
+                    phyScene.SetTerrain(Terrain.getHeights1D());
                 }
-                this.storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
 
-                this.ForEachScenePresence(delegate(ScenePresence presence)
-                                                  {
-                                                      this.SendLayerData(presence.ControllingClient);
-                                                  });
+                ForEachScenePresence(delegate(ScenePresence presence)
+                                         {
+                                             SendLayerData(presence.ControllingClient);
+                                         });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -354,10 +351,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     /* Dont save here, rely on tainting system instead */
 
-                    this.ForEachScenePresence(delegate(ScenePresence presence)
-                                                      {
-                                                          this.SendLayerData(pointx, pointy, presence.ControllingClient);
-                                                      });
+                    ForEachScenePresence(delegate(ScenePresence presence)
+                                             {
+                                                 SendLayerData(pointx, pointy, presence.ControllingClient);
+                                             });
                 }
             }
             catch (Exception e)
@@ -369,6 +366,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Load Terrain
+
         /// <summary>
         /// Loads the World heightmap
         /// </summary>
@@ -377,38 +375,37 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                double[,] map = this.storageManager.DataStore.LoadTerrain();
+                double[,] map = storageManager.DataStore.LoadTerrain();
                 if (map == null)
                 {
-                    if (string.IsNullOrEmpty(this.m_regInfo.estateSettings.terrainFile))
+                    if (string.IsNullOrEmpty(m_regInfo.estateSettings.terrainFile))
                     {
                         Console.WriteLine("No default terrain, procedurally generating...");
-                        this.Terrain.hills();
+                        Terrain.hills();
 
-                        this.storageManager.DataStore.StoreTerrain(this.Terrain.getHeights2DD());
+                        storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
                     }
                     else
                     {
                         try
                         {
-                            this.Terrain.loadFromFileF32(this.m_regInfo.estateSettings.terrainFile);
-                            this.Terrain *= this.m_regInfo.estateSettings.terrainMultiplier;
+                            Terrain.loadFromFileF32(m_regInfo.estateSettings.terrainFile);
+                            Terrain *= m_regInfo.estateSettings.terrainMultiplier;
                         }
                         catch
                         {
                             Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
                             Terrain.hills();
                         }
-                        this.storageManager.DataStore.StoreTerrain(this.Terrain.getHeights2DD());
+                        storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
                     }
                 }
                 else
                 {
-                    this.Terrain.setHeights2D(map);
+                    Terrain.setHeights2D(map);
                 }
 
                 CreateTerrainTexture();
-
             }
             catch (Exception e)
             {
@@ -422,19 +419,19 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateTerrainTexture()
         {
             //create a texture asset of the terrain 
-            byte[] data = this.Terrain.exportJpegImage("defaultstripe.png");
-            this.m_regInfo.estateSettings.terrainImageID = LLUUID.Random();
+            byte[] data = Terrain.exportJpegImage("defaultstripe.png");
+            m_regInfo.estateSettings.terrainImageID = LLUUID.Random();
             AssetBase asset = new AssetBase();
-            asset.FullID = this.m_regInfo.estateSettings.terrainImageID;
+            asset.FullID = m_regInfo.estateSettings.terrainImageID;
             asset.Data = data;
             asset.Name = "terrainImage";
             asset.Type = 0;
-            this.assetCache.AddAsset(asset);
+            assetCache.AddAsset(asset);
         }
+
         #endregion
 
         #region Primitives Methods
-
 
         /// <summary>
         /// Loads the World's objects
@@ -442,7 +439,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
-            this.localStorage.LoadPrimitives(this);
+            localStorage.LoadPrimitives(this);
         }
 
         /// <summary>
@@ -476,8 +473,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-
-            SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, this.PrimIDAllocate(), pos, shape);
+            SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, PrimIDAllocate(), pos, shape);
             AddEntity(sceneOb);
         }
 
@@ -487,27 +483,26 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (obj is SceneObject)
                 {
-                    if (((SceneObject)obj).LocalId == localID)
+                    if (((SceneObject) obj).LocalId == localID)
                     {
-                        RemoveEntity((SceneObject)obj);
+                        RemoveEntity((SceneObject) obj);
                         return;
                     }
                 }
             }
-
         }
 
         public void AddEntity(SceneObject sceneObject)
         {
-            this.Entities.Add(sceneObject.rootUUID, sceneObject);
+            Entities.Add(sceneObject.rootUUID, sceneObject);
         }
 
         public void RemoveEntity(SceneObject sceneObject)
         {
-            if (this.Entities.ContainsKey(sceneObject.rootUUID))
+            if (Entities.ContainsKey(sceneObject.rootUUID))
             {
                 m_LandManager.removePrimFromLandPrimCounts(sceneObject);
-                this.Entities.Remove(sceneObject.rootUUID);
+                Entities.Remove(sceneObject.rootUUID);
                 m_LandManager.setPrimsTainted();
             }
         }
@@ -520,6 +515,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             prim.OnPrimCountTainted += m_LandManager.setPrimsTainted;
         }
+
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -533,48 +529,48 @@ namespace OpenSim.Region.Environment.Scenes
         public override void AddNewClient(IClientAPI client, bool child)
         {
             SubscribeToClientEvents(client);
-            this.m_estateManager.sendRegionHandshake(client);
+            m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
-            this.m_LandManager.sendParcelOverlay(client);
-
+            m_LandManager.sendParcelOverlay(client);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
-            client.OnRegionHandShakeReply += this.SendLayerData;
+            client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
-            client.OnChatFromViewer += this.SimChat;
-            client.OnInstantMessage += this.InstantMessage;
-            client.OnRequestWearables += this.InformClientOfNeighbours;
-            client.OnAddPrim += this.AddNewPrim;
-            client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
-            client.OnUpdatePrimSinglePosition += this.UpdatePrimSinglePosition;
-            client.OnUpdatePrimGroupRotation += this.UpdatePrimRotation;
-            client.OnUpdatePrimGroupMouseRotation += this.UpdatePrimRotation;
-            client.OnUpdatePrimSingleRotation += this.UpdatePrimSingleRotation;
-            client.OnUpdatePrimScale += this.UpdatePrimScale;
-            client.OnUpdatePrimShape += this.UpdatePrimShape;
-            client.OnRequestMapBlocks += this.RequestMapBlocks;
-            client.OnUpdatePrimTexture += this.UpdatePrimTexture;
-            client.OnTeleportLocationRequest += this.RequestTeleportLocation;
-            client.OnObjectSelect += this.SelectPrim;
-            client.OnObjectDeselect += this.DeselectPrim;
-            client.OnGrapUpdate += this.MoveObject;
-            client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
-            client.OnObjectDescription += this.PrimDescription;
-            client.OnObjectName += this.PrimName;
-            client.OnLinkObjects += this.LinkObjects;
-            client.OnObjectDuplicate += this.DuplicateObject;
+            client.OnChatFromViewer += SimChat;
+            client.OnInstantMessage += InstantMessage;
+            client.OnRequestWearables += InformClientOfNeighbours;
+            client.OnAddPrim += AddNewPrim;
+            client.OnUpdatePrimGroupPosition += UpdatePrimPosition;
+            client.OnUpdatePrimSinglePosition += UpdatePrimSinglePosition;
+            client.OnUpdatePrimGroupRotation += UpdatePrimRotation;
+            client.OnUpdatePrimGroupMouseRotation += UpdatePrimRotation;
+            client.OnUpdatePrimSingleRotation += UpdatePrimSingleRotation;
+            client.OnUpdatePrimScale += UpdatePrimScale;
+            client.OnUpdatePrimShape += UpdatePrimShape;
+            client.OnRequestMapBlocks += RequestMapBlocks;
+            client.OnUpdatePrimTexture += UpdatePrimTexture;
+            client.OnTeleportLocationRequest += RequestTeleportLocation;
+            client.OnObjectSelect += SelectPrim;
+            client.OnObjectDeselect += DeselectPrim;
+            client.OnGrapUpdate += MoveObject;
+            client.OnNameFromUUIDRequest += commsManager.HandleUUIDNameRequest;
+            client.OnObjectDescription += PrimDescription;
+            client.OnObjectName += PrimName;
+            client.OnLinkObjects += LinkObjects;
+            client.OnObjectDuplicate += DuplicateObject;
 
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_LandManager.handleParcelPropertiesRequest);
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_LandManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_LandManager.handleParcelJoinRequest);
-            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_LandManager.handleParcelPropertiesUpdateRequest);
+            client.OnParcelPropertiesUpdateRequest +=
+                new ParcelPropertiesUpdateRequest(m_LandManager.handleParcelPropertiesUpdateRequest);
             client.OnParcelSelectObjects += new ParcelSelectObjects(m_LandManager.handleParcelSelectObjectsRequest);
-            client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
+            client.OnParcelObjectOwnerRequest +=
+                new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
-
         }
 
         protected ScenePresence CreateAndAddScenePresence(IClientAPI client)
@@ -582,21 +578,21 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence newAvatar = null;
 
             MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
-            newAvatar = new ScenePresence(client, this, this.m_regInfo);
+            newAvatar = new ScenePresence(client, this, m_regInfo);
             MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Adding new avatar to world");
             MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Starting RegionHandshake ");
 
             PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
-            lock (this.m_syncRoot)
+            lock (m_syncRoot)
             {
-                newAvatar.PhysActor = this.phyScene.AddAvatar(pVec);
+                newAvatar.PhysActor = phyScene.AddAvatar(pVec);
             }
 
             lock (Entities)
             {
                 if (!Entities.ContainsKey(client.AgentId))
                 {
-                    this.Entities.Add(client.AgentId, newAvatar);
+                    Entities.Add(client.AgentId, newAvatar);
                 }
                 else
                 {
@@ -611,7 +607,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    this.Avatars.Add(client.AgentId, newAvatar);
+                    Avatars.Add(client.AgentId, newAvatar);
                 }
             }
             newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
@@ -627,13 +623,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_eventManager.TriggerOnRemovePresence(agentID);
 
-            ScenePresence avatar = this.RequestAvatar(agentID);
+            ScenePresence avatar = RequestAvatar(agentID);
 
-            this.ForEachScenePresence(
-            delegate(ScenePresence presence)
-            {
-                presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-            });
+            ForEachScenePresence(
+                delegate(ScenePresence presence)
+                    {
+                        presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                    });
 
             lock (Avatars)
             {
@@ -652,12 +648,13 @@ namespace OpenSim.Region.Environment.Scenes
             // TODO: Add the removal from physics ?
 
 
-
             return;
         }
+
         #endregion
 
         #region Request Avatars List Methods
+
         //The idea is to have a group of method that return a list of avatars meeting some requirement
         // ie it could be all Avatars within a certain range of the calling prim/avatar. 
 
@@ -703,7 +700,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public ScenePresence RequestAvatar(LLUUID avatarID)
         {
-            if (this.Avatars.ContainsKey(avatarID))
+            if (Avatars.ContainsKey(avatarID))
             {
                 return Avatars[avatarID];
             }
@@ -712,13 +709,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ForEachScenePresence(ForEachScenePresenceDelegate whatToDo)
         {
-            foreach (ScenePresence presence in this.Avatars.Values)
+            foreach (ScenePresence presence in Avatars.Values)
             {
                 whatToDo(presence);
             }
         }
-        #endregion
 
+        #endregion
 
         /// <summary>
         /// 
@@ -727,9 +724,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool DeleteEntity(LLUUID entID)
         {
-            if (this.Entities.ContainsKey(entID))
+            if (Entities.ContainsKey(entID))
             {
-                this.Entities.Remove(entID);
+                Entities.Remove(entID);
                 return true;
             }
             return false;
@@ -741,7 +738,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObject)
                 {
-                    ((SceneObject)ent).SendAllChildPrimsToClient(client);
+                    ((SceneObject) ent).SendAllChildPrimsToClient(client);
                 }
             }
         }
@@ -753,12 +750,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void RegisterRegionWithComms()
         {
-
-            this.regionCommsHost = this.commsManager.GridServer.RegisterRegion(this.m_regInfo);
-            if (this.regionCommsHost != null)
+            regionCommsHost = commsManager.GridServer.RegisterRegion(m_regInfo);
+            if (regionCommsHost != null)
             {
-                this.regionCommsHost.OnExpectUser += this.NewUserConnection;
-                this.regionCommsHost.OnAvatarCrossingIntoRegion += this.AgentCrossing;
+                regionCommsHost.OnExpectUser += NewUserConnection;
+                regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
             }
         }
 
@@ -771,35 +767,37 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Console.WriteLine("World.cs - add new user connection");
             //should just check that its meant for this region 
-            if (regionHandle == this.m_regInfo.RegionHandle)
+            if (regionHandle == m_regInfo.RegionHandle)
             {
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(this.assetCache, httpListener, this.m_regInfo.ExternalHostName, this.m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
+                    Caps cap =
+                        new Caps(assetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port,
+                                 agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     if (capsHandlers.ContainsKey(agent.AgentID))
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Warn("Adding duplicate CAPS entry for user " + agent.AgentID.ToStringHyphenated());
-                        this.capsHandlers[agent.AgentID] = cap;
+                        MainLog.Instance.Warn("Adding duplicate CAPS entry for user " +
+                                              agent.AgentID.ToStringHyphenated());
+                        capsHandlers[agent.AgentID] = cap;
                     }
                     else
                     {
-                        this.capsHandlers.Add(agent.AgentID, cap);
+                        capsHandlers.Add(agent.AgentID, cap);
                     }
-
                 }
-                this.authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+                authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
         }
 
         public void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
-            if (regionHandle == this.m_regInfo.RegionHandle)
+            if (regionHandle == m_regInfo.RegionHandle)
             {
-                if (this.Avatars.ContainsKey(agentID))
+                if (Avatars.ContainsKey(agentID))
                 {
-                    this.Avatars[agentID].MakeAvatar(position);
+                    Avatars[agentID].MakeAvatar(position);
                 }
             }
         }
@@ -809,7 +807,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void InformClientOfNeighbours(IClientAPI remoteClient)
         {
-            List<RegionInfo> neighbours = this.commsManager.GridServer.RequestNeighbours(this.m_regInfo);
+            List<RegionInfo> neighbours = commsManager.GridServer.RequestNeighbours(m_regInfo);
 
             if (neighbours != null)
             {
@@ -820,7 +818,7 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
-                    this.commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
+                    commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
                     remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint);
                     //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
                 }
@@ -834,7 +832,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
         {
-            return this.commsManager.GridServer.RequestNeighbourInfo(regionHandle);
+            return commsManager.GridServer.RequestNeighbourInfo(regionHandle);
         }
 
         /// <summary>
@@ -847,7 +845,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks;
-            mapBlocks = this.commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
+            mapBlocks = commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
             remoteClient.SendMapBlock(mapBlocks);
         }
 
@@ -859,20 +857,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         /// <param name="lookAt"></param>
         /// <param name="flags"></param>
-        public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags)
+        public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, LLVector3 position,
+                                            LLVector3 lookAt, uint flags)
         {
-            if (regionHandle == this.m_regionHandle)
+            if (regionHandle == m_regionHandle)
             {
-                if (this.Avatars.ContainsKey(remoteClient.AgentId))
+                if (Avatars.ContainsKey(remoteClient.AgentId))
                 {
                     remoteClient.SendTeleportLocationStart();
                     remoteClient.SendLocalTeleport(position, lookAt, flags);
-                    this.Avatars[remoteClient.AgentId].Teleport(position);
+                    Avatars[remoteClient.AgentId].Teleport(position);
                 }
             }
             else
             {
-                RegionInfo reg = this.RequestNeighbouringRegionInfo(regionHandle);
+                RegionInfo reg = RequestNeighbouringRegionInfo(regionHandle);
                 if (reg != null)
                 {
                     remoteClient.SendTeleportLocationStart();
@@ -881,11 +880,10 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
-                    this.commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
-                    this.commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
+                    commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
+                    commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
 
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));
-
                 }
             }
         }
@@ -898,7 +896,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
         {
-            return this.commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
+            return commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
         }
 
         public void performParcelPrimCountUpdate()
@@ -908,7 +906,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_LandManager.finalizeLandPrimCountUpdate();
             m_LandManager.landPrimCountTainted = false;
         }
-        #endregion
 
+        #endregion
     }
 }
