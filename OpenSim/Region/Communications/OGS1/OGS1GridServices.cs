@@ -34,6 +34,7 @@ namespace OpenSim.Region.Communications.OGS1
             serversInfo = servers_info;
             httpServer = httpServe;
             httpServer.AddXmlRPCHandler("expect_user", this.ExpectUser);
+            httpServer.AddXmlRPCHandler("check", this.PingCheckReply);
             this.StartRemoting();
         }
 
@@ -247,6 +248,24 @@ namespace OpenSim.Region.Communications.OGS1
             Hashtable respData = (Hashtable)resp.Value;
             return respData;
         }
+
+        /// <summary>
+        /// A ping / version check
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public XmlRpcResponse PingCheckReply(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+
+            Hashtable respData = new Hashtable();
+            respData["online"] = "true";
+
+            response.Value = respData;
+
+            return response;
+        }
+
 
         // Grid Request Processing
         /// <summary>
