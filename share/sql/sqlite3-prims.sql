@@ -16,14 +16,14 @@ create table prims (
         EveryoneMask integer,
         BaseMask integer,
         -- vectors (converted from LLVector3)
-        PositionX integer,
-        PositionY integer,
-        PositionZ integer,
+        PositionX float,
+        PositionY float,
+        PositionZ float,
         -- quaternions (converted from LLQuaternion)
-        RotationX integer,
-        RotationY integer,
-        RotationZ integer,
-        RotationW integer
+        RotationX float,
+        RotationY float,
+        RotationZ float,
+        RotationW float
 );
 
 create index prims_parent on prims(ParentID);
@@ -36,9 +36,9 @@ create table primshapes (
         -- Shape is an enum 
         Shape integer, 
         -- vectors (converted from LLVector3)
-        ScaleX integer,
-        ScaleY integer,
-        ScaleZ integer,
+        ScaleX float,
+        ScaleY float,
+        ScaleZ float,
         -- paths
         PCode integer,
         PathBegin integer,
