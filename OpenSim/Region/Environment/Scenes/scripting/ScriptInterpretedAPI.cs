@@ -136,6 +136,7 @@ namespace OpenSim.Region.Scripting
         public Key osAvatarOnSitTarget()
         {
             //TODO: Follow this as Children is chanced to be of type entity to support ScenePresences
+            /*
             foreach (KeyValuePair<Key, EntityBase> Child in Task.Children)
             {
                 if (Child.Value is ScenePresence)
@@ -143,6 +144,7 @@ namespace OpenSim.Region.Scripting
                     return Child.Value.uuid;
                 }
             }
+            */
 
             return Key.Zero;
         }
