@@ -9,11 +9,11 @@ using System.Diagnostics;
 
 namespace SimpleApp
 {
-    public class MySceneObject : SceneObject
+    public class CpuCounterObject : SceneObject
     {
         private PerformanceCounter m_counter;
         
-        public MySceneObject(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public CpuCounterObject(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
             : base(world, eventManager, ownerID, localID, pos, shape )
         {
             String objectName = "Processor";
