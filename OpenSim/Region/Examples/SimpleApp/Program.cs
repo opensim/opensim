@@ -22,10 +22,6 @@ namespace SimpleApp
 {
     class Program : RegionApplicationBase, conscmd_callback
     {
-        public MyWorld m_scene;
-        private SceneObject m_sceneObject;
-        public MyNpcCharacter m_character;
-
         protected override LogBase CreateLog()
         {
             return new LogBase(null, "SimpleApp", this, false);
@@ -40,20 +36,21 @@ namespace SimpleApp
             LocalAssetServer assetServer = new LocalAssetServer();
             assetServer.SetServerInfo("http://localhost:8003/", "");
 
-            AssetCache m_assetCache = new AssetCache(assetServer);
+            m_assetCache = new AssetCache(assetServer);
         }
         
         public void Run()
         {
             base.StartUp();
 
-            CommunicationsLocal m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
+            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
 
             ScenePresence.PhysicsEngineFlying = true;
 
             IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
-
+            regionInfo.DataStore = "simpleapp_datastore.yap";
+            
             UDPServer udpServer;
 
             Scene scene = SetupScene(regionInfo, out udpServer);
@@ -64,10 +61,10 @@ namespace SimpleApp
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(138, 129, 27);
 
-            m_sceneObject = new MySceneObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
+            SceneObject m_sceneObject = new MySceneObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
             scene.AddEntity(m_sceneObject);
 
-            m_character = new MyNpcCharacter();
+            MyNpcCharacter m_character = new MyNpcCharacter();
             scene.AddNewClient(m_character, false);
           
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
@@ -107,7 +104,7 @@ namespace SimpleApp
         {
             Program app = new Program();
 
-            app.StartUp();
+            app.Run();
         }
     }
 }

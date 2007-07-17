@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return (this.phyScene);
             }
         }
-       
+
         private LandManager m_LandManager;
         public LandManager LandManager
         {
@@ -441,15 +441,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void LoadPrimsFromStorage()
         {
-            try
-            {
-                MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
-                this.localStorage.LoadPrimitives(this);
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Warn("World.cs: LoadPrimsFromStorage() - Failed with exception " + e.ToString());
-            }
+            MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
+            this.localStorage.LoadPrimitives(this);
         }
 
         /// <summary>

@@ -38,7 +38,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class SceneBase :  IWorld 
+    public abstract class SceneBase : IWorld
     {
         public Dictionary<LLUUID, EntityBase> Entities;
         protected ulong m_regionHandle;
@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public TerrainEngine Terrain;
 
-        public string m_datastore;
+        protected string m_datastore;
         public ILocalStorage localStorage;
 
         protected object m_syncRoot = new object();
@@ -76,44 +76,37 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>Successful or not</returns>
         public bool LoadStorageDLL(string dllName)
         {
-            try
+            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+            ILocalStorage store = null;
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
             {
-                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-                ILocalStorage store = null;
-
-                foreach (Type pluginType in pluginAssembly.GetTypes())
+                if (pluginType.IsPublic)
                 {
-                    if (pluginType.IsPublic)
+                    if (!pluginType.IsAbstract)
                     {
-                        if (!pluginType.IsAbstract)
+                        Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
+
+                        if (typeInterface != null)
                         {
-                            Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
+                            ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            store = plug;
 
-                            if (typeInterface != null)
-                            {
-                                ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                                store = plug;
-
-                                store.Initialise(this.m_datastore);
-                                break;
-                            }
-
-                            typeInterface = null;
+                            store.Initialise(this.m_datastore);
+                            break;
                         }
+
+                        typeInterface = null;
                     }
                 }
-                pluginAssembly = null;
-                this.localStorage = store;
-                return (store == null);
             }
-            catch (Exception e)
-            {
-                MainLog.Instance.Warn("World.cs: LoadStorageDLL() - Failed with exception " + e.ToString());
-                return false;
-            }
+            pluginAssembly = null;
+            this.localStorage = store;
+            return (store == null);
+
         }
 
-        
+
         /// <summary>
         /// Send the region heightmap to the client
         /// </summary>
@@ -150,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="agentID"></param>
         public abstract void RemoveClient(LLUUID agentID);
-       
+
         #endregion
 
         /// <summary>
@@ -190,6 +183,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
- 
+
     }
 }
