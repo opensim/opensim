@@ -210,9 +210,10 @@ namespace OpenSim.Framework.Types
 
                 this.DataStore = GetString(configData, "Datastore", "localworld.yap", "Filename for local storage");
                 
-                IPAddress internalAddress = GetIPAddress(configData, "InternalIPAddress", "0.0.0.0", "Internal IP Address for UDP client connections");
+                string internalAddress = GetString(configData, "InternalIPAddress", "0.0.0.0", "Internal IP Address for UDP client connections").ToString();
                 int internalPort = GetIPPort(configData, "InternalIPPort", "9000", "Internal IP Port for UDP client connections");
-                m_internalEndPoint = new IPEndPoint(internalAddress, internalPort);
+                IPAddress internalIPAddress = Dns.GetHostByName(internalAddress).AddressList[0];
+                m_internalEndPoint = new IPEndPoint(internalIPAddress, internalPort);
 
                 m_externalHostName = GetString(configData, "ExternalHostName", "127.0.0.1", "External Host Name");
 

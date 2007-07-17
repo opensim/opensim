@@ -27,6 +27,7 @@
 */
 using System;
 using System.Collections;
+using System.Net;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.UserManagement;
@@ -59,7 +60,7 @@ namespace OpenSim.Grid.UserServer
 
             // Destination
             Console.WriteLine("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " + SimInfo.regionLocY);
-            response.SimAddress = SimInfo.serverIP;
+            response.SimAddress = Dns.GetHostByName(SimInfo.serverIP).AddressList[0].ToString();
             response.SimPort = (Int32)SimInfo.serverPort;
             response.RegionX = SimInfo.regionLocX;
             response.RegionY = SimInfo.regionLocY;
