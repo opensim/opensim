@@ -56,7 +56,7 @@ namespace OpenSim.Region.Scripting.Examples
             string desc = prim.Description;
             string name = prim.Name;
             LLVector3 pos = prim.Pos;
-            LLVector3 rot = new LLVector3();
+            LLQuaternion rot = new LLQuaternion(prim.Rotation.x, prim.Rotation.y, prim.Rotation.z, prim.Rotation.w);
             LLVector3 scale = prim.Scale;
             LLVector3 rootPos = prim.WorldPos;
 
