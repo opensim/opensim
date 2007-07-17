@@ -51,7 +51,7 @@ namespace OpenSim.Region.Scripting
         /// <param name="member">The specific member being 'occupied' by the script</param>
         public ScriptInterpretedAPI(Scene world, libsecondlife.LLUUID member)
         {
-            m_object = world;
+            m_scene = world;
             m_object = member;
         }
 
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Scripting
             int parcelID = 0;
 
             Vector myPosition = Task.Pos;
-            Land myParcel = World.LandManager.getLandObject(myPosition.X, myPosition.Y, myPosition.Z);
+            Land myParcel = World.LandManager.getLandObject(myPosition.X, myPosition.Y);
 
             OpenSim.Framework.Console.MainLog.Instance.Warn("Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
             return;
@@ -135,6 +135,15 @@ namespace OpenSim.Region.Scripting
         [Obsolete("Unimplemented")]
         public Key osAvatarOnSitTarget()
         {
+            //TODO: Follow this as Children is chanced to be of type entity to support ScenePresences
+            foreach (KeyValuePair<Key, Primitive> Child in Task.Children)
+            {
+                if (Child.Value is ScenePresence)
+                {
+                    return Child.Value.uuid;
+                }
+            }
+
             return Key.Zero;
         }
 

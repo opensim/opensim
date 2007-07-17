@@ -16,7 +16,7 @@ namespace OpenSim.Region.Scripting
 
         public Dictionary<string, IScript> compile(string filename)
         {
-            LSLScript script = new LSLScript(filename);
+            LSLScript script = new LSLScript(filename, libsecondlife.LLUUID.Zero);
             Dictionary<string, IScript> returns = new Dictionary<string, IScript>();
 
             returns.Add(filename, script);

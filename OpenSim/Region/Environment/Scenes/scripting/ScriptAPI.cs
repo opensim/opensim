@@ -18,10 +18,10 @@ namespace OpenSim.Region.Scripting
         Scene scene;
         ScriptInterpretedAPI interpretedAPI;
 
-        public ScriptAPI(Scene world)
+        public ScriptAPI(Scene world, Key taskID)
         {
             scene = world;
-            interpretedAPI = new ScriptInterpretedAPI();
+            interpretedAPI = new ScriptInterpretedAPI(world, taskID);
         }
 
         public Object CallMethod(String method, Object[] args)

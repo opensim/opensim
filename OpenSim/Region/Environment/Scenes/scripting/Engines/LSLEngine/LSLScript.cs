@@ -12,8 +12,10 @@ namespace OpenSim.Region.Scripting.LSL
         ScriptInfo scriptInfo;
         LSL.Engine lindenScriptEngine;
 
-        public LSLScript(string filename)
+        public LSLScript(string filename, libsecondlife.LLUUID taskObject)
         {
+            scriptInfo.CreateTaskAPI(taskObject);
+
             lindenScriptEngine = new Engine();
             lindenScriptEngine.Start(filename);
         }

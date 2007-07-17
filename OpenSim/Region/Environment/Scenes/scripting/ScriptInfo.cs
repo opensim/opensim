@@ -52,7 +52,12 @@ namespace OpenSim.Region.Scripting
             world = scene;
             events = world.EventManager;
             logger = MainLog.Instance;
-            api = new ScriptAPI(scene);
+            api = new ScriptAPI(world, libsecondlife.LLUUID.Zero);
+        }
+
+        public void CreateTaskAPI(libsecondlife.LLUUID task)
+        {
+            api = new ScriptAPI(world, task);
         }
     }
 }
