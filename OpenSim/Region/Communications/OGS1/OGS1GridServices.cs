@@ -444,10 +444,17 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool IncomingArrival(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
-            if (this.listeners.ContainsKey(regionHandle))
+            try
             {
-                this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
-                return true;
+                if (this.listeners.ContainsKey(regionHandle))
+                {
+                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                    return true;
+                }
+            }
+            catch (System.Runtime.Remoting.RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
             }
             return false;
         }
