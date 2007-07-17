@@ -420,10 +420,17 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-            if (this.listeners.ContainsKey(regionHandle))
+            try
             {
-                this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
-                return true;
+                if (this.listeners.ContainsKey(regionHandle))
+                {
+                    this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                    return true;
+                }
+            }
+            catch (System.Runtime.Remoting.RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
             }
             return false;
         }
