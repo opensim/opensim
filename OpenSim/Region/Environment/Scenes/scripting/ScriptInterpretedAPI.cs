@@ -7,6 +7,7 @@ using Vector = libsecondlife.LLVector3;
 using LSLList = System.Collections.Generic.List<string>;
 
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Scripting
 {
@@ -16,6 +17,49 @@ namespace OpenSim.Region.Scripting
     /// <remarks>Avoid at all costs. This should ONLY be used for LSL.</remarks>
     class ScriptInterpretedAPI
     {
+        protected libsecondlife.LLUUID m_object;
+        protected Scene m_scene;
+
+        /// <summary>
+        /// The scene in which this script is acting
+        /// </summary>
+        public Scene World
+        {
+            get { return m_scene; }
+        }
+
+        /// <summary>
+        /// The id of the object our script is supposed to be acting in
+        /// </summary>
+        public Key ObjectID
+        {
+            get { return m_object; }
+        }
+
+        /// <summary>
+        /// The object our script is supposed to be in
+        /// </summary>
+        public SceneObject Task
+        {
+            get { return World.Objects[ObjectID]; }
+        }
+
+        /// <summary>
+        /// Creates a new ScriptInterpretedAPI for a specified object
+        /// </summary>
+        /// <param name="world">The scene the object is located in</param>
+        /// <param name="member">The specific member being 'occupied' by the script</param>
+        public ScriptInterpretedAPI(Scene world, libsecondlife.LLUUID member)
+        {
+            m_object = world;
+            m_object = member;
+        }
+
+        /// <summary>
+        /// Returns the absolute number of a integer value.
+        /// </summary>
+        /// <param name="val">Input</param>
+        /// <returns>Absolute number of input</returns>
         public int osAbs(int val)
         {
             return Math.Abs(val);
@@ -29,6 +73,11 @@ namespace OpenSim.Region.Scripting
         [Obsolete("Unimplemented")]
         public void osAddToLandPassList(Key avatar, float hours)
         {
+            int parcelID = 0;
+
+            Vector myPosition = Task.Pos;
+            Land myParcel = World.LandManager.getLandObject(myPosition.X, myPosition.Y, myPosition.Z);
+
             OpenSim.Framework.Console.MainLog.Instance.Warn("Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
             return;
         }
