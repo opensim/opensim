@@ -376,6 +376,13 @@ namespace OpenSim
                     }
                     break;
 
+                case "backup":
+                    for (int i = 0; i < m_localWorld.Count; i++)
+                    {
+                        ((Scene)m_localWorld[i]).Backup();
+                    }
+                    break;
+
                 case "quit":
                 case "shutdown":
                     Shutdown();
