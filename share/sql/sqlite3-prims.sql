@@ -3,21 +3,19 @@
 --
 
 create table prims (
-        LocalID integer primary key not null,
+        id integer primary key autoincrement,
         ParentID integer default 0,
         FullID char(36),
         CreationDate integer, 
         -- permissions
         OwnerID char(36),
+        LastOwnerID char(36),
         OwnerMask integer,
         NextOwnerMask integer,
         GroupMask integer,
         EveryoneMask integer,
         BaseMask integer,
         -- vectors (converted from LLVector3)
-        ScaleX integer,
-        ScaleY integer,
-        ScaleZ integer,
         PositionX integer,
         PositionY integer,
         PositionZ integer,
@@ -25,7 +23,22 @@ create table prims (
         RotationX integer,
         RotationY integer,
         RotationZ integer,
-        RotationW integer,
+        RotationW integer
+);
+
+create index prims_parent on prims(ParentID);
+create index prims_ownerid on prims(OwnerID);
+create index prims_lastownerid on prims(LastOwnerID);
+
+create table primshapes (
+        id integer primary key autoincrement,
+        prim_id integer not null,
+        -- Shape is an enum 
+        Shape integer, 
+        -- vectors (converted from LLVector3)
+        ScaleX integer,
+        ScaleY integer,
+        ScaleZ integer,
         -- paths
         PCode integer,
         PathBegin integer,
@@ -51,6 +64,4 @@ create table prims (
         Texture blob
 );
 
-create index prims_parent on prims(ParentID);
-create index prims_ownerid on prims(OwnerID);
-create index prims_fullid on prims(FullID);
+create index primshapes_parentid on primshapes(prim_id);
