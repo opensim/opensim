@@ -335,37 +335,45 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-            if (this.listeners.ContainsKey(regionHandle))
+            try
             {
-                this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
-                return true;
+                if (this.listeners.ContainsKey(regionHandle))
+                {
+                    this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                    return true;
+                }
+                RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    //don't want to be creating a new link to the remote instance every time like we are here
+                    bool retValue = false;
+
+
+                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                        typeof(OGS1InterRegionRemoting),
+                        "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
+                    if (remObject != null)
+                    {
+
+                        retValue = remObject.InformRegionOfChildAgent(regionHandle, agentData);
+                    }
+                    else
+                    {
+                        Console.WriteLine("remoting object not found");
+                    }
+                    remObject = null;
+
+
+                    return retValue;
+                }
+
+                return false;
             }
-            RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            catch (System.Runtime.Remoting.RemotingException e)
             {
-                //don't want to be creating a new link to the remote instance every time like we are here
-                bool retValue = false;
-
-               
-                OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
-                    typeof(OGS1InterRegionRemoting),
-                    "tcp://"+ regInfo.RemotingAddress+":"+regInfo.RemotingPort+"/InterRegions");
-                if (remObject != null)
-                {
-                    
-                    retValue = remObject.InformRegionOfChildAgent(regionHandle, agentData);
-                }
-                else
-                {
-                    Console.WriteLine("remoting object not found");
-                }
-                remObject = null;
-
-
-                return retValue;
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
             }
- 
-            return false;
         }
 
         /// <summary>
@@ -377,37 +385,45 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
-            if (this.listeners.ContainsKey(regionHandle))
+            try
             {
-                this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
-                return true;
+                if (this.listeners.ContainsKey(regionHandle))
+                {
+                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                    return true;
+                }
+                RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    bool retValue = false;
+
+
+                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                        typeof(OGS1InterRegionRemoting),
+                        "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
+                    if (remObject != null)
+                    {
+
+                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position);
+                    }
+                    else
+                    {
+                        Console.WriteLine("remoting object not found");
+                    }
+                    remObject = null;
+
+
+                    return retValue;
+                }
+                //TODO need to see if we know about where this region is and use .net remoting 
+                // to inform it. 
+                return false;
             }
-            RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            catch (System.Runtime.Remoting.RemotingException e)
             {
-                bool retValue = false;
-
-
-                OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
-                    typeof(OGS1InterRegionRemoting),
-                    "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
-                if (remObject != null)
-                {
-
-                    retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position);
-                }
-                else
-                {
-                    Console.WriteLine("remoting object not found");
-                }
-                remObject = null;
-
-
-                return retValue;
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
             }
-            //TODO need to see if we know about where this region is and use .net remoting 
-            // to inform it. 
-            return false;
         }
         #endregion
 
