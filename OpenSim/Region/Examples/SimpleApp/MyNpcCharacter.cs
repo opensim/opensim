@@ -132,10 +132,9 @@ namespace SimpleApp
         public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity) { }
 
         public virtual void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint) { }
-        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags) { }
-        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID, uint flags) { }
-        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID) { }
-        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID) { }
+
+        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem) { }
+        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem) { }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation) { }
 
         public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items) { }
@@ -152,8 +151,10 @@ namespace SimpleApp
         {
             Encoding enc = Encoding.ASCII;
 
-            this.OnAgentUpdate(this, movementFlag, bodyDirection);
-
+            if (this.OnAgentUpdate != null)
+            {
+                this.OnAgentUpdate(this, movementFlag, bodyDirection);
+            }
             if (this.flyState == 0)
             {
                 movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG;
@@ -172,8 +173,12 @@ namespace SimpleApp
 
             if (count >= 40)
             {
-                this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here, isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
+                if (OnChatFromViewer != null)
+                {
+                    this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here, isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
+                }
                 count = -1;
+                
             }
 
             count++;

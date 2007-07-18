@@ -38,6 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint BaseMask = FULL_MASK_PERMISSIONS;
 
         private PrimitiveBaseShape m_Shape;
+        private byte[] m_particleSystem = new byte[0];
 
         public SceneObject m_RootParent;
         public bool m_isRootPrim;
@@ -620,6 +621,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        public void AddNewParticleSystem(libsecondlife.Primitive.ParticleSystem pSystem)
+        {
+            this.m_particleSystem = pSystem.GetBytes();
+            ScheduleFullUpdate();
+        }
+
         #region Client Update Methods
 
         /// <summary>
@@ -653,7 +660,7 @@ namespace OpenSim.Region.Environment.Scenes
             lRot = new LLQuaternion(Rotation.x, Rotation.y, Rotation.z, Rotation.w);
 
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalId, m_Shape, lPos, lRot, m_flags, m_uuid,
-                                               OwnerID, m_text, ParentID);
+                                               OwnerID, m_text, ParentID, this.m_particleSystem);
         }
 
         /// <summary>

@@ -719,9 +719,8 @@ namespace OpenSim.Region.ClientStack
 
             this.OutPacket(attach);
         }
-
        
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
@@ -733,6 +732,7 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].OwnerID = ownerID;
             outPacket.ObjectData[0].Text = Helpers.StringToField( text );
             outPacket.ObjectData[0].ParentID = parentID;
+            outPacket.ObjectData[0].PSBlock = particleSystem;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
             byte[] rot = rotation.GetBytes();
@@ -740,7 +740,7 @@ namespace OpenSim.Region.ClientStack
             OutPacket(outPacket);
         }
 
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
+        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
@@ -752,6 +752,7 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].OwnerID = ownerID;
             outPacket.ObjectData[0].Text = Helpers.StringToField( text );
             outPacket.ObjectData[0].ParentID = parentID;
+            outPacket.ObjectData[0].PSBlock = particleSystem;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
 

@@ -19,7 +19,7 @@ namespace SimpleApp
             String objectName = "Processor";
             String counterName = "% Processor Time";
             String instanceName = "_Total";
-
+         
             m_counter = new PerformanceCounter(objectName, counterName, instanceName);
         }
 
