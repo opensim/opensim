@@ -37,7 +37,7 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.GenericConfig;
+using OpenSim.Framework.Configuration;
 using OpenSim.Physics.Manager;
 using OpenSim.Region.Caches;
 using OpenSim.Region.ClientStack;
@@ -85,6 +85,9 @@ namespace OpenSim
         /// </summary>
         public override void StartUp()
         {
+            m_log = new LogBase(m_logFilename, "Region", this, m_silent);
+            MainLog.Instance = m_log;
+
             base.StartUp();
 
             if (!m_sandbox)
@@ -108,27 +111,16 @@ namespace OpenSim
             {
                 string path2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
                 string path3 = Path.Combine(path2, "default.xml");
-                Console.WriteLine("Creating default region config file");
-                //TODO create default region
-                IGenericConfig defaultConfig = new XmlConfig(path3);
-                defaultConfig.LoadData();
-                defaultConfig.Commit();
-                defaultConfig.Close();
-                defaultConfig = null;
+
+                RegionInfo regionInfo = new RegionInfo("DEFAULT REGION CONFIG", path3);
                 configFiles = Directory.GetFiles(path, "*.xml");
             }
 
             for (int i = 0; i < configFiles.Length; i++)
             {
                 Console.WriteLine("Loading region config file");
-
-                IGenericConfig regionConfig = new XmlConfig(configFiles[i]);
-                RegionInfo regionInfo = new RegionInfo();
-                regionConfig.LoadData();
-                regionInfo.InitConfig(this.m_sandbox, regionConfig);
-                regionConfig.Close();
-
-
+                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i]);
+                
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
                 
@@ -159,21 +151,7 @@ namespace OpenSim
         
         protected override void Initialize()
         {
-            IGenericConfig localConfig = new XmlConfig(m_configFileName);
-            localConfig.LoadData();
-
-            if (m_useConfigFile)
-            {
-                SetupFromConfigFile(localConfig);
-            }
-
-            StartLog();
-
-            m_networkServersInfo.InitConfig(m_sandbox, localConfig);
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-
-            localConfig.Close();
-
             m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
 

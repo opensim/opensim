@@ -28,6 +28,7 @@
 using System;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Configuration;
 
 namespace OpenSim.Framework.Types
 {
@@ -44,175 +45,76 @@ namespace OpenSim.Framework.Types
         public string UserRecvKey = "";
         public bool isSandbox;
 
-        public uint DefaultHomeLocX = 1000;
-        public uint DefaultHomeLocY = 1000;
+        public uint DefaultHomeLocX = 0;
+        public uint DefaultHomeLocY = 0;
 
         public int HttpListenerPort = 9000;
         public int RemotingListenerPort = 8895;
 
-        public void InitConfig(bool sandboxMode, IGenericConfig configData)
+        private ConfigurationMember configMember;
+
+        public NetworkServersInfo(string description, string filename)
         {
-            this.isSandbox = sandboxMode;
+            configMember = new ConfigurationMember(filename, description, loadConfigurationOptions, handleConfigurationItem);
+            configMember.performConfigurationRetrieve();
+        }
 
-            try
+        public void loadConfigurationOptions()
+        {
+
+            configMember.addConfigurationOption("HttpListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "HTTP Listener Port", "9000");
+            configMember.addConfigurationOption("RemotingListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Remoting Listener Port", "8895");
+            configMember.addConfigurationOption("DefaultLocationX", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (X Axis)", "1000");
+            configMember.addConfigurationOption("DefaultLocationY", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (Y Axis)", "1000");
+
+            configMember.addConfigurationOption("GridServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Grid Server URL", "http://127.0.0.1:8001");
+            configMember.addConfigurationOption("GridSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null");
+            configMember.addConfigurationOption("GridRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null");
+
+            configMember.addConfigurationOption("UserServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "User Server URL", "http://127.0.0.1:8002");
+            configMember.addConfigurationOption("UserSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to user server", "null");
+            configMember.addConfigurationOption("UserRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from user server", "null");
+
+            configMember.addConfigurationOption("AssetServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Asset Server URL", "http://127.0.0.1:8003");
+        }
+
+        public void handleConfigurationItem(string configuration_key, object configuration_object)
+        {
+            switch (configuration_key)
             {
-                string attri = "";
-
-                attri = "";
-                attri = configData.GetAttribute("HttpListenerPort");
-                if (attri == "")
-                {
-                    string location = MainLog.Instance.CmdPrompt("Http Listener Port", "9000");
-                    configData.SetAttribute("HttpListenerPort", location);
-                    this.HttpListenerPort = Convert.ToInt32(location);
-                }
-                else
-                {
-                    this.HttpListenerPort = Convert.ToInt32(attri);
-                }
-
-                attri = "";
-                attri = configData.GetAttribute("RemotingListenerPort");
-                if (attri == "")
-                {
-                    string location = MainLog.Instance.CmdPrompt("Remoting Listener Port", "8895");
-                    configData.SetAttribute("RemotingListenerPort", location);
-                    this.RemotingListenerPort = Convert.ToInt32(location);
-                }
-                else
-                {
-                    this.RemotingListenerPort = Convert.ToInt32(attri);
-                }
-
-                if (sandboxMode)
-                {
-                    // default home location X
-                    attri = "";
-                    attri = configData.GetAttribute("DefaultLocationX");
-                    if (attri == "")
-                    {
-                        string location = MainLog.Instance.CmdPrompt("Default Home Location X", "1000");
-                        configData.SetAttribute("DefaultLocationX", location);
-                        this.DefaultHomeLocX = (uint)Convert.ToUInt32(location);
-                    }
-                    else
-                    {
-                        this.DefaultHomeLocX = (uint)Convert.ToUInt32(attri);
-                    }
-
-                    // default home location Y
-                    attri = "";
-                    attri = configData.GetAttribute("DefaultLocationY");
-                    if (attri == "")
-                    {
-                        string location = MainLog.Instance.CmdPrompt("Default Home Location Y", "1000");
-                        configData.SetAttribute("DefaultLocationY", location);
-                        this.DefaultHomeLocY = (uint)Convert.ToUInt32(location);
-                    }
-                    else
-                    {
-                        this.DefaultHomeLocY = (uint)Convert.ToUInt32(attri);
-                    }
-                }
-                if (!isSandbox)
-                {
-                    //Grid Server 
-                    attri = "";
-                    attri = configData.GetAttribute("GridServerURL");
-                    if (attri == "")
-                    {
-                        this.GridURL = MainLog.Instance.CmdPrompt("Grid server URL", "http://127.0.0.1:8001/");
-                        configData.SetAttribute("GridServerURL", this.GridURL);
-                    }
-                    else
-                    {
-                        this.GridURL = attri;
-                    }
-
-                    //Grid Send Key
-                    attri = "";
-                    attri = configData.GetAttribute("GridSendKey");
-                    if (attri == "")
-                    {
-                        this.GridSendKey = MainLog.Instance.CmdPrompt("Key to send to grid server", "null");
-                        configData.SetAttribute("GridSendKey", this.GridSendKey);
-                    }
-                    else
-                    {
-                        this.GridSendKey = attri;
-                    }
-
-                    //Grid Receive Key
-                    attri = "";
-                    attri = configData.GetAttribute("GridRecvKey");
-                    if (attri == "")
-                    {
-                        this.GridRecvKey = MainLog.Instance.CmdPrompt("Key to expect from grid server", "null");
-                        configData.SetAttribute("GridRecvKey", this.GridRecvKey);
-                    }
-                    else
-                    {
-                        this.GridRecvKey = attri;
-                    }
-
-                    //Grid Server 
-                    attri = "";
-                    attri = configData.GetAttribute("UserServerURL");
-                    if (attri == "")
-                    {
-                        this.UserURL= MainLog.Instance.CmdPrompt("User server URL", "http://127.0.0.1:8002/");
-                        configData.SetAttribute("UserServerURL", this.UserURL);
-                    }
-                    else
-                    {
-                        this.UserURL = attri;
-                    }
-
-                    //Grid Send Key
-                    attri = "";
-                    attri = configData.GetAttribute("UserSendKey");
-                    if (attri == "")
-                    {
-                        this.UserSendKey = MainLog.Instance.CmdPrompt("Key to send to user server", "null");
-                        configData.SetAttribute("UserSendKey", this.UserSendKey);
-                    }
-                    else
-                    {
-                        this.UserSendKey = attri;
-                    }
-
-                    //Grid Receive Key
-                    attri = "";
-                    attri = configData.GetAttribute("UserRecvKey");
-                    if (attri == "")
-                    {
-                        this.UserRecvKey = MainLog.Instance.CmdPrompt("Key to expect from user server", "null");
-                        configData.SetAttribute("UserRecvKey", this.UserRecvKey);
-                    }
-                    else
-                    {
-                        this.UserRecvKey = attri;
-                    }
-
-                    attri = "";
-                    attri = configData.GetAttribute("AssetServerURL");
-                    if (attri == "")
-                    {
-                        this.AssetURL = MainLog.Instance.CmdPrompt("Asset server URL", "http://127.0.0.1:8003/");
-                        configData.SetAttribute("AssetServerURL", this.GridURL);
-                    }
-                    else
-                    {
-                        this.AssetURL = attri;
-                    }
-
-                }
-                configData.Commit();
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
-                MainLog.Instance.Warn(e.ToString());
+                case "HttpListenerPort":
+                    this.HttpListenerPort = (int)configuration_object;
+                    break;
+                case "RemotingListenerPort":
+                    this.RemotingListenerPort = (int)configuration_object;
+                    break;
+                case "DefaultLocationX":
+                    this.DefaultHomeLocX = (uint)configuration_object;
+                    break;
+                case "DefaultLocationY":
+                    this.DefaultHomeLocY = (uint)configuration_object;
+                    break;
+                case "GridServerURL":
+                    this.GridURL = (string)configuration_object;
+                    break;
+                case "GridSendKey":
+                    this.GridSendKey = (string)configuration_object;
+                    break;
+                case "GridRecvKey":
+                    this.GridRecvKey = (string)configuration_object;
+                    break;
+                case "UserServerURL":
+                    this.UserURL = (string)configuration_object;
+                    break;
+                case "UserSendKey":
+                    this.UserSendKey = (string)configuration_object;
+                    break;
+                case "UserRecvKey":
+                    this.UserRecvKey = (string)configuration_object;
+                    break;
+                case "AssetServerURL":
+                    this.AssetURL = (string)configuration_object;
+                    break;
             }
         }
     }

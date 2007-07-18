@@ -35,7 +35,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.User;
 using OpenSim.Framework.Utilities;
-using OpenSim.GenericConfig;
+using OpenSim.Framework.Configuration;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -46,7 +46,6 @@ namespace OpenSim.Grid.UserServer
         private string ConfigDll = "OpenSim.Grid.UserServer.Config.dll";
         private string StorageDll = "OpenSim.Framework.Data.MySQL.dll";
         private UserConfig Cfg;
-        protected IGenericConfig localXMLConfig;
 
         public UserManager m_userManager;
 
@@ -83,14 +82,7 @@ namespace OpenSim.Grid.UserServer
 
         public void Startup()
         {
-            this.localXMLConfig = new XmlConfig("UserServerConfig.xml");
-            this.localXMLConfig.LoadData();
-            this.ConfigDB(this.localXMLConfig);
-            this.localXMLConfig.Close();
-
-            MainLog.Instance.Verbose("Main.cs:Startup() - Loading configuration");
-            Cfg = this.LoadConfigDll(this.ConfigDll);
-            Cfg.InitConfig();
+            this.Cfg = new UserConfig("USER SERVER", "UserServer_Config.xml");
 
             MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
@@ -177,34 +169,6 @@ namespace OpenSim.Grid.UserServer
             {
 
             }
-        }
-
-        private UserConfig LoadConfigDll(string dllName)
-        {
-            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-            UserConfig config = null;
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
-            {
-                if (pluginType.IsPublic)
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IUserConfig", true);
-
-                        if (typeInterface != null)
-                        {
-                            IUserConfig plug = (IUserConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            config = plug.GetConfigObject();
-                            break;
-                        }
-
-                        typeInterface = null;
-                    }
-                }
-            }
-            pluginAssembly = null;
-            return config;
         }
 
         public void Show(string ShowWhat)

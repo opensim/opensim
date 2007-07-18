@@ -30,7 +30,7 @@ using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 
-namespace OpenSim.Framework
+namespace OpenSim.Framework.Types
 {
     public class AgentCircuitManager
     {

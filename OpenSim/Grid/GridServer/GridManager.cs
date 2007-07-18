@@ -38,6 +38,8 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 
+using OpenSim.Framework.Configuration;
+
 namespace OpenSim.Grid.GridServer
 {
     class GridManager

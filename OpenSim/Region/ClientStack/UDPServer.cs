@@ -32,6 +32,7 @@ using System.Net.Sockets;
 using libsecondlife.Packets;
 using OpenSim.Assets;
 using OpenSim.Framework;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Region.Caches;

@@ -33,7 +33,8 @@ using System.Timers;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.GenericConfig;
+using OpenSim.Framework.Configuration;
+
 using Timer=System.Timers.Timer;
 
 namespace OpenSim.Grid.GridServer
@@ -47,7 +48,6 @@ namespace OpenSim.Grid.GridServer
         public GridConfig Cfg;
 
         public static OpenGrid_Main thegrid;
-        protected IGenericConfig localXMLConfig;
 
         public static bool setuponly;
 
@@ -105,14 +105,8 @@ namespace OpenSim.Grid.GridServer
 
         public void Startup()
         {
-            this.localXMLConfig = new XmlConfig("GridServerConfig.xml");
-            this.localXMLConfig.LoadData();
-            this.ConfigDB(this.localXMLConfig);
-            this.localXMLConfig.Close();
 
-            m_console.Verbose( "Main.cs:Startup() - Loading configuration");
-            Cfg = this.LoadConfigDll(this.ConfigDll);
-            Cfg.InitConfig();
+            this.Cfg = new GridConfig("GRID SERVER","GridServer_Config.xml"); //Yeah srsly, that's it.
             if (setuponly) Environment.Exit(0);
 
             m_console.Verbose( "Main.cs:Startup() - Connecting to Storage Server");
@@ -146,34 +140,6 @@ namespace OpenSim.Grid.GridServer
             Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
-        }
-
-        private GridConfig LoadConfigDll(string dllName)
-        {
-            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-            GridConfig config = null;
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
-            {
-                if (pluginType.IsPublic)
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IGridConfig", true);
-
-                        if (typeInterface != null)
-                        {
-                            IGridConfig plug = (IGridConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            config = plug.GetConfigObject();
-                            break;
-                        }
-
-                        typeInterface = null;
-                    }
-                }
-            }
-            pluginAssembly = null;
-            return config;
         }
 
         public void CheckSims(object sender, ElapsedEventArgs e)

@@ -38,6 +38,8 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 
+using OpenSim.Framework.Configuration;
+
 namespace OpenSim.Framework.UserManagement
 {
     public abstract class UserManagerBase

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenSim.Framework;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
