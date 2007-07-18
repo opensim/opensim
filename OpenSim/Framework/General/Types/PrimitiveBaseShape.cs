@@ -19,7 +19,7 @@ namespace OpenSim.Framework.Types
 
     public class PrimitiveBaseShape
     {
-        private ShapeType type = ShapeType.Unknown;
+        protected ShapeType type = ShapeType.Unknown;
 
         public byte PCode;
         public ushort PathBegin;
@@ -72,38 +72,56 @@ namespace OpenSim.Framework.Types
 
         public PrimitiveBaseShape Copy()
         {
-            return (PrimitiveBaseShape) this.MemberwiseClone();
+            return (PrimitiveBaseShape)this.MemberwiseClone();
+        }
+    }
+
+    public class BoxShape : PrimitiveBaseShape
+    {
+        public BoxShape()
+        {
+            type = ShapeType.Box;
         }
 
-        public static PrimitiveBaseShape DefaultBox()
+        public static BoxShape Default
         {
-            PrimitiveBaseShape primShape = new PrimitiveBaseShape();
+            get
+            {
+                BoxShape primShape = new BoxShape();
 
-            primShape.type = ShapeType.Box;
-            primShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-            primShape.PCode = 9;
-            primShape.PathBegin = 0;
-            primShape.PathEnd = 0;
-            primShape.PathScaleX = 0;
-            primShape.PathScaleY = 0;
-            primShape.PathShearX = 0;
-            primShape.PathShearY = 0;
-            primShape.PathSkew = 0;
-            primShape.ProfileBegin = 0;
-            primShape.ProfileEnd = 0;
-            primShape.PathCurve = 16;
-            primShape.ProfileCurve = 1;
-            primShape.ProfileHollow = 0;
-            primShape.PathRadiusOffset = 0;
-            primShape.PathRevolutions = 0;
-            primShape.PathTaperX = 0;
-            primShape.PathTaperY = 0;
-            primShape.PathTwist = 0;
-            primShape.PathTwistBegin = 0;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
-            primShape.TextureEntry = ntex.ToBytes();
+                primShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
+                primShape.PCode = 9;
+                primShape.PathBegin = 0;
+                primShape.PathEnd = 0;
+                primShape.PathScaleX = 0;
+                primShape.PathScaleY = 0;
+                primShape.PathShearX = 0;
+                primShape.PathShearY = 0;
+                primShape.PathSkew = 0;
+                primShape.ProfileBegin = 0;
+                primShape.ProfileEnd = 0;
+                primShape.PathCurve = 16;
+                primShape.ProfileCurve = 1;
+                primShape.ProfileHollow = 0;
+                primShape.PathRadiusOffset = 0;
+                primShape.PathRevolutions = 0;
+                primShape.PathTaperX = 0;
+                primShape.PathTaperY = 0;
+                primShape.PathTwist = 0;
+                primShape.PathTwistBegin = 0;
+                LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
+                primShape.TextureEntry = ntex.ToBytes();
 
-            return primShape;
+                return primShape;
+            }
+        }
+    }
+
+    public class SphereShape : PrimitiveBaseShape
+    {
+        public SphereShape()
+        {
+            type = ShapeType.Sphere;
         }
     }
 }

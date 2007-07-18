@@ -17,6 +17,7 @@ using System.Timers;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data;
 using OpenSim.Region.Environment;
+using System.IO;
 
 namespace SimpleApp
 {
@@ -58,16 +59,35 @@ namespace SimpleApp
             
             udpServer.ServerListener();
             
-            PrimitiveBaseShape shape = PrimitiveBaseShape.DefaultBox();
+            PrimitiveBaseShape shape = BoxShape.Default;
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(138, 129, 27);
 
-            SceneObject m_sceneObject = new CpuCounterObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
-            scene.AddEntity(m_sceneObject);
+            SceneObject sceneObject = new CpuCounterObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
+            scene.AddEntity(sceneObject);
 
             MyNpcCharacter m_character = new MyNpcCharacter( scene.EventManager );
             scene.AddNewClient(m_character, false);
           
+            DirectoryInfo dirInfo = new DirectoryInfo( "." );
+
+            float x = 0;
+            float z = 0;
+            
+            foreach( FileInfo fileInfo in dirInfo.GetFiles())
+            {
+                LLVector3 filePos = new LLVector3(100 + x, 129, 27 + z);
+                x = x + 2;
+                if( x > 50 )
+                {
+                    x = 0;
+                    z = z + 2;
+                }
+                
+                FileSystemObject fileObject = new FileSystemObject( scene, fileInfo, filePos );
+                scene.AddEntity(fileObject);
+            }
+            
             m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
             m_log.ReadLine();            
         }

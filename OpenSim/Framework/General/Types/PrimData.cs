@@ -194,35 +194,35 @@ namespace OpenSim.Framework.Types
             return bytes;
         }
 
-        public static PrimData DefaultCube()
-        {
-            PrimData primData = new PrimData();
-            primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            primData.FullID = LLUUID.Random();
-            primData.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-            primData.Rotation = new LLQuaternion(0, 0, 0, 1);
-            primData.PCode = 9;
-            primData.ParentID = 0;
-            primData.PathBegin = 0;
-            primData.PathEnd = 0;
-            primData.PathScaleX = 0;
-            primData.PathScaleY = 0;
-            primData.PathShearX = 0;
-            primData.PathShearY = 0;
-            primData.PathSkew = 0;
-            primData.ProfileBegin = 0;
-            primData.ProfileEnd = 0;
-            primData.PathCurve = 16;
-            primData.ProfileCurve = 1;
-            primData.ProfileHollow = 0;
-            primData.PathRadiusOffset = 0;
-            primData.PathRevolutions = 0;
-            primData.PathTaperX = 0;
-            primData.PathTaperY = 0;
-            primData.PathTwist = 0;
-            primData.PathTwistBegin = 0;
+        //public static PrimData DefaultCube()
+        //{
+        //    PrimData primData = new PrimData();
+        //    primData.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+        //    primData.FullID = LLUUID.Random();
+        //    primData.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
+        //    primData.Rotation = new LLQuaternion(0, 0, 0, 1);
+        //    primData.PCode = 9;
+        //    primData.ParentID = 0;
+        //    primData.PathBegin = 0;
+        //    primData.PathEnd = 0;
+        //    primData.PathScaleX = 0;
+        //    primData.PathScaleY = 0;
+        //    primData.PathShearX = 0;
+        //    primData.PathShearY = 0;
+        //    primData.PathSkew = 0;
+        //    primData.ProfileBegin = 0;
+        //    primData.ProfileEnd = 0;
+        //    primData.PathCurve = 16;
+        //    primData.ProfileCurve = 1;
+        //    primData.ProfileHollow = 0;
+        //    primData.PathRadiusOffset = 0;
+        //    primData.PathRevolutions = 0;
+        //    primData.PathTaperX = 0;
+        //    primData.PathTaperY = 0;
+        //    primData.PathTwist = 0;
+        //    primData.PathTwistBegin = 0;
 
-            return primData;
-        }
+        //    return primData;
+        //}
     }
 }

@@ -779,7 +779,7 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
-            outPacket.ObjectData[0].Text = enc.GetBytes(text);
+            outPacket.ObjectData[0].Text = Helpers.StringToField( text );
             outPacket.ObjectData[0].ParentID = parentID;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
@@ -798,7 +798,7 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
-            outPacket.ObjectData[0].Text = enc.GetBytes(text);
+            outPacket.ObjectData[0].Text = Helpers.StringToField( text );
             outPacket.ObjectData[0].ParentID = parentID;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
