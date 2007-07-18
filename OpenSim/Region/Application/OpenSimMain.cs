@@ -174,7 +174,7 @@ namespace OpenSim
 
             localConfig.Close();
 
-            m_assetCache = new AssetCache("OpenSim.Region.Communications.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+            m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
 
         protected override LogBase CreateLog()
