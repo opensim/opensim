@@ -27,6 +27,7 @@
 */
 using System;
 using System.Security.Cryptography;
+using System.Net;
 using System.Text;
 using libsecondlife;
 
@@ -176,6 +177,30 @@ namespace OpenSim.Framework.Utilities
 
             return output.ToString();
         }
+
+        /// <summary>
+        /// Returns a IP address from a specified DNS, favouring IPv4 addresses.
+        /// </summary>
+        /// <param name="dnsAddress">DNS Hostname</param>
+        /// <returns>An IP address, or null</returns>
+        public static IPAddress GetHostFromDNS(string dnsAddress)
+        {
+            IPAddress[] hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+
+            foreach (IPAddress host in hosts)
+            {
+                if (host.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return host;
+                }
+            }
+
+            if (hosts.Length > 0)
+                return hosts[0];
+
+            return null;
+        }
+
         public Util()
         {
 

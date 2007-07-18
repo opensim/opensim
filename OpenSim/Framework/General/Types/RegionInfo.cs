@@ -212,7 +212,7 @@ namespace OpenSim.Framework.Types
                 
                 string internalAddress = GetString(configData, "InternalIPAddress", "0.0.0.0", "Internal IP Address for UDP client connections").ToString();
                 int internalPort = GetIPPort(configData, "InternalIPPort", "9000", "Internal IP Port for UDP client connections");
-                IPAddress internalIPAddress = Dns.GetHostByName(internalAddress).AddressList[0];
+                IPAddress internalIPAddress = Util.GetHostFromDNS(internalAddress);
                 m_internalEndPoint = new IPEndPoint(internalIPAddress, internalPort);
 
                 m_externalHostName = GetString(configData, "ExternalHostName", "127.0.0.1", "External Host Name");
