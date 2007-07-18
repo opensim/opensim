@@ -42,6 +42,7 @@ namespace OpenSim.Framework.Types
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
         public byte[] TextureEntry; // a LL textureEntry in byte[] format
+        public byte[] ExtraParams;
 
         public ShapeType PrimType
         {
@@ -61,7 +62,7 @@ namespace OpenSim.Framework.Types
 
         public PrimitiveBaseShape()
         {
-
+            ExtraParams = new byte[1];
         }
 
         //void returns need to change of course
@@ -81,6 +82,7 @@ namespace OpenSim.Framework.Types
         public BoxShape()
         {
             type = ShapeType.Box;
+            ExtraParams = new byte[1];
         }
 
         public static BoxShape Default
@@ -111,6 +113,7 @@ namespace OpenSim.Framework.Types
                 primShape.PathTwistBegin = 0;
                 LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
                 primShape.TextureEntry = ntex.ToBytes();
+                primShape.ExtraParams = new byte[1];
 
                 return primShape;
             }
@@ -122,6 +125,7 @@ namespace OpenSim.Framework.Types
         public SphereShape()
         {
             type = ShapeType.Sphere;
+            ExtraParams = new byte[1];
         }
     }
 }

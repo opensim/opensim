@@ -588,6 +588,24 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
+        {
+            this.m_Shape.ExtraParams = new byte[data.Length + 7];
+            int i =0;
+            uint length = (uint) data.Length;
+            this.m_Shape.ExtraParams[i++] = 1;
+            this.m_Shape.ExtraParams[i++] = (byte)(type % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
+               
+            this.m_Shape.ExtraParams[i++] = (byte)(length % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
+            Array.Copy(data, 0, this.m_Shape.ExtraParams, i, data.Length);
+
+            this.ScheduleFullUpdate();
+        }
+
         #region Texture
 
         /// <summary>

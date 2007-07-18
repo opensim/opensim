@@ -218,8 +218,6 @@ namespace OpenSim.Region.ClientStack
                         if (OnAddPrim != null)
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack ;
-                            Console.WriteLine(addPacket.ToString());
-
                             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 
                             shape.PCode = addPacket.ObjectData.PCode;
@@ -256,6 +254,13 @@ namespace OpenSim.Region.ClientStack
                             {
                                 OnUpdatePrimShape(shapePacket.ObjectData[i].ObjectLocalID, shapePacket.ObjectData[i]);
                             }
+                        }
+                        break;
+                    case PacketType.ObjectExtraParams:
+                        ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
+                        if (OnUpdateExtraParams != null)
+                        {
+                            OnUpdateExtraParams(extraPar.ObjectData[0].ObjectLocalID, extraPar.ObjectData[0].ParamType, extraPar.ObjectData[0].ParamInUse, extraPar.ObjectData[0].ParamData);
                         }
                         break;
                     case PacketType.ObjectDuplicate:

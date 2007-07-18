@@ -548,6 +548,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdatePrimGroupMouseRotation += UpdatePrimRotation;
             client.OnUpdatePrimSingleRotation += UpdatePrimSingleRotation;
             client.OnUpdatePrimScale += UpdatePrimScale;
+            client.OnUpdateExtraParams += UpdateExtraParam;
             client.OnUpdatePrimShape += UpdatePrimShape;
             client.OnRequestMapBlocks += RequestMapBlocks;
             client.OnUpdatePrimTexture += UpdatePrimTexture;

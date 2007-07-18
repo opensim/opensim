@@ -327,6 +327,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void UpdateExtraParam(uint primLocalID, ushort type, bool inUse, byte[] data)
+        {
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
+                    if (prim != null)
+                    {
+                        prim.UpdateExtraParam(type, inUse, data);
+                        break;
+                    }
+                }
+            }
+        }
         /// <summary>
         /// 
         /// </summary>

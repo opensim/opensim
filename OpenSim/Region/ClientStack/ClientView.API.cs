@@ -59,6 +59,7 @@ namespace OpenSim.Region.ClientStack
         public event ObjectDuplicate OnObjectDuplicate;
         public event MoveObject OnGrapUpdate;
         public event AddNewPrim OnAddPrim;
+        public event ObjectExtraParams OnUpdateExtraParams;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectSelect OnObjectSelect;
         public event ObjectDeselect OnObjectDeselect;
@@ -968,6 +969,7 @@ namespace OpenSim.Region.ClientStack
             objectData.PathTaperY = primData.PathTaperY;
             objectData.PathTwist = primData.PathTwist;
             objectData.PathTwistBegin = primData.PathTwistBegin;
+            objectData.ExtraParams = primData.ExtraParams;
         }
 
         /// <summary>

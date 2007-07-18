@@ -47,7 +47,9 @@ namespace SimpleApp
         public event ObjectSelect OnDeGrapObject;
         public event MoveObject OnGrapUpdate;
 
+
         public event UpdateShape OnUpdatePrimShape;
+        public event ObjectExtraParams OnUpdateExtraParams;
         public event ObjectSelect OnObjectSelect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
