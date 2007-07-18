@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Types
         }
 
         //void returns need to change of course
-        public void GetMesh()
+        public virtual void GetMesh()
         {
 
         }

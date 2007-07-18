@@ -218,6 +218,7 @@ namespace OpenSim.Region.ClientStack
                         if (OnAddPrim != null)
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack ;
+                            Console.WriteLine(addPacket.ToString());
 
                             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 

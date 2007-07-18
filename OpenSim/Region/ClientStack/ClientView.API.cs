@@ -719,56 +719,7 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(attach);
         }
 
-        /// <summary>
-        /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
-        /// or big changes to a existing primitive.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="timeDilation"></param>
-        /// <param name="localID"></param>
-        /// <param name="primData"></param>
-        /// <param name="pos"></param>
-        /// <param name="rotation"></param>
-        /// <param name="textureID"></param>
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLQuaternion rotation, LLUUID textureID, uint flags)
-        {
-            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
-            outPacket.RegionData.RegionHandle = regionHandle;
-            outPacket.RegionData.TimeDilation = timeDilation;
-            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID, flags);
-            outPacket.ObjectData[0].ID = localID;
-            outPacket.ObjectData[0].FullID = primData.FullID;
-            byte[] pb = pos.GetBytes();
-            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
-            byte[] rot = rotation.GetBytes();
-            Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 48, rot.Length);
-            OutPacket(outPacket);
-        }
-
-        /// <summary>
-        /// Sends a full ObjectUpdatePacket to a client to inform it of a new primitive 
-        /// or big changes to a existing primitive.
-        /// Uses default rotation
-        /// </summary>
-        /// <param name="primData"></param>
-        /// <param name="pos"></param>
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimData primData, LLVector3 pos, LLUUID textureID, uint flags)
-        {
-            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
-            outPacket.RegionData.RegionHandle = regionHandle;
-            outPacket.RegionData.TimeDilation = timeDilation;
-            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primData, textureID, flags);
-            outPacket.ObjectData[0].ID = localID;
-            outPacket.ObjectData[0].FullID = primData.FullID;
-            byte[] pb = pos.GetBytes();
-            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
-
-            OutPacket(outPacket);
-        }
-
-
+       
         public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
@@ -978,22 +929,6 @@ namespace OpenSim.Region.ClientStack
             return dat;
         }
 
-
-        /// <summary>
-        /// Create the ObjectDataBlock for a ObjectUpdatePacket  (for a Primitive)
-        /// </summary>
-        /// <param name="primData"></param>
-        /// <returns></returns>
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimData primData, LLUUID textureID, uint flags)
-        {
-            ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
-            this.SetDefaultPrimPacketValues(objupdate);
-            objupdate.UpdateFlags = flags;
-            this.SetPrimPacketShapeData(objupdate, primData, textureID);
-
-            return objupdate;
-        }
-
         /// <summary>
         /// Create the ObjectDataBlock for a ObjectUpdatePacket  (for a Primitive)
         /// </summary>
@@ -1007,40 +942,6 @@ namespace OpenSim.Region.ClientStack
             this.SetPrimPacketShapeData(objupdate, primShape);
 
             return objupdate;
-        }
-
-
-        /// <summary>
-        /// Copy the data from a PrimData object to a ObjectUpdatePacket
-        /// </summary>
-        /// <param name="objectData"></param>
-        /// <param name="primData"></param>
-        protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimData primData, LLUUID textureID)
-        {
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(textureID);
-            objectData.TextureEntry = ntex.ToBytes();
-            objectData.OwnerID = primData.OwnerID;
-            objectData.ParentID = primData.ParentID;
-            objectData.PCode = primData.PCode;
-            objectData.PathBegin = primData.PathBegin;
-            objectData.PathEnd = primData.PathEnd;
-            objectData.PathScaleX = primData.PathScaleX;
-            objectData.PathScaleY = primData.PathScaleY;
-            objectData.PathShearX = primData.PathShearX;
-            objectData.PathShearY = primData.PathShearY;
-            objectData.PathSkew = primData.PathSkew;
-            objectData.ProfileBegin = primData.ProfileBegin;
-            objectData.ProfileEnd = primData.ProfileEnd;
-            objectData.Scale = primData.Scale;
-            objectData.PathCurve = primData.PathCurve;
-            objectData.ProfileCurve = primData.ProfileCurve;
-            objectData.ProfileHollow = primData.ProfileHollow;
-            objectData.PathRadiusOffset = primData.PathRadiusOffset;
-            objectData.PathRevolutions = primData.PathRevolutions;
-            objectData.PathTaperX = primData.PathTaperX;
-            objectData.PathTaperY = primData.PathTaperY;
-            objectData.PathTwist = primData.PathTwist;
-            objectData.PathTwistBegin = primData.PathTwistBegin;
         }
 
         protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimitiveBaseShape primData)
