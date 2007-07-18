@@ -12,7 +12,7 @@ namespace OpenSim.Region.Environment.Scenes
     public enum UpdateType
     {
         OutGoingOffset,
-        InComingNewPosition,
+        GroupPositionEdit,
         SinglePositionEdit, 
         ResizeOffset,
         SingleRotationEdit
@@ -139,7 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_localID = (uint)(localID);
             this.m_Shape = shape;
 
-            this.UpdateHandler(ref position, UpdateType.InComingNewPosition, this);
+            this.UpdateHandler(ref position, UpdateType.GroupPositionEdit, this);
             this.OffsetPosition = position;
         }
         #endregion
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupPosition(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-            this.UpdateHandler(ref newPos, UpdateType.InComingNewPosition, this);
+            this.UpdateHandler(ref newPos, UpdateType.GroupPositionEdit, this);
             this.OffsetPosition = newPos;
         }
 
@@ -217,7 +217,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupMouseRotation(LLVector3 pos, LLQuaternion rot)
         {
             this.RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
-            this.UpdateHandler(ref pos, UpdateType.InComingNewPosition, this);
+            this.UpdateHandler(ref pos, UpdateType.GroupPositionEdit, this);
             this.OffsetPosition = pos;
         }
 

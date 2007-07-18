@@ -173,7 +173,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 switch (direction)
                 {
-                    case UpdateType.InComingNewPosition:
+                    case UpdateType.GroupPositionEdit:
                         this.m_pos = new LLVector3(pos.X, pos.Y, pos.Z);
                         pos.X = 0;
                         pos.Y = 0;
