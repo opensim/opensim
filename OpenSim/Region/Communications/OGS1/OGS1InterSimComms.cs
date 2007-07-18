@@ -58,12 +58,26 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-            return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, agentData);
+            try
+            {
+                return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, agentData);
+            }
+            catch (System.Runtime.Remoting.RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+            }
         }
 
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
         {
-            return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position);
+            try
+            {
+                return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position);
+            }
+            catch (System.Runtime.Remoting.RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+            }
         }
     }
 }
