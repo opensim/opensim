@@ -150,8 +150,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
-
             this.m_children.Add(rootPrimitive);
+
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
         }
 
@@ -177,6 +177,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = this.m_regionHandle;
             Primitive newRoot = this.rootPrimitive.Copy(dupe, dupe);
             dupe.rootPrimitive = newRoot;
+
             dupe.m_children.Add(dupe.rootPrimitive);
             dupe.rootPrimitive.Pos = this.Pos;
             dupe.Rotation = this.Rotation;

@@ -354,7 +354,6 @@ namespace OpenSim.Region.Communications.OGS1
                         "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
                     if (remObject != null)
                     {
-
                         retValue = remObject.InformRegionOfChildAgent(regionHandle, agentData);
                     }
                     else
@@ -396,14 +395,11 @@ namespace OpenSim.Region.Communications.OGS1
                 if (regInfo != null)
                 {
                     bool retValue = false;
-
-
                     OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
                         typeof(OGS1InterRegionRemoting),
                         "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
                     if (remObject != null)
                     {
-
                         retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position);
                     }
                     else
@@ -411,7 +407,6 @@ namespace OpenSim.Region.Communications.OGS1
                         Console.WriteLine("remoting object not found");
                     }
                     remObject = null;
-
 
                     return retValue;
                 }

@@ -9,7 +9,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public delegate void PrimCountTaintedDelegate();
+   // public delegate void PrimCountTaintedDelegate();
 
     public class Primitive : EntityBase
     {
@@ -198,11 +198,13 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_RootParent = rootParent;
 
             // TODO: Copy this properly.
+
             dupe.m_inventoryItems = m_inventoryItems;
             dupe.m_children = new List<EntityBase>();
             dupe.m_Shape = m_Shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.m_world = m_world;
+
 
             uint newLocalID = m_world.PrimIDAllocate();
             dupe.m_uuid = LLUUID.Random();
@@ -227,9 +229,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_world.AcknowledgeNewPrim(dupe);
             dupe.TriggerOnPrimCountTainted();
 
+
             foreach (Primitive prim in m_children)
             {
                 Primitive primClone = prim.Copy(dupe, rootParent);
+
                 dupe.m_children.Add(primClone);
             }
 
@@ -320,6 +324,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Console.WriteLine("linking new prims " + linkObject.rootLocalID + " to me (" + this.LocalId + ")");
             //TODO check permissions
+
             m_children.Add(linkObject.rootPrimitive);
             linkObject.rootPrimitive.SetNewParent(this, m_RootParent);
 
@@ -350,11 +355,14 @@ namespace OpenSim.Region.Environment.Scenes
             Rotation = m_Parent.Rotation.Inverse() * Rotation;
             ScheduleFullUpdate();
 
+
             foreach (Primitive child in m_children)
             {
                 child.SetRootParent(rootParent, newParent, oldPos, oldRot);
             }
+
             m_children.Clear();
+
         }
 
         /// <summary>
@@ -374,6 +382,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_Parent = newParent;
             ParentID = newParent.LocalId;
             newParent.AddToChildrenList(this);
+
             m_RootParent = newRoot;
             m_RootParent.AddChildToList(this);
             Pos = oldPos;
@@ -387,7 +396,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 child.SetRootParent(newRoot, newParent, oldPos, oldRot);
             }
+
             m_children.Clear();
+
         }
 
         /// <summary>
@@ -527,6 +538,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateSingleRotation(LLQuaternion rot)
         {
             //Console.WriteLine("updating single prim rotation");
+
             Quaternion axRot = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             Quaternion oldParentRot = new Quaternion(Rotation.w, Rotation.x, Rotation.y, Rotation.z);
             Rotation = axRot;
@@ -598,9 +610,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SendFullUpdateForAllChildren(IClientAPI remoteClient)
         {
+
             SendFullUpdateToClient(remoteClient);
             for (int i = 0; i < m_children.Count; i++)
+
             {
+
                 if (m_children[i] is Primitive)
                 {
                     ((Primitive)m_children[i]).SendFullUpdateForAllChildren(remoteClient);
@@ -641,6 +656,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateForAllChildren(IClientAPI remoteClient)
         {
+
             SendTerseUpdateToClient(remoteClient);
             for (int i = 0; i < m_children.Count; i++)
             {

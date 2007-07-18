@@ -707,6 +707,10 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="whatToDo"></param>
         public void ForEachScenePresence(ForEachScenePresenceDelegate whatToDo)
         {
             foreach (ScenePresence presence in Avatars.Values)

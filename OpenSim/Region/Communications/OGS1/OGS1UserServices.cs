@@ -69,7 +69,6 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-
                 Hashtable param = new Hashtable();
                 param["avatar_uuid"] = avatarID.ToString();
                 IList parameters = new ArrayList();
