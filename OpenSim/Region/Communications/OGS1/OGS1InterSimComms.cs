@@ -64,7 +64,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (System.Runtime.Remoting.RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
             }
         }
 
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (System.Runtime.Remoting.RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
             }
         }
     }
