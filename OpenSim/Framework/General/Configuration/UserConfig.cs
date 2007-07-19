@@ -24,16 +24,16 @@ namespace OpenSim.Framework.Configuration
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_startup_message",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Default Startup Message","Welcome to OGS");
-            
-            configMember.addConfigurationOption("default_grid_server",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Default Grid Server URI","http://127.0.0.1:8001/");
-            configMember.addConfigurationOption("grid_send_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to send to grid server","null");
-            configMember.addConfigurationOption("grid_recv_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to expect from grid server","null");
+            configMember.addConfigurationOption("default_startup_message", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Startup Message", "Welcome to OGS",false);
+
+            configMember.addConfigurationOption("default_grid_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Grid Server URI", "http://127.0.0.1:8001/", false);
+            configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null", false);
+            configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null", false);
 
 
         }
 
-        public void handleIncomingConfiguration(string configuration_key, object configuration_result)
+        public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
         {
             switch (configuration_key)
             {
@@ -50,6 +50,8 @@ namespace OpenSim.Framework.Configuration
                     this.GridRecvKey = (string)configuration_result;
                     break;
             }
+
+            return true;
         }
     }
 }

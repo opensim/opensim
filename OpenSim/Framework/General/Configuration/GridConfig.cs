@@ -27,21 +27,21 @@ namespace OpenSim.Framework.Configuration
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("grid_owner",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"OGS Grid Owner","OGS development team");
-            configMember.addConfigurationOption("default_asset_server",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Default Asset Server URI","http://127.0.0.1:8003/");
-            configMember.addConfigurationOption("asset_send_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to send to asset server","null");
-            configMember.addConfigurationOption("asset_recv_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to expect from asset server","null");
+            configMember.addConfigurationOption("grid_owner", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "OGS Grid Owner", "OGS development team", false);
+            configMember.addConfigurationOption("default_asset_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Asset Server URI", "http://127.0.0.1:8003/", false);
+            configMember.addConfigurationOption("asset_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to asset server", "null", false);
+            configMember.addConfigurationOption("asset_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from asset server", "null", false);
 
-            configMember.addConfigurationOption("default_user_server",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Default User Server URI","http://127.0.0.1:8002/");
-            configMember.addConfigurationOption("user_send_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to send to user server","null");
-            configMember.addConfigurationOption("user_recv_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to expect from user server","null");
+            configMember.addConfigurationOption("default_user_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default User Server URI", "http://127.0.0.1:8002/", false);
+            configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to user server", "null", false);
+            configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from user server", "null", false);
 
-            configMember.addConfigurationOption("sim_send_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to send to a simulator","null");
-            configMember.addConfigurationOption("sim_recv_key",ConfigurationOption.ConfigurationTypes.TYPE_STRING,"Key to expect from a simulator","null");
+            configMember.addConfigurationOption("sim_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to a simulator", "null", false);
+            configMember.addConfigurationOption("sim_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from a simulator", "null", false);
 
         }
 
-        public void handleIncomingConfiguration(string configuration_key, object configuration_result)
+        public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
         {
             switch (configuration_key)
             {
@@ -73,6 +73,8 @@ namespace OpenSim.Framework.Configuration
                     this.SimRecvKey = (string)configuration_result;
                     break;
             }
+
+            return true;
         }
     }
 }

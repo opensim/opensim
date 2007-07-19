@@ -62,23 +62,23 @@ namespace OpenSim.Framework.Types
         public void loadConfigurationOptions()
         {
 
-            configMember.addConfigurationOption("HttpListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "HTTP Listener Port", "9000");
-            configMember.addConfigurationOption("RemotingListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Remoting Listener Port", "8895");
-            configMember.addConfigurationOption("DefaultLocationX", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (X Axis)", "1000");
-            configMember.addConfigurationOption("DefaultLocationY", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (Y Axis)", "1000");
+            configMember.addConfigurationOption("HttpListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "HTTP Listener Port", "9000", false);
+            configMember.addConfigurationOption("RemotingListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Remoting Listener Port", "8895", false);
+            configMember.addConfigurationOption("DefaultLocationX", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (X Axis)", "1000", false);
+            configMember.addConfigurationOption("DefaultLocationY", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (Y Axis)", "1000", false);
 
-            configMember.addConfigurationOption("GridServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Grid Server URL", "http://127.0.0.1:8001");
-            configMember.addConfigurationOption("GridSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null");
-            configMember.addConfigurationOption("GridRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null");
+            configMember.addConfigurationOption("GridServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Grid Server URL", "http://127.0.0.1:8001", false);
+            configMember.addConfigurationOption("GridSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null", false);
+            configMember.addConfigurationOption("GridRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null", false);
 
-            configMember.addConfigurationOption("UserServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "User Server URL", "http://127.0.0.1:8002");
-            configMember.addConfigurationOption("UserSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to user server", "null");
-            configMember.addConfigurationOption("UserRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from user server", "null");
+            configMember.addConfigurationOption("UserServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "User Server URL", "http://127.0.0.1:8002", false);
+            configMember.addConfigurationOption("UserSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to user server", "null", false);
+            configMember.addConfigurationOption("UserRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from user server", "null", false);
 
-            configMember.addConfigurationOption("AssetServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Asset Server URL", "http://127.0.0.1:8003");
+            configMember.addConfigurationOption("AssetServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Asset Server URL", "http://127.0.0.1:8003", false);
         }
 
-        public void handleConfigurationItem(string configuration_key, object configuration_object)
+        public bool handleConfigurationItem(string configuration_key, object configuration_object)
         {
             switch (configuration_key)
             {
@@ -116,6 +116,8 @@ namespace OpenSim.Framework.Types
                     this.AssetURL = (string)configuration_object;
                     break;
             }
+
+            return true;
         }
     }
 }

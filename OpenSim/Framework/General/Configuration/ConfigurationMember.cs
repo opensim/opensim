@@ -12,7 +12,7 @@ namespace OpenSim.Framework.Configuration
 {
     public class ConfigurationMember
     {
-        public delegate void ConfigurationOptionResult(string configuration_key, object configuration_result);
+        public delegate bool ConfigurationOptionResult(string configuration_key, object configuration_result);
         public delegate void ConfigurationOptionsLoad();
 
         private List<ConfigurationOption> configurationOptions = new List<ConfigurationOption>();
@@ -44,13 +44,14 @@ namespace OpenSim.Framework.Configuration
             resultFunction = result;
         }
         
-        public void addConfigurationOption(string configuration_key, ConfigurationOption.ConfigurationTypes configuration_type, string configuration_question, string configuration_default)
+        public void addConfigurationOption(string configuration_key, ConfigurationOption.ConfigurationTypes configuration_type, string configuration_question, string configuration_default, bool use_default_no_prompt)
         {
             ConfigurationOption configOption = new ConfigurationOption();
             configOption.configurationKey = configuration_key;
             configOption.configurationQuestion = configuration_question;
             configOption.configurationDefault = configuration_default;
             configOption.configurationType = configuration_type;
+            configOption.configurationUseDefaultNoPrompt = use_default_no_prompt;
 
             if (configuration_key != "" && configuration_question != "")
             {
@@ -116,7 +117,8 @@ namespace OpenSim.Framework.Configuration
                 bool ignoreNextFromConfig = false;
                 while (convertSuccess == false)
                 {
-
+                    
+                    string console_result = "";
                     string attribute = null;
                     if (useFile)
                     {
@@ -130,17 +132,24 @@ namespace OpenSim.Framework.Configuration
                         }
                     }
 
-                    string console_result = "";
                     if (attribute == null)
                     {
-                        if (configurationDescription.Trim() != "")
+                        if (configOption.configurationUseDefaultNoPrompt)
                         {
-                            console_result = MainLog.Instance.CmdPrompt(configurationDescription + ": " + configOption.configurationQuestion, configOption.configurationDefault);
+                            console_result = configOption.configurationDefault;
                         }
                         else
                         {
-                            console_result = MainLog.Instance.CmdPrompt(configOption.configurationQuestion, configOption.configurationDefault);
-                        }
+                        
+                            if (configurationDescription.Trim() != "")
+                            {
+                                console_result = MainLog.Instance.CmdPrompt(configurationDescription + ": " + configOption.configurationQuestion, configOption.configurationDefault);
+                            }
+                            else
+                            {
+                                console_result = MainLog.Instance.CmdPrompt(configOption.configurationQuestion, configOption.configurationDefault);
+                            }
+                        }                        
                     }
                     else
                     {
@@ -152,6 +161,14 @@ namespace OpenSim.Framework.Configuration
                         case ConfigurationOption.ConfigurationTypes.TYPE_STRING:
                             return_result = console_result;
                             convertSuccess = true;
+                            break;
+                        case ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY:
+                            if (console_result.Length > 0)
+                            {
+                                return_result = console_result;
+                                convertSuccess = true;
+                            }
+                            errorMessage = "a string that is not empty";
                             break;
                         case ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN:
                             bool boolResult;
@@ -290,13 +307,26 @@ namespace OpenSim.Framework.Configuration
                             xmlConfig.SetAttribute(configOption.configurationKey, console_result);
                         }
 
-                        
-                        this.resultFunction(configOption.configurationKey, return_result);
+
+                        if (!this.resultFunction(configOption.configurationKey, return_result))
+                        {
+                            Console.MainLog.Instance.Notice("The handler for the last configuration option denied that input, please try again.");
+                            convertSuccess = false;
+                            ignoreNextFromConfig = true;
+                        }
                     }
                     else
                     {
-                        MainLog.Instance.Warn("Incorrect result given, the configuration option must be " + errorMessage + ". Prompting for same option...");
-                        ignoreNextFromConfig = true;
+                        if (configOption.configurationUseDefaultNoPrompt)
+                        {
+                            MainLog.Instance.Error("Default given for '" + configOption.configurationKey + "' is not valid; the configuration result must be " + errorMessage + ". Will skip this option...");
+                            convertSuccess = true;
+                        }
+                        else
+                        {
+                            MainLog.Instance.Warn("Incorrect result given, the configuration option must be " + errorMessage + ". Prompting for same option...");
+                            ignoreNextFromConfig = true;
+                        }
                     }
                 }
             }

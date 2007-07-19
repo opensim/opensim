@@ -9,6 +9,7 @@ namespace OpenSim.Framework.Configuration
         public enum ConfigurationTypes
         {
             TYPE_STRING,
+            TYPE_STRING_NOT_EMPTY,
             TYPE_UINT16,
             TYPE_UINT32,
             TYPE_UINT64, 
@@ -30,5 +31,6 @@ namespace OpenSim.Framework.Configuration
         public string configurationDefault = "";
 
         public ConfigurationTypes configurationType = ConfigurationTypes.TYPE_STRING;
+        public bool configurationUseDefaultNoPrompt = false;
     }
 }
