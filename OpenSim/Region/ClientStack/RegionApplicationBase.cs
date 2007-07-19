@@ -131,6 +131,8 @@ namespace OpenSim.Region.ClientStack
                 scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
                 //TODO: Load parcels from storageManager
             }
+            scene.LandManager.resetSimLandObjects();
+
             scene.performParcelPrimCountUpdate();
             scene.StartTimer();
             return scene;
