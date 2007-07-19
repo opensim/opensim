@@ -43,7 +43,6 @@ namespace OpenSim.Grid.GridServer
     /// </summary>
     public class OpenGrid_Main : conscmd_callback
     {
-        private string ConfigDll = "OpenSim.Grid.GridServer.Config.dll";
         private string GridDll = "OpenSim.Framework.Data.MySQL.dll";
         public GridConfig Cfg;
 

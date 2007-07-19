@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Configuration
             configOption.configurationDefault = configuration_default;
             configOption.configurationType = configuration_type;
 
-            if (configuration_key != "" && configuration_question != "" && configuration_type != null)
+            if (configuration_key != "" && configuration_question != "")
             {
                 if (!configurationOptions.Contains(configOption))
                 {
