@@ -35,9 +35,11 @@ namespace OpenSim.Physics.Manager
 
     public abstract class PhysicsActor
     {
+#pragma warning disable 67
         public event PositionUpdate OnPositionUpdate;
         public event VelocityUpdate OnVelocityUpdate;
         public event OrientationUpdate OnOrientationUpdate;
+#pragma warning restore 67
 
         public static PhysicsActor Null
         {

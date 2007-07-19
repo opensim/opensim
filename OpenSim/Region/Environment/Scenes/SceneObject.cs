@@ -51,6 +51,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool isSelected = false;
 
+        public PhysicsScene PhysScene
+        {
+            get
+            {
+                return m_PhysScene;
+            }
+        }
+
+        public PhysicsActor PhysActor
+        {
+            get
+            {
+                return m_PhysActor;
+            }
+        }
+
         public LLUUID rootUUID
         {
             get

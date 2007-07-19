@@ -77,9 +77,7 @@ namespace OpenSim.Region.Capabilities
             httpListener.AddStreamHandler(new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, this.GetMapLayer ));
             httpListener.AddStreamHandler( new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST", capsBase + m_newInventory, this.NewAgentInventoryRequest));
 
-            AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);                       
-          //  AddLegacyCapsHandler( httpListener, eventQueue, ProcessEventQueue);
-         //  AddLegacyCapsHandler( httpListener, m_requestTexture, RequestTexture);
+            AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);           
         }
 
         [Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
