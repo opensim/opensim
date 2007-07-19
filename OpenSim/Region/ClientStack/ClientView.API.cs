@@ -73,10 +73,10 @@ namespace OpenSim.Region.ClientStack
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
         public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         public event UpdateVector OnUpdatePrimScale;
-        public event StatusChange OnChildAgentStatus;
-        public event GenericCall2 OnStopMovement;
-        public event NewAvatar OnNewAvatar;
-        public event GenericCall6 OnRemoveAvatar;
+        public event StatusChange OnChildAgentStatus;   // HOUSEKEEPING : Do we really need this?
+        public event GenericCall2 OnStopMovement;       // HOUSEKEEPING : Do we really need this?
+        public event NewAvatar OnNewAvatar;             // HOUSEKEEPING : Do we really need this?
+        public event GenericCall6 OnRemoveAvatar;       // HOUSEKEEPING : Do we really need this?
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
 

@@ -15,7 +15,7 @@ namespace OpenSim.Region.Environment.Scenes
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
         private ulong m_regionHandle;
-        private uint m_flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
+        private uint m_flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128; // HOUSEKEEPING : Do we really need this?
         //private Dictionary<LLUUID, InventoryItem> inventoryItems;
 
         public string SitName = "";

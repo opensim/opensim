@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Scenes
         public IClientAPI ControllingClient;
         public LLUUID current_anim;
         public int anim_seq;
-        private bool updateflag = false;
+        private bool updateflag = false; // HOUSEKEEPING : Do we really need this?
         private byte movementflag = 0;
         private List<NewForce> forcesList = new List<NewForce>();
         private short _updateCount = 0;
@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool newForce = false;
         private bool newAvatar = false;
-        private IScenePresenceBody m_body;
+        private IScenePresenceBody m_body; // HOUSEKEEPING : Do we really need this?
 
         protected RegionInfo m_regionInfo;
 

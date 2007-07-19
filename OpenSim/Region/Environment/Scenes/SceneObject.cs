@@ -43,29 +43,13 @@ namespace OpenSim.Region.Environment.Scenes
         private new Scene m_world;
         protected ulong m_regionHandle;
 
-        private bool physicsEnabled = false;
-        private PhysicsScene m_PhysScene;
-        private PhysicsActor m_PhysActor;
+        private bool physicsEnabled = false;    // HOUSEKEEPING : Do we really need this?
+        private PhysicsScene m_PhysScene;       // HOUSEKEEPING : Do we really need this?
+        private PhysicsActor m_PhysActor;       // HOUSEKEEPING : Do we really need this?
 
         private EventManager m_eventManager;
 
         public bool isSelected = false;
-
-        public PhysicsScene PhysScene
-        {
-            get
-            {
-                return m_PhysScene;
-            }
-        }
-
-        public PhysicsActor PhysActor
-        {
-            get
-            {
-                return m_PhysActor;
-            }
-        }
 
         public LLUUID rootUUID
         {
