@@ -64,10 +64,10 @@ namespace OpenSim.Region.Environment.Scenes
         private int landPrimCheckCount;
         private Mutex updateLock;
 
+        protected StorageManager storageManager;
         protected AgentCircuitManager authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
-        protected StorageManager storageManager;
 
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
@@ -95,13 +95,6 @@ namespace OpenSim.Region.Environment.Scenes
         public EstateManager EstateManager
         {
             get { return m_estateManager; }
-        }
-
-        private EventManager m_eventManager;
-
-        public EventManager EventManager
-        {
-            get { return m_eventManager; }
         }
 
         private ScriptManager m_scriptManager;

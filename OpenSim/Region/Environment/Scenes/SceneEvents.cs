@@ -28,6 +28,9 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnScriptConsoleDelegate(string[] args);
         public event OnScriptConsoleDelegate OnScriptConsole;
 
+        public delegate void OnShutdownDelegate();
+        public event OnShutdownDelegate OnShutdown;
+
         public void TriggerOnScriptConsole(string[] args)
         {
             if (OnScriptConsole != null)
@@ -77,6 +80,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 OnParcelPrimCountAdd(obj);
             }
+        }
+
+        public void TriggerShutdown()
+        {
+            if (OnShutdown != null)
+                OnShutdown();
         }
     }
 }

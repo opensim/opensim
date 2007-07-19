@@ -47,6 +47,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public TerrainEngine Terrain;
 
+        protected EventManager m_eventManager;
+
+        public EventManager EventManager
+        {
+            get { return m_eventManager; }
+        }
+
         protected string m_datastore;
 
         protected object m_syncRoot = new object();
@@ -134,7 +141,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                //TODO: Add cleanup code for storage manager, etc.
+                this.EventManager.TriggerShutdown();
             }
             catch (Exception e)
             {
