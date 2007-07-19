@@ -343,7 +343,6 @@ using System;
 
                             Common.SendToDebug("Last OPCODE was return command. Code chunk execution complete.");
                             return true;
-                            break;
                     }
                     return false;
                 }

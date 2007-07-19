@@ -44,8 +44,6 @@ namespace OpenSim.Region.Environment.Scenes
         public bool m_isRootPrim;
         public EntityBase m_Parent;
 
-        private EventManager m_eventManager;
-
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
         #region Properties

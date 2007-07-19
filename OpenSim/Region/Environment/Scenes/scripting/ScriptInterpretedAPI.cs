@@ -73,8 +73,6 @@ namespace OpenSim.Region.Scripting
         [Obsolete("Unimplemented")]
         public void osAddToLandPassList(Key avatar, float hours)
         {
-            int parcelID = 0;
-
             Vector myPosition = Task.Pos;
             Land myParcel = World.LandManager.getLandObject(myPosition.X, myPosition.Y);
 

@@ -117,7 +117,7 @@ namespace OpenSim.Region.Communications.OGS1
                     uint regY = Convert.ToUInt32(n["y"]);
                     if ((regionInfo.RegionLocX != regX) || (regionInfo.RegionLocY != regY))
                     {
-                        string externalIpStr = Dns.GetHostByName((string)n["sim_ip"]).AddressList[0].ToString();
+                        string externalIpStr = OpenSim.Framework.Utilities.Util.GetHostFromDNS((string)n["sim_ip"]).ToString();
                         uint port = Convert.ToUInt32(n["sim_port"]);
                         string externalUri = (string)n["sim_uri"];
 
