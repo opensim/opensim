@@ -439,7 +439,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
-            localStorage.LoadPrimitives(this);
+            List<SceneObject> NewObjectsList = storageManager.DataStore.LoadObjects();
+            foreach (SceneObject obj in NewObjectsList)
+            {
+                this.Objects.Add(obj.rootUUID, obj);
+            }
         }
 
         /// <summary>

@@ -48,7 +48,6 @@ namespace OpenSim.Region.Environment.Scenes
         public TerrainEngine Terrain;
 
         protected string m_datastore;
-        public ILocalStorage localStorage;
 
         protected object m_syncRoot = new object();
         private uint m_nextLocalId = 8880000;
@@ -68,44 +67,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// Loads the World heightmap
         /// </summary>
         public abstract void LoadWorldMap();
-
-        /// <summary>
-        /// Loads a new storage subsystem from a named library
-        /// </summary>
-        /// <param name="dllName">Storage Library</param>
-        /// <returns>Successful or not</returns>
-        public bool LoadStorageDLL(string dllName)
-        {
-            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-            ILocalStorage store = null;
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
-            {
-                if (pluginType.IsPublic)
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("ILocalStorage", true);
-
-                        if (typeInterface != null)
-                        {
-                            ILocalStorage plug = (ILocalStorage)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            store = plug;
-
-                            store.Initialise(this.m_datastore);
-                            break;
-                        }
-
-                        typeInterface = null;
-                    }
-                }
-            }
-            pluginAssembly = null;
-            this.localStorage = store;
-            return (store == null);
-
-        }
-
 
         /// <summary>
         /// Send the region heightmap to the client
@@ -173,7 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                this.localStorage.ShutDown();
+                //TODO: Add cleanup code for storage manager, etc.
             }
             catch (Exception e)
             {

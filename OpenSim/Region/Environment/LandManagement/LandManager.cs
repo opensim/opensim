@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
-            m_world.localStorage.RemoveLandObject(landList[local_id].landData);
+            // TODO: Put event here for storage manager to bind to.
             landList.Remove(local_id);
         }
 

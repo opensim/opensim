@@ -111,7 +111,6 @@ namespace OpenSim.Region.ClientStack
 
             udpServer.LocalWorld = scene;
 
-            scene.LoadStorageDLL("OpenSim.Region.Storage.LocalStorageDb4o.dll");
             scene.LoadWorldMap();
 
             scene.PhysScene = GetPhysicsScene( );
@@ -124,13 +123,13 @@ namespace OpenSim.Region.ClientStack
             {
                 m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
                 scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
+                //TODO: Load parcels from storageManager
             }
             else
             {
                 m_log.Notice("Parcels - No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
-                scene.localStorage.LoadLandObjects((ILocalStorageLandObjectReceiver)scene.LandManager);
+                //TODO: Load parcels from storageManager
             }
             scene.performParcelPrimCountUpdate();
             scene.StartTimer();
