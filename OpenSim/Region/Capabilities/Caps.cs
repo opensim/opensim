@@ -254,7 +254,7 @@ namespace OpenSim.Region.Capabilities
             asset.FullID = assetID;
             asset.Type = 0;
             asset.InvType = 0;
-            asset.Name = assetName; //"UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
+            asset.Name = assetName; 
             asset.Data = data;
             this.assetCache.AddAsset(asset);
         }
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Capabilities
             private LLUUID newAssetID;
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
-            private bool SaveImages = true;
+            private bool SaveImages = false;
             private string m_assetName = "";
 
             /// <summary>
