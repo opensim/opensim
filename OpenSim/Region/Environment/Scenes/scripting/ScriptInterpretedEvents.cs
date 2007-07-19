@@ -12,5 +12,12 @@ namespace OpenSim.Region.Scripting
     {
         public delegate void OnTouchStartDelegate(Key user);
         public event OnTouchStartDelegate OnTouchStart;
+
+
+        public void TriggerTouchStart(Key user)
+        {
+            if (OnTouchStart != null)
+                OnTouchStart(user);
+        }
     }
 }
