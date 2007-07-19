@@ -291,34 +291,6 @@ namespace OpenSim.Grid.AssetServer
             //info.loaded=true;
         }
 
-        /*private GridConfig LoadConfigDll(string dllName)
-        {
-            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
-            GridConfig config = null;
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
-            {
-                if (pluginType.IsPublic)
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IGridConfig", true);
-
-                        if (typeInterface != null)
-                        {
-                            IGridConfig plug = (IGridConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            config = plug.GetConfigObject();
-                            break;
-                        }
-
-                        typeInterface = null;
-                    }
-                }
-            }
-            pluginAssembly = null;
-            return config;
-        }*/
-
         public void CreateAsset(LLUUID assetId, byte[] assetData)
         {
             AssetBase asset = new AssetBase();

@@ -197,7 +197,7 @@ namespace OpenSim
 
         #endregion
 
-        private void SetupFromConfigFile(IGenericConfig configData)
+        /*private void SetupFromConfigFile(IGenericConfig configData)
         {
             // Log filename
             string attri = "";
@@ -295,7 +295,7 @@ namespace OpenSim
 
             configData.Commit();
 
-        }
+        }*/
 
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server

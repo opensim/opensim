@@ -197,7 +197,7 @@ namespace OpenSim.Grid.GridServer
         {
         }
 
-        private void ConfigDB(IGenericConfig configData)
+        /*private void ConfigDB(IGenericConfig configData)
         {
             try
             {
@@ -218,6 +218,6 @@ namespace OpenSim.Grid.GridServer
             {
 
             }
-        }
+        }*/
     }
 }

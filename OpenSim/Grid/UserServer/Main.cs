@@ -147,7 +147,7 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        private void ConfigDB(IGenericConfig configData)
+        /*private void ConfigDB(IGenericConfig configData)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace OpenSim.Grid.UserServer
             {
 
             }
-        }
+        }*/
 
         public void Show(string ShowWhat)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Net;
 using libsecondlife;
 
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Configuration.Interfaces;
 
 namespace OpenSim.Framework.Configuration
 {
@@ -22,12 +24,14 @@ namespace OpenSim.Framework.Configuration
         private ConfigurationOptionsLoad loadFunction;
         private ConfigurationOptionResult resultFunction;
 
+        private IGenericConfig configurationPlugin = null;
         public ConfigurationMember(string configuration_filename, string configuration_description, ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function)
         {
             this.configurationFilename = configuration_filename;
             this.configurationDescription = configuration_description;
             this.loadFunction = load_function;
             this.resultFunction = result_function;
+            this.configurationPlugin = this.LoadConfigDll("OpenSim.Framework.Configuration.XML.dll");
         }
 
         public void setConfigurationFilename(string filename)
@@ -91,18 +95,19 @@ namespace OpenSim.Framework.Configuration
             }
 
             bool useFile = true;
-            XmlConfiguration xmlConfig = null;
-            if (configurationFilename.Trim() != "")
+            if (configurationPlugin == null)
             {
-                xmlConfig = new XmlConfiguration(configurationFilename);
-                
+                MainLog.Instance.Error("Configuration Plugin NOT LOADED!");
+                return;
             }
 
-            if(xmlConfig != null)
+            if (configurationFilename.Trim() != "")
             {
-                xmlConfig.LoadData();
+                configurationPlugin.SetFileName(configurationFilename);
+                configurationPlugin.LoadData();
                 useFile = true;
             }
+
             else
             {
                 MainLog.Instance.Notice("XML Configuration Filename is not valid; will not save to the file.");
@@ -124,7 +129,7 @@ namespace OpenSim.Framework.Configuration
                     {
                         if (!ignoreNextFromConfig)
                         {
-                            attribute = xmlConfig.GetAttribute(configOption.configurationKey);
+                            attribute = configurationPlugin.GetAttribute(configOption.configurationKey);
                         }
                         else
                         {
@@ -304,7 +309,7 @@ namespace OpenSim.Framework.Configuration
                     {
                         if (useFile)
                         {
-                            xmlConfig.SetAttribute(configOption.configurationKey, console_result);
+                            configurationPlugin.SetAttribute(configOption.configurationKey, console_result);
                         }
 
 
@@ -333,9 +338,34 @@ namespace OpenSim.Framework.Configuration
 
             if(useFile)
             {
-                xmlConfig.Commit();
-                xmlConfig.Close();
+                configurationPlugin.Commit();
+                configurationPlugin.Close();
             }
-        }            
+        }
+
+        private IGenericConfig LoadConfigDll(string dllName)
+        {
+            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+            IGenericConfig plug = null;
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        Type typeInterface = pluginType.GetInterface("IGenericConfig", true);
+
+                        if (typeInterface != null)
+                        {
+                            plug = (IGenericConfig)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        }
+                    }
+                }
+            }
+
+            pluginAssembly = null;
+            return plug;
+        }
     }
 }
