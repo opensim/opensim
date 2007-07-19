@@ -51,13 +51,15 @@ namespace OpenSim.Region.Scripting.LSL
             String = 19
         }
 
-            
+#pragma warning disable 649
+
         public struct Vector
         {
             public UInt32 Z;
             public UInt32 Y;
             public UInt32 X;
         }
+
         public struct Rotation
         {
             public UInt32 S;
@@ -65,6 +67,8 @@ namespace OpenSim.Region.Scripting.LSL
             public UInt32 Y;
             public UInt32 X;
         }
+
+#pragma warning restore 649
 
         public enum Variable_Type_Codes
         {
