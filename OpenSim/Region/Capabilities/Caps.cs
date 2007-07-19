@@ -38,7 +38,7 @@ using OpenSim.Region.Caches;
 
 namespace OpenSim.Region.Capabilities
 {
-    public delegate void UpLoadedTexture(LLUUID assetID, LLUUID inventoryItem, byte[] data);
+    public delegate void UpLoadedTexture(string assetName, LLUUID assetID, LLUUID inventoryItem, byte[] data);
 
     public class Caps
     {
@@ -223,12 +223,14 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public LLSDAssetUploadResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest)
         {
+          //  Console.WriteLine("asset upload request via CAPS");
+            string assetName = llsdRequest.name;
             string capsBase = "/CAPS/" + m_capsObjectPath;
             LLUUID newAsset = LLUUID.Random();
             LLUUID newInvItem = LLUUID.Random();
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            AssetUploader uploader = new AssetUploader(newAsset, newInvItem, capsBase + uploaderPath, this.httpListener);
+            AssetUploader uploader = new AssetUploader(assetName, newAsset, newInvItem, capsBase + uploaderPath, this.httpListener);
             httpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase + uploaderPath;
 
@@ -245,14 +247,14 @@ namespace OpenSim.Region.Capabilities
         /// <param name="assetID"></param>
         /// <param name="inventoryItem"></param>
         /// <param name="data"></param>
-        public void UploadCompleteHandler(LLUUID assetID, LLUUID inventoryItem, byte[] data)
+        public void UploadCompleteHandler(string assetName, LLUUID assetID, LLUUID inventoryItem, byte[] data)
         {
             AssetBase asset;
             asset = new AssetBase();
             asset.FullID = assetID;
             asset.Type = 0;
             asset.InvType = 0;
-            asset.Name = "UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
+            asset.Name = assetName; //"UploadedTexture" + Util.RandomClass.Next(1, 1000).ToString("000");
             asset.Data = data;
             this.assetCache.AddAsset(asset);
         }
@@ -265,6 +267,8 @@ namespace OpenSim.Region.Capabilities
             private LLUUID newAssetID;
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
+            private bool SaveImages = true;
+            private string m_assetName = "";
 
             /// <summary>
             /// 
@@ -273,8 +277,9 @@ namespace OpenSim.Region.Capabilities
             /// <param name="inventoryItem"></param>
             /// <param name="path"></param>
             /// <param name="httpServer"></param>
-            public AssetUploader(LLUUID assetID, LLUUID inventoryItem, string path, BaseHttpServer httpServer)
+            public AssetUploader(string assetName, LLUUID assetID, LLUUID inventoryItem, string path, BaseHttpServer httpServer)
             {
+                m_assetName = assetName;
                 newAssetID = assetID;
                 inventoryItemID = inventoryItem;
                 uploaderPath = path;
@@ -299,12 +304,26 @@ namespace OpenSim.Region.Capabilities
                 res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
              
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
-                
+
+                if(this.SaveImages)
+                    this.SaveImageToFile(m_assetName + ".jp2", data);
+
                 if (OnUpLoad != null)
                 {
-                    OnUpLoad(newAssetID, inv, data);
+                    OnUpLoad(m_assetName, newAssetID, inv, data);
                 }
+                
                 return res;
+            }
+
+            private void SaveImageToFile(string filename, byte[] data)
+            {
+               
+               FileStream fs = File.Create(filename);
+               BinaryWriter bw = new BinaryWriter(fs);
+               bw.Write(data);
+               bw.Close();
+               fs.Close();
             }
         }
     }

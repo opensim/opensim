@@ -417,7 +417,7 @@ namespace OpenSim.Framework.UserManagement
                     Hashtable TempHash;
 
                     AgentInventory Library = new AgentInventory();
-                    Library.CreateRootFolder(AgentID, true);
+                    Library.CreateRootFolder(AgentID, false);
 
                     foreach (InventoryFolder InvFolder in Library.InventoryFolders.Values)
                     {
@@ -434,6 +434,7 @@ namespace OpenSim.Framework.UserManagement
                     InventoryRootHash["folder_id"] = Library.InventoryRoot.FolderID.ToStringHyphenated();
                     ArrayList InventoryRoot = new ArrayList();
                     InventoryRoot.Add(InventoryRootHash);
+                    userProfile.rootInventoryFolderID = Library.InventoryRoot.FolderID;
 
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());

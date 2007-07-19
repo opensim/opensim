@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Communications.Caches
             return returnFolder;
         }
 
-        public InventoryFolder CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
+        public InventoryFolder CreateNewSubFolder(LLUUID folderID, string folderName, ushort type )
         {
             InventoryFolder subFold = new InventoryFolder();
             subFold.name = folderName;
@@ -46,6 +46,16 @@ namespace OpenSim.Framework.Communications.Caches
             subFold.agentID = this.agentID;
             this.SubFolders.Add(subFold.folderID, subFold);
             return subFold;
+        }
+
+        public List<InventoryItemBase> RequestListOfItems()
+        {
+            List<InventoryItemBase> itemList = new List<InventoryItemBase>();
+            foreach (InventoryItemBase item in this.Items.Values)
+            {
+                itemList.Add(item);
+            }
+            return itemList;
         }
     }
 }

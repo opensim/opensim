@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
         private List<NewForce> forcesList = new List<NewForce>();
         private short _updateCount = 0;
         private Quaternion bodyRot;
-        private LLObject.TextureEntry avatarAppearanceTexture = null;
+       // private LLObject.TextureEntry avatarAppearanceTexture = null;
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
         private ulong m_regionHandle;
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Scenes
             Animations = new ScenePresence.AvatarAnimations();
             Animations.LoadAnims();
 
-            this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
+          //  this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
 
             //register for events
             ControllingClient.OnRequestWearables += this.SendOurAppearance;
@@ -605,6 +605,8 @@ namespace OpenSim.Region.Environment.Scenes
             br.Close();
             fStream.Close();
             DefaultTexture = data1;
+           // LLObject.TextureEntry textu = new LLObject.TextureEntry(data1, 0, data1.Length);
+           // Console.WriteLine("default texture entry: " + textu.ToString());
         }
 
         public class NewForce

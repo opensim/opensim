@@ -52,6 +52,10 @@ namespace OpenSim.Framework
        public event NewAvatar OnNewAvatar;
        public event GenericCall6 OnRemoveAvatar;
 
+       public event CreateInventoryFolder OnCreateNewInventoryFolder;
+       public event FetchInventoryDescendents OnFetchInventoryDescendents;
+       public event RequestTaskInventory OnRequestTaskInventory;
+
        public event UUIDNameRequest OnNameFromUUIDRequest;
 
        public event ParcelPropertiesRequest OnParcelPropertiesRequest;
@@ -124,8 +128,10 @@ namespace OpenSim.Framework
 
        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items){}
        public virtual void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item){}
-       public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname){}
+       public virtual void SendInventoryItemUpdate(InventoryItemBase Item) { }
+       public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName) { }
 
+       public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname){}
        public void SendAlertMessage(string message) { }
        public void SendAgentAlertMessage(string message, bool modal) { }
    }

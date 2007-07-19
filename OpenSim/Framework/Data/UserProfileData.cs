@@ -81,6 +81,8 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public int lastLogin;
 
+        public LLUUID rootInventoryFolderID;
+
         /// <summary>
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>

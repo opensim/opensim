@@ -52,12 +52,11 @@ namespace OpenSim.Framework.Inventory
 
         public virtual void Initialise()
         {
-            Wearables = new AvatarWearable[13]; //should be 12 of these
+            Wearables = new AvatarWearable[13]; 
             for (int i = 0; i < 13; i++)
             {
                 Wearables[i] = new AvatarWearable();
             }
-      
         }
 
         public bool CreateNewFolder(LLUUID folderID, ushort type)
@@ -96,11 +95,10 @@ namespace OpenSim.Framework.Inventory
             Folder.DefaultType = type;
             Folder.FolderName = folderName;
             this.InventoryFolders.Add(Folder.FolderID, Folder);
-
             return (true);
         }
 
-        public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName, LLUUID parent)
+        public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName, LLUUID parentID)
         {
             if (!this.InventoryFolders.ContainsKey(folderID))
             {
@@ -110,10 +108,9 @@ namespace OpenSim.Framework.Inventory
                 Folder.OwnerID = this.AgentID;
                 Folder.DefaultType = type;
                 Folder.FolderName = folderName;
-                Folder.ParentID = parent;
+                Folder.ParentID = parentID;
                 this.InventoryFolders.Add(Folder.FolderID, Folder);
             }
-
             return (true);
         }
 
@@ -135,7 +132,6 @@ namespace OpenSim.Framework.Inventory
                     return inv.FolderID;
                 }
             }
-
             return LLUUID.Zero;
         }
 

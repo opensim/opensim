@@ -80,7 +80,10 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape);
 
-    
+    public delegate void CreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
+    public delegate void FetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
+
+    public delegate void RequestTaskInventory(IClientAPI remoteClient, uint localID);
 
     public interface IClientAPI
     {
@@ -124,6 +127,10 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall2 OnStopMovement;
         event NewAvatar OnNewAvatar;
         event GenericCall6 OnRemoveAvatar;
+
+        event CreateInventoryFolder OnCreateNewInventoryFolder;
+        event FetchInventoryDescendents OnFetchInventoryDescendents;
+        event RequestTaskInventory OnRequestTaskInventory;
 
         event UUIDNameRequest OnNameFromUUIDRequest;
 
@@ -188,8 +195,10 @@ namespace OpenSim.Framework.Interfaces
     
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items);
         void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item);
-        void SendNameReply(LLUUID profileId, string firstname, string lastname);
+        void SendInventoryItemUpdate(InventoryItemBase Item);
+        void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
 
+        void SendNameReply(LLUUID profileId, string firstname, string lastname);
         void SendAlertMessage(string message);
         void SendAgentAlertMessage(string message, bool modal);
     }

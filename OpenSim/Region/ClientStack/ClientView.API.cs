@@ -81,6 +81,10 @@ namespace OpenSim.Region.ClientStack
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
 
+        public event CreateInventoryFolder OnCreateNewInventoryFolder;
+        public event FetchInventoryDescendents OnFetchInventoryDescendents;
+        public event RequestTaskInventory OnRequestTaskInventory;
+
         public event UUIDNameRequest OnNameFromUUIDRequest;
 
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
@@ -575,6 +579,48 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType, inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID, inventoryReply.InventoryData[0].GroupID, 100, inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID, inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
             this.OutPacket(inventoryReply);
+        }
+
+        public void SendInventoryItemUpdate(InventoryItemBase Item)
+        {
+            Encoding enc = Encoding.ASCII;
+            uint FULL_MASK_PERMISSIONS = 2147483647;
+            UpdateCreateInventoryItemPacket InventoryReply = new UpdateCreateInventoryItemPacket();
+            InventoryReply.AgentData.AgentID = this.AgentID;
+            InventoryReply.AgentData.SimApproved = true;
+            InventoryReply.InventoryData = new UpdateCreateInventoryItemPacket.InventoryDataBlock[1];
+            InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
+            InventoryReply.InventoryData[0].ItemID = Item.inventoryID;
+            InventoryReply.InventoryData[0].AssetID = Item.assetID;
+            InventoryReply.InventoryData[0].CreatorID = Item.creatorsID;
+            InventoryReply.InventoryData[0].BaseMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].CreationDate = 1000;
+            InventoryReply.InventoryData[0].Description = enc.GetBytes(Item.inventoryDescription + "\0");
+            InventoryReply.InventoryData[0].EveryoneMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].Flags = 0;
+            InventoryReply.InventoryData[0].FolderID = Item.parentFolderID;
+            InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            InventoryReply.InventoryData[0].GroupMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].InvType =(sbyte) Item.type;
+            InventoryReply.InventoryData[0].Name = enc.GetBytes(Item.inventoryName + "\0");
+            InventoryReply.InventoryData[0].NextOwnerMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].OwnerID = Item.avatarID;
+            InventoryReply.InventoryData[0].OwnerMask = FULL_MASK_PERMISSIONS;
+            InventoryReply.InventoryData[0].SalePrice = 100;
+            InventoryReply.InventoryData[0].SaleType = 0;
+            InventoryReply.InventoryData[0].Type =(sbyte) Item.type;
+            InventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+
+            OutPacket(InventoryReply);
+        }
+
+        public void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
+        {
+            ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
+            replytask.InventoryData.TaskID = taskID;
+            replytask.InventoryData.Serial = serial;
+            replytask.InventoryData.Filename = fileName;
+            OutPacket(replytask);
         }
 
         /// <summary>

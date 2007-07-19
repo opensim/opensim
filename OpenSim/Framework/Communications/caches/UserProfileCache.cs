@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Communications;
 
@@ -29,14 +30,17 @@ namespace OpenSim.Framework.Communications.Caches
             {
                 CachedUserInfo userInfo = new CachedUserInfo();
                 userInfo.UserProfile = this.RequestUserProfileForUser(userID);
-                this.m_parent.InventoryServer.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+                
                 if (userInfo.UserProfile != null)
                 {
+                    this.RequestInventoryForUser(userID, userInfo);
                     this.UserProfiles.Add(userID, userInfo);
                 }
                 else
                 {
                     //no profile for this user, what do we do now?
+                    Console.WriteLine("UserProfileCache.cs: user profile for user not found");
+                    
                 }
             }
             else
@@ -68,6 +72,52 @@ namespace OpenSim.Framework.Communications.Caches
 
         }
 
+        public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID)
+        {
+            if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            {
+                CachedUserInfo userInfo = this.UserProfiles[remoteClient.AgentId];
+                if (userInfo.RootFolder.folderID == parentID)
+                {
+                    userInfo.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+                }
+                else
+                {
+                    InventoryFolder parentFolder = userInfo.RootFolder.HasSubFolder(parentID);
+                    if (parentFolder != null)
+                    {
+                        parentFolder.CreateNewSubFolder(folderID, folderName, folderType);
+                    }
+                }
+            }
+        }
+
+        public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
+        {
+            if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            {
+                CachedUserInfo userInfo = this.UserProfiles[remoteClient.AgentId];
+                if (userInfo.RootFolder.folderID == folderID)
+                {
+                    if (fetchItems)
+                    {
+                        remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, userInfo.RootFolder.RequestListOfItems());
+                    }
+                }
+                else
+                {
+                    InventoryFolder parentFolder = userInfo.RootFolder.HasSubFolder(folderID);
+                    if(parentFolder != null)
+                    {
+                        if(fetchItems)
+                        {
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, parentFolder.RequestListOfItems());
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Request the user profile from User server
         /// </summary>
@@ -81,9 +131,20 @@ namespace OpenSim.Framework.Communications.Caches
         /// Request Iventory Info from Inventory server
         /// </summary>
         /// <param name="userID"></param>
-        private void RequestInventoryForUser(LLUUID userID)
+        private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
-
+           // this.m_parent.InventoryServer.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+            
+            //for now we manually create the root folder,
+            // but should be requesting all inventory from inventory server.
+            InventoryFolder rootFolder = new InventoryFolder();
+            rootFolder.agentID = userID;
+            rootFolder.folderID = userInfo.UserProfile.rootInventoryFolderID;
+            rootFolder.name = "My Inventory";
+            rootFolder.parentID = LLUUID.Zero;
+            rootFolder.type = 8;
+            rootFolder.version = 1;
+            userInfo.FolderReceive(userID, rootFolder);
         }
 
         /// <summary>

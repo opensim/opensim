@@ -373,7 +373,8 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                        this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
+                       // Console.WriteLine(request.ToString());
+                        //this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
                         break;
                     case PacketType.RequestXfer:
                         //Console.WriteLine(Pack.ToString());
@@ -382,9 +383,12 @@ namespace OpenSim.Region.ClientStack
                         this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
                         break;
                     case PacketType.CreateInventoryFolder:
-                        CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
-                        m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
-                        //Console.WriteLine(Pack.ToString());
+                        if (this.OnCreateNewInventoryFolder != null)
+                        {
+                            CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
+                            this.OnCreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
+                            //m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
+                        }
                         break;
                     case PacketType.CreateInventoryItem:
                         //Console.WriteLine(Pack.ToString());
@@ -405,8 +409,12 @@ namespace OpenSim.Region.ClientStack
                         m_inventoryCache.FetchInventory(this, FetchInventory);
                         break;
                     case PacketType.FetchInventoryDescendents:
-                        FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
-                        m_inventoryCache.FetchInventoryDescendents(this, Fetch);
+                        if (this.OnFetchInventoryDescendents != null)
+                        {
+                            FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
+                           // m_inventoryCache.FetchInventoryDescendents(this, Fetch);
+                            this.OnFetchInventoryDescendents(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID, Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems, Fetch.InventoryData.SortOrder);
+                        }
                         break;
                     case PacketType.UpdateInventoryItem:
                         UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
@@ -444,22 +452,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RequestTaskInventory:
                         // Console.WriteLine(Pack.ToString());
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
-                        ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
-                        //bool foundent = false;
-                        /* foreach (Entity ent in m_world.Entities.Values)
-                         {
-                             if (ent.localid == requesttask.InventoryData.LocalID)
-                             {
-                                 replytask.InventoryData.TaskID = ent.uuid;
-                                 replytask.InventoryData.Serial = 0;
-                                 replytask.InventoryData.Filename = new byte[0];
-                                 foundent = true;
-                             }
-                         }
-                         if (foundent)
-                         {
-                             this.OutPacket(replytask);
-                         }*/
+                        if (this.OnRequestTaskInventory != null)
+                        {
+                            this.OnRequestTaskInventory(this, requesttask.InventoryData.LocalID);
+                        }
                         break;
                     case PacketType.UpdateTaskInventory:
                         // Console.WriteLine(Pack.ToString());
