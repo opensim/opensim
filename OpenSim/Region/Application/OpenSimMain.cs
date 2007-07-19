@@ -361,6 +361,13 @@ namespace OpenSim
                     }
                     break;
 
+                case "alert":
+                    for (int i = 0; i < m_localWorld.Count; i++)
+                    {
+                        ((Scene)m_localWorld[i]).HandleAlertCommand(cmdparams);
+                    }
+                    break;
+
                 case "quit":
                 case "shutdown":
                     Shutdown();

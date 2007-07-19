@@ -910,5 +910,59 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+        #region Alert Methods
+        public void SendGeneralAlert(string message)
+        {
+            foreach (ScenePresence presence in this.Avatars.Values)
+            {
+                presence.ControllingClient.SendAlertMessage(message);
+            }
+        }
+
+        public void SendAlertToUser(LLUUID agentID, string message, bool modal)
+        {
+            if (this.Avatars.ContainsKey(agentID))
+            {
+                this.Avatars[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
+            }
+        }
+
+        public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
+        {
+            foreach (ScenePresence presence in this.Avatars.Values)
+            {
+                if ((presence.firstname == firstName) && (presence.lastname == lastName))
+                {
+                    presence.ControllingClient.SendAgentAlertMessage(message, modal);
+                    break;
+                }
+            }
+        }
+
+        public void HandleAlertCommand(string[] commandParams)
+        {
+            if (commandParams[0] == "general")
+            {
+                string message = this.CombineParams(commandParams, 1);
+                this.SendGeneralAlert(message);
+            }
+            else
+            {
+                string message = this.CombineParams(commandParams, 2);
+                this.SendAlertToUser(commandParams[0], commandParams[1], message, false);
+            }
+        }
+
+        private string CombineParams(string[] commandParams, int pos)
+        {
+            string result = "";
+            for (int i = pos; i < commandParams.Length; i++)
+            {
+                result += commandParams[i]+ " ";
+            }
+            return result;
+        }
+        #endregion
     }
 }

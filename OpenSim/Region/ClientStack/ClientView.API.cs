@@ -36,6 +36,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -574,6 +575,31 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType, inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID, inventoryReply.InventoryData[0].GroupID, 100, inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID, inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
             this.OutPacket(inventoryReply);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        public void SendAlertMessage(string message)
+        {
+            AlertMessagePacket alertPack = new AlertMessagePacket();
+            alertPack.AlertData.Message = Helpers.StringToField(message);
+            OutPacket(alertPack);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="modal"></param>
+        public void SendAgentAlertMessage(string message, bool modal)
+        {
+            AgentAlertMessagePacket alertPack = new AgentAlertMessagePacket();
+            alertPack.AgentData.AgentID = this.AgentID;
+            alertPack.AlertData.Message = Helpers.StringToField(message);
+            alertPack.AlertData.Modal = modal;
+            OutPacket(alertPack);
         }
 
         #region Appearance/ Wearables Methods

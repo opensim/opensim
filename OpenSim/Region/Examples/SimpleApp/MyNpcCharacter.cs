@@ -141,6 +141,9 @@ namespace SimpleApp
         public virtual void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item) { }
         public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname) { }
 
+        public void SendAlertMessage(string message) { }
+        public void SendAgentAlertMessage(string message, bool modal) { }
+
         public virtual void SendRegionHandshake(RegionInfo regionInfo)
         {
             this.OnRegionHandShakeReply(this);

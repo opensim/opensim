@@ -225,7 +225,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Roation
         public void UpdateGroupRotation(LLQuaternion rot)
         {
-            this.m_rootPart.RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
+            this.m_rootPart.UpdateRotation(rot);
         }
 
         /// <summary>
@@ -233,9 +233,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
-        public void UpdateGroupMouseRotation(LLVector3 pos, LLQuaternion rot)
+        public void UpdateGroupRotation(LLVector3 pos, LLQuaternion rot)
         {
-            this.m_rootPart.RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
+            this.m_rootPart.UpdateRotation(rot);
             this.m_pos = pos;
         }
 

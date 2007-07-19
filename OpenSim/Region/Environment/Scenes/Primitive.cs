@@ -9,7 +9,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-   // public delegate void PrimCountTaintedDelegate();
+    public delegate void PrimCountTaintedDelegate();
 
     public class Primitive : EntityBase
     {
