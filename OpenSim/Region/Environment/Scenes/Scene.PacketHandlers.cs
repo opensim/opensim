@@ -256,7 +256,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("Attempted to duplicate nonexistant prim");
+                OpenSim.Framework.Console.MainLog.Instance.Warn("client", "Attempted to duplicate nonexistant prim");
             }
 
         }

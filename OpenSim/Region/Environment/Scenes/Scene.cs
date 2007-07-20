@@ -248,7 +248,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("World.cs: Update() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("scene", "World.cs: Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
         }
@@ -295,7 +295,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("terrain", "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -326,7 +326,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("terrain", "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -352,7 +352,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("terrain", "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
             }
         }
 
@@ -402,7 +402,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("terrain", "World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
@@ -784,7 +784,7 @@ namespace OpenSim.Region.Environment.Scenes
                     cap.RegisterHandlers();
                     if (capsHandlers.ContainsKey(agent.AgentID))
                     {
-                        MainLog.Instance.Warn("Adding duplicate CAPS entry for user " +
+                        MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
                                               agent.AgentID.ToStringHyphenated());
                         capsHandlers[agent.AgentID] = cap;
                     }

@@ -158,13 +158,13 @@ namespace OpenSim.Grid.AssetServer
             try
             {
                 db = Db4oFactory.OpenFile("gridassets.yap");
-                MainLog.Instance.Verbose("Main.cs:setupDB() - creation");
+                MainLog.Instance.Verbose("storage", "Main.cs:setupDB() - creation");
             }
             catch (Exception e)
             {
                 db.Close();
-                MainLog.Instance.Warn("Main.cs:setupDB() - Exception occured");
-                MainLog.Instance.Warn(e.ToString());
+                MainLog.Instance.Warn("storage", "Main.cs:setupDB() - Exception occured");
+                MainLog.Instance.Warn("storage", e.ToString());
             }
             if (!yapfile)
             {

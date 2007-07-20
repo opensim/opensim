@@ -329,7 +329,7 @@ namespace OpenSim.Framework.Configuration
                         }
                         else
                         {
-                            MainLog.Instance.Warn("Incorrect result given, the configuration option must be " + errorMessage + ". Prompting for same option...");
+                            MainLog.Instance.Warn("configuration","Incorrect result given, the configuration option must be " + errorMessage + ". Prompting for same option...");
                             ignoreNextFromConfig = true;
                         }
                     }

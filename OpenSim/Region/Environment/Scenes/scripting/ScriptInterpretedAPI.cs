@@ -76,14 +76,14 @@ namespace OpenSim.Region.Scripting
             Vector myPosition = Task.Pos;
             Land myParcel = World.LandManager.getLandObject(myPosition.X, myPosition.Y);
 
-            OpenSim.Framework.Console.MainLog.Instance.Warn("Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
+            OpenSim.Framework.Console.MainLog.Instance.Warn("script", "Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
             return;
         }
 
         [Obsolete("Unimplemented")]
         public void osAdjustSoundVolume(float volume)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Warn("Unimplemented function called by script: osAdjustSoundVolume(float volume)");
+            OpenSim.Framework.Console.MainLog.Instance.Warn("script", "Unimplemented function called by script: osAdjustSoundVolume(float volume)");
             return;
         }
 

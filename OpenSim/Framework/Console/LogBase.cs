@@ -73,14 +73,18 @@ namespace OpenSim.Framework.Console
             Log.Close();
         }
 
+        [Obsolete("Log.WriteLine is obsolete, use Warn / Error / Verbose instead.")]
         public void Write(string format, params object[] args)
         {
+            // HOUSEKEEPING : Will remove once use is removed.
             Notice(format, args);
             return;
         }
 
+        [Obsolete("Log.WriteLine is obsolete, use Warn / Error / Verbose instead.")]
         public void WriteLine(LogPriority importance, string format, params object[] args)
         {
+            // HOUSEKEEPING : Will remove once use is removed.
             Log.WriteLine(format, args);
             Log.Flush();
             if (!m_silent)
@@ -249,6 +253,7 @@ namespace OpenSim.Framework.Console
 
         private void WritePrefixLine(ConsoleColor color, string sender)
         {
+            sender = sender.ToUpper();
             Log.WriteLine("[" + sender + "] ");
             Log.Flush();
 

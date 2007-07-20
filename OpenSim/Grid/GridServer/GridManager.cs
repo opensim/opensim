@@ -112,7 +112,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Warn("Storage: unable to write log via " + kvp.Key);
+                    MainLog.Instance.Warn("storage", "Unable to write log via " + kvp.Key);
                 }
             }
         }
@@ -131,7 +131,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Warn("Message from Storage: " + e.Message);
+                    MainLog.Instance.Warn("storage", "getRegion - " + e.Message);
                 }
             }
             return null;
@@ -152,7 +152,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch
                 {
-                    MainLog.Instance.Warn("Storage: Unable to find region " + handle.ToString() + " via " + kvp.Key);
+                    MainLog.Instance.Warn("storage", "Unable to find region " + handle.ToString() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -176,7 +176,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch
                 {
-                    MainLog.Instance.Warn("Storage: Unable to query regionblock via " + kvp.Key);
+                    MainLog.Instance.Warn("storage", "Unable to query regionblock via " + kvp.Key);
                 }
             }
 
@@ -288,24 +288,24 @@ namespace OpenSim.Grid.GridServer
                         switch(insertResponse)
                         {
                             case DataResponse.RESPONSE_OK:
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("New sim creation successful: " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("grid", "New sim creation successful: " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_ERROR:
-                                OpenSim.Framework.Console.MainLog.Instance.Warn("New sim creation failed (Error): " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Warn("storage", "New sim creation failed (Error): " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_INVALIDCREDENTIALS:
-                                OpenSim.Framework.Console.MainLog.Instance.Warn("New sim creation failed (Invalid Credentials): " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Warn("storage", "New sim creation failed (Invalid Credentials): " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_AUTHREQUIRED:
-                                OpenSim.Framework.Console.MainLog.Instance.Warn("New sim creation failed (Authentication Required): " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Warn("storage", "New sim creation failed (Authentication Required): " + TheSim.regionName);
                                 break;
                         }
                         
                     }
                     catch (Exception e)
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Warn("Storage: Unable to add region " + TheSim.UUID.ToStringHyphenated() + " via " + kvp.Key);
-                        OpenSim.Framework.Console.MainLog.Instance.Warn(e.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Warn("storage", "Unable to add region " + TheSim.UUID.ToStringHyphenated() + " via " + kvp.Key);
+                        OpenSim.Framework.Console.MainLog.Instance.Warn("storage", e.ToString());
                     }
                 }
 
@@ -687,12 +687,12 @@ namespace OpenSim.Grid.GridServer
                         if ((reserveData != null && reserveData.gridRecvKey == TheSim.regionRecvKey) || (reserveData == null && authkeynode.InnerText != TheSim.regionRecvKey))
                         {
                             kvp.Value.AddProfile(TheSim);
-                            MainLog.Instance.Verbose("New sim added to grid (" + TheSim.regionName + ")");
+                            MainLog.Instance.Verbose("grid", "New sim added to grid (" + TheSim.regionName + ")");
                             logToDB(TheSim.UUID.ToStringHyphenated(), "RestSetSimMethod", "", 5, "Region successfully updated and connected to grid.");
                         }
                         else
                         {
-                            MainLog.Instance.Warn("Unable to update region (RestSetSimMethod): Incorrect reservation auth key.");// Wanted: " + reserveData.gridRecvKey + ", Got: " + TheSim.regionRecvKey + ".");
+                            MainLog.Instance.Warn("grid", "Unable to update region (RestSetSimMethod): Incorrect reservation auth key.");// Wanted: " + reserveData.gridRecvKey + ", Got: " + TheSim.regionRecvKey + ".");
                             return "Unable to update region (RestSetSimMethod): Incorrect auth key.";
                         }
                     }

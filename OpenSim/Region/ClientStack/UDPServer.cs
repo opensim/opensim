@@ -122,7 +122,7 @@ namespace OpenSim.Region.ClientStack
             }
             else
             { // invalid client
-                m_log.Warn("UDPServer.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
+                m_log.Warn("client", "UDPServer.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
