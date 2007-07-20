@@ -303,7 +303,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                MainLog.Instance.Error("ExpectUser() - Unknown region " + ((ulong)requestData["regionhandle"]).ToString());
+                MainLog.Instance.Error("ExpectUser() - Unknown region " + (Convert.ToUInt64(requestData["regionhandle"])).ToString());
             }
 
             MainLog.Instance.Verbose("ExpectUser() - Welcoming new user...");
