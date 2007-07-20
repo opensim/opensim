@@ -47,7 +47,11 @@ namespace OpenSim.Framework.Configuration
         {
             resultFunction = result;
         }
-        
+
+        public void forceConfigurationPluginLibrary(string dll_filename)
+        {
+            configurationPlugin = this.LoadConfigDll(dll_filename);
+        }
         public void addConfigurationOption(string configuration_key, ConfigurationOption.ConfigurationTypes configuration_type, string configuration_question, string configuration_default, bool use_default_no_prompt)
         {
             ConfigurationOption configOption = new ConfigurationOption();
