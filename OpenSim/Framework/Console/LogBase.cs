@@ -90,35 +90,141 @@ namespace OpenSim.Framework.Console
             return;
         }
 
+        /// <summary>
+        /// Sends a warning to the current log output
+        /// </summary>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
         public void Warn(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Yellow, format, args);
             return;
         }
 
+        /// <summary>
+        /// Sends a warning to the current log output
+        /// </summary>
+        /// <param name="sender">The module that sent this message</param>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
+        public void Warn(string sender, string format, params object[] args)
+        {
+            int colIdx = (sender.GetHashCode() % 6) + 9;
+            ConsoleColor col = (ConsoleColor)colIdx;
+
+            WritePrefixLine(col, sender);
+            WriteNewLine(ConsoleColor.Yellow, format, args);
+            return;
+        }
+
+        /// <summary>
+        /// Sends a notice to the current log output
+        /// </summary>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
         public void Notice(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.White, format, args);
             return;
         }
 
+        /// <summary>
+        /// Sends a notice to the current log output
+        /// </summary>
+        /// <param name="sender">The module that sent this message</param>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
+        public void Notice(string sender, string format, params object[] args)
+        {
+            int colIdx = (sender.GetHashCode() % 6) + 9;
+            ConsoleColor col = (ConsoleColor)colIdx;
+
+            WritePrefixLine(col, sender);
+            WriteNewLine(ConsoleColor.White, format, args);
+            return;
+        }
+
+        /// <summary>
+        /// Sends an error to the current log output
+        /// </summary>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
         public void Error(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Red, format, args);
             return;
         }
 
+        /// <summary>
+        /// Sends an error to the current log output
+        /// </summary>
+        /// <param name="sender">The module that sent this message</param>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
+        public void Error(string sender, string format, params object[] args)
+        {
+            int colIdx = (sender.GetHashCode() % 6) + 9;
+            ConsoleColor col = (ConsoleColor)colIdx;
+
+            WritePrefixLine(col, sender);
+            WriteNewLine(ConsoleColor.Red, format, args);
+            return;
+        }
+
+        /// <summary>
+        /// Sends a informational message to the current log output
+        /// </summary>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Gray, format, args);
             return;
         }
 
+        /// <summary>
+        /// Sends an informational message to the current log output
+        /// </summary>
+        /// <param name="sender">The module that sent this message</param>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
+        public void Verbose(string sender, string format, params object[] args)
+        {
+            int colIdx = (sender.GetHashCode() % 6) + 9;
+            ConsoleColor col = (ConsoleColor)colIdx;
+
+            WritePrefixLine(col, sender);
+            WriteNewLine(ConsoleColor.Gray, format, args);
+            return;
+        }
+
+        /// <summary>
+        /// Sends a status message to the current log output
+        /// </summary>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
         public void Status(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Blue, format, args);
             return;
         }
+
+        /// <summary>
+        /// Sends a status message to the current log output
+        /// </summary>
+        /// <param name="sender">The module that sent this message</param>
+        /// <param name="format">The message to send</param>
+        /// <param name="args">WriteLine-style message arguments</param>
+        public void Status(string sender, string format, params object[] args)
+        {
+            int colIdx = (sender.GetHashCode() % 6) + 9;
+            ConsoleColor col = (ConsoleColor)colIdx;
+
+            WritePrefixLine(col, sender);
+            WriteNewLine(ConsoleColor.Blue, format, args);
+            return;
+        }
+
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
         {
@@ -140,6 +246,34 @@ namespace OpenSim.Framework.Console
             }
             return;
         }
+
+        private void WritePrefixLine(ConsoleColor color, string sender)
+        {
+            Log.WriteLine("[" + sender + "] ");
+            Log.Flush();
+
+            System.Console.Write("[");
+
+            if (!m_silent)
+            {
+                try
+                {
+                    System.Console.ForegroundColor = color;
+                    System.Console.Write(sender);
+                    System.Console.ResetColor();
+                }
+                catch (ArgumentNullException)
+                {
+                    // Some older systems dont support coloured text.
+                    System.Console.WriteLine(sender);
+                }
+            }
+
+            System.Console.Write("] ");
+
+            return;
+        }
+
 
         public string ReadLine()
         {
