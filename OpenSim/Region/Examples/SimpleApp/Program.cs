@@ -34,6 +34,9 @@ namespace SimpleApp
 
             StartLog();
 
+            m_networkServersInfo = new NetworkServersInfo( );
+
+
             LocalAssetServer assetServer = new LocalAssetServer();
             assetServer.SetServerInfo("http://localhost:8003/", "");
 
@@ -46,6 +49,8 @@ namespace SimpleApp
 
             m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
 
+            m_log.Notice(m_log.LineInfo);
+            
             ScenePresence.PhysicsEngineFlying = true;
 
             IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);

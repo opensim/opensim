@@ -67,10 +67,9 @@ namespace OpenSim.Region.ClientStack
         {
 
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
-            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", "network_servers_information.xml");
 
             Initialize();
-
+            
             ScenePresence.LoadTextureFile("avatar-texture.dat");
 
             m_httpServer = new BaseHttpServer( m_httpServerPort );

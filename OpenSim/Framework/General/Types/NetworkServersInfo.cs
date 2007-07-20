@@ -59,6 +59,11 @@ namespace OpenSim.Framework.Types
             configMember.performConfigurationRetrieve();
         }
 
+        public NetworkServersInfo( )
+        {
+
+        }
+
         public void loadConfigurationOptions()
         {
 

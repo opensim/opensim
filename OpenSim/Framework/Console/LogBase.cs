@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Collections.Generic;
 
 namespace OpenSim.Framework.Console
 {
@@ -416,6 +417,40 @@ namespace OpenSim.Framework.Console
             Array.Reverse(tempstrarray);
             string[] cmdparams = (string[])tempstrarray;
             RunCmd(cmd, cmdparams);
+        }
+
+        public string LineInfo
+        {
+            get
+            {
+                string result = String.Empty;
+                
+                string stacktrace = Environment.StackTrace;
+                List<string> lines = new List<string>(stacktrace.Split(new string[] { "at " }, StringSplitOptions.None));
+
+                if (lines.Count > 4)
+                {
+                    lines.RemoveRange(0, 4);
+
+                    string tmpLine = lines[0];
+
+                    int inIndex = tmpLine.IndexOf(" in ");
+
+                    if (inIndex > -1)
+                    {
+                        result = tmpLine.Substring(0, inIndex);
+
+                        int lineIndex = tmpLine.IndexOf(":line ");
+
+                        if (lineIndex > -1)
+                        {
+                            lineIndex += 6;
+                            result += ", line " + tmpLine.Substring(lineIndex, (tmpLine.Length - lineIndex) - 5);
+                        }
+                    }
+                }
+                return result;
+            }
         }
     }
 }

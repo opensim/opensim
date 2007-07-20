@@ -151,6 +151,7 @@ namespace OpenSim
         
         protected override void Initialize()
         {
+            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", "network_servers_information.xml");
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
