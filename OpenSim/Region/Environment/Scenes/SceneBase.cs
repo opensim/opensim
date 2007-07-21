@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RemoteClient">Client to send to</param>
         public virtual void SendLayerData(IClientAPI RemoteClient)
         {
-            RemoteClient.SendLayerData(Terrain.getHeights1D());
+            RemoteClient.SendLayerData(Terrain.GetHeights1D());
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RemoteClient">The client to send to</param>
         public virtual void SendLayerData(int px, int py, IClientAPI RemoteClient)
         {
-            RemoteClient.SendLayerData(px, py, Terrain.getHeights1D());
+            RemoteClient.SendLayerData(px, py, Terrain.GetHeights1D());
         }
 
         #endregion

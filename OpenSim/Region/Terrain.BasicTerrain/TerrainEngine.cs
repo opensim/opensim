@@ -69,6 +69,17 @@ namespace OpenSim.Region.Terrain
         public Channel watermap;
 
         /// <summary>
+        /// Max amount the terrain can be raised from the revert parameters
+        /// </summary>
+        public double maxRaise = 500.0;
+
+        /// <summary>
+        /// Min amount the terrain can be lowered from the revert parameters
+        /// </summary>
+        public double minLower = 500.0;
+
+
+        /// <summary>
         /// Whether or not the terrain has been modified since it was last saved and sent to the Physics engine.
         /// Counts the number of modifications since the last save. (0 = Untainted)
         /// </summary>
@@ -89,10 +100,33 @@ namespace OpenSim.Region.Terrain
         }
 
         /// <summary>
+        /// Checks to make sure the terrain is within baked values +/- maxRaise/minLower
+        /// </summary>
+        public void CheckHeightValues()
+        {
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    if ((heightmap.get(x, y) > revertmap.get(x, y) + maxRaise))
+                    {
+                        heightmap.map[x, y] = revertmap(x, y) + maxRaise;
+                    }
+                    if ((heightmap.get(x, y) > revertmap.get(x, y) - minLower))
+                    {
+                        heightmap.map[x, y] = revertmap(x, y) - minLower;
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
         /// Converts the heightmap to a 65536 value 1D floating point array
         /// </summary>
         /// <returns>A float[65536] array containing the heightmap</returns>
-        public float[] getHeights1D()
+        public float[] GetHeights1D()
         {
             float[] heights = new float[w * h];
             int i;
@@ -109,7 +143,7 @@ namespace OpenSim.Region.Terrain
         /// Converts the heightmap to a 256x256 value 2D floating point array.
         /// </summary>
         /// <returns>An array of 256,256 values containing the heightmap</returns>
-        public float[,] getHeights2D()
+        public float[,] GetHeights2D()
         {
             float[,] heights = new float[w, h];
             int x, y;
@@ -127,7 +161,7 @@ namespace OpenSim.Region.Terrain
         /// Converts the heightmap to a 256x256 value 2D floating point array. Double precision version.
         /// </summary>
         /// <returns>An array of 256,256 values containing the heightmap</returns>
-        public double[,] getHeights2DD()
+        public double[,] GetHeights2DD()
         {
             return heightmap.map;
         }
@@ -136,7 +170,7 @@ namespace OpenSim.Region.Terrain
         /// Imports a 1D floating point array into the 2D heightmap array
         /// </summary>
         /// <param name="heights">The array to import (must have 65536 members)</param>
-        public void setHeights1D(float[] heights)
+        public void GetHeights1D(float[] heights)
         {
             int i;
             for (i = 0; i < w * h; i++)
@@ -151,7 +185,7 @@ namespace OpenSim.Region.Terrain
         /// Loads a 2D array of values into the heightmap
         /// </summary>
         /// <param name="heights">An array of 256,256 float values</param>
-        public void setHeights2D(float[,] heights)
+        public void SetHeights2D(float[,] heights)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -161,6 +195,7 @@ namespace OpenSim.Region.Terrain
                     heightmap.set(x, y, (double)heights[x, y]);
                 }
             }
+            SaveRevertMap();
             tainted++;
         }
 
@@ -168,7 +203,7 @@ namespace OpenSim.Region.Terrain
         /// Loads a 2D array of values into the heightmap (Double Precision Version)
         /// </summary>
         /// <param name="heights">An array of 256,256 float values</param>
-        public void setHeights2D(double[,] heights)
+        public void SetHeights2D(double[,] heights)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -178,13 +213,14 @@ namespace OpenSim.Region.Terrain
                     heightmap.set(x, y, heights[x, y]);
                 }
             }
+            SaveRevertMap();
             tainted++;
         }
 
         /// <summary>
         /// Swaps the two heightmap buffers (the 'revert map' and the heightmap)
         /// </summary>
-        public void swapRevertMaps()
+        public void SwapRevertMaps()
         {
             Channel backup = heightmap.copy();
             heightmap = revertmap;
@@ -194,7 +230,7 @@ namespace OpenSim.Region.Terrain
         /// <summary>
         /// Saves the current heightmap into the revertmap
         /// </summary>
-        public void saveRevertMap()
+        public void SaveRevertMap()
         {
             revertmap = heightmap.copy();
         }
@@ -239,20 +275,20 @@ namespace OpenSim.Region.Terrain
                         return false;
 
                     case "revert":
-                        swapRevertMaps();
-                        saveRevertMap();
+                        SwapRevertMaps();
+                        SaveRevertMap();
                         break;
 
                     case "bake":
-                        saveRevertMap();
+                        SaveRevertMap();
                         break;
 
                     case "seed":
-                        setSeed(Convert.ToInt32(args[1]));
+                        SetSeed(Convert.ToInt32(args[1]));
                         break;
 
                     case "erode":
-                        return consoleErosion(args, ref resultText);
+                        return ConsoleErosion(args, ref resultText);
 
                     case "voronoi":
                         double[] c = new double[2];
@@ -262,14 +298,14 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "hills":
-                        return consoleHills(args, ref resultText);
+                        return ConsoleHills(args, ref resultText);
 
                     case "regenerate":
-                        hills();
+                        HillsGenerator();
                         break;
 
                     case "rescale":
-                        setRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
+                        SetRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
                         break;
 
                     case "multiply":
@@ -282,15 +318,15 @@ namespace OpenSim.Region.Terrain
                         switch (args[1].ToLower())
                         {
                             case "f32":
-                                loadFromFileF32(args[2]);
+                                LoadFromFileF32(args[2]);
                                 break;
 
                             case "f64":
-                                loadFromFileF64(args[2]);
+                                LoadFromFileF64(args[2]);
                                 break;
 
                             case "raw":
-                                loadFromFileSLRAW(args[2]);
+                                LoadFromFileSLRAW(args[2]);
                                 break;
 
                             case "img":
@@ -308,15 +344,15 @@ namespace OpenSim.Region.Terrain
                         switch (args[1].ToLower())
                         {
                             case "f32":
-                                writeToFileF32(args[2]);
+                                WriteToFileF32(args[2]);
                                 break;
 
                             case "f64":
-                                writeToFileF64(args[2]);
+                                WriteToFileF64(args[2]);
                                 break;
 
                             case "grdmap":
-                                exportImage(args[2], args[3]);
+                                ExportImage(args[2], args[3]);
                                 break;
 
                             case "png":
@@ -324,11 +360,11 @@ namespace OpenSim.Region.Terrain
                                 break;
 
                             case "raw":
-                                writeToFileRAW(args[2]);
+                                WriteToFileRAW(args[2]);
                                 break;
 
                             case "hiraw":
-                                writeToFileHiRAW(args[2]);
+                                WriteToFileHiRAW(args[2]);
                                 break;
 
                             default:
@@ -366,7 +402,7 @@ namespace OpenSim.Region.Terrain
             }
         }
 
-        private bool consoleErosion(string[] args, ref string resultText)
+        private bool ConsoleErosion(string[] args, ref string resultText)
         {
             switch (args[1].ToLower())
             {
@@ -384,10 +420,10 @@ namespace OpenSim.Region.Terrain
             return true;
         }
 
-        private bool consoleHills(string[] args, ref string resultText)
+        private bool ConsoleHills(string[] args, ref string resultText)
         {
             Random RandomClass = new Random();
-            setSeed(RandomClass.Next());
+            SetSeed(RandomClass.Next());
             int count;
             double sizeMin;
             double sizeRange;
@@ -441,7 +477,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <param name="min">Minimum value of the new array</param>
         /// <param name="max">Maximum value of the new array</param>
-        public void setRange(float min, float max)
+        public void SetRange(float min, float max)
         {
             heightmap.normalise((double)min, (double)max);
             tainted++;
@@ -452,7 +488,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <remarks>TODO: Move this to libTerrain itself</remarks>
         /// <param name="filename">The filename of the double array to import</param>
-        public void loadFromFileF64(string filename)
+        public void LoadFromFileF64(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
@@ -477,7 +513,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <remarks>TODO: Move this to libTerrain itself</remarks>
         /// <param name="filename">The filename of the float array to import</param>
-        public void loadFromFileF32(string filename)
+        public void LoadFromFileF32(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
@@ -502,7 +538,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <remarks>This file format stinks and is best avoided.</remarks>
         /// <param name="filename">A path to the .RAW format</param>
-        public void loadFromFileSLRAW(string filename)
+        public void LoadFromFileSLRAW(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
@@ -527,7 +563,7 @@ namespace OpenSim.Region.Terrain
         /// Writes the current terrain heightmap to disk, in the format of a 65536 entry double[] array.
         /// </summary>
         /// <param name="filename">The desired output filename</param>
-        public void writeToFileF64(string filename)
+        public void WriteToFileF64(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
@@ -550,7 +586,7 @@ namespace OpenSim.Region.Terrain
         /// Writes the current terrain heightmap to disk, in the format of a 65536 entry float[] array
         /// </summary>
         /// <param name="filename">The desired output filename</param>
-        public void writeToFileF32(string filename)
+        public void WriteToFileF32(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
@@ -574,7 +610,7 @@ namespace OpenSim.Region.Terrain
         /// (is also editable in an image application)
         /// </summary>
         /// <param name="filename">Filename to write to</param>
-        public void writeToFileRAW(string filename)
+        public void WriteToFileRAW(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
@@ -639,7 +675,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <remarks>Does not calculate the revert map</remarks>
         /// <param name="filename">The filename to output to</param>
-        public void writeToFileHiRAW(string filename)
+        public void WriteToFileHiRAW(string filename)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
@@ -712,7 +748,7 @@ namespace OpenSim.Region.Terrain
         /// Sets the random seed to be used by procedural functions which involve random numbers.
         /// </summary>
         /// <param name="val">The desired seed</param>
-        public void setSeed(int val)
+        public void SetSeed(int val)
         {
             heightmap.seed = val;
         }
@@ -724,7 +760,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="ry">Center of the sphere on the Y axis</param>
         /// <param name="size">The radius of the sphere</param>
         /// <param name="amount">Scale the height of the sphere by this amount (recommended 0..2)</param>
-        public void raise(double rx, double ry, double size, double amount)
+        public void RaiseTerrain(double rx, double ry, double size, double amount)
         {
             lock (heightmap)
             {
@@ -741,7 +777,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="ry">The center of the sphere at the Y axis</param>
         /// <param name="size">The radius of the sphere in meters</param>
         /// <param name="amount">Scale the height of the sphere by this amount (recommended 0..2)</param>
-        public void lower(double rx, double ry, double size, double amount)
+        public void LowerTerrain(double rx, double ry, double size, double amount)
         {
             lock (heightmap)
             {
@@ -758,7 +794,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="ry">Center of sphere</param>
         /// <param name="size">Radius of the sphere</param>
         /// <param name="amount">Thickness of the mask (0..2 recommended)</param>
-        public void flatten(double rx, double ry, double size, double amount)
+        public void FlattenTerrain(double rx, double ry, double size, double amount)
         {
             lock (heightmap)
             {
@@ -775,7 +811,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="ry">Center of the bounding sphere</param>
         /// <param name="size">The radius of the sphere</param>
         /// <param name="amount">Strength of the mask (0..2) recommended</param>
-        public void noise(double rx, double ry, double size, double amount)
+        public void NoiseTerrain(double rx, double ry, double size, double amount)
         {
             lock (heightmap)
             {
@@ -798,7 +834,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="ry">Center of the bounding sphere</param>
         /// <param name="size">The radius of the sphere</param>
         /// <param name="amount">Strength of the mask (0..2) recommended</param>
-        public void revert(double rx, double ry, double size, double amount)
+        public void RevertTerrain(double rx, double ry, double size, double amount)
         {
             lock (heightmap)
             {
@@ -818,7 +854,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="ry">Center of the sphere</param>
         /// <param name="size">Radius of the sphere</param>
         /// <param name="amount">Thickness of the mask (0..2 recommended)</param>
-        public void smooth(double rx, double ry, double size, double amount)
+        public void SmoothTerrain(double rx, double ry, double size, double amount)
         {
             lock (heightmap)
             {
@@ -837,7 +873,7 @@ namespace OpenSim.Region.Terrain
         /// <summary>
         /// Generates a simple set of hills in the shape of an island
         /// </summary>
-        public void hills()
+        public void HillsGenerator()
         {
             lock (heightmap)
             {
@@ -855,7 +891,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="x">X coord</param>
         /// <param name="y">Y coord</param>
         /// <returns>Height at specified coordinates</returns>
-        public double get(int x, int y)
+        public double GetHeight(int x, int y)
         {
             return heightmap.get(x, y);
         }
@@ -866,11 +902,11 @@ namespace OpenSim.Region.Terrain
         /// <param name="meep">The heightfield</param>
         /// <param name="val">The multiplier</param>
         /// <returns></returns>
-        public static TerrainEngine operator *(TerrainEngine meep, Double val)
+        public static TerrainEngine operator *(TerrainEngine terrain, Double val)
         {
-            meep.heightmap *= val;
-            meep.tainted++;
-            return meep;
+            terrain.heightmap *= val;
+            terrain.tainted++;
+            return terrain;
         }
 
         /// <summary>
@@ -878,7 +914,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <param name="filename">The destination filename for the image</param>
         /// <param name="gradientmap">A 1x*height* image which contains the colour gradient to export with. Must be at least 1x2 pixels, 1x256 or more is ideal.</param>
-        public void exportImage(string filename, string gradientmap)
+        public void ExportImage(string filename, string gradientmap)
         {
             try
             {
@@ -917,7 +953,7 @@ namespace OpenSim.Region.Terrain
         /// Exports the current heightmap in Jpeg2000 format to a byte[]
         /// </summary>
         /// <param name="gradientmap">A 1x*height* image which contains the colour gradient to export with. Must be at least 1x2 pixels, 1x256 or more is ideal.</param>
-        public byte[] exportJpegImage(string gradientmap)
+        public byte[] ExportJpegImage(string gradientmap)
         {
             byte[] imageData = null;
             try

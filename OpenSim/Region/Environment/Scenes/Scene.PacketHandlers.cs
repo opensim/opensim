@@ -54,32 +54,32 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 case 0:
                     // flatten terrain
-                    Terrain.flatten(north, west, size, (double)seconds / 5.0);
+                    Terrain.FlattenTerrain(north, west, size, (double)seconds / 5.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 1:
                     // raise terrain
-                    Terrain.raise(north, west, size, (double)seconds / 5.0);
+                    Terrain.RaiseTerrain(north, west, size, (double)seconds / 5.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 2:
                     //lower terrain
-                    Terrain.lower(north, west, size, (double)seconds / 5.0);
+                    Terrain.LowerTerrain(north, west, size, (double)seconds / 5.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 3:
                     // smooth terrain
-                    Terrain.smooth(north, west, size, (double)seconds / 5.0);
+                    Terrain.SmoothTerrain(north, west, size, (double)seconds / 5.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 4:
                     // noise
-                    Terrain.noise(north, west, size, (double)seconds / 5.0);
+                    Terrain.NoiseTerrain(north, west, size, (double)seconds / 5.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
                 case 5:
                     // revert
-                    Terrain.revert(north, west, size, (double)seconds / 5.0);
+                    Terrain.RevertTerrain(north, west, size, (double)seconds / 5.0);
                     RegenerateTerrain(true, (int)north, (int)west);
                     break;
 

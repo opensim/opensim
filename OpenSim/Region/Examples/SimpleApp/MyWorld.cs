@@ -36,7 +36,7 @@ namespace SimpleApp
                 map[i] = 25f;
             }
 
-            this.Terrain.setHeights1D(map);
+            this.Terrain.GetHeights1D(map);
             this.CreateTerrainTexture();
         }
 

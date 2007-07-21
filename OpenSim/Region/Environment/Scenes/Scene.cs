@@ -239,10 +239,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     lock (m_syncRoot)
                     {
-                        phyScene.SetTerrain(Terrain.getHeights1D());
+                        phyScene.SetTerrain(Terrain.GetHeights1D());
                     }
 
-                    storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                    storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
                     ForEachScenePresence(delegate(ScenePresence presence)
                                              {
@@ -295,14 +295,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                Terrain.hills();
+                Terrain.HillsGenerator();
 
                 lock (m_syncRoot)
                 {
-                    phyScene.SetTerrain(Terrain.getHeights1D());
+                    phyScene.SetTerrain(Terrain.GetHeights1D());
                 }
 
-                storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
                 ForEachScenePresence(delegate(ScenePresence presence)
                                          {
@@ -328,12 +328,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                Terrain.setHeights2D(newMap);
+                Terrain.SetHeights2D(newMap);
                 lock (m_syncRoot)
                 {
-                    phyScene.SetTerrain(Terrain.getHeights1D());
+                    phyScene.SetTerrain(Terrain.GetHeights1D());
                 }
-                storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
                 ForEachScenePresence(delegate(ScenePresence presence)
                                          {
@@ -395,28 +395,28 @@ namespace OpenSim.Region.Environment.Scenes
                     if (string.IsNullOrEmpty(m_regInfo.estateSettings.terrainFile))
                     {
                         Console.WriteLine("No default terrain, procedurally generating...");
-                        Terrain.hills();
+                        Terrain.HillsGenerator();
 
-                        storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
                     }
                     else
                     {
                         try
                         {
-                            Terrain.loadFromFileF32(m_regInfo.estateSettings.terrainFile);
+                            Terrain.LoadFromFileF32(m_regInfo.estateSettings.terrainFile);
                             Terrain *= m_regInfo.estateSettings.terrainMultiplier;
                         }
                         catch
                         {
                             Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
-                            Terrain.hills();
+                            Terrain.HillsGenerator();
                         }
-                        storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
                     }
                 }
                 else
                 {
-                    Terrain.setHeights2D(map);
+                    Terrain.SetHeights2D(map);
                 }
 
                 CreateTerrainTexture();
@@ -433,7 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateTerrainTexture()
         {
             //create a texture asset of the terrain 
-            byte[] data = Terrain.exportJpegImage("defaultstripe.png");
+            byte[] data = Terrain.ExportJpegImage("defaultstripe.png");
             m_regInfo.estateSettings.terrainImageID = LLUUID.Random();
             AssetBase asset = new AssetBase();
             asset.FullID = m_regInfo.estateSettings.terrainImageID;

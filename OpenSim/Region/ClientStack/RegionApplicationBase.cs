@@ -113,7 +113,7 @@ namespace OpenSim.Region.ClientStack
             scene.LoadWorldMap();
 
             scene.PhysScene = GetPhysicsScene( );
-            scene.PhysScene.SetTerrain(scene.Terrain.getHeights1D());
+            scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
             scene.LoadPrimsFromStorage();
 
             //Master Avatar Setup
