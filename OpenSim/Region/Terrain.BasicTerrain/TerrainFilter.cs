@@ -70,7 +70,6 @@ namespace OpenSim.Region.Terrain
             compilerParams.GenerateExecutable = false;
             compilerParams.GenerateInMemory = true;
             compilerParams.IncludeDebugInformation = false;
-            compilerParams.ReferencedAssemblies.Add("libTerrain-BSD.dll");
             compilerParams.ReferencedAssemblies.Add("OpenSim.Terrain.BasicTerrain.dll");
             compilerParams.ReferencedAssemblies.Add("System.dll");
 
