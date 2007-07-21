@@ -209,7 +209,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (packetsReceived == lastPacketsReceived) {
                 probesWithNoIngressPackets++;
-                if (probesWithNoIngressPackets > 30) {
+                if (probesWithNoIngressPackets > 120) {
                     this.KillClient();
                  } else {
                     // this will normally trigger at least one packet (ping response)
