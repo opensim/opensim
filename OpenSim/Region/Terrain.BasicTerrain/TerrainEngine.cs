@@ -216,6 +216,8 @@ namespace OpenSim.Region.Terrain
                 {
                     case "help":
                         resultText += "terrain regenerate - rebuilds the sims terrain using a default algorithm\n";
+                        resultText += "terrain hills <type> <number of hills> <min height> <max height> <island t/f> <additive t/f> <noisy t/f>\n";
+                        resultText += "   type should be spheres, blocks, cones, or squared\n";
                         resultText += "terrain voronoi <points> <blocksize> - generates a worley fractal with X points per block";
                         resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
                         resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
@@ -272,6 +274,7 @@ namespace OpenSim.Region.Terrain
 
                     case "multiply":
                         heightmap *= Convert.ToDouble(args[1]);
+                        tainted++;
                         break;
 
                     case "load":
@@ -383,6 +386,8 @@ namespace OpenSim.Region.Terrain
 
         private bool consoleHills(string[] args, ref string resultText)
         {
+            Random RandomClass = new Random();
+            setSeed(RandomClass.Next());
             int count;
             double sizeMin;
             double sizeRange;
@@ -392,12 +397,12 @@ namespace OpenSim.Region.Terrain
 
             if (args.GetLength(0) > 2)
             {
-                count = Convert.ToInt32(args[2]);
-                sizeMin = Convert.ToDouble(args[3]);
-                sizeRange = Convert.ToDouble(args[4]);
-                island = Convert.ToBoolean(args[5]);
-                additive = Convert.ToBoolean(args[6]);
-                noisy = Convert.ToBoolean(args[7]);
+                int.TryParse(args[2].ToString(), out count);
+                double.TryParse(args[3].ToString(), out sizeMin);
+                double.TryParse(args[4].ToString(), out sizeRange);
+                bool.TryParse(args[5].ToString(), out island);
+                bool.TryParse(args[6].ToString(), out additive);
+                bool.TryParse(args[7].ToString(), out noisy);
             }
             else
             {
@@ -427,6 +432,7 @@ namespace OpenSim.Region.Terrain
                     resultText = "Unknown hills type";
                     return false;
             }
+            tainted++;
             return true;
         }
 

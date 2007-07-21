@@ -555,7 +555,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (res)
                 {
                     this.MakeChildAgent();
-                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.InternalEndPoint);
+                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint);
                 }
             }
         }
