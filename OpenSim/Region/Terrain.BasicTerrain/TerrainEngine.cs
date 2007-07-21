@@ -578,7 +578,7 @@ namespace OpenSim.Region.Terrain
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
-            BinaryWriter bs = new BinaryWriter(s);
+            BinaryWriter binStream = new BinaryWriter(s);
 
             int x, y;
 
@@ -615,22 +615,22 @@ namespace OpenSim.Region.Terrain
                     byte alpha9 = (byte)(revertmap.get(x, y) / ((double)backupMultiplier / 128.0));
                     byte alpha10 = backupMultiplier;
 
-                    bs.Write(red);
-                    bs.Write(green);
-                    bs.Write(blue);
-                    bs.Write(alpha1);
-                    bs.Write(alpha2);
-                    bs.Write(alpha3);
-                    bs.Write(alpha4);
-                    bs.Write(alpha5);
-                    bs.Write(alpha6);
-                    bs.Write(alpha7);
-                    bs.Write(alpha8);
-                    bs.Write(alpha9);
-                    bs.Write(alpha10);
+                    binStream.Write(red);
+                    binStream.Write(green);
+                    binStream.Write(blue);
+                    binStream.Write(alpha1);
+                    binStream.Write(alpha2);
+                    binStream.Write(alpha3);
+                    binStream.Write(alpha4);
+                    binStream.Write(alpha5);
+                    binStream.Write(alpha6);
+                    binStream.Write(alpha7);
+                    binStream.Write(alpha8);
+                    binStream.Write(alpha9);
+                    binStream.Write(alpha10);
                 }
             }
-            bs.Close();
+            binStream.Close();
             s.Close();
         }
 
@@ -643,16 +643,16 @@ namespace OpenSim.Region.Terrain
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
-            BinaryWriter bs = new BinaryWriter(s);
+            BinaryWriter binStream = new BinaryWriter(s);
 
             // Generate a smegging big lookup table to speed the operation up (it needs it)
-            double[] lookupTable = new double[65536];
+            double[] lookupHeightTable = new double[65536];
             int i, j, x, y;
             for (i = 0; i < 256; i++)
             {
                 for (j = 0; j < 256; j++)
                 {
-                    lookupTable[i + (j * 256)] = ((double)i * ((double)j / 127.0));
+                    lookupHeightTable[i + (j * 256)] = ((double)i * ((double)j / 127.0));
                 }
             }
 
@@ -667,9 +667,9 @@ namespace OpenSim.Region.Terrain
 
                     for (i = 0; i < 65536; i++)
                     {
-                        if (Math.Abs(t - lookupTable[i]) < min)
+                        if (Math.Abs(t - lookupHeightTable[i]) < min)
                         {
-                            min = Math.Abs(t - lookupTable[i]);
+                            min = Math.Abs(t - lookupHeightTable[i]);
                             index = i;
                         }
                     }
@@ -688,23 +688,23 @@ namespace OpenSim.Region.Terrain
                     byte alpha9 = red;
                     byte alpha10 = green;
 
-                    bs.Write(red);
-                    bs.Write(green);
-                    bs.Write(blue);
-                    bs.Write(alpha1);
-                    bs.Write(alpha2);
-                    bs.Write(alpha3);
-                    bs.Write(alpha4);
-                    bs.Write(alpha5);
-                    bs.Write(alpha6);
-                    bs.Write(alpha7);
-                    bs.Write(alpha8);
-                    bs.Write(alpha9);
-                    bs.Write(alpha10);
+                    binStream.Write(red);
+                    binStream.Write(green);
+                    binStream.Write(blue);
+                    binStream.Write(alpha1);
+                    binStream.Write(alpha2);
+                    binStream.Write(alpha3);
+                    binStream.Write(alpha4);
+                    binStream.Write(alpha5);
+                    binStream.Write(alpha6);
+                    binStream.Write(alpha7);
+                    binStream.Write(alpha8);
+                    binStream.Write(alpha9);
+                    binStream.Write(alpha10);
                 }
             }
 
-            bs.Close();
+            binStream.Close();
             s.Close();
         }
 
@@ -900,7 +900,7 @@ namespace OpenSim.Region.Terrain
                     for (int y = 0; y < copy.h; y++)
                     {
                         // 512 is the largest possible height before colours clamp
-                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(x, y) / 512.0), 0.0) * pallete);
+                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(x, y) / 512.0), 0.0) * (pallete - 1));
                         bmp.SetPixel(x, y, colours[colorindex]);
                     }
                 }
