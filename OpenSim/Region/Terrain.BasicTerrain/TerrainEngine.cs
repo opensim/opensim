@@ -262,6 +262,7 @@ namespace OpenSim.Region.Terrain
                         resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
                         resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
+                        resultText += "terrain erode hydraulic <rain> <evaporation> <solubility> <frequency> <rounds>\n";
                         resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
                         resultText += "terrain revert - reverts the terrain to the stored original\n";
                         resultText += "terrain bake - saves the current terrain into the revert map\n";
@@ -412,6 +413,11 @@ namespace OpenSim.Region.Terrain
                     break;
                 case "thermal":
                     heightmap.thermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
+                    break;
+                case "hydraulic":
+                    Channel rainMap = new Channel(w, h);
+                    rainMap.fill(Convert.ToDouble(args[2]));
+                    heightmap.hydraulicErosion(rainMap, Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
                     break;
                 default:
                     resultText = "Unknown erosion type";
