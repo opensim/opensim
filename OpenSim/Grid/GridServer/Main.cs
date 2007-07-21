@@ -110,7 +110,7 @@ namespace OpenSim.Grid.GridServer
 
             m_console.Verbose( "Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
-            m_gridManager.AddPlugin(GridDll); // Made of win
+            m_gridManager.AddPlugin(Cfg.DatabaseProvider); // Made of win
             m_gridManager.config = Cfg;
 
             m_console.Verbose( "Main.cs:Startup() - Starting HTTP process");

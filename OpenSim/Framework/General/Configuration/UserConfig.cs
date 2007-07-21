@@ -14,6 +14,8 @@ namespace OpenSim.Framework.Configuration
         public string GridSendKey = "";
         public string GridRecvKey = "";
 
+        public string DatabaseProvider = "";
+
         private ConfigurationMember configMember;
 
         public UserConfig(string description, string filename)
@@ -29,7 +31,7 @@ namespace OpenSim.Framework.Configuration
             configMember.addConfigurationOption("default_grid_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Grid Server URI", "http://127.0.0.1:8001/", false);
             configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null", false);
-
+            configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
 
         }
 
@@ -48,6 +50,9 @@ namespace OpenSim.Framework.Configuration
                     break;
                 case "grid_recv_key":
                     this.GridRecvKey = (string)configuration_result;
+                    break;
+                case "database_provider":
+                    this.DatabaseProvider = (string)configuration_result;
                     break;
             }
 

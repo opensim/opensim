@@ -86,7 +86,7 @@ namespace OpenSim.Grid.UserServer
             MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
-            m_userManager.AddPlugin(StorageDll);
+            m_userManager.AddPlugin(Cfg.DatabaseProvider);
 
             MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
