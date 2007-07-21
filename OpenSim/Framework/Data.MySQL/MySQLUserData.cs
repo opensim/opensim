@@ -199,6 +199,21 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">The user profile to create</param>
         public void addNewUserProfile(UserProfileData user)
         {
+                        try
+               {
+                   lock (database)
+                   {
+                       database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt, user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z,
+                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI, user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask,
+                           user.profileAboutText, user.profileFirstText, user.profileImage, user.profileFirstImage);
+                   }
+               }
+               catch (Exception e)
+               {
+                   database.Reconnect();
+                   Console.WriteLine(e.ToString());
+               }
+
         }
 
         /// <summary>

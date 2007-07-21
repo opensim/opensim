@@ -235,6 +235,27 @@ namespace OpenSim.Region.Environment.Scenes
                     storageCount = 0;
                 }
 
+                if (Terrain.tainted > 0)
+                {
+                    lock (m_syncRoot)
+                    {
+                        phyScene.SetTerrain(Terrain.getHeights1D());
+                    }
+
+                    storageManager.DataStore.StoreTerrain(Terrain.getHeights2DD());
+
+                    ForEachScenePresence(delegate(ScenePresence presence)
+                                             {
+                                                 SendLayerData(presence.ControllingClient);
+                                             });
+
+                    foreach (LLUUID UUID in Entities.Keys)
+                    {
+                        Entities[UUID].LandRenegerated();
+                    }
+                    Terrain.tainted = 0;
+                }
+
                 landPrimCheckCount++;
                 if (landPrimCheckCount > 50) //check every 5 seconds for tainted prims
                 {
@@ -559,6 +580,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectName += PrimName;
             client.OnLinkObjects += LinkObjects;
             client.OnObjectDuplicate += DuplicateObject;
+            client.OnModifyTerrain += ModifyTerrain;
 
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_LandManager.handleParcelPropertiesRequest);
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_LandManager.handleParcelDivideRequest);

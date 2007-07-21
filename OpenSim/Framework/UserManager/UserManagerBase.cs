@@ -614,7 +614,7 @@ namespace OpenSim.Framework.UserManagement
             System.Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
-                userProfile = getUserProfile((LLUUID)requestData["avatar_uuid"]);
+                userProfile = getUserProfile((LLUUID)(string)requestData["avatar_uuid"]);
                 if (userProfile == null)
                 {
                     return CreateUnknownUserErrorResponse();
