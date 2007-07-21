@@ -111,11 +111,11 @@ namespace OpenSim.Region.Terrain
                 {
                     if ((heightmap.get(x, y) > revertmap.get(x, y) + maxRaise))
                     {
-                        heightmap.map[x, y] = revertmap(x, y) + maxRaise;
+                        heightmap.map[x, y] = revertmap.get(x, y) + maxRaise;
                     }
                     if ((heightmap.get(x, y) > revertmap.get(x, y) - minLower))
                     {
-                        heightmap.map[x, y] = revertmap(x, y) - minLower;
+                        heightmap.map[x, y] = revertmap.get(x, y) - minLower;
                     }
                 }
             }
