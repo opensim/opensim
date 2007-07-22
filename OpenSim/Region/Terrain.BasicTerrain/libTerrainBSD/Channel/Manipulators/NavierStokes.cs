@@ -220,9 +220,40 @@ namespace libTerrain
             }
         }
 
-        private void nsSimulate(int N, int rounds, double dt, double diff, double visc, double force, double source)
+        private void nsSimulate(int N, int rounds, double dt, double diff, double visc)
         {
+            int size = (N * 2) * (N * 2);
 
+            double[] u          = new double[size]; // Force, X axis
+            double[] v          = new double[size]; // Force, Y axis
+            double[] u_prev     = new double[size];
+            double[] v_prev     = new double[size];
+            double[] dens       = (double[])map.Clone();
+            double[] dens_prev  = (double[])map.Clone();
+
+            for (int i = 0; i < rounds; i++)
+            {
+                u_prev = u;
+                v_prev = v;
+                dens_prev = dens;
+
+                nsVelStep(N, ref u, ref v, ref u_prev, ref v_prev, visc, dt);
+                nsDensStep(N, ref dens, ref dens_prev, ref u, ref v, diff, dt);
+            }
+
+            nsBufferToDoubles(ref dens, N, ref this.map);
+        }
+
+        /// <summary>
+        /// Performs computational fluid dynamics on a channel
+        /// </summary>
+        /// <param name="rounds">The number of steps to perform (Recommended: 20)</param>
+        /// <param name="dt">Delta Time - The time between steps</param>
+        /// <param name="diff">Fluid diffusion rate</param>
+        /// <param name="visc">Fluid viscosity</param>
+        public void navierStokes(int rounds, double dt, double diff, double visc)
+        {
+            nsSimulate(this.h, rounds, dt, diff, visc);
         }
     }
 }
