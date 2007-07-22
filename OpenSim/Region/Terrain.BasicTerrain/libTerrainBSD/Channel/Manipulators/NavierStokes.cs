@@ -248,9 +248,9 @@ namespace libTerrain
         /// Performs computational fluid dynamics on a channel
         /// </summary>
         /// <param name="rounds">The number of steps to perform (Recommended: 20)</param>
-        /// <param name="dt">Delta Time - The time between steps</param>
-        /// <param name="diff">Fluid diffusion rate</param>
-        /// <param name="visc">Fluid viscosity</param>
+        /// <param name="dt">Delta Time - The time between steps (Recommended: 0.1)</param>
+        /// <param name="diff">Fluid diffusion rate (Recommended: 0.0)</param>
+        /// <param name="visc">Fluid viscosity (Recommended: 0.0)</param>
         public void navierStokes(int rounds, double dt, double diff, double visc)
         {
             nsSimulate(this.h, rounds, dt, diff, visc);

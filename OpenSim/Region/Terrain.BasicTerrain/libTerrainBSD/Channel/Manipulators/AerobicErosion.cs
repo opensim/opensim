@@ -74,7 +74,7 @@ namespace libTerrain
         /// <param name="carry">The percentage of rock which can be picked up to pickup 0..1</param>
         /// <param name="rounds">The number of erosion rounds (recommended: 25+)</param>
         /// <param name="lowest">Drop sediment at the lowest point?</param>
-        public void AerobicErosion(double windspeed, double pickup_talus_minimum, double drop_talus_minimum, double carry, int rounds, bool lowest)
+        public void AerobicErosion(double windspeed, double pickup_talus_minimum, double drop_talus_minimum, double carry, int rounds, bool lowest, bool usingFluidDynamics)
         {
             Channel wind = new Channel(w, h) ;
             Channel sediment = new Channel(w, h);
@@ -83,7 +83,15 @@ namespace libTerrain
             wind = this.copy();
             wind.normalise();   // Cheap wind calculations
             wind *= windspeed;
-            wind.pertubation(30);   // Can do better later
+
+            if (usingFluidDynamics)
+            {
+                wind.navierStokes(20, 0.1, 0.0, 0.0);
+            }
+            else
+            {
+                wind.pertubation(30);   // Can do better later
+            }
 
             for (i = 0; i < rounds; i++)
             {
@@ -115,10 +123,19 @@ namespace libTerrain
                         }
                     }
                 }
-                sediment.pertubation(10); // Sediment is blown around a bit
-                sediment.seed++;
-                wind.pertubation(15);   // So is the wind
-                wind.seed++;
+
+                if (usingFluidDynamics)
+                {
+                    sediment.navierStokes(7, 0.1, 0.0, 0.1);
+                    wind.navierStokes(10, 0.1, 0.0, 0.0);
+                }
+                else
+                {
+                    wind.pertubation(15);   // Can do better later
+                    wind.seed++;
+                    sediment.pertubation(10); // Sediment is blown around a bit
+                    sediment.seed++;
+                }
 
                 // Convert some sand to rock
                 for (x = 1; x < w - 1; x++)
