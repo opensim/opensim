@@ -550,7 +550,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
             m_LandManager.sendParcelOverlay(client);
-            commsManager.UserProfilesCache.AddNewUser(client.AgentId);
+          //  commsManager.UserProfilesCache.AddNewUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)

@@ -85,7 +85,7 @@ namespace OpenSim.Framework.Communications.Caches
             private string m_assetName = "";
             private LLUUID m_folderID;
             private LLUUID newAssetID;
-            private bool SaveImages;
+            private bool SaveImages = false;
             private string uploaderPath = "";
 
             // Events
@@ -226,7 +226,7 @@ namespace OpenSim.Framework.Communications.Caches
             private LLUUID inventoryItemID;
             private string m_assetName = "";
             private LLUUID newAssetID;
-            private bool SaveImages;
+            private bool SaveImages = false;
             private string uploaderPath = "";
 
             // Events
