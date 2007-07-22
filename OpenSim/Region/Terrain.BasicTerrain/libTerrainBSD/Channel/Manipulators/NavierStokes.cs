@@ -206,7 +206,21 @@ namespace libTerrain
             nsProject(N, ref u, ref v, ref u0, ref v0);
         }
 
-        public void navierSimulate()
+        private void nsBufferToDoubles(ref double[] dens, int N, ref double[,] doubles)
+        {
+            int i;
+            int j;
+
+            for (i = 0; i <= N; i++)
+            {
+                for (j = 0; j <= N; j++)
+                {
+                    doubles[i, j] = dens[nsIX(i, j, N)];
+                }
+            }
+        }
+
+        private void nsSimulate(int N, int rounds, double dt, double diff, double visc, double force, double source)
         {
 
         }
