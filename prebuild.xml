@@ -157,54 +157,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.Caches" path="OpenSim/Region/Caches" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim.Framework"/>
-       <Reference name="OpenSim.Framework.Data"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Region.Capabilities" path="OpenSim/Region/Capabilities" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Region.Caches"/>
-      <Reference name="XMLRPC.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
 
     <!-- Grid Server Plug-ins -->
     <Project name="OpenSim.Region.GridInterfaces.Local" path="OpenSim/Region/GridInterfaces/Local" type="Library">
@@ -427,6 +379,33 @@
       </Files>
     </Project>
 
+     <Project name="OpenSim.Framework.InventoryServiceBase" path="OpenSim/Framework/InventoryServiceBase" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="libsecondlife.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <!-- OpenSim.Framework.Communications -->
     <Project name="OpenSim.Framework.Communications" path="OpenSim/Framework/Communications" type="Library">
       <Configuration name="Debug">
@@ -532,10 +511,9 @@
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Data" />
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Region.Caches"/>
-      <Reference name="OpenSim.Region.Capabilities"/>
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
@@ -571,7 +549,6 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Region.Caches"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="XMLRPC.dll"/>
 
@@ -636,7 +613,6 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Communications.OGS1"/>
-      <Reference name="OpenSim.Region.Caches"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.UserManagement" />
       <Reference name="OpenSim.Region.Communications.Local"/>
@@ -673,13 +649,11 @@
       <Reference name="OpenSim.Framework.UserManagement"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Capabilities"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Region.GridInterfaces.Local"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Region.Caches"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>

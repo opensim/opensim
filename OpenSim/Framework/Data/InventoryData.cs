@@ -143,11 +143,18 @@ namespace OpenSim.Framework.Data
         List<InventoryItemBase> getInventoryInFolder(LLUUID folderID);
 
         /// <summary>
-        /// Returns a list of folders in the users inventory root.
+        /// Returns a list of the root folders within a users inventory
+        /// </summary>
+        /// <param name="user">The user whos inventory is to be searched</param>
+        /// <returns>A list of folder objects</returns>
+        List<InventoryFolderBase> getUserRootFolders(LLUUID user);
+
+        /// <summary>
+        /// Returns the users inventory root folder.
         /// </summary>
         /// <param name="user">The UUID of the user who is having inventory being returned</param>
-        /// <returns>A list of folders</returns>
-        List<InventoryFolderBase> getUserRootFolders(LLUUID user);
+        /// <returns>Root inventory folder</returns>
+        InventoryFolderBase getUserRootFolder(LLUUID user);
 
         /// <summary>
         /// Returns a list of inventory folders contained in the folder 'parentID'

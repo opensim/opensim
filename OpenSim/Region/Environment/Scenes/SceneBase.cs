@@ -32,7 +32,7 @@ using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework;
 

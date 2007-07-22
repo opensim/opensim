@@ -161,12 +161,21 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (this.regionHosts.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect avatar crossing");
-                this.regionHosts[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                this.regionHosts[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+                return true;
+            }
+            return false;
+        }
+
+        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
+        {
+            if (this.regionHosts.ContainsKey(regionHandle))
+            {
                 return true;
             }
             return false;

@@ -39,6 +39,7 @@ namespace OpenSim.Framework
         public event GenericCall2 OnExpectChildAgent;
         public event AgentCrossing OnAvatarCrossingIntoRegion;
         public event UpdateNeighbours OnNeighboursUpdate;
+        public event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
 
         /// <summary>
         /// 
@@ -57,11 +58,21 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (OnAvatarCrossingIntoRegion != null)
             {
-                OnAvatarCrossingIntoRegion(regionHandle, agentID, position);
+                OnAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
+                return true;
+            }
+            return false;
+        }
+
+        public virtual bool TriggerAcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
+        {
+            if (OnAcknowledgeAgentCrossed != null)
+            {
+                OnAcknowledgeAgentCrossed(regionHandle, agentID);
                 return true;
             }
             return false;

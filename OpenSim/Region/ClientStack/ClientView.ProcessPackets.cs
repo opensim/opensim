@@ -387,11 +387,9 @@ namespace OpenSim.Region.ClientStack
                         {
                             CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
                             this.OnCreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
-                            //m_inventoryCache.CreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
                         }
                         break;
                     case PacketType.CreateInventoryItem:
-                        //Console.WriteLine(Pack.ToString());
                         CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
                         if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
                         {
@@ -399,20 +397,28 @@ namespace OpenSim.Region.ClientStack
                         }
                         else
                         {
-                            // Console.Write(Pack.ToString());
-                            this.CreateInventoryItem(createItem);
+                            if (this.OnCreateNewInventoryItem != null)
+                            {
+                                this.OnCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID, createItem.InventoryBlock.FolderID, createItem.InventoryBlock.CallbackID,
+                                    Util.FieldToString(createItem.InventoryBlock.Description), Util.FieldToString(createItem.InventoryBlock.Name), createItem.InventoryBlock.InvType,
+                                    createItem.InventoryBlock.Type, createItem.InventoryBlock.WearableType, createItem.InventoryBlock.NextOwnerMask);
+                            }
                         }
                         break;
                     case PacketType.FetchInventory:
-                        //Console.WriteLine("fetch item packet");
-                        FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
-                        m_inventoryCache.FetchInventory(this, FetchInventory);
+                        if (this.OnFetchInventory != null)
+                        {
+                            FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
+                            for (int i = 0; i < FetchInventory.InventoryData.Length; i++)
+                            {
+                                this.OnFetchInventory(this, FetchInventory.InventoryData[i].ItemID, FetchInventory.InventoryData[i].OwnerID);
+                            }
+                        }
                         break;
                     case PacketType.FetchInventoryDescendents:
                         if (this.OnFetchInventoryDescendents != null)
                         {
                             FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
-                           // m_inventoryCache.FetchInventoryDescendents(this, Fetch);
                             this.OnFetchInventoryDescendents(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID, Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems, Fetch.InventoryData.SortOrder);
                         }
                         break;
@@ -450,7 +456,6 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.RequestTaskInventory:
-                        // Console.WriteLine(Pack.ToString());
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
                         if (this.OnRequestTaskInventory != null)
                         {

@@ -36,11 +36,11 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
-using OpenSim.Region.Caches;
 using OpenSim.Region.Environment;
 using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Caches;
 
 namespace OpenSim.Region.ClientStack
 {

@@ -52,8 +52,10 @@ namespace OpenSim.Framework
        public event NewAvatar OnNewAvatar;
        public event GenericCall6 OnRemoveAvatar;
 
+       public event CreateNewInventoryItem OnCreateNewInventoryItem;
        public event CreateInventoryFolder OnCreateNewInventoryFolder;
        public event FetchInventoryDescendents OnFetchInventoryDescendents;
+       public event FetchInventory OnFetchInventory;
        public event RequestTaskInventory OnRequestTaskInventory;
 
        public event UUIDNameRequest OnNameFromUUIDRequest;
@@ -127,7 +129,7 @@ namespace OpenSim.Framework
        public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation){}
 
        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items){}
-       public virtual void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item){}
+       public virtual void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item){}
        public virtual void SendInventoryItemUpdate(InventoryItemBase Item) { }
        public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName) { }
 

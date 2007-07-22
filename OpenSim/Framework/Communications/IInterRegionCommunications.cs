@@ -30,9 +30,10 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Communications
 {
-    public  interface IInterRegionCommunications
+    public interface IInterRegionCommunications
     {
-         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
-         bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position); 
+        bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
+        bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
+        bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID);
     }
 }

@@ -26,11 +26,14 @@
 * 
 */
 using System;
+using System.IO;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Communications.Caches;
+using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -139,7 +142,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-             ScenePresence avatar = null;
+            ScenePresence avatar = null;
             if (this.Avatars.ContainsKey(fromAgentID))
             {
                 avatar = this.Avatars[fromAgentID];
@@ -343,6 +346,29 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="primLocalID"></param>
+        public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
+        {
+            Primitive prim = null;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObject)
+                {
+                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
+                    if (prim != null)
+                    {
+                        prim.GetInventory(remoteClient, primLocalID);
+                        break;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -619,6 +645,50 @@ namespace OpenSim.Region.Environment.Scenes
                         break;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// temporary method to test out creating new inventory items
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transActionID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="description"></param>
+        /// <param name="name"></param>
+        /// <param name="invType"></param>
+        /// <param name="type"></param>
+        /// <param name="wearableType"></param>
+        /// <param name="nextOwnerMask"></param>
+        public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfilesCache.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                AssetBase asset = new AssetBase();
+                asset.Name = name;
+                asset.Description = description;
+                asset.InvType = invType;
+                asset.Type = type;
+                asset.FullID = LLUUID.Random();
+                asset.Data = new byte[0];
+                this.assetCache.AddAsset(asset);
+
+                InventoryItemBase item = new InventoryItemBase();
+                item.avatarID = remoteClient.AgentId;
+                item.creatorsID = remoteClient.AgentId;
+                item.inventoryID = LLUUID.Random();
+                item.assetID = asset.FullID;
+                item.inventoryDescription = description;
+                item.inventoryName = name;
+                item.type = invType;
+                item.parentFolderID = folderID;
+                item.inventoryCurrentPermissions = 2147483647;
+                item.inventoryNextPermissions = nextOwnerMask;
+
+                userInfo.ItemReceive(remoteClient.AgentId, item);
+                remoteClient.SendInventoryItemUpdate(item);
             }
         }
 

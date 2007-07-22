@@ -33,6 +33,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications.Caches;
+ 
 
 namespace OpenSim.Framework.Communications
 {
@@ -44,11 +45,13 @@ namespace OpenSim.Framework.Communications
         public IInventoryServices InventoryServer;
         public IInterRegionCommunications InterRegion;
         public UserProfileCache UserProfilesCache;
+        public AssetCache AssetCache;
 
         public NetworkServersInfo ServersInfo;
-        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer)
+        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
         {
             ServersInfo = serversInfo;
+            this.AssetCache = assetCache;
             UserProfilesCache = new UserProfileCache(this);
         }
 

@@ -587,6 +587,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        #region Inventory
+        public void GetInventory(IClientAPI client, uint localID)
+        {
+            if (localID == this.m_localId)
+            {
+                client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
+            }
+        }
+        #endregion
+
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
             this.m_Shape.ExtraParams = new byte[data.Length + 7];

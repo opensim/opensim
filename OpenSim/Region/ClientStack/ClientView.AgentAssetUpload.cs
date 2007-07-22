@@ -33,7 +33,8 @@ using OpenSim.Assets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications.Caches;
+ 
 
 namespace OpenSim.Region.ClientStack
 {

@@ -81,8 +81,10 @@ namespace OpenSim.Region.ClientStack
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
 
+        public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
+        public event FetchInventory OnFetchInventory;
         public event RequestTaskInventory OnRequestTaskInventory;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
@@ -549,7 +551,7 @@ namespace OpenSim.Region.ClientStack
 
         }
 
-        public void SendInventoryItemDetails(LLUUID ownerID, LLUUID folderID, InventoryItemBase item)
+        public void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;

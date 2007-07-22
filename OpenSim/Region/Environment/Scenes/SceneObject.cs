@@ -40,12 +40,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Encoding enc = Encoding.ASCII;
         private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
         public Primitive rootPrimitive;
-        private new Scene m_world;
         protected ulong m_regionHandle;
-
-        private bool physicsEnabled = false;    // HOUSEKEEPING : Do we really need this?
-        private PhysicsScene m_PhysScene;       // HOUSEKEEPING : Do we really need this?
-        private PhysicsActor m_PhysActor;       // HOUSEKEEPING : Do we really need this?
 
         private EventManager m_eventManager;
 

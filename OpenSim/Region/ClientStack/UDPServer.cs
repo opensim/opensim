@@ -35,7 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications.Caches;
 
 namespace OpenSim.Region.ClientStack
 {

@@ -40,7 +40,8 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications.Caches;
+ 
 using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack

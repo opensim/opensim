@@ -66,6 +66,7 @@ namespace OpenSim.Region.Environment.Scenes
         private IScenePresenceBody m_body; // HOUSEKEEPING : Do we really need this?
 
         protected RegionInfo m_regionInfo;
+        protected ulong crossingFromRegion = 0;
 
         private Vector3[] Dir_Vectors = new Vector3[6];
         private enum Dir_ControlFlags
@@ -183,10 +184,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="pos"></param>
-        public void MakeAvatar(LLVector3 pos)
+        public void MakeAvatar(LLVector3 pos, bool isFlying)
         {
             //this.childAvatar = false;
             this.Pos = pos;
+            this._physActor.Flying = isFlying;
             this.newAvatar = true;
             this.childAgent = false;
         }
@@ -194,8 +196,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected void MakeChildAgent()
         {
             this.Velocity = new LLVector3(0, 0, 0);
-            this.Pos = new LLVector3(128, 128, 70);
             this.childAgent = true;
+            //this.Pos = new LLVector3(128, 128, 70);  
         }
 
         /// <summary>
@@ -551,11 +553,11 @@ namespace OpenSim.Region.Environment.Scenes
             RegionInfo neighbourRegion = this.m_world.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
-                bool res = this.m_world.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos);
+                bool res = this.m_world.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos, this._physActor.Flying);
                 if (res)
                 {
-                    this.MakeChildAgent();
                     this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint);
+                    this.MakeChildAgent();
                 }
             }
         }

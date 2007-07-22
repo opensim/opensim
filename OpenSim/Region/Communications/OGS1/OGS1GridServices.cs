@@ -382,13 +382,13 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             try
             {
                 if (this.listeners.ContainsKey(regionHandle))
                 {
-                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
                     return true;
                 }
                 RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
@@ -400,7 +400,7 @@ namespace OpenSim.Region.Communications.OGS1
                         "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
                     if (remObject != null)
                     {
-                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position);
+                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
                     }
                     else
                     {
@@ -419,6 +419,15 @@ namespace OpenSim.Region.Communications.OGS1
                 MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;
             }
+        }
+
+        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
+        {
+            if (this.listeners.ContainsKey(regionHandle))
+            {
+                return true;
+            }
+            return false;
         }
         #endregion
 
@@ -453,13 +462,13 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool IncomingArrival(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public bool IncomingArrival(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             try
             {
                 if (this.listeners.ContainsKey(regionHandle))
                 {
-                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position);
+                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
                     return true;
                 }
             }

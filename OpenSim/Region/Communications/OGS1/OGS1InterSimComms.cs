@@ -5,7 +5,7 @@ using OpenSim.Framework.Types;
 namespace OpenSim.Region.Communications.OGS1
 {
     public delegate bool InformRegionChild(ulong regionHandle, AgentCircuitData agentData);
-    public delegate bool ExpectArrival(ulong regionHandle, LLUUID agentID, LLVector3 position);
+    public delegate bool ExpectArrival(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
 
     public sealed class InterRegionSingleton
     {
@@ -39,11 +39,11 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (OnArrival != null)
             {
-                return OnArrival(regionHandle, agentID, position);
+                return OnArrival(regionHandle, agentID, position, isFlying);
             }
             return false;
         }
@@ -69,11 +69,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             try
             {
-                return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position);
+                return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
             }
             catch (System.Runtime.Remoting.RemotingException e)
             {

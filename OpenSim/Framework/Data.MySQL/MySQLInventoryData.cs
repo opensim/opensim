@@ -152,6 +152,40 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         /// <summary>
+        /// Returns the users inventory root folder.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        {
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = user.ToStringHyphenated();
+                    param["?zero"] = LLUUID.Zero.ToStringHyphenated();
+
+                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryFolderBase> items = database.readInventoryFolders(reader);
+                    InventoryFolderBase rootFolder = items[0]; //should only be one folder with parent set to zero (the root one).
+                    reader.Close();
+                    result.Dispose();
+
+                    return rootFolder;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Returns a list of folders in a users inventory contained within the specified folder
         /// </summary>
         /// <param name="parentID">The folder to search</param>

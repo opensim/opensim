@@ -5,10 +5,11 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Region.Caches;
+ 
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Terrain;
 using OpenSim.Region.Environment;
+using OpenSim.Framework.Communications.Caches;
 
 using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
 

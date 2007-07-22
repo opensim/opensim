@@ -37,7 +37,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
-using OpenSim.Region.Caches;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
@@ -550,13 +550,14 @@ namespace OpenSim.Region.Environment.Scenes
             m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
             m_LandManager.sendParcelOverlay(client);
-            //commsManager.UserProfilesCache.AddNewUser(client.AgentId);
+            commsManager.UserProfilesCache.AddNewUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
+            client.OnModifyTerrain += ModifyTerrain;
             client.OnChatFromViewer += SimChat;
             client.OnInstantMessage += InstantMessage;
             client.OnRequestWearables += InformClientOfNeighbours;
@@ -592,9 +593,11 @@ namespace OpenSim.Region.Environment.Scenes
                 new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
-           
-            //client.OnCreateNewInventoryFolder += commsManager.UserProfilesCache.HandleCreateInventoryFolder;
+            
+           // client.OnCreateNewInventoryItem += CreateNewInventoryItem;
+           // client.OnCreateNewInventoryFolder += commsManager.UserProfilesCache.HandleCreateInventoryFolder;
            // client.OnFetchInventoryDescendents += commsManager.UserProfilesCache.HandleFecthInventoryDescendents;
+           // client.OnRequestTaskInventory += RequestTaskInventory;
         }
 
         protected ScenePresence CreateAndAddScenePresence(IClientAPI client)
@@ -819,13 +822,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position)
+        public void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
                 if (Avatars.ContainsKey(agentID))
                 {
-                    Avatars[agentID].MakeAvatar(position);
+                    Avatars[agentID].MakeAvatar(position, isFlying);
                 }
             }
         }
@@ -909,7 +912,7 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
                     commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
-                    commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position);
+                    commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position, false);
 
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));
                 }
@@ -922,9 +925,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionhandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
-        public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position)
+        public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            return commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position);
+            return commsManager.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
         public void performParcelPrimCountUpdate()

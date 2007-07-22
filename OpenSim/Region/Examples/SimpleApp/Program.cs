@@ -8,10 +8,11 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
-using OpenSim.Region.Caches;
+ 
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.GridInterfaces.Local;
 using System.Timers;
 using OpenSim.Region.Environment.Scenes;
@@ -47,7 +48,7 @@ namespace SimpleApp
         {
             base.StartUp();
 
-            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer);
+            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
 
             m_log.Notice(m_log.LineInfo);
             

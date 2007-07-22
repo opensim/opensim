@@ -39,14 +39,16 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Configuration;
 using OpenSim.Physics.Manager;
-using OpenSim.Region.Caches;
+ 
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment;
 using System.Text;
 using System.Collections.Generic;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim
 {
@@ -97,11 +99,11 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                m_commsManager = new CommunicationsLocal( m_networkServersInfo, m_httpServer);
+                m_commsManager = new CommunicationsLocal( m_networkServersInfo, m_httpServer, m_assetCache);
             }
             else
             {
-                m_commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer );
+                m_commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer , m_assetCache);
             }
 
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
@@ -137,6 +139,7 @@ namespace OpenSim
                 this.m_udpServers[i].ServerListener();
             }
 
+            
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
