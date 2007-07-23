@@ -17,9 +17,7 @@ namespace OpenSim.Framework.UserManagement
         private Hashtable loginFlagsHash;
         private Hashtable globalTexturesHash;
         private Hashtable loginError;
-        private Hashtable eventCategoriesHash;
         private Hashtable uiConfigHash;
-        private Hashtable classifiedCategoriesHash;
 
         private ArrayList loginFlags;
         private ArrayList globalTextures;
@@ -82,8 +80,6 @@ namespace OpenSim.Framework.UserManagement
             this.classifiedCategories = new ArrayList();
 
             this.loginError = new Hashtable();
-            this.eventCategoriesHash = new Hashtable();
-            this.classifiedCategoriesHash = new Hashtable();
             this.uiConfigHash = new Hashtable();
 
             this.defaultXmlRpcResponse = new XmlRpcResponse();
@@ -215,7 +211,7 @@ namespace OpenSim.Framework.UserManagement
                 this.globalTexturesHash["cloud_texture_id"] = this.CloudTexture;
                 this.globalTexturesHash["moon_texture_id"] = this.MoonTexture;
                 this.globalTextures.Add(this.globalTexturesHash);
-                this.eventCategories.Add(this.eventCategoriesHash);
+               // this.eventCategories.Add(this.eventCategoriesHash);
 
                 this.AddToUIConfig("allow_first_life", this.allowFirstLife);
                 this.uiConfig.Add(this.uiConfigHash);
@@ -273,7 +269,8 @@ namespace OpenSim.Framework.UserManagement
 
         public void SetEventCategories(string category, string value)
         {
-            this.eventCategoriesHash[category] = value;
+          //  this.eventCategoriesHash[category] = value;
+            //TODO
         } // SetEventCategories
 
         public void AddToUIConfig(string itemName, string item)
@@ -283,9 +280,10 @@ namespace OpenSim.Framework.UserManagement
 
         public void AddClassifiedCategory(Int32 ID, string categoryName)
         {
-            this.classifiedCategoriesHash["category_name"] = categoryName;
-            this.classifiedCategoriesHash["category_id"] = ID;
-            this.classifiedCategories.Add(this.classifiedCategoriesHash);
+            Hashtable hash = new Hashtable();
+            hash["category_name"] = categoryName;
+            hash["category_id"] = ID;
+            this.classifiedCategories.Add(hash);
             // this.classifiedCategoriesHash.Clear();
         } // SetClassifiedCategory
 
