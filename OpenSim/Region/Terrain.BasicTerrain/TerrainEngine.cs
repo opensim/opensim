@@ -260,6 +260,7 @@ namespace OpenSim.Region.Terrain
                         resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32', 'F64', 'PNG', 'RAW' or 'HIRAW'\n";
                         resultText += "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
                         resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
+                        resultText += "terrain fill <val> - fills a terrain at the specified height\n";
                         resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
                         resultText += "terrain erode hydraulic <rain> <evaporation> <solubility> <frequency> <rounds>\n";
@@ -307,6 +308,10 @@ namespace OpenSim.Region.Terrain
 
                     case "rescale":
                         SetRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
+                        break;
+
+                    case "fill":
+                        heightmap.Fill(Convert.ToDouble(args[1]));
                         break;
 
                     case "multiply":
