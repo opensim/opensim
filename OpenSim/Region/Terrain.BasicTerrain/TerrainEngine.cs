@@ -428,6 +428,7 @@ namespace OpenSim.Region.Terrain
                     resultText = "Unknown erosion type";
                     return false;
             }
+            tainted++;
             return true;
         }
 
