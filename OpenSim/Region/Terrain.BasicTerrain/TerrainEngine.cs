@@ -109,13 +109,13 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    if ((heightmap.get(x, y) > revertmap.get(x, y) + maxRaise))
+                    if ((heightmap.Get(x, y) > revertmap.Get(x, y) + maxRaise))
                     {
-                        heightmap.map[x, y] = revertmap.get(x, y) + maxRaise;
+                        heightmap.map[x, y] = revertmap.Get(x, y) + maxRaise;
                     }
-                    if ((heightmap.get(x, y) > revertmap.get(x, y) - minLower))
+                    if ((heightmap.Get(x, y) > revertmap.Get(x, y) - minLower))
                     {
-                        heightmap.map[x, y] = revertmap.get(x, y) - minLower;
+                        heightmap.map[x, y] = revertmap.Get(x, y) - minLower;
                     }
                 }
             }
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    heightmap.set(x, y, (double)heights[x, y]);
+                    heightmap.Set(x, y, (double)heights[x, y]);
                 }
             }
             SaveRevertMap();
@@ -210,7 +210,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    heightmap.set(x, y, heights[x, y]);
+                    heightmap.Set(x, y, heights[x, y]);
                 }
             }
             SaveRevertMap();
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         public void SwapRevertMaps()
         {
-            Channel backup = heightmap.copy();
+            Channel backup = heightmap.Copy();
             heightmap = revertmap;
             revertmap = backup;
         }
@@ -232,7 +232,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         public void SaveRevertMap()
         {
-            revertmap = heightmap.copy();
+            revertmap = heightmap.Copy();
         }
 
         /// <summary>
@@ -295,7 +295,7 @@ namespace OpenSim.Region.Terrain
                         double[] c = new double[2];
                         c[0] = -1;
                         c[1] = 1;
-                        heightmap.voronoiDiagram(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), c);
+                        heightmap.VoronoiDiagram(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), c);
                         break;
 
                     case "hills":
@@ -331,7 +331,7 @@ namespace OpenSim.Region.Terrain
                                 break;
 
                             case "img":
-                                heightmap.loadImage(args[2]);
+                                heightmap.LoadImage(args[2]);
                                 return false;
 
                             default:
@@ -357,7 +357,7 @@ namespace OpenSim.Region.Terrain
                                 break;
 
                             case "png":
-                                heightmap.saveImage(args[2]);
+                                heightmap.SaveImage(args[2]);
                                 break;
 
                             case "raw":
@@ -412,12 +412,12 @@ namespace OpenSim.Region.Terrain
                     heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]), true);
                     break;
                 case "thermal":
-                    heightmap.thermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
+                    heightmap.ThermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
                     break;
                 case "hydraulic":
                     Channel rainMap = new Channel(w, h);
-                    rainMap.fill(Convert.ToDouble(args[2]));
-                    heightmap.hydraulicErosion(rainMap, Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+                    rainMap.Fill(Convert.ToDouble(args[2]));
+                    heightmap.HydraulicErosion(rainMap, Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
                     break;
                 default:
                     resultText = "Unknown erosion type";
@@ -459,16 +459,16 @@ namespace OpenSim.Region.Terrain
             switch (args[1].ToLower())
             {
                 case "blocks":
-                    heightmap.hillsBlocks(count, sizeMin, sizeRange, island, additive, noisy);
+                    heightmap.HillsBlocks(count, sizeMin, sizeRange, island, additive, noisy);
                     break;
                 case "cones":
-                    heightmap.hillsCones(count, sizeMin, sizeRange, island, additive, noisy);
+                    heightmap.HillsCones(count, sizeMin, sizeRange, island, additive, noisy);
                     break;
                 case "spheres":
-                    heightmap.hillsSpheres(count, sizeMin, sizeRange, island, additive, noisy);
+                    heightmap.HillsSpheres(count, sizeMin, sizeRange, island, additive, noisy);
                     break;
                 case "squared":
-                    heightmap.hillsSquared(count, sizeMin, sizeRange, island, additive, noisy);
+                    heightmap.HillsSquared(count, sizeMin, sizeRange, island, additive, noisy);
                     break;
                 default:
                     resultText = "Unknown hills type";
@@ -485,7 +485,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="max">Maximum value of the new array</param>
         public void SetRange(float min, float max)
         {
-            heightmap.normalise((double)min, (double)max);
+            heightmap.Normalise((double)min, (double)max);
             tainted++;
         }
 
@@ -580,7 +580,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    bs.Write(heightmap.get(x, y));
+                    bs.Write(heightmap.Get(x, y));
                 }
             }
 
@@ -603,7 +603,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    bs.Write((float)heightmap.get(x, y));
+                    bs.Write((float)heightmap.Get(x, y));
                 }
             }
 
@@ -625,8 +625,8 @@ namespace OpenSim.Region.Terrain
             int x, y;
 
             // Used for the 'green' channel.
-            byte avgMultiplier = (byte)heightmap.avg();
-            byte backupMultiplier = (byte)revertmap.avg();
+            byte avgMultiplier = (byte)heightmap.Avg();
+            byte backupMultiplier = (byte)revertmap.Avg();
 
             // Limit the multiplier so it can represent points >64m.
             if (avgMultiplier > 196)
@@ -643,9 +643,9 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    byte red = (byte)(heightmap.get(x, y) / ((double)avgMultiplier / 128.0));
+                    byte red = (byte)(heightmap.Get(x, y) / ((double)avgMultiplier / 128.0));
                     byte green = avgMultiplier;
-                    byte blue = (byte)watermap.get(x, y);
+                    byte blue = (byte)watermap.Get(x, y);
                     byte alpha1 = 0; // Land Parcels
                     byte alpha2 = 0; // For Sale Land
                     byte alpha3 = 0; // Public Edit Object
@@ -654,7 +654,7 @@ namespace OpenSim.Region.Terrain
                     byte alpha6 = 255; // Flying Allowed
                     byte alpha7 = 255; // Create Landmark
                     byte alpha8 = 255; // Outside Scripts
-                    byte alpha9 = (byte)(revertmap.get(x, y) / ((double)backupMultiplier / 128.0));
+                    byte alpha9 = (byte)(revertmap.Get(x, y) / ((double)backupMultiplier / 128.0));
                     byte alpha10 = backupMultiplier;
 
                     binStream.Write(red);
@@ -703,7 +703,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    double t = heightmap.get(x, y);
+                    double t = heightmap.Get(x, y);
                     double min = double.MaxValue;
                     int index = 0;
 
@@ -718,7 +718,7 @@ namespace OpenSim.Region.Terrain
 
                     byte red = (byte)(index & 0xFF);
                     byte green = (byte)((index >> 8) & 0xFF);
-                    byte blue = (byte)watermap.get(x, y);
+                    byte blue = (byte)watermap.Get(x, y);
                     byte alpha1 = 0; // Land Parcels
                     byte alpha2 = 0; // For Sale Land
                     byte alpha3 = 0; // Public Edit Object
@@ -770,7 +770,7 @@ namespace OpenSim.Region.Terrain
         {
             lock (heightmap)
             {
-                heightmap.raise(rx, ry, size, amount);
+                heightmap.Raise(rx, ry, size, amount);
             }
 
             tainted++;
@@ -787,7 +787,7 @@ namespace OpenSim.Region.Terrain
         {
             lock (heightmap)
             {
-                heightmap.lower(rx, ry, size, amount);
+                heightmap.Lower(rx, ry, size, amount);
             }
 
             tainted++;
@@ -804,7 +804,7 @@ namespace OpenSim.Region.Terrain
         {
             lock (heightmap)
             {
-                heightmap.flatten(rx, ry, size, amount);
+                heightmap.Flatten(rx, ry, size, amount);
             }
 
             tainted++;
@@ -822,12 +822,12 @@ namespace OpenSim.Region.Terrain
             lock (heightmap)
             {
                 Channel smoothed = new Channel();
-                smoothed.noise();
+                smoothed.Noise();
 
                 Channel mask = new Channel();
-                mask.raise(rx, ry, size, amount);
+                mask.Raise(rx, ry, size, amount);
 
-                heightmap.blend(smoothed, mask);
+                heightmap.Blend(smoothed, mask);
             }
 
             tainted++;
@@ -845,9 +845,9 @@ namespace OpenSim.Region.Terrain
             lock (heightmap)
             {
                 Channel mask = new Channel();
-                mask.raise(rx, ry, size, amount);
+                mask.Raise(rx, ry, size, amount);
 
-                heightmap.blend(revertmap, mask);
+                heightmap.Blend(revertmap, mask);
             }
 
             tainted++;
@@ -864,13 +864,13 @@ namespace OpenSim.Region.Terrain
         {
             lock (heightmap)
             {
-                Channel smoothed = heightmap.copy();
-                smoothed.smooth(amount);
+                Channel smoothed = heightmap.Copy();
+                smoothed.Smooth(amount);
 
                 Channel mask = new Channel();
-                mask.raise(rx,ry,size,amount);
+                mask.Raise(rx,ry,size,amount);
 
-                heightmap.blend(smoothed, mask);
+                heightmap.Blend(smoothed, mask);
             }
 
             tainted++;
@@ -883,8 +883,8 @@ namespace OpenSim.Region.Terrain
         {
             lock (heightmap)
             {
-                heightmap.hillsSpheres(200, 20, 40, true, true, false);
-                heightmap.normalise();
+                heightmap.HillsSpheres(200, 20, 40, true, true, false);
+                heightmap.Normalise();
                 heightmap *= 60.0; // Raise to 60m
             }
 
@@ -899,7 +899,7 @@ namespace OpenSim.Region.Terrain
         /// <returns>Height at specified coordinates</returns>
         public double GetHeight(int x, int y)
         {
-            return heightmap.get(x, y);
+            return heightmap.Get(x, y);
         }
 
         /// <summary>
@@ -936,13 +936,13 @@ namespace OpenSim.Region.Terrain
                     colours[i] = gradientmapLd.GetPixel(0, i);
                 }
 
-                Channel copy = heightmap.copy();
+                Channel copy = heightmap.Copy();
                 for (int x = 0; x < copy.w; x++)
                 {
                     for (int y = 0; y < copy.h; y++)
                     {
                         // 512 is the largest possible height before colours clamp
-                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(x, y) / 512.0), 0.0) * (pallete - 1));
+                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(x, y) / 512.0), 0.0) * (pallete - 1));
                         bmp.SetPixel(x, y, colours[colorindex]);
                     }
                 }
@@ -976,13 +976,13 @@ namespace OpenSim.Region.Terrain
                     colours[i] = gradientmapLd.GetPixel(0, i);
                 }
 
-                Channel copy = heightmap.copy();
+                Channel copy = heightmap.Copy();
                 for (int x = 0; x < copy.w; x++)
                 {
                     for (int y = 0; y < copy.h; y++)
                     {
                         // 512 is the largest possible height before colours clamp
-                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.get(copy.h - y,  x) / 512.0), 0.0) * pallete);
+                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(copy.h - y,  x) / 512.0), 0.0) * pallete);
                         bmp.SetPixel(x, y, colours[colorindex]);
                     }
                 }

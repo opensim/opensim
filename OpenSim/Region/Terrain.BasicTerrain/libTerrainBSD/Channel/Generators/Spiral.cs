@@ -34,7 +34,7 @@ namespace libTerrain
 {
     partial class Channel
     {
-        private double[] coordinatesToPolar(int x, int y)
+        private double[] CoordinatesToPolar(int x, int y)
         {
 
             double theta = Math.Atan2(x - (w / 2), y - (h / 2));
@@ -48,7 +48,7 @@ namespace libTerrain
             return coords;
         }
 
-        public int[] polarToCoordinates(double r, double theta) {
+        public int[] PolarToCoordinates(double r, double theta) {
             double nx;
             double ny;
 
@@ -78,14 +78,14 @@ namespace libTerrain
 
         public void Polar()
         {
-            Channel n = this.copy();
+            Channel n = this.Copy();
 
             int x, y;
             for (x = 0; x < w; x++)
             {
                 for (y = 0; y < h; y++)
                 {
-                    double[] coords = coordinatesToPolar(x,y);
+                    double[] coords = CoordinatesToPolar(x,y);
 
                     coords[0] += w / 2.0;
                     coords[1] += h / 2.0;
@@ -105,8 +105,8 @@ namespace libTerrain
                 r += incRadius;
                 theta += incAngle;
 
-                int[] coords = polarToCoordinates(r,theta);
-                raise(coords[0], coords[1], 20, 1);
+                int[] coords = PolarToCoordinates(r,theta);
+                Raise(coords[0], coords[1], 20, 1);
             }
         }
 
@@ -122,11 +122,11 @@ namespace libTerrain
                 r += incRadius;
                 theta += incAngle;
 
-                int[] coords = polarToCoordinates(r, theta);
+                int[] coords = PolarToCoordinates(r, theta);
                 points.Add(new Point2D(coords[0],coords[1]));
             }
 
-            voronoiDiagram(points, c);
+            VoronoiDiagram(points, c);
         }
 
         public void Spiral(double wid, double hig, double offset)
@@ -143,7 +143,7 @@ namespace libTerrain
                     map[x, y] += Math.Sin(dx / wid) + Math.Cos(dy / hig);
                 }
             }
-            normalise();
+            Normalise();
         }
     }
 }

@@ -34,13 +34,13 @@ namespace libTerrain
 {
     partial class Channel
     {
-        enum NEIGHBOURS
+        enum NeighbourSystem
         {
-            NEIGHBOUR_MOORE,
-            NEIGHBOUR_VONNEUMANN
+            Moore,
+            VonNeumann
         };
 
-        private int[] neighbours(NEIGHBOURS type, int index)
+        private int[] Neighbours(NeighbourSystem type, int index)
         {
             int[] coord = new int[2];
 
@@ -48,7 +48,7 @@ namespace libTerrain
 
             switch (type)
             {
-                case NEIGHBOURS.NEIGHBOUR_MOORE:
+                case NeighbourSystem.Moore:
                     switch (index)
                     {
                         case 1:
@@ -101,7 +101,7 @@ namespace libTerrain
                     }
                     break;
 
-                case NEIGHBOURS.NEIGHBOUR_VONNEUMANN:
+                case NeighbourSystem.VonNeumann:
                     switch (index)
                     {
                         case 1:

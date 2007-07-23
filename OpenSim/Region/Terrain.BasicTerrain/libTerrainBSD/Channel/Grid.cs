@@ -34,10 +34,10 @@ namespace libTerrain
 {
     partial class Channel
     {
-        public Channel normalise()
+        public Channel Normalise()
         {
-            double max = findMax();
-            double min = findMin();
+            double max = FindMax();
+            double min = FindMin();
 
             int x, y;
 
@@ -52,10 +52,10 @@ namespace libTerrain
             return this;
         }
 
-        public Channel normalise(double minv, double maxv)
+        public Channel Normalise(double minv, double maxv)
         {
-            double max = findMax();
-            double min = findMin();
+            double max = FindMax();
+            double min = FindMin();
 
             int x, y;
 
@@ -74,7 +74,7 @@ namespace libTerrain
             return this;
         }
 
-        public Channel clip()
+        public Channel Clip()
         {
             int x, y;
 
@@ -82,14 +82,14 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    setClip(x, y, map[x, y]);
+                    SetClip(x, y, map[x, y]);
                 }
             }
 
             return this;
         }
 
-        public Channel clip(double min, double max)
+        public Channel Clip(double min, double max)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -105,7 +105,7 @@ namespace libTerrain
             return this;
         }
 
-        public Channel crop(int x1, int y1, int x2, int y2)
+        public Channel Crop(int x1, int y1, int x2, int y2)
         {
             int width = x1 - x2 + 1;
             int height = y1 - y2 + 1;
@@ -130,7 +130,7 @@ namespace libTerrain
             return this;
         }
 
-        public Channel addClip(Channel other)
+        public Channel AddClip(Channel other)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -147,7 +147,7 @@ namespace libTerrain
             return this;
         }
 
-        public void smooth(double amount)
+        public void Smooth(double amount)
         {
             double area = amount;
             double step = amount / 4.0;
@@ -167,7 +167,7 @@ namespace libTerrain
                         for (l = 0.0 - area; l < area; l += step)
                         {
                             avgsteps++;
-                            average += getBilinearInterpolate(x + n, y + l);
+                            average += GetBilinearInterpolate(x + n, y + l);
                         }
                     }
 
@@ -177,7 +177,7 @@ namespace libTerrain
             map = manipulate;
         }
 
-        public void pertubation(double amount)
+        public void Pertubation(double amount)
         {
             // Simple pertubation filter
             double[,] manipulated = new double[w, h];
@@ -191,14 +191,14 @@ namespace libTerrain
                 {
                     double offset_x = (double)x + (generator.NextDouble() * amount) - (amount / 2.0);
                     double offset_y = (double)y + (generator.NextDouble() * amount) - (amount / 2.0);
-                    double p = getBilinearInterpolate(offset_x, offset_y);
+                    double p = GetBilinearInterpolate(offset_x, offset_y);
                     manipulated[x, y] = p;
                 }
             }
             map = manipulated;
         }
 
-        public void pertubationMask(Channel mask)
+        public void PertubationMask(Channel mask)
         {
             // Simple pertubation filter
             double[,] manipulated = new double[w, h];
@@ -225,14 +225,14 @@ namespace libTerrain
                     if (offset_x < 0)
                         offset_x = 0;
 
-                    double p = getBilinearInterpolate(offset_x, offset_y);
+                    double p = GetBilinearInterpolate(offset_x, offset_y);
                     manipulated[x, y] = p;
                 }
             }
             map = manipulated;
         }
 
-        public Channel blend(Channel other, double amount)
+        public Channel Blend(Channel other, double amount)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -245,7 +245,7 @@ namespace libTerrain
             return this;
         }
 
-        public Channel blend(Channel other, Channel amount)
+        public Channel Blend(Channel other, Channel amount)
         {
             int x, y;
             for (x = 0; x < w; x++)

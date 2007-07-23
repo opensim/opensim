@@ -35,7 +35,7 @@ namespace libTerrain
 {
     partial class Channel
     {
-        public Channel loadImage(string filename)
+        public Channel LoadImage(string filename)
         {
             Bitmap bit = new Bitmap(filename);
             Channel chan = new Channel(bit.Width, bit.Height);
@@ -53,7 +53,7 @@ namespace libTerrain
             return chan;
         }
 
-        public void saveImage(string filename)
+        public void SaveImage(string filename)
         {
             Bitmap bit = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             int x, y;

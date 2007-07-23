@@ -35,7 +35,7 @@ namespace libTerrain
     partial class Channel
     {
 
-        public void gradientCube()
+        public void GradientCube()
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -45,10 +45,10 @@ namespace libTerrain
                     map[x, y] = x*y;
                 }
             }
-            normalise();
+            Normalise();
         }
 
-        public void gradientStripe()
+        public void GradientStripe()
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -58,7 +58,7 @@ namespace libTerrain
                     map[x, y] = x;
                 }
             }
-            normalise();
+            Normalise();
         }
     }
 }

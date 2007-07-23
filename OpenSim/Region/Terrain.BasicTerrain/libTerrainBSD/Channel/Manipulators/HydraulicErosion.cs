@@ -34,17 +34,17 @@ namespace libTerrain
 {
     partial class Channel
     {
-        public void hydraulicErosion(Channel rain, double evaporation, double solubility, int frequency, int rounds)
+        public void HydraulicErosion(Channel rain, double evaporation, double solubility, int frequency, int rounds)
         {
             Channel water = new Channel(w, h);
             Channel sediment = new Channel(w, h);
             Channel terrain = this;
             Channel waterFlow = new Channel(w, h);
 
-            NEIGHBOURS type = NEIGHBOURS.NEIGHBOUR_MOORE;
+            NeighbourSystem type = NeighbourSystem.Moore;
             int NEIGHBOUR_ME = 4; 
 
-            int NEIGHBOUR_MAX = type == NEIGHBOURS.NEIGHBOUR_MOORE ? 9 : 5;
+            int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;
 
             for (int i = 0; i < rounds; i++)
             {
@@ -66,7 +66,7 @@ namespace libTerrain
                         {
                             if (j != NEIGHBOUR_ME)
                             {
-                                int[] coords = neighbours(type, j);
+                                int[] coords = Neighbours(type, j);
                                 coords[0] += x;
                                 coords[1] += y;
 
@@ -107,13 +107,13 @@ namespace libTerrain
                         {
                             if (j != NEIGHBOUR_ME)
                             {
-                                int[] coords = neighbours(type, j);
+                                int[] coords = Neighbours(type, j);
                                 coords[0] += x;
                                 coords[1] += y;
 
                                 if (diffs[j] > 0)
                                 {
-                                    waterFlow.setWrap(coords[0], coords[1], waterFlow.map[coords[0], coords[1]] + diffs[j] * totalInverseDiff);
+                                    waterFlow.SetWrap(coords[0], coords[1], waterFlow.map[coords[0], coords[1]] + diffs[j] * totalInverseDiff);
                                 }
                             }
                         }
@@ -121,7 +121,7 @@ namespace libTerrain
                 }
 
                 water += waterFlow;
-                waterFlow.fill(0);
+                waterFlow.Fill(0);
 
                 water *= evaporation;
 

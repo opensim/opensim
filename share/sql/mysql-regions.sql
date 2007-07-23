@@ -22,6 +22,7 @@ CREATE TABLE `regions` (
   `regionUserURI` varchar(255) default NULL,
   `regionUserRecvKey` varchar(128) default NULL,
   `regionUserSendKey` varchar(128) default NULL, `regionMapTexture` varchar(36) default NULL,
+  `serverHttpPort` int(10) default NULL, `serverRemotingPort` int(10) default NULL,
   PRIMARY KEY  (`uuid`),
   KEY `regionName` (`regionName`),
   KEY `regionHandle` (`regionHandle`),

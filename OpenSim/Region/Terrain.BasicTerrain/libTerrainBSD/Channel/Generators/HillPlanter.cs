@@ -44,7 +44,7 @@ namespace libTerrain
         /// <param name="island">Whether to bias hills towards the center of the map</param>
         /// <param name="additive">Whether to add hills together or to pick the largest value</param>
         /// <param name="noisy">Generates hill-shaped noise instead of consistent hills</param>
-        public void hillsSpheres(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
+        public void HillsSpheres(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
             Random random = new Random(seed);
 
@@ -95,7 +95,7 @@ namespace libTerrain
                 }
             }
 
-            normalise();
+            Normalise();
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace libTerrain
         /// <param name="island">Whether to bias hills towards the center of the map</param>
         /// <param name="additive">Whether to add hills together or to pick the largest value</param>
         /// <param name="noisy">Generates hill-shaped noise instead of consistent hills</param>
-        public void hillsCones(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
+        public void HillsCones(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
             Random random = new Random(seed);
 
@@ -158,10 +158,10 @@ namespace libTerrain
                 }
             }
 
-            normalise();
+            Normalise();
         }
 
-        public void hillsBlocks(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
+        public void HillsBlocks(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
             Random random = new Random(seed);
 
@@ -212,10 +212,10 @@ namespace libTerrain
                 }
             }
 
-            normalise();
+            Normalise();
         }
 
-        public void hillsSquared(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
+        public void HillsSquared(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
             Random random = new Random(seed);
 
@@ -268,7 +268,7 @@ namespace libTerrain
                 }
             }
 
-            normalise();
+            Normalise();
         }
 
     }

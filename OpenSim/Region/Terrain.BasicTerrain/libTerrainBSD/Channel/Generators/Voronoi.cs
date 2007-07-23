@@ -42,7 +42,7 @@ namespace libTerrain
         /// <param name="blockSize">A multiple of the channel width and height which will have voronoi points generated in it.
         /// <para>This is to ensure a more even distribution of the points than pure random allocation.</para></param>
         /// <param name="c">The Voronoi diagram type. Usually an array with values consisting of [-1,1]. Experiment with the chain, you can have as many values as you like.</param>
-        public void voronoiDiagram(int pointsPerBlock, int blockSize, double[] c)
+        public void VoronoiDiagram(int pointsPerBlock, int blockSize, double[] c)
         {
             List<Point2D> points = new List<Point2D>();
             Random generator = new Random(seed);
@@ -98,10 +98,10 @@ namespace libTerrain
             }
 
             // Normalise the result
-            normalise();
+            Normalise();
         }
 
-        public void voronoiDiagram(List<Point2D> points, double[] c)
+        public void VoronoiDiagram(List<Point2D> points, double[] c)
         {
             
             Random generator = new Random(seed);
@@ -141,10 +141,10 @@ namespace libTerrain
             }
 
             // Normalise the result
-            normalise();
+            Normalise();
         }
 
-        public void voroflatDiagram(int pointsPerBlock, int blockSize)
+        public void VoroflatDiagram(int pointsPerBlock, int blockSize)
         {
             List<Point2D> points = new List<Point2D>();
             Random generator = new Random(seed);
@@ -203,7 +203,7 @@ namespace libTerrain
             }
 
             // Normalise the result
-            normalise();
+            Normalise();
         }
     }
 }

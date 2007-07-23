@@ -42,9 +42,9 @@ namespace libTerrain
         /// <param name="ry">The center the Y coordinate of where you wish to raise the land</param>
         /// <param name="size">The radius of the dimple</param>
         /// <param name="amount">How much impact to add to the terrain (0..2 usually)</param>
-        public void raise(double rx, double ry, double size, double amount)
+        public void Raise(double rx, double ry, double size, double amount)
         {
-            raiseSphere(rx, ry, size, amount);
+            RaiseSphere(rx, ry, size, amount);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace libTerrain
         /// <param name="ry">The center the Y coordinate of where you wish to raise the land</param>
         /// <param name="size">The radius of the sphere dimple</param>
         /// <param name="amount">How much impact to add to the terrain (0..2 usually)</param>
-        public void raiseSphere(double rx, double ry, double size, double amount)
+        public void RaiseSphere(double rx, double ry, double size, double amount)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -80,7 +80,7 @@ namespace libTerrain
         /// <param name="ry">The center the Y coordinate of where you wish to raise the land</param>
         /// <param name="size">The radius of the cone</param>
         /// <param name="amount">How much impact to add to the terrain (0..2 usually)</param>
-        public void raiseCone(double rx, double ry, double size, double amount)
+        public void RaiseCone(double rx, double ry, double size, double amount)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -105,9 +105,9 @@ namespace libTerrain
         /// <param name="ry">The center the Y coordinate of where you wish to lower the land</param>
         /// <param name="size">The radius of the sphere dimple</param>
         /// <param name="amount">How much impact to remove from the terrain (0..2 usually)</param>
-        public void lower(double rx, double ry, double size, double amount)
+        public void Lower(double rx, double ry, double size, double amount)
         {
-            lowerSphere(rx, ry, size, amount);
+            LowerSphere(rx, ry, size, amount);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace libTerrain
         /// <param name="ry">The center the Y coordinate of where you wish to lower the land</param>
         /// <param name="size">The radius of the sphere dimple</param>
         /// <param name="amount">How much impact to remove from the terrain (0..2 usually)</param>
-        public void lowerSphere(double rx, double ry, double size, double amount)
+        public void LowerSphere(double rx, double ry, double size, double amount)
         {
             int x, y;
             for (x = 0; x < w; x++)

@@ -40,7 +40,7 @@ namespace libTerrain
         /// <param name="talus">The rock angle (represented as a dy/dx ratio) at which point it will be succeptible to breakage</param>
         /// <param name="rounds">The number of erosion rounds</param>
         /// <param name="c">The amount of rock to carry each round</param>
-        public Channel thermalWeathering(double talus, int rounds, double c)
+        public Channel ThermalWeathering(double talus, int rounds, double c)
         {
             double[,] lastFrame;
             double[,] thisFrame;
@@ -48,10 +48,10 @@ namespace libTerrain
             lastFrame = (double[,])map.Clone();
             thisFrame = (double[,])map.Clone();
 
-            NEIGHBOURS type = NEIGHBOURS.NEIGHBOUR_MOORE; // Using moore neighbourhood (twice as computationally expensive)
+            NeighbourSystem type = NeighbourSystem.Moore; // Using moore neighbourhood (twice as computationally expensive)
             int NEIGHBOUR_ME = 4; // I am always 4 in both systems.
 
-            int NEIGHBOUR_MAX = type == NEIGHBOURS.NEIGHBOUR_MOORE ? 9 : 5;
+            int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;
 
             int frames = rounds; // Number of thermal erosion iterations to run
             int i, j;
@@ -67,7 +67,7 @@ namespace libTerrain
                         {
                             if (j != NEIGHBOUR_ME)
                             {
-                                int[] coords = neighbours(type, j);
+                                int[] coords = Neighbours(type, j);
 
                                 coords[0] += x;
                                 coords[1] += y;
@@ -103,7 +103,7 @@ namespace libTerrain
 
             map = thisFrame;
 
-            normalise(); // Just to guaruntee a smooth 0..1 value
+            Normalise(); // Just to guaruntee a smooth 0..1 value
             return this;
         }
     }

@@ -42,14 +42,14 @@ namespace libTerrain
         /// <param name="ry">The Y coordinate of the terrain mask</param>
         /// <param name="size">The size of the terrain mask</param>
         /// <param name="amount">The scale of the terrain mask</param>
-        public void flatten(double rx, double ry, double size, double amount)
+        public void Flatten(double rx, double ry, double size, double amount)
         {
             // Generate the mask
             Channel temp = new Channel(w, h);
-            temp.fill(0);
-            temp.raise(rx, ry, size, amount);
-            temp.normalise();
-            double total_mod = temp.sum();
+            temp.Fill(0);
+            temp.Raise(rx, ry, size, amount);
+            temp.Normalise();
+            double total_mod = temp.Sum();
 
             // Establish the average height under the area
             Channel newmap = new Channel(w, h);
@@ -57,26 +57,26 @@ namespace libTerrain
 
             newmap *= temp;
 
-            double total_terrain = newmap.sum();
+            double total_terrain = newmap.Sum();
             double avg_height = total_terrain / total_mod;
 
             // Create a flat terrain using the average height
             Channel flat = new Channel(w, h);
-            flat.fill(avg_height);
+            flat.Fill(avg_height);
 
             // Blend the current terrain with the average height terrain
             // using the "raised" empty terrain as a mask
-            blend(flat, temp);
+            Blend(flat, temp);
 
         }
 
-        public void flatten(Channel mask, double amount)
+        public void Flatten(Channel mask, double amount)
         {
             // Generate the mask
             Channel temp = mask * amount;
-            temp.clip(0, 1); // Cut off out-of-bounds values
+            temp.Clip(0, 1); // Cut off out-of-bounds values
 
-            double total_mod = temp.sum();
+            double total_mod = temp.Sum();
 
             // Establish the average height under the area
             Channel map = new Channel(w, h);
@@ -84,16 +84,16 @@ namespace libTerrain
 
             map *= temp;
 
-            double total_terrain = map.sum();
+            double total_terrain = map.Sum();
             double avg_height = total_terrain / total_mod;
 
             // Create a flat terrain using the average height
             Channel flat = new Channel(w, h);
-            flat.fill(avg_height);
+            flat.Fill(avg_height);
 
             // Blend the current terrain with the average height terrain
             // using the "raised" empty terrain as a mask
-            blend(flat, temp);
+            Blend(flat, temp);
         }
     }
 }

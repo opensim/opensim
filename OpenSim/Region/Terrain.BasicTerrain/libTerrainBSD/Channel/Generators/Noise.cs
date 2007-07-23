@@ -38,7 +38,7 @@ namespace libTerrain
         /// Fills a channel with 0..1 noise
         /// </summary>
         /// <remarks>3-Clause BSD Licensed</remarks>
-        public void noise()
+        public void Noise()
         {
             Random rand = new Random(seed);
             int x, y;

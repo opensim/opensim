@@ -42,7 +42,7 @@ namespace libTerrain
         /// <param name="movement">The maximum distance each worm will move each step</param>
         /// <param name="size">The size of the area around the worm modified</param>
         /// <param name="centerspawn">Do worms start in the middle, or randomly?</param>
-        public void worms(int number, int rounds, double movement, double size, bool centerspawn)
+        public void Worms(int number, int rounds, double movement, double size, bool centerspawn)
         {
             Random random = new Random(seed);
             int i, j;
@@ -64,7 +64,7 @@ namespace libTerrain
                 {
                     rx += (random.NextDouble() * movement) - (movement / 2.0);
                     ry += (random.NextDouble() * movement) - (movement / 2.0);
-                    raise(rx, ry, size, 1.0);
+                    Raise(rx, ry, size, 1.0);
                 }
             }
         }

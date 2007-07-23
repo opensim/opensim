@@ -35,23 +35,23 @@ namespace libTerrain
 {
     public partial class Channel
     {
-        public int getWidth()
+        public int GetWidth()
         {
             return w;
         }
-        public int getHeight()
+        public int GetHeight()
         {
             return h;
         }
 
-        public Channel copy()
+        public Channel Copy()
         {
             Channel x = new Channel(w, h);
             x.map = (double[,])this.map.Clone();
             return x;
         }
 
-        public void set(int x, int y, double val)
+        public void Set(int x, int y, double val)
         {
             if (x >= w)
                 throw new Exception("Bounds error while setting pixel (width)");
@@ -65,7 +65,7 @@ namespace libTerrain
             map[x, y] = val;
         }
 
-        public void setClip(int x, int y, double val)
+        public void SetClip(int x, int y, double val)
         {
             if (x >= w)
                 throw new Exception("Bounds error while setting pixel (width)");
@@ -84,7 +84,7 @@ namespace libTerrain
             map[x, y] = val;
         }
 
-        private double getBilinearInterpolate(double x, double y)
+        private double GetBilinearInterpolate(double x, double y)
         {
             if (x > w - 2.0)
                 x = w - 2.0;
@@ -95,11 +95,11 @@ namespace libTerrain
             if (y < 0.0)
                 y = 0.0;
 
-            int STEP_SIZE = 1;
-            double h00 = get((int)x, (int)y);
-            double h10 = get((int)x + STEP_SIZE, (int)y);
-            double h01 = get((int)x, (int)y + STEP_SIZE);
-            double h11 = get((int)x + STEP_SIZE, (int)y + STEP_SIZE);
+            int stepSize = 1;
+            double h00 = Get((int)x, (int)y);
+            double h10 = Get((int)x + stepSize, (int)y);
+            double h01 = Get((int)x, (int)y + stepSize);
+            double h11 = Get((int)x + stepSize, (int)y + stepSize);
             double h1 = h00;
             double h2 = h10;
             double h3 = h01;
@@ -114,7 +114,7 @@ namespace libTerrain
             return hi;
         }
 
-        public double get(int x, int y)
+        public double Get(int x, int y)
         {
             if (x >= w)
                 x = w - 1;
@@ -127,12 +127,12 @@ namespace libTerrain
             return map[x, y];
         }
 
-        public void setWrap(int x, int y, double val)
+        public void SetWrap(int x, int y, double val)
         {
             map[x % w, y % h] = val;
         }
 
-        public void setWrapClip(int x, int y, double val)
+        public void SetWrapClip(int x, int y, double val)
         {
             if (val > 1.0)
                 val = 1.0;
@@ -142,7 +142,7 @@ namespace libTerrain
             map[x % w, y % h] = val;
         }
 
-        public void fill(double val)
+        public void Fill(double val)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -154,7 +154,7 @@ namespace libTerrain
             }
         }
 
-        public void fill(double min, double max, double val)
+        public void Fill(double min, double max, double val)
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -167,7 +167,7 @@ namespace libTerrain
             }
         }
 
-        public double findMax()
+        public double FindMax()
         {
             int x, y;
             double max = double.MinValue;
@@ -184,7 +184,7 @@ namespace libTerrain
             return max;
         }
 
-        public double findMin()
+        public double FindMin()
         {
             int x, y;
             double min = double.MaxValue;
@@ -201,7 +201,7 @@ namespace libTerrain
             return min;
         }
 
-        public double sum()
+        public double Sum()
         {
             int x, y;
             double sum = 0.0;
@@ -217,9 +217,9 @@ namespace libTerrain
             return sum;
         }
 
-        public double avg()
+        public double Avg()
         {
-            return sum() / (w * h);
+            return Sum() / (w * h);
         }
     }
 }

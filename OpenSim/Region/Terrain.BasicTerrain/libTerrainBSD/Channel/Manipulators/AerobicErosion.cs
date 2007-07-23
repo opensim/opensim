@@ -74,14 +74,14 @@ namespace libTerrain
         /// <param name="carry">The percentage of rock which can be picked up to pickup 0..1</param>
         /// <param name="rounds">The number of erosion rounds (recommended: 25+)</param>
         /// <param name="lowest">Drop sediment at the lowest point?</param>
-        public void AerobicErosion(double windspeed, double pickup_talus_minimum, double drop_talus_minimum, double carry, int rounds, bool lowest, bool usingFluidDynamics)
+        public void AerobicErosion(double windspeed, double pickupTalusMinimum, double dropTalusMinimum, double carry, int rounds, bool lowest, bool usingFluidDynamics)
         {
             Channel wind = new Channel(w, h) ;
             Channel sediment = new Channel(w, h);
             int x, y, i, j;
 
-            wind = this.copy();
-            wind.normalise();   // Cheap wind calculations
+            wind = this.Copy();
+            wind.Normalise();   // Cheap wind calculations
             wind *= windspeed;
 
             if (usingFluidDynamics)
@@ -90,7 +90,7 @@ namespace libTerrain
             }
             else
             {
-                wind.pertubation(30);   // Can do better later
+                wind.Pertubation(30);   // Can do better later
             }
 
             for (i = 0; i < rounds; i++)
@@ -100,13 +100,13 @@ namespace libTerrain
                 {
                     for (y = 1; y < h - 1; y++)
                     {
-                        double me = get(x, y);
+                        double me = Get(x, y);
                         double surfacearea = 0.3; // Everything will erode even if it's flat. Just slower.
 
                         for (j = 0; j < 9; j++)
                         {
-                            int[] coords = neighbours(NEIGHBOURS.NEIGHBOUR_MOORE, j);
-                            double target = get(x + coords[0], y + coords[1]);
+                            int[] coords = Neighbours(NeighbourSystem.Moore, j);
+                            double target = Get(x + coords[0], y + coords[1]);
 
                             surfacearea += Math.Abs(target - me);
                         }
@@ -116,7 +116,7 @@ namespace libTerrain
                         if (amount < 0)
                             amount = 0;
 
-                        if (surfacearea > pickup_talus_minimum)
+                        if (surfacearea > pickupTalusMinimum)
                         {
                             this.map[x, y] -= amount;
                             sediment.map[x, y] += amount;
@@ -131,9 +131,9 @@ namespace libTerrain
                 }
                 else
                 {
-                    wind.pertubation(15);   // Can do better later
+                    wind.Pertubation(15);   // Can do better later
                     wind.seed++;
-                    sediment.pertubation(10); // Sediment is blown around a bit
+                    sediment.Pertubation(10); // Sediment is blown around a bit
                     sediment.seed++;
                 }
 
@@ -142,15 +142,15 @@ namespace libTerrain
                 {
                     for (y = 1; y < h - 1; y++)
                     {
-                        double me = get(x, y);
+                        double me = Get(x, y);
                         double surfacearea = 0.01; // Flat land does not get deposition
                         double min = double.MaxValue;
                         int[] minside = new int[2];
 
                         for (j = 0; j < 9; j++)
                         {
-                            int[] coords = neighbours(NEIGHBOURS.NEIGHBOUR_MOORE, j);
-                            double target = get(x + coords[0], y + coords[1]);
+                            int[] coords = Neighbours(NeighbourSystem.Moore, j);
+                            double target = Get(x + coords[0], y + coords[1]);
 
                             surfacearea += Math.Abs(target - me);
 
@@ -166,7 +166,7 @@ namespace libTerrain
                         if (amount < 0)
                             amount = 0;
 
-                        if (surfacearea > drop_talus_minimum)
+                        if (surfacearea > dropTalusMinimum)
                         {
                             this.map[x + minside[0], y + minside[1]] += amount;
                             sediment.map[x, y] -= amount;
@@ -178,7 +178,7 @@ namespace libTerrain
 
             Channel myself = this;
             myself += sediment;
-            myself.normalise();
+            myself.Normalise();
         }
     }
 }

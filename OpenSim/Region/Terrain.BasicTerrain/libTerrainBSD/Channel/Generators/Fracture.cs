@@ -42,7 +42,7 @@ namespace libTerrain
         /// <param name="w"></param>
         /// <param name="h"></param>
         /// <returns></returns>
-        private int[] radialEdge256(int val)
+        private int[] RadialEdge256(int val)
         {
             // Four cases:
             // 1.   000..255      return 0,val
@@ -79,7 +79,7 @@ namespace libTerrain
 
             throw new Exception("Out of bounds parameter (val)");
         }
-        public void fracture(int number, double scalemin, double scalemax)
+        public void Fracture(int number, double scalemin, double scalemax)
         {
             Random rand = new Random(seed);
 
@@ -87,8 +87,8 @@ namespace libTerrain
             {
                 int[] a, b;
 
-                a = radialEdge256(rand.Next(1023)); // TODO: Broken
-                b = radialEdge256(rand.Next(1023)); // TODO: Broken
+                a = RadialEdge256(rand.Next(1023)); // TODO: Broken
+                b = RadialEdge256(rand.Next(1023)); // TODO: Broken
                 double z = rand.NextDouble();
 
                 for (int x = 0; x < w; x++)
@@ -104,7 +104,7 @@ namespace libTerrain
                     }
                 }
             }
-            normalise();
+            Normalise();
         }
     }
 }

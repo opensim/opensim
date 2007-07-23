@@ -46,7 +46,7 @@ namespace libTerrain
             bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
         }
 
-        public Channel toChannel()
+        public Channel ToChannel()
         {
             Channel chan = new Channel(bmp.Width, bmp.Height);
 
@@ -63,7 +63,7 @@ namespace libTerrain
             return chan;
         }
 
-        public void drawText(string txt, string font, double size)
+        public void DrawText(string txt, string font, double size)
         {
             Graphics gd = Graphics.FromImage(bmp);
             //gd.DrawString(txt,
