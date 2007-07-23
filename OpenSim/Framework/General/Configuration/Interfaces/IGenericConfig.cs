@@ -31,6 +31,7 @@ namespace OpenSim.Framework.Configuration.Interfaces
     {
         void SetFileName(string fileName);
         void LoadData();
+        void LoadDataFromString(string data);
         string GetAttribute(string attributeName);
         bool SetAttribute(string attributeName, string attributeValue);
         void Commit();

@@ -25,13 +25,16 @@ namespace OpenSim.Framework.Configuration
         private ConfigurationOptionResult resultFunction;
 
         private IGenericConfig configurationPlugin = null;
+        /// <summary>
+        /// This is the default configuration DLL loaded
+        /// </summary>
+        private string configurationPluginFilename = "OpenSim.Framework.Configuration.XML.dll";
         public ConfigurationMember(string configuration_filename, string configuration_description, ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function)
         {
             this.configurationFilename = configuration_filename;
             this.configurationDescription = configuration_description;
             this.loadFunction = load_function;
             this.resultFunction = result_function;
-            this.configurationPlugin = this.LoadConfigDll("OpenSim.Framework.Configuration.XML.dll");
         }
 
         public void setConfigurationFilename(string filename)
@@ -50,7 +53,7 @@ namespace OpenSim.Framework.Configuration
 
         public void forceConfigurationPluginLibrary(string dll_filename)
         {
-            configurationPlugin = this.LoadConfigDll(dll_filename);
+            configurationPluginFilename = dll_filename;
         }
         public void addConfigurationOption(string configuration_key, ConfigurationOption.ConfigurationTypes configuration_type, string configuration_question, string configuration_default, bool use_default_no_prompt)
         {
@@ -76,6 +79,7 @@ namespace OpenSim.Framework.Configuration
 
         public void performConfigurationRetrieve()
         {
+            configurationPlugin = this.LoadConfigDll(configurationPluginFilename);
             configurationOptions.Clear();
             if(loadFunction == null)
             {

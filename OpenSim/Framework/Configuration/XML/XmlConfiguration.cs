@@ -47,10 +47,19 @@ namespace OpenSim.Framework.Configuration
             fileName = file;
         }
 
+        private void LoadDataToClass()
+        {
+            rootNode = doc.FirstChild;
+            if (rootNode.Name != "Root")
+                throw new Exception("Error: Invalid .xml File. Missing <Root>");
+
+            configNode = rootNode.FirstChild;
+            if (configNode.Name != "Config")
+                throw new Exception("Error: Invalid .xml File. <Root> first child should be <Config>");
+        }
         public void LoadData()
         {
             doc = new XmlDocument();
-
             if (File.Exists(fileName))
             {
                 XmlTextReader reader = new XmlTextReader(fileName);
@@ -67,14 +76,7 @@ namespace OpenSim.Framework.Configuration
                 rootNode.AppendChild(configNode);
             }
 
-
-            rootNode = doc.FirstChild;
-            if (rootNode.Name != "Root")
-                throw new Exception("Error: Invalid .xml File. Missing <Root>");
-
-            configNode = rootNode.FirstChild;
-            if (configNode.Name != "Config")
-                throw new Exception("Error: Invalid .xml File. <Root> first child should be <Config>");
+            LoadDataToClass();            
 
             if (createdFile)
             {
@@ -82,6 +84,13 @@ namespace OpenSim.Framework.Configuration
             }
         }
 
+        public void LoadDataFromString(string data)
+        {
+            doc = new XmlDocument();
+            doc.LoadXml(data);
+
+            LoadDataToClass();
+        }
         public string GetAttribute(string attributeName)
         {
             string result = null;
