@@ -220,6 +220,20 @@ namespace libTerrain
             }
         }
 
+        private void nsDoublesToBuffer(double[,] doubles, int N, ref double[] dens)
+        {
+            int i;
+            int j;
+
+            for (i = 0; i <= N; i++)
+            {
+                for (j = 0; j <= N; j++)
+                {
+                    dens[nsIX(i, j, N)] = doubles[i, j];
+                }
+            }
+        }
+
         private void nsSimulate(int N, int rounds, double dt, double diff, double visc)
         {
             int size = (N * 2) * (N * 2);
@@ -228,8 +242,11 @@ namespace libTerrain
             double[] v          = new double[size]; // Force, Y axis
             double[] u_prev     = new double[size];
             double[] v_prev     = new double[size];
-            double[] dens       = (double[])map.Clone();
-            double[] dens_prev  = (double[])map.Clone();
+            double[] dens       = new double[size];
+            double[] dens_prev  = new double[size];
+
+            nsDoublesToBuffer(this.map, N, ref dens);
+            nsDoublesToBuffer(this.map, N, ref dens_prev);
 
             for (int i = 0; i < rounds; i++)
             {
