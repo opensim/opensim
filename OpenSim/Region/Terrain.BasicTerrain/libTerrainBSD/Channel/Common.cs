@@ -74,8 +74,6 @@ namespace libTerrain
 
         public void Set(int x, int y, double val)
         {
-            SetDiff(x, y);
-
             if (x >= w)
                 throw new Exception("Bounds error while setting pixel (width)");
             if (y >= h)
@@ -85,7 +83,12 @@ namespace libTerrain
             if (y < 0)
                 throw new Exception("Bounds error while setting pixel (height)");
 
-            map[x, y] = val;
+            if (map[x, y] != val)
+            {
+                SetDiff(x, y);
+
+                map[x, y] = val;
+            }
         }
 
         public void SetClip(int x, int y, double val)
