@@ -323,8 +323,8 @@ namespace OpenSim.Region.ClientStack
             {
                 int[] patches = new int[1];
                 int patchx, patchy;
-                patchx = px / 16;
-                patchy = py / 16;
+                patchx = px;
+                patchy = py;
 
                 patches[0] = patchx + 0 + patchy * 16;
 

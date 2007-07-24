@@ -61,6 +61,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint _primCount = 702000;
         private Mutex _primAllocateMutex = new Mutex(false);
         private int storageCount;
+        private int terrainCheckCount;
         private int landPrimCheckCount;
         private Mutex updateLock;
 
@@ -235,39 +236,45 @@ namespace OpenSim.Region.Environment.Scenes
                     storageCount = 0;
                 }
 
-                if (Terrain.Tainted())
+                terrainCheckCount++;
+                if (terrainCheckCount >= 5)
                 {
-                    lock (Terrain.heightmap)
+                    terrainCheckCount = 0;
+
+                    if (Terrain.Tainted())
                     {
-                        lock (m_syncRoot)
+                        lock (Terrain.heightmap)
                         {
-                            phyScene.SetTerrain(Terrain.GetHeights1D());
-                        }
+                            lock (m_syncRoot)
+                            {
+                                phyScene.SetTerrain(Terrain.GetHeights1D());
+                            }
 
-                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
+                            storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
-                        float[] terData = Terrain.GetHeights1D();
+                            float[] terData = Terrain.GetHeights1D();
 
-                        ForEachScenePresence(delegate(ScenePresence presence)
-                                                 {
-                                                     for (int x = 0; x < 16; x++)
+                            ForEachScenePresence(delegate(ScenePresence presence)
                                                      {
-                                                         for (int y = 0; y < 16; y++)
+                                                         for (int x = 0; x < 16; x++)
                                                          {
-                                                             if (Terrain.Tainted(x * 16, y * 16))
+                                                             for (int y = 0; y < 16; y++)
                                                              {
-                                                                 SendLayerData(x, y, presence.ControllingClient, terData);
+                                                                 if (Terrain.Tainted(x * 16, y * 16))
+                                                                 {
+                                                                     SendLayerData(x, y, presence.ControllingClient, terData);
+                                                                 }
                                                              }
                                                          }
-                                                     }
-                                                 });
+                                                     });
 
-                        foreach (LLUUID UUID in Entities.Keys)
-                        {
-                            Entities[UUID].LandRenegerated();
+                            foreach (LLUUID UUID in Entities.Keys)
+                            {
+                                Entities[UUID].LandRenegerated();
+                            }
+
+                            Terrain.ResetTaint();
                         }
-
-                        Terrain.ResetTaint();
                     }
                 }
 
