@@ -254,7 +254,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                      {
                                                          for (int y = 0; y < 16; y++)
                                                          {
-                                                             if (Terrain.Tainted(x, y))
+                                                             if (Terrain.Tainted(x * 16, y * 16))
                                                              {
                                                                  SendLayerData(x, y, presence.ControllingClient, terData);
                                                              }
