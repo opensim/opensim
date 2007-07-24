@@ -42,6 +42,8 @@ namespace libTerrain
         /// <param name="c">The amount of rock to carry each round</param>
         public Channel ThermalWeathering(double talus, int rounds, double c)
         {
+            SetDiff();
+
             double[,] lastFrame;
             double[,] thisFrame;
 

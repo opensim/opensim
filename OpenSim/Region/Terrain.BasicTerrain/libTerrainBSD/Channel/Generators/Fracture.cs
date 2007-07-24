@@ -82,6 +82,8 @@ namespace libTerrain
 
         public void Fracture(int number, double scalemin, double scalemax)
         {
+            SetDiff();
+
             Random rand = new Random(seed);
 
             for (int i = 0; i < number; i++)

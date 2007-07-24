@@ -40,6 +40,7 @@ namespace libTerrain
     partial class Channel
     {
         public double[,] map;
+        public int[,] diff;
         public int w;
         public int h;
 
@@ -50,6 +51,7 @@ namespace libTerrain
             w = 256;
             h = 256;
             map = new double[w, h];
+            diff = new int[(int)(w / 16), (int)(h / 16)];
         }
 
         public Channel(int width, int height)
@@ -57,6 +59,7 @@ namespace libTerrain
             w = width;
             h = height;
             map = new double[w, h];
+            diff = new int[(int)(w / 16), (int)(h / 16)];
         }
 
     }

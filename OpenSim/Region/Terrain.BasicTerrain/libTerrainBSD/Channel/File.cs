@@ -37,6 +37,8 @@ namespace libTerrain
     {
         public Channel LoadImage(string filename)
         {
+            SetDiff();
+
             Bitmap bit = new Bitmap(filename);
             Channel chan = new Channel(bit.Width, bit.Height);
 

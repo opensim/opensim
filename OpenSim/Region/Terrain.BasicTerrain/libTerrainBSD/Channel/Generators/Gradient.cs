@@ -37,6 +37,8 @@ namespace libTerrain
 
         public void GradientCube()
         {
+            SetDiff();
+
             int x, y;
             for (x = 0; x < w; x++)
             {

@@ -118,7 +118,7 @@ namespace libTerrain
 
                         if (surfacearea > pickupTalusMinimum)
                         {
-                            this.map[x, y] -= amount;
+                            Set(x, y, map[x, y] - amount);
                             sediment.map[x, y] += amount;
                         }
                     }
@@ -168,7 +168,7 @@ namespace libTerrain
 
                         if (surfacearea > dropTalusMinimum)
                         {
-                            this.map[x + minside[0], y + minside[1]] += amount;
+                            Set(x + minside[0], y + minside[1], map[x + minside[0], y + minside[1]] + amount);
                             sediment.map[x, y] -= amount;
                         }
                     }

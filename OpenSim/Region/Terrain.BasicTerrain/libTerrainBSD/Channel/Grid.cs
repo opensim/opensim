@@ -36,6 +36,8 @@ namespace libTerrain
     {
         public Channel Normalise()
         {
+            SetDiff();
+
             double max = FindMax();
             double min = FindMin();
 
@@ -54,6 +56,8 @@ namespace libTerrain
 
         public Channel Normalise(double minv, double maxv)
         {
+            SetDiff();
+
             double max = FindMax();
             double min = FindMin();
 
@@ -99,7 +103,8 @@ namespace libTerrain
                     double val = map[x, y];
                     if (val > max) val = max;
                     if (val < min) val = min;
-                    map[x, y] = val;
+
+                    Set(x, y, val);
                 }
             }
             return this;
@@ -132,6 +137,8 @@ namespace libTerrain
 
         public Channel AddClip(Channel other)
         {
+            SetDiff();
+
             int x, y;
             for (x = 0; x < w; x++)
             {
@@ -149,6 +156,8 @@ namespace libTerrain
 
         public void Smooth(double amount)
         {
+            SetDiff();
+
             double area = amount;
             double step = amount / 4.0;
 
@@ -179,6 +188,8 @@ namespace libTerrain
 
         public void Pertubation(double amount)
         {
+            SetDiff();
+
             // Simple pertubation filter
             double[,] manipulated = new double[w, h];
             Random generator = new Random(seed); // Seeds FTW!
@@ -227,6 +238,7 @@ namespace libTerrain
 
                     double p = GetBilinearInterpolate(offset_x, offset_y);
                     manipulated[x, y] = p;
+                    SetDiff(x, y);
                 }
             }
             map = manipulated;
@@ -239,7 +251,7 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    map[x, y] = Tools.linearInterpolate(map[x,y],other.map[x,y],amount);
+                    Set(x, y, Tools.linearInterpolate(map[x, y], other.map[x, y], amount));
                 }
             }
             return this;
@@ -252,7 +264,7 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    map[x, y] = Tools.linearInterpolate(map[x, y], other.map[x, y], amount.map[x,y]);
+                    Set(x, y, Tools.linearInterpolate(map[x, y], other.map[x, y], amount.map[x, y]));
                 }
             }
             return this;

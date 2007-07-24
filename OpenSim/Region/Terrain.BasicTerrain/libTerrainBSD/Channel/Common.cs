@@ -51,8 +51,31 @@ namespace libTerrain
             return x;
         }
 
+        public void SetDiff()
+        {
+            SetDiff(1);
+        }
+
+        public void SetDiff(int val)
+        {
+            for (int x = 0; x < w / 16; x++)
+            {
+                for (int y = 0; y < h / 16; y++)
+                {
+                    diff[x, y] = val;
+                }
+            }
+        }
+
+        public void SetDiff(int x, int y)
+        {
+            diff[x / 16, y / 16]++;
+        }
+
         public void Set(int x, int y, double val)
         {
+            SetDiff(x, y);
+
             if (x >= w)
                 throw new Exception("Bounds error while setting pixel (width)");
             if (y >= h)
@@ -67,6 +90,8 @@ namespace libTerrain
 
         public void SetClip(int x, int y, double val)
         {
+            SetDiff(x, y);
+
             if (x >= w)
                 throw new Exception("Bounds error while setting pixel (width)");
             if (y >= h)
@@ -129,11 +154,15 @@ namespace libTerrain
 
         public void SetWrap(int x, int y, double val)
         {
+            SetDiff(x, y);
+
             map[x % w, y % h] = val;
         }
 
         public void SetWrapClip(int x, int y, double val)
         {
+            SetDiff(x, y);
+
             if (val > 1.0)
                 val = 1.0;
             if (val < 0.0)
@@ -144,6 +173,8 @@ namespace libTerrain
 
         public void Fill(double val)
         {
+            SetDiff();
+
             int x, y;
             for (x = 0; x < w; x++)
             {
@@ -156,6 +187,8 @@ namespace libTerrain
 
         public void Fill(double min, double max, double val)
         {
+            SetDiff();
+
             int x, y;
             for (x = 0; x < w; x++)
             {

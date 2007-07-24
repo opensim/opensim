@@ -49,6 +49,9 @@ namespace libTerrain
             {
                 for (y = 0; y < A.h; y++)
                 {
+                    if (B.map[x, y] != 0)
+                        A.SetDiff(x, y);
+
                     A.map[x, y] += B.map[x, y];
                 }
             }
@@ -73,6 +76,8 @@ namespace libTerrain
                 }
             }
 
+            A.SetDiff();
+
             return A;
         }
 
@@ -89,6 +94,8 @@ namespace libTerrain
             {
                 for (y = 0; y < A.h; y++)
                 {
+                    if (B.map[x, y] != 0)
+                        A.SetDiff(x, y);
                     A.map[x, y] -= B.map[x, y];
                 }
             }
@@ -113,6 +120,8 @@ namespace libTerrain
                 }
             }
 
+            A.SetDiff();
+
             return A;
         }
 
@@ -133,6 +142,8 @@ namespace libTerrain
                 }
             }
 
+            A.SetDiff();
+
             return A;
         }
 
@@ -151,6 +162,9 @@ namespace libTerrain
                 }
             }
 
+            if (B != 0)
+                A.SetDiff();
+
             return A;
         }
 
@@ -165,6 +179,9 @@ namespace libTerrain
                     A.map[x, y] -= B;
                 }
             }
+
+            if (B != 0)
+                A.SetDiff();
 
             return A;
         }
@@ -181,6 +198,9 @@ namespace libTerrain
                 }
             }
 
+            if (B != 1)
+                A.SetDiff();
+
             return A;
         }
 
@@ -196,6 +216,9 @@ namespace libTerrain
                 }
             }
 
+            if (B != 1)
+                A.SetDiff();
+
             return A;
         }
 
@@ -210,6 +233,8 @@ namespace libTerrain
                     A.map[x, y] = Math.Pow(A.map[x,y],B);
                 }
             }
+
+            A.SetDiff();
 
             return A;
         }

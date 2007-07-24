@@ -36,6 +36,8 @@ namespace libTerrain
     {
         public void HydraulicErosion(Channel rain, double evaporation, double solubility, int frequency, int rounds)
         {
+            SetDiff();
+
             Channel water = new Channel(w, h);
             Channel sediment = new Channel(w, h);
             Channel terrain = this;

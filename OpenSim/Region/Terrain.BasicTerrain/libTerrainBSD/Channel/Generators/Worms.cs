@@ -44,6 +44,8 @@ namespace libTerrain
         /// <param name="centerspawn">Do worms start in the middle, or randomly?</param>
         public void Worms(int number, int rounds, double movement, double size, bool centerspawn)
         {
+            SetDiff();
+
             Random random = new Random(seed);
             int i, j;
 

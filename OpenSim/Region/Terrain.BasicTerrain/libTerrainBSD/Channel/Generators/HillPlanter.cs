@@ -46,6 +46,8 @@ namespace libTerrain
         /// <param name="noisy">Generates hill-shaped noise instead of consistent hills</param>
         public void HillsSpheres(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
+            SetDiff();
+
             Random random = new Random(seed);
 
             int x, y;
@@ -110,6 +112,8 @@ namespace libTerrain
         /// <param name="noisy">Generates hill-shaped noise instead of consistent hills</param>
         public void HillsCones(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
+            SetDiff();
+
             Random random = new Random(seed);
 
             int x, y;
@@ -163,6 +167,8 @@ namespace libTerrain
 
         public void HillsBlocks(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
+            SetDiff();
+
             Random random = new Random(seed);
 
             int x, y;
@@ -217,6 +223,8 @@ namespace libTerrain
 
         public void HillsSquared(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
         {
+            SetDiff();
+
             Random random = new Random(seed);
 
             int x, y;

@@ -235,25 +235,40 @@ namespace OpenSim.Region.Environment.Scenes
                     storageCount = 0;
                 }
 
-                if (Terrain.tainted > 0)
+                if (Terrain.Tainted())
                 {
-                    lock (m_syncRoot)
+                    lock (Terrain.heightmap)
                     {
-                        phyScene.SetTerrain(Terrain.GetHeights1D());
+                        lock (m_syncRoot)
+                        {
+                            phyScene.SetTerrain(Terrain.GetHeights1D());
+                        }
+
+                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
+
+                        float[] terData = Terrain.GetHeights1D();
+
+                        ForEachScenePresence(delegate(ScenePresence presence)
+                                                 {
+                                                     for (int x = 0; x < 16; x++)
+                                                     {
+                                                         for (int y = 0; y < 16; y++)
+                                                         {
+                                                             if (Terrain.Tainted(x, y))
+                                                             {
+                                                                 SendLayerData(x, y, presence.ControllingClient, terData);
+                                                             }
+                                                         }
+                                                     }
+                                                 });
+
+                        foreach (LLUUID UUID in Entities.Keys)
+                        {
+                            Entities[UUID].LandRenegerated();
+                        }
+
+                        Terrain.ResetTaint();
                     }
-
-                    storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
-
-                    ForEachScenePresence(delegate(ScenePresence presence)
-                                             {
-                                                 SendLayerData(presence.ControllingClient);
-                                             });
-
-                    foreach (LLUUID UUID in Entities.Keys)
-                    {
-                        Entities[UUID].LandRenegerated();
-                    }
-                    Terrain.tainted = 0;
                 }
 
                 landPrimCheckCount++;
@@ -365,9 +380,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     /* Dont save here, rely on tainting system instead */
 
+                    float[] terrain = Terrain.GetHeights1D();
+
                     ForEachScenePresence(delegate(ScenePresence presence)
                                              {
-                                                 SendLayerData(pointx, pointy, presence.ControllingClient);
+                                                 SendLayerData(pointx, pointy, presence.ControllingClient, terrain);
                                              });
                 }
             }

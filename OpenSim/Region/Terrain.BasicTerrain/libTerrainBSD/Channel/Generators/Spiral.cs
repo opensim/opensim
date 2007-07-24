@@ -36,7 +36,6 @@ namespace libTerrain
     {
         private double[] CoordinatesToPolar(int x, int y)
         {
-
             double theta = Math.Atan2(x - (w / 2), y - (h / 2));
             double rx = (double)x - ((double)w / 2);
             double ry = (double)y - ((double)h / 2);
@@ -78,6 +77,8 @@ namespace libTerrain
 
         public void Polar()
         {
+            SetDiff();
+
             Channel n = this.Copy();
 
             int x, y;
@@ -97,6 +98,8 @@ namespace libTerrain
 
         public void SpiralPlanter(int steps, double incAngle, double incRadius, double offsetRadius, double offsetAngle)
         {
+            SetDiff();
+
             int i;
             double r = offsetRadius;
             double theta = offsetAngle;
@@ -112,6 +115,8 @@ namespace libTerrain
 
         public void SpiralCells(int steps, double incAngle, double incRadius, double offsetRadius, double offsetAngle, double[] c)
         {
+            SetDiff();
+
             List<Point2D> points = new List<Point2D>();
 
             int i;
@@ -131,6 +136,8 @@ namespace libTerrain
 
         public void Spiral(double wid, double hig, double offset)
         {
+            SetDiff();
+
             int x, y, z;
             z = 0;
             for (x = 0; x < w; x++)

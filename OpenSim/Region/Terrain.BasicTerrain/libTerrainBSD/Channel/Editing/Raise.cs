@@ -68,7 +68,7 @@ namespace libTerrain
                     if (z < 0)
                         z = 0;
 
-                    map[x, y] += z * amount;
+                    Set(x, y, map[x, y] + (z * amount));
                 }
             }
         }
@@ -93,7 +93,7 @@ namespace libTerrain
                     if (z < 0)
                         z = 0;
 
-                    map[x, y] += z * amount;
+                    Set(x, y, map[x, y] + (z * amount));
                 }
             }
         }
@@ -131,7 +131,7 @@ namespace libTerrain
                     if (z < 0)
                         z = 0;
 
-                    map[x, y] -= z * amount;
+                    Set(x, y, map[x, y] - (z * amount));
                 }
             }
         }

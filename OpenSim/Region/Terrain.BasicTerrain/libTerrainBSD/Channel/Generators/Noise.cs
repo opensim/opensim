@@ -40,6 +40,8 @@ namespace libTerrain
         /// <remarks>3-Clause BSD Licensed</remarks>
         public void Noise()
         {
+            SetDiff();
+
             Random rand = new Random(seed);
             int x, y;
             for (x = 0; x < w; x++)

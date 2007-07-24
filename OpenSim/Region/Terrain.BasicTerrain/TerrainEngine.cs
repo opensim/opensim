@@ -99,6 +99,22 @@ namespace OpenSim.Region.Terrain
             tainted++;
         }
 
+        public bool Tainted()
+        {
+            return (tainted != 0);
+        }
+
+        public bool Tainted(int x, int y)
+        {
+            return (heightmap.diff[x / 16, y / 16] != 0);
+        }
+
+        public void ResetTaint()
+        {
+            tainted = 0;
+            heightmap.diff = new int[w / 16, h / 16];
+        }
+
         /// <summary>
         /// Checks to make sure the terrain is within baked values +/- maxRaise/minLower
         /// </summary>
