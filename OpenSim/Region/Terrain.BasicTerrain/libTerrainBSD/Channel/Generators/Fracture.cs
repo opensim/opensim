@@ -79,6 +79,7 @@ namespace libTerrain
 
             throw new Exception("Out of bounds parameter (val)");
         }
+
         public void Fracture(int number, double scalemin, double scalemax)
         {
             Random rand = new Random(seed);
@@ -90,6 +91,8 @@ namespace libTerrain
                 a = RadialEdge256(rand.Next(1023)); // TODO: Broken
                 b = RadialEdge256(rand.Next(1023)); // TODO: Broken
                 double z = rand.NextDouble();
+                double u = rand.NextDouble();
+                double v = rand.NextDouble();
 
                 for (int x = 0; x < w; x++)
                 {
@@ -97,9 +100,39 @@ namespace libTerrain
                     {
                         double miny = Tools.linearInterpolate(a[1], b[1], (double)x / (double)w);
 
-                        if (y > miny)
+                        if (v >= 0.5)
                         {
-                            map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                            if (u >= 0.5)
+                            {
+                                if (y > miny)
+                                {
+                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                }
+                            }
+                            else
+                            {
+                                if (y < miny)
+                                {
+                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (u >= 0.5)
+                            {
+                                if (x > miny)
+                                {
+                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                }
+                            }
+                            else
+                            {
+                                if (x < miny)
+                                {
+                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                }
+                            }
                         }
                     }
                 }

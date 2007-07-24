@@ -225,9 +225,9 @@ namespace libTerrain
             int i;
             int j;
 
-            for (i = 0; i <= N; i++)
+            for (i = 1; i <= N; i++)
             {
-                for (j = 0; j <= N; j++)
+                for (j = 1; j <= N; j++)
                 {
                     dens[nsIX(i, j, N)] = doubles[i, j];
                 }

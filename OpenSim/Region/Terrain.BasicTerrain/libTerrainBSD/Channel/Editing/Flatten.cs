@@ -44,6 +44,11 @@ namespace libTerrain
         /// <param name="amount">The scale of the terrain mask</param>
         public void Flatten(double rx, double ry, double size, double amount)
         {
+            FlattenFast(rx, ry, size, amount);
+        }
+
+        private void FlattenSlow(double rx, double ry, double size, double amount)
+        {
             // Generate the mask
             Channel temp = new Channel(w, h);
             temp.Fill(0);
@@ -68,6 +73,51 @@ namespace libTerrain
             // using the "raised" empty terrain as a mask
             Blend(flat, temp);
 
+        }
+
+        private void FlattenFast(double rx, double ry, double size, double amount)
+        {
+            int x, y;
+            double avg = 0;
+            double div = 0;
+
+            int minX = Math.Max(0, (int)(rx - (size + 1)));
+            int maxX = Math.Min(w, (int)(rx + (size + 1)));
+            int minY = Math.Max(0, (int)(ry - (size + 1)));
+            int maxY = Math.Min(h, (int)(ry + (size + 1)));
+
+            for (x = minX; x < maxX; x++)
+            {
+                for (y = minY; y < maxY; y++)
+                {
+                    double z = size;
+                    z *= z;
+                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+
+                    if (z < 0)
+                        z = 0;
+
+                    avg += z * amount;
+                    div += z;
+                }
+            }
+
+            double height = avg / div;
+
+            for (x = minX; x < maxX; x++)
+            {
+                for (y = minY; y < maxY; y++)
+                {
+                    double z = size;
+                    z *= z;
+                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+
+                    if (z < 0)
+                        z = 0;
+
+                    map[x, y] = Tools.linearInterpolate(map[x, y], height, z);
+                }
+            }
         }
 
         public void Flatten(Channel mask, double amount)
