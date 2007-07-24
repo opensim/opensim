@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="action">The action to be performed</param>
         /// <param name="north">Distance from the north border where the cursor is located</param>
         /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west)
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, IClientAPI remoteUser)
         {
             // Shiny.
             double size = (double)(1 << brushsize);
@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Scenes
                     break;
             }
 
-            RegenerateTerrain(true, (int)(north / 16.0f), (int)(west / 16.0f));
+            remoteUser.SendLayerData((int)(west / 16), (int)(north / 16), Terrain.GetHeights1D());
 
             return;
         }

@@ -135,7 +135,7 @@ namespace OpenSim.Region.ClientStack
                             if (OnModifyTerrain != null)
                             {
                                 OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds, modify.ModifyBlock.BrushSize,
-                                    modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West);
+                                    modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West, this);
                             }
                         }
                         break;

@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 terrainCheckCount++;
-                if (terrainCheckCount >= 5)
+                if (terrainCheckCount >= 50)
                 {
                     terrainCheckCount = 0;
 
@@ -365,34 +365,6 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (LLUUID UUID in Entities.Keys)
                 {
                     Entities[UUID].LandRenegerated();
-                }
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Warn("terrain", "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Rebuilds the terrain assuming changes occured at a specified point[?]
-        /// </summary>
-        /// <param name="changes">???</param>
-        /// <param name="pointx">???</param>
-        /// <param name="pointy">???</param>
-        public void RegenerateTerrain(bool changes, int pointx, int pointy)
-        {
-            try
-            {
-                if (changes)
-                {
-                    /* Dont save here, rely on tainting system instead */
-
-                    float[] terrain = Terrain.GetHeights1D();
-
-                    ForEachScenePresence(delegate(ScenePresence presence)
-                                             {
-                                                 SendLayerData(pointx, pointy, presence.ControllingClient, terrain);
-                                             });
                 }
             }
             catch (Exception e)
