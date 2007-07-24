@@ -94,7 +94,7 @@ namespace SimpleApp
                 scene.AddEntity(fileObject);
             }
             
-            m_log.WriteLine(LogPriority.NORMAL, "Press enter to quit.");
+            m_log.Notice("Press enter to quit.");
             m_log.ReadLine();            
         }
 

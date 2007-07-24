@@ -43,7 +43,6 @@ namespace OpenSim.Grid.UserServer
     /// </summary>
     public class OpenUser_Main :  conscmd_callback
     {
-        private string StorageDll = "OpenSim.Framework.Data.MySQL.dll";
         private UserConfig Cfg;
 
         public UserManager m_userManager;

@@ -344,7 +344,7 @@ namespace OpenSim.Framework.Console
         {
             // FIXME: Needs to be better abstracted
             Log.WriteLine(prompt);
-            this.Write(prompt);
+            this.Notice(prompt);
             ConsoleColor oldfg = System.Console.ForegroundColor;
             System.Console.ForegroundColor = System.Console.BackgroundColor;
             string temp = System.Console.ReadLine();
@@ -355,7 +355,7 @@ namespace OpenSim.Framework.Console
         // Displays a command prompt and waits for the user to enter a string, then returns that string
         public string CmdPrompt(string prompt)
         {
-            this.Write(String.Format("{0}: ", prompt));
+            this.Notice(String.Format("{0}: ", prompt));
             return this.ReadLine();
         }
 

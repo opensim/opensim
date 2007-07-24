@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Configuration.HTTP
                 while (count > 0);
                 LoadDataFromString(sb.ToString());
             }
-            catch (Exception e)
+            catch (WebException)
             {
                 Console.MainLog.Instance.Warn("Unable to connect to remote configuration file (" + remoteConfigSettings.baseConfigURL + configFileName + "). Creating local file instead.");
                 xmlConfig.SetFileName(configFileName);

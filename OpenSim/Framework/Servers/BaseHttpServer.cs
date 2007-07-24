@@ -185,7 +185,7 @@ namespace OpenSim.Framework.Servers
 
         public void Start()
         {
-            MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: Starting up HTTP Server");
+            MainLog.Instance.Verbose("HTTPD", "BaseHttpServer.cs: Starting up HTTP Server");
 
             m_workerThread = new Thread(new ThreadStart(StartHTTP));
             m_workerThread.IsBackground = true;
@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Servers
         {
             try
             {
-                MainLog.Instance.WriteLine(LogPriority.LOW, "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
+                MainLog.Instance.Status("HTTPD", "BaseHttpServer.cs: StartHTTP() - Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
                 m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception e)
             {
-                MainLog.Instance.WriteLine(LogPriority.MEDIUM, e.Message);
+                MainLog.Instance.Warn("HTTPD", "Error - " + e.Message);
             }
         }
 

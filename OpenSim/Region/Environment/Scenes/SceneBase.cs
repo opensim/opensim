@@ -145,7 +145,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.WriteLine(LogPriority.HIGH, "World.cs: Close() - Failed with exception " + e.ToString());
+                MainLog.Instance.Error("SCENE", "World.cs: Close() - Failed with exception " + e.ToString());
             }
         }
 

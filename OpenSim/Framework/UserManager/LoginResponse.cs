@@ -257,8 +257,8 @@ namespace OpenSim.Framework.UserManagement
             }
             catch (Exception e)
             {
-                MainLog.Instance.WriteLine(
-                    LogPriority.LOW,
+                MainLog.Instance.Warn(
+                    "CLIENT",
                     "LoginResponse: Error creating XML-RPC Response: " + e.Message
                 );
                 return (this.GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));
