@@ -114,6 +114,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Warn(string sender, string format, params object[] args)
         {
+            sender = sender.ToUpper();
             int colIdx = (sender.GetHashCode() % 6) + 9;
             ConsoleColor col = (ConsoleColor)colIdx;
 
@@ -141,6 +142,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Notice(string sender, string format, params object[] args)
         {
+            sender = sender.ToUpper();
             int colIdx = (sender.GetHashCode() % 6) + 9;
             ConsoleColor col = (ConsoleColor)colIdx;
 
@@ -168,6 +170,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Error(string sender, string format, params object[] args)
         {
+            sender = sender.ToUpper();
             int colIdx = (sender.GetHashCode() % 6) + 9;
             ConsoleColor col = (ConsoleColor)colIdx;
 
@@ -195,6 +198,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string sender, string format, params object[] args)
         {
+            sender = sender.ToUpper();
             int colIdx = (sender.GetHashCode() % 6) + 9;
             ConsoleColor col = (ConsoleColor)colIdx;
 
@@ -222,6 +226,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Status(string sender, string format, params object[] args)
         {
+            sender = sender.ToUpper();
             int colIdx = (sender.GetHashCode() % 6) + 9;
             ConsoleColor col = (ConsoleColor)colIdx;
 
