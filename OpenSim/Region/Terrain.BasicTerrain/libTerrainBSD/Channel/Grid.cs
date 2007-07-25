@@ -43,12 +43,19 @@ namespace libTerrain
 
             int x, y;
 
-            for (x = 0; x < w; x++)
+            if (max != min)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
-                    map[x, y] = (map[x, y] - min) * (1.0 / (max - min));
+                    for (y = 0; y < h; y++)
+                    {
+                        map[x, y] = (map[x, y] - min) * (1.0 / (max - min));
+                    }
                 }
+            }
+            else
+            {
+                this.Fill(0.5);
             }
 
             return this;
@@ -242,6 +249,76 @@ namespace libTerrain
                 }
             }
             map = manipulated;
+        }
+
+        public void Distort(Channel mask, double str)
+        {
+            // Simple pertubation filter
+            double[,] manipulated = new double[w, h];
+
+            double amount;
+
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    amount = mask.map[x, y];
+                    double offset_x = (double)x + (amount * str) - (0.5 * str);
+                    double offset_y = (double)y + (amount * str) - (0.5 * str);
+
+                    if (offset_x > w)
+                        offset_x = w - 1;
+                    if (offset_y > h)
+                        offset_y = h - 1;
+                    if (offset_y < 0)
+                        offset_y = 0;
+                    if (offset_x < 0)
+                        offset_x = 0;
+
+                    double p = GetBilinearInterpolate(offset_x, offset_y);
+                    manipulated[x, y] = p;
+                    SetDiff(x, y);
+                }
+            }
+            map = manipulated;
+
+        }
+
+        public void Distort(Channel mask, Channel mask2, double str)
+        {
+            // Simple pertubation filter
+            double[,] manipulated = new double[w, h];
+
+            double amountX;
+            double amountY;
+
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    amountX = mask.map[x, y];
+                    amountY = mask2.map[x, y];
+                    double offset_x = (double)x + (amountX * str) - (0.5 * str);
+                    double offset_y = (double)y + (amountY * str) - (0.5 * str);
+
+                    if (offset_x > w)
+                        offset_x = w - 1;
+                    if (offset_y > h)
+                        offset_y = h - 1;
+                    if (offset_y < 0)
+                        offset_y = 0;
+                    if (offset_x < 0)
+                        offset_x = 0;
+
+                    double p = GetBilinearInterpolate(offset_x, offset_y);
+                    manipulated[x, y] = p;
+                    SetDiff(x, y);
+                }
+            }
+            map = manipulated;
+
         }
 
         public Channel Blend(Channel other, double amount)

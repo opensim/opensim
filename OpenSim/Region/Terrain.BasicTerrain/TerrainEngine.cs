@@ -277,7 +277,7 @@ namespace OpenSim.Region.Terrain
                         resultText += "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
                         resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
                         resultText += "terrain fill <val> - fills a terrain at the specified height\n";
-                        resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest>\n";
+                        resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest t/f> <fluid dynamics t/f>\n";
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
                         resultText += "terrain erode hydraulic <rain> <evaporation> <solubility> <frequency> <rounds>\n";
                         resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
@@ -426,11 +426,14 @@ namespace OpenSim.Region.Terrain
 
         private bool ConsoleErosion(string[] args, ref string resultText)
         {
+            double min = heightmap.FindMin();
+            double max = heightmap.FindMax();
+
             switch (args[1].ToLower())
             {
                 case "aerobic":
                     // WindSpeed, PickupMinimum,DropMinimum,Carry,Rounds,Lowest
-                    heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]), true);
+                    heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]), Convert.ToBoolean(args[8]));
                     break;
                 case "thermal":
                     heightmap.ThermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
@@ -444,6 +447,9 @@ namespace OpenSim.Region.Terrain
                     resultText = "Unknown erosion type";
                     return false;
             }
+
+            heightmap.Normalise(min, max);
+
             tainted++;
             return true;
         }

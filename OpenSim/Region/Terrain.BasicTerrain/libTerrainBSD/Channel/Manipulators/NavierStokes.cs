@@ -211,11 +211,11 @@ namespace libTerrain
             int i;
             int j;
 
-            for (i = 0; i <= N; i++)
+            for (i = 1; i <= N; i++)
             {
-                for (j = 0; j <= N; j++)
+                for (j = 1; j <= N; j++)
                 {
-                    doubles[i, j] = dens[nsIX(i, j, N)];
+                    doubles[i - 1, j - 1] = dens[nsIX(i, j, N)];
                 }
             }
         }
@@ -229,7 +229,7 @@ namespace libTerrain
             {
                 for (j = 1; j <= N; j++)
                 {
-                    dens[nsIX(i, j, N)] = doubles[i, j];
+                    dens[nsIX(i, j, N)] = doubles[i - 1, j - 1];
                 }
             }
         }
@@ -271,6 +271,37 @@ namespace libTerrain
         public void navierStokes(int rounds, double dt, double diff, double visc)
         {
             nsSimulate(this.h, rounds, dt, diff, visc);
+        }
+
+        public void navierStokes(int rounds, double dt, double diff, double visc, ref double[,] uret, ref double[,] vret)
+        {
+            int N = this.h;
+
+            int size = (N * 2) * (N * 2);
+
+            double[] u = new double[size]; // Force, X axis
+            double[] v = new double[size]; // Force, Y axis
+            double[] u_prev = new double[size];
+            double[] v_prev = new double[size];
+            double[] dens = new double[size];
+            double[] dens_prev = new double[size];
+
+            nsDoublesToBuffer(this.map, N, ref dens);
+            nsDoublesToBuffer(this.map, N, ref dens_prev);
+
+            for (int i = 0; i < rounds; i++)
+            {
+                u_prev = u;
+                v_prev = v;
+                dens_prev = dens;
+
+                nsVelStep(N, ref u, ref v, ref u_prev, ref v_prev, visc, dt);
+                nsDensStep(N, ref dens, ref dens_prev, ref u, ref v, diff, dt);
+            }
+
+            nsBufferToDoubles(ref u, N, ref uret);
+            nsBufferToDoubles(ref v, N, ref vret);
+            nsBufferToDoubles(ref dens, N, ref this.map);
         }
     }
 }

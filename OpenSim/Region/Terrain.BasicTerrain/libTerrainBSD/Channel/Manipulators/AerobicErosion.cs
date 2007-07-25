@@ -76,13 +76,19 @@ namespace libTerrain
         /// <param name="lowest">Drop sediment at the lowest point?</param>
         public void AerobicErosion(double windspeed, double pickupTalusMinimum, double dropTalusMinimum, double carry, int rounds, bool lowest, bool usingFluidDynamics)
         {
+            bool debugImages = true;
+
             Channel wind = new Channel(w, h) ;
             Channel sediment = new Channel(w, h);
             int x, y, i, j;
 
+            this.Normalise();
+
             wind = this.Copy();
-            wind.Normalise();   // Cheap wind calculations
-            wind *= windspeed;
+            wind.Noise();
+
+            if (debugImages)
+                wind.SaveImage("testimg/wind_start.png");
 
             if (usingFluidDynamics)
             {
@@ -90,8 +96,11 @@ namespace libTerrain
             }
             else
             {
-                wind.Pertubation(30);   // Can do better later
+                wind.Pertubation(30);
             }
+
+            if (debugImages)
+                wind.SaveImage("testimg/wind_begin.png");
 
             for (i = 0; i < rounds; i++)
             {
@@ -127,7 +136,14 @@ namespace libTerrain
                 if (usingFluidDynamics)
                 {
                     sediment.navierStokes(7, 0.1, 0.0, 0.1);
-                    wind.navierStokes(10, 0.1, 0.0, 0.0);
+
+                    Channel noiseChan = new Channel(w, h);
+                    noiseChan.Noise();
+                    wind.Blend(noiseChan, 0.01);
+
+                    wind.navierStokes(10, 0.1, 0.01, 0.01);
+
+                    sediment.Distort(wind, windspeed);
                 }
                 else
                 {
@@ -136,6 +152,9 @@ namespace libTerrain
                     sediment.Pertubation(10); // Sediment is blown around a bit
                     sediment.seed++;
                 }
+
+                if (debugImages)
+                    wind.SaveImage("testimg/wind_" + i.ToString() + ".png");
 
                 // Convert some sand to rock
                 for (x = 1; x < w - 1; x++)
@@ -174,11 +193,21 @@ namespace libTerrain
                     }
                 }
 
+                if (debugImages)
+                    sediment.SaveImage("testimg/sediment_" + i.ToString() + ".png");
+
+                wind.Normalise();
+                wind *= windspeed;
+
+                this.Normalise();
             }
 
             Channel myself = this;
             myself += sediment;
             myself.Normalise();
+
+            if (debugImages)
+                this.SaveImage("testimg/output.png");
         }
     }
 }

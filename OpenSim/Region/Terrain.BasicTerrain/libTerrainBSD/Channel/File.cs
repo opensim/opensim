@@ -57,13 +57,16 @@ namespace libTerrain
 
         public void SaveImage(string filename)
         {
+            Channel outmap = this.Copy();
+            outmap.Normalise();
+
             Bitmap bit = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             int x, y;
             for (x = 0; x < w; x++)
             {
                 for (y = 0; y < h; y++)
                 {
-                    int val = Math.Min(255, (int)(map[x,y] * 255));
+                    int val = Math.Min(255, (int)(outmap.map[x,y] * 255));
                     Color col = Color.FromArgb(val,val,val);
                     bit.SetPixel(x, y, col);
                 }

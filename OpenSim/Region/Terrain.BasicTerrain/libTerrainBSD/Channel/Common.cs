@@ -257,5 +257,21 @@ namespace libTerrain
         {
             return Sum() / (w * h);
         }
+
+        public bool ContainsNaN()
+        {
+            int x, y;
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    double elm = map[x, y];
+
+                    if (Double.IsNaN(elm))
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }
