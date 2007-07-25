@@ -92,7 +92,16 @@ namespace OpenSim.Region.Environment.Scenes
                     break;
             }
 
-            remoteUser.SendLayerData((int)(west / 16), (int)(north / 16), Terrain.GetHeights1D());
+            for (int x = 0; x < 16; x++)
+            {
+                for (int y = 0; y < 16; y++)
+                {
+                    if (Terrain.Tainted(x * 16, y * 16))
+                    {
+                        remoteUser.SendLayerData(x, y, Terrain.GetHeights1D());
+                    }
+                }
+            }
 
             return;
         }

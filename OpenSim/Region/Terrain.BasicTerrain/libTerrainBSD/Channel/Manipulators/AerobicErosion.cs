@@ -76,7 +76,7 @@ namespace libTerrain
         /// <param name="lowest">Drop sediment at the lowest point?</param>
         public void AerobicErosion(double windspeed, double pickupTalusMinimum, double dropTalusMinimum, double carry, int rounds, bool lowest, bool usingFluidDynamics)
         {
-            bool debugImages = true;
+            bool debugImages = false;
 
             Channel wind = new Channel(w, h) ;
             Channel sediment = new Channel(w, h);
