@@ -38,12 +38,13 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Communications.Caches
 {
-
     public class UserProfileCache
     {
         // Fields
         private CommunicationsManager m_parent;
         public Dictionary<LLUUID, CachedUserInfo> UserProfiles = new Dictionary<LLUUID, CachedUserInfo>();
+
+        public LibraryRootFolder libraryRoot = new LibraryRootFolder();
 
         // Methods
         public UserProfileCache(CommunicationsManager parent)
@@ -51,6 +52,11 @@ namespace OpenSim.Framework.Communications.Caches
             this.m_parent = parent;
         }
 
+        /// <summary>
+        /// A new user has moved into a region in this instance
+        /// so get info from servers
+        /// </summary>
+        /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
         {
             if (!this.UserProfiles.ContainsKey(userID))
@@ -69,6 +75,12 @@ namespace OpenSim.Framework.Communications.Caches
             }
         }
 
+        /// <summary>
+        /// A new user has moved into a region in this instance
+        /// so get info from servers
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
         public void AddNewUser(string firstName, string lastName)
         {
         }
@@ -104,7 +116,11 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
         {
-            if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            if (folderID == libraryRoot.folderID )
+            {
+                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID, libraryRoot.RequestListOfItems());
+            }
+            else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
                 CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
                 if (info.RootFolder.folderID == folderID)
@@ -127,7 +143,11 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
         {
-            if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            if (ownerID == libraryRoot.agentID)
+            {
+                //Console.WriteLine("request info for library item");
+            }
+            else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
                 InventoryItemBase item = this.UserProfiles[remoteClient.AgentId].RootFolder.HasItem(itemID);
                 if (item != null)
@@ -137,8 +157,16 @@ namespace OpenSim.Framework.Communications.Caches
             }
         }
 
+        /// <summary>
+        /// Request Iventory Info from Inventory server
+        /// </summary>
+        /// <param name="userID"></param>
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
+            // this.m_parent.InventoryServer.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+
+            //for now we manually create the root folder,
+            // but should be requesting all inventory from inventory server.
             InventoryFolder folderInfo = new InventoryFolder();
             folderInfo.agentID = userID;
             folderInfo.folderID = userInfo.UserProfile.rootInventoryFolderID;
@@ -149,19 +177,37 @@ namespace OpenSim.Framework.Communications.Caches
             userInfo.FolderReceive(userID, folderInfo);
         }
 
+        /// <summary>
+        /// Request the user profile from User server
+        /// </summary>
+        /// <param name="userID"></param>
         private UserProfileData RequestUserProfileForUser(LLUUID userID)
         {
             return this.m_parent.UserServer.GetUserProfile(userID);
         }
 
+        /// <summary>
+        /// Update Inventory data to Inventory server
+        /// </summary>
+        /// <param name="userID"></param>
         private void UpdateInventoryToServer(LLUUID userID)
         {
         }
 
+        /// <summary>
+        /// Make sure UserProfile is updated on user server
+        /// </summary>
+        /// <param name="userID"></param>
         private void UpdateUserProfileToServer(LLUUID userID)
         {
         }
 
+        /// <summary>
+        /// A user has left this instance 
+        /// so make sure servers have been updated
+        /// Then remove cached info
+        /// </summary>
+        /// <param name="userID"></param>
         public void UserLogOut(LLUUID userID)
         {
         }

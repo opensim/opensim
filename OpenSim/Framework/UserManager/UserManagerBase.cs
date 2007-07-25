@@ -347,6 +347,38 @@ namespace OpenSim.Framework.UserManagement
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected virtual ArrayList GetInventoryLibrary()
+        {
+            //return new ArrayList();
+            Hashtable TempHash = new Hashtable();
+            TempHash["name"] = "OpenSim Library";
+            TempHash["parent_id"] = LLUUID.Zero.ToStringHyphenated();
+            TempHash["version"] = "1";
+            TempHash["type_default"] = "-1";
+            TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+            ArrayList temp = new ArrayList();
+            temp.Add(TempHash);
+            return temp;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected virtual ArrayList GetLibraryOwner()
+        {
+            //for now create random inventory library owner
+            Hashtable TempHash = new Hashtable();
+            TempHash["agent_id"] = "11111111-1111-0000-0000-000100bba000";
+            ArrayList inventoryLibOwner = new ArrayList();
+            inventoryLibOwner.Add(TempHash);
+            return inventoryLibOwner;
+        }
+
+        /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
         /// <param name="response">The existing response</param>
@@ -446,6 +478,8 @@ namespace OpenSim.Framework.UserManagement
                     logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
                     logResponse.InventoryRoot = InventoryRoot;
                     logResponse.InventorySkeleton = AgentInventoryArray;
+                    logResponse.InventoryLibrary = this.GetInventoryLibrary();
+                    logResponse.InventoryLibraryOwner = this.GetLibraryOwner();
                     logResponse.CircuitCode = (Int32)circode;
                     //logResponse.RegionX = 0; //overwritten
                     //logResponse.RegionY = 0; //overwritten

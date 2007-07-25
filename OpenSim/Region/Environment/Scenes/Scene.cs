@@ -546,7 +546,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
             m_LandManager.sendParcelOverlay(client);
-          //  commsManager.UserProfilesCache.AddNewUser(client.AgentId);
+            //commsManager.UserProfiles.AddNewUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -591,9 +591,9 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
             
            // client.OnCreateNewInventoryItem += CreateNewInventoryItem;
-           // client.OnCreateNewInventoryFolder += commsManager.UserProfilesCache.HandleCreateInventoryFolder;
-           // client.OnFetchInventoryDescendents += commsManager.UserProfilesCache.HandleFecthInventoryDescendents;
-           // client.OnRequestTaskInventory += RequestTaskInventory;
+            //client.OnCreateNewInventoryFolder += commsManager.UserProfiles.HandleCreateInventoryFolder;
+            client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
+            client.OnRequestTaskInventory += RequestTaskInventory;
         }
 
         protected ScenePresence CreateAndAddScenePresence(IClientAPI client)

@@ -669,7 +669,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="nextOwnerMask"></param>
         public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            CachedUserInfo userInfo = commsManager.UserProfilesCache.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 AssetBase asset = new AssetBase();

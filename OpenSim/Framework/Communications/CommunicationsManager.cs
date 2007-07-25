@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Communications
         public IGridServices GridServer;
         public IInventoryServices InventoryServer;
         public IInterRegionCommunications InterRegion;
-        public UserProfileCache UserProfilesCache;
+        public UserProfileCache UserProfiles;
         public AssetCache AssetCache;
 
         public NetworkServersInfo ServersInfo;
@@ -52,21 +52,28 @@ namespace OpenSim.Framework.Communications
         {
             ServersInfo = serversInfo;
             this.AssetCache = assetCache;
-            UserProfilesCache = new UserProfileCache(this);
+            UserProfiles = new UserProfileCache(this);
         }
 
         #region Packet Handlers
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
-            UserProfileData profileData = this.UserServer.GetUserProfile(uuid);
-            if (profileData != null)
+            if (uuid == UserProfiles.libraryRoot.agentID)
             {
-                LLUUID profileId = profileData.UUID;
-                string firstname = profileData.username;
-                string lastname = profileData.surname;
+                remote_client.SendNameReply(uuid , "Mr" , "OpenSim");
+            }
+            else
+            {
+                UserProfileData profileData = this.UserServer.GetUserProfile(uuid);
+                if (profileData != null)
+                {
+                    LLUUID profileId = profileData.UUID;
+                    string firstname = profileData.username;
+                    string lastname = profileData.surname;
 
-                remote_client.SendNameReply(profileId, firstname, lastname);
-            }            
+                    remote_client.SendNameReply(profileId, firstname, lastname);
+                }
+            }
         }
 
         #endregion

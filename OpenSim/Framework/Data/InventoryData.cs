@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// Tyep of Items normally stored in this folder
         /// </summary>
-        public ushort type;
+        public short type;
         /// <summary>
         /// 
         /// </summary>

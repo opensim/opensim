@@ -50,7 +50,7 @@ namespace OpenSim.Framework.InventoryServiceBase
         }
 
         /// <summary>
-        /// 
+        /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>

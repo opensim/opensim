@@ -27,6 +27,8 @@ namespace OpenSim.Framework.UserManagement
         private ArrayList inventoryRoot;
         private ArrayList initialOutfit;
         private ArrayList agentInventory;
+        private ArrayList inventoryLibraryOwner;
+        private ArrayList inventoryLibrary;
 
         private UserInfo userProfile;
 
@@ -87,6 +89,8 @@ namespace OpenSim.Framework.UserManagement
             this.inventoryRoot = new ArrayList();
             this.initialOutfit = new ArrayList();
             this.agentInventory = new ArrayList();
+            this.inventoryLibrary = new ArrayList();
+            this.inventoryLibraryOwner = new ArrayList();
 
             this.xmlRpcResponse = new XmlRpcResponse();
             this.defaultXmlRpcResponse = new XmlRpcResponse();
@@ -234,10 +238,10 @@ namespace OpenSim.Framework.UserManagement
                 responseData["ui-config"] = this.uiConfig;
 
                 responseData["inventory-skeleton"] = this.agentInventory;
-                responseData["inventory-skel-lib"] = new ArrayList(); // todo
+                responseData["inventory-skel-lib"] = this.inventoryLibrary;
                 responseData["inventory-root"] = this.inventoryRoot;
                 responseData["gestures"] = new ArrayList(); // todo
-                responseData["inventory-lib-owner"] = new ArrayList(); // todo
+                responseData["inventory-lib-owner"] = this.inventoryLibraryOwner;
                 responseData["initial-outfit"] = this.initialOutfit;
                 responseData["start_location"] = this.startLocation;
                 responseData["seed_capability"] = this.seedCapability;
@@ -597,6 +601,30 @@ namespace OpenSim.Framework.UserManagement
             set
             {
                 this.agentInventory = value;
+            }
+        }
+
+        public ArrayList InventoryLibrary
+        {
+            get
+            {
+                return this.inventoryLibrary;
+            }
+            set
+            {
+                this.inventoryLibrary = value;
+            }
+        }
+
+        public ArrayList InventoryLibraryOwner
+        {
+            get
+            {
+                return this.inventoryLibraryOwner;
+            }
+            set
+            {
+                this.inventoryLibraryOwner = value;
             }
         }
 

@@ -50,7 +50,7 @@ namespace OpenSim.Framework.Communications.Caches
             InventoryFolder subFold = new InventoryFolder();
             subFold.name = folderName;
             subFold.folderID = folderID;
-            subFold.type = type;
+            subFold.type = (short) type;
             subFold.parentID = this.folderID;
             subFold.agentID = this.agentID;
             this.SubFolders.Add(subFold.folderID, subFold);
