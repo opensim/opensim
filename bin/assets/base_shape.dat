@@ -3,14 +3,14 @@ Female Shape and Outfit 3 Shape
 Created by system from avatar's appearance.
 	permissions 0
 	{
-		base_mask	00082000
-		owner_mask	00082000
-		group_mask	00082000
-		everyone_mask	00082000
-		next_owner_mask	00082000
-		creator_id	3d924400-038e-6ad9-920b-cfbb9b40585c
-		owner_id	542ffb8e-8932-49b9-8664-58f53e442797
-		last_owner_id	3d924400-038e-6ad9-920b-cfbb9b40585c
+		base_mask	00000000
+		owner_mask	00000000
+		group_mask	00000000
+		everyone_mask	00000000
+		next_owner_mask	00000000
+		creator_id	11111111-1111-0000-0000-000100bba000
+		owner_id	11111111-1111-0000-0000-000100bba000
+		last_owner_id	11111111-1111-0000-0000-000100bba000
 		group_id	00000000-0000-0000-0000-000000000000
 	}
 	sale_info	0

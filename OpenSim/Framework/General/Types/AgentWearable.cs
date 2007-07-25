@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Types
                     defaultWearables[i] = new AvatarWearable();
                 }
                 defaultWearables[0].AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-                defaultWearables[0].ItemID = LLUUID.Random();
+                defaultWearables[0].ItemID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
                 return defaultWearables;
             }
         }

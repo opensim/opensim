@@ -75,6 +75,14 @@ namespace OpenSim.Framework.Data
         /// A mask containing permissions for the current owner (cannot be enforced)
         /// </summary>
         public uint inventoryCurrentPermissions;
+        /// <summary>
+        /// 
+        /// </summary>
+        public uint inventoryBasePermissions;
+        /// <summary>
+        /// 
+        /// </summary>
+        public uint inventoryEveryOnePermissions;
     }
 
     /// <summary>

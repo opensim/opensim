@@ -19,6 +19,11 @@ namespace OpenSim.Framework.Communications.Caches
             this.type = (short)-1;
             this.version = (ushort) 1;
 
+            this.CreateLibraryItems();
+        }
+
+        private void CreateLibraryItems()
+        {
             InventoryItemBase item = new InventoryItemBase();
             item.avatarID = libOwner;
             item.creatorsID = libOwner;
@@ -26,10 +31,12 @@ namespace OpenSim.Framework.Communications.Caches
             item.assetID = new LLUUID("00000000-0000-0000-9999-000000000002");
             item.inventoryDescription = "Plywood texture";
             item.inventoryName = "Plywood";
-            item.type =0;
+            item.type = 0;
             item.parentFolderID = this.folderID;
-            item.inventoryCurrentPermissions = 2147483647;
-            item.inventoryNextPermissions = 2147483647;
+            item.inventoryBasePermissions = 0x7FFFFFFF;
+            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
+            item.inventoryCurrentPermissions = 0x7FFFFFFF;
+            item.inventoryNextPermissions = 0x7FFFFFFF;
             this.Items.Add(item.inventoryID, item);
 
             item = new InventoryItemBase();
@@ -41,8 +48,10 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryName = "Rocks";
             item.type = 0;
             item.parentFolderID = this.folderID;
-            item.inventoryCurrentPermissions = 2147483647;
-            item.inventoryNextPermissions = 2147483647;
+            item.inventoryBasePermissions = 0x7FFFFFFF;
+            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
+            item.inventoryCurrentPermissions = 0x7FFFFFFF;
+            item.inventoryNextPermissions = 0x7FFFFFFF;
             this.Items.Add(item.inventoryID, item);
 
             item = new InventoryItemBase();
@@ -54,8 +63,10 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryName = "Bricks";
             item.type = 0;
             item.parentFolderID = this.folderID;
-            item.inventoryCurrentPermissions = 2147483647;
-            item.inventoryNextPermissions = 2147483647;
+            item.inventoryBasePermissions = 0x7FFFFFFF;
+            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
+            item.inventoryCurrentPermissions = 0x7FFFFFFF;
+            item.inventoryNextPermissions = 0x7FFFFFFF;
             this.Items.Add(item.inventoryID, item);
 
             item = new InventoryItemBase();
@@ -67,8 +78,10 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryName = "Granite";
             item.type = 0;
             item.parentFolderID = this.folderID;
-            item.inventoryCurrentPermissions = 2147483647;
-            item.inventoryNextPermissions = 2147483647;
+            item.inventoryBasePermissions = 0x7FFFFFFF;
+            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
+            item.inventoryCurrentPermissions = 0x7FFFFFFF;
+            item.inventoryNextPermissions = 0x7FFFFFFF;
             this.Items.Add(item.inventoryID, item);
 
             item = new InventoryItemBase();
@@ -80,8 +93,23 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryName = "Hardwood";
             item.type = 0;
             item.parentFolderID = this.folderID;
-            item.inventoryCurrentPermissions = 2147483647;
-            item.inventoryNextPermissions = 2147483647;
+            item.inventoryBasePermissions = 0x7FFFFFFF;
+            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
+            item.inventoryCurrentPermissions = 0x7FFFFFFF;
+            item.inventoryNextPermissions = 0x7FFFFFFF;
+            this.Items.Add(item.inventoryID, item);
+
+            item = new InventoryItemBase();
+            item.avatarID = libOwner;
+            item.creatorsID = libOwner;
+            item.inventoryID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
+            item.assetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+            item.inventoryDescription = "Default Shape";
+            item.inventoryName = "Default Shape";
+            item.type = 13;
+            item.parentFolderID = this.folderID;
+            item.inventoryCurrentPermissions = 0;
+            item.inventoryNextPermissions = 0;
             this.Items.Add(item.inventoryID, item);
         }
 
