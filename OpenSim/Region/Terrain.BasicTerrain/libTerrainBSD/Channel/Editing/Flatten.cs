@@ -44,7 +44,7 @@ namespace libTerrain
         /// <param name="amount">The scale of the terrain mask</param>
         public void Flatten(double rx, double ry, double size, double amount)
         {
-            FlattenFast(rx, ry, size, amount);
+            FlattenSlow(rx, ry, size, amount);
         }
 
         private void FlattenSlow(double rx, double ry, double size, double amount)
