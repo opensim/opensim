@@ -156,6 +156,11 @@ namespace OpenSim.Framework.Interfaces
             get;
         }
 
+        LLUUID SessionId
+        {
+            get;
+        }
+
         string FirstName
         {
             get;

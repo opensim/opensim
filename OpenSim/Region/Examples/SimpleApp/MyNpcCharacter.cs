@@ -103,6 +103,11 @@ namespace SimpleApp
             get { return myID; }
         }
 
+        public LLUUID SessionId
+        {
+            get { return LLUUID.Zero; }
+        }
+
         public virtual string FirstName
         {
             get { return "Annoying"; }

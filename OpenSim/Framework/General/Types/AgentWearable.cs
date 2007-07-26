@@ -43,13 +43,16 @@ namespace OpenSim.Framework.Types
         {
             get
             {
-                AvatarWearable[] defaultWearables =  new AvatarWearable[13]; //should be 13 of these
+                AvatarWearable[] defaultWearables = new AvatarWearable[13]; //should be 13 of these
                 for (int i = 0; i < 13; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }
                 defaultWearables[0].AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
                 defaultWearables[0].ItemID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
+
+                //defaultWearables[1].ItemID = new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9");
+                //defaultWearables[1].AssetID = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
                 return defaultWearables;
             }
         }

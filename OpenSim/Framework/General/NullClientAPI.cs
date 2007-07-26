@@ -84,6 +84,11 @@ namespace OpenSim.Framework
            get { return m_uuid; }
        }
 
+       public LLUUID SessionId
+       {
+           get { return LLUUID.Zero; }
+       }
+
        public virtual string FirstName
        {
            get { return ""; }

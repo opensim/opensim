@@ -123,6 +123,14 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
+        public LLUUID SessionId
+        {
+            get
+            {
+                return this.SessionID;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

@@ -361,6 +361,14 @@ namespace OpenSim.Framework.UserManagement
             TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
             ArrayList temp = new ArrayList();
             temp.Add(TempHash);
+
+            TempHash = new Hashtable();
+            TempHash["name"] = "Texture Library";
+            TempHash["parent_id"] = "00000112-000f-0000-0000-000100bba000";
+            TempHash["version"] = "1";
+            TempHash["type_default"] = "-1";
+            TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba001";
+            temp.Add(TempHash);
             return temp;
         }
 

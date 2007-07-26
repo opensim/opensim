@@ -25,399 +25,163 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Communications.Caches
 {
     public delegate void DownloadComplete(AssetCache.TextureSender sender);
 
+    /// <summary>
+    /// Manages local cache of assets and their sending to viewers.
+    /// </summary>
     public class AssetCache : IAssetReceiver
     {
-        // Fields
-        private Thread _assetCacheThread;
-        private IAssetServer _assetServer;
-        public List<AssetRequest> AssetRequests;
         public Dictionary<LLUUID, AssetInfo> Assets;
-        public Dictionary<LLUUID, AssetRequest> RequestedAssets;
-        public Dictionary<LLUUID, AssetRequest> RequestedTextures;
-        public Dictionary<LLUUID, TextureSender> SendingTextures;
-        private LLUUID[] textureList;
-        public List<AssetRequest> TextureRequests;
         public Dictionary<LLUUID, TextureImage> Textures;
 
-        // Methods
+        public List<AssetRequest> AssetRequests = new List<AssetRequest>();  //assets ready to be sent to viewers
+        public List<AssetRequest> TextureRequests = new List<AssetRequest>(); //textures ready to be sent
+
+        public Dictionary<LLUUID, AssetRequest> RequestedAssets = new Dictionary<LLUUID, AssetRequest>(); //Assets requested from the asset server
+        public Dictionary<LLUUID, AssetRequest> RequestedTextures = new Dictionary<LLUUID, AssetRequest>(); //Textures requested from the asset server
+
+        public Dictionary<LLUUID, TextureSender> SendingTextures = new Dictionary<LLUUID, TextureSender>();
+        private IAssetServer _assetServer;
+        private Thread _assetCacheThread;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public AssetCache(IAssetServer assetServer)
         {
-            this.AssetRequests = new List<AssetRequest>();
-            this.TextureRequests = new List<AssetRequest>();
-            this.RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
-            this.RequestedTextures = new Dictionary<LLUUID, AssetRequest>();
-            this.SendingTextures = new Dictionary<LLUUID, TextureSender>();
-            this.textureList = new LLUUID[5];
             Console.WriteLine("Creating Asset cache");
-            this._assetServer = assetServer;
-            this._assetServer.SetReceiver(this);
-            this.Assets = new Dictionary<LLUUID, AssetInfo>();
-            this.Textures = new Dictionary<LLUUID, TextureImage>();
-            this._assetCacheThread = new Thread(new ThreadStart(this.RunAssetManager));
+            _assetServer = assetServer;
+            _assetServer.SetReceiver(this);
+            Assets = new Dictionary<LLUUID, AssetInfo>();
+            Textures = new Dictionary<LLUUID, TextureImage>();
+            this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();
+
         }
 
         public AssetCache(string assetServerDLLName, string assetServerURL, string assetServerKey)
         {
-            this.AssetRequests = new List<AssetRequest>();
-            this.TextureRequests = new List<AssetRequest>();
-            this.RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
-            this.RequestedTextures = new Dictionary<LLUUID, AssetRequest>();
-            this.SendingTextures = new Dictionary<LLUUID, TextureSender>();
-            this.textureList = new LLUUID[5];
             Console.WriteLine("Creating Asset cache");
-            this._assetServer = this.LoadAssetDll(assetServerDLLName);
-            this._assetServer.SetServerInfo(assetServerURL, assetServerKey);
-            this._assetServer.SetReceiver(this);
-            this.Assets = new Dictionary<LLUUID, AssetInfo>();
-            this.Textures = new Dictionary<LLUUID, TextureImage>();
-            this._assetCacheThread = new Thread(new ThreadStart(this.RunAssetManager));
+            _assetServer = this.LoadAssetDll(assetServerDLLName);
+            _assetServer.SetServerInfo(assetServerURL, assetServerKey);
+            _assetServer.SetReceiver(this);
+            Assets = new Dictionary<LLUUID, AssetInfo>();
+            Textures = new Dictionary<LLUUID, TextureImage>();
+            this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void RunAssetManager()
+        {
+            while (true)
+            {
+                try
+                {
+                    this.ProcessAssetQueue();
+                    this.ProcessTextureQueue();
+                    Thread.Sleep(500);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " : " + e.StackTrace);
+                }
+            }
+        }
+
+
+        public AssetBase GetAsset(LLUUID assetID)
+        {
+            AssetBase asset = null;
+            if (this.Textures.ContainsKey(assetID))
+            {
+                asset = this.Textures[assetID];
+            }
+            else if (this.Assets.ContainsKey(assetID))
+            {
+                asset = this.Assets[assetID];
+            }
+            return asset;
         }
 
         public void AddAsset(AssetBase asset)
         {
+            // Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
             if (asset.Type == 0)
             {
+                //Console.WriteLine("which is a texture");
                 if (!this.Textures.ContainsKey(asset.FullID))
-                {
-                    TextureImage image = new TextureImage(asset);
-                    this.Textures.Add(image.FullID, image);
+                { //texture
+                    TextureImage textur = new TextureImage(asset);
+                    this.Textures.Add(textur.FullID, textur);
                     this._assetServer.UploadNewAsset(asset);
-                }
-            }
-            else if (!this.Assets.ContainsKey(asset.FullID))
-            {
-                AssetInfo info = new AssetInfo(asset);
-                this.Assets.Add(info.FullID, info);
-                this._assetServer.UploadNewAsset(asset);
-            }
-        }
-
-        public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
-        {
-            LLUUID assetID = new LLUUID(transferRequest.TransferInfo.Params, 0);
-            if (!this.Assets.ContainsKey(assetID))
-            {
-                if (!this.RequestedAssets.ContainsKey(assetID))
-                {
-                    AssetRequest request = new AssetRequest();
-                    request.RequestUser = userInfo;
-                    request.RequestAssetID = assetID;
-                    request.TransferRequestID = transferRequest.TransferInfo.TransferID;
-                    this.RequestedAssets.Add(assetID, request);
-                    this._assetServer.RequestAsset(assetID, false);
                 }
             }
             else
             {
-                AssetInfo info = this.Assets[assetID];
-                AssetRequest request2 = new AssetRequest();
-                request2.RequestUser = userInfo;
-                request2.RequestAssetID = assetID;
-                request2.TransferRequestID = transferRequest.TransferInfo.TransferID;
-                request2.AssetInf = info;
-                if (info.Data.LongLength > 600)
+                if (!this.Assets.ContainsKey(asset.FullID))
                 {
-                    request2.NumPackets = 1 + (((info.Data.Length - 600) + 0x3e7) / 0x3e8);
-                }
-                else
-                {
-                    request2.NumPackets = 1;
-                }
-                this.AssetRequests.Add(request2);
-            }
-        }
-
-        public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID)
-        {
-            if (!this.Textures.ContainsKey(imageID))
-            {
-                if (!this.RequestedTextures.ContainsKey(imageID))
-                {
-                    AssetRequest request = new AssetRequest();
-                    request.RequestUser = userInfo;
-                    request.RequestAssetID = imageID;
-                    request.IsTextureRequest = true;
-                    this.RequestedTextures.Add(imageID, request);
-                    this._assetServer.RequestAsset(imageID, true);
-                }
-            }
-            else
-            {
-                TextureImage image = this.Textures[imageID];
-                AssetRequest request2 = new AssetRequest();
-                request2.RequestUser = userInfo;
-                request2.RequestAssetID = imageID;
-                request2.IsTextureRequest = true;
-                request2.ImageInfo = image;
-                if (image.Data.LongLength > 600)
-                {
-                    request2.NumPackets = 1 + (((image.Data.Length - 600) + 0x3e7) / 0x3e8);
-                }
-                else
-                {
-                    request2.NumPackets = 1;
-                }
-                this.TextureRequests.Add(request2);
-            }
-        }
-
-        public void AssetNotFound(AssetBase asset)
-        {
-        }
-
-        public void AssetReceived(AssetBase asset, bool IsTexture)
-        {
-            if (asset.FullID != LLUUID.Zero)
-            {
-                if (IsTexture)
-                {
-                    TextureImage image = new TextureImage(asset);
-                    this.Textures.Add(image.FullID, image);
-                    if (this.RequestedTextures.ContainsKey(image.FullID))
-                    {
-                        AssetRequest request = this.RequestedTextures[image.FullID];
-                        request.ImageInfo = image;
-                        if (image.Data.LongLength > 600)
-                        {
-                            request.NumPackets = 1 + (((image.Data.Length - 600) + 0x3e7) / 0x3e8);
-                        }
-                        else
-                        {
-                            request.NumPackets = 1;
-                        }
-                        this.RequestedTextures.Remove(image.FullID);
-                        this.TextureRequests.Add(request);
-                    }
-                }
-                else
-                {
-                    AssetInfo info = new AssetInfo(asset);
-                    this.Assets.Add(info.FullID, info);
-                    if (this.RequestedAssets.ContainsKey(info.FullID))
-                    {
-                        AssetRequest request2 = this.RequestedAssets[info.FullID];
-                        request2.AssetInf = info;
-                        if (info.Data.LongLength > 600)
-                        {
-                            request2.NumPackets = 1 + (((info.Data.Length - 600) + 0x3e7) / 0x3e8);
-                        }
-                        else
-                        {
-                            request2.NumPackets = 1;
-                        }
-                        this.RequestedAssets.Remove(info.FullID);
-                        this.AssetRequests.Add(request2);
-                    }
-                }
-            }
-        }
-
-        public AssetInfo CloneAsset(LLUUID newOwner, AssetInfo sourceAsset)
-        {
-            AssetInfo info = new AssetInfo();
-            info.Data = new byte[sourceAsset.Data.Length];
-            Array.Copy(sourceAsset.Data, info.Data, sourceAsset.Data.Length);
-            info.FullID = LLUUID.Random();
-            info.Type = sourceAsset.Type;
-            info.InvType = sourceAsset.InvType;
-            return info;
-        }
-
-        public TextureImage CloneImage(LLUUID newOwner, TextureImage source)
-        {
-            TextureImage image = new TextureImage();
-            image.Data = new byte[source.Data.Length];
-            Array.Copy(source.Data, image.Data, source.Data.Length);
-            image.FullID = LLUUID.Random();
-            image.Name = source.Name;
-            return image;
-        }
-
-        public AssetBase[] CreateNewInventorySet(LLUUID agentID)
-        {
-            AssetBase[] baseArray = new AssetBase[this.textureList.Length];
-            for (int i = 0; i < this.textureList.Length; i++)
-            {
-                if (this.Textures.ContainsKey(this.textureList[i]))
-                {
-                    baseArray[i] = this.CloneImage(agentID, this.Textures[this.textureList[i]]);
-                    TextureImage asset = new TextureImage(baseArray[i]);
-                    this.Textures.Add(asset.FullID, asset);
+                    AssetInfo assetInf = new AssetInfo(asset);
+                    this.Assets.Add(assetInf.FullID, assetInf);
                     this._assetServer.UploadNewAsset(asset);
                 }
             }
-            return baseArray;
         }
 
-        public AssetBase GetAsset(LLUUID assetID)
-        {
-            AssetBase base2 = null;
-            if (this.Textures.ContainsKey(assetID))
-            {
-                return this.Textures[assetID];
-            }
-            if (this.Assets.ContainsKey(assetID))
-            {
-                base2 = this.Assets[assetID];
-            }
-            return base2;
-        }
-
-        private IAssetServer LoadAssetDll(string dllName)
-        {
-            Assembly assembly = Assembly.LoadFrom(dllName);
-            IAssetServer assetServer = null;
-            foreach (Type type in assembly.GetTypes())
-            {
-                if (type.IsPublic && !type.IsAbstract)
-                {
-                    if (type.GetInterface("IAssetPlugin", true) != null)
-                    {
-                        assetServer = ((IAssetPlugin)Activator.CreateInstance(assembly.GetType(type.ToString()))).GetAssetServer();
-                        break;
-                    }
-                }
-            }
-            assembly = null;
-            return assetServer;
-        }
-
-        public void LoadDefaultTextureSet()
-        {
-            this.textureList[0] = new LLUUID("00000000-0000-0000-9999-000000000001");
-            this.textureList[1] = new LLUUID("00000000-0000-0000-9999-000000000002");
-            this.textureList[2] = new LLUUID("00000000-0000-0000-9999-000000000003");
-            this.textureList[3] = new LLUUID("00000000-0000-0000-9999-000000000004");
-            this.textureList[4] = new LLUUID("00000000-0000-0000-9999-000000000005");
-            for (int i = 0; i < this.textureList.Length; i++)
-            {
-                this._assetServer.RequestAsset(this.textureList[i], true);
-            }
-        }
-
-        private void ProcessAssetQueue()
-        {
-            if (this.AssetRequests.Count != 0)
-            {
-                int num;
-                if (this.AssetRequests.Count < 5)
-                {
-                    num = this.AssetRequests.Count;
-                }
-                else
-                {
-                    num = 5;
-                }
-                for (int i = 0; i < num; i++)
-                {
-                    AssetRequest request = this.AssetRequests[i];
-                    TransferInfoPacket newPack = new TransferInfoPacket();
-                    newPack.TransferInfo.ChannelType = 2;
-                    newPack.TransferInfo.Status = 0;
-                    newPack.TransferInfo.TargetType = 0;
-                    newPack.TransferInfo.Params = request.RequestAssetID.GetBytes();
-                    newPack.TransferInfo.Size = request.AssetInf.Data.Length;
-                    newPack.TransferInfo.TransferID = request.TransferRequestID;
-                    request.RequestUser.OutPacket(newPack);
-                    if (request.NumPackets == 1)
-                    {
-                        TransferPacketPacket packet2 = new TransferPacketPacket();
-                        packet2.TransferData.Packet = 0;
-                        packet2.TransferData.ChannelType = 2;
-                        packet2.TransferData.TransferID = request.TransferRequestID;
-                        packet2.TransferData.Data = request.AssetInf.Data;
-                        packet2.TransferData.Status = 1;
-                        request.RequestUser.OutPacket(packet2);
-                    }
-                    else
-                    {
-                        TransferPacketPacket packet3 = new TransferPacketPacket();
-                        packet3.TransferData.Packet = 0;
-                        packet3.TransferData.ChannelType = 2;
-                        packet3.TransferData.TransferID = request.TransferRequestID;
-                        byte[] destinationArray = new byte[0x3e8];
-                        Array.Copy(request.AssetInf.Data, destinationArray, 0x3e8);
-                        packet3.TransferData.Data = destinationArray;
-                        packet3.TransferData.Status = 0;
-                        request.RequestUser.OutPacket(packet3);
-                        packet3 = new TransferPacketPacket();
-                        packet3.TransferData.Packet = 1;
-                        packet3.TransferData.ChannelType = 2;
-                        packet3.TransferData.TransferID = request.TransferRequestID;
-                        byte[] buffer2 = new byte[request.AssetInf.Data.Length - 0x3e8];
-                        Array.Copy(request.AssetInf.Data, 0x3e8, buffer2, 0, buffer2.Length);
-                        packet3.TransferData.Data = buffer2;
-                        packet3.TransferData.Status = 1;
-                        request.RequestUser.OutPacket(packet3);
-                    }
-                }
-                for (int j = 0; j < num; j++)
-                {
-                    this.AssetRequests.RemoveAt(0);
-                }
-            }
-        }
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void ProcessTextureQueue()
         {
-            if (this.TextureRequests.Count != 0)
+            if (this.TextureRequests.Count == 0)
             {
-                int num = this.TextureRequests.Count;
-                for (int i = 0; i < num; i++)
+                //no requests waiting
+                return;
+            }
+            int num;
+            num = this.TextureRequests.Count;
+
+            AssetRequest req;
+            for (int i = 0; i < num; i++)
+            {
+                req = (AssetRequest)this.TextureRequests[i];
+                if (!this.SendingTextures.ContainsKey(req.ImageInfo.FullID))
                 {
-                    AssetRequest req = this.TextureRequests[i];
-                    if (!this.SendingTextures.ContainsKey(req.ImageInfo.FullID))
+                    TextureSender sender = new TextureSender(req);
+                    sender.OnComplete += this.TextureSent;
+                    lock (this.SendingTextures)
                     {
-                        TextureSender sender = new TextureSender(req);
-                        sender.OnComplete += new DownloadComplete(this.TextureSent);
-                        lock (this.SendingTextures)
-                        {
-                            this.SendingTextures.Add(req.ImageInfo.FullID, sender);
-                        }
+                        this.SendingTextures.Add(req.ImageInfo.FullID, sender);
                     }
                 }
-                this.TextureRequests.Clear();
+
             }
+
+            this.TextureRequests.Clear();
         }
 
-        public void RunAssetManager()
-        {
-        Label_0000:
-            try
-            {
-                this.ProcessAssetQueue();
-                this.ProcessTextureQueue();
-                Thread.Sleep(500);
-                goto Label_0000;
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
-                goto Label_0000;
-            }
-        }
-
+        /// <summary>
+        /// Event handler, called by a TextureSender object to say that texture has been sent
+        /// </summary>
+        /// <param name="sender"></param>
         public void TextureSent(TextureSender sender)
         {
             if (this.SendingTextures.ContainsKey(sender.request.ImageInfo.FullID))
@@ -429,133 +193,489 @@ namespace OpenSim.Framework.Communications.Caches
             }
         }
 
-        // Nested Types
-        public class AssetInfo : AssetBase
+        public void AssetReceived(AssetBase asset, bool IsTexture)
         {
-            // Methods
-            public AssetInfo()
+            if (asset.FullID != LLUUID.Zero)  // if it is set to zero then the asset wasn't found by the server
             {
+                //check if it is a texture or not
+                //then add to the correct cache list
+                //then check for waiting requests for this asset/texture (in the Requested lists)
+                //and move those requests into the Requests list.
+                if (IsTexture)
+                {
+                    TextureImage image = new TextureImage(asset);
+                    this.Textures.Add(image.FullID, image);
+                    if (this.RequestedTextures.ContainsKey(image.FullID))
+                    {
+                        AssetRequest req = this.RequestedTextures[image.FullID];
+                        req.ImageInfo = image;
+                        if (image.Data.LongLength > 600)
+                        {
+                            //over 600 bytes so split up file
+                            req.NumPackets = 1 + (int)(image.Data.Length - 600 + 999) / 1000;
+                        }
+                        else
+                        {
+                            req.NumPackets = 1;
+                        }
+                        this.RequestedTextures.Remove(image.FullID);
+                        this.TextureRequests.Add(req);
+                    }
+                }
+                else
+                {
+                    AssetInfo assetInf = new AssetInfo(asset);
+                    this.Assets.Add(assetInf.FullID, assetInf);
+                    if (this.RequestedAssets.ContainsKey(assetInf.FullID))
+                    {
+                        AssetRequest req = this.RequestedAssets[assetInf.FullID];
+                        req.AssetInf = assetInf;
+                        if (assetInf.Data.LongLength > 600)
+                        {
+                            //over 600 bytes so split up file
+                            req.NumPackets = 1 + (int)(assetInf.Data.Length - 600 + 999) / 1000;
+                        }
+                        else
+                        {
+                            req.NumPackets = 1;
+                        }
+                        this.RequestedAssets.Remove(assetInf.FullID);
+                        this.AssetRequests.Add(req);
+                    }
+                }
+            }
+        }
+
+        public void AssetNotFound(AssetBase asset)
+        {
+            //the asset server had no knowledge of requested asset
+
+        }
+
+        #region Assets
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userInfo"></param>
+        /// <param name="transferRequest"></param>
+        public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
+        {
+            LLUUID requestID  = null;
+            byte source = 2;
+            if (transferRequest.TransferInfo.SourceType == 2)
+            {
+                //direct asset request
+                requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
+            }
+            else if (transferRequest.TransferInfo.SourceType == 3)
+            {
+                //inventory asset request
+                requestID = new LLUUID(transferRequest.TransferInfo.Params, 80);
+                source = 3;
+            }
+            //check to see if asset is in local cache, if not we need to request it from asset server.
+            //Console.WriteLine("asset request " + requestID);
+            if (!this.Assets.ContainsKey(requestID))
+            {
+                //not found asset	
+                // so request from asset server
+                if (!this.RequestedAssets.ContainsKey(requestID))
+                {
+                    AssetRequest request = new AssetRequest();
+                    request.RequestUser = userInfo;
+                    request.RequestAssetID = requestID;
+                    request.TransferRequestID = transferRequest.TransferInfo.TransferID;
+                    request.AssetRequestSource = source;
+                    request.Params = transferRequest.TransferInfo.Params;
+                    this.RequestedAssets.Add(requestID, request);
+                    this._assetServer.RequestAsset(requestID, false);
+                }
+                return;
+            }
+            //it is in our cache 
+            AssetInfo asset = this.Assets[requestID];
+
+            //work out how many packets it  should be sent in 
+            // and add to the AssetRequests list
+            AssetRequest req = new AssetRequest();
+            req.RequestUser = userInfo;
+            req.RequestAssetID = requestID;
+            req.TransferRequestID = transferRequest.TransferInfo.TransferID;
+            req.AssetRequestSource = source;
+            req.Params = transferRequest.TransferInfo.Params;
+            req.AssetInf = asset;
+
+            if (asset.Data.LongLength > 600)
+            {
+                //over 600 bytes so split up file
+                req.NumPackets = 1 + (int)(asset.Data.Length - 600 + 999) / 1000;
+            }
+            else
+            {
+                req.NumPackets = 1;
             }
 
-            public AssetInfo(AssetBase aBase)
+            this.AssetRequests.Add(req);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ProcessAssetQueue()
+        {
+            if (this.AssetRequests.Count == 0)
             {
-                base.Data = aBase.Data;
-                base.FullID = aBase.FullID;
-                base.Type = aBase.Type;
-                base.InvType = aBase.InvType;
-                base.Name = aBase.Name;
-                base.Description = aBase.Description;
+                //no requests waiting
+                return;
             }
+            int num;
+
+            if (this.AssetRequests.Count < 5)
+            {
+                //lower than 5 so do all of them
+                num = this.AssetRequests.Count;
+            }
+            else
+            {
+                num = 5;
+            }
+            AssetRequest req;
+            for (int i = 0; i < num; i++)
+            {
+                req = (AssetRequest)this.AssetRequests[i];
+                //Console.WriteLine("sending asset " + req.RequestAssetID);
+                TransferInfoPacket Transfer = new TransferInfoPacket();
+                Transfer.TransferInfo.ChannelType = 2;
+                Transfer.TransferInfo.Status = 0;
+                Transfer.TransferInfo.TargetType = 0;
+                if (req.AssetRequestSource == 2)
+                {
+                    //Transfer.TransferInfo.Params = req.Params;
+                    Transfer.TransferInfo.Params = new byte[20];
+                    Array.Copy(req.RequestAssetID.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
+                    int assType = (int)req.AssetInf.Type;
+                    Array.Copy(Helpers.IntToBytes(assType), 0, Transfer.TransferInfo.Params, 16, 4);
+                }
+                else if (req.AssetRequestSource == 3)
+                {
+                    Transfer.TransferInfo.Params = req.Params;
+                   // Transfer.TransferInfo.Params = new byte[100];
+                    //Array.Copy(req.RequestUser.AgentId.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
+                    //Array.Copy(req.RequestUser.SessionId.GetBytes(), 0, Transfer.TransferInfo.Params, 16, 16);
+                }
+                Transfer.TransferInfo.Size = (int)req.AssetInf.Data.Length;
+                Transfer.TransferInfo.TransferID = req.TransferRequestID;
+                req.RequestUser.OutPacket(Transfer);
+
+                if (req.NumPackets == 1)
+                {
+                    TransferPacketPacket TransferPacket = new TransferPacketPacket();
+                    TransferPacket.TransferData.Packet = 0;
+                    TransferPacket.TransferData.ChannelType = 2;
+                    TransferPacket.TransferData.TransferID = req.TransferRequestID;
+                    TransferPacket.TransferData.Data = req.AssetInf.Data;
+                    TransferPacket.TransferData.Status = 1;
+                    req.RequestUser.OutPacket(TransferPacket);
+                }
+                else
+                {
+                    //more than one packet so split file up , for now it can't be bigger than 2000 bytes
+                    TransferPacketPacket TransferPacket = new TransferPacketPacket();
+                    TransferPacket.TransferData.Packet = 0;
+                    TransferPacket.TransferData.ChannelType = 2;
+                    TransferPacket.TransferData.TransferID = req.TransferRequestID;
+                    byte[] chunk = null;
+                    if (req.AssetInf.Data.Length <= 1000)
+                    {
+                        chunk = new byte[req.AssetInf.Data.Length];
+                        Array.Copy(req.AssetInf.Data, chunk, req.AssetInf.Data.Length);
+                    }
+                    else
+                    {
+                        chunk = new byte[1000];
+                        Array.Copy(req.AssetInf.Data, chunk, 1000);
+                    }
+
+                    TransferPacket.TransferData.Data = chunk;
+                    TransferPacket.TransferData.Status = 0;
+                    req.RequestUser.OutPacket(TransferPacket);
+
+                    if (req.AssetInf.Data.Length > 1000)
+                    {
+                        TransferPacket = new TransferPacketPacket();
+                        TransferPacket.TransferData.Packet = 1;
+                        TransferPacket.TransferData.ChannelType = 2;
+                        TransferPacket.TransferData.TransferID = req.TransferRequestID;
+                        byte[] chunk1 = new byte[(req.AssetInf.Data.Length - 1000)];
+                        Array.Copy(req.AssetInf.Data, 1000, chunk1, 0, chunk1.Length);
+                        TransferPacket.TransferData.Data = chunk1;
+                        TransferPacket.TransferData.Status = 1;
+                        req.RequestUser.OutPacket(TransferPacket);
+                    }
+                }
+
+            }
+
+            //remove requests that have been completed
+            for (int i = 0; i < num; i++)
+            {
+                this.AssetRequests.RemoveAt(0);
+            }
+
+        }
+
+        public AssetInfo CloneAsset(LLUUID newOwner, AssetInfo sourceAsset)
+        {
+            AssetInfo newAsset = new AssetInfo();
+            newAsset.Data = new byte[sourceAsset.Data.Length];
+            Array.Copy(sourceAsset.Data, newAsset.Data, sourceAsset.Data.Length);
+            newAsset.FullID = LLUUID.Random();
+            newAsset.Type = sourceAsset.Type;
+            newAsset.InvType = sourceAsset.InvType;
+            return (newAsset);
+        }
+        #endregion
+
+        #region Textures
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userInfo"></param>
+        /// <param name="imageID"></param>
+        public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID)
+        {
+            //Console.WriteLine("texture request for " + imageID.ToStringHyphenated());
+            //check to see if texture is in local cache, if not request from asset server
+            if (!this.Textures.ContainsKey(imageID))
+            {
+                if (!this.RequestedTextures.ContainsKey(imageID))
+                {
+                    //not is cache so request from asset server
+                    AssetRequest request = new AssetRequest();
+                    request.RequestUser = userInfo;
+                    request.RequestAssetID = imageID;
+                    request.IsTextureRequest = true;
+                    this.RequestedTextures.Add(imageID, request);
+                    this._assetServer.RequestAsset(imageID, true);
+                }
+                return;
+            }
+
+            //Console.WriteLine("texture already in cache");
+            TextureImage imag = this.Textures[imageID];
+            AssetRequest req = new AssetRequest();
+            req.RequestUser = userInfo;
+            req.RequestAssetID = imageID;
+            req.IsTextureRequest = true;
+            req.ImageInfo = imag;
+
+            if (imag.Data.LongLength > 600)
+            {
+                //over 600 bytes so split up file
+                req.NumPackets = 1 + (int)(imag.Data.Length - 600 + 999) / 1000;
+            }
+            else
+            {
+                req.NumPackets = 1;
+            }
+            this.TextureRequests.Add(req);
+        }
+
+        public TextureImage CloneImage(LLUUID newOwner, TextureImage source)
+        {
+            TextureImage newImage = new TextureImage();
+            newImage.Data = new byte[source.Data.Length];
+            Array.Copy(source.Data, newImage.Data, source.Data.Length);
+            //newImage.filename = source.filename;
+            newImage.FullID = LLUUID.Random();
+            newImage.Name = source.Name;
+            return (newImage);
+        }
+        #endregion
+
+        private IAssetServer LoadAssetDll(string dllName)
+        {
+            Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+            IAssetServer server = null;
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        Type typeInterface = pluginType.GetInterface("IAssetPlugin", true);
+
+                        if (typeInterface != null)
+                        {
+                            IAssetPlugin plug = (IAssetPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            server = plug.GetAssetServer();
+                            break;
+                        }
+
+                        typeInterface = null;
+                    }
+                }
+            }
+            pluginAssembly = null;
+            return server;
         }
 
         public class AssetRequest
         {
-            // Fields
-            public AssetCache.AssetInfo AssetInf;
-            public long DataPointer;
-            public AssetCache.TextureImage ImageInfo;
-            public bool IsTextureRequest;
-            public int NumPackets;
-            public int PacketCounter;
-            public LLUUID RequestAssetID;
             public IClientAPI RequestUser;
+            public LLUUID RequestAssetID;
+            public AssetInfo AssetInf;
+            public TextureImage ImageInfo;
             public LLUUID TransferRequestID;
+            public long DataPointer = 0;
+            public int NumPackets = 0;
+            public int PacketCounter = 0;
+            public bool IsTextureRequest;
+            public byte AssetRequestSource = 2;
+            public byte[] Params = null;
+            //public bool AssetInCache;
+            //public int TimeRequested; 
+
+            public AssetRequest()
+            {
+
+            }
+        }
+
+        public class AssetInfo : AssetBase
+        {
+            public AssetInfo()
+            {
+
+            }
+
+            public AssetInfo(AssetBase aBase)
+            {
+                Data = aBase.Data;
+                FullID = aBase.FullID;
+                Type = aBase.Type;
+                InvType = aBase.InvType;
+                Name = aBase.Name;
+                Description = aBase.Description;
+            }
         }
 
         public class TextureImage : AssetBase
         {
-            // Methods
             public TextureImage()
             {
+
             }
 
             public TextureImage(AssetBase aBase)
             {
-                base.Data = aBase.Data;
-                base.FullID = aBase.FullID;
-                base.Type = aBase.Type;
-                base.InvType = aBase.InvType;
-                base.Name = aBase.Name;
-                base.Description = aBase.Description;
+                Data = aBase.Data;
+                FullID = aBase.FullID;
+                Type = aBase.Type;
+                InvType = aBase.InvType;
+                Name = aBase.Name;
+                Description = aBase.Description;
             }
         }
 
         public class TextureSender
         {
-            // Fields
-            private Thread m_thread;
-            public AssetCache.AssetRequest request;
-
-            // Events
+            public AssetRequest request;
             public event DownloadComplete OnComplete;
-
-            // Methods
-            public TextureSender(AssetCache.AssetRequest req)
+            Thread m_thread;
+            public TextureSender(AssetRequest req)
             {
-                this.request = req;
-                this.m_thread = new Thread(new ThreadStart(this.SendTexture));
-                this.m_thread.IsBackground = true;
-                this.m_thread.Start();
-            }
+                request = req;
+                //Console.WriteLine("creating worker thread for texture " + req.ImageInfo.FullID.ToStringHyphenated());
+                //Console.WriteLine("texture data length is " + req.ImageInfo.Data.Length);
+                // Console.WriteLine("in " + req.NumPackets + " packets");
+                //ThreadPool.QueueUserWorkItem(new WaitCallback(SendTexture), new object());
 
-            public void SendPacket()
-            {
-                AssetCache.AssetRequest request = this.request;
-                if (request.PacketCounter == 0)
-                {
-                    if (request.NumPackets == 1)
-                    {
-                        ImageDataPacket newPack = new ImageDataPacket();
-                        newPack.ImageID.Packets = 1;
-                        newPack.ImageID.ID = request.ImageInfo.FullID;
-                        newPack.ImageID.Size = (uint)request.ImageInfo.Data.Length;
-                        newPack.ImageData.Data = request.ImageInfo.Data;
-                        newPack.ImageID.Codec = 2;
-                        request.RequestUser.OutPacket(newPack);
-                        request.PacketCounter++;
-                    }
-                    else
-                    {
-                        ImageDataPacket packet2 = new ImageDataPacket();
-                        packet2.ImageID.Packets = (ushort)request.NumPackets;
-                        packet2.ImageID.ID = request.ImageInfo.FullID;
-                        packet2.ImageID.Size = (uint)request.ImageInfo.Data.Length;
-                        packet2.ImageData.Data = new byte[600];
-                        Array.Copy(request.ImageInfo.Data, 0, packet2.ImageData.Data, 0, 600);
-                        packet2.ImageID.Codec = 2;
-                        request.RequestUser.OutPacket(packet2);
-                        request.PacketCounter++;
-                    }
-                }
-                else
-                {
-                    ImagePacketPacket packet3 = new ImagePacketPacket();
-                    packet3.ImageID.Packet = (ushort)request.PacketCounter;
-                    packet3.ImageID.ID = request.ImageInfo.FullID;
-                    int length = (request.ImageInfo.Data.Length - 600) - (0x3e8 * (request.PacketCounter - 1));
-                    if (length > 0x3e8)
-                    {
-                        length = 0x3e8;
-                    }
-                    packet3.ImageData.Data = new byte[length];
-                    Array.Copy(request.ImageInfo.Data, 600 + (0x3e8 * (request.PacketCounter - 1)), packet3.ImageData.Data, 0, length);
-                    request.RequestUser.OutPacket(packet3);
-                    request.PacketCounter++;
-                }
+                //need some sort of custom threadpool here, as using the .net one, overloads it and stops the handling of incoming packets etc
+                //but don't really want to create a thread for every texture download
+                m_thread = new Thread(new ThreadStart(SendTexture));
+                m_thread.IsBackground = true;
+                m_thread.Start();
             }
 
             public void SendTexture()
             {
-                while (this.request.PacketCounter != this.request.NumPackets)
+                //Console.WriteLine("starting to send sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
+                while (request.PacketCounter != request.NumPackets)
                 {
-                    this.SendPacket();
+                    SendPacket();
                     Thread.Sleep(500);
                 }
-                if (this.OnComplete != null)
+
+                //Console.WriteLine("finished sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
+                if (OnComplete != null)
                 {
-                    this.OnComplete(this);
+                    OnComplete(this);
                 }
+            }
+
+            public void SendPacket()
+            {
+                AssetRequest req = request;
+                // Console.WriteLine("sending " + req.ImageInfo.FullID);
+
+                // if (req.ImageInfo.FullID == new LLUUID("00000000-0000-0000-5005-000000000005"))
+                if (req.PacketCounter == 0)
+                {
+                    //first time for this request so send imagedata packet
+                    if (req.NumPackets == 1)
+                    {
+                        //only one packet so send whole file
+                        ImageDataPacket im = new ImageDataPacket();
+                        im.ImageID.Packets = 1;
+                        im.ImageID.ID = req.ImageInfo.FullID;
+                        im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
+                        im.ImageData.Data = req.ImageInfo.Data;
+                        im.ImageID.Codec = 2;
+                        req.RequestUser.OutPacket(im);
+                        req.PacketCounter++;
+                        //req.ImageInfo.l= time;
+                        //System.Console.WriteLine("sent texture: " + req.ImageInfo.FullID);
+                        //  Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    }
+                    else
+                    {
+                        //more than one packet so split file up
+                        ImageDataPacket im = new ImageDataPacket();
+                        im.ImageID.Packets = (ushort)req.NumPackets;
+                        im.ImageID.ID = req.ImageInfo.FullID;
+                        im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
+                        im.ImageData.Data = new byte[600];
+                        Array.Copy(req.ImageInfo.Data, 0, im.ImageData.Data, 0, 600);
+                        im.ImageID.Codec = 2;
+                        req.RequestUser.OutPacket(im);
+                        req.PacketCounter++;
+                        //req.ImageInfo.last_used = time;
+                        //System.Console.WriteLine("sent first packet of texture:
+                        // Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine("sending packet" + req.PacketCounter + "for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    //send imagepacket
+                    //more than one packet so split file up
+                    ImagePacketPacket im = new ImagePacketPacket();
+                    im.ImageID.Packet = (ushort)req.PacketCounter;
+                    im.ImageID.ID = req.ImageInfo.FullID;
+                    int size = req.ImageInfo.Data.Length - 600 - 1000 * (req.PacketCounter - 1);
+                    if (size > 1000) size = 1000;
+                    im.ImageData.Data = new byte[size];
+                    Array.Copy(req.ImageInfo.Data, 600 + 1000 * (req.PacketCounter - 1), im.ImageData.Data, 0, size);
+                    req.RequestUser.OutPacket(im);
+                    req.PacketCounter++;
+                    //req.ImageInfo.last_used = time;
+                    //System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);
+                }
+
             }
         }
     }
 }
+

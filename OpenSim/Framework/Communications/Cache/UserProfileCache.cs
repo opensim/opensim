@@ -116,9 +116,14 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
         {
+            InventoryFolder fold  = null;
             if (folderID == libraryRoot.folderID )
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID, libraryRoot.RequestListOfItems());
+            }
+            else if (( fold = libraryRoot.HasSubFolder(folderID)) != null)
+            {
+                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems());
             }
             else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
