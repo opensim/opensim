@@ -85,16 +85,16 @@ namespace OpenSim.Region.Environment.LandManagement
         /// </summary>
         public bool landPrimCountTainted = false;
 
-        private Scene m_world;
+        private Scene m_scene;
         private RegionInfo m_regInfo;
 
         #endregion
 
         #region Constructors
-        public LandManager(Scene world, RegionInfo reginfo)
+        public LandManager(Scene scene, RegionInfo reginfo)
         {
 
-            m_world = world;
+            m_scene = scene;
             m_regInfo = reginfo;
             landIDList.Initialize();
 
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Environment.LandManagement
         #region Parcel From Storage Functions
         public void LandFromStorage(LandData data)
         {
-            Land new_land = new Land(data.ownerID, data.isGroupOwned, m_world);
+            Land new_land = new Land(data.ownerID, data.isGroupOwned, m_scene);
             new_land.landData = data.Copy();
             new_land.setLandBitmapFromByteArray();
             addLandObject(new_land);
@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns></returns>
         public Land createBaseLand()
         {
-            return new Land(new LLUUID(), false, m_world);
+            return new Land(new LLUUID(), false, m_scene);
         }
 
         /// <summary>
@@ -517,7 +517,7 @@ namespace OpenSim.Region.Environment.LandManagement
             lastLandLocalID = START_LAND_LOCAL_ID - 1;
             landIDList.Initialize();
 
-            Land fullSimParcel = new Land(LLUUID.Zero, false, m_world);
+            Land fullSimParcel = new Land(LLUUID.Zero, false, m_scene);
 
             fullSimParcel.setLandBitmap(Land.getSquareLandBitmap(0, 0, 256, 256));
             fullSimParcel.landData.ownerID = m_regInfo.MasterAvatarAssignedUUID;
@@ -529,7 +529,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void handleSignificantClientMovement(IClientAPI remote_client)
         {
-            ScenePresence clientAvatar = m_world.RequestAvatar(remote_client.AgentId);
+            ScenePresence clientAvatar = m_scene.RequestAvatar(remote_client.AgentId);
             if (clientAvatar != null)
             {
                 Land over = getLandObject(clientAvatar.Pos.X,clientAvatar.Pos.Y);

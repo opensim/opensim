@@ -146,7 +146,7 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
-        #region World/Avatar to Client
+        #region Scene/Avatar to Client
 
         /// <summary>
         /// 

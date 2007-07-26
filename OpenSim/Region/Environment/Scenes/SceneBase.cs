@@ -38,7 +38,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class SceneBase : IWorld
+    public abstract class SceneBase : IScene
     {
         public Dictionary<LLUUID, EntityBase> Entities;
         protected ulong m_regionHandle;

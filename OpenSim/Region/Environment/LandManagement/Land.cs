@@ -18,7 +18,7 @@ namespace OpenSim.Region.Environment.LandManagement
         public LandData landData = new LandData();
         public List<SceneObject> primsOverMe = new List<SceneObject>();
 
-        public Scene m_world;
+        public Scene m_scene;
 
         private bool[,] landBitmap = new bool[64, 64];
 
@@ -26,9 +26,9 @@ namespace OpenSim.Region.Environment.LandManagement
 
 
         #region Constructors
-        public Land(LLUUID owner_id, bool is_group_owned, Scene world)
+        public Land(LLUUID owner_id, bool is_group_owned, Scene scene)
         {
-            m_world = world;
+            m_scene = scene;
             landData.ownerID = owner_id;
             landData.isGroupOwned = is_group_owned;
 
@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public Land Copy()
         {
-            Land newLand = new Land(this.landData.ownerID, this.landData.isGroupOwned, m_world);
+            Land newLand = new Land(this.landData.ownerID, this.landData.isGroupOwned, m_scene);
 
             //Place all new variables here!
             newLand.landBitmap = (bool[,])(this.landBitmap.Clone());
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Environment.LandManagement
             updatePacket.ParcelData.LocalID = landData.localID;
             if (landData.area > 0)
             {
-                updatePacket.ParcelData.MaxPrims = Convert.ToInt32(Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * 15000 * Convert.ToDecimal(m_world.RegionInfo.estateSettings.objectBonusFactor)));
+                updatePacket.ParcelData.MaxPrims = Convert.ToInt32(Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * 15000 * Convert.ToDecimal(m_scene.RegionInfo.estateSettings.objectBonusFactor)));
             }
             else
             {
@@ -118,14 +118,17 @@ namespace OpenSim.Region.Environment.LandManagement
             updatePacket.ParcelData.OwnerID = landData.ownerID;
             updatePacket.ParcelData.OwnerPrims = landData.ownerPrims;
             updatePacket.ParcelData.ParcelFlags = landData.landFlags;
-            updatePacket.ParcelData.ParcelPrimBonus = m_world.RegionInfo.estateSettings.objectBonusFactor;
+            updatePacket.ParcelData.ParcelPrimBonus = m_scene.RegionInfo.estateSettings.objectBonusFactor;
             updatePacket.ParcelData.PassHours = landData.passHours;
             updatePacket.ParcelData.PassPrice = landData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
-            updatePacket.ParcelData.RegionDenyAnonymous = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.DenyAnonymous) > 0);
-            updatePacket.ParcelData.RegionDenyIdentified = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.DenyIdentified) > 0);
-            updatePacket.ParcelData.RegionDenyTransacted = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.DenyTransacted) > 0);
-            updatePacket.ParcelData.RegionPushOverride = (((uint)m_world.RegionInfo.estateSettings.regionFlags & (uint)Simulator.RegionFlags.RestrictPushObject) > 0);
+            
+            uint regionFlags = (uint)m_scene.RegionInfo.estateSettings.regionFlags;            
+            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint)Simulator.RegionFlags.DenyAnonymous) > 0);
+            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint)Simulator.RegionFlags.DenyIdentified) > 0);
+            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint)Simulator.RegionFlags.DenyTransacted) > 0);
+            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint)Simulator.RegionFlags.RestrictPushObject) > 0);
+            
             updatePacket.ParcelData.RentPrice = 0;
             updatePacket.ParcelData.RequestResult = request_result;
             updatePacket.ParcelData.SalePrice = landData.salePrice;
@@ -134,7 +137,7 @@ namespace OpenSim.Region.Environment.LandManagement
             updatePacket.ParcelData.SequenceID = sequence_id;
             if (landData.simwideArea > 0)
             {
-                updatePacket.ParcelData.SimWideMaxPrims = Convert.ToInt32(Math.Round((Convert.ToDecimal(landData.simwideArea) / Convert.ToDecimal(65536)) * 15000 * Convert.ToDecimal(m_world.RegionInfo.estateSettings.objectBonusFactor)));
+                updatePacket.ParcelData.SimWideMaxPrims = Convert.ToInt32(Math.Round((Convert.ToDecimal(landData.simwideArea) / Convert.ToDecimal(65536)) * 15000 * Convert.ToDecimal(m_scene.RegionInfo.estateSettings.objectBonusFactor)));
             }
             else
             {
@@ -180,10 +183,10 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void sendLandUpdateToAvatarsOverMe()
         {
-            List<ScenePresence> avatars = m_world.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-                Land over = m_world.LandManager.getLandObject((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
+                Land over = m_scene.LandManager.getLandObject((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
                 if (over.landData.localID == this.landData.localID)
                 {
                     sendLandProperties(0, false, 0, avatars[i].ControllingClient);
@@ -219,8 +222,8 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
-            landData.AABBMin = new LLVector3((float)(min_x * 4), (float)(min_y * 4), (float)m_world.Terrain.GetHeight((min_x * 4), (min_y * 4)));
-            landData.AABBMax = new LLVector3((float)(max_x * 4), (float)(max_y * 4), (float)m_world.Terrain.GetHeight((max_x * 4), (max_y * 4)));
+            landData.AABBMin = new LLVector3((float)(min_x * 4), (float)(min_y * 4), (float)m_scene.Terrain.GetHeight((min_x * 4), (min_y * 4)));
+            landData.AABBMax = new LLVector3((float)(max_x * 4), (float)(max_y * 4), (float)m_scene.Terrain.GetHeight((max_x * 4), (max_y * 4)));
             landData.area = tempArea;
         }
 

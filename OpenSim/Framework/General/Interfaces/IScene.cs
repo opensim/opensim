@@ -30,7 +30,7 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {
-    public interface IWorld
+    public interface IScene
     {
         void AddNewClient(IClientAPI client, bool child);
         void RemoveClient(LLUUID agentID);

@@ -65,7 +65,7 @@ namespace OpenSim
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
-        protected List<IWorld> m_localWorld = new List<IWorld>();
+        protected List<IScene> m_localScenes = new List<IScene>();
 
         private bool m_silent;
         private string m_logFilename = "region-console-" + Guid.NewGuid().ToString() + ".log";
@@ -83,7 +83,7 @@ namespace OpenSim
 
         
         /// <summary>
-        /// Performs initialisation of the world, such as loading configuration from disk.
+        /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
         public override void StartUp()
         {
@@ -126,7 +126,7 @@ namespace OpenSim
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
                 
-                m_localWorld.Add(scene);
+                m_localScenes.Add(scene);
                 
                 
                 m_udpServers.Add(udpServer);
@@ -311,9 +311,9 @@ namespace OpenSim
             m_log.Verbose("Main.cs:Shutdown() - Killing clients");
             // IMPLEMENT THIS
             m_log.Verbose("Main.cs:Shutdown() - Closing console and terminating");
-            for (int i = 0; i < m_localWorld.Count; i++)
+            for (int i = 0; i < m_localScenes.Count; i++)
             {
-                ((Scene)m_localWorld[i]).Close();
+                ((Scene)m_localScenes[i]).Close();
             }
             m_log.Close();
             Environment.Exit(0);
@@ -343,32 +343,32 @@ namespace OpenSim
 
                 case "terrain":
                     string result = "";
-                    for (int i = 0; i < m_localWorld.Count; i++)
+                    for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        if (!((Scene)m_localWorld[i]).Terrain.RunTerrainCmd(cmdparams, ref result, m_localWorld[i].RegionInfo.RegionName))
+                        if (!((Scene)m_localScenes[i]).Terrain.RunTerrainCmd(cmdparams, ref result, m_localScenes[i].RegionInfo.RegionName))
                         {
                             m_log.Error(result);
                         }
                     }
                     break;
                 case "script":
-                    for (int i = 0; i < m_localWorld.Count; i++)
+                    for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        ((Scene)m_localWorld[i]).SendCommandToScripts(cmdparams);
+                        ((Scene)m_localScenes[i]).SendCommandToScripts(cmdparams);
                     }
                     break;
 
                 case "backup":
-                    for (int i = 0; i < m_localWorld.Count; i++)
+                    for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        ((Scene)m_localWorld[i]).Backup();
+                        ((Scene)m_localScenes[i]).Backup();
                     }
                     break;
 
                 case "alert":
-                    for (int i = 0; i < m_localWorld.Count; i++)
+                    for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        ((Scene)m_localWorld[i]).HandleAlertCommand(cmdparams);
+                        ((Scene)m_localScenes[i]).HandleAlertCommand(cmdparams);
                     }
                     break;
 
@@ -398,14 +398,14 @@ namespace OpenSim
                 case "users":
                     ScenePresence TempAv;
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
-                    for (int i = 0; i < m_localWorld.Count; i++)
+                    for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        foreach (libsecondlife.LLUUID UUID in ((Scene)m_localWorld[i]).Entities.Keys)
+                        foreach (libsecondlife.LLUUID UUID in ((Scene)m_localScenes[i]).Entities.Keys)
                         {
-                            if (((Scene)m_localWorld[i]).Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                            if (((Scene)m_localScenes[i]).Entities[UUID].ToString() == "OpenSim.world.Avatar")
                             {
-                                TempAv = (ScenePresence)((Scene)m_localWorld[i]).Entities[UUID];
-                                m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.AgentId, "Unknown", "Unknown"), ((Scene)m_localWorld[i]).RegionInfo.RegionName);
+                                TempAv = (ScenePresence)((Scene)m_localScenes[i]).Entities[UUID];
+                                m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.AgentId, "Unknown", "Unknown"), ((Scene)m_localScenes[i]).RegionInfo.RegionName);
                             }
                         }
                     }

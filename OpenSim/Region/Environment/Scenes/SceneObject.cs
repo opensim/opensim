@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObject(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = world.RegionInfo.RegionHandle;
-            m_world = world;
+            m_scene = world;
             m_eventManager = eventManager;
 
             this.Pos = pos;
@@ -102,7 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <remarks>Need a null constructor for duplication</remarks>
         public SceneObject()
         {
-
+            
         }
 
         public void registerEvents()
@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateRootFromShape(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
 
-            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_world, agentID, localID, true, this, this, shape, pos);
+            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_scene, agentID, localID, true, this, this, shape, pos);
             this.m_children.Add(rootPrimitive);
 
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObject dupe = new SceneObject();
 
-            dupe.m_world = this.m_world;
+            dupe.m_scene = this.m_scene;
             dupe.m_eventManager = this.m_eventManager;
             dupe.m_regionHandle = this.m_regionHandle;
             Primitive newRoot = this.rootPrimitive.Copy(dupe, dupe);
@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_children.Add(dupe.rootPrimitive);
             dupe.rootPrimitive.Pos = this.Pos;
             dupe.Rotation = this.Rotation;
-            dupe.LocalId = m_world.PrimIDAllocate();
+            dupe.LocalId = m_scene.PrimIDAllocate();
 
             dupe.registerEvents();
             return dupe;

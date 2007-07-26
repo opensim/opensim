@@ -23,13 +23,13 @@ namespace SimpleApp
             m_counter = new PerformanceCounter(objectName, counterName, instanceName);
         }
 
-        public override void Update( )
+        public override void UpdateMovement( )
         {
             float cpu = m_counter.NextValue() / 40f;
             LLVector3 size = new LLVector3(cpu, cpu, cpu);            
             rootPrimitive.ResizeGoup( size );
             
-            base.Update();
+            base.UpdateMovement();
         }
     }
 }

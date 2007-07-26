@@ -108,7 +108,7 @@ namespace OpenSim.Region.ClientStack
             StorageManager storageManager = CreateStorageManager(regionInfo);
             Scene scene = CreateScene(regionInfo, storageManager, authen);
 
-            udpServer.LocalWorld = scene;
+            udpServer.LocalScene = scene;
 
             scene.LoadWorldMap();
 

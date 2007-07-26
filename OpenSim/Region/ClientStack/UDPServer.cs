@@ -53,7 +53,7 @@ namespace OpenSim.Region.ClientStack
         protected PacketServer _packetServer;
 
         protected int listenPort;
-        protected IWorld m_localWorld;
+        protected IScene m_localScene;
         protected AssetCache m_assetCache;
         protected InventoryCache m_inventoryCache;
         protected LogBase m_log;
@@ -71,12 +71,12 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
-        public IWorld LocalWorld
+        public IScene LocalScene
         {
             set
             {
-                this.m_localWorld = value;
-                this._packetServer.LocalWorld = this.m_localWorld;
+                this.m_localScene = value;
+                this._packetServer.LocalScene = this.m_localScene;
             }
         }
 

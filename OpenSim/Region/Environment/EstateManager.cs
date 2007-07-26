@@ -45,12 +45,12 @@ namespace OpenSim.Region.Environment
     /// </summary>
     public class EstateManager
     {
-        private Scene m_world;
+        private Scene m_scene;
         private RegionInfo m_regInfo;
 
-        public EstateManager(Scene world,RegionInfo reginfo)
+        public EstateManager(Scene scene,RegionInfo reginfo)
         {
-            m_world = world; //Estate settings found at world.m_regInfo.estateSettings      
+            m_scene = scene;    
             m_regInfo = reginfo;
         }
 
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionInfoPacketToAll()
         {
-             List<Avatar> avatars = m_world.RequestAvatarList();
+             List<Avatar> avatars = m_scene.RequestAvatarList();
 
              for (int i = 0; i < avatars.Count; i++)
              {
@@ -253,7 +253,7 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionHandshakeToAll()
         {
-            List<Avatar> avatars = m_world.RequestAvatarList();
+            List<Avatar> avatars = m_scene.RequestAvatarList();
 
             for (int i = 0; i < avatars.Count; i++)
             {

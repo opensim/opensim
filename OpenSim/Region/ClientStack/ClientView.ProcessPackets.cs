@@ -73,7 +73,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
 
-                    #region  World/Avatar
+                    #region  Scene/Avatar
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
                         if (Util.FieldToString(inchatpack.ChatData.Message) == "")
@@ -466,33 +466,7 @@ namespace OpenSim.Region.ClientStack
                         // Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
                         AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
-                        /*if (myinventory != null)
-                        {
-                            if (updatetask.UpdateData.Key == 0)
-                            {
-                                if (myinventory.InventoryItems[updatetask.InventoryData.ItemID] != null)
-                                {
-                                    if (myinventory.InventoryItems[updatetask.InventoryData.ItemID].Type == 7)
-                                    {
-                                        LLUUID noteaid = myinventory.InventoryItems[updatetask.InventoryData.ItemID].AssetID;
-                                        AssetBase assBase = this.m_assetCache.GetAsset(noteaid);
-                                        if (assBase != null)
-                                        {
-                                            foreach (Entity ent in m_world.Entities.Values)
-                                            {
-                                                if (ent.localid == updatetask.UpdateData.LocalID)
-                                                {
-                                                    if (ent is OpenSim.world.Primitive)
-                                                    {
-                                                        this.m_world.AddScript(ent, Util.FieldToString(assBase.Data));
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }*/
+
                         break;
                     case PacketType.MapLayerRequest:
                         this.RequestMapLayer();
@@ -524,7 +498,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             AssetLandmark lm = new AssetLandmark(lma);
 
-                            if (lm.RegionID == m_world.RegionInfo.SimUUID)
+                            if (lm.RegionID == m_scene.RegionInfo.SimUUID)
                             {
                                 TeleportLocalPacket tpLocal = new TeleportLocalPacket();
 

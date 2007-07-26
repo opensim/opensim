@@ -138,22 +138,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Constructors
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="world"></param>
-        /// <param name="addPacket"></param>
-        /// <param name="ownerID"></param>
-        /// <param name="localID"></param>
-        /// <param name="isRoot"></param>
-        /// <param name="parent"></param>
-        /// <param name="rootObject"></param>
-        public Primitive(ulong regionHandle, Scene world, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent,
+        public Primitive(ulong regionHandle, Scene scene, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent,
                          SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
         {
             m_regionHandle = regionHandle;
-            m_world = world;
+            m_scene = scene;
             m_inventoryItems = new Dictionary<LLUUID, InventoryItem>();
             m_Parent = parent;
             m_isRootPrim = isRoot;
@@ -163,7 +152,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             Rotation = Quaternion.Identity;
 
-            m_world.AcknowledgeNewPrim(this);
+            m_scene.AcknowledgeNewPrim(this);
 
             OnPrimCountTainted();
         }
@@ -202,10 +191,10 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_children = new List<EntityBase>();
             dupe.m_Shape = m_Shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
-            dupe.m_world = m_world;
+            dupe.m_scene = m_scene;
 
 
-            uint newLocalID = m_world.PrimIDAllocate();
+            uint newLocalID = m_scene.PrimIDAllocate();
             dupe.m_uuid = LLUUID.Random();
             dupe.LocalId = newLocalID;
 
@@ -225,7 +214,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_pos = new LLVector3(m_pos.X, m_pos.Y, m_pos.Z);
 
             rootParent.AddChildToList(dupe);
-            m_world.AcknowledgeNewPrim(dupe);
+            m_scene.AcknowledgeNewPrim(dupe);
             dupe.TriggerOnPrimCountTainted();
 
 
@@ -327,7 +316,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_children.Add(linkObject.rootPrimitive);
             linkObject.rootPrimitive.SetNewParent(this, m_RootParent);
 
-            m_world.DeleteEntity(linkObject.rootUUID);
+            m_scene.DeleteEntity(linkObject.rootUUID);
             linkObject.DeleteAllChildren();
 
             OnPrimCountTainted();
@@ -676,7 +665,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_world.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
                 SendFullUpdateToClient(avatars[i].ControllingClient);
@@ -721,7 +710,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToALLClients()
         {
-            List<ScenePresence> avatars = m_world.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
                 SendTerseUpdateToClient(avatars[i].ControllingClient);

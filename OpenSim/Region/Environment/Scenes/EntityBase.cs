@@ -11,7 +11,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected List<EntityBase> m_children;
 
 
-        protected Scene m_world;
+        protected Scene m_scene;
         protected string m_name;
 
         /// <summary>
@@ -24,19 +24,14 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_pos;
+
         /// <summary>
         /// 
         /// </summary>
         public virtual LLVector3 Pos
         {
-            get
-            {       
-                return m_pos;
-            }
-            set
-            {
-                m_pos = value;
-            }
+            get { return m_pos; }
+            set { m_pos = value; }
         }
 
         public LLVector3 m_velocity;
@@ -46,28 +41,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual LLVector3 Velocity
         {
-            get
-            {
-                return m_velocity;
-            }
-            set
-            {
-                m_velocity = value;
-            }
+            get { return m_velocity; }
+            set { m_velocity = value; }
         }
 
-        protected Quaternion m_rotation = new Quaternion(0,0,1,0);
+        protected Quaternion m_rotation = new Quaternion(0, 0, 1, 0);
 
         public virtual Quaternion Rotation
         {
-            get
-            {
-                return m_rotation;
-            }
-            set
-            {
-                m_rotation = value;
-            }
+            get { return m_rotation; }
+            set { m_rotation = value; }
         }
 
         protected uint m_localId;
@@ -91,19 +74,17 @@ namespace OpenSim.Region.Environment.Scenes
             m_name = "(basic entity)";
 
             m_children = new List<EntityBase>();
-
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void updateMovement()
+        public virtual void UpdateMovement()
         {
-
             foreach (EntityBase child in m_children)
 
             {
-                child.updateMovement();
+                child.UpdateMovement();
             }
         }
 
@@ -125,7 +106,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual void BackUp()
         {
-
         }
 
         /// <summary>
@@ -134,7 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public virtual EntityBase Copy()
         {
-            return (EntityBase)this.MemberwiseClone();
+            return (EntityBase) MemberwiseClone();
         }
 
         /// <summary>
@@ -142,7 +122,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual void LandRenegerated()
         {
-
         }
     }
 }

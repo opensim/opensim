@@ -140,23 +140,23 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager = new EventManager();
 
             m_eventManager.OnParcelPrimCountAdd +=
-                new EventManager.OnParcelPrimCountAddDelegate(m_LandManager.addPrimToLandPrimCounts);
+                m_LandManager.addPrimToLandPrimCounts;
 
-            MainLog.Instance.Verbose("World.cs - creating new entitities instance");
+            MainLog.Instance.Verbose("Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
             Avatars = new Dictionary<LLUUID, ScenePresence>();
             Prims = new Dictionary<LLUUID, SceneObject>();
 
-            MainLog.Instance.Verbose("World.cs - loading objects from datastore");
+            MainLog.Instance.Verbose("Loading objects from datastore");
             List<SceneObject> PrimsFromDB = storageManager.DataStore.LoadObjects();
             foreach (SceneObject prim in PrimsFromDB)
             {
                 AddEntity(prim);
             }
-            MainLog.Instance.Verbose("World.cs - loaded " + PrimsFromDB.Count.ToString() + " object(s)");
+            MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " object(s)");
 
 
-            MainLog.Instance.Verbose("World.cs - creating LandMap");
+            MainLog.Instance.Verbose("Creating LandMap");
             Terrain = new TerrainEngine();
 
             ScenePresence.LoadAnims();
@@ -198,7 +198,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Performs per-frame updates on the world, this should be the central world loop
+        /// Performs per-frame updates on the scene, this should be the central world loop
         /// </summary>
         public override void Update()
         {
@@ -210,9 +210,11 @@ namespace OpenSim.Region.Environment.Scenes
                     phyScene.GetResults();
                 }
 
-                foreach (LLUUID UUID in Entities.Keys)
+                List<EntityBase> moveEntities = new List<EntityBase>( Entities.Values );
+
+                foreach (EntityBase entity in moveEntities)
                 {
-                    Entities[UUID].updateMovement();
+                    entity.UpdateMovement();
                 }
 
                 lock (m_syncRoot)
@@ -220,9 +222,11 @@ namespace OpenSim.Region.Environment.Scenes
                     phyScene.Simulate(timeStep);
                 }
 
-                foreach (LLUUID UUID in Entities.Keys)
+                List<EntityBase> updateEntities = new List<EntityBase>(Entities.Values);
+
+                foreach (EntityBase entity in updateEntities)
                 {
-                    Entities[UUID].Update();
+                    entity.Update();
                 }
 
                 // General purpose event manager

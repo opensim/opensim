@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Interfaces
         void LoadPrimitives(ILocalStorageReceiver receiver);
 
         [System.Obsolete("Use DataStorage instead")]
-        float[] LoadWorld();
+        float[] LoadScene();
         [System.Obsolete("Use DataStorage instead")]
         void SaveMap(float[] heightmap);
 

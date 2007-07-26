@@ -72,7 +72,7 @@ namespace OpenSim.Region.ClientStack
         private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
         private bool debug = false;
-        protected IWorld m_world;
+        protected IScene m_scene;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
         private InventoryCache m_inventoryCache;
@@ -85,9 +85,9 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IWorld world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions )
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions )
         {
-            m_world = world;
+            m_scene = scene;
             m_clientThreads = clientThreads;
             m_assetCache = assetCache;
 
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ClientStack
         {
             clientPingTimer.Stop();
             this.m_inventoryCache.ClientLeaving(this.AgentID, null);
-            m_world.RemoveClient(this.AgentId);
+            m_scene.RemoveClient(this.AgentId);
 
             m_clientThreads.Remove(this.CircuitCode);
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
@@ -231,8 +231,8 @@ namespace OpenSim.Region.ClientStack
             clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             clientPingTimer.Enabled = true;
 
-            MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to world");
-            this.m_world.AddNewClient(this, false);
+            MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to scene");
+            this.m_scene.AddNewClient(this, false);
         }
 
         protected virtual void AuthUser()

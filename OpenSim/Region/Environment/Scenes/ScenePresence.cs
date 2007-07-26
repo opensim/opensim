@@ -120,7 +120,7 @@ namespace OpenSim.Region.Environment.Scenes
         public ScenePresence(IClientAPI theClient, Scene world, RegionInfo reginfo)
         {
 
-            m_world = world;
+            m_scene = world;
             this.m_uuid = theClient.AgentId;
 
             m_regionInfo = reginfo;
@@ -129,7 +129,7 @@ namespace OpenSim.Region.Environment.Scenes
             ControllingClient = theClient;
             this.firstname = ControllingClient.FirstName;
             this.lastname = ControllingClient.LastName;
-            m_localId = m_world.NextLocalId;
+            m_localId = m_scene.NextLocalId;
             Pos = ControllingClient.StartPos;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
@@ -394,7 +394,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToALLClients()
         {
-            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
+            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
                 this.SendTerseUpdateToClient(avatars[i].ControllingClient);
@@ -412,8 +412,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendFullUpdateToALLClients()
         {
-            List<ScenePresence> avatars = this.m_world.RequestAvatarList();
-            foreach (ScenePresence avatar in this.m_world.RequestAvatarList())
+            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
             {
                 this.SendFullUpdateToOtherClient(avatar);
                 avatar.SendFullUpdateToOtherClient(this);
@@ -428,7 +428,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, DefaultTexture);
             if (this.newAvatar)
             {
-                this.m_world.InformClientOfNeighbours(this.ControllingClient);
+                this.m_scene.InformClientOfNeighbours(this.ControllingClient);
                 this.newAvatar = false;
             }
         }
@@ -441,7 +441,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             this.ControllingClient.SendWearables(this.Wearables);
             this.SendFullUpdateToALLClients();
-            this.m_world.SendAllSceneObjectsToClient(this.ControllingClient);
+            this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
 	    this.current_anim = animID;
 	    this.anim_seq = seq;
-	    List<ScenePresence> avatars = this.m_world.RequestAvatarList();
+	    List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
 	    for (int i = 0; i < avatars.Count; i++)
 	    {
 	    	avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
@@ -550,10 +550,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             LLVector3 vel = this.m_velocity;
             ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * 256), (uint)(neighboury * 256));
-            RegionInfo neighbourRegion = this.m_world.RequestNeighbouringRegionInfo(neighbourHandle);
+            RegionInfo neighbourRegion = this.m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
-                bool res = this.m_world.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos, this._physActor.Flying);
+                bool res = this.m_scene.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos, this._physActor.Flying);
                 if (res)
                 {
                     this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint);
@@ -574,7 +574,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public override void updateMovement()
+        public override void UpdateMovement()
         {
             newForce = false;
             lock (this.forcesList)
