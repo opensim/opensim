@@ -299,7 +299,7 @@ namespace OpenSim.Region.Capabilities
             private LLUUID newAssetID;
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
-            private bool SaveImages = true;
+            private bool SaveImages = false;
             private string m_assetName = "";
 
             /// <summary>

@@ -350,7 +350,6 @@ namespace OpenSim.Framework.Communications.Caches
                 Transfer.TransferInfo.TargetType = 0;
                 if (req.AssetRequestSource == 2)
                 {
-                    //Transfer.TransferInfo.Params = req.Params;
                     Transfer.TransferInfo.Params = new byte[20];
                     Array.Copy(req.RequestAssetID.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
                     int assType = (int)req.AssetInf.Type;
@@ -389,19 +388,19 @@ namespace OpenSim.Framework.Communications.Caches
                     {
                         chunk = new byte[req.AssetInf.Data.Length];
                         Array.Copy(req.AssetInf.Data, chunk, req.AssetInf.Data.Length);
+                        TransferPacket.TransferData.Data = chunk;
+                        TransferPacket.TransferData.Status = 1;
+                        req.RequestUser.OutPacket(TransferPacket);
                     }
                     else
                     {
                         chunk = new byte[1000];
                         Array.Copy(req.AssetInf.Data, chunk, 1000);
-                    }
 
-                    TransferPacket.TransferData.Data = chunk;
-                    TransferPacket.TransferData.Status = 0;
-                    req.RequestUser.OutPacket(TransferPacket);
+                        TransferPacket.TransferData.Data = chunk;
+                        TransferPacket.TransferData.Status = 0;
+                        req.RequestUser.OutPacket(TransferPacket);
 
-                    if (req.AssetInf.Data.Length > 1000)
-                    {
                         TransferPacket = new TransferPacketPacket();
                         TransferPacket.TransferData.Packet = 1;
                         TransferPacket.TransferData.ChannelType = 2;
@@ -411,7 +410,7 @@ namespace OpenSim.Framework.Communications.Caches
                         TransferPacket.TransferData.Data = chunk1;
                         TransferPacket.TransferData.Status = 1;
                         req.RequestUser.OutPacket(TransferPacket);
-                    }
+                    } 
                 }
 
             }

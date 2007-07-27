@@ -246,6 +246,40 @@ namespace OpenSim.Region.GridInterfaces.Local
             db.Set(store);
             db.Commit();
 
+            Image = new AssetBase();
+            Image.FullID = new LLUUID("00000000-0000-1111-9999-000000000010");
+            Image.Name = "Female Body Texture";
+            this.LoadAsset(Image, true, "femalebody.jp2");
+            store = new AssetStorage();
+            store.Data = Image.Data;
+            store.Name = Image.Name;
+            store.UUID = Image.FullID;
+            db.Set(store);
+            db.Commit();
+
+            Image = new AssetBase();
+            Image.FullID = new LLUUID("00000000-0000-1111-9999-000000000011");
+            Image.Name = "Female Bottom Texture";
+            this.LoadAsset(Image, true, "femalebottom.jp2");
+            store = new AssetStorage();
+            store.Data = Image.Data;
+            store.Name = Image.Name;
+            store.UUID = Image.FullID;
+            db.Set(store);
+            db.Commit();
+
+            Image = new AssetBase();
+            Image.FullID = new LLUUID("00000000-0000-1111-9999-000000000012");
+            Image.Name = "Female Face Texture";
+            this.LoadAsset(Image, true, "femaleface.jp2");
+            store = new AssetStorage();
+            store.Data = Image.Data;
+            store.Name = Image.Name;
+            store.UUID = Image.FullID;
+            db.Set(store);
+            db.Commit();
+
+
             /*
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000008");
@@ -278,6 +312,32 @@ namespace OpenSim.Region.GridInterfaces.Local
             Image.Type = 13;
             Image.InvType = 13;
             this.LoadAsset(Image, false, "base_shape.dat");
+            store = new AssetStorage();
+            store.Data = Image.Data;
+            store.Name = Image.Name;
+            store.UUID = Image.FullID;
+            db.Set(store);
+            db.Commit();
+
+            Image = new AssetBase();
+            Image.FullID = new LLUUID("00000000-38f9-1111-024e-222222111110");
+            Image.Name = "Shirt";
+            Image.Type = 5;
+            Image.InvType = 18;
+            this.LoadAsset(Image, false, "newshirt.dat");
+            store = new AssetStorage();
+            store.Data = Image.Data;
+            store.Name = Image.Name;
+            store.UUID = Image.FullID;
+            db.Set(store);
+            db.Commit();
+
+            Image = new AssetBase();
+            Image.FullID = new LLUUID("00000000-38f9-1111-024e-222222111120");
+            Image.Name = "Shirt";
+            Image.Type = 5;
+            Image.InvType = 18;
+            this.LoadAsset(Image, false, "newpants.dat");
             store = new AssetStorage();
             store.Data = Image.Data;
             store.Name = Image.Name;

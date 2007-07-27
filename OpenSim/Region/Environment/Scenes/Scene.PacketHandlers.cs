@@ -688,7 +688,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.assetID = asset.FullID;
                 item.inventoryDescription = description;
                 item.inventoryName = name;
-                item.type = invType;
+                item.assetType = invType;
                 item.parentFolderID = folderID;
                 item.inventoryCurrentPermissions = 2147483647;
                 item.inventoryNextPermissions = nextOwnerMask;

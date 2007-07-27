@@ -405,7 +405,7 @@ namespace OpenSim.Framework.Data.MySQL
                     item.inventoryName = (string)reader["inventoryName"];
                     item.inventoryNextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"].ToString());
                     item.parentFolderID = new LLUUID((string)reader["parentFolderID"]);
-                    item.type = Convert.ToInt32(reader["type"].ToString());
+                    item.assetType = Convert.ToInt32(reader["type"].ToString());
 
                     rows.Add(item);
                 }
@@ -474,7 +474,7 @@ namespace OpenSim.Framework.Data.MySQL
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["?inventoryID"] = item.inventoryID.ToStringHyphenated();
             parameters["?assetID"] = item.assetID.ToStringHyphenated();
-            parameters["?type"] = item.type.ToString();
+            parameters["?type"] = item.assetType.ToString();
             parameters["?parentFolderID"] = item.parentFolderID.ToStringHyphenated();
             parameters["?avatarID"] = item.avatarID.ToStringHyphenated();
             parameters["?inventoryName"] = item.inventoryName;

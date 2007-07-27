@@ -541,14 +541,14 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].FolderID = item.parentFolderID;
                 descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                 descend.ItemData[i].GroupMask = 0;
-                descend.ItemData[i].InvType = (sbyte)item.type;
+                descend.ItemData[i].InvType = (sbyte)item.invType;
                 descend.ItemData[i].Name = enc.GetBytes(item.inventoryName+ "\0");
                 descend.ItemData[i].NextOwnerMask = item.inventoryNextPermissions;
                 descend.ItemData[i].OwnerID = item.avatarID;
                 descend.ItemData[i].OwnerMask = item.inventoryCurrentPermissions;
                 descend.ItemData[i].SalePrice = 0;
                 descend.ItemData[i].SaleType = 0;
-                descend.ItemData[i].Type = (sbyte)item.type;
+                descend.ItemData[i].Type = (sbyte)item.assetType;
                 descend.ItemData[i].CRC = Helpers.InventoryCRC(1000, 0, descend.ItemData[i].InvType, descend.ItemData[i].Type, descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, 100,descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID, descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
                 
                 i++;
@@ -577,14 +577,14 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.InventoryData[0].FolderID = item.parentFolderID;
             inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             inventoryReply.InventoryData[0].GroupMask = 0;
-            inventoryReply.InventoryData[0].InvType = (sbyte)item.type;
+            inventoryReply.InventoryData[0].InvType = (sbyte)item.invType;
             inventoryReply.InventoryData[0].Name = enc.GetBytes(item.inventoryName + "\0");
             inventoryReply.InventoryData[0].NextOwnerMask = item.inventoryNextPermissions;
             inventoryReply.InventoryData[0].OwnerID = item.avatarID;
             inventoryReply.InventoryData[0].OwnerMask = item.inventoryCurrentPermissions;
             inventoryReply.InventoryData[0].SalePrice = 0;
             inventoryReply.InventoryData[0].SaleType = 0;
-            inventoryReply.InventoryData[0].Type = (sbyte)item.type;
+            inventoryReply.InventoryData[0].Type = (sbyte)item.assetType;
             inventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType, inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID, inventoryReply.InventoryData[0].GroupID, 100, inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID, inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
             this.OutPacket(inventoryReply);
@@ -610,14 +610,14 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.InventoryData[0].FolderID = Item.parentFolderID;
             InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             InventoryReply.InventoryData[0].GroupMask = 0;
-            InventoryReply.InventoryData[0].InvType =(sbyte) Item.type;
+            InventoryReply.InventoryData[0].InvType =(sbyte) Item.invType;
             InventoryReply.InventoryData[0].Name = enc.GetBytes(Item.inventoryName + "\0");
             InventoryReply.InventoryData[0].NextOwnerMask = Item.inventoryNextPermissions;
             InventoryReply.InventoryData[0].OwnerID = Item.avatarID;
             InventoryReply.InventoryData[0].OwnerMask = Item.inventoryCurrentPermissions;
             InventoryReply.InventoryData[0].SalePrice = 100;
             InventoryReply.InventoryData[0].SaleType = 0;
-            InventoryReply.InventoryData[0].Type =(sbyte) Item.type;
+            InventoryReply.InventoryData[0].Type =(sbyte) Item.assetType;
             InventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
             OutPacket(InventoryReply);

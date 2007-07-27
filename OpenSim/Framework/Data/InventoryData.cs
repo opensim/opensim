@@ -46,7 +46,11 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
         /// </summary>
-        public int type;
+        public int assetType;
+        /// <summary>
+        /// The type of inventory item. (Can be slightly different to the asset type
+        /// </summary>
+        public int invType;
         /// <summary>
         /// The folder this item is contained in 
         /// </summary>
