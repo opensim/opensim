@@ -63,7 +63,6 @@ namespace SimpleApp
         public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
-        public event NewAvatar OnNewAvatar;
         public event GenericCall6 OnRemoveAvatar;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;

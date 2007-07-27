@@ -66,6 +66,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
 
+        private IScenePresenceBody m_body; 
+
         private Vector3[] Dir_Vectors = new Vector3[6];
         private enum Dir_ControlFlags
         {
@@ -169,6 +171,9 @@ namespace OpenSim.Region.Environment.Scenes
             Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
             Dir_Vectors[4] = new Vector3(0, 0, 1);  //UP
             Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
+           
+            //tempoary until we move some code into the body classes
+            this.m_body = new ChildAgent();
 
         }
         #endregion

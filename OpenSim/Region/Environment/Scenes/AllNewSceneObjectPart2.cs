@@ -14,6 +14,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
+        private uint m_flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
         private ulong m_regionHandle;
 
         public string SitName = "";
@@ -127,6 +128,12 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_Shape = shape;
 
             this.OffsetPosition = position;
+
+            //temporary code just so the m_flags field doesn't give a compiler warning
+            if (m_flags == 1)
+            {
+
+            }
         }
         #endregion
 

@@ -82,7 +82,10 @@ namespace OpenSim.Region.Capabilities
             AddLegacyCapsHandler(httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
         }
 
-        [Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
+
+        //[Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
+        //Commented out the obsolete as at this time the first caps request can not use the new Caps method 
+        //as the sent type is a array and not a map and the deserialising doesn't deal properly with arrays.
         private void AddLegacyCapsHandler(BaseHttpServer httpListener, string path, RestMethod restMethod)
         {
             string capsBase = "/CAPS/" + m_capsObjectPath;

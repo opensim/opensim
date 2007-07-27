@@ -126,7 +126,6 @@ namespace OpenSim.Framework.Interfaces
         event UpdateVector OnUpdatePrimScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;
-        event NewAvatar OnNewAvatar;
         event GenericCall6 OnRemoveAvatar;
 
         event CreateNewInventoryItem OnCreateNewInventoryItem;

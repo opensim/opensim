@@ -23,7 +23,7 @@ namespace OpenSim.Framework.Communications.Caches
             InventoryFolder folderInfo = new InventoryFolder();
             folderInfo.agentID = libOwner;
             folderInfo.folderID = new LLUUID("00000112-000f-0000-0000-000100bba001");
-            folderInfo.name = "My Inventory";
+            folderInfo.name = "Texture Library";
             folderInfo.parentID = this.folderID;
             folderInfo.type = -1;
             folderInfo.version = 1;
