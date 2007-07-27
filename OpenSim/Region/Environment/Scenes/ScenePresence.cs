@@ -48,12 +48,11 @@ namespace OpenSim.Region.Environment.Scenes
         public IClientAPI ControllingClient;
         public LLUUID current_anim;
         public int anim_seq;
-        private bool updateflag = false; // HOUSEKEEPING : Do we really need this?
+        private bool updateflag = false;
         private byte movementflag = 0;
         private List<NewForce> forcesList = new List<NewForce>();
         private short _updateCount = 0;
         private Quaternion bodyRot;
-       // private LLObject.TextureEntry avatarAppearanceTexture = null;
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
         private ulong m_regionHandle;
@@ -63,7 +62,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool newForce = false;
         private bool newAvatar = false;
-        private IScenePresenceBody m_body; // HOUSEKEEPING : Do we really need this?
 
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
@@ -99,6 +97,18 @@ namespace OpenSim.Region.Environment.Scenes
             get
             {
                 return _physActor;
+            }
+        }
+
+        public bool Updated
+        {
+            set
+            {
+                this.updateflag = value;
+            }
+            get
+            {
+                return this.updateflag;
             }
         }
 
