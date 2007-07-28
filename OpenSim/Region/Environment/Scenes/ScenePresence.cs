@@ -52,9 +52,12 @@ namespace OpenSim.Region.Environment.Scenes
         private byte movementflag = 0;
         private List<NewForce> forcesList = new List<NewForce>();
         private short _updateCount = 0;
+
         private Quaternion bodyRot;
         private byte[] visualParams;
         private AvatarWearable[] Wearables;
+        private LLObject.TextureEntry m_textureEntry;
+
         private ulong m_regionHandle;
 
         public bool childAgent = false;
@@ -143,6 +146,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.lastname = ControllingClient.LastName;
             m_localId = m_scene.NextLocalId;
             Pos = ControllingClient.StartPos;
+
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -153,11 +157,9 @@ namespace OpenSim.Region.Environment.Scenes
             Animations = new ScenePresence.AvatarAnimations();
             Animations.LoadAnims();
 
-          //  this.avatarAppearanceTexture = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
-
             //register for events
             ControllingClient.OnRequestWearables += this.SendOurAppearance;
-            //ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
+            ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
             ControllingClient.OnCompleteMovementToRegion += this.CompleteMovement;
             ControllingClient.OnCompleteMovementToRegion += this.SendInitialData;
             ControllingClient.OnAgentUpdate += this.HandleAgentUpdate;
@@ -171,8 +173,10 @@ namespace OpenSim.Region.Environment.Scenes
             Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
             Dir_Vectors[4] = new Vector3(0, 0, 1);  //UP
             Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
-           
-            //tempoary until we move some code into the body classes
+
+            this.m_textureEntry = new LLObject.TextureEntry(DefaultTexture, 0, DefaultTexture.Length);
+
+            //temporary until we move some code into the body classes
             this.m_body = new ChildAgent();
 
         }
@@ -242,7 +246,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="visualParam"></param>
         public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
         {
+            LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
+            this.m_textureEntry = textureEnt;
 
+            for (int i = 0; i < visualParam.Length; i++)
+            {
+                this.visualParams[i] = visualParam[i].ParamValue;
+            }
+
+            this.SendArrearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -422,7 +434,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
-            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, DefaultTexture);
+            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
         }
 
         public void SendFullUpdateToALLClients()
@@ -440,7 +452,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, DefaultTexture);
+            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
             if (this.newAvatar)
             {
                 this.m_scene.InformClientOfNeighbours(this.ControllingClient);
@@ -455,8 +467,23 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendOurAppearance(IClientAPI OurClient)
         {
             this.ControllingClient.SendWearables(this.Wearables);
+
             this.SendFullUpdateToALLClients();
+            this.SendArrearanceToAllOtherAgents();
+
             this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SendArrearanceToAllOtherAgents()
+        {
+             List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+             foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
+             {
+                 this.SendAppearanceToOtherAgent(avatar);
+             }
         }
 
         /// <summary>
@@ -465,7 +492,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="avatarInfo"></param>
         public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
         {
-
+            avatarInfo.ControllingClient.SendAppearance(this.ControllingClient.AgentId, this.visualParams, this.m_textureEntry.ToBytes());
         }
 
         /// <summary>
@@ -614,7 +641,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public static void LoadTextureFile(string name)
         {
-            FileInfo fInfo = new FileInfo(name);
+           /* FileInfo fInfo = new FileInfo(name);
             long numBytes = fInfo.Length;
             FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
             BinaryReader br = new BinaryReader(fStream);
@@ -622,8 +649,18 @@ namespace OpenSim.Region.Environment.Scenes
             br.Close();
             fStream.Close();
             DefaultTexture = data1;
-           // LLObject.TextureEntry textu = new LLObject.TextureEntry(data1, 0, data1.Length);
-           // Console.WriteLine("default texture entry: " + textu.ToString());
+            LLObject.TextureEntry textu = new LLObject.TextureEntry(data1, 0, data1.Length);
+            Console.WriteLine("default texture entry: " + textu.ToString());*/
+
+            LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
+            textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");
+            textu.CreateFace(1).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
+            textu.CreateFace(2).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
+            textu.CreateFace(3).TextureID = new LLUUID("6522E74D-1660-4E7F-B601-6F48C1659A77");
+            textu.CreateFace(4).TextureID = new LLUUID("7CA39B4C-BD19-4699-AFF7-F93FD03D3E7B");
+            textu.CreateFace(5).TextureID = new LLUUID("00000000-0000-1111-9999-000000000010");
+            textu.CreateFace(6).TextureID = new LLUUID("00000000-0000-1111-9999-000000000011");
+            DefaultTexture = textu.ToBytes();
         }
 
         public class NewForce

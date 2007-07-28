@@ -91,7 +91,7 @@ namespace OpenSim.Region.Capabilities
             string capsBase = "/CAPS/" + m_capsObjectPath;
             httpListener.AddStreamHandler(new RestStreamHandler("POST", capsBase + path, restMethod));
         }
-
+       
         /// <summary>
         /// 
         /// </summary>

@@ -172,6 +172,7 @@ namespace OpenSim.Framework.Interfaces
 
         void OutPacket(Packet newPack);
         void SendWearables(AvatarWearable[] wearables);
+        void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
         void SendStartPingCheck(byte seq);
         void SendKillObject(ulong regionHandle, uint avatarLocalID);
         void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId);
