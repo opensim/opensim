@@ -444,6 +444,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 this.SendFullUpdateToOtherClient(avatar);
                 avatar.SendFullUpdateToOtherClient(this);
+                avatar.SendAppearanceToOtherAgent(this);
             }
         }
 
