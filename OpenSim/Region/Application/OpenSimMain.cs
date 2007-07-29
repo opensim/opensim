@@ -330,8 +330,16 @@ namespace OpenSim
             switch (command)
             {
                 case "help":
-                    m_log.Error("show users - show info about connected users");
-                    m_log.Error("quit - disconnect all clients and shutdown");
+                    m_log.Error("alert - send alert to a designated user or all users.");
+                    m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
+                    m_log.Error("  alert general [Message] - send an alert to all users.");
+                    m_log.Error("backup - trigger a simulator backup");
+                    m_log.Error("script - manually trigger scripts? or script commands?");
+                    m_log.Error("show uptime - show simulator startup and uptime.");
+                    m_log.Error("show users - show info about connected users.");
+                    m_log.Error("shutdown - disconnect all clients and shutdown.");
+                    m_log.Error("terrain help - show help for terrain commands.");
+                    m_log.Error("quit - equivalent to shutdown.");
                     break;
 
                 case "show":
