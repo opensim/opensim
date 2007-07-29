@@ -65,6 +65,12 @@ namespace libTerrain
         {
             SetDiff();
 
+            if (minv == maxv)
+            {
+                Fill(minv);
+                return this;
+            }
+
             double max = FindMax();
             double min = FindMin();
 
@@ -74,11 +80,18 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    double val = (map[x, y] - min) * (1.0 / max - min);
-                    val *= maxv - minv;
-                    val += minv;
+                    if (min != max)
+                    {
+                        double val = (map[x, y] - min) * (1.0 / max - min);
+                        val *= maxv - minv;
+                        val += minv;
 
-                    map[x, y] = val;
+                        map[x, y] = val;
+                    }
+                    else
+                    {
+                        map[x, y] = 0.5;
+                    }
                 }
             }
 
