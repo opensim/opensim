@@ -210,7 +210,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (packetsReceived == lastPacketsReceived) {
                 probesWithNoIngressPackets++;
-                if (probesWithNoIngressPackets > 120) {
+                if (probesWithNoIngressPackets > 30) {
                     this.KillClient();
                  } else {
                     // this will normally trigger at least one packet (ping response)
@@ -227,7 +227,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void InitNewClient()
         {
-            clientPingTimer = new Timer(1000);
+            clientPingTimer = new Timer(5000);
             clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             clientPingTimer.Enabled = true;
 
