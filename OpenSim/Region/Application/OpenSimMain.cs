@@ -144,7 +144,7 @@ namespace OpenSim
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
         {
-            return new StorageManager("OpenSim.DataStore.NullStorage.dll", regionInfo.DataStore, regionInfo.RegionName);
+            return new StorageManager("OpenSim.DataStore.Db4o.dll", regionInfo.DataStore, regionInfo.RegionName);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
