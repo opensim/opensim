@@ -106,7 +106,7 @@ namespace OpenSim.Framework
        public virtual void SendWearables(AvatarWearable[] wearables){}
        public virtual void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry) { }
        public virtual void SendStartPingCheck(byte seq){}
-       public virtual void SendKillObject(ulong regionHandle, uint avatarLocalID){}
+       public virtual void SendKillObject(ulong regionHandle, uint localID){}
        public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId){}
        public virtual void SendRegionHandshake(RegionInfo regionInfo){}
        public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID){}

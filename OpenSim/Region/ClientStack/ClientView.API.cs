@@ -506,12 +506,12 @@ namespace OpenSim.Region.ClientStack
             OutPacket(pc);
         }
 
-        public void SendKillObject(ulong regionHandle, uint avatarLocalID)
+        public void SendKillObject(ulong regionHandle, uint localID)
         {
             KillObjectPacket kill = new KillObjectPacket();
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            kill.ObjectData[0].ID = avatarLocalID;
+            kill.ObjectData[0].ID = localID;
             OutPacket(kill);
         }
 

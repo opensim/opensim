@@ -33,9 +33,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
         public uint NextOwnerMask = FULL_MASK_PERMISSIONS;
-        public uint GroupMask = FULL_MASK_PERMISSIONS;
-        public uint EveryoneMask = FULL_MASK_PERMISSIONS;
-        public uint BaseMask = FULL_MASK_PERMISSIONS;
+        public uint GroupMask = 0;// FULL_MASK_PERMISSIONS;
+        public uint EveryoneMask = 0;//FULL_MASK_PERMISSIONS;
+        public uint BaseMask = 0;//FULL_MASK_PERMISSIONS;
 
         private PrimitiveBaseShape m_Shape;
         private byte[] m_particleSystem = new byte[0];

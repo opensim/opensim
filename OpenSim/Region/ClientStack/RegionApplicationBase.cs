@@ -70,7 +70,7 @@ namespace OpenSim.Region.ClientStack
 
             Initialize();
             
-            ScenePresence.LoadTextureFile("avatar-texture.dat");
+            ScenePresence.CreateDefaultTextureEntry("avatar-texture.dat");
 
             m_httpServer = new BaseHttpServer( m_httpServerPort );
 

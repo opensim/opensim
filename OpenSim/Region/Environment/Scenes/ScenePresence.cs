@@ -459,6 +459,9 @@ namespace OpenSim.Region.Environment.Scenes
                 this.m_scene.InformClientOfNeighbours(this.ControllingClient);
                 this.newAvatar = false;
             }
+
+          // this.SendFullUpdateToALLClients();
+          //  this.SendArrearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -640,7 +643,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public static void LoadTextureFile(string name)
+        public static void CreateDefaultTextureEntry(string name)
         {
            /* FileInfo fInfo = new FileInfo(name);
             long numBytes = fInfo.Length;

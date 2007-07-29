@@ -217,7 +217,42 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="simClient"></param>
         public void DeRezObject(Packet packet, IClientAPI simClient)
         {
+            DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
 
+            
+            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
+            {
+                //currently following code not used (or don't know of any case of destination being zero
+            }
+            else
+            {
+                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
+                {
+                    EntityBase selectedEnt = null;
+                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
+                    foreach (EntityBase ent in this.Entities.Values)
+                    {
+                        if (ent.LocalId == Data.ObjectLocalID)
+                        {
+                            selectedEnt = ent;
+                            break;
+                        }
+                    }
+                    if (selectedEnt != null)
+                    {
+                        List<ScenePresence> avatars = this.RequestAvatarList();
+                        foreach (ScenePresence avatar in avatars)
+                        {
+                            avatar.ControllingClient.SendKillObject(this.m_regionHandle, selectedEnt.LocalId);
+                        }
+                       
+                        lock (Entities)
+                        {
+                            Entities.Remove(selectedEnt.m_uuid);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -678,7 +713,7 @@ namespace OpenSim.Region.Environment.Scenes
                 asset.InvType = invType;
                 asset.Type = type;
                 asset.FullID = LLUUID.Random();
-                asset.Data = new byte[0];
+                asset.Data = new byte[1];
                 this.assetCache.AddAsset(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
@@ -689,6 +724,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.inventoryDescription = description;
                 item.inventoryName = name;
                 item.assetType = invType;
+                item.invType = invType;
                 item.parentFolderID = folderID;
                 item.inventoryCurrentPermissions = 2147483647;
                 item.inventoryNextPermissions = nextOwnerMask;

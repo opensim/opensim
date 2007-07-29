@@ -272,6 +272,7 @@ namespace OpenSim.Framework.Communications.Caches
                 //inventory asset request
                 requestID = new LLUUID(transferRequest.TransferInfo.Params, 80);
                 source = 3;
+                Console.WriteLine("asset request " + requestID);
             }
             //check to see if asset is in local cache, if not we need to request it from asset server.
             //Console.WriteLine("asset request " + requestID);

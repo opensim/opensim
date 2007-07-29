@@ -550,7 +550,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_estateManager.sendRegionHandshake(client);
             CreateAndAddScenePresence(client);
             m_LandManager.sendParcelOverlay(client);
-            //commsManager.UserProfiles.AddNewUser(client.AgentId);
+           // commsManager.UserProfiles.AddNewUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -576,6 +576,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
             client.OnGrapUpdate += MoveObject;
+            client.OnDeRezObject += DeRezObject;
             client.OnNameFromUUIDRequest += commsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += PrimDescription;
             client.OnObjectName += PrimName;
