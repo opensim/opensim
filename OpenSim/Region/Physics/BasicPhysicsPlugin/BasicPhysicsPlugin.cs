@@ -99,49 +99,43 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 		{
 			foreach (BasicActor actor in _actors)
 			{
-                if ((actor.Position.Y > 0 && actor.Position.Y < 256) && (actor.Position.X > 0 && actor.Position.X < 256))
-                {
-                    float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.2f;
-                    actor.Position.X = actor.Position.X + (actor.Velocity.X * timeStep);
-                    actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
-                    if (actor.Flying)
+                float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.2f;
+                actor.Position.X = actor.Position.X + (actor.Velocity.X * timeStep);
+                actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
+                if (actor.Flying)
                     {
-                        if (actor.Position.Z + (actor.Velocity.Z * timeStep) < 
-                            _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 2)
-                        {
-                            actor.Position.Z = height;
-                            actor.Velocity.Z = 0;
-                        }
-                        else
-                        {
-                            actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
-                        }
-                    }
-                    else
+                    if (actor.Position.Z + (actor.Velocity.Z * timeStep) < _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 2)
                     {
                         actor.Position.Z = height;
                         actor.Velocity.Z = 0;
                     }
+                    else
+                    {
+                        actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
+                    }
                 }
                 else
                 {
-                    if (actor.Position.Y < 0)
-                    {
-                        actor.Position.Y = 0;
-                    }
-                    else if (actor.Position.Y > 256)
-                    {
-                        actor.Position.Y = 256;
-                    }
+                    actor.Position.Z = height;
+                    actor.Velocity.Z = 0;
+                }
 
-                    if (actor.Position.X < 0)
-                    {
-                        actor.Position.X = 0;
-                    }
-                    if (actor.Position.X > 256)
-                    {
-                        actor.Position.X = 256;
-                    }
+                if (actor.Position.Y < 0)
+                {
+                    actor.Position.Y = 0;
+                }
+                else if (actor.Position.Y > 256)
+                {
+                    actor.Position.Y = 256;
+                }
+
+                if (actor.Position.X < 0)
+                {
+                    actor.Position.X = 0;
+                }
+                if (actor.Position.X > 256)
+                {
+                    actor.Position.X = 256;
                 }
             }
 		}
