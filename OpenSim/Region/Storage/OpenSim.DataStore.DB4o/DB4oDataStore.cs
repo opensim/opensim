@@ -3,15 +3,34 @@ using System.Collections.Generic;
 using System.Text;
 
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Interfaces;
 using OpenSim.Framework.Console;
 using libsecondlife;
 
 using Db4objects.Db4o;
+using Db4objects.Db4o.Query;
 
-namespace OpenSim.DataStore.NullStorage
+namespace OpenSim.DataStore.DB4oStorage
 {
+
+    public class SceneObjectQuery : Predicate
+    {
+        private LLUUID globalIDSearch;
+
+        public SceneObjectQuery(LLUUID find)
+        {
+            globalIDSearch = find;
+        }
+
+        public bool Match(SceneObject obj)
+        {
+            return obj.rootUUID == globalIDSearch;
+        }
+    }
+
+
     public class DB4oDataStore : IRegionDataStore
     {
         private IObjectContainer db;
@@ -30,12 +49,25 @@ namespace OpenSim.DataStore.NullStorage
 
         public void RemoveObject(LLUUID obj)
         {
-
+            IObjectSet result = db.Query(new SceneObjectQuery(obj));
+            if (result.Count > 0)
+            {
+                SceneObject item = (SceneObject)result.Next();
+                db.Delete(item);
+            }
         }
 
         public List<SceneObject> LoadObjects()
         {
-            return new List<SceneObject>();
+            IObjectSet result = db.Get(typeof(SceneObject));
+            List<SceneObject> retvals = new List<SceneObject>();
+
+            foreach (Object obj in result)
+            {
+                retvals.Add((SceneObject)obj);
+            }
+
+            return retvals;
         }
 
         public void StoreTerrain(double[,] ter)
@@ -48,19 +80,19 @@ namespace OpenSim.DataStore.NullStorage
             return null;
         }
 
-        public void RemoveParcel(uint id)
+        public void RemoveLandObject(uint id)
         {
 
         }
 
-        public void StoreParcel(OpenSim.Region.Environment.Parcel parcel)
+        public void StoreParcel(Land parcel)
         {
 
         }
 
-        public List<OpenSim.Region.Environment.Parcel> LoadParcels()
+        public List<Land> LoadLandObjects()
         {
-            return new List<OpenSim.Region.Environment.Parcel>();
+            return new List<Land>();
         }
 
         public void Shutdown()
