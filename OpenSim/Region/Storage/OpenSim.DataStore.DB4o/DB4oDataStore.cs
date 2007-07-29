@@ -97,7 +97,8 @@ namespace OpenSim.DataStore.DB4oStorage
 
         public void Shutdown()
         {
-
+            db.Commit();
+            db.Close();
         }
     }
 }
