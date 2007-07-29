@@ -32,6 +32,7 @@ namespace OpenSim.Region.Environment
 
         public StorageManager(string dllName, string dataStoreFile, string dataStoreDB)
         {
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("DATASTORE", "Attempting to load " + dllName);
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -46,6 +47,8 @@ namespace OpenSim.Region.Environment
                         plug.Initialise(dataStoreFile, dataStoreDB);
 
                         m_dataStore = plug;
+
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("DATASTORE", "Added IRegionDataStore Interface");
                     }
 
                     typeInterface = null;

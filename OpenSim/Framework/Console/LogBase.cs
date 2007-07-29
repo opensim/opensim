@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Console
             this.componentname = componentname;
             this.cmdparser = cmdparser;
             this.m_silent = silent;
-            System.Console.WriteLine("ServerConsole.cs - creating new local console");
+            System.Console.WriteLine("Creating new local console");
 
             if (String.IsNullOrEmpty(LogFile))
             {
@@ -280,7 +280,7 @@ namespace OpenSim.Framework.Console
                 }
             }
 
-            System.Console.Write("] ");
+            System.Console.Write("] \t");
 
             return;
         }

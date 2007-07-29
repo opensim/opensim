@@ -37,6 +37,7 @@ namespace OpenSim.DataStore.DB4oStorage
 
         public void Initialise(string dbfile, string dbname)
         {
+            MainLog.Instance.Verbose("DATASTORE", "DB4O - Opening " + dbfile);
             db = Db4oFactory.OpenFile(dbfile);
 
             return;
@@ -61,6 +62,8 @@ namespace OpenSim.DataStore.DB4oStorage
         {
             IObjectSet result = db.Get(typeof(SceneObject));
             List<SceneObject> retvals = new List<SceneObject>();
+
+            MainLog.Instance.Verbose("DATASTORE", "DB4O - LoadObjects found " + result.Count.ToString() + " objects");
 
             foreach (Object obj in result)
             {
@@ -97,8 +100,11 @@ namespace OpenSim.DataStore.DB4oStorage
 
         public void Shutdown()
         {
-            db.Commit();
-            db.Close();
+            if (db != null)
+            {
+                db.Commit();
+                db.Close();
+            }
         }
     }
 }

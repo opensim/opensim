@@ -120,13 +120,13 @@ namespace OpenSim.Region.ClientStack
             UserProfileData masterAvatar = m_commsManager.UserServer.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);
             if (masterAvatar != null)
             {
-                m_log.Notice("Parcels - Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
+                m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
                 scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
                 //TODO: Load parcels from storageManager
             }
             else
             {
-                m_log.Notice("Parcels - No master avatar found, using null.");
+                m_log.Verbose("PARCEL", "No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
                 //TODO: Load parcels from storageManager
             }

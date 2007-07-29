@@ -77,10 +77,10 @@ namespace OpenSim.Grid.AssetServer
 
         public void Startup()
         {
-            m_console.Verbose("Main.cs:Startup() - Setting up asset DB");
+            m_console.Verbose("ASSET", "Setting up asset DB");
             setupDB();
 
-            m_console.Verbose("Main.cs:Startup() - Starting HTTP process");
+            m_console.Verbose("ASSET", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8003);
 
             httpServer.AddStreamHandler( new GetAssetStreamHandler(this));

@@ -306,11 +306,11 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
-            m_log.Verbose("Main.cs:Shutdown() - Closing all threads");
-            m_log.Verbose("Main.cs:Shutdown() - Killing listener thread");
-            m_log.Verbose("Main.cs:Shutdown() - Killing clients");
+            m_log.Verbose("Closing all threads");
+            m_log.Verbose("Killing listener thread");
+            m_log.Verbose("Killing clients");
             // IMPLEMENT THIS
-            m_log.Verbose("Main.cs:Shutdown() - Closing console and terminating");
+            m_log.Verbose("Closing console and terminating");
             for (int i = 0; i < m_localScenes.Count; i++)
             {
                 ((Scene)m_localScenes[i]).Close();

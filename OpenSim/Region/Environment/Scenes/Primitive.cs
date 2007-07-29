@@ -171,7 +171,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         ~Primitive()
         {
-            OnPrimCountTainted();
+            if (OnPrimCountTainted != null)
+                OnPrimCountTainted();
         }
 
         #endregion

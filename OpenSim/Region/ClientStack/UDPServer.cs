@@ -122,7 +122,7 @@ namespace OpenSim.Region.ClientStack
             }
             else
             { // invalid client
-                m_log.Warn("client", "UDPServer.cs:OnReceivedData() - WARNING: Got a packet from an invalid client - " + epSender.ToString());
+                m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
@@ -138,20 +138,20 @@ namespace OpenSim.Region.ClientStack
 
         public void ServerListener()
         {
-            m_log.Status("SERVER", "UDPServer.cs:ServerListener() - Opening UDP socket on " + listenPort);
+            m_log.Verbose("SERVER", "Opening UDP socket on " + listenPort);
 
             ServerIncoming = new IPEndPoint(IPAddress.Parse("0.0.0.0"), listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
 
-            m_log.Verbose("SERVER", "UDPServer.cs:ServerListener() - UDP socket bound, getting ready to listen");
+            m_log.Verbose("SERVER", "UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
             epSender = (EndPoint)ipeSender;
             ReceivedData = new AsyncCallback(this.OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-            m_log.Verbose("SERVER", "UDPServer.cs:ServerListener() - Listening...");
+            m_log.Status("SERVER", "Listening...");
 
         }
 
