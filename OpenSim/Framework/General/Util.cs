@@ -63,6 +63,61 @@ namespace OpenSim.Framework.Utilities
             return id;
         }
 
+        public static string GetFileName(string file)
+        {
+            // Return just the filename on UNIX platforms
+            // TODO: this should be customisable with a prefix, but that's something to do later.
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                return file;
+            }
+
+            // Return %APPDATA%/OpenSim/file for 2K/XP/NT/2K3/VISTA
+            // TODO: Switch this to System.Enviroment.SpecialFolders.ApplicationData
+            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                if (!System.IO.Directory.Exists("%APPDATA%\\OpenSim\\"))
+                {
+                    System.IO.Directory.CreateDirectory("%APPDATA%\\OpenSim");   
+                }
+
+                return "%APPDATA%\\OpenSim\\" + file;
+            }
+
+            // Catch all - covers older windows versions
+            // (but those probably wont work anyway)
+            return file;
+        }
+
+        public static bool IsEnvironmentSupported(ref string reason)
+        {
+            // Must have .NET 2.0 (Generics / libsl)
+            if (System.Environment.Version.Major < 2)
+            {
+                reason = ".NET 1.0/1.1 lacks components that is used by OpenSim";
+                return false;
+            }
+
+            // Windows 95/98/ME are unsupported
+            if (System.Environment.OSVersion.Platform == PlatformID.Win32Windows &&
+                System.Environment.OSVersion.Platform != PlatformID.Win32NT)
+            {
+                reason = "Windows 95/98/ME will not run OpenSim";
+                return false;
+            }
+
+            // Windows 2000 / Pre-SP2 XP
+            if (System.Environment.OSVersion.Version.Major == 5 && (
+                System.Environment.OSVersion.Version.Minor == 0 ||
+                System.Environment.OSVersion.ServicePack == "Service Pack 1"))
+            {
+                reason = "Please update to Windows XP Service Pack 2 or Server2003";
+                return false;
+            }
+
+            return true;
+        }
+
         public static int UnixTimeSinceEpoch()
         {
             TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
