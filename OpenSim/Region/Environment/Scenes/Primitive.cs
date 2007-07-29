@@ -427,6 +427,11 @@ namespace OpenSim.Region.Environment.Scenes
             offset.X /= 2;
             offset.Y /= 2;
             offset.Z /= 2;
+
+            //DODGY HACK TEST
+            offset = new LLVector3();
+            //DODGY HACK TEST
+
             if (m_isRootPrim)
             {
                 m_Parent.Pos += offset;
