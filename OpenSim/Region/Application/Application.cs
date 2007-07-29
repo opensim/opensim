@@ -38,8 +38,20 @@ namespace OpenSim
         public static void Main(string[] args)
         {
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
-            Console.WriteLine("Starting...\n");
+
+            Console.Write("Performing compatibility checks... ");
+            string supported = "";
+            if (OpenSim.Framework.Utilities.Util.IsEnvironmentSupported(ref supported))
+            {
+                Console.WriteLine(" Environment is compatible.\n");
+            }
+            else
+            {
+                Console.WriteLine(" Environment is unsupported (" + supported + ")\n");
+            }
             
+            Console.WriteLine("Starting...\n");
+
             bool sandBoxMode = false;
             bool startLoginServer = false;
             string physicsEngine = "basicphysics";
