@@ -256,6 +256,26 @@ namespace OpenSim.Framework.Utilities
             return null;
         }
 
+        public static IPAddress GetLocalHost()
+        {
+            string dnsAddress = "localhost";
+
+            IPAddress[] hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+
+            foreach (IPAddress host in hosts)
+            {
+                if (!IPAddress.IsLoopback(host) && host.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return host;
+                }
+            }
+
+            if (hosts.Length > 0)
+                return hosts[0];
+
+            return null;
+        }
+
         public Util()
         {
 

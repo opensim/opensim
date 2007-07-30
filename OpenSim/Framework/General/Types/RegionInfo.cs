@@ -207,7 +207,14 @@ namespace OpenSim.Framework.Types
                     this.m_internalEndPoint.Port = (int)configuration_result;
                     break;
                 case "external_host_name":
-                    this.m_externalHostName = (string)configuration_result;
+                    if ((string)configuration_result != "SYSTEMIP")
+                    {
+                        this.m_externalHostName = (string)configuration_result;
+                    }
+                    else
+                    {
+                        this.m_externalHostName = Util.GetLocalHost().ToString();
+                    }
                     break;
                 case "terrain_file":
                     this.estateSettings.terrainFile = (string)configuration_result;
