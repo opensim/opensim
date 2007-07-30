@@ -47,8 +47,8 @@ namespace OpenSim.Region.Communications.OGS1
         }
         public UserProfileData GetUserProfile(string name)
         {
-            //try
-            //{
+            try
+            {
                 Hashtable param = new Hashtable();
                 param["avatar_name"] = name;
                 IList parameters = new ArrayList();
@@ -58,12 +58,12 @@ namespace OpenSim.Region.Communications.OGS1
                 Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine("Error when trying to fetch profile data by name from remote user server: " + e.Message);
-            //}
-            //return null;
+            }
+            catch (System.Net.WebException e)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Warn("Error when trying to fetch profile data by name from remote user server: " + e.Message);
+            }
+            return null;
         }
         public UserProfileData GetUserProfile(LLUUID avatarID)
         {
