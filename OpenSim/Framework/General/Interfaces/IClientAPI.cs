@@ -43,6 +43,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void LinkObjects(uint parent, List<uint> children);
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
     public delegate void TeleportLocationRequest(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
+    public delegate void DisconnectUser();
 
     public delegate void GenericCall(IClientAPI remoteClient);
     public delegate void GenericCall2();
@@ -97,6 +98,7 @@ namespace OpenSim.Framework.Interfaces
         event LinkObjects OnLinkObjects;
         event RequestMapBlocks OnRequestMapBlocks;
         event TeleportLocationRequest OnTeleportLocationRequest;
+        event DisconnectUser OnDisconnectUser;
 
         event GenericCall4 OnDeRezObject;
         event GenericCall OnRegionHandShakeReply;

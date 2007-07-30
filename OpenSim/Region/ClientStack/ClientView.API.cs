@@ -79,6 +79,7 @@ namespace OpenSim.Region.ClientStack
         public event GenericCall6 OnRemoveAvatar;       
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
+        public event DisconnectUser OnDisconnectUser;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;

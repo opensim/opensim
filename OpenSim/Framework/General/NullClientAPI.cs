@@ -21,6 +21,7 @@ namespace OpenSim.Framework
        public event LinkObjects OnLinkObjects;
        public event RequestMapBlocks OnRequestMapBlocks;
        public event TeleportLocationRequest OnTeleportLocationRequest;
+       public event DisconnectUser OnDisconnectUser;
 
        public event GenericCall4 OnDeRezObject;
        public event GenericCall OnRegionHandShakeReply;
