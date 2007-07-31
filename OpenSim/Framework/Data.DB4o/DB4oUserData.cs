@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Data.DB4o
         {   
             try
             {
-                return null;
+                return getUserByUUID(uuid).currentAgent;
             }
             catch (Exception)
             {
