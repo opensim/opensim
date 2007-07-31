@@ -151,6 +151,11 @@ namespace OpenSim.Region.ClientStack
                         LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
                         //Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+
+                        // Change the position based on scale (for bug number 246)
+                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                        OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                 }
                 else if (multipleupdate.ObjectData[i].Type == 29)//group scale from mouse
