@@ -674,7 +674,9 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             // TODO: Add the removal from physics ?
-
+            
+            // Remove client agent from profile, so new logins will work
+            commsManager.UserServer.clearUserAgent(agentID);
 
             return;
         }

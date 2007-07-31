@@ -129,26 +129,31 @@ namespace OpenSim.Framework.Data.DB4o
         }
 
         /// <summary>
-        /// Adds a new profile to the database (Warning: Probably slow.)
+        /// Adds or updates a record to the user database.  Do this when changes are needed
+        /// in the user profile that need to be persistant.
+        /// 
+        /// TODO: the logic here is not ACID, the local cache will be
+        /// updated even if the persistant data is not.  This may lead
+        /// to unexpected results.
         /// </summary>
-        /// <param name="row">The profile to add</param>
-        /// <returns>Successful?</returns>
-        public bool AddRow(UserProfileData row)
+        /// <param name="record">The profile to update</param>
+        /// <returns>true on success, false on fail to persist to db</returns>
+        public bool UpdateRecord(UserProfileData record)
         { 
-            if (userProfiles.ContainsKey(row.UUID))
+            if (userProfiles.ContainsKey(record.UUID))
             {
-                userProfiles[row.UUID] = row;
+                userProfiles[record.UUID] = record;
             }
             else
             {
-                userProfiles.Add(row.UUID, row);
+                userProfiles.Add(record.UUID, record);
             }
 
             try
             {
                 IObjectContainer database;
                 database = Db4oFactory.OpenFile(dbfl);
-                database.Set(row);
+                database.Set(record);
                 database.Close();
                 return true;
             }
@@ -157,7 +162,5 @@ namespace OpenSim.Framework.Data.DB4o
                 return false;
             }
         }
-
-
     }
 }

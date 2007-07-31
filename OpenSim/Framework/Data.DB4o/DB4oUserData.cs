@@ -139,13 +139,30 @@ namespace OpenSim.Framework.Data.DB4o
         {
             try
             {
-                manager.AddRow(user);
+                manager.UpdateRecord(user);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
         }
+      
+        /// <summary>
+        /// Creates a new user profile
+        /// </summary>
+        /// <param name="user">The profile to add to the database</param>
+        /// <returns>True on success, false on error</returns>
+        public bool updateUserProfile(UserProfileData user)
+        {
+            try {
+                return manager.UpdateRecord(user);
+            } catch (Exception e) {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+        }
+
+      
 
         /// <summary>
         /// Creates a new user agent

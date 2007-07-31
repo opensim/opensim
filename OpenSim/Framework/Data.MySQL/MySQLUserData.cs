@@ -224,6 +224,13 @@ namespace OpenSim.Framework.Data.MySQL
         {
             // Do nothing.
         }
+        
+        
+        public bool updateUserProfile(UserProfileData user)
+        {
+            return true;
+            // TODO: implement
+        }
 
         /// <summary>
         /// Performs a money transfer request between two accounts

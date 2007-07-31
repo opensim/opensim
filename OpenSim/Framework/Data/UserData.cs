@@ -85,6 +85,12 @@ namespace OpenSim.Framework.Data
         void addNewUserProfile(UserProfileData user);
 
         /// <summary>
+        ///  Updates an existing user profile
+        /// </summary>
+        /// <param name="user">UserProfile to update</param>
+        bool updateUserProfile(UserProfileData user);
+
+        /// <summary>
         /// Adds a new agent to the database
         /// </summary>
         /// <param name="agent">The agent to add</param>

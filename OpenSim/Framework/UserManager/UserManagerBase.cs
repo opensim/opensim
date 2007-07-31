@@ -155,6 +155,28 @@ namespace OpenSim.Framework.UserManagement
 
             return null;
         }
+
+        /// <summary>
+        /// Set's user profile from object
+        /// </summary>
+        /// <param name="fname">First name</param>
+        /// <param name="lname">Last name</param>
+        /// <returns>A user profile</returns>
+        public bool setUserProfile(UserProfileData data)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try {
+                    plugin.Value.updateUserProfile(data);
+                    return true;
+                } catch (Exception e) {
+                    MainLog.Instance.Verbose( "Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+            
+            return false;
+        }
+
         #endregion
 
         #region Get UserAgent
@@ -201,6 +223,15 @@ namespace OpenSim.Framework.UserManagement
 
             return null;
         }
+
+        // TODO: document
+        public void clearUserAgent(LLUUID agentID)
+        {
+            UserProfileData profile = getUserProfile(agentID);
+            profile.currentAgent = null;
+            setUserProfile(profile);
+        }
+
 
         /// <summary>
         /// Loads a user agent by name (not called directly)

@@ -86,6 +86,11 @@ namespace OpenSim.Region.Communications.OGS1
             return null;
         }
 
+        public void clearUserAgent(LLUUID avatarID) 
+        {
+            // TODO: implement
+        }
+
         public UserProfileData SetupMasterUser(string firstName, string lastName)
         {
             return SetupMasterUser(firstName, lastName, "");

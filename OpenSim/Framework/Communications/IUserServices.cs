@@ -35,6 +35,7 @@ namespace OpenSim.Framework.Communications
         UserProfileData GetUserProfile(string firstName, string lastName);
         UserProfileData GetUserProfile(string name);
         UserProfileData GetUserProfile(LLUUID avatarID);
+        void clearUserAgent(LLUUID avatarID);
 
         UserProfileData SetupMasterUser(string firstName, string lastName);
         UserProfileData SetupMasterUser(string firstName, string lastName, string password);
