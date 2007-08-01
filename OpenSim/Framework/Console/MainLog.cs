@@ -27,21 +27,15 @@
 */
 namespace OpenSim.Framework.Console
 {
-	public class MainLog {
-		
-		private static LogBase instance;
-		
-		public static LogBase Instance 
-		{
-			get 
-			{
-				return instance;
-			}
-			set
-			{
-				instance = value;
-			}
-		}
+    public class MainLog {
+	
+        private static LogBase instance;
+	
+        public static LogBase Instance 
+        {
+            get { return instance; }
+            set { instance = value; }
+        }
     }
 
 }
