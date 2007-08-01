@@ -87,6 +87,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        protected LLObject.MaterialType m_material;
+        public byte Material
+        {
+            get
+            {
+                return (byte)m_material;
+            }
+            set
+            {
+                m_material = (LLObject.MaterialType) value;
+            }
+        }
+
         protected ulong m_regionHandle;
         public ulong RegionHandle
         {
@@ -186,6 +199,10 @@ namespace OpenSim.Region.Environment.Scenes
             get
             {
                 return this.m_Shape;
+            }
+            set
+            {
+                m_Shape = value;
             }
         }
 

@@ -6,14 +6,24 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class EntityBase
     {
-        public LLUUID m_uuid;
-
         protected List<EntityBase> m_children;
 
-
         protected Scene m_scene;
-        protected string m_name;
 
+        public LLUUID m_uuid;
+        public LLUUID UUID
+        {
+            get
+            {
+                return m_uuid;
+            }
+            set
+            {
+                m_uuid = value;
+            }
+        }
+
+        protected string m_name;
         /// <summary>
         /// 
         /// </summary>
@@ -24,7 +34,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_pos;
-
         /// <summary>
         /// 
         /// </summary>
@@ -35,7 +44,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public LLVector3 m_velocity;
-
         /// <summary>
         /// 
         /// </summary>
@@ -46,7 +54,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected Quaternion m_rotation = new Quaternion(0, 0, 1, 0);
-
         public virtual Quaternion Rotation
         {
             get { return m_rotation; }
@@ -54,7 +61,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected uint m_localId;
-
         public uint LocalId
         {
             get { return m_localId; }

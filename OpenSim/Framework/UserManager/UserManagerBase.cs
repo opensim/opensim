@@ -39,6 +39,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 
 using OpenSim.Framework.Configuration;
+using InventoryFolder = OpenSim.Framework.Inventory.InventoryFolder;
 
 namespace OpenSim.Framework.UserManagement
 {

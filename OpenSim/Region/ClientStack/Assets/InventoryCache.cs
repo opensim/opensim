@@ -35,6 +35,8 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Region.ClientStack;
+using InventoryFolder = OpenSim.Framework.Inventory.InventoryFolder;
+using InventoryItem = OpenSim.Framework.Inventory.InventoryItem;
 
 namespace OpenSim.Assets
 {

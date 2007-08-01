@@ -9,6 +9,8 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 
+using InventoryItem = OpenSim.Framework.Inventory.InventoryItem;
+
 namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void PrimCountTaintedDelegate();
