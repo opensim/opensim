@@ -96,6 +96,19 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
+        /// derive an ansi color from a string, ignoring the darker colors.  
+        /// This is used to help automatically bin component tags with colors
+        /// in various print functions.
+        /// </summary>
+        /// <param name="input">arbitrary string for input</param>
+        /// <returns>an ansii color</returns>
+        private ConsoleColor DeriveColor(string input)
+        {
+            int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
+            return (ConsoleColor)colIdx;
+        }
+
+        /// <summary>
         /// Sends a warning to the current log output
         /// </summary>
         /// <param name="format">The message to send</param>
@@ -114,11 +127,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Warn(string sender, string format, params object[] args)
         {
-            sender = sender.ToUpper();
-            int colIdx = (sender.GetHashCode() % 6) + 9;
-            ConsoleColor col = (ConsoleColor)colIdx;
-
-            WritePrefixLine(col, sender);
+            WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Yellow, format, args);
             return;
         }
@@ -142,11 +151,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Notice(string sender, string format, params object[] args)
         {
-            sender = sender.ToUpper();
-            int colIdx = (sender.GetHashCode() % 6) + 9;
-            ConsoleColor col = (ConsoleColor)colIdx;
-
-            WritePrefixLine(col, sender);
+            WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.White, format, args);
             return;
         }
@@ -170,11 +175,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Error(string sender, string format, params object[] args)
         {
-            sender = sender.ToUpper();
-            int colIdx = (sender.GetHashCode() % 6) + 9;
-            ConsoleColor col = (ConsoleColor)colIdx;
-
-            WritePrefixLine(col, sender);
+            WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Red, format, args);
             return;
         }
@@ -198,11 +199,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string sender, string format, params object[] args)
         {
-            sender = sender.ToUpper();
-            int colIdx = (sender.GetHashCode() % 6) + 9;
-            ConsoleColor col = (ConsoleColor)colIdx;
-
-            WritePrefixLine(col, sender);
+            WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Gray, format, args);
             return;
         }
@@ -226,11 +223,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Status(string sender, string format, params object[] args)
         {
-            sender = sender.ToUpper();
-            int colIdx = (sender.GetHashCode() % 6) + 9;
-            ConsoleColor col = (ConsoleColor)colIdx;
-
-            WritePrefixLine(col, sender);
+            WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Blue, format, args);
             return;
         }
