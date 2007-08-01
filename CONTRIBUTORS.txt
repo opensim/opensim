@@ -13,15 +13,19 @@ OpenSim Developers
 * Gareth
 * MorphW
 * CW
+* Babblefrog
 
 Patches
 
 * BigFootAg
-* Babblefrog
 * Danx0r
 * Dalien
 * Darok
 * Tedd_
+
+Testers
+
+* Ckrinke
 
 
 This software uses components from the following developers:
