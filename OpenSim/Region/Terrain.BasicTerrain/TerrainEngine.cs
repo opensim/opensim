@@ -102,6 +102,7 @@ namespace OpenSim.Region.Terrain
             w = 256;
             h = 256;
             heightmap = new Channel(w, h);
+            revertmap = new Channel(w, h);
 
             offsetX = X;
             offsetY = Y;
