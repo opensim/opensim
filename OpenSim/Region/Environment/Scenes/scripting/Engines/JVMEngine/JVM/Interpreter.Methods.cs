@@ -46,10 +46,10 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 switch (opcode)
                 {
                     case 184:
-                        short refIndex = (short) ((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC+1]);
-                        if (this._mThread.currentClass._constantsPool[refIndex - 1] is ClassRecord.PoolMethodRef)
+                        short refIndex = (short) ((GlobalMemory.MethodArea.MethodBuffer[this.m_thread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this.m_thread.PC+1]);
+                        if (this.m_thread.currentClass.m_constantsPool[refIndex - 1] is ClassRecord.PoolMethodRef)
                         {
-                            string typ = ((ClassRecord.PoolMethodRef)this._mThread.currentClass._constantsPool[refIndex - 1]).mNameType.Type.Value;
+                            string typ = ((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Type.Value;
                             string typeparam = "";
                             string typereturn = "";
                             int firstbrak = 0;
@@ -58,16 +58,16 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                             secondbrak = typ.LastIndexOf(')');
                             typeparam = typ.Substring(firstbrak + 1, secondbrak - firstbrak - 1);
                             typereturn = typ.Substring(secondbrak + 1, typ.Length - secondbrak - 1);
-                            if (((ClassRecord.PoolMethodRef)this._mThread.currentClass._constantsPool[refIndex - 1]).mClass.Name.Value == this._mThread.currentClass.mClass.Name.Value)
+                            if (((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mClass.Name.Value == this.m_thread.currentClass.MClass.Name.Value)
                             {
                                 //calling a method in this class
                                 if (typeparam.Length == 0)
                                 {
-                                    this._mThread.JumpToStaticVoidMethod(((ClassRecord.PoolMethodRef)this._mThread.currentClass._constantsPool[refIndex - 1]).mNameType.Name.Value, (this._mThread.PC + 2));
+                                    this.m_thread.JumpToStaticVoidMethod(((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Name.Value, (this.m_thread.PC + 2));
                                 }
                                 else
                                 {
-                                    this._mThread.JumpToStaticParamMethod(((ClassRecord.PoolMethodRef)this._mThread.currentClass._constantsPool[refIndex - 1]).mNameType.Name.Value, typeparam, (this._mThread.PC + 2));
+                                    this.m_thread.JumpToStaticParamMethod(((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Name.Value, typeparam, (this.m_thread.PC + 2));
                                 }
                             }
                             else
@@ -75,15 +75,15 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                                 //calling a method of a different class
 
                                 // OpenSimAPI Class
-                                if (((ClassRecord.PoolMethodRef)this._mThread.currentClass._constantsPool[refIndex - 1]).mClass.Name.Value == "OpenSimAPI")
+                                if (((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mClass.Name.Value == "OpenSimAPI")
                                 {
-                                    this._mThread.scriptInfo.api.CallMethod(((ClassRecord.PoolMethodRef)this._mThread.currentClass._constantsPool[refIndex - 1]).mNameType.Name.Value, null);
+                                    this.m_thread.scriptInfo.api.CallMethod(((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Name.Value, null);
                                 }
                             }
                         }
                         else
                         {
-                            this._mThread.PC += 2;
+                            this.m_thread.PC += 2;
                         }
                         result = true;
                         break;

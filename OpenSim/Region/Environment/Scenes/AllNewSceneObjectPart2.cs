@@ -32,9 +32,9 @@ namespace OpenSim.Region.Environment.Scenes
         public uint BaseMask = FULL_MASK_PERMISSIONS;
 
         protected PrimitiveBaseShape m_Shape;
+        protected byte[] m_particleSystem = new byte[0];
 
         protected AllNewSceneObjectGroup2 m_parentGroup;
-
 
         #region Properties
         
@@ -271,6 +271,35 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Inventory
+        public void GetInventory(IClientAPI client, uint localID)
+        {
+            if (localID == this.m_localID)
+            {
+                client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
+            }
+        }
+        #endregion
+
+        public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
+        {
+            this.m_Shape.ExtraParams = new byte[data.Length + 7];
+            int i = 0;
+            uint length = (uint)data.Length;
+            this.m_Shape.ExtraParams[i++] = 1;
+            this.m_Shape.ExtraParams[i++] = (byte)(type % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
+
+            this.m_Shape.ExtraParams[i++] = (byte)(length % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
+            this.m_Shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
+            Array.Copy(data, 0, this.m_Shape.ExtraParams, i, data.Length);
+
+            //this.ScheduleFullUpdate();
+        }
+
+
         #region Texture
         /// <summary>
         /// 
@@ -281,6 +310,12 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_Shape.TextureEntry = textureEntry;
         }
         #endregion
+
+        public void AddNewParticleSystem(libsecondlife.Primitive.ParticleSystem pSystem)
+        {
+            this.m_particleSystem = pSystem.GetBytes();
+        }
+
 
         #region Position
         /// <summary>

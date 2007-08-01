@@ -44,10 +44,10 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         public static Scene World;
         private int PC = 0;
         private Stack stack;
-        private Interpreter mInterpreter;
+        private Interpreter m_Interpreter;
         public ClassRecord currentClass;
         public ClassInstance currentInstance;
-        private StackFrame currentFrame;
+        private StackFrame m_currentFrame;
         public int excutionCounter = 0;
         public bool running = false;
 
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
         public Thread()
         {
-            this.mInterpreter = new Interpreter(this);
+            this.m_Interpreter = new Interpreter(this);
             this.stack = new Stack();
         }
 
@@ -67,24 +67,24 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
         public void StartMethod(ClassRecord rec, string methName)
         {
-            currentFrame = new StackFrame();
-            this.stack.StackFrames.Push(currentFrame);
+            m_currentFrame = new StackFrame();
+            this.stack.StackFrames.Push(m_currentFrame);
             this.currentClass = rec;
             currentClass.StartMethod(this, methName);
         }
 
         public void StartMethod( string methName)
         {
-            currentFrame = new StackFrame();
-            this.stack.StackFrames.Push(currentFrame);
+            m_currentFrame = new StackFrame();
+            this.stack.StackFrames.Push(m_currentFrame);
             currentClass.StartMethod(this, methName);
         }
 
         public void JumpToStaticVoidMethod(string methName, int returnPC)
         {
-            currentFrame = new StackFrame();
-            currentFrame.ReturnPC = returnPC;
-            this.stack.StackFrames.Push(currentFrame);
+            m_currentFrame = new StackFrame();
+            m_currentFrame.ReturnPC = returnPC;
+            this.stack.StackFrames.Push(m_currentFrame);
             currentClass.StartMethod(this, methName);
         }
 
@@ -92,11 +92,11 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         {
             if (param == "I")
             {
-                BaseType bs1 = currentFrame.OpStack.Pop();
-                currentFrame = new StackFrame();
-                currentFrame.ReturnPC = returnPC;
-                this.stack.StackFrames.Push(currentFrame);
-                currentFrame.LocalVariables[0] = ((Int)bs1);
+                BaseType bs1 = m_currentFrame.OpStack.Pop();
+                m_currentFrame = new StackFrame();
+                m_currentFrame.ReturnPC = returnPC;
+                this.stack.StackFrames.Push(m_currentFrame);
+                m_currentFrame.LocalVariables[0] = ((Int)bs1);
                 currentClass.StartMethod(this, methName);
             }
             if (param == "F")
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         public bool Excute()
         {
             excutionCounter++;
-            return this.mInterpreter.Excute();
+            return this.m_Interpreter.Excute();
         }
     }
 }

@@ -34,7 +34,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 {
     public class ClassInstance : Object
     {
-        public int size;
+        public int Size;
         public ClassRecord ClassRec;
         public Dictionary<string, BaseType> Fields = new Dictionary<string, BaseType>();
 
