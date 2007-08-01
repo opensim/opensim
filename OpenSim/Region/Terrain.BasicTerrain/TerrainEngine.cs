@@ -338,6 +338,17 @@ namespace OpenSim.Region.Terrain
 
                     case "fill":
                         heightmap.Fill(Convert.ToDouble(args[1]));
+                        tainted++;
+                        break;
+
+                    case "clip":
+                        heightmap.Clip(Convert.ToDouble(args[1]), Convert.ToDouble(args[2]));
+                        tainted++;
+                        break;
+
+                    case "smooth":
+                        heightmap.Smooth(Convert.ToDouble(args[1]));
+                        tainted++;
                         break;
 
                     case "multiply":
