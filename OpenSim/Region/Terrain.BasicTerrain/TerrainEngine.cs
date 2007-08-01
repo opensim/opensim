@@ -88,13 +88,23 @@ namespace OpenSim.Region.Terrain
         int w, h;
 
         /// <summary>
+        /// Used to determine what offset to use when loading singular heightmaps across multiple sims
+        /// </summary>
+        private int offsetX;
+        private int offsetY;
+
+
+        /// <summary>
         /// Generate a new TerrainEngine instance and creates a new heightmap
         /// </summary>
-        public TerrainEngine()
+        public TerrainEngine(int X, int Y)
         {
             w = 256;
             h = 256;
             heightmap = new Channel(w, h);
+
+            offsetX = X;
+            offsetY = Y;
 
             tainted++;
         }

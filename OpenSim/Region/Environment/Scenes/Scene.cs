@@ -157,7 +157,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             MainLog.Instance.Verbose("Creating LandMap");
-            Terrain = new TerrainEngine();
+            Terrain = new TerrainEngine((int)this.RegionInfo.RegionLocX, (int)this.RegionInfo.RegionLocY);
 
             ScenePresence.LoadAnims();
 
