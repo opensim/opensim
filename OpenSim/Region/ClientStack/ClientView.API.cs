@@ -504,9 +504,11 @@ namespace OpenSim.Region.ClientStack
         {
             StartPingCheckPacket pc = new StartPingCheckPacket();
             pc.PingID.PingID = seq;
+            pc.Header.Reliable = false;
             OutPacket(pc);
+            
         }
-
+       
         public void SendKillObject(ulong regionHandle, uint localID)
         {
             KillObjectPacket kill = new KillObjectPacket();
