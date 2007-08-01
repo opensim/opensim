@@ -371,6 +371,19 @@ namespace OpenSim.Region.Terrain
                         }
                         break;
 
+                    case "load-tile":
+                        switch (args[1].ToLower())
+                        {
+                            case "f32":
+                                LoadFromFileF32(args[2], Convert.ToInt32(args[3]), Convert.ToInt32(args[4]),
+                                    Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+                                break;
+                            default:
+                                resultText = "Unknown or unsupported image or data format";
+                                return false;
+                        }
+                        break;
+
                     case "save":
                         args[2].Replace("%name%", simName);
                         switch (args[1].ToLower())
