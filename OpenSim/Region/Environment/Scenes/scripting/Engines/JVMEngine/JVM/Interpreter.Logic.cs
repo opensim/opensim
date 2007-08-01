@@ -42,66 +42,66 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 bool result = false;
                 switch (opcode)
                 {
-                    case 2:
-                        Int m_int= new Int();
+                    case (byte)(byte)OpCode.iconst_m1:
+                        Int m_int = new Int();
                         m_int.mValue = -1;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         result = true;
                         break;
-                    case 3:
-                        m_int= new Int();
+                    case (byte)(byte)OpCode.iconst_0:
+                        m_int = new Int();
                         m_int.mValue = 0;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         result = true;
                         break;
-                    case 4:
+                    case (byte)(byte)OpCode.iconst_1:
                         m_int = new Int();
                         m_int.mValue = 1;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         result = true;
                         break;
-                    case 5:
+                    case (byte)(byte)OpCode.iconst_2:
                         m_int = new Int();
                         m_int.mValue = 2;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         result = true;
                         break;
-                    case 6:
+                    case (byte)(byte)OpCode.iconst_3:
                         m_int = new Int();
                         m_int.mValue = 3;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         break;
-                    case 7:
+                    case (byte)(byte)OpCode.iconst_4:
                         m_int = new Int();
                         m_int.mValue = 4;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         result = true;
                         break;
-                    case 8:
+                    case (byte)OpCode.iconst_5:
                         m_int = new Int();
                         m_int.mValue = 5;
                         this._mThread.currentFrame.OpStack.Push(m_int);
                         result = true;
                         break;
-                    case 11:
+                    case (byte)OpCode.fconst_0:
                         Float m_float = new Float();
                         m_float.mValue = 0.0f;
                         this._mThread.currentFrame.OpStack.Push(m_float);
                         result = true;
                         break;
-                    case 12:
+                    case (byte)OpCode.fconst_1:
                         m_float = new Float();
                         m_float.mValue = 1.0f;
                         this._mThread.currentFrame.OpStack.Push(m_float);
                         result = true;
                         break;
-                    case 13:
+                    case (byte)OpCode.fconst_2:
                         m_float = new Float();
                         m_float.mValue = 2.0f;
                         this._mThread.currentFrame.OpStack.Push(m_float);
                         result = true;
                         break;
-                    case 16:
+                    case (byte)OpCode.bipush:  //is this right? this should be pushing a byte onto stack not int?
                         int pushvalue = (int)GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC];
                         Int pushInt = new Int();
                         pushInt.mValue = pushvalue;
@@ -109,7 +109,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         this._mThread.PC++;
                         result = true;
                         break;
-                    case 17:
+                    case (byte)OpCode.sipush:
                         short pushvalue2 = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
                         Int pushInt2 = new Int();
                         pushInt2.mValue = pushvalue2;
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         this._mThread.PC += 2;
                         result = true;
                         break;
-                    case 23:
+                    case (byte)OpCode.fload:
                         short findex1 = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]));
                         Float fload = new Float();
                         if (this._mThread.currentFrame.LocalVariables[findex1] != null)
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         this._mThread.PC++;
                         result = true;
                         break;
-                    case 26:
+                    case (byte)OpCode.iload_0:
                         if (this._mThread.currentFrame.LocalVariables[0] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[0] is Int)
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 27:
+                    case (byte)OpCode.iload_1:
                         if (this._mThread.currentFrame.LocalVariables[1] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[1] is Int)
@@ -155,7 +155,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 34:
+                    case (byte)OpCode.fload_0:
                         if (this._mThread.currentFrame.LocalVariables[0] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[0] is Float)
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 35:
+                    case (byte)OpCode.fload_1:
                         if (this._mThread.currentFrame.LocalVariables[1] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[1] is Float)
@@ -179,7 +179,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 36:
+                    case (byte)OpCode.fload_2:
                         if (this._mThread.currentFrame.LocalVariables[2] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[2] is Float)
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 37:
+                    case (byte)OpCode.fload_3:
                         if (this._mThread.currentFrame.LocalVariables[3] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[3] is Float)
@@ -203,8 +203,18 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 56:
-                        short findex = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] ));
+                    case (byte)OpCode.istore:
+                        short findex3 = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]));
+                        BaseType istor = this._mThread.currentFrame.OpStack.Pop();
+                        if (istor is Int)
+                        {
+                            this._mThread.currentFrame.LocalVariables[findex3] = (Int)istor;
+                        }
+                        this._mThread.PC++;
+                        result = true;
+                        break;
+                    case (byte)OpCode.fstore:
+                        short findex = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]));
                         BaseType fstor = this._mThread.currentFrame.OpStack.Pop();
                         if (fstor is Float)
                         {
@@ -213,7 +223,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         this._mThread.PC++;
                         result = true;
                         break;
-                    case 59:
+                    case (byte)OpCode.istore_0:
                         BaseType baset = this._mThread.currentFrame.OpStack.Pop();
                         if (baset is Int)
                         {
@@ -221,7 +231,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 60:
+                    case (byte)OpCode.istore_1:
                         baset = this._mThread.currentFrame.OpStack.Pop();
                         if (baset is Int)
                         {
@@ -229,7 +239,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 67:
+                    case (byte)OpCode.fstore_0:
                         baset = this._mThread.currentFrame.OpStack.Pop();
                         if (baset is Float)
                         {
@@ -237,7 +247,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 68:
+                    case (byte)OpCode.fstore_1:
                         baset = this._mThread.currentFrame.OpStack.Pop();
                         if (baset is Float)
                         {
@@ -245,7 +255,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 69:
+                    case (byte)OpCode.fstore_2:
                         baset = this._mThread.currentFrame.OpStack.Pop();
                         if (baset is Float)
                         {
@@ -253,7 +263,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 70:
+                    case (byte)OpCode.fstore_3:
                         baset = this._mThread.currentFrame.OpStack.Pop();
                         if (baset is Float)
                         {
@@ -261,11 +271,11 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 87:
+                    case (byte)OpCode.pop:
                         this._mThread.currentFrame.OpStack.Pop();
                         result = true;
                         break;
-                    case 98:
+                    case (byte)OpCode.fadd:
                         BaseType bf2 = this._mThread.currentFrame.OpStack.Pop();
                         BaseType bf1 = this._mThread.currentFrame.OpStack.Pop();
                         if (bf1 is Float && bf2 is Float)
@@ -276,7 +286,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 102:
+                    case (byte)OpCode.fsub:
                         BaseType bsf2 = this._mThread.currentFrame.OpStack.Pop();
                         BaseType bsf1 = this._mThread.currentFrame.OpStack.Pop();
                         if (bsf1 is Float && bsf2 is Float)
@@ -287,7 +297,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 104: //check the order of the two values off the stack is correct
+                    case (byte)OpCode.imul: //check the order of the two values off the stack is correct
                         BaseType bs2 = this._mThread.currentFrame.OpStack.Pop();
                         BaseType bs1 = this._mThread.currentFrame.OpStack.Pop();
                         if (bs1 is Int && bs2 is Int)
@@ -298,18 +308,18 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 132:
+                    case (byte)OpCode.iinc:
                         if (this._mThread.currentFrame.LocalVariables[GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]] != null)
                         {
                             if (this._mThread.currentFrame.LocalVariables[GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]] is Int)
                             {
-                                ((Int)this._mThread.currentFrame.LocalVariables[GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]]).mValue += (sbyte) GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1];
+                                ((Int)this._mThread.currentFrame.LocalVariables[GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC]]).mValue += (sbyte)GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1];
                             }
                         }
                         this._mThread.PC += 2;
                         result = true;
                         break;
-                    case 139:
+                    case (byte)OpCode.f2i:
                         BaseType conv1 = this._mThread.currentFrame.OpStack.Pop();
                         if (conv1 is Float)
                         {
@@ -319,7 +329,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 149:
+                    case (byte)OpCode.fcmpl:
                         BaseType flcom2 = this._mThread.currentFrame.OpStack.Pop();
                         BaseType flcom1 = this._mThread.currentFrame.OpStack.Pop();
                         if (flcom1 is Float && flcom2 is Float)
@@ -341,7 +351,49 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 158:
+                    case (byte)OpCode.fcmpg:
+                        flcom2 = this._mThread.currentFrame.OpStack.Pop();
+                        flcom1 = this._mThread.currentFrame.OpStack.Pop();
+                        if (flcom1 is Float && flcom2 is Float)
+                        {
+                            Int compres = new Int();
+                            if (((Float)flcom1).mValue < ((Float)flcom2).mValue)
+                            {
+                                compres.mValue = -1;
+                            }
+                            else if (((Float)flcom1).mValue > ((Float)flcom2).mValue)
+                            {
+                                compres.mValue = 1;
+                            }
+                            else
+                            {
+                                compres.mValue = 0;
+                            }
+                            this._mThread.currentFrame.OpStack.Push(compres);
+                        }
+                        result = true;
+                        break;
+                    case (byte)OpCode.ifge:
+                        short compareoffset2 = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
+                        BaseType compe1 = this._mThread.currentFrame.OpStack.Pop();
+                        if (compe1 is Int)
+                        {
+                            if (((Int)compe1).mValue >= 0)
+                            {
+                                this._mThread.PC += -1 + compareoffset2;
+                            }
+                            else
+                            {
+                                this._mThread.PC += 2;
+                            }
+                        }
+                        else
+                        {
+                            this._mThread.PC += 2;
+                        }
+                        result = true;
+                        break;
+                    case (byte)OpCode.ifle:
                         short compareoffset1 = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
                         BaseType comp1 = this._mThread.currentFrame.OpStack.Pop();
                         if (comp1 is Int)
@@ -361,7 +413,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 162:
+                    case (byte)OpCode.if_icmpge:
                         short compareoffset = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
                         BaseType bc2 = this._mThread.currentFrame.OpStack.Pop();
                         BaseType bc1 = this._mThread.currentFrame.OpStack.Pop();
@@ -370,8 +422,8 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                             //Console.WriteLine("comparing " + ((Int)bc1).mValue + " and " + ((Int)bc2).mValue);
                             if (((Int)bc1).mValue >= ((Int)bc2).mValue)
                             {
-                               // Console.WriteLine("branch compare true , offset is " +compareoffset);
-                               // Console.WriteLine("current PC is " + this._mThread.PC);
+                                // Console.WriteLine("branch compare true , offset is " +compareoffset);
+                                // Console.WriteLine("current PC is " + this._mThread.PC);
                                 this._mThread.PC += -1 + compareoffset;
                                 //Console.WriteLine("new PC is " + this._mThread.PC);
                             }
@@ -387,7 +439,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 164:
+                    case (byte)OpCode.if_icmple:
                         short compareloffset = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
                         BaseType bcl2 = this._mThread.currentFrame.OpStack.Pop();
                         BaseType bcl1 = this._mThread.currentFrame.OpStack.Pop();
@@ -396,10 +448,10 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                             //Console.WriteLine("comparing " + ((Int)bcl1).mValue + " and " + ((Int)bcl2).mValue);
                             if (((Int)bcl1).mValue <= ((Int)bcl2).mValue)
                             {
-                              // Console.WriteLine("branch compare true , offset is " + compareloffset);
-                              // Console.WriteLine("current PC is " + this._mThread.PC);
-                               this._mThread.PC += -1 + compareloffset;
-                              // Console.WriteLine("new PC is " + this._mThread.PC);
+                                // Console.WriteLine("branch compare true , offset is " + compareloffset);
+                                // Console.WriteLine("current PC is " + this._mThread.PC);
+                                this._mThread.PC += -1 + compareloffset;
+                                // Console.WriteLine("new PC is " + this._mThread.PC);
                             }
                             else
                             {
@@ -413,11 +465,83 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                         }
                         result = true;
                         break;
-                    case 167:
-                        short offset = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC+1]);
+                    case (byte)OpCode._goto:
+                        short offset = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
                         this._mThread.PC += -1 + offset;
                         result = true;
                         break;
+                    case (byte)OpCode.getstatic:
+                        short fieldrefIndex = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
+                        if (this._mThread.currentClass._constantsPool[fieldrefIndex - 1] is ClassRecord.PoolFieldRef)
+                        {
+                            if (((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mClass.Name.Value == this._mThread.currentClass.mClass.Name.Value)
+                            {
+                                //from this class
+                                if (this._mThread.currentClass.StaticFields.ContainsKey(((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value))
+                                {
+                                    if (this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value] is Float)
+                                    {
+                                        Float retFloat = new Float();
+                                        retFloat.mValue = ((Float)this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value]).mValue;
+                                        this._mThread.currentFrame.OpStack.Push(retFloat);
+                                    }
+                                    else if (this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value] is Int)
+                                    {
+                                        Int retInt = new Int();
+                                        retInt.mValue = ((Int)this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value]).mValue;
+                                        // Console.WriteLine("getting static field, " + retInt.mValue);
+                                        this._mThread.currentFrame.OpStack.Push(retInt);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //get from a different class
+                            }
+                        }
+                        this._mThread.PC += 2;
+                        result = true;
+                        break;
+                    case (byte)OpCode.putstatic:
+                        fieldrefIndex = (short)((GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this._mThread.PC + 1]);
+                        BaseType addstatic = this._mThread.currentFrame.OpStack.Pop();
+                        if (this._mThread.currentClass._constantsPool[fieldrefIndex - 1] is ClassRecord.PoolFieldRef)
+                        {
+                            if (((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mClass.Name.Value == this._mThread.currentClass.mClass.Name.Value)
+                            {
+                                // this class
+                                if (this._mThread.currentClass.StaticFields.ContainsKey(((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value))
+                                {
+                                    if (addstatic is Float)
+                                    {
+                                        if (this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value] is Float)
+                                        {
+                                            Float newf = new Float();
+                                            newf.mValue = ((Float)addstatic).mValue;
+                                            this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value] = newf;
+                                        }
+                                    }
+                                    else if (addstatic is Int)
+                                    {
+                                        if (this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value] is Int)
+                                        {
+                                            //Console.WriteLine("setting static field  to " + ((Int)addstatic).mValue);
+                                            Int newi = new Int();
+                                            newi.mValue = ((Int)addstatic).mValue;
+                                            this._mThread.currentClass.StaticFields[((ClassRecord.PoolFieldRef)this._mThread.currentClass._constantsPool[fieldrefIndex - 1]).mNameType.Name.Value] = newi;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // a different class
+                            }
+                        }
+                        this._mThread.PC += 2;
+                        result = true;
+                        break;
+
                 }
 
                 return result;

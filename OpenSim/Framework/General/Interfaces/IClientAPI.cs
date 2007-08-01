@@ -211,5 +211,6 @@ namespace OpenSim.Framework.Interfaces
         void SendNameReply(LLUUID profileId, string firstname, string lastname);
         void SendAlertMessage(string message);
         void SendAgentAlertMessage(string message, bool modal);
+        void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
     }
 }

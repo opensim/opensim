@@ -14,21 +14,15 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
-        private uint m_flags = 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
-        private ulong m_regionHandle;
-
         public string SitName = "";
         public string TouchName = "";
         public string Text = "";
 
         public LLUUID CreatorID;
         public LLUUID OwnerID;
+        public LLUUID GroupID;
         public LLUUID LastOwnerID;
         public Int32 CreationDate;
-
-        public LLUUID uuid;
-        public uint m_localID;
-
         public uint ParentID = 0;
 
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
@@ -43,6 +37,33 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         #region Properties
+        
+        protected LLUUID m_uuid;
+        public LLUUID UUID
+        {
+            get
+            {
+                return m_uuid;
+            }
+            set
+            {
+                value = m_uuid;
+            }
+        }
+
+        protected uint m_localID;
+        public uint LocalID
+        {
+            get
+            {
+                return m_localID;
+            }
+            set
+            {
+                m_localID = value;
+            }
+        }
+
         protected string m_name;
         /// <summary>
         /// 
@@ -51,6 +72,32 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_name; }
             set { m_name = value; }
+        }
+
+        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags) 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
+        public uint ObjectFlags
+        {
+            get
+            {
+                return (uint)m_flags;
+            }
+            set
+            {
+                m_flags =(LLObject.ObjectFlags) value;
+            }
+        }
+
+        protected ulong m_regionHandle;
+        public ulong RegionHandle
+        {
+            get
+            {
+                return m_regionHandle;
+            }
+            set
+            {
+                m_regionHandle = value;
+            }
         }
 
         protected LLVector3 m_offset;
@@ -76,6 +123,48 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 m_rotationOffset = value;
+            }
+        }
+
+        protected LLVector3 m_velocity;
+        /// <summary></summary>
+        public LLVector3 Velocity
+        {
+            get
+            {
+                return m_velocity;
+            }
+            set
+            {
+                m_velocity = value;
+            }
+        }
+
+        protected LLVector3 m_angularVelocity;
+        /// <summary></summary>
+        public LLVector3 AngularVelocity
+        {
+            get
+            {
+                return m_angularVelocity;
+            }
+            set
+            {
+                m_angularVelocity = value;
+            }
+        }
+
+        protected LLVector3 m_acceleration;
+        /// <summary></summary>
+        public LLVector3 Acceleration
+        {
+            get
+            {
+                return m_acceleration;
+            }
+            set
+            {
+                m_acceleration = value;
             }
         }
 
@@ -123,14 +212,14 @@ namespace OpenSim.Region.Environment.Scenes
             this.OwnerID = ownerID;
             this.CreatorID = this.OwnerID;
             this.LastOwnerID = LLUUID.Zero;
-            this.uuid = LLUUID.Random();
-            this.m_localID = (uint)(localID);
+            this.UUID = LLUUID.Random();
+            this.LocalID = (uint)(localID);
             this.m_Shape = shape;
 
             this.OffsetPosition = position;
 
             //temporary code just so the m_flags field doesn't give a compiler warning
-            if (m_flags == 1)
+            if (m_flags ==LLObject.ObjectFlags.AllowInventoryDrop)
             {
 
             }

@@ -23,7 +23,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public int primCount
+        public int PrimCount
         {
             get
             {
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
-                if (part.m_localID == localID)
+                if (part.LocalID == localID)
                 {
                     return part;
                 }
@@ -185,7 +185,7 @@ namespace OpenSim.Region.Environment.Scenes
             AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
             if (part != null)
             {
-                if (part.uuid == this.m_rootPart.uuid)
+                if (part.UUID == this.m_rootPart.UUID)
                 {
                     this.UpdateRootPosition(pos);
                 }
@@ -210,7 +210,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (AllNewSceneObjectPart2 obPart in this.m_parts.Values)
             {
-                if (obPart.uuid != this.m_rootPart.uuid)
+                if (obPart.UUID != this.m_rootPart.UUID)
                 {
                     obPart.OffsetPosition = obPart.OffsetPosition + diff;
                 }
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
             AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
             if (part != null)
             {
-                if (part.uuid == this.m_rootPart.uuid)
+                if (part.UUID == this.m_rootPart.UUID)
                 {
                     this.UpdateRootRotation(rot);
                 }
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (AllNewSceneObjectPart2 prim in this.m_parts.Values)
             {
-                if (prim.uuid != this.m_rootPart.uuid)
+                if (prim.UUID != this.m_rootPart.UUID)
                 {
                     Vector3 axPos = new Vector3(prim.OffsetPosition.X, prim.OffsetPosition.Y, prim.OffsetPosition.Z);
                     axPos = oldParentRot * axPos;
@@ -283,8 +283,8 @@ namespace OpenSim.Region.Environment.Scenes
         private void SetPartAsRoot(AllNewSceneObjectPart2 part)
         {
             this.m_rootPart = part;
-            this.m_uuid = part.uuid;
-            this.m_localId = part.m_localID;
+            this.m_uuid = part.UUID;
+            this.m_localId = part.LocalID;
         }
 
         /// <summary>

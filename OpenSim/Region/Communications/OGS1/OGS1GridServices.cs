@@ -152,7 +152,6 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 return this.regions[regionHandle];
             }
-            //TODO not a region in this instance so ask remote grid server
 
             Hashtable requestData = new Hashtable();
             requestData["region_handle"] = regionHandle.ToString();

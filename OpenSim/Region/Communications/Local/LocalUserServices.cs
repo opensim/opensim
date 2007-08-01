@@ -15,6 +15,7 @@ namespace OpenSim.Region.Communications.Local
         private NetworkServersInfo serversInfo;
         private uint defaultHomeX ;
         private uint defaultHomeY;
+
         public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversData)
         {
             m_Parent = parent;

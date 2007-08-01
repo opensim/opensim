@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Serialization;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -27,6 +29,7 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID CreatorID;
         public LLUUID OwnerID;
         public LLUUID LastOwnerID;
+
         public Int32 CreationDate;
 
         public uint ParentID = 0;

@@ -48,7 +48,7 @@ namespace OpenSim.Region.Capabilities
         private string m_requestPath = "0000/";
         private string m_mapLayerPath = "0001/";
         private string m_newInventory = "0002/";
-       // private string m_requestTexture = "0003/";
+        //private string m_requestTexture = "0003/";
         private string m_notecardUpdatePath = "0004/";
         //private string eventQueue = "0100/";
         private BaseHttpServer httpListener;
@@ -79,6 +79,7 @@ namespace OpenSim.Region.Capabilities
             httpListener.AddStreamHandler( new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST", capsBase + m_newInventory, this.NewAgentInventoryRequest));
 
             AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);
+            //AddLegacyCapsHandler(httpListener, m_requestTexture , RequestTexture);
             AddLegacyCapsHandler(httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
         }
 
@@ -116,7 +117,6 @@ namespace OpenSim.Region.Capabilities
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath;
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
             caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
-            //caps.RequestTextureDownload = capsBaseUrl + m_requestTexture;
             caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             return caps;
         }
@@ -299,7 +299,7 @@ namespace OpenSim.Region.Capabilities
             private LLUUID newAssetID;
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
-            private bool SaveImages = false;
+            private bool SaveAssets = false;
             private string m_assetName = "";
 
             /// <summary>
@@ -338,8 +338,8 @@ namespace OpenSim.Region.Capabilities
              
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
 
-                if(this.SaveImages)
-                    this.SaveImageToFile(m_assetName + ".jp2", data);
+                if(this.SaveAssets)
+                    this.SaveAssetToFile(m_assetName + ".jp2", data);
 
                 if (OnUpLoad != null)
                 {
@@ -349,7 +349,7 @@ namespace OpenSim.Region.Capabilities
                 return res;
             }
 
-            private void SaveImageToFile(string filename, byte[] data)
+            private void SaveAssetToFile(string filename, byte[] data)
             {
                FileStream fs = File.Create(filename);
                BinaryWriter bw = new BinaryWriter(fs);
@@ -360,3 +360,4 @@ namespace OpenSim.Region.Capabilities
         }
     }
 }
+

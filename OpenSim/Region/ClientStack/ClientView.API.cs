@@ -658,6 +658,19 @@ namespace OpenSim.Region.ClientStack
             OutPacket(alertPack);
         }
 
+        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url)
+        {
+            LoadURLPacket loadURL = new LoadURLPacket();
+            loadURL.Data.ObjectName = Helpers.StringToField(objectname);
+            loadURL.Data.ObjectID = objectID;
+            loadURL.Data.OwnerID = ownerID;
+            loadURL.Data.OwnerIsGroup = groupOwned;
+            loadURL.Data.Message = Helpers.StringToField(message);
+            loadURL.Data.URL = Helpers.StringToField(url);
+
+            OutPacket(loadURL);
+        }
+
         #region Appearance/ Wearables Methods
 
         /// <summary>

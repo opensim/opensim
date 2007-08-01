@@ -443,8 +443,11 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
             {
                 this.SendFullUpdateToOtherClient(avatar);
-                avatar.SendFullUpdateToOtherClient(this);
-                avatar.SendAppearanceToOtherAgent(this);
+                if (avatar.LocalId != this.LocalId)
+                {
+                    avatar.SendFullUpdateToOtherClient(this);
+                    avatar.SendAppearanceToOtherAgent(this);
+                }
             }
         }
 

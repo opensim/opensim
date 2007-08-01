@@ -30,6 +30,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.Scripting.EmbeddedJVM.Types;
+using OpenSim.Region.Scripting.EmbeddedJVM.Types.PrimitiveTypes;
 
 namespace OpenSim.Region.Scripting.EmbeddedJVM
 {
@@ -60,7 +61,11 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
         public ClassInstance CreateNewInstance()
         {
-            return new ClassInstance();
+            ClassInstance classInst = new ClassInstance();
+            classInst.ClassRec = this;
+            //TODO: set fields
+
+            return classInst;
         }
 
         public void LoadClassFromFile(string fileName)
@@ -75,32 +80,39 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         {
             int i = 0;
             i += 4;
-            _minorVersion = (ushort)((data[i++] << 8) + data[i++]  );
-            _majorVersion = (ushort)((data[i++] << 8) + data[i++]  );
-            _constantPoolCount = (ushort)((data[i++] << 8) + data[i++]  );
-           // Console.WriteLine("there should be " + _constantPoolCount + " items in the pool");
-            for (int count = 0; count < _constantPoolCount -1 ; count++)
+            _minorVersion = (ushort)((data[i++] << 8) + data[i++]);
+            _majorVersion = (ushort)((data[i++] << 8) + data[i++]);
+            _constantPoolCount = (ushort)((data[i++] << 8) + data[i++]);
+            Console.WriteLine("there should be " + _constantPoolCount + " items in the pool");
+            for (int count = 0; count < (_constantPoolCount - 1); count++)
             {
                 //read in the constant pool
                 byte pooltype = data[i++];
-                //Console.WriteLine("#" +count +": new constant type = " +pooltype);
+                Console.WriteLine("#" + count + ": new constant type = " + pooltype);
                 //Console.WriteLine("start position is: " + i);
                 switch (pooltype)
                 {
                     case 1:  //Utf8
-                        ushort uLength = (ushort)((data[i++] << 8) + data[i++]  );
+                        ushort uLength = (ushort)((data[i++] << 8) + data[i++]);
 
-                       // Console.WriteLine("new utf8 type, length is " + uLength);
+                        // Console.WriteLine("new utf8 type, length is " + uLength);
                         PoolUtf8 utf8 = new PoolUtf8();
                         utf8.readValue(data, ref i, uLength);
                         this._constantsPool.Add(utf8);
                         break;
                     case 3: //Int
                         break;
+                    case 4: //Float
+                        break;
                     case 7: //Class
                         PoolClass pClass = new PoolClass(this);
                         pClass.readValue(data, ref i);
                         this._constantsPool.Add(pClass);
+                        break;
+                    case 9: //FieldRef
+                        PoolFieldRef pField = new PoolFieldRef(this);
+                        pField.readValue(data, ref i);
+                        this._constantsPool.Add(pField);
                         break;
                     case 10: //Method
                         PoolMethodRef pMeth = new PoolMethodRef(this);
@@ -115,9 +127,9 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 }
             }
 
-            _accessFlags = (ushort)((data[i++] << 8) + data[i++]  );
-            _thisClass = (ushort)((data[i++] << 8) + data[i++]  );
-            _supperClass = (ushort)((data[i++] << 8) + data[i++]  );
+            _accessFlags = (ushort)((data[i++] << 8) + data[i++]);
+            _thisClass = (ushort)((data[i++] << 8) + data[i++]);
+            _supperClass = (ushort)((data[i++] << 8) + data[i++]);
 
             if (this._constantsPool[this._thisClass - 1] is PoolClass)
             {
@@ -126,8 +138,16 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
             _interfaceCount = (ushort)((data[i++] << 8) + data[i++]);
             //should now read in the info for each interface
+
             _fieldCount = (ushort)((data[i++] << 8) + data[i++]);
             //should now read in the info for each field
+            for (int count = 0; count < _fieldCount; count++)
+            {
+                FieldInfo fieldInf = new FieldInfo(this);
+                fieldInf.ReadData(data, ref i);
+                this._fieldList.Add(fieldInf);
+            }
+
             _methodCount = (ushort)((data[i++] << 8) + data[i++]);
             for (int count = 0; count < _methodCount; count++)
             {
@@ -149,9 +169,9 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         {
             for (int count = 0; count < _methodCount; count++)
             {
-                if (this._constantsPool[this._methodsList[count].NameIndex-1] is PoolUtf8)
+                if (this._constantsPool[this._methodsList[count].NameIndex - 1] is PoolUtf8)
                 {
-                    if (((PoolUtf8)this._constantsPool[this._methodsList[count].NameIndex-1]).Value == methodName)
+                    if (((PoolUtf8)this._constantsPool[this._methodsList[count].NameIndex - 1]).Value == methodName)
                     {
                         //Console.WriteLine("found method: " + ((PoolUtf8)this._constantsPool[this._methodsList[count].NameIndex - 1]).Value);
                         thread.SetPC(this._methodsList[count].CodePointer);
@@ -165,8 +185,8 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         public void PrintToConsole()
         {
             Console.WriteLine("Class File:");
-           Console.WriteLine("Major version: " + _majorVersion);
-           Console.WriteLine("Minor version: " + _minorVersion);
+            Console.WriteLine("Major version: " + _majorVersion);
+            Console.WriteLine("Minor version: " + _minorVersion);
             Console.WriteLine("Pool size: " + _constantPoolCount);
 
             for (int i = 0; i < _constantsPool.Count; i++)
@@ -174,9 +194,15 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 this._constantsPool[i].Print();
             }
 
-           Console.WriteLine("Access flags: " + _accessFlags);
-           Console.WriteLine("This class: " + _thisClass );
-           Console.WriteLine("Super class: " + _supperClass);
+            Console.WriteLine("Access flags: " + _accessFlags);
+            Console.WriteLine("This class: " + _thisClass);
+            Console.WriteLine("Super class: " + _supperClass);
+
+            for (int count = 0; count < _fieldCount; count++)
+            {
+                Console.WriteLine();
+                this._fieldList[count].Print();
+            }
 
             for (int count = 0; count < _methodCount; count++)
             {
@@ -184,7 +210,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 this._methodsList[count].Print();
             }
 
-           Console.WriteLine("class name is " + this.mClass.Name.Value);
+            Console.WriteLine("class name is " + this.mClass.Name.Value);
         }
 
         public static byte[] ReadFully(Stream stream)
@@ -215,32 +241,32 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
         {
             public string Value = "";
 
-            public void readValue(byte[] data,ref int pointer , int length)
+            public void readValue(byte[] data, ref int pointer, int length)
             {
                 for (int i = 0; i < length; i++)
                 {
-                    int a =(int) data[pointer++];
+                    int a = (int)data[pointer++];
                     if ((a & 0x80) == 0)
                     {
                         Value = Value + (char)a;
                     }
                     else if ((a & 0x20) == 0)
                     {
-                        int b = (int) data[pointer++];
-                        Value = Value + (char)(((a & 0x1f) << 6) + (b & 0x3f));      
+                        int b = (int)data[pointer++];
+                        Value = Value + (char)(((a & 0x1f) << 6) + (b & 0x3f));
                     }
                     else
                     {
                         int b = (int)data[pointer++];
                         int c = (int)data[pointer++];
-                        Value = Value + (char)(((a & 0xf) << 12) + ((b & 0x3f) << 6) + (c & 0x3f));            
+                        Value = Value + (char)(((a & 0xf) << 12) + ((b & 0x3f) << 6) + (c & 0x3f));
                     }
                 }
             }
 
             public override void Print()
             {
-               Console.WriteLine("Utf8 type: " + Value);
+                Console.WriteLine("Utf8 type: " + Value);
             }
         }
 
@@ -263,7 +289,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
             public void readValue(byte[] data, ref int pointer)
             {
-                namePointer = (ushort)((data[pointer++] << 8) + data[pointer++] );
+                namePointer = (ushort)((data[pointer++] << 8) + data[pointer++]);
             }
 
             public override void Print()
@@ -271,7 +297,34 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 this.Name = ((PoolUtf8)this.parent._constantsPool[namePointer - 1]);
                 Console.Write("Class type: " + namePointer);
                 Console.WriteLine(" // " + ((PoolUtf8)this.parent._constantsPool[namePointer - 1]).Value);
-                
+
+            }
+        }
+
+        public class PoolFieldRef : PoolItem
+        {
+            public ushort classPointer = 0;
+            public ushort nameTypePointer = 0;
+            public PoolNamedType mNameType;
+            public PoolClass mClass;
+            private ClassRecord parent;
+
+            public PoolFieldRef(ClassRecord paren)
+            {
+                parent = paren;
+            }
+
+            public void readValue(byte[] data, ref int pointer)
+            {
+                classPointer = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                nameTypePointer = (ushort)((data[pointer++] << 8) + data[pointer++]);
+            }
+
+            public override void Print()
+            {
+                this.mNameType = ((PoolNamedType)this.parent._constantsPool[nameTypePointer - 1]);
+                this.mClass = ((PoolClass)this.parent._constantsPool[classPointer - 1]);
+                Console.WriteLine("FieldRef type: " + classPointer + " , " + nameTypePointer);
             }
         }
 
@@ -298,7 +351,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
             {
                 this.mNameType = ((PoolNamedType)this.parent._constantsPool[nameTypePointer - 1]);
                 this.mClass = ((PoolClass)this.parent._constantsPool[classPointer - 1]);
-               Console.WriteLine("MethodRef type: " + classPointer + " , " + nameTypePointer); 
+                Console.WriteLine("MethodRef type: " + classPointer + " , " + nameTypePointer);
             }
         }
 
@@ -317,16 +370,16 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
             public void readValue(byte[] data, ref int pointer)
             {
-                namePointer = (ushort)((data[pointer++] << 8) + data[pointer++] );
-                typePointer = (ushort)((data[pointer++] << 8) + data[pointer++] );
+                namePointer = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                typePointer = (ushort)((data[pointer++] << 8) + data[pointer++]);
             }
 
             public override void Print()
             {
-                Name = ((PoolUtf8)this.parent._constantsPool[namePointer-1]);
-                Type = ((PoolUtf8)this.parent._constantsPool[typePointer-1]);
-                Console.Write("Named type: " + namePointer + " , " + typePointer );
-                Console.WriteLine(" // "+ ((PoolUtf8)this.parent._constantsPool[namePointer-1]).Value);
+                Name = ((PoolUtf8)this.parent._constantsPool[namePointer - 1]);
+                Type = ((PoolUtf8)this.parent._constantsPool[typePointer - 1]);
+                Console.Write("Named type: " + namePointer + " , " + typePointer);
+                Console.WriteLine(" // " + ((PoolUtf8)this.parent._constantsPool[namePointer - 1]).Value);
             }
         }
 
@@ -341,7 +394,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
             public List<MethodAttribute> Attributes = new List<MethodAttribute>();
             private ClassRecord parent;
             public int CodePointer = 0;
- 
+
             public MethodInfo(ClassRecord paren)
             {
                 parent = paren;
@@ -361,7 +414,7 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
                 NameIndex = (ushort)((data[pointer++] << 8) + data[pointer++]);
                 DescriptorIndex = (ushort)((data[pointer++] << 8) + data[pointer++]);
                 AttributeCount = (ushort)((data[pointer++] << 8) + data[pointer++]);
-                for(int i =0; i< AttributeCount; i++)
+                for (int i = 0; i < AttributeCount; i++)
                 {
                     MethodAttribute attri = new MethodAttribute(this.parent);
                     attri.ReadData(data, ref pointer);
@@ -371,11 +424,11 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
             public void Print()
             {
-               Console.WriteLine("Method Info Struct: ");
-              Console.WriteLine("AccessFlags: " + AccessFlags);
-              Console.WriteLine("NameIndex: " + NameIndex +" // "+ ((PoolUtf8)this.parent._constantsPool[NameIndex-1]).Value);
-              Console.WriteLine("DescriptorIndex: " + DescriptorIndex + " // "+ ((PoolUtf8)this.parent._constantsPool[DescriptorIndex-1]).Value);
-              Console.WriteLine("Attribute Count:" + AttributeCount);
+                Console.WriteLine("Method Info Struct: ");
+                Console.WriteLine("AccessFlags: " + AccessFlags);
+                Console.WriteLine("NameIndex: " + NameIndex + " // " + ((PoolUtf8)this.parent._constantsPool[NameIndex - 1]).Value);
+                Console.WriteLine("DescriptorIndex: " + DescriptorIndex + " // " + ((PoolUtf8)this.parent._constantsPool[DescriptorIndex - 1]).Value);
+                Console.WriteLine("Attribute Count:" + AttributeCount);
                 for (int i = 0; i < AttributeCount; i++)
                 {
                     this.Attributes[i].Print();
@@ -426,12 +479,12 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
                 public void Print()
                 {
-                   Console.WriteLine("Method Attribute: ");
-                 Console.WriteLine("Name Index: " + NameIndex + " // "+ ((PoolUtf8)this.parent._constantsPool[NameIndex-1]).Value);
-                  Console.WriteLine("Length: " + Length);
-                  Console.WriteLine("MaxStack: " + MaxStack);
-                  Console.WriteLine("MaxLocals: " + MaxLocals);
-                 Console.WriteLine("CodeLength: " + CodeLength);
+                    Console.WriteLine("Method Attribute: ");
+                    Console.WriteLine("Name Index: " + NameIndex + " // " + ((PoolUtf8)this.parent._constantsPool[NameIndex - 1]).Value);
+                    Console.WriteLine("Length: " + Length);
+                    Console.WriteLine("MaxStack: " + MaxStack);
+                    Console.WriteLine("MaxLocals: " + MaxLocals);
+                    Console.WriteLine("CodeLength: " + CodeLength);
                     for (int i = 0; i < Code.Length; i++)
                     {
                         Console.WriteLine("OpCode #" + i + " is: " + Code[i]);
@@ -483,13 +536,97 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
 
             }
         }
-        private class FieldInfo
-        {
-            public void ReadData(byte[] data, ref int i)
-            {
 
+        public class FieldInfo
+        {
+            public ushort AccessFlags = 0;
+            public ushort NameIndex = 0;
+            public string Name = "";
+            public ushort DescriptorIndex = 0;
+            public ushort AttributeCount = 0;
+            public List<FieldAttribute> Attributes = new List<FieldAttribute>();
+            private ClassRecord parent;
+
+            public FieldInfo(ClassRecord paren)
+            {
+                parent = paren;
+            }
+
+            public void ReadData(byte[] data, ref int pointer)
+            {
+                AccessFlags = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                NameIndex = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                DescriptorIndex = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                AttributeCount = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                for (int i = 0; i < AttributeCount; i++)
+                {
+                    FieldAttribute attri = new FieldAttribute(this.parent);
+                    attri.ReadData(data, ref pointer);
+                    this.Attributes.Add(attri);
+                }
+            }
+
+            public void Print()
+            {
+                Console.WriteLine("Field Info Struct: ");
+                Console.WriteLine("AccessFlags: " + AccessFlags);
+                Console.WriteLine("NameIndex: " + NameIndex + " // " + ((PoolUtf8)this.parent._constantsPool[NameIndex - 1]).Value);
+                Console.WriteLine("DescriptorIndex: " + DescriptorIndex + " // " + ((PoolUtf8)this.parent._constantsPool[DescriptorIndex - 1]).Value);
+                Console.WriteLine("Attribute Count:" + AttributeCount);
+                //if static, add to static field list
+                // if (this.AccessFlags == 9) //public and static
+                if ((this.AccessFlags & 0x08) != 0)
+                {
+                    switch (((PoolUtf8)this.parent._constantsPool[DescriptorIndex - 1]).Value)
+                    {
+                        case "I":
+                            Int newin = new Int();
+                            this.parent.StaticFields.Add(((PoolUtf8)this.parent._constantsPool[NameIndex - 1]).Value, newin);
+                            break;
+                        case "F":
+                            Float newfl = new Float();
+                            this.parent.StaticFields.Add(((PoolUtf8)this.parent._constantsPool[NameIndex - 1]).Value, newfl);
+                            break;
+                    }
+
+                }
+                for (int i = 0; i < AttributeCount; i++)
+                {
+                    this.Attributes[i].Print();
+                }
+            }
+
+            public class FieldAttribute
+            {
+                public ushort NameIndex = 0;
+                public string Name = "";
+                public Int32 Length = 0;
+                public byte[] Data;
+                private ClassRecord parent;
+
+                public FieldAttribute(ClassRecord paren)
+                {
+                    parent = paren;
+                }
+
+                public void ReadData(byte[] data, ref int pointer)
+                {
+                    NameIndex = (ushort)((data[pointer++] << 8) + data[pointer++]);
+                    Length = (Int32)((data[pointer++] << 24) + (data[pointer++] << 16) + (data[pointer++] << 8) + data[pointer++]);
+                    Data = new byte[Length];
+                    for (int i = 0; i < Length; i++)
+                    {
+                        Data[i] = data[pointer++];
+                    }
+                }
+
+                public void Print()
+                {
+                    Console.WriteLine("FieldAttribute: NameIndex: " + NameIndex + " // " + ((PoolUtf8)this.parent._constantsPool[NameIndex - 1]).Value);
+                }
             }
         }
+
         private class AttributeInfo
         {
             public void ReadData(byte[] data, ref int i)

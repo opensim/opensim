@@ -27,6 +27,9 @@
 */
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
@@ -93,7 +96,6 @@ namespace OpenSim.Region.Environment.Scenes
             this.CreateRootFromShape(ownerID, localID, shape, pos);
 
             registerEvents();
-
         }
 
         /// <summary>
@@ -180,6 +182,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             dupe.registerEvents();
             return dupe;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Serialise()
+        {
+            
         }
 
         /// <summary>

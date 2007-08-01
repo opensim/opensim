@@ -157,6 +157,7 @@ namespace SimpleApp
 
         public void SendAlertMessage(string message) { }
         public void SendAgentAlertMessage(string message, bool modal) { }
+        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url) { }
 
         public virtual void SendRegionHandshake(RegionInfo regionInfo)
         {
