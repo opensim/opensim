@@ -108,8 +108,7 @@ namespace OpenSim.Framework.Utilities
 
             // Windows 2000 / Pre-SP2 XP
             if (System.Environment.OSVersion.Version.Major == 5 && (
-                System.Environment.OSVersion.Version.Minor == 0 ||
-                System.Environment.OSVersion.ServicePack == "Service Pack 1"))
+                System.Environment.OSVersion.Version.Minor == 0))
             {
                 reason = "Please update to Windows XP Service Pack 2 or Server2003";
                 return false;
