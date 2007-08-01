@@ -244,7 +244,9 @@ namespace OpenSim.Framework.Console
             {
                 try
                 {
-                    System.Console.ForegroundColor = color;
+                    if (color != ConsoleColor.White) 
+                        System.Console.ForegroundColor = color;
+
                     System.Console.WriteLine(format, args);
                     System.Console.ResetColor();
                 }
