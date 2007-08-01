@@ -578,6 +578,48 @@ namespace OpenSim.Region.Terrain
         }
 
         /// <summary>
+        /// Loads a section of a larger heightmap (F32)
+        /// </summary>
+        /// <param name="filename">File to load</param>
+        /// <param name="dimensionX">Size of the file</param>
+        /// <param name="dimensionY">Size of the file</param>
+        /// <param name="lowerboundX">Where do the region coords start for this terrain?</param>
+        /// <param name="lowerboundY">Where do the region coords start for this terrain?</param>
+        public void LoadFromFileF32(string filename, int dimensionX, int dimensionY, int lowerboundX, int lowerboundY)
+        {
+            int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
+            int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
+
+            double[,] tempMap = new double[dimensionX, dimensionY];
+
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            BinaryReader bs = new BinaryReader(s);
+
+            int x, y;
+            for (x = 0; x < dimensionX; x++)
+            {
+                for (y = 0; y < dimensionY; y++)
+                {
+                    tempMap[x,y] = (double)bs.ReadSingle();
+                }
+            }
+
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    heightmap.Set(x, y, tempMap[x + sectionToLoadX, y + sectionToLoadY]);
+                }
+            }
+
+            bs.Close();
+            s.Close();
+
+            tainted++;
+        }
+
+        /// <summary>
         /// Loads a file formatted in the SL .RAW Format used on the main grid
         /// </summary>
         /// <remarks>This file format stinks and is best avoided.</remarks>
