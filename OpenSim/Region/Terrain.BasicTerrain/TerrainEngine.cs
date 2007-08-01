@@ -346,7 +346,7 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "load":
-                        args[2].Replace("%name%", simName);
+                        args[3].Replace("%name%", simName);
                         switch (args[1].ToLower())
                         {
                             case "f32":
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Terrain
 
                             case "img":
                                 heightmap.LoadImage(args[2]);
-                                return false;
+                                break;
 
                             default:
                                 resultText = "Unknown image or data format";
@@ -385,7 +385,7 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "save":
-                        args[2].Replace("%name%", simName);
+                        args[3].Replace("%name%", simName);
                         switch (args[1].ToLower())
                         {
                             case "f32":
@@ -603,7 +603,7 @@ namespace OpenSim.Region.Terrain
             int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
             int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
 
-            double[,] tempMap = new double[dimensionX, dimensionY];
+            double[,] tempMap = new double[dimensionY, dimensionX];
 
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
@@ -614,7 +614,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < dimensionY; y++)
                 {
-                    tempMap[x,y] = (double)bs.ReadSingle();
+                    tempMap[y,x] = (double)bs.ReadSingle();
                 }
             }
 
@@ -622,7 +622,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    heightmap.Set(x, y, tempMap[x + sectionToLoadX, y + sectionToLoadY]);
+                    heightmap.Set(x, y, tempMap[x + sectionToLoadY, y + sectionToLoadX]);
                 }
             }
 
