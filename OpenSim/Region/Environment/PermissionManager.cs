@@ -20,12 +20,12 @@ namespace OpenSim.Region.Environment
             m_scene = world;
         }
 
-        private virtual bool IsAdministrator(LLUUID user)
+        protected virtual bool IsAdministrator(LLUUID user)
         {
             return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
         }
 
-        private virtual bool IsEstateManager(LLUUID user)
+        protected virtual bool IsEstateManager(LLUUID user)
         {
             return false;
         }
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment
                 return false;
 
             SceneObject task = (SceneObject)m_scene.Entities[obj];
-            LLUUID taskOwner; // Since we dont have a 'owner' property on task yet
+            LLUUID taskOwner = null; // Since we dont have a 'owner' property on task yet
 
             // Object owners should be able to delete their own content
             if (user == taskOwner)

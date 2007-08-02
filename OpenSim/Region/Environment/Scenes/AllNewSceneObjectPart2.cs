@@ -316,7 +316,6 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_particleSystem = pSystem.GetBytes();
         }
 
-
         #region Position
         /// <summary>
         /// 
