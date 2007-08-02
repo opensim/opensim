@@ -107,6 +107,41 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        /// <summary>
+        /// Does this group contain the child prim
+        /// should be able to remove these methods once we have a entity index in scene
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <returns></returns>
+        public bool HasChildPrim(LLUUID primID)
+        {
+            AllNewSceneObjectPart2 childPart = null;
+            if (this.m_parts.ContainsKey(primID))
+            {
+                childPart = this.m_parts[primID];
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Does this group contain the child prim
+        /// should be able to remove these methods once we have a entity index in scene
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
+        public bool HasChildPrim(uint localID)
+        {
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                if (part.LocalID == localID)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void TriggerTainted()
         {
             if (OnPrimCountTainted != null)

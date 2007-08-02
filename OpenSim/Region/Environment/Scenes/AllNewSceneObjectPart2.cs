@@ -14,10 +14,6 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
-        public string SitName = "";
-        public string TouchName = "";
-        public string Text = "";
-
         public LLUUID CreatorID;
         public LLUUID OwnerID;
         public LLUUID GroupID;
@@ -35,6 +31,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected byte[] m_particleSystem = new byte[0];
 
         protected AllNewSceneObjectGroup2 m_parentGroup;
+
+        /// <summary>
+        /// Only used internally to schedule client updates
+        /// </summary>
+        private byte m_updateFlag;
 
         #region Properties
         
@@ -194,6 +195,37 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private string m_text = "";
+        public string Text
+        {
+            get { return m_text; }
+            set
+            {
+                m_text = value;
+                ScheduleFullUpdate();
+            }
+        }
+
+        private string m_sitName = "";
+        public string SitName
+        {
+            get { return m_sitName; }
+            set
+            {
+                m_sitName = value;
+            }
+        }
+
+        private string m_touchName = "";
+        public string TouchName
+        {
+            get { return m_touchName; }
+            set
+            {
+                m_touchName = value;
+            }
+        }
+
         public PrimitiveBaseShape Shape
         {
             get
@@ -243,6 +275,26 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Update Scheduling
+        private void ClearUpdateSchedule()
+        {
+            m_updateFlag = 0;
+        }
+
+        private void ScheduleFullUpdate()
+        {
+            m_updateFlag = 2;
+        }
+
+        private void ScheduleTerseUpdate()
+        {
+            if (m_updateFlag < 1)
+            {
+                m_updateFlag = 1;
+            }
+        }
+        #endregion
+
         #region Shape
         /// <summary>
         /// 
@@ -281,6 +333,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region ExtraParams
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
             this.m_Shape.ExtraParams = new byte[data.Length + 7];
@@ -298,7 +351,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             //this.ScheduleFullUpdate();
         }
-
+        #endregion
 
         #region Texture
         /// <summary>
@@ -311,10 +364,12 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region ParticleSystem
         public void AddNewParticleSystem(libsecondlife.Primitive.ParticleSystem pSystem)
         {
             this.m_particleSystem = pSystem.GetBytes();
         }
+        #endregion
 
         #region Position
         /// <summary>
@@ -342,14 +397,40 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="scale"></param>
         public void Resize(LLVector3 scale)
         {
-            LLVector3 offset = (scale - this.m_Shape.Scale);
-            offset.X /= 2;
-            offset.Y /= 2;
-            offset.Z /= 2;
-
-            this.OffsetPosition += offset;
             this.m_Shape.Scale = scale;
         }
+        #endregion
+
+        #region Client Update Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        public void SendFullUpdateToClient(IClientAPI remoteClient)
+        {
+            LLVector3 lPos;
+            lPos = OffsetPosition;
+            LLQuaternion lRot;
+            lRot = RotationOffset;
+
+            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_Shape, lPos, lRot, this.ObjectFlags, m_uuid,
+                                               OwnerID, m_text, ParentID, this.m_particleSystem);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="RemoteClient"></param>
+        public void SendTerseUpdateToClient(IClientAPI remoteClient)
+        {
+            LLVector3 lPos;
+            lPos = this.OffsetPosition;
+            LLQuaternion mRot = this.RotationOffset;
+
+            remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+        }
+
+
         #endregion
     }
 }
