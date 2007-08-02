@@ -226,9 +226,11 @@ namespace OpenSim.Region.Scripting
             return (float)Math.Cos(theta);
         }
 
-        [Obsolete("Unimplemented")]
         public void osCreateLink(Key target, int parent)
         {
+            if(World.Entities[target] is SceneObject)
+                Task.AddNewChildPrims((SceneObject)World.Entities[target]);
+
             return;
         }
 
