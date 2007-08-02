@@ -103,6 +103,8 @@ namespace OpenSim.Region.Terrain
             h = 256;
             heightmap = new Channel(w, h);
             revertmap = new Channel(w, h);
+            watermap = new Channel(w, h);
+            watermap.Fill(20);
 
             offsetX = X;
             offsetY = Y;
@@ -363,7 +365,7 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "load":
-                        args[3].Replace("%name%", simName);
+                        args[2].Replace("%name%", simName);
                         switch (args[1].ToLower())
                         {
                             case "f32":
@@ -402,31 +404,34 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "save":
-                        args[3].Replace("%name%", simName);
+                        string filename = args[2].Replace("%name%", simName);
+                        filename = filename.Replace("%x%", this.offsetX.ToString());
+                        filename = filename.Replace("%y%", this.offsetY.ToString());
+
                         switch (args[1].ToLower())
                         {
                             case "f32":
-                                WriteToFileF32(args[2]);
+                                WriteToFileF32(filename);
                                 break;
 
                             case "f64":
-                                WriteToFileF64(args[2]);
+                                WriteToFileF64(filename);
                                 break;
 
                             case "grdmap":
-                                ExportImage(args[2], args[3]);
+                                ExportImage(filename, args[3]);
                                 break;
 
                             case "png":
-                                heightmap.SaveImage(args[2]);
+                                heightmap.SaveImage(filename);
                                 break;
 
                             case "raw":
-                                WriteToFileRAW(args[2]);
+                                WriteToFileRAW(filename);
                                 break;
 
                             case "hiraw":
-                                WriteToFileHiRAW(args[2]);
+                                WriteToFileHiRAW(filename);
                                 break;
 
                             default:
