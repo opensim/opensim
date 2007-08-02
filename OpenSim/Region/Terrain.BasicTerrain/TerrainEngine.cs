@@ -352,6 +352,11 @@ namespace OpenSim.Region.Terrain
                         tainted++;
                         break;
 
+                    case "add":
+                        heightmap += Convert.ToDouble(args[1]);
+                        tainted++;
+                        break;
+
                     case "multiply":
                         heightmap *= Convert.ToDouble(args[1]);
                         tainted++;
