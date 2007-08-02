@@ -365,23 +365,26 @@ namespace OpenSim.Region.Terrain
                         break;
 
                     case "load":
-                        args[2].Replace("%name%", simName);
+                        string filenameL = args[2].Replace("%name%", simName);
+                        filenameL = filenameL.Replace("%x%", this.offsetX.ToString());
+                        filenameL = filenameL.Replace("%y%", this.offsetY.ToString());
+
                         switch (args[1].ToLower())
                         {
                             case "f32":
-                                LoadFromFileF32(args[2]);
+                                LoadFromFileF32(filenameL);
                                 break;
 
                             case "f64":
-                                LoadFromFileF64(args[2]);
+                                LoadFromFileF64(filenameL);
                                 break;
 
                             case "raw":
-                                LoadFromFileSLRAW(args[2]);
+                                LoadFromFileSLRAW(filenameL);
                                 break;
 
                             case "img":
-                                heightmap.LoadImage(args[2]);
+                                heightmap.LoadImage(filenameL);
                                 break;
 
                             default:
