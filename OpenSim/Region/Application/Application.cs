@@ -52,8 +52,8 @@ namespace OpenSim
             
             Console.WriteLine("Starting...\n");
 
-            bool sandBoxMode = false;
-            bool startLoginServer = false;
+            bool sandBoxMode = true;
+            bool startLoginServer = true;
             string physicsEngine = "basicphysics";
 
             bool userAccounts = false;
@@ -64,10 +64,10 @@ namespace OpenSim
             
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i] == "-sandbox")
+                if (args[i] == "-gridmode")
                 {
-                    sandBoxMode = true;
-                    startLoginServer = true;
+                    sandBoxMode = false;
+                    startLoginServer = false;
                 }
 
                 if (args[i] == "-accounts")
