@@ -55,6 +55,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        public AllNewSceneObjectGroup2(byte[] data)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public AllNewSceneObjectGroup2(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = regionHandle;
@@ -66,6 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
         }
+
 
         #region Copying
         /// <summary>
@@ -102,7 +111,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             AllNewSceneObjectPart2 newPart = part.Copy(m_scene);
             this.m_parts.Add(newPart.UUID, newPart);
-            newPart.ParentID = this.m_rootPart.LocalID;
+            this.SetPartAsNonRoot(newPart);
         }
         #endregion
 
@@ -499,7 +508,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         private void SetPartAsNonRoot(AllNewSceneObjectPart2 part)
         {
-
+            part.ParentID = this.m_rootPart.LocalID;
         }
 
         /// <summary>

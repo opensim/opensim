@@ -296,7 +296,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Recreate a SceneObjectPart (prim)
+        /// Re/create a SceneObjectPart (prim)
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="parent"></param>
@@ -553,8 +553,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
         }
-
-
         #endregion
     }
 }
