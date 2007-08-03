@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Configuration
             configOption.configurationType = configuration_type;
             configOption.configurationUseDefaultNoPrompt = use_default_no_prompt;
 
-            if (configuration_key != "" && configuration_question != "")
+            if ((configuration_key != "" && configuration_question != "") || (configuration_key != "" && use_default_no_prompt))
             {
                 if (!configurationOptions.Contains(configOption))
                 {
@@ -374,6 +374,14 @@ namespace OpenSim.Framework.Configuration
 
             pluginAssembly = null;
             return plug;
+        }
+
+        public void forceSetConfigurationOption(string configuration_key, string configuration_value)
+        {
+            this.configurationPlugin.LoadData();
+            this.configurationPlugin.SetAttribute(configuration_key, configuration_value);
+            this.configurationPlugin.Commit();
+            this.configurationPlugin.Close();
         }
     }
 }

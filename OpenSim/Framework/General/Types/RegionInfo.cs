@@ -172,8 +172,6 @@ namespace OpenSim.Framework.Types
             configMember.addConfigurationOption("internal_ip_address", ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS, "Internal IP Address for incoming UDP client connections", "0.0.0.0", false);
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Internal IP Port for incoming UDP client connections", "9000", false);
             configMember.addConfigurationOption("external_host_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("terrain_file", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Terrain File", "default.r32", false);
-            configMember.addConfigurationOption("terrain_multiplier", ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE, "Terrain Height Multiplier", "60.0", false);
             configMember.addConfigurationOption("master_avatar_first", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "First Name of Master Avatar", "Test", false);
             configMember.addConfigurationOption("master_avatar_last", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Last Name of Master Avatar", "User", false);
             configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "(Sandbox Mode Only)Password for Master Avatar account", "test", false);
@@ -215,12 +213,6 @@ namespace OpenSim.Framework.Types
                     {
                         this.m_externalHostName = Util.GetLocalHost().ToString();
                     }
-                    break;
-                case "terrain_file":
-                    this.estateSettings.terrainFile = (string)configuration_result;
-                    break;
-                case "terrain_multiplier":
-                    this.estateSettings.terrainMultiplier = (double)configuration_result;
                     break;
                 case "master_avatar_first":
                     this.MasterAvatarFirstName = (string)configuration_result;
