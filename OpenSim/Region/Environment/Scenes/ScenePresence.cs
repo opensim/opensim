@@ -576,22 +576,22 @@ namespace OpenSim.Region.Environment.Scenes
             uint neighbourx = this.m_regionInfo.RegionLocX;
             uint neighboury = this.m_regionInfo.RegionLocY;
 
-            if (pos.X < 1)
+            if (pos.X < 1.7F)
             {
                 neighbourx -= 1;
                 newpos.X = 255.9F;
             }
-            if (pos.X > 255)
+            if (pos.X > 254.3F)
             {
                 neighbourx += 1;
                 newpos.X = 0.1F;
             }
-            if (pos.Y < 1)
+            if (pos.Y < 1.7F)
             {
                 neighboury -= 1;
                 newpos.Y = 255.9F;
             }
-            if (pos.Y > 255)
+            if (pos.Y > 254.3F)
             {
                 neighboury += 1;
                 newpos.Y = 0.1F;
