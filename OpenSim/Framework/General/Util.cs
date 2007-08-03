@@ -26,6 +26,7 @@
 * 
 */
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Net;
 using System.Text;
@@ -273,6 +274,39 @@ namespace OpenSim.Framework.Utilities
                 return hosts[0];
 
             return null;
+        }
+
+        //
+        // directory locations
+        //
+        public static string homeDir()
+        {
+            string temp;
+//            string personal=(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
+//            temp = Path.Combine(personal,".OpenSim");
+            temp=".";
+            return temp;
+        }
+
+        public static string configDir()
+        {
+            string temp;
+            temp = ".";
+            return temp;
+        }
+
+        public static string dataDir()
+        {
+            string temp;
+            temp = ".";
+            return temp;
+        }
+
+        public static string logDir()
+        {
+            string temp;
+            temp = ".";
+            return temp;
         }
 
         public Util()

@@ -25,9 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-
+using System.IO;
 using libsecondlife;
 using OpenSim.Framework.Configuration;
+using OpenSim.Framework.Utilities;
+
 namespace OpenSim.Framework.Types
 {
     public class EstateSettings
@@ -554,7 +556,7 @@ namespace OpenSim.Framework.Types
         private ConfigurationMember configMember;
         public EstateSettings()
         {
-            configMember = new ConfigurationMember("estate_settings.xml", "ESTATE SETTINGS", this.loadConfigurationOptions, this.handleIncomingConfiguration);
+            configMember = new ConfigurationMember(Path.Combine(Util.configDir(),"estate_settings.xml"), "ESTATE SETTINGS", this.loadConfigurationOptions, this.handleIncomingConfiguration);
             configMember.performConfigurationRetrieve();
         }
 

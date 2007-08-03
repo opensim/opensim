@@ -34,6 +34,7 @@ using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Grid.AssetServer
 {
@@ -71,7 +72,11 @@ namespace OpenSim.Grid.AssetServer
 
         private OpenAsset_Main()
         {
-            m_console = new LogBase("opengrid-AssetServer-console.log", "OpenAsset", this, false);
+            if(!Directory.Exists(Util.logDir()))
+            {
+                Directory.CreateDirectory(Util.logDir());
+            }
+            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-AssetServer-console.log")), "OpenAsset", this, false);
             MainLog.Instance = m_console;
         }
 
@@ -154,10 +159,11 @@ namespace OpenSim.Grid.AssetServer
 
         public void setupDB()
         {
-            bool yapfile = File.Exists("gridassets.yap");
+            string yappath=(Path.Combine(Util.dataDir(),"gridassets.yap"));
+            bool yapfile = File.Exists(yappath);
             try
             {
-                db = Db4oFactory.OpenFile("gridassets.yap");
+                db = Db4oFactory.OpenFile(yappath);
                 MainLog.Instance.Verbose("storage", "Main.cs:setupDB() - creation");
             }
             catch (Exception e)

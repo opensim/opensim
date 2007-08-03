@@ -63,6 +63,7 @@ namespace OpenSim.Framework.Console
             }
 
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
+           
             Log = File.AppendText(LogFile);
             Log.WriteLine("========================================================================");
             Log.WriteLine(componentname + " Started at " + DateTime.Now.ToString());

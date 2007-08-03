@@ -68,7 +68,7 @@ namespace OpenSim
         protected List<IScene> m_localScenes = new List<IScene>();
 
         private bool m_silent;
-        private string m_logFilename = "region-console-" + Guid.NewGuid().ToString() + ".log";
+        private string m_logFilename = ("region-console-" + Guid.NewGuid().ToString() + ".log");
 
         public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngineName, bool useConfigFile, bool silent, string configFileName)
         :base( )
@@ -87,7 +87,11 @@ namespace OpenSim
         /// </summary>
         public override void StartUp()
         {
-            m_log = new LogBase(m_logFilename, "Region", this, m_silent);
+            if (!Directory.Exists(Util.logDir()))
+            {
+                Directory.CreateDirectory(Util.logDir());
+            }
+            m_log = new LogBase(Path.Combine(Util.logDir(),m_logFilename), "Region", this, m_silent);
             MainLog.Instance = m_log;
 
             base.StartUp();
@@ -106,12 +110,17 @@ namespace OpenSim
                 m_commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer , m_assetCache);
             }
 
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
+
+            string path = Path.Combine(Util.configDir(), "Regions");
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
             string[] configFiles = Directory.GetFiles(path, "*.xml");
 
             if (configFiles.Length == 0)
             {
-                string path2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Regions");
+                string path2 = Path.Combine(Util.configDir(), "Regions");
                 string path3 = Path.Combine(path2, "default.xml");
 
                 RegionInfo regionInfo = new RegionInfo("DEFAULT REGION CONFIG", path3);
@@ -154,14 +163,19 @@ namespace OpenSim
         
         protected override void Initialize()
         {
-            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", "network_servers_information.xml");
+            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", Path.Combine(Util.configDir(),"network_servers_information.xml"));
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
 
         protected override LogBase CreateLog()
         {
-            return new LogBase(m_logFilename, "Region", this, m_silent);
+            if (!Directory.Exists(Util.logDir()))
+            {
+                Directory.CreateDirectory(Util.logDir());
+            }
+ 
+            return new LogBase((Path.Combine(Util.logDir(),m_logFilename)), "Region", this, m_silent);
         }
 
         # region Setup methods

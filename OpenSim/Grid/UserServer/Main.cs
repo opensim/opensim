@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using libsecondlife;
 using OpenSim.Framework.Console;
@@ -64,7 +65,11 @@ namespace OpenSim.Grid.UserServer
 
         private OpenUser_Main()
         {
-            m_console = new LogBase("opengrid-userserver-console.log", "OpenUser", this , false);
+            if (!Directory.Exists(Util.logDir()))
+            {
+                Directory.CreateDirectory(Util.logDir());
+            }
+            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-userserver-console.log")), "OpenUser", this , false);
             MainLog.Instance = m_console;
         }
 
@@ -80,7 +85,7 @@ namespace OpenSim.Grid.UserServer
 
         public void Startup()
         {
-            this.Cfg = new UserConfig("USER SERVER", "UserServer_Config.xml");
+            this.Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
             MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();

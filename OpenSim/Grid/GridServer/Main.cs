@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Timers;
@@ -34,6 +35,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Configuration;
+using OpenSim.Framework.Utilities;
 
 using Timer=System.Timers.Timer;
 
@@ -84,7 +86,11 @@ namespace OpenSim.Grid.GridServer
 
         private OpenGrid_Main()
         {
-            m_console = new LogBase("opengrid-gridserver-console.log", "OpenGrid", this, false);
+            if (!Directory.Exists(Util.logDir()))
+            {
+                Directory.CreateDirectory(Util.logDir());
+            }
+            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-gridserver-console.log")), "OpenGrid", this, false);
             MainLog.Instance = m_console;
 
 
@@ -104,7 +110,7 @@ namespace OpenSim.Grid.GridServer
         public void Startup()
         {
 
-            this.Cfg = new GridConfig("GRID SERVER","GridServer_Config.xml"); //Yeah srsly, that's it.
+            this.Cfg = new GridConfig("GRID SERVER",(Path.Combine(Util.configDir(),"GridServer_Config.xml"))); //Yeah srsly, that's it.
             if (setuponly) Environment.Exit(0);
 
             m_console.Verbose( "Main.cs:Startup() - Connecting to Storage Server");

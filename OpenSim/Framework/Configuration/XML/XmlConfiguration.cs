@@ -31,6 +31,7 @@ using System.Xml;
 
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Configuration.Interfaces;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Configuration
 {
@@ -119,6 +120,11 @@ namespace OpenSim.Framework.Configuration
 
         public void Commit()
         {
+            if (!Directory.Exists(Util.configDir()))
+            {
+                Directory.CreateDirectory(Util.configDir());
+            }
+ 
             doc.Save(fileName);
         }
 

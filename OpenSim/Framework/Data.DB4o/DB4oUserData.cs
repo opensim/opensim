@@ -26,7 +26,9 @@
 * 
 */
 using System;
+using System.IO;
 using libsecondlife;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Data.DB4o
 {
@@ -45,7 +47,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         public void Initialise()
         {
-            manager = new DB4oUserManager("userprofiles.yap");
+            manager = new DB4oUserManager(Path.Combine(Util.dataDir(),"userprofiles.yap"));
         }
 
         /// <summary>
