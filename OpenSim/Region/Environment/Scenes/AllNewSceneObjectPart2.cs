@@ -38,31 +38,19 @@ namespace OpenSim.Region.Environment.Scenes
         private byte m_updateFlag;
 
         #region Properties
-        
+
         protected LLUUID m_uuid;
         public LLUUID UUID
         {
-            get
-            {
-                return m_uuid;
-            }
-            set
-            {
-                value = m_uuid;
-            }
+            get { return m_uuid; }
+            set { value = m_uuid; }
         }
 
         protected uint m_localID;
         public uint LocalID
         {
-            get
-            {
-                return m_localID;
-            }
-            set
-            {
-                m_localID = value;
-            }
+            get { return m_localID; }
+            set { m_localID = value; }
         }
 
         protected string m_name;
@@ -75,124 +63,70 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags) 32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
+        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
         public uint ObjectFlags
         {
-            get
-            {
-                return (uint)m_flags;
-            }
-            set
-            {
-                m_flags =(LLObject.ObjectFlags) value;
-            }
+            get { return (uint)m_flags; }
+            set { m_flags = (LLObject.ObjectFlags)value; }
         }
 
         protected LLObject.MaterialType m_material;
         public byte Material
         {
-            get
-            {
-                return (byte)m_material;
-            }
-            set
-            {
-                m_material = (LLObject.MaterialType) value;
-            }
+            get { return (byte)m_material; }
+            set { m_material = (LLObject.MaterialType)value; }
         }
 
         protected ulong m_regionHandle;
         public ulong RegionHandle
         {
-            get
-            {
-                return m_regionHandle;
-            }
-            set
-            {
-                m_regionHandle = value;
-            }
+            get { return m_regionHandle; }
+            set { m_regionHandle = value; }
         }
 
         protected LLVector3 m_offset;
         public LLVector3 OffsetPosition
         {
-            get
-            {
-                return m_offset;
-            }
-            set
-            {
-                m_offset = value;
-            }
+            get { return m_offset; }
+            set { m_offset = value; }
         }
 
         protected LLQuaternion m_rotationOffset;
         public LLQuaternion RotationOffset
         {
-            get
-            {
-                return m_rotationOffset;
-            }
-            set
-            {
-                m_rotationOffset = value;
-            }
+            get { return m_rotationOffset; }
+            set { m_rotationOffset = value; }
         }
 
         protected LLVector3 m_velocity;
         /// <summary></summary>
         public LLVector3 Velocity
         {
-            get
-            {
-                return m_velocity;
-            }
-            set
-            {
-                m_velocity = value;
-            }
+            get { return m_velocity; }
+            set { m_velocity = value; }
         }
 
         protected LLVector3 m_angularVelocity;
         /// <summary></summary>
         public LLVector3 AngularVelocity
         {
-            get
-            {
-                return m_angularVelocity;
-            }
-            set
-            {
-                m_angularVelocity = value;
-            }
+            get { return m_angularVelocity; }
+            set { m_angularVelocity = value; }
         }
 
         protected LLVector3 m_acceleration;
         /// <summary></summary>
         public LLVector3 Acceleration
         {
-            get
-            {
-                return m_acceleration;
-            }
-            set
-            {
-                m_acceleration = value;
-            }
+            get { return m_acceleration; }
+            set { m_acceleration = value; }
         }
 
         private string m_description = "";
         public string Description
         {
-            get
-            {
-                return this.m_description;
-            }
-            set
-            {
-                this.m_description = value;
-            }
+            get { return this.m_description; }
+            set { this.m_description = value; }
         }
 
         private string m_text = "";
@@ -210,44 +144,27 @@ namespace OpenSim.Region.Environment.Scenes
         public string SitName
         {
             get { return m_sitName; }
-            set
-            {
-                m_sitName = value;
-            }
+            set { m_sitName = value; }
         }
 
         private string m_touchName = "";
         public string TouchName
         {
             get { return m_touchName; }
-            set
-            {
-                m_touchName = value;
-            }
+            set { m_touchName = value; }
         }
 
         public PrimitiveBaseShape Shape
         {
-            get
-            {
-                return this.m_shape;
-            }
-            set
-            {
-                m_shape = value;
-            }
+
+            get { return this.m_shape; }
+            set { m_shape = value; }
         }
 
         public LLVector3 Scale
         {
-            set
-            {
-                this.m_shape.Scale = value;
-            }
-            get
-            {
-                return this.m_shape.Scale;
-            }
+            set { this.m_shape.Scale = value; }
+            get { return this.m_shape.Scale; }
         }
         #endregion
 
@@ -289,7 +206,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.Acceleration = new LLVector3(0, 0, 0);
 
             //temporary code just so the m_flags field doesn't give a compiler warning
-            if (m_flags ==LLObject.ObjectFlags.AllowInventoryDrop)
+            if (m_flags == LLObject.ObjectFlags.AllowInventoryDrop)
             {
 
             }
@@ -330,7 +247,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public AllNewSceneObjectPart2 Copy(Scene scene)
         {
-            AllNewSceneObjectPart2 dupe =(AllNewSceneObjectPart2) this.MemberwiseClone();
+            AllNewSceneObjectPart2 dupe = (AllNewSceneObjectPart2)this.MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             uint newLocalID = scene.PrimIDAllocate();

@@ -27,10 +27,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public int PrimCount
         {
-            get
-            {
-                return 1;
-            }
+            get { return 1; }
         }
 
         /// <summary>
@@ -38,10 +35,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public LLVector3 GroupCentrePoint
         {
-            get
-            {
-                return new LLVector3(0, 0, 0);
-            }
+            get { return new LLVector3(0, 0, 0); }
         }
 
         /// <summary>
@@ -83,13 +77,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public new AllNewSceneObjectGroup2 Copy()
         {
-            AllNewSceneObjectGroup2 dupe = (AllNewSceneObjectGroup2) this.MemberwiseClone();
+            AllNewSceneObjectGroup2 dupe = (AllNewSceneObjectGroup2)this.MemberwiseClone();
             dupe.Pos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = this.m_regionHandle;
 
             dupe.CopyRootPart(this.m_rootPart);
-           
+
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
                 if (part.UUID != this.m_rootPart.UUID)
@@ -517,7 +511,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<ScenePresence> RequestSceneAvatars()
         {
-           return m_scene.RequestAvatarList();
+            return m_scene.RequestAvatarList();
         }
     }
 }
