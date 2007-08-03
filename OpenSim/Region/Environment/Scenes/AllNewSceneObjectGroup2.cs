@@ -47,6 +47,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        public AllNewSceneObjectGroup2()
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public AllNewSceneObjectGroup2(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = regionHandle;
@@ -62,7 +70,70 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void FlagGroupForFullUpdate()
+        /// <returns></returns>
+        public new AllNewSceneObjectGroup2 Copy()
+        {
+            AllNewSceneObjectGroup2 dupe = (AllNewSceneObjectGroup2) this.MemberwiseClone();
+            dupe.Pos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
+            dupe.CopyRootPart(this.m_rootPart);
+
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                if (part.UUID != this.m_rootPart.UUID)
+                {
+                    dupe.CopyPart(part);
+                }
+            }
+            return dupe;
+        }
+
+        public void CopyRootPart(AllNewSceneObjectPart2 part)
+        {
+
+        }
+
+        public void CopyPart(AllNewSceneObjectPart2 part)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void Update()
+        {
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                part.SendScheduledUpdates();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ScheduleGroupForFullUpdate()
+        {
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                part.ScheduleFullUpdate();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ScheduleGroupForTerseUpdate()
+        {
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                part.ScheduleTerseUpdate();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ScheduleGroupFullUpdate()
         {
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
@@ -73,7 +144,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void FlagGroupForTerseUpdate()
+        public void SendGroupTerseUpdate()
         {
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
@@ -177,6 +248,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
             this.Pos = pos;
+            this.m_rootPart.SendTerseUpdateToALLClients();
         }
 
         /// <summary>

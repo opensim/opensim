@@ -253,6 +253,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Constructors
         /// <summary>
+        /// 
+        /// </summary>
+        public AllNewSceneObjectPart2()
+        {
+
+        }
+
+        /// <summary>
         /// Create a completely new SceneObjectPart (prim)
         /// </summary>
         /// <param name="regionHandle"></param>
@@ -315,6 +323,29 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Copying
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public AllNewSceneObjectPart2 Copy(Scene scene)
+        {
+            AllNewSceneObjectPart2 dupe =(AllNewSceneObjectPart2) this.MemberwiseClone();
+            dupe.m_Shape = m_Shape.Copy();
+            dupe.m_regionHandle = m_regionHandle;
+            uint newLocalID = scene.PrimIDAllocate();
+            dupe.UUID = LLUUID.Random();
+            dupe.LocalID = newLocalID;
+            dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
+            dupe.RotationOffset = new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
+            dupe.Velocity = new LLVector3(0, 0, 0);
+            dupe.Acceleration = new LLVector3(0, 0, 0);
+            dupe.AngularVelocity = new LLVector3(0, 0, 0);
+            dupe.ObjectFlags = this.ObjectFlags;
+            return dupe;
+        }
+        #endregion
+
         #region Update Scheduling
         /// <summary>
         /// 
@@ -327,7 +358,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        private void ScheduleFullUpdate()
+        public void ScheduleFullUpdate()
         {
             m_updateFlag = 2;
         }
@@ -335,7 +366,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        private void ScheduleTerseUpdate()
+        public void ScheduleTerseUpdate()
         {
             if (m_updateFlag < 1)
             {
