@@ -67,6 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.SetPartAsRoot(newPart);
         }
 
+        #region Copying
         /// <summary>
         /// 
         /// </summary>
@@ -75,8 +76,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             AllNewSceneObjectGroup2 dupe = (AllNewSceneObjectGroup2) this.MemberwiseClone();
             dupe.Pos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
-            dupe.CopyRootPart(this.m_rootPart);
+            dupe.m_scene = m_scene;
+            dupe.m_regionHandle = this.m_regionHandle;
 
+            dupe.CopyRootPart(this.m_rootPart);
+           
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
                 if (part.UUID != this.m_rootPart.UUID)
@@ -89,13 +93,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void CopyRootPart(AllNewSceneObjectPart2 part)
         {
-
+            AllNewSceneObjectPart2 newPart = part.Copy(m_scene);
+            this.m_parts.Add(newPart.UUID, newPart);
+            this.SetPartAsRoot(newPart);
         }
 
         public void CopyPart(AllNewSceneObjectPart2 part)
         {
-
+            AllNewSceneObjectPart2 newPart = part.Copy(m_scene);
+            this.m_parts.Add(newPart.UUID, newPart);
+            newPart.ParentID = this.m_rootPart.LocalID;
         }
+        #endregion
 
         /// <summary>
         /// 
@@ -133,7 +142,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void ScheduleGroupFullUpdate()
+        public void SendGroupFullUpdate()
         {
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
