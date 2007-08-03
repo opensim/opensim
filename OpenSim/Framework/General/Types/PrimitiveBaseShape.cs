@@ -3,23 +3,23 @@ using libsecondlife.Packets;
 
 namespace OpenSim.Framework.Types
 {
-    public enum ShapeType
-    {
-        Box,
-        Sphere,
-        Ring,
-        Tube,
-        Torus,
-        Prism,
-        Scuplted,
-        Cylinder,
-        Foliage,
-        Unknown
-    }
+    //public enum ShapeType
+    //{
+    //    Box,
+    //    Sphere,
+    //    Ring,
+    //    Tube,
+    //    Torus,
+    //    Prism,
+    //    Scuplted,
+    //    Cylinder,
+    //    Foliage,
+    //    Unknown
+    //}
 
     public class PrimitiveBaseShape
     {
-        protected ShapeType type = ShapeType.Unknown;
+        //protected ShapeType m_type = ShapeType.Unknown;
 
         public byte PCode;
         public ushort PathBegin;
@@ -44,13 +44,13 @@ namespace OpenSim.Framework.Types
         public byte[] TextureEntry; // a LL textureEntry in byte[] format
         public byte[] ExtraParams;
 
-        public ShapeType PrimType
-        {
-            get
-            {
-                return this.type;
-            }
-        }
+        //public ShapeType PrimType
+        //{
+        //    get
+        //    {
+        //        return this.m_type;
+        //    }
+        //}
 
         public LLVector3 PrimScale
         {
@@ -79,10 +79,12 @@ namespace OpenSim.Framework.Types
 
     public class BoxShape : PrimitiveBaseShape
     {
-        public BoxShape()
+        public BoxShape() : base()
         {
-            type = ShapeType.Box;
-            ExtraParams = new byte[1];
+            //m_type = ShapeType.Box;
+            PathCurve = 16;
+            ProfileCurve = 1;
+            PCode = 9;
         }
 
         public static BoxShape Default
@@ -92,7 +94,6 @@ namespace OpenSim.Framework.Types
                 BoxShape primShape = new BoxShape();
 
                 primShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-                primShape.PCode = 9;
                 primShape.PathBegin = 0;
                 primShape.PathEnd = 0;
                 primShape.PathScaleX = 0;
@@ -102,8 +103,6 @@ namespace OpenSim.Framework.Types
                 primShape.PathSkew = 0;
                 primShape.ProfileBegin = 0;
                 primShape.ProfileEnd = 0;
-                primShape.PathCurve = 16;
-                primShape.ProfileCurve = 1;
                 primShape.ProfileHollow = 0;
                 primShape.PathRadiusOffset = 0;
                 primShape.PathRevolutions = 0;
@@ -113,19 +112,9 @@ namespace OpenSim.Framework.Types
                 primShape.PathTwistBegin = 0;
                 LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
                 primShape.TextureEntry = ntex.ToBytes();
-                primShape.ExtraParams = new byte[1];
 
                 return primShape;
             }
-        }
-    }
-
-    public class SphereShape : PrimitiveBaseShape
-    {
-        public SphereShape()
-        {
-            type = ShapeType.Sphere;
-            ExtraParams = new byte[1];
         }
     }
 }
