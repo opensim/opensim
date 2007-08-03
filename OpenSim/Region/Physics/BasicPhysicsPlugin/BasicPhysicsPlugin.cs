@@ -103,20 +103,20 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
                 if (actor.Position.Y < 0)
                 {
-                    actor.Position.Y = 0;
+                    actor.Position.Y = 0.1F;
                 }
-                else if (actor.Position.Y > 256)
+                else if (actor.Position.Y >= 256)
                 {
-                    actor.Position.Y = 256;
+                    actor.Position.Y = 255.9F;
                 }
 
                 if (actor.Position.X < 0)
                 {
-                    actor.Position.X = 0;
+                    actor.Position.X = 0.1F;
                 }
                 else if (actor.Position.X > 256)
                 {
-                    actor.Position.X = 256;
+                    actor.Position.X = 255.9F;
                 }
 
                 float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.2f;

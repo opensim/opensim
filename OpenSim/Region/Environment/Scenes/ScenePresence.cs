@@ -550,7 +550,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 pos2 = this.Pos;
             LLVector3 vel = this.Velocity;
 
-            float timeStep = 0.2f;
+            float timeStep = 0.1f;
             pos2.X = pos2.X + (vel.X * timeStep);
             pos2.Y = pos2.Y + (vel.Y * timeStep);
             pos2.Z = pos2.Z + (vel.Z * timeStep);
@@ -576,25 +576,25 @@ namespace OpenSim.Region.Environment.Scenes
             uint neighbourx = this.m_regionInfo.RegionLocX;
             uint neighboury = this.m_regionInfo.RegionLocY;
 
-            if (pos.X < 3)
+            if (pos.X < 1)
             {
                 neighbourx -= 1;
-                newpos.X = 254;
+                newpos.X = 255.9F;
             }
-            if (pos.X > 252)
+            if (pos.X > 255)
             {
                 neighbourx += 1;
-                newpos.X = 1;
+                newpos.X = 0.1F;
             }
-            if (pos.Y < 3)
+            if (pos.Y < 1)
             {
                 neighboury -= 1;
-                newpos.Y = 254;
+                newpos.Y = 255.9F;
             }
-            if (pos.Y > 252)
+            if (pos.Y > 255)
             {
                 neighboury += 1;
-                newpos.Y = 1;
+                newpos.Y = 0.1F;
             }
 
             LLVector3 vel = this.m_velocity;
