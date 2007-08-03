@@ -166,7 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
             {
-                part.SendTerseUpdateToALLClients();
+                part.SendTerseUpdateToAllClients();
             }
         }
 
@@ -266,7 +266,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
             this.Pos = pos;
-            this.m_rootPart.SendTerseUpdateToALLClients();
+            this.m_rootPart.SendTerseUpdateToAllClients();
         }
 
         /// <summary>

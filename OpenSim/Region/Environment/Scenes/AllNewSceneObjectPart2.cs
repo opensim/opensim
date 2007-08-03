@@ -27,7 +27,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint EveryoneMask = FULL_MASK_PERMISSIONS;
         public uint BaseMask = FULL_MASK_PERMISSIONS;
 
-        protected PrimitiveBaseShape m_Shape;
+        protected PrimitiveBaseShape m_shape;
         protected byte[] m_particleSystem = new byte[0];
 
         protected AllNewSceneObjectGroup2 m_parentGroup;
@@ -230,11 +230,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                return this.m_Shape;
+                return this.m_shape;
             }
             set
             {
-                m_Shape = value;
+                m_shape = value;
             }
         }
 
@@ -242,11 +242,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             set
             {
-                this.m_Shape.Scale = value;
+                this.m_shape.Scale = value;
             }
             get
             {
-                return this.m_Shape.Scale;
+                return this.m_shape.Scale;
             }
         }
         #endregion
@@ -280,7 +280,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.LastOwnerID = LLUUID.Zero;
             this.UUID = LLUUID.Random();
             this.LocalID = (uint)(localID);
-            this.m_Shape = shape;
+            this.m_shape = shape;
 
             this.OffsetPosition = position;
             this.RotationOffset = LLQuaternion.Identity;
@@ -315,7 +315,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.LastOwnerID = lastOwnerID;
             this.UUID = LLUUID.Random();
             this.LocalID = (uint)(localID);
-            this.m_Shape = shape;
+            this.m_shape = shape;
 
             this.OffsetPosition = position;
             this.RotationOffset = rotation;
@@ -331,7 +331,7 @@ namespace OpenSim.Region.Environment.Scenes
         public AllNewSceneObjectPart2 Copy(Scene scene)
         {
             AllNewSceneObjectPart2 dupe =(AllNewSceneObjectPart2) this.MemberwiseClone();
-            dupe.m_Shape = m_Shape.Copy();
+            dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             uint newLocalID = scene.PrimIDAllocate();
             dupe.UUID = LLUUID.Random();
@@ -381,7 +381,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_updateFlag == 1) //some change has been made so update the clients
             {
-                SendTerseUpdateToALLClients();
+                SendTerseUpdateToAllClients();
                 ClearUpdateSchedule();
             }
             else
@@ -402,24 +402,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
-            this.m_Shape.PathBegin = shapeBlock.PathBegin;
-            this.m_Shape.PathEnd = shapeBlock.PathEnd;
-            this.m_Shape.PathScaleX = shapeBlock.PathScaleX;
-            this.m_Shape.PathScaleY = shapeBlock.PathScaleY;
-            this.m_Shape.PathShearX = shapeBlock.PathShearX;
-            this.m_Shape.PathShearY = shapeBlock.PathShearY;
-            this.m_Shape.PathSkew = shapeBlock.PathSkew;
-            this.m_Shape.ProfileBegin = shapeBlock.ProfileBegin;
-            this.m_Shape.ProfileEnd = shapeBlock.ProfileEnd;
-            this.m_Shape.PathCurve = shapeBlock.PathCurve;
-            this.m_Shape.ProfileCurve = shapeBlock.ProfileCurve;
-            this.m_Shape.ProfileHollow = shapeBlock.ProfileHollow;
-            this.m_Shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
-            this.m_Shape.PathRevolutions = shapeBlock.PathRevolutions;
-            this.m_Shape.PathTaperX = shapeBlock.PathTaperX;
-            this.m_Shape.PathTaperY = shapeBlock.PathTaperY;
-            this.m_Shape.PathTwist = shapeBlock.PathTwist;
-            this.m_Shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+            this.m_shape.PathBegin = shapeBlock.PathBegin;
+            this.m_shape.PathEnd = shapeBlock.PathEnd;
+            this.m_shape.PathScaleX = shapeBlock.PathScaleX;
+            this.m_shape.PathScaleY = shapeBlock.PathScaleY;
+            this.m_shape.PathShearX = shapeBlock.PathShearX;
+            this.m_shape.PathShearY = shapeBlock.PathShearY;
+            this.m_shape.PathSkew = shapeBlock.PathSkew;
+            this.m_shape.ProfileBegin = shapeBlock.ProfileBegin;
+            this.m_shape.ProfileEnd = shapeBlock.ProfileEnd;
+            this.m_shape.PathCurve = shapeBlock.PathCurve;
+            this.m_shape.ProfileCurve = shapeBlock.ProfileCurve;
+            this.m_shape.ProfileHollow = shapeBlock.ProfileHollow;
+            this.m_shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
+            this.m_shape.PathRevolutions = shapeBlock.PathRevolutions;
+            this.m_shape.PathTaperX = shapeBlock.PathTaperX;
+            this.m_shape.PathTaperY = shapeBlock.PathTaperY;
+            this.m_shape.PathTwist = shapeBlock.PathTwist;
+            this.m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
         }
         #endregion
 
@@ -436,18 +436,18 @@ namespace OpenSim.Region.Environment.Scenes
         #region ExtraParams
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
-            this.m_Shape.ExtraParams = new byte[data.Length + 7];
+            this.m_shape.ExtraParams = new byte[data.Length + 7];
             int i = 0;
             uint length = (uint)data.Length;
-            this.m_Shape.ExtraParams[i++] = 1;
-            this.m_Shape.ExtraParams[i++] = (byte)(type % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
+            this.m_shape.ExtraParams[i++] = 1;
+            this.m_shape.ExtraParams[i++] = (byte)(type % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
 
-            this.m_Shape.ExtraParams[i++] = (byte)(length % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
-            Array.Copy(data, 0, this.m_Shape.ExtraParams, i, data.Length);
+            this.m_shape.ExtraParams[i++] = (byte)(length % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
+            Array.Copy(data, 0, this.m_shape.ExtraParams, i, data.Length);
 
             this.ScheduleFullUpdate();
         }
@@ -460,7 +460,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
-            this.m_Shape.TextureEntry = textureEntry;
+            this.m_shape.TextureEntry = textureEntry;
         }
         #endregion
 
@@ -497,7 +497,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="scale"></param>
         public void Resize(LLVector3 scale)
         {
-            this.m_Shape.Scale = scale;
+            this.m_shape.Scale = scale;
         }
         #endregion
 
@@ -525,14 +525,14 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion lRot;
             lRot = RotationOffset;
 
-            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_Shape, lPos, lRot, this.ObjectFlags, m_uuid,
+            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, lRot, this.ObjectFlags, m_uuid,
                                                OwnerID, m_text, ParentID, this.m_particleSystem);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SendTerseUpdateToALLClients()
+        public void SendTerseUpdateToAllClients()
         {
             List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
             for (int i = 0; i < avatars.Count; i++)
