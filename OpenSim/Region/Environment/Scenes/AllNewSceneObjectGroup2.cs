@@ -18,6 +18,9 @@ namespace OpenSim.Region.Environment.Scenes
         protected AllNewSceneObjectPart2 m_rootPart;
         protected Dictionary<LLUUID, AllNewSceneObjectPart2> m_parts = new Dictionary<LLUUID, AllNewSceneObjectPart2>();
 
+        protected ulong m_regionHandle;
+        protected Scene m_scene;
+
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
         /// <summary>
@@ -45,9 +48,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public AllNewSceneObjectGroup2()
+        public AllNewSceneObjectGroup2(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
+            m_regionHandle = regionHandle;
+            m_scene = world;
 
+            this.Pos = pos;
+            this.m_rootPart = new AllNewSceneObjectPart2(m_regionHandle, this, ownerID, localID, shape, pos);
+            this.m_parts.Add(this.m_rootPart.UUID, this.m_rootPart);
         }
 
         /// <summary>
@@ -142,6 +150,9 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void TriggerTainted()
         {
             if (OnPrimCountTainted != null)
@@ -194,6 +205,50 @@ namespace OpenSim.Region.Environment.Scenes
             client.OutPacket(proper);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="localID"></param>
+        public void GetInventory(IClientAPI remoteClient, uint localID)
+        {
+            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.GetInventory(remoteClient, localID);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="type"></param>
+        /// <param name="inUse"></param>
+        /// <param name="data"></param>
+        public void UpdateExtraParam(uint localID, ushort type, bool inUse, byte[] data)
+        {
+            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.UpdateExtraParam(type, inUse, data);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="textureEntry"></param>
+        public void UpdateTextureEntry(uint localID, byte[] textureEntry)
+        {
+            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.UpdateTextureEntry(textureEntry);
+            }
+        }
+
         #region Shape
         /// <summary>
         /// 
@@ -210,11 +265,20 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Position
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
         public void UpdateGroupPosition(LLVector3 pos)
         {
             this.m_pos = pos;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="localID"></param>
         public void UpdateSinglePosition(LLVector3 pos, uint localID)
         {
             AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
@@ -231,6 +295,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
         private void UpdateRootPosition(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
@@ -258,6 +326,10 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Roation
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rot"></param>
         public void UpdateGroupRotation(LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
@@ -274,6 +346,11 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_pos = pos;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rot"></param>
+        /// <param name="localID"></param>
         public void UpdateSingleRotation(LLQuaternion rot, uint localID)
         {
             AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
@@ -289,6 +366,11 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rot"></param>
         private void UpdateRootRotation(LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
@@ -310,6 +392,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
         #endregion
         /// <summary>
         /// 

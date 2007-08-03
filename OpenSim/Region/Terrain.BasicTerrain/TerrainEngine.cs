@@ -794,7 +794,7 @@ namespace OpenSim.Region.Terrain
             s.Close();
         }
 
-        /// <summary>
+        /// <summary> 
         /// Outputs to a LL compatible RAW in the most efficient manner possible
         /// </summary>
         /// <remarks>Does not calculate the revert map</remarks>

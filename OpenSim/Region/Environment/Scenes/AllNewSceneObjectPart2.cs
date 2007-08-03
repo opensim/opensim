@@ -252,6 +252,15 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a completely new SceneObjectPart (prim)
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="parent"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="localID"></param>
+        /// <param name="shape"></param>
+        /// <param name="position"></param>
         public AllNewSceneObjectPart2(ulong regionHandle, AllNewSceneObjectGroup2 parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 position)
         {
             this.m_regionHandle = regionHandle;
@@ -266,12 +275,43 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_Shape = shape;
 
             this.OffsetPosition = position;
+            this.RotationOffset = LLQuaternion.Identity;
+            this.Velocity = new LLVector3(0, 0, 0);
+            this.AngularVelocity = new LLVector3(0, 0, 0);
+            this.Acceleration = new LLVector3(0, 0, 0);
 
             //temporary code just so the m_flags field doesn't give a compiler warning
             if (m_flags ==LLObject.ObjectFlags.AllowInventoryDrop)
             {
 
             }
+        }
+
+        /// <summary>
+        /// Recreate a SceneObjectPart (prim)
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="parent"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="localID"></param>
+        /// <param name="shape"></param>
+        /// <param name="position"></param>
+        public AllNewSceneObjectPart2(ulong regionHandle, AllNewSceneObjectGroup2 parent, int creationDate, LLUUID ownerID, LLUUID creatorID, LLUUID lastOwnerID, uint localID, PrimitiveBaseShape shape, LLVector3 position, LLQuaternion rotation, uint flags)
+        {
+            this.m_regionHandle = regionHandle;
+            this.m_parentGroup = parent;
+
+            this.CreationDate = creationDate;
+            this.OwnerID = ownerID;
+            this.CreatorID = creatorID;
+            this.LastOwnerID = lastOwnerID;
+            this.UUID = LLUUID.Random();
+            this.LocalID = (uint)(localID);
+            this.m_Shape = shape;
+
+            this.OffsetPosition = position;
+            this.RotationOffset = rotation;
+            this.ObjectFlags = flags;
         }
         #endregion
 

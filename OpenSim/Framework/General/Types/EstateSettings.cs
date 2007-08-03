@@ -560,7 +560,6 @@ namespace OpenSim.Framework.Types
 
         public void loadConfigurationOptions()
         {
-           
             configMember.addConfigurationOption("billable_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "","0.0",true);
             configMember.addConfigurationOption("estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "","0",true);
             configMember.addConfigurationOption("parent_estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "", "0", true);
@@ -603,7 +602,6 @@ namespace OpenSim.Framework.Types
             configMember.addConfigurationOption("terrain_multiplier", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "60.0", true);
             configMember.addConfigurationOption("water_height", ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE, "", "20.0", true);
             configMember.addConfigurationOption("terrain_image_id", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "", "00000000-0000-0000-0000-000000000000", true);
-
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
