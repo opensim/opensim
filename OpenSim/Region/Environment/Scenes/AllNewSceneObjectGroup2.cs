@@ -19,7 +19,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected Dictionary<LLUUID, AllNewSceneObjectPart2> m_parts = new Dictionary<LLUUID, AllNewSceneObjectPart2>();
 
         protected ulong m_regionHandle;
-        protected Scene m_scene;
 
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
@@ -54,8 +53,10 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene = world;
 
             this.Pos = pos;
-            this.m_rootPart = new AllNewSceneObjectPart2(m_regionHandle, this, ownerID, localID, shape, pos);
-            this.m_parts.Add(this.m_rootPart.UUID, this.m_rootPart);
+            LLVector3 rootOffset = new LLVector3(0, 0, 0);
+            AllNewSceneObjectPart2 newPart = new AllNewSceneObjectPart2(m_regionHandle, this, ownerID, localID, shape, rootOffset);
+            this.m_parts.Add(newPart.UUID, newPart);
+            this.SetPartAsRoot(newPart);
         }
 
         /// <summary>
@@ -63,7 +64,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void FlagGroupForFullUpdate()
         {
-
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                part.SendFullUpdateToAllClients();
+            }
         }
 
         /// <summary>
@@ -71,7 +75,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void FlagGroupForTerseUpdate()
         {
-
+            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            {
+                part.SendTerseUpdateToALLClients();
+            }
         }
 
         /// <summary>
@@ -412,6 +419,15 @@ namespace OpenSim.Region.Environment.Scenes
         private void SetPartAsNonRoot(AllNewSceneObjectPart2 part)
         {
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public List<ScenePresence> RequestSceneAvatars()
+        {
+           return m_scene.RequestAvatarList();
         }
     }
 }

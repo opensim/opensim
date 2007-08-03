@@ -316,21 +316,50 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Update Scheduling
+        /// <summary>
+        /// 
+        /// </summary>
         private void ClearUpdateSchedule()
         {
             m_updateFlag = 0;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void ScheduleFullUpdate()
         {
             m_updateFlag = 2;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void ScheduleTerseUpdate()
         {
             if (m_updateFlag < 1)
             {
                 m_updateFlag = 1;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SendScheduledUpdates()
+        {
+            if (m_updateFlag == 1) //some change has been made so update the clients
+            {
+                SendTerseUpdateToALLClients();
+                ClearUpdateSchedule();
+            }
+            else
+            {
+                if (m_updateFlag == 2) // is a new prim just been created/reloaded or has major changes
+                {
+                    SendFullUpdateToAllClients();
+                    ClearUpdateSchedule();
+                }
             }
         }
         #endregion
@@ -389,7 +418,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_Shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
             Array.Copy(data, 0, this.m_Shape.ExtraParams, i, data.Length);
 
-            //this.ScheduleFullUpdate();
+            this.ScheduleFullUpdate();
         }
         #endregion
 
@@ -445,6 +474,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        public void SendFullUpdateToAllClients()
+        {
+            List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                SendFullUpdateToClient(avatars[i].ControllingClient);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="remoteClient"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
@@ -455,6 +496,18 @@ namespace OpenSim.Region.Environment.Scenes
 
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_Shape, lPos, lRot, this.ObjectFlags, m_uuid,
                                                OwnerID, m_text, ParentID, this.m_particleSystem);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SendTerseUpdateToALLClients()
+        {
+            List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                SendTerseUpdateToClient(avatars[i].ControllingClient);
+            }
         }
 
         /// <summary>
