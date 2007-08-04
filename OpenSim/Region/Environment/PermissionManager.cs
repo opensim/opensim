@@ -20,6 +20,15 @@ namespace OpenSim.Region.Environment
             m_scene = world;
         }
 
+        public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
+        public event OnPermissionErrorDelegate OnPermissionError;
+
+        protected virtual void SendPermissionError(LLUUID user, string reason)
+        {
+            if (OnPermissionError != null)
+                OnPermissionError(user, reason);
+        }
+
         protected virtual bool IsAdministrator(LLUUID user)
         {
             return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
@@ -101,6 +110,37 @@ namespace OpenSim.Region.Environment
         }
 
         public virtual bool CanTerraform(LLUUID user, LLUUID position)
+        {
+            return false;
+        }
+
+        public virtual bool CanEditEstateSettings(LLUUID user)
+        {
+            // Default: deny
+            bool canEdit = false;
+
+            // Estate admins should be able to use estate tools
+            if (IsEstateManager(user))
+                canEdit = true;
+
+            // Administrators always have permission
+            if (IsAdministrator(user))
+                canEdit = true;
+
+            return canEdit;
+        }
+
+        public virtual bool CanEditParcel(LLUUID user, Land parcel)
+        {
+            return false;
+        }
+
+        public virtual bool CanSellParcel(LLUUID user, Land parcel)
+        {
+            return false;
+        }
+
+        public virtual bool CanAbandonParcel(LLUUID user, Land parcel)
         {
             return false;
         }

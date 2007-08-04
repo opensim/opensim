@@ -70,9 +70,8 @@ namespace OpenSim.Region.Environment
         /// <param name="corner">Which corner</param>
         /// <param name="lowValue">Minimum height that texture range should cover</param>
         /// <param name="highValue">Maximum height that texture range should cover</param>
-        public void setEstateTextureRange(UInt16 corner, float lowValue, float highValue)
+        public void setEstateTextureRange(Int16 corner, float lowValue, float highValue)
         {
-
             switch (corner)
             {
                 case 0:
@@ -99,7 +98,7 @@ namespace OpenSim.Region.Environment
         /// </summary>
         /// <param name="band">Which texture band</param>
         /// <param name="textureUUID">The UUID of the texture</param>
-        public void setTerrainTexture(UInt16 band, LLUUID textureUUID)
+        public void setTerrainTexture(Int16 band, LLUUID textureUUID)
         {
             switch (band)
             {
@@ -265,7 +264,7 @@ namespace OpenSim.Region.Environment
                 if (splitField.Length == 3)
                 {
 
-                    UInt16 corner = Convert.ToInt16(splitField[0]);
+                    Int16 corner = Convert.ToInt16(splitField[0]);
                     float lowValue = (float)Convert.ToDecimal(splitField[1]);
                     float highValue = (float)Convert.ToDecimal(splitField[2]);
 
@@ -283,7 +282,7 @@ namespace OpenSim.Region.Environment
                 string[] splitField = s.Split(' ');
                 if (splitField.Length == 2)
                 {
-                    UInt16 corner = Convert.ToInt16(splitField[0]);
+                    Int16 corner = Convert.ToInt16(splitField[0]);
                     LLUUID textureUUID = new LLUUID(splitField[1]);
 
                     setTerrainTexture(corner, textureUUID);
