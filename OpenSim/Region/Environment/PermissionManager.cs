@@ -44,6 +44,44 @@ namespace OpenSim.Region.Environment
             return true;
         }
 
+
+        #region Object Permissions
+
+        protected virtual bool GenericObjectPermission(LLUUID user, LLUUID obj)
+        {
+            // Default: deny
+            bool permission = false;
+
+            // If it's not an object, we cant edit it.
+            if (!(m_scene.Entities[obj] is SceneObject))
+                return false;
+
+            SceneObject task = (SceneObject)m_scene.Entities[obj];
+            LLUUID taskOwner = null; // Since we dont have a 'owner' property on task yet
+
+            // Object owners should be able to edit their own content
+            if (user == taskOwner)
+                permission = true;
+
+            // Users should be able to edit what is over their land.
+            if (m_scene.LandManager.getLandObject(task.Pos.X, task.Pos.Y).landData.ownerID == user)
+                permission = true;
+
+            // Estate users should be able to edit anything in the sim
+            if (IsEstateManager(user))
+                permission = true;
+
+            // Admin objects should not be editable by the above
+            if (IsAdministrator(taskOwner))
+                permission = false;
+
+            // Admin should be able to edit anything in the sim (including admin objects)
+            if (IsAdministrator(user))
+                permission = true;
+
+            return permission;
+        }
+
         /// <summary>
         /// Permissions check - can user delete an object?
         /// </summary>
@@ -52,45 +90,20 @@ namespace OpenSim.Region.Environment
         /// <returns>Has permission?</returns>
         public virtual bool CanDeRezObject(LLUUID user, LLUUID obj)
         {
-            // Default: deny
-            bool canDeRez = false;
-
-            // If it's not an object, we cant derez it.
-            if (!(m_scene.Entities[obj] is SceneObject))
-                return false;
-
-            SceneObject task = (SceneObject)m_scene.Entities[obj];
-            LLUUID taskOwner = null; // Since we dont have a 'owner' property on task yet
-
-            // Object owners should be able to delete their own content
-            if (user == taskOwner)
-                canDeRez = true;
-
-            // Users should be able to delete what is over their land.
-            if (m_scene.LandManager.getLandObject(task.Pos.X, task.Pos.Y).landData.ownerID == user)
-                canDeRez = true;
-
-            // Estate users should be able to delete anything in the sim
-            if (IsEstateManager(user))
-                canDeRez = true;
-
-            // Admin objects should not be deletable by the above
-            if (IsAdministrator(taskOwner))
-                canDeRez = false;
-
-            // Admin should be able to delete anything in the sim (including admin objects)
-            if (IsAdministrator(user))
-                canDeRez = true;
-
-            return canDeRez;
+            return GenericObjectPermission(user, obj);
         }
 
         public virtual bool CanEditObject(LLUUID user, LLUUID obj)
         {
-            // Permissions for editing fall into the same category as deleting
-            // May need to add check for "no-mod" items.
-            return CanDeRezObject(user, obj);
+            return GenericObjectPermission(user, obj);
         }
+
+        public virtual bool CanReturnObject(LLUUID user, LLUUID obj)
+        {
+            return GenericObjectPermission(user, obj);
+        }
+
+        #endregion
 
         public virtual bool CanEditScript(LLUUID user, LLUUID script)
         {
@@ -102,47 +115,75 @@ namespace OpenSim.Region.Environment
             return false;
         }
 
-        public virtual bool CanReturnObject(LLUUID user, LLUUID obj)
-        {
-            // Same category as deleting, but eventually will need seperate check
-            // as sometimes it's better to allow returning only.
-            return CanDeRezObject(user, obj);
-        }
-
         public virtual bool CanTerraform(LLUUID user, LLUUID position)
         {
             return false;
         }
 
-        public virtual bool CanEditEstateSettings(LLUUID user)
+        #region Estate Permissions
+
+        protected virtual bool GenericEstatePermission(LLUUID user)
         {
             // Default: deny
-            bool canEdit = false;
+            bool permission = false;
 
             // Estate admins should be able to use estate tools
             if (IsEstateManager(user))
-                canEdit = true;
+                permission = true;
 
             // Administrators always have permission
             if (IsAdministrator(user))
-                canEdit = true;
+                permission = true;
 
-            return canEdit;
+            return permission;
+        }
+
+        public virtual bool CanEditEstateTerrain(LLUUID user)
+        {
+            return GenericEstatePermission(user);
+        }
+
+        #endregion
+
+        #region Parcel Permissions
+
+        protected virtual bool GenericParcelPermission(LLUUID user, Land parcel)
+        {
+            bool permission = false;
+
+            if (parcel.landData.ownerID == user)
+                permission = true;
+
+            if (parcel.landData.isGroupOwned)
+            {
+                // TODO: Need to do some extra checks here. Requires group code.
+            }
+
+            if(IsEstateManager(user))
+                permission = true;
+
+            if (IsAdministrator(user))
+                permission = true;
+
+            return permission;
         }
 
         public virtual bool CanEditParcel(LLUUID user, Land parcel)
         {
-            return false;
+            return GenericParcelPermission(user, parcel);
         }
 
         public virtual bool CanSellParcel(LLUUID user, Land parcel)
         {
-            return false;
+            return GenericParcelPermission(user, parcel);
         }
 
         public virtual bool CanAbandonParcel(LLUUID user, Land parcel)
         {
-            return false;
+            return GenericParcelPermission(user, parcel);
         }
+
+        #endregion
+
     }
 }
