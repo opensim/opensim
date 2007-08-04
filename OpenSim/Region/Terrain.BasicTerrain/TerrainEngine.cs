@@ -162,7 +162,7 @@ namespace OpenSim.Region.Terrain
 
             for (i = 0; i < w * h; i++)
             {
-                heights[i] = (float)heightmap.map[i / w, i % w];
+                heights[i] = (float)heightmap.map[i % w, i / w];
             }
 
             return heights;
