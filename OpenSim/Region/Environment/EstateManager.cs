@@ -72,171 +72,195 @@ namespace OpenSim.Region.Environment
                 {
                     case "getinfo":
                         this.sendRegionInfoPacketToAll();
-
                         break;
                     case "setregioninfo":
-                        if (packet.ParamList.Length != 9)
-                        {
-                            MainLog.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
-                        }
-                        else
-                        {
-                            m_regInfo.estateSettings.regionFlags = Simulator.RegionFlags.None;
-
-                            if (convertParamStringToBool(packet.ParamList[0].Parameter))
-                            {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.BlockTerraform;
-                            }
-
-                            if (convertParamStringToBool(packet.ParamList[1].Parameter))
-                            {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.NoFly;
-                            }
-
-                            if (convertParamStringToBool(packet.ParamList[2].Parameter))
-                            {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.AllowDamage;
-                            }
-
-                            if (convertParamStringToBool(packet.ParamList[3].Parameter) == false)
-                            {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.BlockLandResell;
-                            }
-
-
-                            int tempMaxAgents = Convert.ToInt16(Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[4].Parameter)));
-                            m_regInfo.estateSettings.maxAgents = (byte)tempMaxAgents;
-
-                            float tempObjectBonusFactor = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
-                            m_regInfo.estateSettings.objectBonusFactor = tempObjectBonusFactor;
-
-                            int tempMatureLevel = Convert.ToInt16(Helpers.FieldToUTF8String(packet.ParamList[6].Parameter));
-                            m_regInfo.estateSettings.simAccess = (Simulator.SimAccess)tempMatureLevel;
-                            
-
-                            if (convertParamStringToBool(packet.ParamList[7].Parameter))
-                            {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.RestrictPushObject;
-                            }
-
-                            if (convertParamStringToBool(packet.ParamList[8].Parameter))
-                            {
-                                m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.AllowParcelChanges;
-                            }
-
-                            sendRegionInfoPacketToAll();
-                            
-                        }
+                        estateSetRegionInfoHandler(packet);
                         break;
                     case "texturebase":
-                        foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
-                        {
-                            string s = Helpers.FieldToUTF8String(block.Parameter);
-                            string[] splitField = s.Split(' ');
-                            if (splitField.Length == 2)
-                            {
-                                LLUUID tempUUID = new LLUUID(splitField[1]);
-                                switch (Convert.ToInt16(splitField[0]))
-                                {
-                                    case 0:
-                                        m_regInfo.estateSettings.terrainBase0 = tempUUID;
-                                        break;
-                                    case 1:
-                                        m_regInfo.estateSettings.terrainBase1 = tempUUID;
-                                        break;
-                                    case 2:
-                                        m_regInfo.estateSettings.terrainBase2 = tempUUID;
-                                        break;
-                                    case 3:
-                                        m_regInfo.estateSettings.terrainBase3 = tempUUID;
-                                        break;
-                                }
-                            }
-                        }
+                        estateTextureBaseHandler(packet);
                         break;
                     case "texturedetail":
-                        foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
-                        {
-
-                            string s = Helpers.FieldToUTF8String(block.Parameter);
-                            string[] splitField = s.Split(' ');
-                            if (splitField.Length == 2)
-                            {
-                                LLUUID tempUUID = new LLUUID(splitField[1]);
-                                switch (Convert.ToInt16(splitField[0]))
-                                {
-                                    case 0:
-                                        m_regInfo.estateSettings.terrainDetail0 = tempUUID;
-                                        break;
-                                    case 1:
-                                        m_regInfo.estateSettings.terrainDetail1 = tempUUID;
-                                        break;
-                                    case 2:
-                                        m_regInfo.estateSettings.terrainDetail2 = tempUUID;
-                                        break;
-                                    case 3:
-                                        m_regInfo.estateSettings.terrainDetail3 = tempUUID;
-                                        break;
-                                }
-                            }
-                        }
+                        estateTextureDetailHandler(packet);
                         break;
                     case "textureheights":
-                        foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
-                        {
-
-                            string s = Helpers.FieldToUTF8String(block.Parameter);
-                            string[] splitField = s.Split(' ');
-                            if (splitField.Length == 3)
-                            {
-
-                                float tempHeightLow = (float)Convert.ToDecimal(splitField[1]);
-                                float tempHeightHigh = (float)Convert.ToDecimal(splitField[2]);
-
-                                switch (Convert.ToInt16(splitField[0]))
-                                {
-                                    case 0:
-                                        m_regInfo.estateSettings.terrainStartHeight0 = tempHeightLow;
-                                        m_regInfo.estateSettings.terrainHeightRange0 = tempHeightHigh;
-                                        break;
-                                    case 1:
-                                        m_regInfo.estateSettings.terrainStartHeight1 = tempHeightLow;
-                                        m_regInfo.estateSettings.terrainHeightRange1 = tempHeightHigh;
-                                        break;
-                                    case 2:
-                                        m_regInfo.estateSettings.terrainStartHeight2 = tempHeightLow;
-                                        m_regInfo.estateSettings.terrainHeightRange2 = tempHeightHigh;
-                                        break;
-                                    case 3:
-                                        m_regInfo.estateSettings.terrainStartHeight3 = tempHeightLow;
-                                        m_regInfo.estateSettings.terrainHeightRange3 = tempHeightHigh;
-                                        break;
-                                }
-                            }
-                        }
+                        estateTextureHeightsHandler(packet);
                         break;
                     case "texturecommit":
                         sendRegionHandshakeToAll();
                         break;
                     case "setregionterrain":
-                        if (packet.ParamList.Length != 9)
-                        {
-                            MainLog.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
-                        }
-                        else
-                        {
-                            m_regInfo.estateSettings.waterHeight = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
-                            m_regInfo.estateSettings.terrainRaiseLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
-                            m_regInfo.estateSettings.terrainLowerLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
-                            m_regInfo.estateSettings.useFixedSun = this.convertParamStringToBool(packet.ParamList[4].Parameter);
-                            m_regInfo.estateSettings.sunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
-
-                            sendRegionInfoPacketToAll();
-                        }
+                        estateSetRegionTerrainHandler(packet);
                         break;
                     default:
                         MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                         break;
+                }
+            }
+        }
+
+        private void estateSetRegionInfoHandler(EstateOwnerMessagePacket packet)
+        {
+            if (packet.ParamList.Length != 9)
+            {
+                MainLog.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
+            }
+            else
+            {
+                m_regInfo.estateSettings.regionFlags = Simulator.RegionFlags.None;
+
+                if (convertParamStringToBool(packet.ParamList[0].Parameter))
+                {
+                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.BlockTerraform;
+                }
+
+                if (convertParamStringToBool(packet.ParamList[1].Parameter))
+                {
+                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.NoFly;
+                }
+
+                if (convertParamStringToBool(packet.ParamList[2].Parameter))
+                {
+                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.AllowDamage;
+                }
+
+                if (convertParamStringToBool(packet.ParamList[3].Parameter) == false)
+                {
+                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.BlockLandResell;
+                }
+
+
+                int tempMaxAgents = Convert.ToInt16(Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[4].Parameter)));
+                m_regInfo.estateSettings.maxAgents = (byte)tempMaxAgents;
+
+                float tempObjectBonusFactor = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+                m_regInfo.estateSettings.objectBonusFactor = tempObjectBonusFactor;
+
+                int tempMatureLevel = Convert.ToInt16(Helpers.FieldToUTF8String(packet.ParamList[6].Parameter));
+                m_regInfo.estateSettings.simAccess = (Simulator.SimAccess)tempMatureLevel;
+
+
+                if (convertParamStringToBool(packet.ParamList[7].Parameter))
+                {
+                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.RestrictPushObject;
+                }
+
+                if (convertParamStringToBool(packet.ParamList[8].Parameter))
+                {
+                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags | Simulator.RegionFlags.AllowParcelChanges;
+                }
+
+                sendRegionInfoPacketToAll();
+
+            }
+        }
+
+        private void estateSetRegionTerrainHandler(EstateOwnerMessagePacket packet)
+        {
+            if (packet.ParamList.Length != 9)
+            {
+                MainLog.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
+            }
+            else
+            {
+                m_regInfo.estateSettings.waterHeight = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
+                m_regInfo.estateSettings.terrainRaiseLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
+                m_regInfo.estateSettings.terrainLowerLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
+                m_regInfo.estateSettings.useFixedSun = this.convertParamStringToBool(packet.ParamList[4].Parameter);
+                m_regInfo.estateSettings.sunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+
+                sendRegionInfoPacketToAll();
+            }
+        }
+
+        private void estateTextureHeightsHandler(EstateOwnerMessagePacket packet)
+        {
+            foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
+            {
+
+                string s = Helpers.FieldToUTF8String(block.Parameter);
+                string[] splitField = s.Split(' ');
+                if (splitField.Length == 3)
+                {
+
+                    float tempHeightLow = (float)Convert.ToDecimal(splitField[1]);
+                    float tempHeightHigh = (float)Convert.ToDecimal(splitField[2]);
+
+                    switch (Convert.ToInt16(splitField[0]))
+                    {
+                        case 0:
+                            m_regInfo.estateSettings.terrainStartHeight0 = tempHeightLow;
+                            m_regInfo.estateSettings.terrainHeightRange0 = tempHeightHigh;
+                            break;
+                        case 1:
+                            m_regInfo.estateSettings.terrainStartHeight1 = tempHeightLow;
+                            m_regInfo.estateSettings.terrainHeightRange1 = tempHeightHigh;
+                            break;
+                        case 2:
+                            m_regInfo.estateSettings.terrainStartHeight2 = tempHeightLow;
+                            m_regInfo.estateSettings.terrainHeightRange2 = tempHeightHigh;
+                            break;
+                        case 3:
+                            m_regInfo.estateSettings.terrainStartHeight3 = tempHeightLow;
+                            m_regInfo.estateSettings.terrainHeightRange3 = tempHeightHigh;
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void estateTextureDetailHandler(EstateOwnerMessagePacket packet)
+        {
+            foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
+            {
+
+                string s = Helpers.FieldToUTF8String(block.Parameter);
+                string[] splitField = s.Split(' ');
+                if (splitField.Length == 2)
+                {
+                    LLUUID tempUUID = new LLUUID(splitField[1]);
+                    switch (Convert.ToInt16(splitField[0]))
+                    {
+                        case 0:
+                            m_regInfo.estateSettings.terrainDetail0 = tempUUID;
+                            break;
+                        case 1:
+                            m_regInfo.estateSettings.terrainDetail1 = tempUUID;
+                            break;
+                        case 2:
+                            m_regInfo.estateSettings.terrainDetail2 = tempUUID;
+                            break;
+                        case 3:
+                            m_regInfo.estateSettings.terrainDetail3 = tempUUID;
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void estateTextureBaseHandler(EstateOwnerMessagePacket packet)
+        {
+            foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
+            {
+                string s = Helpers.FieldToUTF8String(block.Parameter);
+                string[] splitField = s.Split(' ');
+                if (splitField.Length == 2)
+                {
+                    LLUUID tempUUID = new LLUUID(splitField[1]);
+                    switch (Convert.ToInt16(splitField[0]))
+                    {
+                        case 0:
+                            m_regInfo.estateSettings.terrainBase0 = tempUUID;
+                            break;
+                        case 1:
+                            m_regInfo.estateSettings.terrainBase1 = tempUUID;
+                            break;
+                        case 2:
+                            m_regInfo.estateSettings.terrainBase2 = tempUUID;
+                            break;
+                        case 3:
+                            m_regInfo.estateSettings.terrainBase3 = tempUUID;
+                            break;
+                    }
                 }
             }
         }
