@@ -64,6 +64,88 @@ namespace OpenSim.Region.Environment
             return false;
         }
 
+        /// <summary>
+        /// Sets terrain texture heights for each of the four corners of the region - textures are distributed as a linear range between the two heights.
+        /// </summary>
+        /// <param name="corner">Which corner</param>
+        /// <param name="lowValue">Minimum height that texture range should cover</param>
+        /// <param name="highValue">Maximum height that texture range should cover</param>
+        public void setEstateTextureRange(UInt16 corner, float lowValue, float highValue)
+        {
+
+            switch (corner)
+            {
+                case 0:
+                    m_regInfo.estateSettings.terrainStartHeight0 = lowValue;
+                    m_regInfo.estateSettings.terrainHeightRange0 = highValue;
+                    break;
+                case 1:
+                    m_regInfo.estateSettings.terrainStartHeight1 = lowValue;
+                    m_regInfo.estateSettings.terrainHeightRange1 = highValue;
+                    break;
+                case 2:
+                    m_regInfo.estateSettings.terrainStartHeight2 = lowValue;
+                    m_regInfo.estateSettings.terrainHeightRange2 = highValue;
+                    break;
+                case 3:
+                    m_regInfo.estateSettings.terrainStartHeight3 = lowValue;
+                    m_regInfo.estateSettings.terrainHeightRange3 = highValue;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Sets the 'detail' terrain texture on each of the bands.
+        /// </summary>
+        /// <param name="band">Which texture band</param>
+        /// <param name="textureUUID">The UUID of the texture</param>
+        public void setTerrainTexture(UInt16 band, LLUUID textureUUID)
+        {
+            switch (band)
+            {
+                case 0:
+                    m_regInfo.estateSettings.terrainDetail0 = textureUUID;
+                    break;
+                case 1:
+                    m_regInfo.estateSettings.terrainDetail1 = textureUUID;
+                    break;
+                case 2:
+                    m_regInfo.estateSettings.terrainDetail2 = textureUUID;
+                    break;
+                case 3:
+                    m_regInfo.estateSettings.terrainDetail3 = textureUUID;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Sets common region settings
+        /// </summary>
+        /// <param name="WaterHeight">Water height of the waterplane (may not nessecarily be one value)</param>
+        /// <param name="TerrainRaiseLimit">Maximum amount terrain can be raised from previous baking</param>
+        /// <param name="TerrainLowerLimit">Minimum amount terrain can be lowered from previous baking</param>
+        /// <param name="UseFixedSun">Use a fixed time of day on the sun?</param>
+        /// <param name="SunHour">The offset hour of the day</param>
+        public void setRegionSettings(float WaterHeight, float TerrainRaiseLimit, float TerrainLowerLimit, bool UseFixedSun, float SunHour)
+        {
+            // Water Height
+            m_regInfo.estateSettings.waterHeight = WaterHeight;
+            m_scene.Terrain.watermap.Fill(WaterHeight);
+
+            // Terraforming limits
+            m_regInfo.estateSettings.terrainRaiseLimit = TerrainRaiseLimit;
+            m_regInfo.estateSettings.terrainLowerLimit = TerrainLowerLimit;
+            m_scene.Terrain.maxRaise = TerrainRaiseLimit;
+            m_scene.Terrain.minLower = TerrainLowerLimit;
+
+            // Time of day / fixed sun
+            m_regInfo.estateSettings.useFixedSun = UseFixedSun;
+            m_regInfo.estateSettings.sunHour = SunHour;
+        }
+
+        #region Packet Handlers
+
+
         public void handleEstateOwnerMessage(EstateOwnerMessagePacket packet, IClientAPI remote_client)
         {
             if (remote_client.AgentId == m_regInfo.MasterAvatarAssignedUUID)
@@ -162,11 +244,13 @@ namespace OpenSim.Region.Environment
             }
             else
             {
-                m_regInfo.estateSettings.waterHeight = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
-                m_regInfo.estateSettings.terrainRaiseLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
-                m_regInfo.estateSettings.terrainLowerLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
-                m_regInfo.estateSettings.useFixedSun = this.convertParamStringToBool(packet.ParamList[4].Parameter);
-                m_regInfo.estateSettings.sunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+                float WaterHeight = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
+                float TerrainRaiseLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
+                float TerrainLowerLimit = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
+                bool UseFixedSun = this.convertParamStringToBool(packet.ParamList[4].Parameter);
+                float SunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+
+                setRegionSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseFixedSun, SunHour);
 
                 sendRegionInfoPacketToAll();
             }
@@ -176,34 +260,16 @@ namespace OpenSim.Region.Environment
         {
             foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
             {
-
                 string s = Helpers.FieldToUTF8String(block.Parameter);
                 string[] splitField = s.Split(' ');
                 if (splitField.Length == 3)
                 {
 
-                    float tempHeightLow = (float)Convert.ToDecimal(splitField[1]);
-                    float tempHeightHigh = (float)Convert.ToDecimal(splitField[2]);
+                    UInt16 corner = Convert.ToInt16(splitField[0]);
+                    float lowValue = (float)Convert.ToDecimal(splitField[1]);
+                    float highValue = (float)Convert.ToDecimal(splitField[2]);
 
-                    switch (Convert.ToInt16(splitField[0]))
-                    {
-                        case 0:
-                            m_regInfo.estateSettings.terrainStartHeight0 = tempHeightLow;
-                            m_regInfo.estateSettings.terrainHeightRange0 = tempHeightHigh;
-                            break;
-                        case 1:
-                            m_regInfo.estateSettings.terrainStartHeight1 = tempHeightLow;
-                            m_regInfo.estateSettings.terrainHeightRange1 = tempHeightHigh;
-                            break;
-                        case 2:
-                            m_regInfo.estateSettings.terrainStartHeight2 = tempHeightLow;
-                            m_regInfo.estateSettings.terrainHeightRange2 = tempHeightHigh;
-                            break;
-                        case 3:
-                            m_regInfo.estateSettings.terrainStartHeight3 = tempHeightLow;
-                            m_regInfo.estateSettings.terrainHeightRange3 = tempHeightHigh;
-                            break;
-                    }
+                    setEstateTextureRange(corner, lowValue, highValue);
                 }
             }
         }
@@ -217,22 +283,10 @@ namespace OpenSim.Region.Environment
                 string[] splitField = s.Split(' ');
                 if (splitField.Length == 2)
                 {
-                    LLUUID tempUUID = new LLUUID(splitField[1]);
-                    switch (Convert.ToInt16(splitField[0]))
-                    {
-                        case 0:
-                            m_regInfo.estateSettings.terrainDetail0 = tempUUID;
-                            break;
-                        case 1:
-                            m_regInfo.estateSettings.terrainDetail1 = tempUUID;
-                            break;
-                        case 2:
-                            m_regInfo.estateSettings.terrainDetail2 = tempUUID;
-                            break;
-                        case 3:
-                            m_regInfo.estateSettings.terrainDetail3 = tempUUID;
-                            break;
-                    }
+                    UInt16 corner = Convert.ToInt16(splitField[0]);
+                    LLUUID textureUUID = new LLUUID(splitField[1]);
+
+                    setTerrainTexture(corner, textureUUID);
                 }
             }
         }
@@ -264,6 +318,10 @@ namespace OpenSim.Region.Environment
                 }
             }
         }
+
+        #endregion
+
+        #region Outgoing Packets
 
         public void sendRegionInfoPacketToAll()
         {
@@ -318,6 +376,8 @@ namespace OpenSim.Region.Environment
         {
             remoteClient.SendRegionHandshake(m_regInfo);
         }
+
+        #endregion
 
     }
 }
