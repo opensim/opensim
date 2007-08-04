@@ -29,6 +29,7 @@
 using System;
 using System.IO;
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -39,7 +40,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Configuration;
 using OpenSim.Physics.Manager;
- 
+
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
@@ -57,7 +58,6 @@ namespace OpenSim
     {
         public string m_physicsEngine;
         public bool m_sandbox;
-        public bool m_loginserver;
         public bool user_accounts;
         public bool m_gridLocalAsset;
         protected bool m_useConfigFile;
@@ -70,18 +70,37 @@ namespace OpenSim
         private bool m_silent;
         private string m_logFilename = ("region-console-" + Guid.NewGuid().ToString() + ".log");
 
-        public OpenSimMain(bool sandBoxMode, bool startLoginServer, string physicsEngineName, bool useConfigFile, bool silent, string configFileName)
-        :base( )
+        public OpenSimMain(IConfigSource configSource)
+            : base()
         {
-            m_useConfigFile = useConfigFile;
-            m_sandbox = sandBoxMode;
-            m_loginserver = startLoginServer;
-            m_physicsEngine = physicsEngineName;
-            m_configFileName = configFileName;
-            m_silent = silent;
+            IConfigSource startupSource = configSource;
+            string iniFile = startupSource.Configs["Startup"].GetString("inifile", "NA");
+            if (iniFile != "NA")
+            {
+                //a ini is set to be used for startup settings
+                string iniFilePath = Path.Combine(Util.configDir(), iniFile);
+                if (File.Exists(iniFilePath))
+                {
+                    startupSource = new IniConfigSource(iniFilePath);
+
+                    //enable follow line, if we want the original config source(normally commandline args) merged with ini file settings.
+                    //in this case we have it so if both sources have the same named setting, command line value will overwrite the ini file value. 
+                    //(as if someone has bothered to enter a command line arg, we should take notice of it)
+                    //startupSource.Merge(configSource); 
+                }
+            }
+            ReadConfigSettings(startupSource);
         }
 
-        
+        protected void ReadConfigSettings(IConfigSource configSource)
+        {
+            m_useConfigFile = configSource.Configs["Startup"].GetBoolean("configfile", false);
+            m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
+            m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
+            m_configFileName = configSource.Configs["Startup"].GetString("config", "simconfig.xml");
+            m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
+        }
+
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -91,7 +110,7 @@ namespace OpenSim
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_log = new LogBase(Path.Combine(Util.logDir(),m_logFilename), "Region", this, m_silent);
+            m_log = new LogBase(Path.Combine(Util.logDir(), m_logFilename), "Region", this, m_silent);
             MainLog.Instance = m_log;
 
             base.StartUp();
@@ -103,11 +122,11 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                m_commsManager = new CommunicationsLocal( m_networkServersInfo, m_httpServer, m_assetCache);
+                m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
             }
             else
             {
-                m_commsManager = new CommunicationsOGS1( m_networkServersInfo, m_httpServer , m_assetCache);
+                m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
             }
 
 
@@ -129,15 +148,15 @@ namespace OpenSim
 
             for (int i = 0; i < configFiles.Length; i++)
             {
-                Console.WriteLine("Loading region config file");
+                //Console.WriteLine("Loading region config file");
                 RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i]);
-                
+
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
-                
+
                 m_localScenes.Add(scene);
-                
-                
+
+
                 m_udpServers.Add(udpServer);
                 m_regionData.Add(regionInfo);
             }
@@ -148,7 +167,7 @@ namespace OpenSim
                 this.m_udpServers[i].ServerListener();
             }
 
-            
+
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
@@ -160,10 +179,10 @@ namespace OpenSim
         {
             return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer);
         }
-        
+
         protected override void Initialize()
         {
-            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", Path.Combine(Util.configDir(),"network_servers_information.xml"));
+            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", Path.Combine(Util.configDir(), "network_servers_information.xml"));
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
@@ -174,15 +193,15 @@ namespace OpenSim
             {
                 Directory.CreateDirectory(Util.logDir());
             }
- 
-            return new LogBase((Path.Combine(Util.logDir(),m_logFilename)), "Region", this, m_silent);
+
+            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, m_silent);
         }
 
         # region Setup methods
 
-        protected override PhysicsScene GetPhysicsScene( )
+        protected override PhysicsScene GetPhysicsScene()
         {
-            return GetPhysicsScene( m_physicsEngine );
+            return GetPhysicsScene(m_physicsEngine);
         }
 
         private class SimStatusHandler : IStreamHandler
@@ -201,7 +220,7 @@ namespace OpenSim
             {
                 get { return "GET"; }
             }
-            
+
             public string Path
             {
                 get { return "/simstatus/"; }

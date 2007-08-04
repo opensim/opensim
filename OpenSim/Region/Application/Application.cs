@@ -28,6 +28,7 @@
 using System;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim
 {
@@ -52,70 +53,16 @@ namespace OpenSim
             
             Console.WriteLine("Starting...\n");
 
-            bool sandBoxMode = true;
-            bool startLoginServer = true;
-            string physicsEngine = "basicphysics";
+            ArgvConfigSource source = new ArgvConfigSource(args);
 
-            bool userAccounts = false;
-            bool gridLocalAsset = false;
-            bool useConfigFile = false;
-            bool silent = false;
-            string configFile = "simconfig.xml";
-            
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] == "-gridmode")
-                {
-                    sandBoxMode = false;
-                    startLoginServer = false;
-                }
+            source.AddSwitch("Startup", "inifile");
+            source.AddSwitch("Startup", "configfile");
+            source.AddSwitch("Startup", "gridmode");
+            source.AddSwitch("Startup", "physics");
+            source.AddSwitch("Startup", "config");
+            source.AddSwitch("Startup", "noverbose");
 
-                if (args[i] == "-accounts")
-                {
-                    userAccounts = true;
-                }
-                if (args[i] == "-realphysx")
-                {
-                    physicsEngine = "RealPhysX";
-                }
-                if (args[i] == "-bulletX")
-                {
-                    physicsEngine = "BulletXEngine";
-                }
-                if (args[i] == "-ode")
-                {
-                    physicsEngine = "OpenDynamicsEngine";
-                }
-                if (args[i] == "-localasset")
-                {
-                    gridLocalAsset = true;
-                }
-                if (args[i] == "-configfile")
-                {
-                    useConfigFile = true;
-                }
-                if (args[i] == "-noverbose")
-                {
-                    silent = true;
-                }
-                if (args[i] == "-config")
-                {
-                    try
-                    {
-                        i++;
-                        configFile = args[i];
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("-config: Please specify a config file. (" + e.ToString() + ")");
-                    }
-                }
-            }
-
-            OpenSimMain sim = new OpenSimMain(sandBoxMode, startLoginServer, physicsEngine, useConfigFile, silent, configFile);
-
-            sim.user_accounts = userAccounts;
-            sim.m_gridLocalAsset = gridLocalAsset;
+            OpenSimMain sim = new OpenSimMain(source);
 
             sim.StartUp();
 

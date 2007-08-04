@@ -666,7 +666,7 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.UserManagement" />
       <Reference name="OpenSim.Region.Communications.Local"/>
-
+      <Reference name="Nini.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

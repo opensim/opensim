@@ -94,16 +94,24 @@ namespace OpenSim.Region.Environment.Scenes
             return dupe;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="part"></param>
         public void CopyRootPart(AllNewSceneObjectPart2 part)
         {
-            AllNewSceneObjectPart2 newPart = part.Copy(m_scene);
+            AllNewSceneObjectPart2 newPart = part.Copy(m_scene.PrimIDAllocate());
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="part"></param>
         public void CopyPart(AllNewSceneObjectPart2 part)
         {
-            AllNewSceneObjectPart2 newPart = part.Copy(m_scene);
+            AllNewSceneObjectPart2 newPart = part.Copy(m_scene.PrimIDAllocate());
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsNonRoot(newPart);
         }

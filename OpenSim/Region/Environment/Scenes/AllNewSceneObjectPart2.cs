@@ -27,7 +27,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint EveryoneMask = FULL_MASK_PERMISSIONS;
         public uint BaseMask = FULL_MASK_PERMISSIONS;
 
-        protected PrimitiveBaseShape m_shape;
+       
         protected byte[] m_particleSystem = new byte[0];
 
         protected AllNewSceneObjectGroup2 m_parentGroup;
@@ -54,9 +54,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected string m_name;
-        /// <summary>
-        /// 
-        /// </summary>
         public virtual string Name
         {
             get { return m_name; }
@@ -154,9 +151,9 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_touchName = value; }
         }
 
+        protected PrimitiveBaseShape m_shape;
         public PrimitiveBaseShape Shape
         {
-
             get { return this.m_shape; }
             set { m_shape = value; }
         }
@@ -245,14 +242,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public AllNewSceneObjectPart2 Copy(Scene scene)
+        public AllNewSceneObjectPart2 Copy(uint localID)
         {
             AllNewSceneObjectPart2 dupe = (AllNewSceneObjectPart2)this.MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
-            uint newLocalID = scene.PrimIDAllocate();
             dupe.UUID = LLUUID.Random();
-            dupe.LocalID = newLocalID;
+            dupe.LocalID = localID;
             dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
             dupe.RotationOffset = new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
             dupe.Velocity = new LLVector3(0, 0, 0);
@@ -303,7 +299,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                if (m_updateFlag == 2) // is a new prim just been created/reloaded or has major changes
+                if (m_updateFlag == 2) // is a new prim, just created/reloaded or has major changes
                 {
                     SendFullUpdateToAllClients();
                     ClearUpdateSchedule();

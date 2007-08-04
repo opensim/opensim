@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment
                 return false;
 
             SceneObject task = (SceneObject)m_scene.Entities[obj];
-            LLUUID taskOwner = null; // Since we dont have a 'owner' property on task yet
+            LLUUID taskOwner = task.rootPrimitive.OwnerID;
 
             // Object owners should be able to edit their own content
             if (user == taskOwner)
