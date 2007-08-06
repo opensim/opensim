@@ -155,7 +155,7 @@ namespace OpenSim.Region.Terrain
         /// Converts the heightmap to a 65536 value 1D floating point array
         /// </summary>
         /// <returns>A float[65536] array containing the heightmap</returns>
-        public float[] GetHeights1D()
+        public float[] GetHeights1DFixed()
         {
             float[] heights = new float[w * h];
             int i;
@@ -163,6 +163,23 @@ namespace OpenSim.Region.Terrain
             for (i = 0; i < w * h; i++)
             {
                 heights[i] = (float)heightmap.map[i % w, i / w];
+            }
+
+            return heights;
+        }
+
+        /// <summary>
+        /// Converts the heightmap to a 65536 value 1D floating point array
+        /// </summary>
+        /// <returns>A float[65536] array containing the heightmap</returns>
+        public float[] GetHeights1D()
+        {
+            float[] heights = new float[w * h];
+            int i;
+
+            for (i = 0; i < w * h; i++)
+            {
+                heights[i] = (float)heightmap.map[i / w, i % w];
             }
 
             return heights;
