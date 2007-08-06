@@ -12,9 +12,9 @@ namespace OpenSim.Region.Scripting.Examples
     {
         ScriptInfo script;
 
-        public string getName()
+        public string Name
         {
-            return "LSL Export Script 0.1";
+            get { return "LSL Export Script 0.1"; }
         }
 
         public void Initialise(ScriptInfo scriptInfo)

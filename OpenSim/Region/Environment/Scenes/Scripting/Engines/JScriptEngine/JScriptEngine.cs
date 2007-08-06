@@ -75,7 +75,7 @@ namespace OpenSim.Region.Scripting
                     {
                         IScript script = (IScript)compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
 
-                        string scriptName = "JS.NET/" + script.getName();
+                        string scriptName = "JS.NET/" + script.Name;
                         Console.WriteLine("Script: " + scriptName + " loaded.");
 
                         if (!scripts.ContainsKey(scriptName))

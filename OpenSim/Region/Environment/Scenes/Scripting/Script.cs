@@ -32,23 +32,23 @@ namespace OpenSim.Region.Scripting
     public interface IScript
     {
         void Initialise(ScriptInfo scriptInfo);
-        string getName();
+        string Name { get; }
     }
 
     public class TestScript : IScript
     {
         ScriptInfo script;
 
-        public string getName()
+        public string Name
         {
-            return "TestScript 0.1";
+            get { return "TestScript 0.1"; }
         }
 
         public void Initialise(ScriptInfo scriptInfo)
         {
             script = scriptInfo;
-            script.events.OnFrame += new EventManager.OnFrameDelegate(events_OnFrame);
-            script.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
+            script.events.OnFrame += events_OnFrame;
+            script.events.OnNewPresence += events_OnNewPresence;
         }
 
         void events_OnNewPresence(ScenePresence presence)

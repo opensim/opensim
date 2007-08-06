@@ -91,9 +91,9 @@ namespace OpenSim.Region.Scripting.EmbeddedJVM
             }
         }
 
-        public string getName()
+        public string Name
         {
-            return "JVM Scripting Engine";
+            get { return "JVM Scripting Engine"; }
         }
 
         public void LoadScript(string script)

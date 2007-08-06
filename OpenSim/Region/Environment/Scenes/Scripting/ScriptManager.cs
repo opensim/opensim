@@ -92,7 +92,7 @@ namespace OpenSim.Region.Scripting
 
         public void AddPreCompiledScript(IScript script)
         {
-            MainLog.Instance.Verbose("Loading script " + script.getName()); 
+            MainLog.Instance.Verbose("Loading script " + script.Name); 
             ScriptInfo scriptInfo = new ScriptInfo(scene); // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
             script.Initialise(scriptInfo);
             scripts.Add(script);

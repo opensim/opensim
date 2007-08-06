@@ -25,9 +25,9 @@ namespace OpenSim.Region.Scripting.LSL
             scriptInfo = info;
         }
 
-        public string getName()
+        public string Name
         {
-            return "LSL Script";
+            get { return "LSL Script"; }
         }
     }
 }
