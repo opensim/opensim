@@ -628,7 +628,7 @@ namespace OpenSim.Region.Terrain
             int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
             int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
 
-            double[,] tempMap = new double[dimensionY, dimensionX];
+            double[,] tempMap = new double[dimensionX, dimensionY];
 
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
