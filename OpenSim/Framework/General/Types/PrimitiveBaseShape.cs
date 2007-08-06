@@ -21,6 +21,9 @@ namespace OpenSim.Framework.Types
     {
         //protected ShapeType m_type = ShapeType.Unknown;
 
+
+        private static byte[] m_defaultTextureEntry;
+        
         public byte PCode;
         public ushort PathBegin;
         public ushort PathEnd;
@@ -60,9 +63,15 @@ namespace OpenSim.Framework.Types
             }
         }
 
+        static PrimitiveBaseShape()
+        {
+            m_defaultTextureEntry = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005")).ToBytes();
+        }
+        
         public PrimitiveBaseShape()
         {
             ExtraParams = new byte[1];
+            TextureEntry = m_defaultTextureEntry;
         }
 
         //void returns need to change of course
@@ -91,29 +100,15 @@ namespace OpenSim.Framework.Types
         {
             get
             {
-                BoxShape primShape = new BoxShape();
+                BoxShape boxShape = new BoxShape();
 
-                primShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-                primShape.PathBegin = 0;
-                primShape.PathEnd = 0;
-                primShape.PathScaleX = 0;
-                primShape.PathScaleY = 0;
-                primShape.PathShearX = 0;
-                primShape.PathShearY = 0;
-                primShape.PathSkew = 0;
-                primShape.ProfileBegin = 0;
-                primShape.ProfileEnd = 0;
-                primShape.ProfileHollow = 0;
-                primShape.PathRadiusOffset = 0;
-                primShape.PathRevolutions = 0;
-                primShape.PathTaperX = 0;
-                primShape.PathTaperY = 0;
-                primShape.PathTwist = 0;
-                primShape.PathTwistBegin = 0;
-                LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
-                primShape.TextureEntry = ntex.ToBytes();
+                boxShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
 
-                return primShape;
+                //boxShape.PathTaperX = 1;
+                //boxShape.PathTaperY = 1;
+                boxShape.PathSkew = 1;
+                
+                return boxShape;
             }
         }
     }

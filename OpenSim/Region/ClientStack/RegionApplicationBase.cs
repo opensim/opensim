@@ -41,6 +41,7 @@ using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Caches;
+using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -78,6 +79,7 @@ namespace OpenSim.Region.ClientStack
             m_httpServer.Start();
 
             m_inventoryCache = new InventoryCache();
+            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
         }
 
         protected abstract void Initialize();

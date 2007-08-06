@@ -35,8 +35,7 @@ namespace SimpleApp
 
             StartLog();
 
-            m_networkServersInfo = new NetworkServersInfo( );
-
+            m_networkServersInfo = new NetworkServersInfo( 1000, 1000 );
 
             LocalAssetServer assetServer = new LocalAssetServer();
             assetServer.SetServerInfo("http://localhost:8003/", "");
@@ -47,8 +46,6 @@ namespace SimpleApp
         public void Run()
         {
             base.StartUp();
-
-            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
 
             m_log.Notice(m_log.LineInfo);
             

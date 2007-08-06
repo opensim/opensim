@@ -120,30 +120,19 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
-            if (m_sandbox)
+            string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
+            
+            if (!Directory.Exists(regionConfigPath))
             {
-                m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
+                Directory.CreateDirectory(regionConfigPath);
             }
-            else
-            {
-                m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
-            }
-
-
-            string path = Path.Combine(Util.configDir(), "Regions");
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            string[] configFiles = Directory.GetFiles(path, "*.xml");
+            
+            string[] configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
 
             if (configFiles.Length == 0)
             {
-                string path2 = Path.Combine(Util.configDir(), "Regions");
-                string path3 = Path.Combine(path2, "default.xml");
-
-                RegionInfo regionInfo = new RegionInfo("DEFAULT REGION CONFIG", path3);
-                configFiles = Directory.GetFiles(path, "*.xml");
+                CreateDefaultRegionInfoXml(Path.Combine(regionConfigPath, "default.xml"));
+                configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
             for (int i = 0; i < configFiles.Length; i++)
@@ -156,7 +145,6 @@ namespace OpenSim
 
                 m_localScenes.Add(scene);
 
-
                 m_udpServers.Add(udpServer);
                 m_regionData.Add(regionInfo);
             }
@@ -168,6 +156,11 @@ namespace OpenSim
             }
 
 
+        }
+
+        private static void CreateDefaultRegionInfoXml(string fileName)
+        {
+            new RegionInfo("DEFAULT REGION CONFIG", fileName);
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)

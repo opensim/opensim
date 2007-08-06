@@ -16,10 +16,10 @@ namespace OpenSim.Region.Communications.Local
         private uint defaultHomeX ;
         private uint defaultHomeY;
 
-        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversData)
+        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo)
         {
             m_Parent = parent;
-            this.serversInfo = serversData;
+            this.serversInfo = serversInfo;
             defaultHomeX = this.serversInfo.DefaultHomeLocX;
             defaultHomeY = this.serversInfo.DefaultHomeLocY;
         }

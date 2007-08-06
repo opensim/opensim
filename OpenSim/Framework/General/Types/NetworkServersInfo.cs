@@ -45,9 +45,6 @@ namespace OpenSim.Framework.Types
         public string UserRecvKey = "";
         public bool isSandbox;
 
-        public uint DefaultHomeLocX = 0;
-        public uint DefaultHomeLocY = 0;
-
         public int HttpListenerPort = 9000;
         public int RemotingListenerPort = 8895;
 
@@ -59,9 +56,22 @@ namespace OpenSim.Framework.Types
             configMember.performConfigurationRetrieve();
         }
 
-        public NetworkServersInfo( )
+        public NetworkServersInfo( uint defaultHomeLocX, uint defaultHomeLocY )
         {
+            m_defaultHomeLocX = defaultHomeLocX;
+            m_defaultHomeLocY = defaultHomeLocY;
+        }
 
+        private uint? m_defaultHomeLocX;
+        public uint DefaultHomeLocX
+        {
+            get { return m_defaultHomeLocX.Value; }
+        }
+
+        private uint? m_defaultHomeLocY;
+        public uint DefaultHomeLocY
+        {
+            get { return m_defaultHomeLocY.Value; }
         }
 
         public void loadConfigurationOptions()
@@ -94,10 +104,10 @@ namespace OpenSim.Framework.Types
                     this.RemotingListenerPort = (int)configuration_object;
                     break;
                 case "DefaultLocationX":
-                    this.DefaultHomeLocX = (uint)configuration_object;
+                    this.m_defaultHomeLocX = (uint)configuration_object;
                     break;
                 case "DefaultLocationY":
-                    this.DefaultHomeLocY = (uint)configuration_object;
+                    this.m_defaultHomeLocY = (uint)configuration_object;
                     break;
                 case "GridServerURL":
                     this.GridURL = (string)configuration_object;
