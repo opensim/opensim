@@ -635,9 +635,9 @@ namespace OpenSim.Region.Terrain
             BinaryReader bs = new BinaryReader(s);
 
             int x, y;
-            for (y = 0; y < dimensionY; y++)
+            for (x = 0; x < dimensionX; x++)
             {
-                for (x = 0; x < dimensionX; x++)
+                for (y = 0; y < dimensionY; y++)
                 {
                     tempMap[x,y] = (double)bs.ReadSingle();
                 }
