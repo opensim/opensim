@@ -5,6 +5,7 @@
 -- Some type mappings
 -- LLUID => char(36) (in ascii hex format)
 -- uint => integer
+-- string => varchar(256) until such time as we know we need bigger
 
 create table prims (
         id integer primary key autoincrement, -- this.LocalID
@@ -12,6 +13,11 @@ create table prims (
         UUID char(36), -- this.UUID
         CreationDate integer, -- this.CreationDate
         Name varchar(256),
+        -- various text fields
+        Text varchar(256),
+        Description varchar(256),
+        SitName varchar(256),
+        TouchName 
         -- permissions
         CreatorID char(36),
         OwnerID char(36),
@@ -26,6 +32,15 @@ create table prims (
         PositionX float,
         PositionY float,
         PositionZ float,
+        VelocityX float,
+        VelocityY float,
+        VelocityZ float,
+        AngularVelocityX float,
+        AngularVelocityY float,
+        AngularVelocityZ float,
+        AccelerationX float,
+        AccelerationY float,
+        AccelerationZ float,
         -- quaternions (converted from LLQuaternion)
         RotationX float,
         RotationY float,
