@@ -1,14 +1,21 @@
 --
 -- Database schema for local prim storage
 --
+-- 
+-- Some type mappings
+-- LLUID => char(36) (in ascii hex format)
+-- uint => integer
 
 create table prims (
-        id integer primary key autoincrement,
-        ParentID integer default 0,
-        FullID char(36),
-        CreationDate integer, 
+        id integer primary key autoincrement, -- this.LocalID
+        ParentID integer default 0, -- this.ParentID
+        UUID char(36), -- this.UUID
+        CreationDate integer, -- this.CreationDate
+        Name varchar(256),
         -- permissions
+        CreatorID char(36),
         OwnerID char(36),
+        GroupID char(36),
         LastOwnerID char(36),
         OwnerMask integer,
         NextOwnerMask integer,
