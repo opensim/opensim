@@ -77,14 +77,14 @@ namespace OpenSim
             string iniFile = startupSource.Configs["Startup"].GetString("inifile", "NA");
             if (iniFile != "NA")
             {
-                //a ini is set to be used for startup settings
+                //a INI file is set to be used for startup settings
                 string iniFilePath = Path.Combine(Util.configDir(), iniFile);
                 if (File.Exists(iniFilePath))
                 {
                     startupSource = new IniConfigSource(iniFilePath);
 
                     //enable follow line, if we want the original config source(normally commandline args) merged with ini file settings.
-                    //in this case we have it so if both sources have the same named setting, command line value will overwrite the ini file value. 
+                    //in this case we have it so that if both sources have the same named setting, the command line value will overwrite the ini file value. 
                     //(as if someone has bothered to enter a command line arg, we should take notice of it)
                     //startupSource.Merge(configSource); 
                 }
@@ -119,6 +119,15 @@ namespace OpenSim
             if (!m_sandbox)
             {
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
+            }
+
+            if (m_sandbox)
+            {
+                m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
+            }
+            else
+            {
+                m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
             }
 
             string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
@@ -227,6 +236,7 @@ namespace OpenSim
         }
 
         #endregion
+
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>

@@ -53,16 +53,16 @@ namespace OpenSim
             
             Console.WriteLine("Starting...\n");
 
-            ArgvConfigSource source = new ArgvConfigSource(args);
+            ArgvConfigSource configSource = new ArgvConfigSource(args);
 
-            source.AddSwitch("Startup", "inifile");
-            source.AddSwitch("Startup", "configfile");
-            source.AddSwitch("Startup", "gridmode");
-            source.AddSwitch("Startup", "physics");
-            source.AddSwitch("Startup", "config");
-            source.AddSwitch("Startup", "noverbose");
+            configSource.AddSwitch("Startup", "inifile");
+            configSource.AddSwitch("Startup", "configfile");
+            configSource.AddSwitch("Startup", "gridmode");
+            configSource.AddSwitch("Startup", "physics");
+            configSource.AddSwitch("Startup", "config");
+            configSource.AddSwitch("Startup", "noverbose");
 
-            OpenSimMain sim = new OpenSimMain(source);
+            OpenSimMain sim = new OpenSimMain(configSource);
 
             sim.StartUp();
 
