@@ -17,6 +17,8 @@ namespace OpenSim.Framework.Types
     //    Unknown
     //}
 
+    
+    
     public class PrimitiveBaseShape
     {
         //protected ShapeType m_type = ShapeType.Unknown;
@@ -86,6 +88,25 @@ namespace OpenSim.Framework.Types
         }
     }
 
+    enum ProfileShape
+    {
+        Circle = 0,
+        Square = 1,
+        IsometricTriangle = 2,
+        EquilateralTriangle = 3,
+        RightTriangle = 4,
+        HalfCircle = 5        
+    }
+    
+    public class GenericShape : PrimitiveBaseShape
+    {
+        
+        public GenericShape() : base()
+        {
+            
+        }        
+    }
+    
     public class BoxShape : PrimitiveBaseShape
     {
         public BoxShape() : base()
