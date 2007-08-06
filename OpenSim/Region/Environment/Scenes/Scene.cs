@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Constructors
 
         /// <summary>
-        /// Creates a new World class, and a region to go with it.
+        /// Creates a new Scene class, and a region to go with it.
         /// </summary>
         /// <param name="clientThreads">Dictionary to contain client threads</param>
         /// <param name="regionHandle">Region Handle for this region</param>
@@ -198,7 +198,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Performs per-frame updates on the scene, this should be the central world loop
+        /// Performs per-frame updates on the scene, this should be the central scene loop
         /// </summary>
         public override void Update()
         {
@@ -232,7 +232,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // General purpose event manager
                 m_eventManager.TriggerOnFrame();
 
-                //backup world data
+                //backup scene data
                 storageCount++;
                 if (storageCount > 1200) //set to how often you want to backup 
                 {
@@ -293,9 +293,13 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            catch (NotImplementedException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("scene", "World.cs: Update() - Failed with exception " + e.ToString());
+                MainLog.Instance.Error("Scene", "Update() - Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
         }

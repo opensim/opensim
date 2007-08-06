@@ -57,10 +57,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public AllNewSceneObjectGroup2(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public AllNewSceneObjectGroup2(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = regionHandle;
-            m_scene = world;
+            m_scene = scene;
 
             this.Pos = pos;
             LLVector3 rootOffset = new LLVector3(0, 0, 0);

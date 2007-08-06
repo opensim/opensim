@@ -15,9 +15,9 @@ namespace OpenSim.Region.Environment
     {
         protected Scene m_scene;
 
-        public PermissionManager(Scene world)
+        public PermissionManager(Scene scene)
         {
-            m_scene = world;
+            m_scene = scene;
         }
 
         public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);

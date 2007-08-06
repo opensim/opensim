@@ -122,9 +122,9 @@ namespace OpenSim.Region.ClientStack
             
         }
 
-        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene world, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions)
+        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions)
         {
-            return new ClientView(remoteEP, initialcirpack, clientThreads, world, assetCache, packServer, inventoryCache, authenSessions );
+            return new ClientView(remoteEP, initialcirpack, clientThreads, scene, assetCache, packServer, inventoryCache, authenSessions );
         }
 
         /// <summary>

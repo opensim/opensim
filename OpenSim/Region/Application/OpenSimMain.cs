@@ -110,6 +110,7 @@ namespace OpenSim
             {
                 Directory.CreateDirectory(Util.logDir());
             }
+            
             m_log = new LogBase(Path.Combine(Util.logDir(), m_logFilename), "Region", this, m_silent);
             MainLog.Instance = m_log;
 
@@ -226,107 +227,6 @@ namespace OpenSim
         }
 
         #endregion
-
-        /*private void SetupFromConfigFile(IGenericConfig configData)
-        {
-            // Log filename
-            string attri = "";
-            attri = configData.GetAttribute("LogFilename");
-            if (String.IsNullOrEmpty(attri))
-            {
-            }
-            else
-            {
-                m_logFilename = attri;
-            }
-
-            // SandBoxMode
-            attri = "";
-            attri = configData.GetAttribute("SandBox");
-            if ((attri == "") || ((attri != "false") && (attri != "true")))
-            {
-                this.m_sandbox = false;
-                configData.SetAttribute("SandBox", "false");
-            }
-            else
-            {
-                this.m_sandbox = Convert.ToBoolean(attri);
-            }
-
-            // LoginServer
-            attri = "";
-            attri = configData.GetAttribute("LoginServer");
-            if ((attri == "") || ((attri != "false") && (attri != "true")))
-            {
-                this.m_loginserver = false;
-                configData.SetAttribute("LoginServer", "false");
-            }
-            else
-            {
-                this.m_loginserver = Convert.ToBoolean(attri);
-            }
-
-            // Sandbox User accounts
-            attri = "";
-            attri = configData.GetAttribute("UserAccount");
-            if ((attri == "") || ((attri != "false") && (attri != "true")))
-            {
-                this.user_accounts = false;
-                configData.SetAttribute("UserAccounts", "false");
-            }
-            else if (attri == "true")
-            {
-                this.user_accounts = Convert.ToBoolean(attri);
-            }
-
-            // Grid mode hack to use local asset server
-            attri = "";
-            attri = configData.GetAttribute("LocalAssets");
-            if ((attri == "") || ((attri != "false") && (attri != "true")))
-            {
-                this.m_gridLocalAsset = false;
-                configData.SetAttribute("LocalAssets", "false");
-            }
-            else if (attri == "true")
-            {
-                this.m_gridLocalAsset = Convert.ToBoolean(attri);
-            }
-
-            
-            attri = "";
-            attri = configData.GetAttribute("PhysicsEngine");
-            switch (attri)
-            {
-                default:
-                    throw new ArgumentException(String.Format( "Invalid value [{0}] for PhysicsEngine attribute, terminating", attri ) );
-
-                case "":
-                case "basicphysics":
-                    this.m_physicsEngine = "basicphysics";
-                    configData.SetAttribute("PhysicsEngine", "basicphysics");
-                    ScenePresence.PhysicsEngineFlying = false;
-                    break;
-
-                case "RealPhysX":
-                    this.m_physicsEngine = "RealPhysX";
-                    ScenePresence.PhysicsEngineFlying = true;
-                    break;
-
-                case "OpenDynamicsEngine":
-                    this.m_physicsEngine = "OpenDynamicsEngine";
-                    ScenePresence.PhysicsEngineFlying = true;
-                    break;
-
-                case "BulletXEngine":
-                    this.m_physicsEngine = "BulletXEngine";
-                    ScenePresence.PhysicsEngineFlying = true;
-                    break;
-            }
-
-            configData.Commit();
-
-        }*/
-
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>
@@ -339,7 +239,7 @@ namespace OpenSim
             m_log.Verbose("Closing console and terminating");
             for (int i = 0; i < m_localScenes.Count; i++)
             {
-                ((Scene)m_localScenes[i]).Close();
+                m_localScenes[i].Close();
             }
             m_log.Close();
             Environment.Exit(0);
