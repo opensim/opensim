@@ -299,7 +299,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Scene", "Update() - Failed with exception " + e.ToString());
+                MainLog.Instance.Error("Scene", "Failed with exception " + e.ToString());
             }
             updateLock.ReleaseMutex();
         }
@@ -346,7 +346,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("terrain", "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
+                MainLog.Instance.Error("terrain", "Failed with exception " + e.ToString());
             }
         }
 

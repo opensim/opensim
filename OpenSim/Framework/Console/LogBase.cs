@@ -177,7 +177,7 @@ namespace OpenSim.Framework.Console
         public void Error(string sender, string format, params object[] args)
         {
             WritePrefixLine(DeriveColor(sender), sender);
-            WriteNewLine(ConsoleColor.Red, format, args);
+            Error( format, args);
             return;
         }
 

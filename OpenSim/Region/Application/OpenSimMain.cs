@@ -277,32 +277,32 @@ namespace OpenSim
 
                 case "terrain":
                     string result = "";
-                    for (int i = 0; i < m_localScenes.Count; i++)
+                    foreach(Scene scene in m_localScenes)
                     {
-                        if (!((Scene)m_localScenes[i]).Terrain.RunTerrainCmd(cmdparams, ref result, m_localScenes[i].RegionInfo.RegionName))
+                        if (!scene.Terrain.RunTerrainCmd(cmdparams, ref result, scene.RegionInfo.RegionName))
                         {
                             m_log.Error(result);
                         }
                     }
                     break;
                 case "script":
-                    for (int i = 0; i < m_localScenes.Count; i++)
+                    foreach(Scene scene in m_localScenes )
                     {
-                        ((Scene)m_localScenes[i]).SendCommandToScripts(cmdparams);
+                        scene.SendCommandToScripts(cmdparams);
                     }
                     break;
 
                 case "backup":
-                    for (int i = 0; i < m_localScenes.Count; i++)
+                    foreach(Scene scene in m_localScenes )
                     {
-                        ((Scene)m_localScenes[i]).Backup();
+                        scene.Backup();
                     }
                     break;
 
                 case "alert":
-                    for (int i = 0; i < m_localScenes.Count; i++)
+                    foreach(Scene scene in m_localScenes)
                     {
-                        ((Scene)m_localScenes[i]).HandleAlertCommand(cmdparams);
+                        scene.HandleAlertCommand(cmdparams);
                     }
                     break;
 
@@ -333,12 +333,21 @@ namespace OpenSim
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
                     for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        foreach (Entity entity in m_localScenes[i].Entities.Values )
+                        Scene scene = m_localScenes[i];
+                        foreach (Entity entity in scene.Entities.Values )
                         {
                             if ( entity is ScenePresence )
                             {
                                 ScenePresence scenePrescence = entity as ScenePresence;
-                                m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", scenePrescence.Firstname, scenePrescence.Lastname, scenePrescence.UUID, scenePrescence.ControllingClient.AgentId, "Unknown", "Unknown"), ((Scene)m_localScenes[i]).RegionInfo.RegionName);
+                                m_log.Error(
+                                    String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", 
+                                                  scenePrescence.Firstname,
+                                                  scenePrescence.Lastname,
+                                                  scenePrescence.UUID, 
+                                                  scenePrescence.ControllingClient.AgentId,
+                                                  "Unknown", 
+                                                  "Unknown", 
+                                                  scene.RegionInfo.RegionName));
                             }
                         }
                     }
