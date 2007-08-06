@@ -53,7 +53,7 @@ namespace OpenSim.Region.Scripting
 
         void events_OnNewPresence(ScenePresence presence)
         {
-            script.logger.Verbose("Hello " + presence.firstname.ToString() + "!");
+            script.logger.Verbose("Hello " + presence.Firstname.ToString() + "!");
         }
 
         void events_OnFrame()

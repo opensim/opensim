@@ -43,8 +43,6 @@ namespace OpenSim.Region.Environment.Scenes
         public static bool PhysicsEngineFlying = false;
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
-        public string firstname;
-        public string lastname;
         public IClientAPI ControllingClient;
         public LLUUID current_anim;
         public int anim_seq;
@@ -69,7 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
 
-        private IScenePresenceBody m_body; 
+        private IScenePresenceBody m_body;
 
         private Vector3[] Dir_Vectors = new Vector3[6];
         private enum Dir_ControlFlags
@@ -117,10 +115,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-	public ulong RegionHandle
-	{
-	    get { return m_regionHandle; }
-	}
+        public ulong RegionHandle
+        {
+            get { return m_regionHandle; }
+        }
+
+        private string m_firstname;
+        public string Firstname
+        {
+            get { return m_firstname; }
+        }
+
+        private string m_lastname;
+        public string Lastname
+        {
+            get { return m_lastname; }
+        }
 
         #endregion
 
@@ -142,8 +152,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = reginfo.RegionHandle;
             MainLog.Instance.Verbose("Avatar.cs ");
             ControllingClient = theClient;
-            this.firstname = ControllingClient.FirstName;
-            this.lastname = ControllingClient.LastName;
+            this.m_firstname = ControllingClient.FirstName;
+            this.m_lastname = ControllingClient.LastName;
             m_localId = m_scene.NextLocalId;
             Pos = ControllingClient.StartPos;
 
@@ -166,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
-            
+
             Dir_Vectors[0] = new Vector3(1, 0, 0);  //FOWARD
             Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
             Dir_Vectors[2] = new Vector3(0, 1, 0);  //LEFT
@@ -312,7 +322,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         movementflag -= (byte)(uint)DCF;
                         update_movementflag = true;
-                      
+
                     }
                 }
                 i++;
@@ -399,7 +409,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 this.CheckForSignificantMovement();
                 this.CheckForBorderCrossing();
-                
+
             }
         }
         #endregion
@@ -434,7 +444,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
-            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
+            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
         }
 
         public void SendFullUpdateToALLClients()
@@ -456,15 +466,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.firstname, this.lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
+            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
             if (this.newAvatar)
             {
                 this.m_scene.InformClientOfNeighbours(this.ControllingClient);
                 this.newAvatar = false;
             }
 
-          // this.SendFullUpdateToALLClients();
-          //  this.SendArrearanceToAllOtherAgents();
+            // this.SendFullUpdateToALLClients();
+            //  this.SendArrearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -486,11 +496,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendArrearanceToAllOtherAgents()
         {
-             List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
-             foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
-             {
-                 this.SendAppearanceToOtherAgent(avatar);
-             }
+            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
+            {
+                this.SendAppearanceToOtherAgent(avatar);
+            }
         }
 
         /// <summary>
@@ -509,13 +519,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seq"></param>
         public void SendAnimPack(LLUUID animID, int seq)
         {
-	    this.current_anim = animID;
-	    this.anim_seq = seq;
-	    List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
-	    for (int i = 0; i < avatars.Count; i++)
-	    {
-	    	avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
-	    }
+            this.current_anim = animID;
+            this.anim_seq = seq;
+            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
+            }
         }
 
         /// <summary>
@@ -648,16 +658,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public static void CreateDefaultTextureEntry(string name)
         {
-           /* FileInfo fInfo = new FileInfo(name);
-            long numBytes = fInfo.Length;
-            FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
-            BinaryReader br = new BinaryReader(fStream);
-            byte[] data1 = br.ReadBytes((int)numBytes);
-            br.Close();
-            fStream.Close();
-            DefaultTexture = data1;
-            LLObject.TextureEntry textu = new LLObject.TextureEntry(data1, 0, data1.Length);
-            Console.WriteLine("default texture entry: " + textu.ToString());*/
+            /* FileInfo fInfo = new FileInfo(name);
+             long numBytes = fInfo.Length;
+             FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
+             BinaryReader br = new BinaryReader(fStream);
+             byte[] data1 = br.ReadBytes((int)numBytes);
+             br.Close();
+             fStream.Close();
+             DefaultTexture = data1;
+             LLObject.TextureEntry textu = new LLObject.TextureEntry(data1, 0, data1.Length);
+             Console.WriteLine("default texture entry: " + textu.ToString());*/
 
             LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
             textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");

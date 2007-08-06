@@ -963,7 +963,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (ScenePresence presence in this.Avatars.Values)
             {
-                if ((presence.firstname == firstName) && (presence.lastname == lastName))
+                if ((presence.Firstname == firstName) && (presence.Lastname == lastName))
                 {
                     presence.ControllingClient.SendAgentAlertMessage(message, modal);
                     break;

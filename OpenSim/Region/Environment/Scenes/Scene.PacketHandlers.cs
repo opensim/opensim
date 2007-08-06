@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Local sim message
                     ScenePresence fromAvatar = this.Avatars[fromAgentID];
                     ScenePresence toAvatar = this.Avatars[toAgentID];
-                    string fromName = fromAvatar.firstname + " " + fromAvatar.lastname;
+                    string fromName = fromAvatar.Firstname + " " + fromAvatar.Lastname;
                     toAvatar.ControllingClient.SendInstantMessage(message, toAgentID, fromName);
                 }
                 else
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 avatar = this.Avatars[fromAgentID];
                 fromPos = avatar.Pos;
-                fromName = avatar.firstname + " " + avatar.lastname;
+                fromName = avatar.Firstname + " " + avatar.Lastname;
                 avatar = null;
             }
 

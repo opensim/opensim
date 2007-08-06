@@ -65,7 +65,7 @@ namespace OpenSim
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
-        protected List<IScene> m_localScenes = new List<IScene>();
+        protected List<Scene> m_localScenes = new List<Scene>();
 
         private bool m_silent;
         private string m_logFilename = ("region-console-" + Guid.NewGuid().ToString() + ".log");
@@ -430,16 +430,15 @@ namespace OpenSim
                     m_log.Error("That is " + (DateTime.Now - m_startuptime).ToString());
                     break;
                 case "users":
-                    ScenePresence TempAv;
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
                     for (int i = 0; i < m_localScenes.Count; i++)
                     {
-                        foreach (libsecondlife.LLUUID UUID in ((Scene)m_localScenes[i]).Entities.Keys)
+                        foreach (Entity entity in m_localScenes[i].Entities.Values )
                         {
-                            if (((Scene)m_localScenes[i]).Entities[UUID].ToString() == "OpenSim.world.Avatar")
+                            if ( entity is ScenePresence )
                             {
-                                TempAv = (ScenePresence)((Scene)m_localScenes[i]).Entities[UUID];
-                                m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", TempAv.firstname, TempAv.lastname, UUID, TempAv.ControllingClient.AgentId, "Unknown", "Unknown"), ((Scene)m_localScenes[i]).RegionInfo.RegionName);
+                                ScenePresence scenePrescence = entity as ScenePresence;
+                                m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", scenePrescence.Firstname, scenePrescence.Lastname, scenePrescence.UUID, scenePrescence.ControllingClient.AgentId, "Unknown", "Unknown"), ((Scene)m_localScenes[i]).RegionInfo.RegionName);
                             }
                         }
                     }

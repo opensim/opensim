@@ -10,7 +10,7 @@ namespace OpenSim.Region.Scripting.LSL
     class LSLScript : IScript
     {
         ScriptInfo scriptInfo;
-        LSL.Engine lindenScriptEngine;
+        Engine lindenScriptEngine;
 
         public LSLScript(string filename, libsecondlife.LLUUID taskObject)
         {

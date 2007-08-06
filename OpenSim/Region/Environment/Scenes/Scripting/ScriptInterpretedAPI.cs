@@ -8,6 +8,7 @@ using LSLList = System.Collections.Generic.List<string>;
 
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.LandManagement;
+using libsecondlife;
 
 namespace OpenSim.Region.Scripting
 {
@@ -17,13 +18,13 @@ namespace OpenSim.Region.Scripting
     /// <remarks>Avoid at all costs. This should ONLY be used for LSL.</remarks>
     class ScriptInterpretedAPI
     {
-        protected libsecondlife.LLUUID m_object;
+        protected LLUUID m_object;
         protected Scene m_scene;
 
         /// <summary>
         /// The scene in which this script is acting
         /// </summary>
-        public Scene World
+        public Scene Scene
         {
             get { return m_scene; }
         }
@@ -41,7 +42,7 @@ namespace OpenSim.Region.Scripting
         /// </summary>
         public SceneObject Task
         {
-            get { return World.Objects[ObjectID]; }
+            get { return Scene.Objects[ObjectID]; }
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace OpenSim.Region.Scripting
         public void osAddToLandPassList(Key avatar, float hours)
         {
             Vector myPosition = Task.Pos;
-            Land myParcel = World.LandManager.getLandObject(myPosition.X, myPosition.Y);
+            Land myParcel = Scene.LandManager.getLandObject(myPosition.X, myPosition.Y);
 
             OpenSim.Framework.Console.MainLog.Instance.Warn("script", "Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
             return;
@@ -228,8 +229,8 @@ namespace OpenSim.Region.Scripting
 
         public void osCreateLink(Key target, int parent)
         {
-            if(World.Entities[target] is SceneObject)
-                Task.AddNewChildPrims((SceneObject)World.Entities[target]);
+            if(Scene.Entities[target] is SceneObject)
+                Task.AddNewChildPrims((SceneObject)Scene.Entities[target]);
 
             return;
         }
