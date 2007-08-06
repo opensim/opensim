@@ -155,23 +155,6 @@ namespace OpenSim.Region.Terrain
         /// Converts the heightmap to a 65536 value 1D floating point array
         /// </summary>
         /// <returns>A float[65536] array containing the heightmap</returns>
-        public float[] GetHeights1DFixed()
-        {
-            float[] heights = new float[w * h];
-            int i;
-
-            for (i = 0; i < w * h; i++)
-            {
-                heights[i] = (float)heightmap.map[i % w, i / w];
-            }
-
-            return heights;
-        }
-
-        /// <summary>
-        /// Converts the heightmap to a 65536 value 1D floating point array
-        /// </summary>
-        /// <returns>A float[65536] array containing the heightmap</returns>
         public float[] GetHeights1D()
         {
             float[] heights = new float[w * h];
@@ -179,7 +162,7 @@ namespace OpenSim.Region.Terrain
 
             for (i = 0; i < w * h; i++)
             {
-                heights[i] = (float)heightmap.map[i / w, i % w];
+                heights[i] = (float)heightmap.map[i % w, i / w];
             }
 
             return heights;
@@ -221,7 +204,7 @@ namespace OpenSim.Region.Terrain
             int i;
             for (i = 0; i < w * h; i++)
             {
-                heightmap.map[i / w, i % w] = heights[i];
+                heightmap.map[i % w, i / w] = heights[i];
             }
 
             tainted++;
@@ -593,9 +576,9 @@ namespace OpenSim.Region.Terrain
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
             int x, y;
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < h; x++)
                 {
                     heightmap.map[x, y] = bs.ReadDouble();
                 }
@@ -618,9 +601,9 @@ namespace OpenSim.Region.Terrain
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
             int x, y;
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
                     heightmap.map[x, y] = (double)bs.ReadSingle();
                 }
@@ -652,19 +635,19 @@ namespace OpenSim.Region.Terrain
             BinaryReader bs = new BinaryReader(s);
 
             int x, y;
-            for (x = 0; x < dimensionX; x++)
+            for (y = 0; y < dimensionY; y++)
             {
-                for (y = 0; y < dimensionY; y++)
+                for (x = 0; x < dimensionX; x++)
                 {
-                    tempMap[y,x] = (double)bs.ReadSingle();
+                    tempMap[x,y] = (double)bs.ReadSingle();
                 }
             }
 
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
-                    heightmap.Set(x, y, tempMap[x + sectionToLoadY, y + sectionToLoadX]);
+                    heightmap.Set(x, y, tempMap[x + sectionToLoadX, y + sectionToLoadY]);
                 }
             }
 
@@ -685,9 +668,9 @@ namespace OpenSim.Region.Terrain
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
             int x, y;
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
                     heightmap.map[x, y] = (double)bs.ReadByte() * ((double)bs.ReadByte() / 127.0);
                     bs.ReadBytes(11); // Advance the stream to next bytes.
@@ -711,9 +694,9 @@ namespace OpenSim.Region.Terrain
             BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
                     bs.Write(heightmap.Get(x, y));
                 }
@@ -734,9 +717,9 @@ namespace OpenSim.Region.Terrain
             BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
                     bs.Write((float)heightmap.Get(x, y));
                 }
@@ -774,9 +757,9 @@ namespace OpenSim.Region.Terrain
             if(backupMultiplier < 1)
                 backupMultiplier = 1;
 
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < h; x++)
                 {
                     byte red = (byte)(heightmap.Get(x, y) / ((double)avgMultiplier / 128.0));
                     byte green = avgMultiplier;
@@ -834,9 +817,9 @@ namespace OpenSim.Region.Terrain
             }
 
             // Output the calculated raw
-            for (x = 0; x < w; x++)
+            for (y = 0; y < h; y++)
             {
-                for (y = 0; y < h; y++)
+                for (x = 0; x < w; x++)
                 {
                     double t = heightmap.Get(x, y);
                     double min = double.MaxValue;
@@ -1072,9 +1055,9 @@ namespace OpenSim.Region.Terrain
                 }
 
                 Channel copy = heightmap.Copy();
-                for (int x = 0; x < copy.w; x++)
+                for (int y = 0; y < copy.h; y++)
                 {
-                    for (int y = 0; y < copy.h; y++)
+                    for (int x = 0; x < copy.w; x++)
                     {
                         // 512 is the largest possible height before colours clamp
                         int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(x, y) / 512.0), 0.0) * (pallete - 1));
@@ -1112,9 +1095,9 @@ namespace OpenSim.Region.Terrain
                 }
 
                 Channel copy = heightmap.Copy();
-                for (int x = 0; x < copy.w; x++)
+                for (int y = 0; y < copy.h; y++)
                 {
-                    for (int y = 0; y < copy.h; y++)
+                    for (int x = 0; x < copy.w; x++)
                     {
                         // 512 is the largest possible height before colours clamp
                         int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(copy.h - y,  x) / 512.0), 0.0) * (pallete - 1));
