@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint EveryoneMask = 0;//FULL_MASK_PERMISSIONS;
         public uint BaseMask = 0;//FULL_MASK_PERMISSIONS;
 
-        private PrimitiveBaseShape m_Shape;
+        private PrimitiveBaseShape m_shape;
         private byte[] m_particleSystem = new byte[0];
 
         public SceneObject m_RootParent;
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public PrimitiveBaseShape Shape
         {
-            get { return m_Shape; }
+            get { return m_shape; }
         }
 
         public LLVector3 WorldPos
@@ -112,8 +112,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLVector3 Scale
         {
-            set { m_Shape.Scale = value; }
-            get { return m_Shape.Scale; }
+            set { m_shape.Scale = value; }
+            get { return m_shape.Scale; }
         }
 
         private string m_sitName = "";
@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             dupe.m_inventoryItems = m_inventoryItems;
             dupe.m_children = new List<EntityBase>();
-            dupe.m_Shape = m_Shape.Copy();
+            dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.m_scene = m_scene;
 
@@ -288,7 +288,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_uuid = LLUUID.Random();
             m_localId = (uint)(localID);
 
-            m_Shape = shape;
+            m_shape = shape;
 
             ScheduleFullUpdate();
         }
@@ -428,7 +428,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="scale"></param>
         public void ResizeGoup(LLVector3 scale)
         {
-            m_Shape.Scale = scale;
+            m_shape.Scale = scale;
 
             ScheduleFullUpdate();
         }
@@ -545,24 +545,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
-            m_Shape.PathBegin = shapeBlock.PathBegin;
-            m_Shape.PathEnd = shapeBlock.PathEnd;
-            m_Shape.PathScaleX = shapeBlock.PathScaleX;
-            m_Shape.PathScaleY = shapeBlock.PathScaleY;
-            m_Shape.PathShearX = shapeBlock.PathShearX;
-            m_Shape.PathShearY = shapeBlock.PathShearY;
-            m_Shape.PathSkew = shapeBlock.PathSkew;
-            m_Shape.ProfileBegin = shapeBlock.ProfileBegin;
-            m_Shape.ProfileEnd = shapeBlock.ProfileEnd;
-            m_Shape.PathCurve = shapeBlock.PathCurve;
-            m_Shape.ProfileCurve = shapeBlock.ProfileCurve;
-            m_Shape.ProfileHollow = shapeBlock.ProfileHollow;
-            m_Shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
-            m_Shape.PathRevolutions = shapeBlock.PathRevolutions;
-            m_Shape.PathTaperX = shapeBlock.PathTaperX;
-            m_Shape.PathTaperY = shapeBlock.PathTaperY;
-            m_Shape.PathTwist = shapeBlock.PathTwist;
-            m_Shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+            m_shape.PathBegin = shapeBlock.PathBegin;
+            m_shape.PathEnd = shapeBlock.PathEnd;
+            m_shape.PathScaleX = shapeBlock.PathScaleX;
+            m_shape.PathScaleY = shapeBlock.PathScaleY;
+            m_shape.PathShearX = shapeBlock.PathShearX;
+            m_shape.PathShearY = shapeBlock.PathShearY;
+            m_shape.PathSkew = shapeBlock.PathSkew;
+            m_shape.ProfileBegin = shapeBlock.ProfileBegin;
+            m_shape.ProfileEnd = shapeBlock.ProfileEnd;
+            m_shape.PathCurve = shapeBlock.PathCurve;
+            m_shape.ProfileCurve = shapeBlock.ProfileCurve;
+            m_shape.ProfileHollow = shapeBlock.ProfileHollow;
+            m_shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
+            m_shape.PathRevolutions = shapeBlock.PathRevolutions;
+            m_shape.PathTaperX = shapeBlock.PathTaperX;
+            m_shape.PathTaperY = shapeBlock.PathTaperY;
+            m_shape.PathTwist = shapeBlock.PathTwist;
+            m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
             ScheduleFullUpdate();
         }
 
@@ -580,18 +580,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
-            this.m_Shape.ExtraParams = new byte[data.Length + 7];
+            this.m_shape.ExtraParams = new byte[data.Length + 7];
             int i =0;
             uint length = (uint) data.Length;
-            this.m_Shape.ExtraParams[i++] = 1;
-            this.m_Shape.ExtraParams[i++] = (byte)(type % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
+            this.m_shape.ExtraParams[i++] = 1;
+            this.m_shape.ExtraParams[i++] = (byte)(type % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
                
-            this.m_Shape.ExtraParams[i++] = (byte)(length % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
-            this.m_Shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
-            Array.Copy(data, 0, this.m_Shape.ExtraParams, i, data.Length);
+            this.m_shape.ExtraParams[i++] = (byte)(length % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
+            this.m_shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
+            Array.Copy(data, 0, this.m_shape.ExtraParams, i, data.Length);
 
             this.ScheduleFullUpdate();
         }
@@ -604,7 +604,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
-            m_Shape.TextureEntry = textureEntry;
+            m_shape.TextureEntry = textureEntry;
             ScheduleFullUpdate();
         }
 
@@ -648,8 +648,8 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion lRot;
             lRot = new LLQuaternion(Rotation.x, Rotation.y, Rotation.z, Rotation.w);
 
-            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalId, m_Shape, lPos, lRot, m_flags, m_uuid,
-                                               OwnerID, m_text, ParentID, this.m_particleSystem);
+            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalId, m_shape, lPos, m_flags, m_uuid, OwnerID,
+                                               m_text, ParentID, this.m_particleSystem, lRot);
         }
 
         /// <summary>

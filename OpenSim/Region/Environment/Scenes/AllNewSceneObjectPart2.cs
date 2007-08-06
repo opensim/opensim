@@ -438,8 +438,8 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion lRot;
             lRot = RotationOffset;
 
-            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, lRot, this.ObjectFlags, m_uuid,
-                                               OwnerID, m_text, ParentID, this.m_particleSystem);
+            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, this.ObjectFlags, m_uuid, OwnerID,
+                                               m_text, ParentID, this.m_particleSystem, lRot);
         }
 
         /// <summary>

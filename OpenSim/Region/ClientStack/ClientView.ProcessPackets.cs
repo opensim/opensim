@@ -218,30 +218,7 @@ namespace OpenSim.Region.ClientStack
                         if (OnAddPrim != null)
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack ;
-                            PrimitiveBaseShape shape = new PrimitiveBaseShape();
-
-                            shape.PCode = addPacket.ObjectData.PCode;
-                            shape.PathBegin = addPacket.ObjectData.PathBegin;
-                            shape.PathEnd = addPacket.ObjectData.PathEnd;
-                            shape.PathScaleX = addPacket.ObjectData.PathScaleX;
-                            shape.PathScaleY = addPacket.ObjectData.PathScaleY;
-                            shape.PathShearX = addPacket.ObjectData.PathShearX;
-                            shape.PathShearY = addPacket.ObjectData.PathShearY;
-                            shape.PathSkew = addPacket.ObjectData.PathSkew;
-                            shape.ProfileBegin = addPacket.ObjectData.ProfileBegin;
-                            shape.ProfileEnd = addPacket.ObjectData.ProfileEnd;
-                            shape.Scale = addPacket.ObjectData.Scale;
-                            shape.PathCurve = addPacket.ObjectData.PathCurve;
-                            shape.ProfileCurve = addPacket.ObjectData.ProfileCurve;
-                            shape.ProfileHollow = addPacket.ObjectData.ProfileHollow;
-                            shape.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
-                            shape.PathRevolutions = addPacket.ObjectData.PathRevolutions;
-                            shape.PathTaperX = addPacket.ObjectData.PathTaperX;
-                            shape.PathTaperY = addPacket.ObjectData.PathTaperY;
-                            shape.PathTwist = addPacket.ObjectData.PathTwist;
-                            shape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-                            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
-                            shape.TextureEntry = ntex.ToBytes();
+                            PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
 
                             OnAddPrim(this.AgentId, addPacket.ObjectData.RayEnd, shape);
                         }
@@ -623,6 +600,35 @@ namespace OpenSim.Region.ClientStack
                     #endregion
                 }
             }
+        }
+
+        private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)
+        {
+            PrimitiveBaseShape shape = new PrimitiveBaseShape();
+
+            shape.PCode = addPacket.ObjectData.PCode;
+            shape.PathBegin = addPacket.ObjectData.PathBegin;
+            shape.PathEnd = addPacket.ObjectData.PathEnd;
+            shape.PathScaleX = addPacket.ObjectData.PathScaleX;
+            shape.PathScaleY = addPacket.ObjectData.PathScaleY;
+            shape.PathShearX = addPacket.ObjectData.PathShearX;
+            shape.PathShearY = addPacket.ObjectData.PathShearY;
+            shape.PathSkew = addPacket.ObjectData.PathSkew;
+            shape.ProfileBegin = addPacket.ObjectData.ProfileBegin;
+            shape.ProfileEnd = addPacket.ObjectData.ProfileEnd;
+            shape.Scale = addPacket.ObjectData.Scale;
+            shape.PathCurve = addPacket.ObjectData.PathCurve;
+            shape.ProfileCurve = addPacket.ObjectData.ProfileCurve;
+            shape.ProfileHollow = addPacket.ObjectData.ProfileHollow;
+            shape.PathRadiusOffset = addPacket.ObjectData.PathRadiusOffset;
+            shape.PathRevolutions = addPacket.ObjectData.PathRevolutions;
+            shape.PathTaperX = addPacket.ObjectData.PathTaperX;
+            shape.PathTaperY = addPacket.ObjectData.PathTaperY;
+            shape.PathTwist = addPacket.ObjectData.PathTwist;
+            shape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
+            shape.TextureEntry = ntex.ToBytes();
+            return shape;
         }
     }
 }

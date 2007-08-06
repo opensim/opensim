@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Types
             ExtraParams = new byte[1];
             TextureEntry = m_defaultTextureEntry;
         }
-
+        
         //void returns need to change of course
         public virtual void GetMesh()
         {
@@ -94,6 +94,8 @@ namespace OpenSim.Framework.Types
             PathCurve = 16;
             ProfileCurve = 1;
             PCode = 9;
+            PathScaleX = 100;
+            PathScaleY = 100;
         }
 
         public static BoxShape Default
@@ -103,10 +105,6 @@ namespace OpenSim.Framework.Types
                 BoxShape boxShape = new BoxShape();
 
                 boxShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-
-                //boxShape.PathTaperX = 1;
-                //boxShape.PathTaperY = 1;
-                boxShape.PathSkew = 1;
                 
                 return boxShape;
             }

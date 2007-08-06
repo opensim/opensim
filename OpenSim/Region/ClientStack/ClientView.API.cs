@@ -673,6 +673,8 @@ namespace OpenSim.Region.ClientStack
             OutPacket(loadURL);
         }
 
+        #endregion
+
         #region Appearance/ Wearables Methods
 
         /// <summary>
@@ -817,44 +819,33 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(attach);
         }
        
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, LLQuaternion rotation, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem)
+        public void SendPrimitiveToClient(
+            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, 
+            LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            
             outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, flags);
+            
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
             outPacket.ObjectData[0].Text = Helpers.StringToField( text );
             outPacket.ObjectData[0].ParentID = parentID;
             outPacket.ObjectData[0].PSBlock = particleSystem;
+            
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
+            
             byte[] rot = rotation.GetBytes();
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
+            
             OutPacket(outPacket);
         }
 
-        public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem)
-        {
-            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
-            outPacket.RegionData.RegionHandle = regionHandle;
-            outPacket.RegionData.TimeDilation = timeDilation;
-            outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, flags);
-            outPacket.ObjectData[0].ID = localID;
-            outPacket.ObjectData[0].FullID = objectID;
-            outPacket.ObjectData[0].OwnerID = ownerID;
-            outPacket.ObjectData[0].Text = Helpers.StringToField( text );
-            outPacket.ObjectData[0].ParentID = parentID;
-            outPacket.ObjectData[0].PSBlock = particleSystem;
-            byte[] pb = pos.GetBytes();
-            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
-
-            OutPacket(outPacket);
-        }
         /// <summary>
         /// 
         /// </summary>
@@ -873,8 +864,6 @@ namespace OpenSim.Region.ClientStack
 
             this.OutPacket(terse);
         }
-
-        #endregion
 
         #endregion
 
@@ -1163,8 +1152,6 @@ namespace OpenSim.Region.ClientStack
             objdata.ObjectData[64] = 189;
         }
 
-        #endregion
-
         public void SendNameReply(LLUUID profileId, string firstname, string lastname)
         {
             UUIDNameReplyPacket packet = new UUIDNameReplyPacket();
@@ -1177,5 +1164,8 @@ namespace OpenSim.Region.ClientStack
             
             OutPacket( packet );
         }
+
+        #endregion
+
     }
 }
