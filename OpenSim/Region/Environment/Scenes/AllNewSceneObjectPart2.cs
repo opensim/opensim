@@ -26,7 +26,6 @@ namespace OpenSim.Region.Environment.Scenes
         public uint GroupMask = FULL_MASK_PERMISSIONS;
         public uint EveryoneMask = FULL_MASK_PERMISSIONS;
         public uint BaseMask = FULL_MASK_PERMISSIONS;
-
        
         protected byte[] m_particleSystem = new byte[0];
 
@@ -53,11 +52,11 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_localID = value; }
         }
 
-        protected string m_name;
-        public virtual string Name
+        protected string m_partName;
+        public virtual string PartName
         {
-            get { return m_name; }
-            set { m_name = value; }
+            get { return m_partName; }
+            set { m_partName = value; }
         }
 
         protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
@@ -79,6 +78,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_regionHandle; }
             set { m_regionHandle = value; }
+        }
+
+        //unkown if this will be kept, added as a way of removing the group position from the group class
+        protected LLVector3 m_groupPosition;
+        public LLVector3 GroupPosition
+        {
+            get { return m_groupPosition; }
+            set { m_groupPosition = value; }
         }
 
         protected LLVector3 m_offset;
@@ -165,6 +172,14 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        //might not end up being used
+        protected bool m_isRoot;
+        public bool IsRoot
+        {
+            set { m_isRoot = value; }
+            get { return this.m_isRoot; }
+        }
+
         #region Constructors
         /// <summary>
         /// 
@@ -183,7 +198,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public AllNewSceneObjectPart2(ulong regionHandle, AllNewSceneObjectGroup2 parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 position)
+        public AllNewSceneObjectPart2(ulong regionHandle, AllNewSceneObjectGroup2 parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
         {
             this.m_regionHandle = regionHandle;
             this.m_parentGroup = parent;
@@ -196,7 +211,8 @@ namespace OpenSim.Region.Environment.Scenes
             this.LocalID = (uint)(localID);
             this.m_shape = shape;
 
-            this.OffsetPosition = position;
+            this.m_groupPosition = groupPosition;
+            this.OffsetPosition = offsetPosition;
             this.RotationOffset = LLQuaternion.Identity;
             this.Velocity = new LLVector3(0, 0, 0);
             this.AngularVelocity = new LLVector3(0, 0, 0);

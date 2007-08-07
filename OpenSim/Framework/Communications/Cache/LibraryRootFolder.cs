@@ -181,9 +181,7 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryNextPermissions = (1 << 15);
             item.inventoryEveryOnePermissions = (1 << 15);
             item.inventoryBasePermissions = (1 << 15);
-            this.Items.Add(item.inventoryID, item);
-
-            
+            this.Items.Add(item.inventoryID, item);          
         }
 
     }

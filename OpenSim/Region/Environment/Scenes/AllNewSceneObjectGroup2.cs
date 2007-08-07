@@ -64,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             this.Pos = pos;
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
-            AllNewSceneObjectPart2 newPart = new AllNewSceneObjectPart2(m_regionHandle, this, ownerID, localID, shape, rootOffset);
+            AllNewSceneObjectPart2 newPart = new AllNewSceneObjectPart2(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
         }
@@ -293,7 +293,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].TouchName = enc.GetBytes(this.m_rootPart.TouchName + "\0");
             proper.ObjectData[0].TextureID = new byte[0];
             proper.ObjectData[0].SitName = enc.GetBytes(this.m_rootPart.SitName + "\0");
-            proper.ObjectData[0].Name = enc.GetBytes(this.m_rootPart.Name + "\0");
+            proper.ObjectData[0].Name = enc.GetBytes(this.m_rootPart.PartName + "\0");
             proper.ObjectData[0].Description = enc.GetBytes(this.m_rootPart.Description + "\0");
             proper.ObjectData[0].OwnerMask = this.m_rootPart.OwnerMask;
             proper.ObjectData[0].NextOwnerMask = this.m_rootPart.NextOwnerMask;

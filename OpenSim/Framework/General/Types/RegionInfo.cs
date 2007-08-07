@@ -36,6 +36,7 @@ using OpenSim.Framework.Utilities;
 
 using OpenSim.Framework.Configuration;
 
+
 namespace OpenSim.Framework.Types
 {
     public class RegionInfo
