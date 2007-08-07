@@ -12,33 +12,17 @@ using libsecondlife;
 using System.Data;
 // Yes, this won't compile on MS, need to deal with that later
 using Mono.Data.SqliteClient;
+using Primitive = OpenSim.Region.Environment.Scenes.Primitive;
 
 namespace OpenSim.DataStore.SqliteStorage
 {
-    
-//     public class SceneObjectQuery : Predicate
-//     {
-//         private LLUUID globalIDSearch;
-
-//         public SceneObjectQuery(LLUUID find)
-//         {
-//             globalIDSearch = find;
-//         }
-
-//         public bool Match(SceneObject obj)
-//         {
-//             return obj.rootUUID == globalIDSearch;
-//         }
-//     }
-
 
     public class SqliteDataStore : IRegionDataStore
     {
-        private const primSelect = "select * from prims";
-        private const shapeSelect = "select * from primshapes";
+        private const string primSelect = "select * from prims";
+        private const string shapeSelect = "select * from primshapes";
         
         private DataSet ds;
-        private IObjectContainer db;
 
         public void Initialise(string dbfile, string dbname)
         {
@@ -70,7 +54,7 @@ namespace OpenSim.DataStore.SqliteStorage
             
         }
 
-        public void StoreObject(AllNewGroupSceneObject obj)
+        public void StoreObject(AllNewSceneObjectPart2 obj)
         {
             // TODO: Serializing code 
             DataTable prims = ds.Tables["prims"];
@@ -89,7 +73,7 @@ namespace OpenSim.DataStore.SqliteStorage
 
         public void StoreObject(SceneObject obj)
         {
-            foreach (Primitive prim in obj.ChildPrimitives.Values) 
+            foreach (Primitive prim in obj.Children.Values) 
             {
                 addPrim(prim);
             }
