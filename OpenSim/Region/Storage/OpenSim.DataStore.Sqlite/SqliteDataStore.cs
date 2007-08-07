@@ -23,6 +23,8 @@ namespace OpenSim.DataStore.SqliteStorage
         private const string shapeSelect = "select * from primshapes";
         
         private DataSet ds;
+        private SqliteDataAdapter primDa;
+        private SqliteDataAdapter shapeDa;
 
         public void Initialise(string dbfile, string dbname)
         {
@@ -31,22 +33,57 @@ namespace OpenSim.DataStore.SqliteStorage
             SqliteConnection conn = new SqliteConnection(dbfile);
 
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
-            SqliteDataAdapter primDa = new SqliteDataAdapter(primSelectCmd);
+            primDa = new SqliteDataAdapter(primSelectCmd);
+            //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
             
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
-            SqliteDataAdapter shapeDa = new SqliteDataAdapter(shapeSelectCmd);
+            shapeDa = new SqliteDataAdapter(shapeSelectCmd);
+            // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
 
             ds = new DataSet();
 
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
-            primDa.FillSchema(ds, SchemaType.Mapped, "PrimSchema");
+            primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
             primDa.Fill(ds, "prims");
+            DataTable prims = ds.Tables["prims"];
+            prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
+            setupPrimCommands(primDa);
             
-            shapeDa.FillSchema(ds, SchemaType.Mapped, "ShapeSchema");
+            shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
             shapeDa.Fill(ds, "primshapes");
             
             return;
+        }
+
+        private void setupPrimCommands(SqliteDataAdapter da)
+        {
+            SqliteCommand delete = new SqliteCommand("delete from prims where UUID=@UUID");
+            SqliteParameterCollection parms = delete.Parameters;
+            parms.Add("@UUID", SqlDbType.VarChar);
+            parms["@UUID"].SourceVersion=DataRowVersion.Original;
+            da.DeleteCommand = delete;
+
+
+            string sql = "insert into prims(" +
+                "UUID, CreationDate, Name, PositionX, PositionY, PositionZ" +
+                ") values(@UUID, @CreationDate, @Name, @PositionX, @PositionY, @PositionZ)";
+            SqliteCommand insert = new SqliteCommand(sql);
+            parms = insert.Parameters;
+            parms.Add("@UUID", SqlDbType.VarChar);
+            parms.Add("@CreationDate", SqlDbType.Int);
+            parms.Add("@Name", SqlDbType.VarChar);
+            parms.Add("@PositionX", SqlDbType.Float);
+            parms.Add("@PositionY", SqlDbType.Float);
+            parms.Add("@PositionZ", SqlDbType.Float);
+            parms["@UUID"].SourceVersion=DataRowVersion.Original;
+            da.InsertCommand = insert;
+
+            // throw away for now until the rest works
+            string updateSQL = "update prims set name='update'";
+            SqliteCommand update = new SqliteCommand(updateSQL);
+            da.UpdateCommand = update;
+
         }
 
         private void StoreSceneObject(SceneObject obj)
@@ -89,13 +126,23 @@ namespace OpenSim.DataStore.SqliteStorage
             }
         }
 
+        private void commit() 
+        {
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["shapes"];
+
+            
+        }
+
         public void StoreObject(SceneObject obj)
         {
             foreach (Primitive prim in obj.Children.Values)
             {
                 addPrim(prim);
             }
-            MainLog.Instance.Verbose("Dump of prims: {0}", ds.GetXml());
+            
+            primDa.Update(ds, "prims");
+            MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
 
         
