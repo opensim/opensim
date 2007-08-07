@@ -521,5 +521,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_scene.RequestAvatarList();
         }
+
+        internal void SendPartFullUpdate(IClientAPI remoteClient, AllNewSceneObjectPart2 part)
+        {
+            if( m_rootPart == part )
+            {
+                part.SendFullUpdateToClient( remoteClient, Pos );
+            }
+            else
+            {
+                part.SendFullUpdateToClient( remoteClient );
+            }
+        }
     }
 }

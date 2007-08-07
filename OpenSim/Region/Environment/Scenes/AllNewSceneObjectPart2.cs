@@ -443,6 +443,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+
+
+        public void FullUpdate(IClientAPI remoteClient)
+        {
+            m_parentGroup.SendPartFullUpdate( remoteClient, this );
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -451,6 +458,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 lPos;
             lPos = OffsetPosition;
+            SendFullUpdateToClient(remoteClient, lPos);
+        }
+
+        public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
+        {
             LLQuaternion lRot;
             lRot = RotationOffset;
 
