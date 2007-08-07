@@ -56,7 +56,7 @@ namespace OpenSim.DataStore.SqliteStorage
 
         public void StoreObject(AllNewSceneObjectPart2 obj)
         {
-            // TODO: Serializing code 
+            // TODO: Serializing code
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["shapes"];
             
@@ -64,16 +64,34 @@ namespace OpenSim.DataStore.SqliteStorage
             
         }
         
+        private void fillPrimRow(DataRow row, Primitive prim) 
+        {
+            row["UUID"] = prim.UUID;
+            row["CreationDate"] = prim.CreationDate;
+            row["Name"] = prim.Name;
+            row["PositionX"] = prim.Pos.X;
+            row["PositionY"] = prim.Pos.Y;
+            row["PositionZ"] = prim.Pos.Z;
+        }
+
         private void addPrim(Primitive prim)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["shapes"];
-            DataRow row;
+            
+            DataRow row = prims.Rows.Find(prim.UUID);
+            if (row == null) {
+                row = prims.NewRow();
+                fillPrimRow(row, prim);
+                prims.Rows.Add(row);
+            } else {
+                fillPrimRow(row, prim);
+            }
         }
 
         public void StoreObject(SceneObject obj)
         {
-            foreach (Primitive prim in obj.Children.Values) 
+            foreach (Primitive prim in obj.Children.Values)
             {
                 addPrim(prim);
             }
