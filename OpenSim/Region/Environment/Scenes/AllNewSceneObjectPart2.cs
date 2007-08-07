@@ -172,14 +172,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
-        //might not end up being used
-        protected bool m_isRoot;
-        public bool IsRoot
-        {
-            set { m_isRoot = value; }
-            get { return this.m_isRoot; }
-        }
-
         #region Constructors
         /// <summary>
         /// 
@@ -209,9 +201,9 @@ namespace OpenSim.Region.Environment.Scenes
             this.LastOwnerID = LLUUID.Zero;
             this.UUID = LLUUID.Random();
             this.LocalID = (uint)(localID);
-            this.m_shape = shape;
+            this.Shape = shape;
 
-            this.m_groupPosition = groupPosition;
+            this.GroupPosition = groupPosition;
             this.OffsetPosition = offsetPosition;
             this.RotationOffset = LLQuaternion.Identity;
             this.Velocity = new LLVector3(0, 0, 0);
@@ -245,7 +237,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.LastOwnerID = lastOwnerID;
             this.UUID = LLUUID.Random();
             this.LocalID = (uint)(localID);
-            this.m_shape = shape;
+            this.Shape = shape;
 
             this.OffsetPosition = position;
             this.RotationOffset = rotation;
@@ -265,12 +257,14 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = m_regionHandle;
             dupe.UUID = LLUUID.Random();
             dupe.LocalID = localID;
+            dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
             dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
             dupe.RotationOffset = new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
             dupe.Velocity = new LLVector3(0, 0, 0);
             dupe.Acceleration = new LLVector3(0, 0, 0);
             dupe.AngularVelocity = new LLVector3(0, 0, 0);
             dupe.ObjectFlags = this.ObjectFlags;
+            //TODO copy extraparams data and anything else not currently copied
             return dupe;
         }
         #endregion
@@ -439,13 +433,15 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
-                SendFullUpdateToClient(avatars[i].ControllingClient);
+                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this);
             }
         }
 
-
-
-        public void FullUpdate(IClientAPI remoteClient)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        public void SendFullUpdate(IClientAPI remoteClient)
         {
             m_parentGroup.SendPartFullUpdate( remoteClient, this );
         }
@@ -461,6 +457,11 @@ namespace OpenSim.Region.Environment.Scenes
             SendFullUpdateToClient(remoteClient, lPos);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="lPos"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion lRot;
@@ -478,8 +479,17 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
-                SendTerseUpdateToClient(avatars[i].ControllingClient);
+                m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        public void SendTerseUpdate(IClientAPI remoteClient)
+        {
+            m_parentGroup.SendPartTerseUpdate(remoteClient, this);
         }
 
         /// <summary>
@@ -491,7 +501,17 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             lPos = this.OffsetPosition;
             LLQuaternion mRot = this.RotationOffset;
+            remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="lPos"></param>
+        public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
+        {
+            LLQuaternion mRot = this.RotationOffset;
             remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
         }
         #endregion

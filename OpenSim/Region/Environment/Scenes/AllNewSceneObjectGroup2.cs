@@ -38,6 +38,33 @@ namespace OpenSim.Region.Environment.Scenes
             get { return new LLVector3(0, 0, 0); }
         }
 
+        public override LLVector3 Pos
+        {
+            get { return m_rootPart.GroupPosition; }
+            set
+            {
+                lock (this.m_parts)
+                {
+                    foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+                    {
+                        part.GroupPosition = value;
+                    }
+                }
+            } 
+        }
+
+        public override uint LocalId
+        {
+            get { return m_rootPart.LocalID; }
+            set { m_rootPart.LocalID = value; }
+        }
+
+        public override LLUUID UUID
+        {
+            get { return m_rootPart.UUID; }
+            set { m_rootPart.UUID = value; }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -370,7 +397,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(LLVector3 pos)
         {
-            this.m_pos = pos;
+            this.Pos = pos;
         }
 
         /// <summary>
@@ -442,7 +469,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupRotation(LLVector3 pos, LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
-            this.m_pos = pos;
+            this.Pos = pos;
         }
 
         /// <summary>
@@ -500,8 +527,8 @@ namespace OpenSim.Region.Environment.Scenes
         private void SetPartAsRoot(AllNewSceneObjectPart2 part)
         {
             this.m_rootPart = part;
-            this.m_uuid = part.UUID;
-            this.m_localId = part.LocalID;
+            //this.m_uuid= part.UUID;
+           // this.m_localId = part.LocalID;
         }
 
         /// <summary>
@@ -522,6 +549,11 @@ namespace OpenSim.Region.Environment.Scenes
             return m_scene.RequestAvatarList();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, AllNewSceneObjectPart2 part)
         {
             if( m_rootPart == part )
@@ -531,6 +563,23 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 part.SendFullUpdateToClient( remoteClient );
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="part"></param>
+        internal void SendPartTerseUpdate(IClientAPI remoteClient, AllNewSceneObjectPart2 part)
+        {
+            if (m_rootPart == part)
+            {
+                part.SendTerseUpdateToClient(remoteClient, Pos);
+            }
+            else
+            {
+                part.SendTerseUpdateToClient(remoteClient);
             }
         }
     }

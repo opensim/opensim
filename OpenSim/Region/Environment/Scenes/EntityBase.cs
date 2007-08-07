@@ -11,7 +11,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected Scene m_scene;
 
         public LLUUID m_uuid;
-        public LLUUID UUID
+        public virtual LLUUID UUID
         {
             get
             {
@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected uint m_localId;
-        public uint LocalId
+        public virtual uint LocalId
         {
             get { return m_localId; }
             set { m_localId = value; }
