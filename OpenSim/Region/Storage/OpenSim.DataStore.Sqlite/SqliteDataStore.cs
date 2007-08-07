@@ -65,10 +65,38 @@ namespace OpenSim.DataStore.SqliteStorage
             return;
         }
 
-        public void StoreObject(SceneObject obj)
+        private void StoreSceneObject(SceneObject obj)
+        {
+            
+        }
+
+        public void StoreObject(AllNewGroupSceneObject obj)
         {
             // TODO: Serializing code 
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["shapes"];
+            
+           
+            
         }
+        
+        private void addPrim(Primitive prim)
+        {
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["shapes"];
+            DataRow row;
+        }
+
+        public void StoreObject(SceneObject obj)
+        {
+            foreach (Primitive prim in obj.ChildPrimitives.Values) 
+            {
+                addPrim(prim);
+            }
+            MainLog.Instance.Verbose("Dump of prims: {0}", ds.GetXml());
+        }
+
+        
 
         public void RemoveObject(LLUUID obj)
         {
@@ -81,6 +109,7 @@ namespace OpenSim.DataStore.SqliteStorage
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + " objects");
 
+            return retvals;
         }
         
         public void StoreTerrain(double[,] ter)
