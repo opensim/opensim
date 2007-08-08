@@ -247,6 +247,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (Terrain.Tainted())
                     {
+                        CreateTerrainTexture();
+
                         lock (Terrain.heightmap)
                         {
                             lock (m_syncRoot)
