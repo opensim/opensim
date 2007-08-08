@@ -1,8 +1,11 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
+using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
+using Nini.Config;
 
 namespace OpenSim.Framework.Communications.Caches
 {
@@ -18,7 +21,7 @@ namespace OpenSim.Framework.Communications.Caches
             this.name = "OpenSim Library";
             this.parentID = LLUUID.Zero;
             this.type = (short)-1;
-            this.version = (ushort) 1;
+            this.version = (ushort)1;
 
             InventoryFolder folderInfo = new InventoryFolder();
             folderInfo.agentID = libOwner;
@@ -31,11 +34,15 @@ namespace OpenSim.Framework.Communications.Caches
             this.m_textureFolder = folderInfo;
 
             this.CreateLibraryItems();
+
+            string filePath = Path.Combine(Util.configDir(), "OpenSimLibrary.xml");
+            XmlConfigSource source = new XmlConfigSource(filePath);
+            this.ReadItemsFromFile(source);
         }
 
         private void CreateLibraryItems()
         {
-            
+
             InventoryItemBase item = new InventoryItemBase();
             item.avatarID = libOwner;
             item.creatorsID = libOwner;
@@ -167,6 +174,7 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryNextPermissions = 0;
             this.Items.Add(item.inventoryID, item);
 
+            /*
             item = new InventoryItemBase();
             item.avatarID = libOwner;
             item.creatorsID = libOwner;
@@ -181,7 +189,38 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryNextPermissions = (1 << 15);
             item.inventoryEveryOnePermissions = (1 << 15);
             item.inventoryBasePermissions = (1 << 15);
-            this.Items.Add(item.inventoryID, item);          
+            this.Items.Add(item.inventoryID, item);        
+             */
+        }
+
+        private void ReadItemsFromFile(IConfigSource source)
+        {
+            for (int i = 0; i < source.Configs.Count; i++)
+            {
+                InventoryItemBase item = new InventoryItemBase();
+                item.avatarID = libOwner;
+                item.creatorsID = libOwner;
+                item.inventoryID = new LLUUID(source.Configs[i].GetString("inventoryID", LLUUID.Random().ToStringHyphenated()));
+                item.assetID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated()));
+                item.inventoryDescription = source.Configs[i].GetString("description", "");
+                item.inventoryName = source.Configs[i].GetString("name", "");
+                item.assetType = source.Configs[i].GetInt("assetType", 0);
+                item.invType = source.Configs[i].GetInt("inventoryType", 0);
+                item.inventoryCurrentPermissions = (uint)source.Configs[i].GetLong("currentPermissions", 0x7FFFFFFF);
+                item.inventoryNextPermissions = (uint)source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
+                item.inventoryEveryOnePermissions = (uint)source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
+                item.inventoryBasePermissions = (uint)source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
+                if (item.assetType == 0)
+                {
+                    item.parentFolderID = this.m_textureFolder.folderID;
+                    this.m_textureFolder.Items.Add(item.inventoryID, item);
+                }
+                else
+                {
+                    item.parentFolderID = this.folderID;
+                    this.Items.Add(item.inventoryID, item);
+                }
+            }
         }
 
     }

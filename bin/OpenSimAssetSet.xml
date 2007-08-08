@@ -1,0 +1,9 @@
+<Nini>
+    <Section Name="Welcome notecard">
+        <Key Name="assetID" Value="00000000-0000-2222-3333-000000000001" />
+        <Key Name="name" Value="WelcomeNote" />
+	<Key Name="assetType" Value="7" />
+	<Key Name="inventoryType" Value="7" />
+	<Key Name="fileName" Value="welcomeNote.dat" />
+    </Section>
+</Nini>

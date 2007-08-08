@@ -31,6 +31,7 @@ using System.Threading;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
@@ -345,7 +346,7 @@ namespace OpenSim.Region.GridInterfaces.Local
             db.Set(store);
             db.Commit();
 
-            Image = new AssetBase();
+            /*Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-2222-3333-000000000001");
             Image.Name = "WelcomeNote";
             Image.Type = 7;
@@ -357,7 +358,35 @@ namespace OpenSim.Region.GridInterfaces.Local
             store.UUID = Image.FullID;
             db.Set(store);
             db.Commit();
-            
+             */ 
+
+            string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
+            XmlConfigSource source = new XmlConfigSource(filePath);
+            ReadAssetDetails(source);
+        }
+
+        protected void ReadAssetDetails(IConfigSource source)
+        {
+            AssetBase newAsset = null;
+            for (int i = 0; i < source.Configs.Count; i++)
+            {
+                newAsset = new AssetBase();
+                newAsset.FullID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated()));
+                newAsset.Name = source.Configs[i].GetString("name", "");
+                newAsset.Type =(sbyte) source.Configs[i].GetInt("assetType", 0);
+                newAsset.InvType =(sbyte) source.Configs[i].GetInt("inventoryType", 0);
+                string fileName = source.Configs[i].GetString("fileName", "");
+                if (fileName != "")
+                {
+                    this.LoadAsset(newAsset, false, fileName);
+                    AssetStorage store = new AssetStorage();
+                    store.Data = newAsset.Data;
+                    store.Name = newAsset.Name;
+                    store.UUID = newAsset.FullID;
+                    db.Set(store);
+                    db.Commit();
+                }
+            }
         }
 
         private void LoadAsset(AssetBase info, bool image, string filename)
