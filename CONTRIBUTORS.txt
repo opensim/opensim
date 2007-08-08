@@ -14,6 +14,7 @@ OpenSim Developers
 * MorphW
 * CW
 * Babblefrog
+* Tedd
 
 Patches
 
@@ -21,7 +22,6 @@ Patches
 * Danx0r
 * Dalien
 * Darok
-* Tedd_
 
 Testers
 
