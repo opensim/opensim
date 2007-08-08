@@ -28,12 +28,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Communications.Caches
 {
@@ -54,8 +56,14 @@ namespace OpenSim.Framework.Communications.Caches
         public Dictionary<LLUUID, AssetRequest> RequestedTextures = new Dictionary<LLUUID, AssetRequest>(); //Textures requested from the asset server
 
         public Dictionary<LLUUID, TextureSender> SendingTextures = new Dictionary<LLUUID, TextureSender>();
+        private BlockingQueue<TextureSender> QueueTextures = new BlockingQueue<TextureSender>();
+
+        private Dictionary<LLUUID, List<LLUUID>> AvatarRecievedTextures = new Dictionary<LLUUID,List<LLUUID>>();
+
         private IAssetServer _assetServer;
         private Thread _assetCacheThread;
+
+        private Thread TextureSenderThread;
 
         /// <summary>
         /// 
@@ -71,6 +79,10 @@ namespace OpenSim.Framework.Communications.Caches
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();
 
+            this.TextureSenderThread = new Thread(new ThreadStart(this.ProcessTextureSenders));
+            this.TextureSenderThread.IsBackground = true;
+            this.TextureSenderThread.Start();
+
         }
 
         public AssetCache(string assetServerDLLName, string assetServerURL, string assetServerKey)
@@ -85,6 +97,9 @@ namespace OpenSim.Framework.Communications.Caches
             this._assetCacheThread.IsBackground = true;
             this._assetCacheThread.Start();
 
+            this.TextureSenderThread = new Thread(new ThreadStart(this.ProcessTextureSenders));
+            this.TextureSenderThread.IsBackground = true;
+            this.TextureSenderThread.Start();
         }
 
         /// <summary>
@@ -165,17 +180,38 @@ namespace OpenSim.Framework.Communications.Caches
                 req = (AssetRequest)this.TextureRequests[i];
                 if (!this.SendingTextures.ContainsKey(req.ImageInfo.FullID))
                 {
+                   //Console.WriteLine("new texture to send");
                     TextureSender sender = new TextureSender(req);
-                    sender.OnComplete += this.TextureSent;
+                    //sender.OnComplete += this.TextureSent;
                     lock (this.SendingTextures)
                     {
                         this.SendingTextures.Add(req.ImageInfo.FullID, sender);
                     }
+                    this.QueueTextures.Enqueue(sender);
                 }
 
             }
 
             this.TextureRequests.Clear();
+        }
+
+        public void ProcessTextureSenders()
+        {
+            while (true)
+            {
+                TextureSender sender = this.QueueTextures.Dequeue();
+                bool finished = sender.SendTexture();
+                if (finished)
+                {
+                    this.TextureSent(sender);
+                }
+                else
+                {
+                   // Console.WriteLine("readding texture");
+                    this.QueueTextures.Enqueue(sender);
+                }
+            }
+      
         }
 
         /// <summary>
@@ -189,6 +225,7 @@ namespace OpenSim.Framework.Communications.Caches
                 lock (this.SendingTextures)
                 {
                     this.SendingTextures.Remove(sender.request.ImageInfo.FullID);
+                    this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
                 }
             }
         }
@@ -201,8 +238,10 @@ namespace OpenSim.Framework.Communications.Caches
                 //then add to the correct cache list
                 //then check for waiting requests for this asset/texture (in the Requested lists)
                 //and move those requests into the Requests list.
+                
                 if (IsTexture)
                 {
+                   // Console.WriteLine("asset  recieved from asset server");
                     TextureImage image = new TextureImage(asset);
                     this.Textures.Add(image.FullID, image);
                     if (this.RequestedTextures.ContainsKey(image.FullID))
@@ -212,7 +251,7 @@ namespace OpenSim.Framework.Communications.Caches
                         if (image.Data.LongLength > 600)
                         {
                             //over 600 bytes so split up file
-                            req.NumPackets = 1 + (int)(image.Data.Length - 600 + 999) / 1000;
+                            req.NumPackets = 1 + (int)(image.Data.Length - 600 ) / 1000;
                         }
                         else
                         {
@@ -260,7 +299,7 @@ namespace OpenSim.Framework.Communications.Caches
         /// <param name="transferRequest"></param>
         public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
         {
-            LLUUID requestID  = null;
+            LLUUID requestID = null;
             byte source = 2;
             if (transferRequest.TransferInfo.SourceType == 2)
             {
@@ -359,7 +398,7 @@ namespace OpenSim.Framework.Communications.Caches
                 else if (req.AssetRequestSource == 3)
                 {
                     Transfer.TransferInfo.Params = req.Params;
-                   // Transfer.TransferInfo.Params = new byte[100];
+                    // Transfer.TransferInfo.Params = new byte[100];
                     //Array.Copy(req.RequestUser.AgentId.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
                     //Array.Copy(req.RequestUser.SessionId.GetBytes(), 0, Transfer.TransferInfo.Params, 16, 16);
                 }
@@ -411,7 +450,7 @@ namespace OpenSim.Framework.Communications.Caches
                         TransferPacket.TransferData.Data = chunk1;
                         TransferPacket.TransferData.Status = 1;
                         req.RequestUser.OutPacket(TransferPacket);
-                    } 
+                    }
                 }
 
             }
@@ -444,8 +483,17 @@ namespace OpenSim.Framework.Communications.Caches
         /// <param name="imageID"></param>
         public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID)
         {
-            //Console.WriteLine("texture request for " + imageID.ToStringHyphenated());
+           // Console.WriteLine("texture request for " + imageID.ToStringHyphenated());
             //check to see if texture is in local cache, if not request from asset server
+            if(!this.AvatarRecievedTextures.ContainsKey(userInfo.AgentId))
+            {
+                this.AvatarRecievedTextures.Add(userInfo.AgentId, new List<LLUUID>());
+            }
+            if(this.AvatarRecievedTextures[userInfo.AgentId].Contains(imageID))
+            {
+                //Console.WriteLine(userInfo.AgentId +" is requesting a image( "+ imageID+" that has already been sent to them");
+                return;
+            }
             if (!this.Textures.ContainsKey(imageID))
             {
                 if (!this.RequestedTextures.ContainsKey(imageID))
@@ -472,7 +520,8 @@ namespace OpenSim.Framework.Communications.Caches
             if (imag.Data.LongLength > 600)
             {
                 //over 600 bytes so split up file
-                req.NumPackets = 1 + (int)(imag.Data.Length - 600 + 999) / 1000;
+                req.NumPackets = 1 + (int)(imag.Data.Length - 600 ) / 1000;
+                //Console.WriteLine("texture is " + imag.Data.Length + " which we will send in " +req.NumPackets +" packets");
             }
             else
             {
@@ -582,37 +631,22 @@ namespace OpenSim.Framework.Communications.Caches
         public class TextureSender
         {
             public AssetRequest request;
-            public event DownloadComplete OnComplete;
-            Thread m_thread;
+          
             public TextureSender(AssetRequest req)
             {
                 request = req;
-                //Console.WriteLine("creating worker thread for texture " + req.ImageInfo.FullID.ToStringHyphenated());
-                //Console.WriteLine("texture data length is " + req.ImageInfo.Data.Length);
-                // Console.WriteLine("in " + req.NumPackets + " packets");
-                //ThreadPool.QueueUserWorkItem(new WaitCallback(SendTexture), new object());
-
-                //need some sort of custom threadpool here, as using the .net one, overloads it and stops the handling of incoming packets etc
-                //but don't really want to create a thread for every texture download
-                m_thread = new Thread(new ThreadStart(SendTexture));
-                m_thread.IsBackground = true;
-                m_thread.Start();
+               
             }
 
-            public void SendTexture()
+            public bool SendTexture()
             {
-                //Console.WriteLine("starting to send sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
-                while (request.PacketCounter != request.NumPackets)
+                SendPacket();
+              
+                if ((request.PacketCounter > request.NumPackets) |(request.NumPackets ==1))
                 {
-                    SendPacket();
-                    Thread.Sleep(500);
+                    return true;
                 }
-
-                //Console.WriteLine("finished sending texture " + request.ImageInfo.FullID.ToStringHyphenated());
-                if (OnComplete != null)
-                {
-                    OnComplete(this);
-                }
+                return false;
             }
 
             public void SendPacket()
@@ -643,13 +677,14 @@ namespace OpenSim.Framework.Communications.Caches
                     {
                         //more than one packet so split file up
                         ImageDataPacket im = new ImageDataPacket();
-                        im.ImageID.Packets = (ushort)req.NumPackets;
+                        im.ImageID.Packets = (ushort)(req.NumPackets);
                         im.ImageID.ID = req.ImageInfo.FullID;
                         im.ImageID.Size = (uint)req.ImageInfo.Data.Length;
                         im.ImageData.Data = new byte[600];
                         Array.Copy(req.ImageInfo.Data, 0, im.ImageData.Data, 0, 600);
                         im.ImageID.Codec = 2;
                         req.RequestUser.OutPacket(im);
+                        //this.SaveAssetToFile("packetheader.dat", im.ImageData.Data);
                         req.PacketCounter++;
                         //req.ImageInfo.last_used = time;
                         //System.Console.WriteLine("sent first packet of texture:
@@ -658,22 +693,35 @@ namespace OpenSim.Framework.Communications.Caches
                 }
                 else
                 {
-                    //Console.WriteLine("sending packet" + req.PacketCounter + "for " + req.ImageInfo.FullID.ToStringHyphenated());
+                  // Console.WriteLine("sending packet" + req.PacketCounter + "for " + req.ImageInfo.FullID.ToStringHyphenated());
                     //send imagepacket
                     //more than one packet so split file up
                     ImagePacketPacket im = new ImagePacketPacket();
-                    im.ImageID.Packet = (ushort)req.PacketCounter;
+                    im.ImageID.Packet = (ushort)(req.PacketCounter);
                     im.ImageID.ID = req.ImageInfo.FullID;
-                    int size = req.ImageInfo.Data.Length - 600 - 1000 * (req.PacketCounter - 1);
+                    int size = req.ImageInfo.Data.Length - 600 - (1000 * (req.PacketCounter - 1));
                     if (size > 1000) size = 1000;
                     im.ImageData.Data = new byte[size];
-                    Array.Copy(req.ImageInfo.Data, 600 + 1000 * (req.PacketCounter - 1), im.ImageData.Data, 0, size);
+                    Array.Copy(req.ImageInfo.Data, 600 + (1000 * (req.PacketCounter - 1)), im.ImageData.Data, 0, size);
                     req.RequestUser.OutPacket(im);
+                    //if (req.PacketCounter == req.NumPackets)
+                   // {
+                       // this.SaveAssetToFile("packet"+req.PacketCounter+".dat", im.ImageData.Data);
+                    //}
                     req.PacketCounter++;
                     //req.ImageInfo.last_used = time;
                     //System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);
                 }
 
+            }
+
+            private void SaveAssetToFile(string filename, byte[] data)
+            {
+                FileStream fs = File.Create(filename);
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write(data);
+                bw.Close();
+                fs.Close();
             }
         }
     }
