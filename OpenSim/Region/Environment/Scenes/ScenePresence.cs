@@ -467,7 +467,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendInitialData()
         {
             this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
-            if (this.newAvatar)
+            if (!this.childAgent)
             {
                 this.m_scene.InformClientOfNeighbours(this.ControllingClient);
                 this.newAvatar = false;
