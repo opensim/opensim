@@ -383,7 +383,7 @@ namespace OpenSim.Region.ClientStack
             agentData.child = false;
             agentData.firstname = this.firstName;
             agentData.lastname = this.lastName;
-
+            agentData.CapsPath=m_authenticateSessionsHandler.AgentCircuits[this.CircuitCode].CapsPath;
             return agentData;
         }
 
@@ -406,8 +406,13 @@ namespace OpenSim.Region.ClientStack
             newSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
             newSimPack.RegionData.SimIP += (uint)byteIP[0];
             newSimPack.RegionData.SimPort = (ushort)externalIPEndPoint.Port;
-            newSimPack.RegionData.SeedCapability = new byte[0];
+            //newSimPack.RegionData.SeedCapability = new byte[0];
 
+            string capsPath = "http://" + externalIPEndPoint.Address.ToString() + ":9000/CAPS/" + m_authenticateSessionsHandler.AgentCircuits[this.CircuitCode].CapsPath +"0000/";
+            System.Text.ASCIIEncoding enc=new System.Text.ASCIIEncoding();
+            newSimPack.RegionData.SeedCapability = enc.GetBytes(capsPath);
+
+            
             this.OutPacket(newSimPack);
             //this.DowngradeClient();
         }
@@ -451,7 +456,12 @@ namespace OpenSim.Region.ClientStack
             teleport.Info.AgentID = this.AgentID;
             teleport.Info.RegionHandle = regionHandle;
             teleport.Info.SimAccess = simAccess;
-            teleport.Info.SeedCapability = new byte[0];
+
+            string capsPath = "http://" + newRegionEndPoint.Address.ToString() + ":9000/CAPS/" + m_authenticateSessionsHandler.AgentCircuits[this.CircuitCode].CapsPath + "0000/";
+            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+            teleport.Info.SeedCapability = enc.GetBytes(capsPath);
+
+            //teleport.Info.SeedCapability = new byte[0];
 
             IPAddress oIP = newRegionEndPoint.Address;
             byte[] byteIP = oIP.GetAddressBytes();
@@ -459,7 +469,7 @@ namespace OpenSim.Region.ClientStack
             ip += (uint)byteIP[2] << 16;
             ip += (uint)byteIP[1] << 8;
             ip += (uint)byteIP[0];
-
+            
             teleport.Info.SimIP = ip;
             teleport.Info.SimPort = (ushort)newRegionEndPoint.Port;
             teleport.Info.LocationID = 4;
