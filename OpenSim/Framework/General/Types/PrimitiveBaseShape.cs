@@ -3,27 +3,24 @@ using libsecondlife.Packets;
 
 namespace OpenSim.Framework.Types
 {
-    //public enum ShapeType
-    //{
-    //    Box,
-    //    Sphere,
-    //    Ring,
-    //    Tube,
-    //    Torus,
-    //    Prism,
-    //    Scuplted,
-    //    Cylinder,
-    //    Foliage,
-    //    Unknown
-    //}
+    public enum ProfileShape : byte
+    {
+        Circle = 0,
+        Square = 1,
+        IsometricTriangle = 2,
+        EquilateralTriangle = 3,
+        RightTriangle = 4,
+        HalfCircle = 5
+    }
+    
+    public enum HollowShape : byte
+    {
+        Same = 0,
+        // Fill in...
+    }
 
-    
-    
     public class PrimitiveBaseShape
     {
-        //protected ShapeType m_type = ShapeType.Unknown;
-
-
         private static byte[] m_defaultTextureEntry;
         
         public byte PCode;
@@ -49,13 +46,31 @@ namespace OpenSim.Framework.Types
         public byte[] TextureEntry; // a LL textureEntry in byte[] format
         public byte[] ExtraParams;
 
-        //public ShapeType PrimType
-        //{
-        //    get
-        //    {
-        //        return this.m_type;
-        //    }
-        //}
+        public ProfileShape ProfileShape
+        {
+            get
+            {
+                return (ProfileShape)(ProfileCurve & 0xf);
+            }
+            set
+            {
+                byte oldValueMasked = (byte)(ProfileCurve & 0xf0);
+                ProfileCurve = (byte)(oldValueMasked | (byte)value);
+            }
+        }
+
+        public HollowShape HoleShape
+        {
+            get
+            {
+                return (HollowShape)(ProfileHollow & 0xf0);
+            }
+            set
+            {
+                byte oldValueMasked = (byte)(ProfileHollow & 0xf0);
+                ProfileHollow = (byte)(oldValueMasked | (byte)value);
+            }
+        }
 
         public LLVector3 PrimScale
         {
@@ -88,35 +103,28 @@ namespace OpenSim.Framework.Types
         }
     }
 
-    enum ProfileShape
-    {
-        Circle = 0,
-        Square = 1,
-        IsometricTriangle = 2,
-        EquilateralTriangle = 3,
-        RightTriangle = 4,
-        HalfCircle = 5        
-    }
-    
     public class GenericShape : PrimitiveBaseShape
-    {
-        
+    {        
         public GenericShape() : base()
         {
             
-        }        
+        }                       
     }
     
     public class BoxShape : PrimitiveBaseShape
     {
         public BoxShape() : base()
         {
-            //m_type = ShapeType.Box;
             PathCurve = 16;
-            ProfileCurve = 1;
+            ProfileShape = ProfileShape.Square;
             PCode = 9;
             PathScaleX = 100;
             PathScaleY = 100;
+        }
+        
+        public void SetSide( float side )
+        {
+            Scale = new LLVector3( side, side, side );
         }
 
         public static BoxShape Default
@@ -125,7 +133,7 @@ namespace OpenSim.Framework.Types
             {
                 BoxShape boxShape = new BoxShape();
 
-                boxShape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
+                boxShape.SetSide( 0.5f );
                 
                 return boxShape;
             }

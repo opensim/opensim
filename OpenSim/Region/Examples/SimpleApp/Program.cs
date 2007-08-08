@@ -47,11 +47,14 @@ namespace SimpleApp
         {
             base.StartUp();
 
+            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
+
             m_log.Notice(m_log.LineInfo);
             
             ScenePresence.PhysicsEngineFlying = true;
 
             IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
+           
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
             regionInfo.DataStore = "simpleapp_datastore.yap";
             
@@ -67,7 +70,7 @@ namespace SimpleApp
             LLVector3 pos = new LLVector3(138, 129, 27);
 
             SceneObject sceneObject = new CpuCounterObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
-            scene.AddEntity(sceneObject);
+           scene.AddEntity(sceneObject);
 
             MyNpcCharacter m_character = new MyNpcCharacter( scene.EventManager );
             scene.AddNewClient(m_character, false);
