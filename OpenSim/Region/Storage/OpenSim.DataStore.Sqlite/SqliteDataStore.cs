@@ -48,7 +48,7 @@ namespace OpenSim.DataStore.SqliteStorage
             primDa.Fill(ds, "prims");
             DataTable prims = ds.Tables["prims"];
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
-            setupPrimCommands(primDa);
+            setupPrimCommands(primDa, conn);
             
             shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
             shapeDa.Fill(ds, "primshapes");
@@ -56,34 +56,60 @@ namespace OpenSim.DataStore.SqliteStorage
             return;
         }
 
-        private void setupPrimCommands(SqliteDataAdapter da)
+        private SqliteParameter createSqliteParameter(string name, DbType type)
         {
-            SqliteCommand delete = new SqliteCommand("delete from prims where UUID=@UUID");
-            SqliteParameterCollection parms = delete.Parameters;
-            parms.Add("@UUID", SqlDbType.VarChar);
-            parms["@UUID"].SourceVersion=DataRowVersion.Original;
+            SqliteParameter param = new SqliteParameter();
+            param.ParameterName = ":" + name;
+            param.DbType = type;
+            param.SourceColumn = name;
+            param.SourceVersion = DataRowVersion.Current;
+            return param;
+        }
+
+        private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            SqliteParameter UUID = createSqliteParameter("UUID", DbType.String);
+            SqliteParameter Name = createSqliteParameter("Name", DbType.String);
+            SqliteParameter CreationDate = createSqliteParameter("CreationDate", DbType.Int32);
+            SqliteParameter PositionX = createSqliteParameter("PositionX", DbType.Double);
+            SqliteParameter PositionY = createSqliteParameter("PositionY", DbType.Double);
+            SqliteParameter PositionZ = createSqliteParameter("PositionZ", DbType.Double);
+
+
+            SqliteCommand delete = new SqliteCommand("delete from prims where UUID=:UUID");
+            delete.Connection = conn;
+            
+            SqliteCommand insert = 
+                new SqliteCommand("insert into prims(" +
+                                  "UUID, CreationDate, Name, PositionX, PositionY, PositionZ" +
+                                  ") values(:UUID, :CreationDate, :Name, :PositionX, :PositionY, :PositionZ)");
+            insert.Connection = conn;
+            
+            SqliteCommand update =
+                new SqliteCommand("update prims" +
+                                  "set CreationDate=:CreationDate, Name=:Name, PositionX=:PositionX, " +
+                                  "PositionY=:PositionY, PositionZ=:PositionZ where UUID=:UUID");
+            update.Connection = conn;
+
+            delete.Parameters.Add(UUID);
+
+            insert.Parameters.Add(UUID);
+            insert.Parameters.Add(Name);
+            insert.Parameters.Add(CreationDate);
+            insert.Parameters.Add(PositionX);
+            insert.Parameters.Add(PositionY);
+            insert.Parameters.Add(PositionZ);
+
+            update.Parameters.Add(UUID);
+            update.Parameters.Add(Name);
+            update.Parameters.Add(CreationDate);
+            update.Parameters.Add(PositionX);
+            update.Parameters.Add(PositionY);
+            update.Parameters.Add(PositionZ);
+
             da.DeleteCommand = delete;
-
-
-            string sql = "insert into prims(" +
-                "UUID, CreationDate, Name, PositionX, PositionY, PositionZ" +
-                ") values(@UUID, @CreationDate, @Name, @PositionX, @PositionY, @PositionZ)";
-            SqliteCommand insert = new SqliteCommand(sql);
-            parms = insert.Parameters;
-            parms.Add("@UUID", SqlDbType.VarChar);
-            parms.Add("@CreationDate", SqlDbType.Int);
-            parms.Add("@Name", SqlDbType.VarChar);
-            parms.Add("@PositionX", SqlDbType.Float);
-            parms.Add("@PositionY", SqlDbType.Float);
-            parms.Add("@PositionZ", SqlDbType.Float);
-            parms["@UUID"].SourceVersion=DataRowVersion.Original;
             da.InsertCommand = insert;
-
-            // throw away for now until the rest works
-            string updateSQL = "update prims set name='update'";
-            SqliteCommand update = new SqliteCommand(updateSQL);
             da.UpdateCommand = update;
-
         }
 
         private void StoreSceneObject(SceneObject obj)
@@ -126,14 +152,6 @@ namespace OpenSim.DataStore.SqliteStorage
             }
         }
 
-        private void commit() 
-        {
-            DataTable prims = ds.Tables["prims"];
-            DataTable shapes = ds.Tables["shapes"];
-
-            
-        }
-
         public void StoreObject(SceneObject obj)
         {
             foreach (Primitive prim in obj.Children.Values)
@@ -144,8 +162,6 @@ namespace OpenSim.DataStore.SqliteStorage
             primDa.Update(ds, "prims");
             MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
-
-        
 
         public void RemoveObject(LLUUID obj)
         {
