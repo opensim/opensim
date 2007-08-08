@@ -30,7 +30,7 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
-using System.Windows.Forms;
+//using System.Windows.Forms;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
