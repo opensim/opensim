@@ -361,8 +361,11 @@ namespace OpenSim.Region.GridInterfaces.Local
              */ 
 
             string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
+            if(File.Exists(filePath))
+            {
             XmlConfigSource source = new XmlConfigSource(filePath);
             ReadAssetDetails(source);
+            }
         }
 
         protected void ReadAssetDetails(IConfigSource source)

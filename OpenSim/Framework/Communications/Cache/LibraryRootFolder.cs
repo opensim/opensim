@@ -36,8 +36,11 @@ namespace OpenSim.Framework.Communications.Caches
             this.CreateLibraryItems();
 
             string filePath = Path.Combine(Util.configDir(), "OpenSimLibrary.xml");
-            XmlConfigSource source = new XmlConfigSource(filePath);
-            this.ReadItemsFromFile(source);
+            if (File.Exists(filePath))
+            {
+                XmlConfigSource source = new XmlConfigSource(filePath);
+                this.ReadItemsFromFile(source);
+            }
         }
 
         private void CreateLibraryItems()
