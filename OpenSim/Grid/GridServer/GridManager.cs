@@ -227,18 +227,18 @@ namespace OpenSim.Grid.GridServer
 
             SimProfileData TheSim = null;
             Hashtable requestData = (Hashtable)request.Params[0];
-
+            string myword;
             if (requestData.ContainsKey("UUID"))
             {
                 TheSim = getRegion(new LLUUID((string)requestData["UUID"]));
                 
-                logToDB((new LLUUID((string)requestData["UUID"])).ToStringHyphenated(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
+//                logToDB((new LLUUID((string)requestData["UUID"])).ToStringHyphenated(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
             }
             else if (requestData.ContainsKey("region_handle"))
             {
 
-                TheSim = getRegion((ulong)Convert.ToUInt64(requestData["region_handle"]));
-                logToDB((string)requestData["region_handle"], "XmlRpcSimulatorLoginMethod", "", 5, "Region attempting login with regionHandle.");
+//                TheSim = getRegion((ulong)Convert.ToUInt64(requestData["region_handle"]));
+//                logToDB((string)requestData["region_handle"], "XmlRpcSimulatorLoginMethod", "", 5, "Region attempting login with regionHandle.");
             }
             else
             {
@@ -248,7 +248,14 @@ namespace OpenSim.Grid.GridServer
 
             if (TheSim == null) // Shouldnt this be in the REST Simulator Set method?
             {
-                //NEW REGION
+                Console.WriteLine("NEW SIM");
+                myword = "creation";
+            }
+            else
+            {
+                myword = "connection";
+            }
+
                 TheSim = new SimProfileData();
 
                 TheSim.regionRecvKey = config.SimRecvKey;
@@ -272,11 +279,11 @@ namespace OpenSim.Grid.GridServer
                 TheSim.regionMapTextureID = new LLUUID((string)requestData["map-image-id"]);
 
                 TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
-                System.Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " + TheSim.regionHandle);
+                System.Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " + TheSim.serverURI);
                 TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
                 TheSim.httpServerURI = "http://" + TheSim.serverIP + ":" + TheSim.httpPort + "/";
 
-                Console.WriteLine("NEW SIM: " + TheSim.serverURI);
+
                 TheSim.regionName = (string)requestData["sim_name"];
                 TheSim.UUID = new LLUUID((string)requestData["UUID"]);
 
@@ -288,7 +295,7 @@ namespace OpenSim.Grid.GridServer
                         switch(insertResponse)
                         {
                             case DataResponse.RESPONSE_OK:
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("grid", "New sim creation successful: " + TheSim.regionName);
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("grid", "New sim " + myword + " successful: " + TheSim.regionName);
                                 break;
                             case DataResponse.RESPONSE_ERROR:
                                 OpenSim.Framework.Console.MainLog.Instance.Warn("storage", "New sim creation failed (Error): " + TheSim.regionName);
@@ -307,7 +314,7 @@ namespace OpenSim.Grid.GridServer
                         OpenSim.Framework.Console.MainLog.Instance.Warn("storage", "Unable to add region " + TheSim.UUID.ToStringHyphenated() + " via " + kvp.Key);
                         OpenSim.Framework.Console.MainLog.Instance.Warn("storage", e.ToString());
                     }
-                }
+                
 
 
                 if (getRegion(TheSim.regionHandle) == null)
