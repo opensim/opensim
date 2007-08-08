@@ -44,13 +44,15 @@ namespace OpenSim.DataStore.SqliteStorage
 
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
-            primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
+            // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
             primDa.Fill(ds, "prims");
+            ds.AcceptChanges();
+
             DataTable prims = ds.Tables["prims"];
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
             setupPrimCommands(primDa, conn);
             
-            shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
+            // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
             shapeDa.Fill(ds, "primshapes");
             
             return;
@@ -76,7 +78,7 @@ namespace OpenSim.DataStore.SqliteStorage
             SqliteParameter PositionZ = createSqliteParameter("PositionZ", DbType.Double);
 
 
-            SqliteCommand delete = new SqliteCommand("delete from prims where UUID=:UUID");
+            SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
             delete.Connection = conn;
             
             SqliteCommand insert = 
@@ -86,9 +88,9 @@ namespace OpenSim.DataStore.SqliteStorage
             insert.Connection = conn;
             
             SqliteCommand update =
-                new SqliteCommand("update prims" +
-                                  "set CreationDate=:CreationDate, Name=:Name, PositionX=:PositionX, " +
-                                  "PositionY=:PositionY, PositionZ=:PositionZ where UUID=:UUID");
+                new SqliteCommand("update prims set " +
+                                  "UUID = :UUID, CreationDate = :CreationDate, Name = :Name, PositionX = :PositionX, " +
+                                  "PositionY = :PositionY, PositionZ = :PositionZ where UUID = :UUID");
             update.Connection = conn;
 
             delete.Parameters.Add(UUID);
@@ -159,6 +161,7 @@ namespace OpenSim.DataStore.SqliteStorage
                 addPrim(prim);
             }
             
+            MainLog.Instance.Verbose("Attempting to do update....");
             primDa.Update(ds, "prims");
             MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
