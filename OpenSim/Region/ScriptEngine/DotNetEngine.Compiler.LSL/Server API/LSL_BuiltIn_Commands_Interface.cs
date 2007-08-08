@@ -1,0 +1,368 @@
+/*
+* Copyright (c) Contributors, http://www.openmetaverse.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
+/* Original code: Tedd Hansen */
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+{
+    public interface LSL_BuiltIn_Commands_Interface
+    {
+        float llSin(float f);
+        float llCos(float f);
+        float llTan(float f);
+        float llAtan2(float x, float y);
+        float llSqrt(float f);
+        float llPow(float fbase, float fexponent);
+        UInt32 llAbs(UInt32 i);
+        float llFabs(float f);
+        float llFrand(float mag);
+        UInt32 llFloor(float f);
+        UInt32 llCeil(float f);
+        UInt32 llRound(float f);
+        float llVecMag(LSO_Enums.Vector v);
+        LSO_Enums.Vector llVecNorm(LSO_Enums.Vector v);
+        float llVecDist(LSO_Enums.Vector a, LSO_Enums.Vector b);
+        LSO_Enums.Vector llRot2Euler(LSO_Enums.Rotation r);
+        LSO_Enums.Rotation llEuler2Rot(LSO_Enums.Vector v);
+        LSO_Enums.Rotation llAxes2Rot(LSO_Enums.Vector fwd, LSO_Enums.Vector left, LSO_Enums.Vector up);
+        LSO_Enums.Vector llRot2Fwd(LSO_Enums.Rotation r);
+        LSO_Enums.Vector llRot2Left(LSO_Enums.Rotation r);
+        LSO_Enums.Vector llRot2Up(LSO_Enums.Rotation r);
+        LSO_Enums.Rotation llRotBetween(LSO_Enums.Vector start, LSO_Enums.Vector end);
+        void llWhisper(UInt16 channelID, string text);
+        //void llSay(UInt32 channelID, string text);
+        void llSay(object channelID, object text);
+        void llShout(UInt16 channelID, string text);
+        UInt32 llListen(UInt16 channelID, string name, LSO_Enums.Key ID, string msg);
+        void llListenControl(UInt32 number, UInt32 active);
+        void llListenRemove(UInt32 number);
+        void llSensor(string name, LSO_Enums.Key id, UInt32 type, float range, float arc);
+        void llSensorRepeat(string name, LSO_Enums.Key id, UInt32 type, float range, float arc, float rate);
+        void llSensorRemove();
+        string llDetectedName(UInt32 number);
+        LSO_Enums.Key llDetectedKey(UInt32 number);
+        LSO_Enums.Key llDetectedOwner(UInt32 number);
+        UInt32 llDetectedType(UInt32 number);
+        LSO_Enums.Vector llDetectedPos(UInt32 number);
+        LSO_Enums.Vector llDetectedVel(UInt32 number);
+        LSO_Enums.Vector llDetectedGrab(UInt32 number);
+        LSO_Enums.Rotation llDetectedRot(UInt32 number);
+        UInt32 llDetectedGroup(UInt32 number);
+        UInt32 llDetectedLinkNumber(UInt32 number);
+        void llDie();
+        float llGround(LSO_Enums.Vector offset);
+        float llCloud(LSO_Enums.Vector offset);
+        LSO_Enums.Vector llWind(LSO_Enums.Vector offset);
+        void llSetStatus(UInt32 status, UInt32 value);
+        UInt32 llGetStatus(UInt32 status);
+        void llSetScale(LSO_Enums.Vector scale);
+        LSO_Enums.Vector llGetScale();
+        void llSetColor(LSO_Enums.Vector color, UInt32 face);
+        float llGetAlpha(UInt32 face);
+        void llSetAlpha(float alpha, UInt32 face);
+        LSO_Enums.Vector llGetColor(UInt32 face);
+        void llSetTexture(string texture, UInt32 face);
+        void llScaleTexture(float u, float v, UInt32 face);
+        void llOffsetTexture(float u, float v, UInt32 face);
+        void llRotateTexture(float rotation, UInt32 face);
+        string llGetTexture(UInt32 face);
+        void llSetPos(LSO_Enums.Vector pos);
+
+        void llGetPos();
+        void llGetLocalPos();
+        void llSetRot();
+        void llGetRot();
+        void llGetLocalRot();
+        void llSetForce();
+        void llGetForce();
+        void llTarget();
+        void llTargetRemove();
+        void llRotTarget();
+        void llRotTargetRemove();
+        void llMoveToTarget();
+        void llStopMoveToTarget();
+        void llApplyImpulse();
+        void llApplyRotationalImpulse();
+        void llSetTorque();
+        void llGetTorque();
+        void llSetForceAndTorque();
+        void llGetVel();
+        void llGetAccel();
+        void llGetOmega();
+        void llGetTimeOfDay();
+        void llGetWallclock();
+        void llGetTime();
+        void llResetTime();
+        void llGetAndResetTime();
+        void llSound();
+        void llPlaySound();
+        void llLoopSound();
+        void llLoopSoundMaster();
+        void llLoopSoundSlave();
+        void llPlaySoundSlave();
+        void llTriggerSound();
+        void llStopSound();
+        void llPreloadSound();
+        void llGetSubString();
+        void llDeleteSubString();
+        void llInsertString();
+        void llToUpper();
+        void llToLower();
+        void llGiveMoney();
+        void llMakeExplosion();
+        void llMakeFountain();
+        void llMakeSmoke();
+        void llMakeFire();
+        void llRezObject();
+        void llLookAt();
+        void llStopLookAt();
+        void llSetTimerEvent();
+        void llSleep();
+        void llGetMass();
+        void llCollisionFilter();
+        void llTakeControls();
+        void llReleaseControls();
+        void llAttachToAvatar();
+        void llDetachFromAvatar();
+        void llTakeCamera();
+        void llReleaseCamera();
+        void llGetOwner();
+        void llInstantMessage();
+        void llEmail();
+        void llGetNextEmail();
+        void llGetKey();
+        void llSetBuoyancy();
+        void llSetHoverHeight();
+        void llStopHover();
+        void llMinEventDelay();
+        void llSoundPreload();
+        void llRotLookAt();
+        void llStringLength();
+        void llStartAnimation();
+        void llStopAnimation();
+        void llPointAt();
+        void llStopPointAt();
+        void llTargetOmega();
+        void llGetStartParameter();
+        void llGodLikeRezObject();
+        void llRequestPermissions();
+        void llGetPermissionsKey();
+        void llGetPermissions();
+        void llGetLinkNumber();
+        void llSetLinkColor();
+        void llCreateLink();
+        void llBreakLink();
+        void llBreakAllLinks();
+        void llGetLinkKey();
+        void llGetLinkName();
+        void llGetInventoryNumber();
+        void llGetInventoryName();
+        void llSetScriptState();
+        void llGetEnergy();
+        void llGiveInventory();
+        void llRemoveInventory();
+        void llSetText();
+        void llWater();
+        void llPassTouches();
+        void llRequestAgentData();
+        void llRequestInventoryData();
+        void llSetDamage();
+        void llTeleportAgentHome();
+        void llModifyLand();
+        void llCollisionSound();
+        void llCollisionSprite();
+        void llGetAnimation();
+        void llResetScript();
+        void llMessageLinked();
+        void llPushObject();
+        void llPassCollisions();
+        void llGetScriptName();
+        void llGetNumberOfSides();
+        void llAxisAngle2Rot();
+        void llRot2Axis();
+        void llRot2Angle();
+        void llAcos();
+        void llAsin();
+        void llAngleBetween();
+        void llGetInventoryKey();
+        void llAllowInventoryDrop();
+        void llGetSunDirection();
+        void llGetTextureOffset();
+        void llGetTextureScale();
+        void llGetTextureRot();
+        void llSubStringIndex();
+        void llGetOwnerKey();
+        void llGetCenterOfMass();
+        void llListSort();
+        void llGetListLength();
+        void llList2Integer();
+        void llList2Float();
+        void llList2String();
+        void llList2Key();
+        void llList2Vector();
+        void llList2Rot();
+        void llList2List();
+        void llDeleteSubList();
+        void llGetListEntryType();
+        void llList2CSV();
+        void llCSV2List();
+        void llListRandomize();
+        void llList2ListStrided();
+        void llGetRegionCorner();
+        void llListInsertList();
+        void llListFindList();
+        void llGetObjectName();
+        void llSetObjectName();
+        void llGetDate();
+        void llEdgeOfWorld();
+        void llGetAgentInfo();
+        void llAdjustSoundVolume();
+        void llSetSoundQueueing();
+        void llSetSoundRadius();
+        void llKey2Name();
+        void llSetTextureAnim();
+        void llTriggerSoundLimited();
+        void llEjectFromLand();
+        void llParseString2List();
+        void llOverMyLand();
+        void llGetLandOwnerAt();
+        void llGetNotecardLine();
+        void llGetAgentSize();
+        void llSameGroup();
+        void llUnSit();
+        void llGroundSlope();
+        void llGroundNormal();
+        void llGroundContour();
+        void llGetAttached();
+        void llGetFreeMemory();
+        void llGetRegionName();
+        void llGetRegionTimeDilation();
+        void llGetRegionFPS();
+        void llParticleSystem();
+        void llGroundRepel();
+        void llGiveInventoryList();
+        void llSetVehicleType();
+        void llSetVehicleFloatParam();
+        void llSetVehicleVectorParam();
+        void llSetVehicleRotationParam();
+        void llSetVehicleFlags();
+        void llRemoveVehicleFlags();
+        void llSitTarget();
+        void llAvatarOnSitTarget();
+        void llAddToLandPassList();
+        void llSetTouchText();
+        void llSetSitText();
+        void llSetCameraEyeOffset();
+        void llSetCameraAtOffset();
+        void llDumpList2String();
+        void llScriptDanger();
+        void llDialog();
+        void llVolumeDetect();
+        void llResetOtherScript();
+        void llGetScriptState();
+        void llRemoteLoadScript();
+        void llSetRemoteScriptAccessPin();
+        void llRemoteLoadScriptPin();
+        void llOpenRemoteDataChannel();
+        void llSendRemoteData();
+        void llRemoteDataReply();
+        void llCloseRemoteDataChannel();
+        void llMD5String();
+        void llSetPrimitiveParams();
+        void llStringToBase64();
+        void llBase64ToString();
+        void llXorBase64Strings();
+        void llRemoteDataSetRegion();
+        void llLog10();
+        void llLog();
+        void llGetAnimationList();
+        void llSetParcelMusicURL();
+        void llGetRootPosition();
+        void llGetRootRotation();
+        void llGetObjectDesc();
+        void llSetObjectDesc();
+        void llGetCreator();
+        void llGetTimestamp();
+        void llSetLinkAlpha();
+        void llGetNumberOfPrims();
+        void llGetNumberOfNotecardLines();
+        void llGetBoundingBox();
+        void llGetGeometricCenter();
+        void llGetPrimitiveParams();
+        void llIntegerToBase64();
+        void llBase64ToInteger();
+        void llGetGMTclock();
+        void llGetSimulatorHostname();
+        void llSetLocalRot();
+        void llParseStringKeepNulls();
+        void llRezAtRoot();
+        void llGetObjectPermMask();
+        void llSetObjectPermMask();
+        void llGetInventoryPermMask();
+        void llSetInventoryPermMask();
+        void llGetInventoryCreator();
+        void llOwnerSay();
+        void llRequestSimulatorData();
+        void llForceMouselook();
+        void llGetObjectMass();
+        void llListReplaceList();
+        void llLoadURL();
+        void llParcelMediaCommandList();
+        void llParcelMediaQuery();
+        void llModPow();
+        void llGetInventoryType();
+        void llSetPayPrice();
+        void llGetCameraPos();
+        void llGetCameraRot();
+        void llSetPrimURL();
+        void llRefreshPrimURL();
+        void llEscapeURL();
+        void llUnescapeURL();
+        void llMapDestination();
+        void llAddToLandBanList();
+        void llRemoveFromLandPassList();
+        void llRemoveFromLandBanList();
+        void llSetCameraParams();
+        void llClearCameraParams();
+        void llListStatistics();
+        void llGetUnixTime();
+        void llGetParcelFlags();
+        void llGetRegionFlags();
+        void llXorBase64StringsCorrect();
+        void llHTTPRequest();
+        void llResetLandBanList();
+        void llResetLandPassList();
+        void llGetParcelPrimCount();
+        void llGetParcelPrimOwners();
+        void llGetObjectPrimCount();
+        void llGetParcelMaxPrims();
+        void llGetParcelDetails();
+    }
+}
