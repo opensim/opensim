@@ -14,10 +14,10 @@ using System.Data;
 using Mono.Data.SqliteClient;
 using Primitive = OpenSim.Region.Environment.Scenes.Primitive;
 
-namespace OpenSim.DataStore.SqliteStorage
+namespace OpenSim.DataStore.MonoSqliteStorage
 {
 
-    public class SqliteDataStore : IRegionDataStore
+    public class MonoSqliteDataStore : IRegionDataStore
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
