@@ -8,16 +8,15 @@
 -- string => varchar(256) until such time as we know we need bigger
 
 create table prims (
-        id integer primary key autoincrement, -- this.LocalID
+        UUID char(36) primary key, -- this.UUID
         ParentID integer default 0, -- this.ParentID
-        UUID char(36), -- this.UUID
         CreationDate integer, -- this.CreationDate
         Name varchar(256),
         -- various text fields
         Text varchar(256),
         Description varchar(256),
         SitName varchar(256),
-        TouchName 
+        TouchName varchar(256),
         -- permissions
         CreatorID char(36),
         OwnerID char(36),
