@@ -673,10 +673,11 @@ namespace OpenSim.Framework.Data.MySQL
                 IDbCommand result = Query(sql, parameters);
 
                 //Console.WriteLine(result.CommandText);
-
-                if (result.ExecuteNonQuery() == 1)
+                int x;
+                if ((x = result.ExecuteNonQuery()) > 0)
+                {
                     returnval = true;
-
+                }
                 result.Dispose();
             }
             catch (Exception e)
