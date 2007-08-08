@@ -79,9 +79,14 @@ namespace OpenSim.Region.ClientStack
                 lock (SequenceLock)
                 {
                     if (Sequence >= MAX_SEQUENCE)
+                    {
                         Sequence = 1;
+                    }
                     else
+                    {
                         Sequence++;
+                    }
+
                     Pack.Header.Sequence = Sequence;
                 }
 

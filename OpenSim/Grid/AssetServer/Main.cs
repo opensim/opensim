@@ -91,49 +91,9 @@ namespace OpenSim.Grid.AssetServer
             httpServer.AddStreamHandler( new GetAssetStreamHandler(this));
             httpServer.AddStreamHandler(new PostAssetStreamHandler( this ));
 
-            //httpServer.AddRestHandler("GET", "/assets/", this.assetGetMethod);
-            //httpServer.AddRestHandler("POST", "/assets/", this.assetPostMethod);
-
             httpServer.Start();
 
         }
-
-        //public string AssetPostMethod(string requestBody, string path, string param)
-        //{
-        //    AssetBase asset = new AssetBase();
-        //    asset.Name = "";
-        //    asset.FullID = new LLUUID(param);
-        //    Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
-        //    byte[] buffer = Windows1252Encoding.GetBytes(requestBody);
-        //    asset.Data = buffer;
-        //    AssetStorage store = new AssetStorage();
-        //    store.Data = asset.Data;
-        //    store.Name = asset.Name;
-        //    store.UUID = asset.FullID;
-        //    db.Set(store);
-        //    db.Commit();
-        //    return "";
-        //}
-
-        //public string AssetGetMethod(string request, string path, string param)
-        //{
-        //    Console.WriteLine("got a request " + param);
-        //    byte[] assetdata = GetAssetData(new LLUUID(param), false);
-        //    if (assetdata != null)
-        //    {
-        //        Encoding Windows1252Encoding = Encoding.GetEncoding(1252);
-        //        string ret = Windows1252Encoding.GetString(assetdata);
-        //        //string ret = System.Text.Encoding.Unicode.GetString(assetdata);
-
-        //        return ret;
-
-        //    }
-        //    else
-        //    {
-        //        return "";
-        //    }
-
-        //}
 
         public byte[] GetAssetData(LLUUID assetID, bool isTexture)
         {
