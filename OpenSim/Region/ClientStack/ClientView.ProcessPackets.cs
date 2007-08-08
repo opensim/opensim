@@ -338,9 +338,10 @@ namespace OpenSim.Region.ClientStack
                     #region Inventory/Asset/Other related packets
                     case PacketType.RequestImage:
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
+                        
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
-                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image);
+                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet);
                         }
                         break;
                     case PacketType.TransferRequest:
