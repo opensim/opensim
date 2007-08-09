@@ -119,7 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart newPart = new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
-            
+            m_scene.EventManager.OnBackup += this.ProcessBackup;
         }
 
 
@@ -311,7 +311,15 @@ namespace OpenSim.Region.Environment.Scenes
                 this.OnPrimCountTainted();
             }
         }
-
+        
+         /// <summary>
+        /// Processes backup
+        /// </summary>
+        /// <param name="datastore"></param>
+        public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
+        {
+            datastore.StoreObject(this);
+        }
         /// <summary>
         /// 
         /// </summary>

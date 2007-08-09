@@ -211,6 +211,8 @@ namespace OpenSim.Region.Environment.Scenes
             this.AngularVelocity = new LLVector3(0, 0, 0);
             this.Acceleration = new LLVector3(0, 0, 0);
 
+            
+
             //temporary code just so the m_flags field doesn't give a compiler warning
             if (m_flags == LLObject.ObjectFlags.AllowInventoryDrop)
             {
