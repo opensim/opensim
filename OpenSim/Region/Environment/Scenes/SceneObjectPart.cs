@@ -376,6 +376,7 @@ namespace OpenSim.Region.Environment.Scenes
             Array.Copy(data, 0, this.m_shape.ExtraParams, i, data.Length);
 
             this.ScheduleFullUpdate();
+            
         }
         #endregion
 

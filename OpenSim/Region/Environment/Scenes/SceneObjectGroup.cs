@@ -119,6 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart newPart = new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
+            
         }
 
 
