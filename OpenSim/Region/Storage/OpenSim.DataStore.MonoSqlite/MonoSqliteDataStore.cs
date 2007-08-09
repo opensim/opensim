@@ -70,14 +70,50 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
+            /* 
+             * Create all the bound parameters.  Try to keep these in the same order
+             * as the sql file, with comments in the same places, or your head will probably
+             * explode trying to do corolations
+             */
             SqliteParameter UUID = createSqliteParameter("UUID", DbType.String);
-            SqliteParameter Name = createSqliteParameter("Name", DbType.String);
+            SqliteParameter ParentID = createSqliteParameter("ParentID", DbType.Int32);
             SqliteParameter CreationDate = createSqliteParameter("CreationDate", DbType.Int32);
+            SqliteParameter Name = createSqliteParameter("Name", DbType.String);
+            // various text fields
+            SqliteParameter Text = createSqliteParameter("Text", DbType.String);
+            SqliteParameter Description = createSqliteParameter("Description", DbType.String);
+            SqliteParameter SitName = createSqliteParameter("SitName", DbType.String);
+            SqliteParameter TouchName = createSqliteParameter("TouchName", DbType.String);
+            // permissions
+            SqliteParameter CreatorID = createSqliteParameter("CreatorID", DbType.String);
+            SqliteParameter OwnerID = createSqliteParameter("OwnerID", DbType.String);
+            SqliteParameter GroupID = createSqliteParameter("GroupID", DbType.String);
+            SqliteParameter LastOwnerID = createSqliteParameter("LastOwnerID", DbType.String);
+            SqliteParameter OwnerMask = createSqliteParameter("OwnerMask", DbType.Int32);
+            SqliteParameter NextOwnerMask = createSqliteParameter("NextOwnerMask", DbType.Int32);
+            SqliteParameter GroupMask = createSqliteParameter("GroupMask", DbType.Int32);
+            SqliteParameter EveryoneMask = createSqliteParameter("EveryoneMask", DbType.Int32);
+            SqliteParameter BaseMask = createSqliteParameter("BaseMask", DbType.Int32);
+            // vectors
             SqliteParameter PositionX = createSqliteParameter("PositionX", DbType.Double);
             SqliteParameter PositionY = createSqliteParameter("PositionY", DbType.Double);
             SqliteParameter PositionZ = createSqliteParameter("PositionZ", DbType.Double);
+            SqliteParameter VelocityX = createSqliteParameter("VelocityX", DbType.Double);
+            SqliteParameter VelocityY = createSqliteParameter("VelocityY", DbType.Double);
+            SqliteParameter VelocityZ = createSqliteParameter("VelocityZ", DbType.Double);
+            SqliteParameter AngularVelocityX = createSqliteParameter("AngularVelocityX", DbType.Double);
+            SqliteParameter AngularVelocityY = createSqliteParameter("AngularVelocityY", DbType.Double);
+            SqliteParameter AngularVelocityZ = createSqliteParameter("AngularVelocityZ", DbType.Double);
+            SqliteParameter AccelerationX = createSqliteParameter("AccelerationX", DbType.Double);
+            SqliteParameter AccelerationY = createSqliteParameter("AccelerationY", DbType.Double);
+            SqliteParameter AccelerationZ = createSqliteParameter("AccelerationZ", DbType.Double);
+            // quaternions
+            SqliteParameter RotationX = createSqliteParameter("RotationX", DbType.Double);
+            SqliteParameter RotationY = createSqliteParameter("RotationY", DbType.Double);
+            SqliteParameter RotationZ = createSqliteParameter("RotationZ", DbType.Double);
+            SqliteParameter RotationW = createSqliteParameter("RotationW", DbType.Double);
 
-
+            
             SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
             delete.Connection = conn;
             
