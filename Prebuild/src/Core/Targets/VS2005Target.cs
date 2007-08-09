@@ -721,6 +721,11 @@ namespace Prebuild.Core.Targets
                         throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
                     }
 
+                    if (project.Name == "OpenSim.DataStore.MonoSqlite")
+                    {
+                        continue;
+                    }
+
                     ToolInfo toolInfo = (ToolInfo)tools[project.Language];
 
                     string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
