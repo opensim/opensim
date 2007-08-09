@@ -271,9 +271,41 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             row["RotationW"] = prim.RotationOffset.W;
         }
 
-        private void fillShapeRow(DataRow row, PrimitiveBaseShape shape)
+        private void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
-            
+            PrimitiveBaseShape s = prim.Shape;
+            row["UUID"] = prim.UUID;
+            // shape is an enum
+            row["Shape"] = 0;
+            // vectors
+            row["ScaleX"] = s.Scale.X;
+            row["ScaleY"] = s.Scale.Y;
+            row["ScaleZ"] = s.Scale.Z;
+            // paths
+            row["PCode"] = s.PCode;
+            row["PathBegin"] = s.PathBegin;
+            row["PathEnd"] = s.PathEnd;
+            row["PathScaleX"] = s.PathScaleX;
+            row["PathScaleY"] = s.PathScaleY;
+            row["PathShearX"] = s.PathShearX;
+            row["PathShearY"] = s.PathShearY;
+            row["PathSkew"] = s.PathSkew;
+            row["PathCurve"] = s.PathCurve;
+            row["PathRadiusOffset"] = s.PathRadiusOffset;
+            row["PathRevolutions"] = s.PathRevolutions;
+            row["PathTaperX"] = s.PathTaperX;
+            row["PathTaperY"] = s.PathTaperY;
+            row["PathTwist"] = s.PathTwist;
+            row["PathTwistBegin"] = s.PathTwistBegin;
+            // profile
+            row["ProfileBegin"] = s.ProfileBegin;
+            row["ProfileEnd"] = s.ProfileEnd;
+            row["ProfileCurve"] = s.ProfileCurve;
+            row["ProfileHollow"] = s.ProfileHollow;
+            // text TODO: this isn't right] = but I'm not sure the right
+            // way to specify this as a blob atm
+            row["Texture"] = s.TextureEntry;
+
         }
 
         private void addPrim(SceneObjectPart prim)
@@ -293,7 +325,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataRow shapeRow = shapes.Rows.Find(prim.UUID);
             if (shapeRow == null) {
                 shapeRow = prims.NewRow();
-                fillShapeRow(shapeRow, prim.Shape);
+                fillShapeRow(shapeRow, prim);
                 prims.Rows.Add(shapeRow);
             } else {
                 fillPrimRow(shapeRow, prim);
