@@ -85,4 +85,3 @@ create table primshapes (
         Texture blob
 );
 
-create index primshapes_parentid on primshapes(prim_id);
