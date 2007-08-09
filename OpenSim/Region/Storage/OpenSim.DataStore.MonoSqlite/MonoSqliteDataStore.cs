@@ -324,11 +324,11 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
             DataRow shapeRow = shapes.Rows.Find(prim.UUID);
             if (shapeRow == null) {
-                shapeRow = prims.NewRow();
+                shapeRow = shapes.NewRow();
                 fillShapeRow(shapeRow, prim);
-                prims.Rows.Add(shapeRow);
+                shapes.Rows.Add(shapeRow);
             } else {
-                fillPrimRow(shapeRow, prim);
+                fillShapeRow(shapeRow, prim);
             }
         }
 
