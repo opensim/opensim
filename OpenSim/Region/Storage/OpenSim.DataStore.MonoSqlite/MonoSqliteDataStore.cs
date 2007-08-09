@@ -457,6 +457,22 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["primshapes"];
+            
+            // This only supports 1 prim per SceneObjectGroup.  Need to fix later
+            foreach (DataRow primRow in prims.Rows)
+            {
+                SceneObjectGroup group = new SceneObjectGroup();
+                SceneObjectPart prim = buildPrim(primRow);
+                DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                if (shapeRow != null) {
+                    prim.Shape = buildShape(shapeRow);
+                }
+                group.Children.Add(prim.UUID, prim);
+                retvals.Add(group);
+            }
+
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + " objects");
 
             return retvals;
