@@ -241,6 +241,58 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private SceneObjectPart buildPrim(DataRow row)
         {
             SceneObjectPart prim = new SceneObjectPart();
+            prim.UUID = new LLUUID((string)row["UUID"]);
+            prim.ParentID = (uint)row["ParentID"];
+            prim.CreationDate = (int)row["CreationDate"];
+            prim.PartName = (string)row["Name"];
+            // various text fields
+            prim.Text = (string)row["Text"];
+            prim.Description = (string)row["Description"];
+            prim.SitName = (string)row["SitName"];
+            prim.TouchName = (string)row["TouchName"];
+            // permissions
+            prim.CreatorID = new LLUUID((string)row["CreatorID"]);
+            prim.OwnerID = new LLUUID((string)row["OwnerID"]);
+            prim.GroupID = new LLUUID((string)row["GroupID"]);
+            prim.LastOwnerID = new LLUUID((string)row["LastOwnerID"]);
+            prim.OwnerMask = (uint)row["OwnerMask"];
+            prim.NextOwnerMask = (uint)row["NextOwnerMask"];
+            prim.GroupMask = (uint)row["GroupMask"];
+            prim.EveryoneMask = (uint)row["EveryoneMask"];
+            prim.BaseMask = (uint)row["BaseMask"];
+            // vectors
+            prim.OffsetPosition = new LLVector3(
+                                                (float)row["PositionX"], 
+                                                (float)row["PositionY"], 
+                                                (float)row["PositionZ"]
+                                                );
+            prim.GroupPosition = new LLVector3(
+                                               (float)row["GroupPositionX"],
+                                               (float)row["GroupPositionY"],
+                                               (float)row["GroupPositionZ"]
+                                               );
+            prim.Velocity = new LLVector3(
+                                          (float)row["VelocityX"],
+                                          (float)row["VelocityY"],
+                                          (float)row["VelocityZ"]
+                                          );
+            prim.AngularVelocity = new LLVector3(
+                                                 (float)row["AngularVelocityX"],
+                                                 (float)row["AngularVelocityY"],
+                                                 (float)row["AngularVelocityZ"]
+                                                 );
+            prim.Acceleration = new LLVector3(
+                                              (float)row["AccelerationX"],
+                                              (float)row["AccelerationY"],
+                                              (float)row["AccelerationZ"]
+                                              );
+            // quaternions
+            prim.RotationOffset = new LLQuaternion(
+                                                   (float)row["RotationX"],
+                                                   (float)row["RotationY"],
+                                                   (float)row["RotationZ"],
+                                                   (float)row["RotationW"]
+                                                   );
             return prim;
         }
 
@@ -286,6 +338,41 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             row["RotationY"] = prim.RotationOffset.Y;
             row["RotationZ"] = prim.RotationOffset.Z;
             row["RotationW"] = prim.RotationOffset.W;
+        }
+
+        private PrimitiveBaseShape buildShape(DataRow row)
+        {
+            PrimitiveBaseShape s = new PrimitiveBaseShape();
+            s.Scale = new LLVector3(
+                                    (float)row["ScaleX"],
+                                    (float)row["ScaleY"],
+                                    (float)row["ScaleZ"]
+                                    );
+            // paths
+            s.PCode = (byte)row["PCode"];
+            s.PathBegin = (ushort)row["PathBegin"];
+            s.PathEnd = (ushort)row["PathEnd"];
+            s.PathScaleX = (byte)row["PathScaleX"];
+            s.PathScaleY = (byte)row["PathScaleY"];
+            s.PathShearX = (byte)row["PathShearX"];
+            s.PathShearY = (byte)row["PathShearY"];
+            s.PathSkew = (sbyte)row["PathSkew"];
+            s.PathCurve = (byte)row["PathCurve"];
+            s.PathRadiusOffset = (sbyte)row["PathRadiusOffset"];
+            s.PathRevolutions = (byte)row["PathRevolutions"];
+            s.PathTaperX = (sbyte)row["PathTaperX"];
+            s.PathTaperY = (sbyte)row["PathTaperY"];
+            s.PathTwist = (sbyte)row["PathTwist"];
+            s.PathTwistBegin = (sbyte)row["PathTwistBegin"];
+            // profile
+            s.ProfileBegin = (ushort)row["ProfileBegin"];
+            s.ProfileEnd = (ushort)row["ProfileEnd"];
+            s.ProfileCurve = (byte)row["ProfileCurve"];
+            s.ProfileHollow = (byte)row["ProfileHollow"];
+            // text TODO: this isn't right] = but I'm not sure the right
+            // way to specify this as a blob atm
+            s.TextureEntry = (byte[])row["Texture"];
+            return s;
         }
 
         private void fillShapeRow(DataRow row, SceneObjectPart prim)
