@@ -117,8 +117,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private Dictionary<string, DbType> createShapeDataDefs()
         {
             Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("id", DbType.Int32);
-            data.Add("prim_id", DbType.Int32);
+            data.Add("UUID", DbType.String);
             // shape is an enum
             data.Add("Shape", DbType.Int32);
             // vectors
@@ -215,32 +214,33 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             da.DeleteCommand = delete;
         }
 
-        private void StoreSceneObject(SceneObject obj)
+        private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
+            Dictionary<string, DbType> shapeDataDefs = createShapeDataDefs();
             
+            da.InsertCommand = createInsertCommand("primshapes", shapeDataDefs);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("primshapes", "UUID=:UUID", shapeDataDefs);
+            da.UpdateCommand.Connection = conn;
+            
+            SqliteCommand delete = new SqliteCommand("delete from primshapes where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
         }
 
-        public void StoreObject(AllNewSceneObjectPart2 obj)
-        {
-            // TODO: Serializing code
-            DataTable prims = ds.Tables["prims"];
-            DataTable shapes = ds.Tables["shapes"];
-            
-           
-            
-        }
-        
-        private void fillPrimRow(DataRow row, Primitive prim) 
+        private void fillPrimRow(DataRow row, SceneObjectPart prim) 
         {
             row["UUID"] = prim.UUID;
             row["CreationDate"] = prim.CreationDate;
-            row["Name"] = prim.Name;
-            row["PositionX"] = prim.Pos.X;
-            row["PositionY"] = prim.Pos.Y;
-            row["PositionZ"] = prim.Pos.Z;
+            row["Name"] = prim.PartName;
+            row["PositionX"] = prim.OffsetPosition.X;
+            row["PositionY"] = prim.OffsetPosition.Y;
+            row["PositionZ"] = prim.OffsetPosition.Z;
         }
 
-        private void addPrim(Primitive prim)
+        private void addPrim(SceneObjectPart prim)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["shapes"];
@@ -248,16 +248,16 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataRow row = prims.Rows.Find(prim.UUID);
             if (row == null) {
                 row = prims.NewRow();
-                fillPrimRow(row, prim);
+                // fillPrimRow(row, prim);
                 prims.Rows.Add(row);
             } else {
                 fillPrimRow(row, prim);
             }
         }
 
-        public void StoreObject(SceneObject obj)
+        public void StoreObject(SceneObjectGroup obj)
         {
-            foreach (Primitive prim in obj.Children.Values)
+            foreach (SceneObjectPart prim in obj.Children.Values)
             {
                 addPrim(prim);
             }
@@ -272,9 +272,9 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // TODO: remove code
         }
 
-        public List<SceneObject> LoadObjects()
+        public List<SceneObjectGroup> LoadObjects()
         {
-            List<SceneObject> retvals = new List<SceneObject>();
+            List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + " objects");
 
