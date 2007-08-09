@@ -52,8 +52,8 @@ create index prims_ownerid on prims(OwnerID);
 create index prims_lastownerid on prims(LastOwnerID);
 
 create table primshapes (
-        id integer primary key autoincrement,
-        prim_id integer not null,
+        -- The same UUID as prim, just to keep them easily linked
+        UUID varchar(36) primary key not null,
         -- Shape is an enum 
         Shape integer, 
         -- vectors (converted from LLVector3)
