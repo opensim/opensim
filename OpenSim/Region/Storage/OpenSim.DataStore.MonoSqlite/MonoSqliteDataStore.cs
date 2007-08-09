@@ -114,11 +114,50 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return data;
         }
 
-        private SqliteCommand createInsertCommand(Dictionary<string, DbType> defs) 
+        private SqliteCommand createPrimInsertCommand(Dictionary<string, DbType> defs) 
         {
-            SqliteCommand cmd = new SqliteCommand();
-            string sql = "insert into prims(";
+            /**
+             *  This is subtle enough to deserve some commentary.
+             *  Instead of doing *lots* and *lots of hardcoded strings
+             *  for database definitions we'll use the fact that
+             *  realistically all insert statements look like "insert
+             *  into A(b, c) values(:b, :c) on the parameterized query
+             *  front.  If we just have a list of b, c, etc... we can
+             *  generate these strings instead of typing them out.
+             */
+            string[] cols = new string[defs.Keys.Count];
+            defs.Keys.CopyTo(cols, 0);
             
+            string sql = "insert into prims(";
+            sql += String.Join(", ", cols);
+            // important, the first ':' needs to be here, the rest get added in the join
+            sql += ") values (:";
+            sql += String.Join(", :", cols);
+            sql += ")";
+            SqliteCommand cmd = new SqliteCommand(sql);
+            
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (KeyValuePair<string, DbType> kvp in defs) {
+                cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
+            }
+            return cmd;
+        }
+
+        private SqliteCommand createPrimUpdateCommand(Dictionary<string, DbType> defs) 
+        {
+            string sql = "update prims set ";
+            foreach (string key in defs.Keys) {
+                sql += key + "= :" + key + ", ";
+            }
+            sql += " where UUID=:UUID";
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (KeyValuePair<string, DbType> kvp in defs) {
+                cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
+            }
             return cmd;
         }
 
@@ -126,111 +165,16 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             Dictionary<string, DbType> primDataDefs = createPrimDataDefs();
             
-            da.InsertCommand = createInsertCommand(primDataDefs);
-            /* 
-             * Create all the bound parameters.  Try to keep these in the same order
-             * as the sql file, with comments in the same places, or your head will probably
-             * explode trying to do corolations
-             */
-            SqliteParameter UUID = createSqliteParameter("UUID", DbType.String);
-            SqliteParameter ParentID = createSqliteParameter("ParentID", DbType.Int32);
-            SqliteParameter CreationDate = createSqliteParameter("CreationDate", DbType.Int32);
-            SqliteParameter Name = createSqliteParameter("Name", DbType.String);
-            // various text fields
-            SqliteParameter Text = createSqliteParameter("Text", DbType.String);
-            SqliteParameter Description = createSqliteParameter("Description", DbType.String);
-            SqliteParameter SitName = createSqliteParameter("SitName", DbType.String);
-            SqliteParameter TouchName = createSqliteParameter("TouchName", DbType.String);
-            // permissions
-            SqliteParameter CreatorID = createSqliteParameter("CreatorID", DbType.String);
-            SqliteParameter OwnerID = createSqliteParameter("OwnerID", DbType.String);
-            SqliteParameter GroupID = createSqliteParameter("GroupID", DbType.String);
-            SqliteParameter LastOwnerID = createSqliteParameter("LastOwnerID", DbType.String);
-            SqliteParameter OwnerMask = createSqliteParameter("OwnerMask", DbType.Int32);
-            SqliteParameter NextOwnerMask = createSqliteParameter("NextOwnerMask", DbType.Int32);
-            SqliteParameter GroupMask = createSqliteParameter("GroupMask", DbType.Int32);
-            SqliteParameter EveryoneMask = createSqliteParameter("EveryoneMask", DbType.Int32);
-            SqliteParameter BaseMask = createSqliteParameter("BaseMask", DbType.Int32);
-            // vectors
-            SqliteParameter PositionX = createSqliteParameter("PositionX", DbType.Double);
-            SqliteParameter PositionY = createSqliteParameter("PositionY", DbType.Double);
-            SqliteParameter PositionZ = createSqliteParameter("PositionZ", DbType.Double);
-            SqliteParameter VelocityX = createSqliteParameter("VelocityX", DbType.Double);
-            SqliteParameter VelocityY = createSqliteParameter("VelocityY", DbType.Double);
-            SqliteParameter VelocityZ = createSqliteParameter("VelocityZ", DbType.Double);
-            SqliteParameter AngularVelocityX = createSqliteParameter("AngularVelocityX", DbType.Double);
-            SqliteParameter AngularVelocityY = createSqliteParameter("AngularVelocityY", DbType.Double);
-            SqliteParameter AngularVelocityZ = createSqliteParameter("AngularVelocityZ", DbType.Double);
-            SqliteParameter AccelerationX = createSqliteParameter("AccelerationX", DbType.Double);
-            SqliteParameter AccelerationY = createSqliteParameter("AccelerationY", DbType.Double);
-            SqliteParameter AccelerationZ = createSqliteParameter("AccelerationZ", DbType.Double);
-            // quaternions
-            SqliteParameter RotationX = createSqliteParameter("RotationX", DbType.Double);
-            SqliteParameter RotationY = createSqliteParameter("RotationY", DbType.Double);
-            SqliteParameter RotationZ = createSqliteParameter("RotationZ", DbType.Double);
-            SqliteParameter RotationW = createSqliteParameter("RotationW", DbType.Double);
+            da.InsertCommand = createPrimInsertCommand(primDataDefs);
+            da.InsertCommand.Connection = conn;
 
+            da.UpdateCommand = createPrimUpdateCommand(primDataDefs);
+            da.UpdateCommand.Connection = conn;
             
             SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
             delete.Connection = conn;
-            
-            SqliteCommand insert = 
-                new SqliteCommand("insert into prims(" +
-                                  "UUID, ParentID, CreationDate, Name, " +
-                                  "Text, Description, SitName, TouchName, " +
-                                  "CreatorID, OwnerID, GroupID, LastOwnerID, " +
-                                  "OwnerMask, NextOwnerMask, GroupMask, EveryoneMask, BaseMask, " +
-                                  "PositionX, PositionY, PositionZ, " +
-                                  "VelocityX, VelocityY, VelocityZ, " +
-                                  "AngularVelocityX, AngularVelocityY, AngularVelocityZ, " +
-                                  "AccelerationX, AccelerationY, AccelerationZ, " +
-                                  "RotationX, RotationY, RotationZ, RotationW" +
-                                  ") values (" +
-                                  ":UUID, :ParentID, :CreationDate, :Name, " +
-                                  ":Text, :Description, :SitName, :TouchName, " +
-                                  ":CreatorID, :OwnerID, :GroupID, :LastOwnerID, " +
-                                  ":OwnerMask, :NextOwnerMask, :GroupMask, :EveryoneMask, :BaseMask, " +
-                                  ":PositionX, :PositionY, :PositionZ, " +
-                                  ":VelocityX, :VelocityY, :VelocityZ, " +
-                                  ":AngularVelocityX, :AngularVelocityY, :AngularVelocityZ, " +
-                                  ":AccelerationX, :AccelerationY, :AccelerationZ, " +
-                                  ":RotationX, :RotationY, :RotationZ, :RotationW)");
-                                  
-            insert.Connection = conn;
-            
-            SqliteCommand update =
-                new SqliteCommand("update prims set " +
-                                  "UUID = :UUID, ParentID = :ParentID, CreationDate = :CreationDate, Name = :Name, " +
-                                  "Text = :Text, Description = :Description, SitName = :SitName, TouchName = :TouchName, " +
-                                  "CreatorID = :CreatorID, OwnerID = :OwnerID, GroupID = :GroupID, LastOwnerID = :LastOwnerID, " +
-                                  "OwnerMask = :OwnerMask, NextOwnerMask = :NextOwnerMask, GroupMask = :GroupMask,  = :EveryoneMask,  = :BaseMask, " +
-                                  " = :PositionX,  = :PositionY,  = :PositionZ, " +
-                                  " = :VelocityX,  = :VelocityY,  = :VelocityZ, " +
-                                  " = :AngularVelocityX,  = :AngularVelocityY,  = :AngularVelocityZ, " +
-                                  " = :AccelerationX,  = :AccelerationY,  = :AccelerationZ, " +
-                                  " = :RotationX,  = :RotationY,  = :RotationZ,  = :RotationW " +
-                                  "where UUID = :UUID");
-            update.Connection = conn;
-
-            delete.Parameters.Add(UUID);
-
-            insert.Parameters.Add(UUID);
-            insert.Parameters.Add(Name);
-            insert.Parameters.Add(CreationDate);
-            insert.Parameters.Add(PositionX);
-            insert.Parameters.Add(PositionY);
-            insert.Parameters.Add(PositionZ);
-
-            update.Parameters.Add(UUID);
-            update.Parameters.Add(Name);
-            update.Parameters.Add(CreationDate);
-            update.Parameters.Add(PositionX);
-            update.Parameters.Add(PositionY);
-            update.Parameters.Add(PositionZ);
-
             da.DeleteCommand = delete;
-            da.InsertCommand = insert;
-            da.UpdateCommand = update;
         }
 
         private void StoreSceneObject(SceneObject obj)
