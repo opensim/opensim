@@ -21,6 +21,9 @@ namespace OpenSim.DataStore.MonoSqliteStorage
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
+
+        private Dictionary<string, DbType> primDataDefs;
+        private Dictionary<string, DbType> shapeDataDefs;
         
         private DataSet ds;
         private SqliteDataAdapter primDa;
@@ -68,8 +71,62 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return param;
         }
 
+        private Dictionary<string, DbType> createPrimDataDefs()
+        {
+            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
+            data.Add("UUID", DbType.String);
+            data.Add("ParentID", DbType.Int32);
+            data.Add("CreationDate", DbType.Int32);
+            data.Add("Name", DbType.String);
+            // various text fields
+            data.Add("Text", DbType.String);
+            data.Add("Description", DbType.String);
+            data.Add("SitName", DbType.String);
+            data.Add("TouchName", DbType.String);
+            // permissions
+            data.Add("CreatorID", DbType.String);
+            data.Add("OwnerID", DbType.String);
+            data.Add("GroupID", DbType.String);
+            data.Add("LastOwnerID", DbType.String);
+            data.Add("OwnerMask", DbType.Int32);
+            data.Add("NextOwnerMask", DbType.Int32);
+            data.Add("GroupMask", DbType.Int32);
+            data.Add("EveryoneMask", DbType.Int32);
+            data.Add("BaseMask", DbType.Int32);
+            // vectors
+            data.Add("PositionX", DbType.Double);
+            data.Add("PositionY", DbType.Double);
+            data.Add("PositionZ", DbType.Double);
+            data.Add("VelocityX", DbType.Double);
+            data.Add("VelocityY", DbType.Double);
+            data.Add("VelocityZ", DbType.Double);
+            data.Add("AngularVelocityX", DbType.Double);
+            data.Add("AngularVelocityY", DbType.Double);
+            data.Add("AngularVelocityZ", DbType.Double);
+            data.Add("AccelerationX", DbType.Double);
+            data.Add("AccelerationY", DbType.Double);
+            data.Add("AccelerationZ", DbType.Double);
+            // quaternions
+            data.Add("RotationX", DbType.Double);
+            data.Add("RotationY", DbType.Double);
+            data.Add("RotationZ", DbType.Double);
+            data.Add("RotationW", DbType.Double);
+            return data;
+        }
+
+        private SqliteCommand createInsertCommand(Dictionary<string, DbType> defs) 
+        {
+            SqliteCommand cmd = new SqliteCommand();
+            string sql = "insert into prims(";
+            
+            return cmd;
+        }
+
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
+            Dictionary<string, DbType> primDataDefs = createPrimDataDefs();
+            
+            da.InsertCommand = createInsertCommand(primDataDefs);
             /* 
              * Create all the bound parameters.  Try to keep these in the same order
              * as the sql file, with comments in the same places, or your head will probably
@@ -119,14 +176,40 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             
             SqliteCommand insert = 
                 new SqliteCommand("insert into prims(" +
-                                  "UUID, CreationDate, Name, PositionX, PositionY, PositionZ" +
-                                  ") values(:UUID, :CreationDate, :Name, :PositionX, :PositionY, :PositionZ)");
+                                  "UUID, ParentID, CreationDate, Name, " +
+                                  "Text, Description, SitName, TouchName, " +
+                                  "CreatorID, OwnerID, GroupID, LastOwnerID, " +
+                                  "OwnerMask, NextOwnerMask, GroupMask, EveryoneMask, BaseMask, " +
+                                  "PositionX, PositionY, PositionZ, " +
+                                  "VelocityX, VelocityY, VelocityZ, " +
+                                  "AngularVelocityX, AngularVelocityY, AngularVelocityZ, " +
+                                  "AccelerationX, AccelerationY, AccelerationZ, " +
+                                  "RotationX, RotationY, RotationZ, RotationW" +
+                                  ") values (" +
+                                  ":UUID, :ParentID, :CreationDate, :Name, " +
+                                  ":Text, :Description, :SitName, :TouchName, " +
+                                  ":CreatorID, :OwnerID, :GroupID, :LastOwnerID, " +
+                                  ":OwnerMask, :NextOwnerMask, :GroupMask, :EveryoneMask, :BaseMask, " +
+                                  ":PositionX, :PositionY, :PositionZ, " +
+                                  ":VelocityX, :VelocityY, :VelocityZ, " +
+                                  ":AngularVelocityX, :AngularVelocityY, :AngularVelocityZ, " +
+                                  ":AccelerationX, :AccelerationY, :AccelerationZ, " +
+                                  ":RotationX, :RotationY, :RotationZ, :RotationW)");
+                                  
             insert.Connection = conn;
             
             SqliteCommand update =
                 new SqliteCommand("update prims set " +
-                                  "UUID = :UUID, CreationDate = :CreationDate, Name = :Name, PositionX = :PositionX, " +
-                                  "PositionY = :PositionY, PositionZ = :PositionZ where UUID = :UUID");
+                                  "UUID = :UUID, ParentID = :ParentID, CreationDate = :CreationDate, Name = :Name, " +
+                                  "Text = :Text, Description = :Description, SitName = :SitName, TouchName = :TouchName, " +
+                                  "CreatorID = :CreatorID, OwnerID = :OwnerID, GroupID = :GroupID, LastOwnerID = :LastOwnerID, " +
+                                  "OwnerMask = :OwnerMask, NextOwnerMask = :NextOwnerMask, GroupMask = :GroupMask,  = :EveryoneMask,  = :BaseMask, " +
+                                  " = :PositionX,  = :PositionY,  = :PositionZ, " +
+                                  " = :VelocityX,  = :VelocityY,  = :VelocityZ, " +
+                                  " = :AngularVelocityX,  = :AngularVelocityY,  = :AngularVelocityZ, " +
+                                  " = :AccelerationX,  = :AccelerationY,  = :AccelerationZ, " +
+                                  " = :RotationX,  = :RotationY,  = :RotationZ,  = :RotationW " +
+                                  "where UUID = :UUID");
             update.Connection = conn;
 
             delete.Parameters.Add(UUID);
