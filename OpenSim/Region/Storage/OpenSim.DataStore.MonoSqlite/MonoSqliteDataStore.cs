@@ -97,6 +97,9 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             data.Add("PositionX", DbType.Double);
             data.Add("PositionY", DbType.Double);
             data.Add("PositionZ", DbType.Double);
+            data.Add("GroupPositionX", DbType.Double);
+            data.Add("GroupPositionY", DbType.Double);
+            data.Add("GroupPositionZ", DbType.Double);
             data.Add("VelocityX", DbType.Double);
             data.Add("VelocityY", DbType.Double);
             data.Add("VelocityZ", DbType.Double);
@@ -186,7 +189,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             string sql = "update " + table + " set ";
             string subsql = "";
             foreach (string key in defs.Keys) {
-                if (subsql.Length > 0) { // 
+                if (subsql.Length > 0) { // a map function would rock so much here
                     subsql += ", ";
                 }
                 subsql += key + "= :" + key;
@@ -235,6 +238,12 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             da.DeleteCommand = delete;
         }
 
+        private SceneObjectPart buildPrim(DataRow row)
+        {
+            SceneObjectPart prim = new SceneObjectPart();
+            return prim;
+        }
+
         private void fillPrimRow(DataRow row, SceneObjectPart prim) 
         {
             row["UUID"] = prim.UUID;
@@ -260,6 +269,9 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             row["PositionX"] = prim.OffsetPosition.X;
             row["PositionY"] = prim.OffsetPosition.Y;
             row["PositionZ"] = prim.OffsetPosition.Z;
+            row["GroupPositionX"] = prim.GroupPosition.X;
+            row["GroupPositionY"] = prim.GroupPosition.Y;
+            row["GroupPositionZ"] = prim.GroupPosition.Z;
             row["VelocityX"] = prim.Velocity.X;
             row["VelocityY"] = prim.Velocity.Y;
             row["VelocityZ"] = prim.Velocity.Z;
