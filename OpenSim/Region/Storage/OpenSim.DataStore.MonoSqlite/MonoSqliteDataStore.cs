@@ -114,7 +114,45 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return data;
         }
 
-        private SqliteCommand createPrimInsertCommand(Dictionary<string, DbType> defs) 
+        private Dictionary<string, DbType> createShapeDataDefs()
+        {
+            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
+            data.Add("id", DbType.Int32);
+            data.Add("prim_id", DbType.Int32);
+            // shape is an enum
+            data.Add("Shape", DbType.Int32);
+            // vectors
+            data.Add("ScaleX", DbType.Double);
+            data.Add("ScaleY", DbType.Double);
+            data.Add("ScaleZ", DbType.Double);
+            // paths
+            data.Add("PCode", DbType.Int32);
+            data.Add("PathBegin", DbType.Int32);
+            data.Add("PathEnd", DbType.Int32);
+            data.Add("PathScaleX", DbType.Int32);
+            data.Add("PathScaleY", DbType.Int32);
+            data.Add("PathShearX", DbType.Int32);
+            data.Add("PathShearY", DbType.Int32);
+            data.Add("PathSkew", DbType.Int32);
+            data.Add("PathCurve", DbType.Int32);
+            data.Add("PathRadiusOffset", DbType.Int32);
+            data.Add("PathRevolutions", DbType.Int32);
+            data.Add("PathTaperX", DbType.Int32);
+            data.Add("PathTaperY", DbType.Int32);
+            data.Add("PathTwist", DbType.Int32);
+            data.Add("PathTwistBegin", DbType.Int32);
+            // profile
+            data.Add("ProfileBegin", DbType.Int32);
+            data.Add("ProfileEnd", DbType.Int32);
+            data.Add("ProfileCurve", DbType.Int32);
+            data.Add("ProfileHollow", DbType.Int32);
+            // text TODO: this isn't right, but I'm not sure the right
+            // way to specify this as a blob atm
+            data.Add("Texture", DbType.Binary);
+            return data;
+        }
+
+        private SqliteCommand createInsertCommand(string table, Dictionary<string, DbType> defs) 
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -128,7 +166,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             string[] cols = new string[defs.Keys.Count];
             defs.Keys.CopyTo(cols, 0);
             
-            string sql = "insert into prims(";
+            string sql = "insert into " + table + "(";
             sql += String.Join(", ", cols);
             // important, the first ':' needs to be here, the rest get added in the join
             sql += ") values (:";
@@ -144,13 +182,13 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return cmd;
         }
 
-        private SqliteCommand createPrimUpdateCommand(Dictionary<string, DbType> defs) 
+        private SqliteCommand createUpdateCommand(string table, string pk, Dictionary<string, DbType> defs) 
         {
-            string sql = "update prims set ";
+            string sql = "update " + table + " set ";
             foreach (string key in defs.Keys) {
                 sql += key + "= :" + key + ", ";
             }
-            sql += " where UUID=:UUID";
+            sql += " where " + pk;
             SqliteCommand cmd = new SqliteCommand(sql);
 
             // this provides the binding for all our parameters, so
@@ -165,10 +203,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             Dictionary<string, DbType> primDataDefs = createPrimDataDefs();
             
-            da.InsertCommand = createPrimInsertCommand(primDataDefs);
+            da.InsertCommand = createInsertCommand("prims", primDataDefs);
             da.InsertCommand.Connection = conn;
 
-            da.UpdateCommand = createPrimUpdateCommand(primDataDefs);
+            da.UpdateCommand = createUpdateCommand("prims", "UUID=:UUID", primDataDefs);
             da.UpdateCommand.Connection = conn;
             
             SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
