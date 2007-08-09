@@ -34,7 +34,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     interface ScriptEngineInterface
     {
-        void InitializeEngine(TempWorldInterface Sceneworld);
+        void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld);
         void Shutdown();
     }
 }

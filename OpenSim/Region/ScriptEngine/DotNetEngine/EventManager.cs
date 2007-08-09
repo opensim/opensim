@@ -46,7 +46,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             
             // Hook up a test event to our test form
             Common.SendToDebug("EventManager Hooking up dummy-event: touch_start");
-            myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);
+            //myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);
         }
 
         public void touch_start(string ObjectID)

@@ -38,7 +38,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // This is the root object for ScriptEngine
         //
 
-        internal TempWorldInterface World;
+        internal OpenSim.Region.Environment.Scenes.Scene World;
         internal EventManager myEventManager;                   // Handles and queues incoming events from OpenSim
         internal EventQueueManager myEventQueueManager;         // Executes events
         internal ScriptManager myScriptManager;                 // Load, unload and execute scripts
@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Common.SendToDebug("ScriptEngine Object Initialized");
         }
 
-        public void InitializeEngine(TempWorldInterface Sceneworld)
+        public void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld)
         {
             World = Sceneworld;
             Common.SendToDebug("ScriptEngine InitializeEngine()");
