@@ -11,6 +11,7 @@ using OpenSim.Framework.Types;
 using libsecondlife;
 
 using System.Data;
+using System.Data.SqlTypes;
 // Yes, this won't compile on MS, need to deal with that later
 using Mono.Data.SqliteClient;
 
@@ -244,57 +245,59 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new LLUUID((string)row["UUID"]);
-            prim.ParentID = (uint)row["ParentID"];
-            prim.CreationDate = (int)row["CreationDate"];
-            prim.PartName = (string)row["Name"];
+            prim.UUID = new LLUUID((String)row["UUID"]);
+            // explicit conversion of integers is required, which sort
+            // of sucks.  No idea if there is a shortcut here or not.
+            prim.ParentID = Convert.ToUInt32(row["ParentID"]);
+            prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
+            prim.PartName = (String)row["Name"];
             // various text fields
-            prim.Text = (string)row["Text"];
-            prim.Description = (string)row["Description"];
-            prim.SitName = (string)row["SitName"];
-            prim.TouchName = (string)row["TouchName"];
+            prim.Text = (String)row["Text"];
+            prim.Description = (String)row["Description"];
+            prim.SitName = (String)row["SitName"];
+            prim.TouchName = (String)row["TouchName"];
             // permissions
-            prim.CreatorID = new LLUUID((string)row["CreatorID"]);
-            prim.OwnerID = new LLUUID((string)row["OwnerID"]);
-            prim.GroupID = new LLUUID((string)row["GroupID"]);
-            prim.LastOwnerID = new LLUUID((string)row["LastOwnerID"]);
-            prim.OwnerMask = (uint)row["OwnerMask"];
-            prim.NextOwnerMask = (uint)row["NextOwnerMask"];
-            prim.GroupMask = (uint)row["GroupMask"];
-            prim.EveryoneMask = (uint)row["EveryoneMask"];
-            prim.BaseMask = (uint)row["BaseMask"];
+            prim.CreatorID = new LLUUID((String)row["CreatorID"]);
+            prim.OwnerID = new LLUUID((String)row["OwnerID"]);
+            prim.GroupID = new LLUUID((String)row["GroupID"]);
+            prim.LastOwnerID = new LLUUID((String)row["LastOwnerID"]);
+            prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
+            prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
+            prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
+            prim.EveryoneMask = Convert.ToUInt32(row["EveryoneMask"]);
+            prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
             // vectors
             prim.OffsetPosition = new LLVector3(
-                                                (float)row["PositionX"], 
-                                                (float)row["PositionY"], 
-                                                (float)row["PositionZ"]
+                                                Convert.ToSingle(row["PositionX"]), 
+                                                Convert.ToSingle(row["PositionY"]), 
+                                                Convert.ToSingle(row["PositionZ"])
                                                 );
             prim.GroupPosition = new LLVector3(
-                                               (float)row["GroupPositionX"],
-                                               (float)row["GroupPositionY"],
-                                               (float)row["GroupPositionZ"]
+                                               Convert.ToSingle(row["GroupPositionX"]),
+                                               Convert.ToSingle(row["GroupPositionY"]),
+                                               Convert.ToSingle(row["GroupPositionZ"])
                                                );
             prim.Velocity = new LLVector3(
-                                          (float)row["VelocityX"],
-                                          (float)row["VelocityY"],
-                                          (float)row["VelocityZ"]
+                                          Convert.ToSingle(row["VelocityX"]),
+                                          Convert.ToSingle(row["VelocityY"]),
+                                          Convert.ToSingle(row["VelocityZ"])
                                           );
             prim.AngularVelocity = new LLVector3(
-                                                 (float)row["AngularVelocityX"],
-                                                 (float)row["AngularVelocityY"],
-                                                 (float)row["AngularVelocityZ"]
+                                                 Convert.ToSingle(row["AngularVelocityX"]),
+                                                 Convert.ToSingle(row["AngularVelocityY"]),
+                                                 Convert.ToSingle(row["AngularVelocityZ"])
                                                  );
             prim.Acceleration = new LLVector3(
-                                              (float)row["AccelerationX"],
-                                              (float)row["AccelerationY"],
-                                              (float)row["AccelerationZ"]
+                                              Convert.ToSingle(row["AccelerationX"]),
+                                              Convert.ToSingle(row["AccelerationY"]),
+                                              Convert.ToSingle(row["AccelerationZ"])
                                               );
             // quaternions
             prim.RotationOffset = new LLQuaternion(
-                                                   (float)row["RotationX"],
-                                                   (float)row["RotationY"],
-                                                   (float)row["RotationZ"],
-                                                   (float)row["RotationW"]
+                                                   Convert.ToSingle(row["RotationX"]),
+                                                   Convert.ToSingle(row["RotationY"]),
+                                                   Convert.ToSingle(row["RotationZ"]),
+                                                   Convert.ToSingle(row["RotationW"])
                                                    );
             return prim;
         }
@@ -347,34 +350,34 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
             s.Scale = new LLVector3(
-                                    (float)row["ScaleX"],
-                                    (float)row["ScaleY"],
-                                    (float)row["ScaleZ"]
+                                    Convert.ToSingle(row["ScaleX"]),
+                                    Convert.ToSingle(row["ScaleY"]),
+                                    Convert.ToSingle(row["ScaleZ"])
                                     );
             // paths
-            s.PCode = (byte)row["PCode"];
-            s.PathBegin = (ushort)row["PathBegin"];
-            s.PathEnd = (ushort)row["PathEnd"];
-            s.PathScaleX = (byte)row["PathScaleX"];
-            s.PathScaleY = (byte)row["PathScaleY"];
-            s.PathShearX = (byte)row["PathShearX"];
-            s.PathShearY = (byte)row["PathShearY"];
-            s.PathSkew = (sbyte)row["PathSkew"];
-            s.PathCurve = (byte)row["PathCurve"];
-            s.PathRadiusOffset = (sbyte)row["PathRadiusOffset"];
-            s.PathRevolutions = (byte)row["PathRevolutions"];
-            s.PathTaperX = (sbyte)row["PathTaperX"];
-            s.PathTaperY = (sbyte)row["PathTaperY"];
-            s.PathTwist = (sbyte)row["PathTwist"];
-            s.PathTwistBegin = (sbyte)row["PathTwistBegin"];
+            s.PCode = Convert.ToByte(row["PCode"]);
+            s.PathBegin = Convert.ToUInt16(row["PathBegin"]);
+            s.PathEnd = Convert.ToUInt16(row["PathEnd"]);
+            s.PathScaleX = Convert.ToByte(row["PathScaleX"]);
+            s.PathScaleY = Convert.ToByte(row["PathScaleY"]);
+            s.PathShearX = Convert.ToByte(row["PathShearX"]);
+            s.PathShearY = Convert.ToByte(row["PathShearY"]);
+            s.PathSkew = Convert.ToSByte(row["PathSkew"]);
+            s.PathCurve = Convert.ToByte(row["PathCurve"]);
+            s.PathRadiusOffset = Convert.ToSByte(row["PathRadiusOffset"]);
+            s.PathRevolutions = Convert.ToByte(row["PathRevolutions"]);
+            s.PathTaperX = Convert.ToSByte(row["PathTaperX"]);
+            s.PathTaperY = Convert.ToSByte(row["PathTaperY"]);
+            s.PathTwist = Convert.ToSByte(row["PathTwist"]);
+            s.PathTwistBegin = Convert.ToSByte(row["PathTwistBegin"]);
             // profile
-            s.ProfileBegin = (ushort)row["ProfileBegin"];
-            s.ProfileEnd = (ushort)row["ProfileEnd"];
-            s.ProfileCurve = (byte)row["ProfileCurve"];
-            s.ProfileHollow = (byte)row["ProfileHollow"];
+            s.ProfileBegin = Convert.ToUInt16(row["ProfileBegin"]);
+            s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
+            s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
+            s.ProfileHollow = Convert.ToByte(row["ProfileHollow"]);
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
-            s.TextureEntry = (byte[])row["Texture"];
+            // s.TextureEntry = (byte[])row["Texture"];
             return s;
         }
 
@@ -464,19 +467,23 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable shapes = ds.Tables["primshapes"];
             
             // This only supports 1 prim per SceneObjectGroup.  Need to fix later
-//             foreach (DataRow primRow in prims.Rows)
-//             {
-//                 SceneObjectGroup group = new SceneObjectGroup();
-//                 SceneObjectPart prim = buildPrim(primRow);
-//                 DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-//                 if (shapeRow != null) {
-//                     prim.Shape = buildShape(shapeRow);
-//                 }
-//                 group.Children.Add(prim.UUID, prim);
-//                 retvals.Add(group);
-//             }
+            foreach (DataRow primRow in prims.Rows)
+            {
+                SceneObjectGroup group = new SceneObjectGroup();
+                SceneObjectPart prim = buildPrim(primRow);
+                DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                if (shapeRow != null) {
+                    prim.Shape = buildShape(shapeRow);
+                }
+                group.Children.Add(prim.UUID, prim);
+                // TODO: there are a couple of known issues to get this to work
+                //   * While we can add Children, we can't set the root part (or
+                //     or even figure out which should be the root part)
+                //   * region handle may need to be persisted, it isn't now
+                // retvals.Add(group);
+            }
 
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + " objects");
+            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " objects");
 
             return retvals;
         }
