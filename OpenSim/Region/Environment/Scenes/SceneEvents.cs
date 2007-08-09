@@ -22,7 +22,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnParcelPrimCountUpdateDelegate();
         public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
 
-        public delegate void OnParcelPrimCountAddDelegate(SceneObject obj);
+        public delegate void OnParcelPrimCountAddDelegate(SceneObjectGroup obj);
         public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
 
         public delegate void OnScriptConsoleDelegate(string[] args);
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
                 OnParcelPrimCountUpdate();
             }
         }
-        public void TriggerParcelPrimCountAdd(SceneObject obj)
+        public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {
             if (OnParcelPrimCountAdd != null)
             {

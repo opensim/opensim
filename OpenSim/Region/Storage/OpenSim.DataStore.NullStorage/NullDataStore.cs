@@ -18,7 +18,7 @@ namespace OpenSim.DataStore.NullStorage
             return;
         }
 
-        public void StoreObject(SceneObject obj)
+        public void StoreObject(SceneObjectGroup obj)
         {
 
         }
@@ -28,9 +28,9 @@ namespace OpenSim.DataStore.NullStorage
 
         }
 
-        public List<SceneObject> LoadObjects()
+        public List<SceneObjectGroup> LoadObjects()
         {
-            return new List<SceneObject>();
+            return new List<SceneObjectGroup>();
         }
 
         public void StoreTerrain(double[,] ter)

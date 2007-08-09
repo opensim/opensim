@@ -552,7 +552,7 @@ namespace OpenSim.Region.Environment.LandManagement
             this.landPrimCountTainted = true;
         }
 
-        public void addPrimToLandPrimCounts(SceneObject obj)
+        public void addPrimToLandPrimCounts(SceneObjectGroup obj)
         {
             LLVector3 position = obj.Pos;
             Land landUnderPrim = getLandObject(position.X, position.Y);
@@ -562,7 +562,7 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
-        public void removePrimFromLandPrimCounts(SceneObject obj)
+        public void removePrimFromLandPrimCounts(SceneObjectGroup obj)
         {
             foreach (Land p in landList.Values)
             {

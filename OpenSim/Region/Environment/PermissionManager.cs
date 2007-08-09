@@ -53,11 +53,11 @@ namespace OpenSim.Region.Environment
             bool permission = false;
 
             // If it's not an object, we cant edit it.
-            if (!(m_scene.Entities[obj] is SceneObject))
+            if (!(m_scene.Entities[obj] is SceneObjectGroup))
                 return false;
 
-            SceneObject task = (SceneObject)m_scene.Entities[obj];
-            LLUUID taskOwner = task.rootPrimitive.OwnerID;
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[obj];
+            LLUUID taskOwner = null;  
 
             // Object owners should be able to edit their own content
             if (user == taskOwner)

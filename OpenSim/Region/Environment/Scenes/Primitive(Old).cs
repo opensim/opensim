@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
         private PrimitiveBaseShape m_shape;
         private byte[] m_particleSystem = new byte[0];
 
-        public SceneObject m_RootParent;
+        public SceneObjectOLD m_RootParent;
         public bool m_isRootPrim;
         public EntityBase m_Parent;
 
@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Constructors
 
         public Primitive(ulong regionHandle, Scene scene, LLUUID ownerID, uint localID, bool isRoot, EntityBase parent,
-                         SceneObject rootObject, PrimitiveBaseShape shape, LLVector3 pos)
+                         SceneObjectOLD rootObject, PrimitiveBaseShape shape, LLVector3 pos)
         {
             m_regionHandle = regionHandle;
             m_scene = scene;
@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Duplication
 
-        public Primitive Copy(EntityBase parent, SceneObject rootParent)
+        public Primitive Copy(EntityBase parent, SceneObjectOLD rootParent)
         {
             Primitive dupe = (Primitive)MemberwiseClone();
 
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_uuid = LLUUID.Random();
             dupe.LocalId = newLocalID;
 
-            if (parent is SceneObject)
+            if (parent is SceneObjectGroup)
             {
                 dupe.m_isRootPrim = true;
                 dupe.ParentID = 0;
@@ -314,13 +314,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="linkObject"></param>
-        public void AddNewChildren(SceneObject linkObject)
+        public void AddNewChildren(SceneObjectOLD linkObject)
         {
             // Console.WriteLine("linking new prims " + linkObject.rootLocalID + " to me (" + this.LocalId + ")");
             //TODO check permissions
 
             m_children.Add(linkObject.rootPrimitive);
-            linkObject.rootPrimitive.SetNewParent(this, m_RootParent);
+           linkObject.rootPrimitive.SetNewParent(this, m_RootParent);
 
             m_scene.DeleteEntity(linkObject.rootUUID);
             linkObject.DeleteAllChildren();
@@ -333,7 +333,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="newParent"></param>
         /// <param name="rootParent"></param>
-        public void SetNewParent(Primitive newParent, SceneObject rootParent)
+        public void SetNewParent(Primitive newParent, SceneObjectOLD rootParent)
         {
             LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
             m_isRootPrim = false;
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="newRoot"></param>
-        public void SetRootParent(SceneObject newRoot, Primitive newParent, LLVector3 oldParentPosition,
+        public void SetRootParent(SceneObjectOLD newRoot, Primitive newParent, LLVector3 oldParentPosition,
                                   Quaternion oldParentRotation)
         {
             LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);

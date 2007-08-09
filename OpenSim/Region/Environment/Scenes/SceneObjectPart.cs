@@ -10,7 +10,7 @@ using OpenSim.Framework.Types;
 namespace OpenSim.Region.Environment.Scenes
 {
 
-    public class AllNewSceneObjectPart2
+    public class SceneObjectPart
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
@@ -29,7 +29,7 @@ namespace OpenSim.Region.Environment.Scenes
        
         protected byte[] m_particleSystem = new byte[0];
 
-        protected AllNewSceneObjectGroup2 m_parentGroup;
+        protected SceneObjectGroup m_parentGroup;
 
         /// <summary>
         /// Only used internally to schedule client updates
@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID UUID
         {
             get { return m_uuid; }
-            set { value = m_uuid; }
+            set { m_uuid = value ; }
         }
 
         protected uint m_localID;
@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public AllNewSceneObjectPart2()
+        public SceneObjectPart()
         {
 
         }
@@ -190,8 +190,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public AllNewSceneObjectPart2(ulong regionHandle, AllNewSceneObjectGroup2 parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
+        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
         {
+            this.m_partName = "Primitive";
             this.m_regionHandle = regionHandle;
             this.m_parentGroup = parent;
 
@@ -215,6 +216,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
             }
+            ScheduleFullUpdate();
         }
 
         /// <summary>
@@ -226,7 +228,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public AllNewSceneObjectPart2(ulong regionHandle, AllNewSceneObjectGroup2 parent, int creationDate, LLUUID ownerID, LLUUID creatorID, LLUUID lastOwnerID, uint localID, PrimitiveBaseShape shape, LLVector3 position, LLQuaternion rotation, uint flags)
+        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, int creationDate, LLUUID ownerID, LLUUID creatorID, LLUUID lastOwnerID, uint localID, PrimitiveBaseShape shape, LLVector3 position, LLQuaternion rotation, uint flags)
         {
             this.m_regionHandle = regionHandle;
             this.m_parentGroup = parent;
@@ -250,9 +252,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public AllNewSceneObjectPart2 Copy(uint localID)
+        public SceneObjectPart Copy(uint localID)
         {
-            AllNewSceneObjectPart2 dupe = (AllNewSceneObjectPart2)this.MemberwiseClone();
+            SceneObjectPart dupe = (SceneObjectPart)this.MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.UUID = LLUUID.Random();
@@ -343,6 +345,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_shape.PathTaperY = shapeBlock.PathTaperY;
             this.m_shape.PathTwist = shapeBlock.PathTwist;
             this.m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+            ScheduleFullUpdate();
         }
         #endregion
 
@@ -384,6 +387,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateTextureEntry(byte[] textureEntry)
         {
             this.m_shape.TextureEntry = textureEntry;
+            ScheduleFullUpdate();
         }
         #endregion
 
@@ -403,6 +407,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
             this.OffsetPosition = newPos;
+            ScheduleTerseUpdate();
         }
         #endregion
 
@@ -410,6 +415,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateRotation(LLQuaternion rot)
         {
             this.RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
+            ScheduleTerseUpdate();
         }
         #endregion
 
@@ -421,6 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void Resize(LLVector3 scale)
         {
             this.m_shape.Scale = scale;
+            ScheduleFullUpdate();
         }
         #endregion
 

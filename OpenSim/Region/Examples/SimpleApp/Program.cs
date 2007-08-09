@@ -69,7 +69,7 @@ namespace SimpleApp
             shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
             LLVector3 pos = new LLVector3(138, 129, 27);
 
-            SceneObject sceneObject = new CpuCounterObject(scene, scene.EventManager, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
+            SceneObjectGroup sceneObject = new CpuCounterObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
            scene.AddEntity(sceneObject);
 
             MyNpcCharacter m_character = new MyNpcCharacter( scene.EventManager );

@@ -38,7 +38,7 @@ using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class SceneObject : EntityBase
+    public class SceneObjectOLD : EntityBase
     {
         private Encoding enc = Encoding.ASCII;
         private Dictionary<LLUUID, Primitive> ChildPrimitives = new Dictionary<LLUUID, Primitive>(); //list of all primitive id's that are part of this group
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public SceneObject(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public SceneObjectOLD(Scene world, EventManager eventManager, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = world.RegionInfo.RegionHandle;
             m_scene = world;
@@ -102,7 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <remarks>Need a null constructor for duplication</remarks>
-        public SceneObject()
+        public SceneObjectOLD()
         {
             
         }
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
         {
-            datastore.StoreObject(this);
+           // datastore.StoreObject(this);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void ProcessParcelPrimCountUpdate()
         {
 
-            m_eventManager.TriggerParcelPrimCountAdd(this);         
+           // m_eventManager.TriggerParcelPrimCountAdd(this);         
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateRootFromShape(LLUUID agentID, uint localID, PrimitiveBaseShape shape, LLVector3 pos)
         {
 
-            this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_scene, agentID, localID, true, this, this, shape, pos);
+          //  this.rootPrimitive = new Primitive(this.m_regionHandle, this.m_scene, agentID, localID, true, this, this, shape, pos);
             this.m_children.Add(rootPrimitive);
 
             this.ChildPrimitives.Add(this.rootUUID, this.rootPrimitive);
@@ -165,9 +165,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// Makes a copy of this SceneObject (and child primitives)
         /// </summary>
         /// <returns>A complete copy of the object</returns>
-        public new SceneObject Copy()
+        public new SceneObjectOLD Copy()
         {
-            SceneObject dupe = new SceneObject();
+            SceneObjectOLD dupe = new SceneObjectOLD();
 
             dupe.m_scene = this.m_scene;
             dupe.m_eventManager = this.m_eventManager;
@@ -207,7 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="primObject"></param>
-        public void AddNewChildPrims(SceneObject primObject)
+        public void AddNewChildPrims(SceneObjectOLD primObject)
         {
             this.rootPrimitive.AddNewChildren(primObject);
         }

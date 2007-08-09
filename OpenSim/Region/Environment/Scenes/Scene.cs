@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         protected Timer m_heartbeatTimer = new Timer();
         protected Dictionary<LLUUID, ScenePresence> Avatars;
-        protected Dictionary<LLUUID, SceneObject> Prims;
+        protected Dictionary<LLUUID, SceneObjectGroup> Prims;
         protected PhysicsScene phyScene;
         protected float timeStep = 0.1f;
         private Random Rand = new Random();
@@ -109,7 +109,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_scriptManager; }
         }
 
-        public Dictionary<LLUUID, SceneObject> Objects
+        public Dictionary<LLUUID, SceneObjectGroup> Objects
         {
             get { return Prims; }
         }
@@ -149,11 +149,11 @@ namespace OpenSim.Region.Environment.Scenes
             MainLog.Instance.Verbose("Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
             Avatars = new Dictionary<LLUUID, ScenePresence>();
-            Prims = new Dictionary<LLUUID, SceneObject>();
+            Prims = new Dictionary<LLUUID, SceneObjectGroup>();
 
             MainLog.Instance.Verbose("Loading objects from datastore");
-            List<SceneObject> PrimsFromDB = storageManager.DataStore.LoadObjects();
-            foreach (SceneObject prim in PrimsFromDB)
+            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects();
+            foreach (SceneObjectGroup prim in PrimsFromDB)
             {
                 AddEntity(prim);
             }
@@ -463,10 +463,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
-            List<SceneObject> NewObjectsList = storageManager.DataStore.LoadObjects();
-            foreach (SceneObject obj in NewObjectsList)
+            List<SceneObjectGroup> NewObjectsList = storageManager.DataStore.LoadObjects();
+            foreach (SceneObjectGroup obj in NewObjectsList)
             {
-                this.Objects.Add(obj.rootUUID, obj);
+                this.Objects.Add(obj.UUID, obj);
             }
         }
 
@@ -501,7 +501,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
         {
-            SceneObject sceneOb = new SceneObject(this, m_eventManager, ownerID, PrimIDAllocate(), pos, shape);
+            SceneObjectGroup sceneOb = new SceneObjectGroup(this, this.m_regionHandle, ownerID, PrimIDAllocate(), pos, shape);
             AddEntity(sceneOb);
         }
 
@@ -509,28 +509,28 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (EntityBase obj in Entities.Values)
             {
-                if (obj is SceneObject)
+                if (obj is SceneObjectGroup)
                 {
-                    if (((SceneObject) obj).LocalId == localID)
+                    if (((SceneObjectGroup) obj).LocalId == localID)
                     {
-                        RemoveEntity((SceneObject) obj);
+                        RemoveEntity((SceneObjectGroup) obj);
                         return;
                     }
                 }
             }
         }
 
-        public void AddEntity(SceneObject sceneObject)
+        public void AddEntity(SceneObjectGroup sceneObject)
         {
-            Entities.Add(sceneObject.rootUUID, sceneObject);
+            Entities.Add(sceneObject.UUID, sceneObject);
         }
 
-        public void RemoveEntity(SceneObject sceneObject)
+        public void RemoveEntity(SceneObjectGroup sceneObject)
         {
-            if (Entities.ContainsKey(sceneObject.rootUUID))
+            if (Entities.ContainsKey(sceneObject.UUID))
             {
                 m_LandManager.removePrimFromLandPrimCounts(sceneObject);
-                Entities.Remove(sceneObject.rootUUID);
+                Entities.Remove(sceneObject.UUID);
                 m_LandManager.setPrimsTainted();
             }
         }
@@ -779,9 +779,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    ((SceneObject) ent).SendAllChildPrimsToClient(client);
+                   // ((SceneObject) ent).SendAllChildPrimsToClient(client);
                 }
             }
         }

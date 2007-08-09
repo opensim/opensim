@@ -11,12 +11,12 @@ namespace OpenSim.Region.Environment.Scenes
 {
     // public delegate void PrimCountTaintedDelegate();
 
-    public class AllNewSceneObjectGroup2 : EntityBase
+    public class SceneObjectGroup : EntityBase
     {
         private Encoding enc = Encoding.ASCII;
 
-        protected AllNewSceneObjectPart2 m_rootPart;
-        protected Dictionary<LLUUID, AllNewSceneObjectPart2> m_parts = new Dictionary<LLUUID, AllNewSceneObjectPart2>();
+        protected SceneObjectPart m_rootPart;
+        protected Dictionary<LLUUID, SceneObjectPart> m_parts = new Dictionary<LLUUID, SceneObjectPart>();
 
         protected ulong m_regionHandle;
 
@@ -38,6 +38,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return new LLVector3(0, 0, 0); }
         }
 
+        public Dictionary<LLUUID, SceneObjectPart> Children
+        {
+            get { return this.m_parts; }
+            set { m_parts = value; }
+        }
+
         public override LLVector3 Pos
         {
             get { return m_rootPart.GroupPosition; }
@@ -45,7 +51,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 lock (this.m_parts)
                 {
-                    foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+                    foreach (SceneObjectPart part in this.m_parts.Values)
                     {
                         part.GroupPosition = value;
                     }
@@ -65,10 +71,29 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_rootPart.UUID = value; }
         }
 
+        public LLUUID OwnerID
+        {
+            get { return m_rootPart.OwnerID; }
+        }
+
+        /// <summary>
+        /// Added because the Parcel code seems to use it
+        /// but not sure a object should have this
+        /// as what does it tell us? that some avatar has selected it
+        /// think really there should be a list (or whatever) in each scenepresence
+        /// saying what prim(s) that user has selected at any time. 
+        /// </summary>
+        protected bool m_isSelected = false;
+        public bool IsSelected
+        {
+            get{ return m_isSelected;}
+            set { m_isSelected = value; }
+        }
+
         /// <summary>
         /// 
         /// </summary>
-        public AllNewSceneObjectGroup2()
+        public SceneObjectGroup()
         {
 
         }
@@ -76,7 +101,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public AllNewSceneObjectGroup2(byte[] data)
+        public SceneObjectGroup(byte[] data)
         {
 
         }
@@ -84,14 +109,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public AllNewSceneObjectGroup2(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
+        public SceneObjectGroup(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
         {
             m_regionHandle = regionHandle;
             m_scene = scene;
 
             this.Pos = pos;
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
-            AllNewSceneObjectPart2 newPart = new AllNewSceneObjectPart2(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
+            SceneObjectPart newPart = new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
         }
@@ -102,16 +127,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public new AllNewSceneObjectGroup2 Copy()
+        public new SceneObjectGroup Copy()
         {
-            AllNewSceneObjectGroup2 dupe = (AllNewSceneObjectGroup2)this.MemberwiseClone();
+            SceneObjectGroup dupe = (SceneObjectGroup)this.MemberwiseClone();
             dupe.Pos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = this.m_regionHandle;
 
             dupe.CopyRootPart(this.m_rootPart);
 
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 if (part.UUID != this.m_rootPart.UUID)
                 {
@@ -125,9 +150,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="part"></param>
-        public void CopyRootPart(AllNewSceneObjectPart2 part)
+        public void CopyRootPart(SceneObjectPart part)
         {
-            AllNewSceneObjectPart2 newPart = part.Copy(m_scene.PrimIDAllocate());
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate());
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
         }
@@ -136,9 +161,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="part"></param>
-        public void CopyPart(AllNewSceneObjectPart2 part)
+        public void CopyPart(SceneObjectPart part)
         {
-            AllNewSceneObjectPart2 newPart = part.Copy(m_scene.PrimIDAllocate());
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate());
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsNonRoot(newPart);
         }
@@ -149,7 +174,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.SendScheduledUpdates();
             }
@@ -160,7 +185,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.ScheduleFullUpdate();
             }
@@ -171,7 +196,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.ScheduleTerseUpdate();
             }
@@ -182,7 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.SendFullUpdateToAllClients();
             }
@@ -193,7 +218,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.SendTerseUpdateToAllClients();
             }
@@ -203,7 +228,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="objectGroup"></param>
-        public void LinkToGroup(AllNewSceneObjectGroup2 objectGroup)
+        public void LinkToGroup(SceneObjectGroup objectGroup)
         {
 
         }
@@ -213,9 +238,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="primID"></param>
         /// <returns></returns>
-        private AllNewSceneObjectPart2 GetChildPrim(LLUUID primID)
+        private SceneObjectPart GetChildPrim(LLUUID primID)
         {
-            AllNewSceneObjectPart2 childPart = null;
+            SceneObjectPart childPart = null;
             if (this.m_parts.ContainsKey(primID))
             {
                 childPart = this.m_parts[primID];
@@ -228,9 +253,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
-        private AllNewSceneObjectPart2 GetChildPrim(uint localID)
+        private SceneObjectPart GetChildPrim(uint localID)
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 if (part.LocalID == localID)
                 {
@@ -248,7 +273,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool HasChildPrim(LLUUID primID)
         {
-            AllNewSceneObjectPart2 childPart = null;
+            SceneObjectPart childPart = null;
             if (this.m_parts.ContainsKey(primID))
             {
                 childPart = this.m_parts[primID];
@@ -265,7 +290,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool HasChildPrim(uint localID)
         {
-            foreach (AllNewSceneObjectPart2 part in this.m_parts.Values)
+            foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 if (part.LocalID == localID)
                 {
@@ -315,7 +340,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].GroupID = LLUUID.Zero;
             proper.ObjectData[0].InventorySerial = 0;
             proper.ObjectData[0].LastOwnerID = this.m_rootPart.LastOwnerID;
-            proper.ObjectData[0].ObjectID = this.m_uuid;
+            proper.ObjectData[0].ObjectID = this.UUID;
             proper.ObjectData[0].OwnerID = this.m_rootPart.OwnerID;
             proper.ObjectData[0].TouchName = enc.GetBytes(this.m_rootPart.TouchName + "\0");
             proper.ObjectData[0].TextureID = new byte[0];
@@ -334,11 +359,33 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="name"></param>
+        public void SetPartName(string name, uint localID)
+        {
+             SceneObjectPart part = this.GetChildPrim(localID);
+             if (part != null)
+             {
+                 part.PartName = name;
+             }
+        }
+
+        public void SetPartDescription(string des, uint localID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.Description = des;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="localID"></param>
-        public void GetInventory(IClientAPI remoteClient, uint localID)
+        public void GetPartInventory(IClientAPI remoteClient, uint localID)
         {
-            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
                 part.GetInventory(remoteClient, localID);
@@ -354,7 +401,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="data"></param>
         public void UpdateExtraParam(uint localID, ushort type, bool inUse, byte[] data)
         {
-            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
                 part.UpdateExtraParam(type, inUse, data);
@@ -368,7 +415,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(uint localID, byte[] textureEntry)
         {
-            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
                 part.UpdateTextureEntry(textureEntry);
@@ -382,13 +429,27 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock, uint localID)
         {
-            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
                 part.UpdateShape(shapeBlock);
             }
         }
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scale"></param>
+        /// <param name="localID"></param>
+        public void Resize(LLVector3 scale, uint localID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.Resize(scale);
+            }
+        }
 
         #region Position
         /// <summary>
@@ -407,7 +468,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void UpdateSinglePosition(LLVector3 pos, uint localID)
         {
-            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
                 if (part.UUID == this.m_rootPart.UUID)
@@ -437,7 +498,7 @@ namespace OpenSim.Region.Environment.Scenes
             diff.Y = axDiff.y;
             diff.Z = axDiff.z;
 
-            foreach (AllNewSceneObjectPart2 obPart in this.m_parts.Values)
+            foreach (SceneObjectPart obPart in this.m_parts.Values)
             {
                 if (obPart.UUID != this.m_rootPart.UUID)
                 {
@@ -479,7 +540,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void UpdateSingleRotation(LLQuaternion rot, uint localID)
         {
-            AllNewSceneObjectPart2 part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
                 if (part.UUID == this.m_rootPart.UUID)
@@ -503,7 +564,7 @@ namespace OpenSim.Region.Environment.Scenes
             Axiom.Math.Quaternion axRot = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             Axiom.Math.Quaternion oldParentRot = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
 
-            foreach (AllNewSceneObjectPart2 prim in this.m_parts.Values)
+            foreach (SceneObjectPart prim in this.m_parts.Values)
             {
                 if (prim.UUID != this.m_rootPart.UUID)
                 {
@@ -524,7 +585,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="part"></param>
-        private void SetPartAsRoot(AllNewSceneObjectPart2 part)
+        private void SetPartAsRoot(SceneObjectPart part)
         {
             this.m_rootPart = part;
             //this.m_uuid= part.UUID;
@@ -535,7 +596,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="part"></param>
-        private void SetPartAsNonRoot(AllNewSceneObjectPart2 part)
+        private void SetPartAsNonRoot(SceneObjectPart part)
         {
             part.ParentID = this.m_rootPart.LocalID;
         }
@@ -554,7 +615,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="part"></param>
-        internal void SendPartFullUpdate(IClientAPI remoteClient, AllNewSceneObjectPart2 part)
+        internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part)
         {
             if( m_rootPart == part )
             {
@@ -571,7 +632,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="part"></param>
-        internal void SendPartTerseUpdate(IClientAPI remoteClient, AllNewSceneObjectPart2 part)
+        internal void SendPartTerseUpdate(IClientAPI remoteClient, SceneObjectPart part)
         {
             if (m_rootPart == part)
             {

@@ -272,14 +272,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="flags"></param>
         public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags)
         {
-            SceneObject originPrim = null;
+            SceneObjectGroup originPrim = null;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObject)ent).rootLocalID == originalPrim)
+                    if (((SceneObjectGroup)ent).LocalId == originalPrim)
                     {
-                        originPrim = (SceneObject)ent;
+                        originPrim = (SceneObjectGroup)ent;
                         break;
                     }
                 }
@@ -287,15 +287,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (originPrim != null)
             {
-                SceneObject copy = originPrim.Copy();
+                SceneObjectGroup copy = originPrim.Copy();
                 copy.Pos = copy.Pos + offset;
-                this.Entities.Add(copy.rootUUID, copy);
+                this.Entities.Add(copy.UUID, copy);
 
-                List<ScenePresence> avatars = this.RequestAvatarList();
+                copy.ScheduleGroupForFullUpdate();
+               /* List<ScenePresence> avatars = this.RequestAvatarList();
                 for (int i = 0; i < avatars.Count; i++)
                 {
-                    copy.SendAllChildPrimsToClient(avatars[i].ControllingClient);
-                }
+                   // copy.SendAllChildPrimsToClient(avatars[i].ControllingClient);
+                }*/
 
             }
             else
@@ -312,40 +313,40 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="childPrims"></param>
         public void LinkObjects(uint parentPrim, List<uint> childPrims)
         {
-            SceneObject parenPrim = null;
+            SceneObjectGroup parenPrim = null;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObject)ent).rootLocalID == parentPrim)
+                    if (((SceneObjectGroup)ent).LocalId == parentPrim)
                     {
-                        parenPrim = (SceneObject)ent;
+                        parenPrim = (SceneObjectGroup)ent;
                         break;
                     }
                 }
             }
 
-            List<SceneObject> children = new List<SceneObject>();
+            List<SceneObjectGroup> children = new List<SceneObjectGroup>();
             if (parenPrim != null)
             {
                 for (int i = 0; i < childPrims.Count; i++)
                 {
                     foreach (EntityBase ent in Entities.Values)
                     {
-                        if (ent is SceneObject)
+                        if (ent is SceneObjectGroup)
                         {
-                            if (((SceneObject)ent).rootLocalID == childPrims[i])
+                            if (((SceneObjectGroup)ent).LocalId == childPrims[i])
                             {
-                                children.Add((SceneObject)ent);
+                                children.Add((SceneObjectGroup)ent);
                             }
                         }
                     }
                 }
             }
 
-            foreach (SceneObject sceneObj in children)
+            foreach (SceneObjectGroup sceneObj in children)
             {
-                parenPrim.AddNewChildPrims(sceneObj);
+                parenPrim.LinkToGroup(sceneObj);
             }
         }
 
@@ -356,15 +357,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shapeBlock"></param>
         public void UpdatePrimShape(uint primLocalID, ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateShape(shapeBlock);
+                        ((SceneObjectGroup)ent).UpdateShape(shapeBlock, primLocalID);
                         break;
                     }
                 }
@@ -373,15 +374,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdateExtraParam(uint primLocalID, ushort type, bool inUse, byte[] data)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateExtraParam(type, inUse, data);
+                        ((SceneObjectGroup)ent).UpdateExtraParam(primLocalID, type, inUse, data);
                         break;
                     }
                 }
@@ -395,15 +396,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="primLocalID"></param>
         public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
         {
-            Primitive prim = null;
+
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
+                    if (hasPrim != false)
                     {
-                        prim.GetInventory(remoteClient, primLocalID);
+                        ((SceneObjectGroup)ent).GetPartInventory(remoteClient, primLocalID);
                         break;
                     }
                 }
@@ -419,12 +421,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObject)ent).rootLocalID == primLocalID)
+                    if (((SceneObjectGroup)ent).LocalId == primLocalID)
                     {
-                        ((SceneObject)ent).GetProperites(remoteClient);
-                        ((SceneObject)ent).isSelected = true;
+                        ((SceneObjectGroup)ent).GetProperites(remoteClient);
+                        ((SceneObjectGroup)ent).IsSelected = true;
                         this.LandManager.setPrimsTainted();
                         break;
                     }
@@ -441,11 +443,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObject)ent).rootLocalID == primLocalID)
+                    if (((SceneObjectGroup)ent).LocalId == primLocalID)
                     {
-                        ((SceneObject)ent).isSelected = false;
+                        ((SceneObjectGroup)ent).IsSelected = false;
                         this.LandManager.setPrimsTainted();
                         break;
                     }
@@ -460,15 +462,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="description"></param>
         public void PrimDescription(uint primLocalID, string description)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
+                    if (hasPrim != false)
                     {
-                        prim.Description = description;
+                        ((SceneObjectGroup)ent).SetPartDescription(description, primLocalID);
                         break;
                     }
                 }
@@ -482,15 +484,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="description"></param>
         public void PrimName(uint primLocalID, string name)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(primLocalID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
+                    if (hasPrim != false)
                     {
-                        prim.Name = name;
+                        ((SceneObjectGroup)ent).SetPartName(name, primLocalID);
                         break;
                     }
                 }
@@ -499,27 +501,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(objectID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(objectID);
+                    if (hasPrim != false)
                     {
-                        ((SceneObject)ent).GrapMovement(offset, pos, remoteClient);
+                        ((SceneObjectGroup)ent).GrapMovement(offset, pos, remoteClient);
                         break;
                     }
                 }
             }
-            /*
-            if (this.Entities.ContainsKey(objectID))
-            {
-                if (this.Entities[objectID] is SceneObject)
-                {
-                    ((SceneObject)this.Entities[objectID]).GrapMovement(offset, pos, remoteClient);
-                }
-            }*/
         }
 
         /// <summary>
@@ -541,15 +535,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateTextureEntry(texture);
+                        ((SceneObjectGroup)ent).UpdateTextureEntry(localID, texture);
+                        break;
                     }
                 }
             }
@@ -563,15 +558,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimPosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateGroupPosition(pos);
+                        ((SceneObjectGroup)ent).UpdateGroupPosition(pos);
                         break;
                     }
                 }
@@ -583,9 +578,9 @@ namespace OpenSim.Region.Environment.Scenes
             Primitive prim = null;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
+                    //prim = ((SceneObject)ent).HasChildPrim(localID);
                     if (prim != null)
                     {
                         prim.UpdateSinglePosition(pos);
@@ -604,15 +599,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimRotation(uint localID, LLVector3 pos, LLQuaternion rot, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateGroupMouseRotation(pos, rot);
+                        ((SceneObjectGroup)ent).UpdateGroupRotation(pos, rot);
+                       // prim.UpdateGroupMouseRotation(pos, rot);
                         break;
                     }
                 }
@@ -627,15 +623,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateGroupRotation(rot);
+                        ((SceneObjectGroup)ent).UpdateGroupRotation(rot);
+                        //prim.UpdateGroupRotation(rot);
                         break;
                     }
                 }
@@ -654,9 +651,9 @@ namespace OpenSim.Region.Environment.Scenes
             Primitive prim = null;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
+                   // prim = ((SceneObject)ent).HasChildPrim(localID);
                     if (prim != null)
                     {
                         prim.UpdateSingleRotation(rot);
@@ -674,15 +671,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
-                if (ent is SceneObject)
+                if (ent is SceneObjectGroup)
                 {
-                    prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.ResizeGoup(scale);
+                        ((SceneObjectGroup)ent).Resize(scale, localID);
+                       // prim.ResizeGoup(scale);
                         break;
                     }
                 }

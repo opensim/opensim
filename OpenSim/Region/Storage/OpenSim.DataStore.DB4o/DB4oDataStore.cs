@@ -24,9 +24,9 @@ namespace OpenSim.DataStore.DB4oStorage
             globalIDSearch = find;
         }
 
-        public bool Match(SceneObject obj)
+        public bool Match(SceneObjectGroup obj)
         {
-            return obj.rootUUID == globalIDSearch;
+            return obj.UUID == globalIDSearch;
         }
     }
 
@@ -43,7 +43,7 @@ namespace OpenSim.DataStore.DB4oStorage
             return;
         }
 
-        public void StoreObject(SceneObject obj)
+        public void StoreObject(SceneObjectGroup obj)
         {
             db.Set(obj);
         }
@@ -53,21 +53,21 @@ namespace OpenSim.DataStore.DB4oStorage
             IObjectSet result = db.Query(new SceneObjectQuery(obj));
             if (result.Count > 0)
             {
-                SceneObject item = (SceneObject)result.Next();
+                SceneObjectGroup item = (SceneObjectGroup)result.Next();
                 db.Delete(item);
             }
         }
 
-        public List<SceneObject> LoadObjects()
+        public List<SceneObjectGroup> LoadObjects()
         {
-            IObjectSet result = db.Get(typeof(SceneObject));
-            List<SceneObject> retvals = new List<SceneObject>();
+            IObjectSet result = db.Get(typeof(SceneObjectGroup));
+            List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
             MainLog.Instance.Verbose("DATASTORE", "DB4O - LoadObjects found " + result.Count.ToString() + " objects");
 
             foreach (Object obj in result)
             {
-                retvals.Add((SceneObject)obj);
+                retvals.Add((SceneObjectGroup)obj);
             }
 
             return retvals;

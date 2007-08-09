@@ -16,7 +16,7 @@ namespace OpenSim.Region.Environment.LandManagement
     {
         #region Member Variables
         public LandData landData = new LandData();
-        public List<SceneObject> primsOverMe = new List<SceneObject>();
+        public List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
 
         public Scene m_scene;
 
@@ -426,21 +426,21 @@ namespace OpenSim.Region.Environment.LandManagement
         public void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client)
         {
             List<uint> resultLocalIDs = new List<uint>();
-            foreach (SceneObject obj in primsOverMe)
+            foreach (SceneObjectGroup obj in primsOverMe)
             {
-                if (obj.rootLocalID > 0)
+                if (obj.LocalId > 0)
                 {
-                    if (request_type == LandManager.LAND_SELECT_OBJECTS_OWNER && obj.rootPrimitive.OwnerID == this.landData.ownerID)
+                    if (request_type == LandManager.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID == this.landData.ownerID)
                     {
-                        resultLocalIDs.Add(obj.rootLocalID);
+                        resultLocalIDs.Add(obj.LocalId);
                     }
                     else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && false) //TODO: change false to group support!
                     {
 
                     }
-                    else if (request_type == LandManager.LAND_SELECT_OBJECTS_OTHER && obj.rootPrimitive.OwnerID != remote_client.AgentId)
+                    else if (request_type == LandManager.LAND_SELECT_OBJECTS_OTHER && obj.OwnerID != remote_client.AgentId)
                     {
-                        resultLocalIDs.Add(obj.rootLocalID);
+                        resultLocalIDs.Add(obj.LocalId);
                     }
                 }
             }
@@ -486,13 +486,13 @@ namespace OpenSim.Region.Environment.LandManagement
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
             Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
-            foreach (SceneObject obj in primsOverMe)
+            foreach (SceneObjectGroup obj in primsOverMe)
             {
-                if (!ownersAndCount.ContainsKey(obj.rootPrimitive.OwnerID))
+                if (!ownersAndCount.ContainsKey(obj.OwnerID))
                 {
-                    ownersAndCount.Add(obj.rootPrimitive.OwnerID, 0);
+                    ownersAndCount.Add(obj.OwnerID, 0);
                 }
-                ownersAndCount[obj.rootPrimitive.OwnerID] += obj.primCount;
+                ownersAndCount[obj.OwnerID] += obj.PrimCount;
             }
             if (ownersAndCount.Count > 0)
             {
@@ -525,7 +525,7 @@ namespace OpenSim.Region.Environment.LandManagement
         #endregion
 
         #region Object Returning
-        public void returnObject(SceneObject obj)
+        public void returnObject(SceneObjectGroup obj)
         {
         }
         public void returnLandObjects(int type, LLUUID owner)
@@ -544,12 +544,12 @@ namespace OpenSim.Region.Environment.LandManagement
             primsOverMe.Clear();
         }
 
-        public void addPrimToCount(SceneObject obj)
+        public void addPrimToCount(SceneObjectGroup obj)
         {
-            LLUUID prim_owner = obj.rootPrimitive.OwnerID;
-            int prim_count = obj.primCount;
+            LLUUID prim_owner = obj.OwnerID;
+            int prim_count = obj.PrimCount;
 
-            if (obj.isSelected)
+            if (obj.IsSelected)
             {
                 landData.selectedPrims += prim_count;
             }
@@ -569,12 +569,12 @@ namespace OpenSim.Region.Environment.LandManagement
 
         }
 
-        public void removePrimFromCount(SceneObject obj)
+        public void removePrimFromCount(SceneObjectGroup obj)
         {
             if (primsOverMe.Contains(obj))
             {
-                LLUUID prim_owner = obj.rootPrimitive.OwnerID;
-                int prim_count = obj.primCount;
+                LLUUID prim_owner = obj.OwnerID;
+                int prim_count = obj.PrimCount;
 
                 if (prim_owner == landData.ownerID)
                 {

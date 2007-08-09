@@ -26,7 +26,7 @@ namespace OpenSim.Region.Scripting.Examples
 
         void ProcessConsoleMsg(string[] args)
         {
-            if (args[0].ToLower() == "lslexport")
+            /*if (args[0].ToLower() == "lslexport")
             {
                 string sequence = "";
 
@@ -48,12 +48,12 @@ namespace OpenSim.Region.Scripting.Examples
                 }
 
                 System.Console.WriteLine(sequence);
-            }
+            }*/
         }
 
         string processPrimitiveToString(OpenSim.Region.Environment.Scenes.Primitive prim)
         {
-            string desc = prim.Description;
+            /*string desc = prim.Description;
             string name = prim.Name;
             LLVector3 pos = prim.Pos;
             LLQuaternion rot = new LLQuaternion(prim.Rotation.x, prim.Rotation.y, prim.Rotation.z, prim.Rotation.w);
@@ -65,6 +65,8 @@ namespace OpenSim.Region.Scripting.Examples
             setPrimParams += "[PRIM_SCALE, " + scale.ToString() + ", PRIM_POS, " + rootPos.ToString() + ", PRIM_ROTATION, " + rot.ToString() + "]\n";
 
             return setPrimParams;
+              */
+            return "";
         }
     }
 }

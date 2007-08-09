@@ -40,7 +40,7 @@ namespace OpenSim.Region.Scripting
         /// <summary>
         /// The object our script is supposed to be in
         /// </summary>
-        public SceneObject Task
+        public SceneObjectGroup Task
         {
             get { return Scene.Objects[ObjectID]; }
         }
@@ -229,8 +229,8 @@ namespace OpenSim.Region.Scripting
 
         public void osCreateLink(Key target, int parent)
         {
-            if(Scene.Entities[target] is SceneObject)
-                Task.AddNewChildPrims((SceneObject)Scene.Entities[target]);
+            if(Scene.Entities[target] is SceneObjectGroup)
+                Task.LinkToGroup((SceneObjectGroup)Scene.Entities[target]);
 
             return;
         }
