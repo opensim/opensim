@@ -22,9 +22,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
 
-        private Dictionary<string, DbType> primDataDefs;
-        private Dictionary<string, DbType> shapeDataDefs;
-        
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
@@ -57,6 +54,9 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             
             // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
             shapeDa.Fill(ds, "primshapes");
+            DataTable shapes = ds.Tables["primshapes"];
+            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
+            setupShapeCommands(shapeDa, conn);
             
             return;
         }
