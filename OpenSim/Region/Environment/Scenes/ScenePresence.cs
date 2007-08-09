@@ -296,8 +296,12 @@ namespace OpenSim.Region.Environment.Scenes
             bool DCFlagKeyPressed = false;
             Vector3 agent_control_v3 = new Vector3(0, 0, 0);
             Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
-
+            bool oldflying = this.PhysActor.Flying;
             this.PhysActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            if (this.PhysActor.Flying != oldflying)
+            {
+                update_movementflag = true;
+            }
 
             if (q != this.bodyRot)
             {
@@ -332,6 +336,7 @@ namespace OpenSim.Region.Environment.Scenes
                 this.AddNewMovement(agent_control_v3, q);
             }
             UpdateMovementAnimations(update_movementflag);
+
         }
 
         protected void UpdateMovementAnimations(bool update_movementflag)
