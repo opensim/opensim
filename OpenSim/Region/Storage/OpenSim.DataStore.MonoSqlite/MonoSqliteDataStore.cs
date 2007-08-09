@@ -7,12 +7,12 @@ using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Interfaces;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Types;
 using libsecondlife;
 
 using System.Data;
 // Yes, this won't compile on MS, need to deal with that later
 using Mono.Data.SqliteClient;
-using Primitive = OpenSim.Region.Environment.Scenes.Primitive;
 
 namespace OpenSim.DataStore.MonoSqliteStorage
 {
@@ -233,11 +233,47 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private void fillPrimRow(DataRow row, SceneObjectPart prim) 
         {
             row["UUID"] = prim.UUID;
+            row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.PartName;
+            // various text fields
+            row["Text"] = prim.Text;
+            row["Description"] = prim.Description;
+            row["SitName"] = prim.SitName;
+            row["TouchName"] = prim.TouchName;
+            // permissions
+            row["CreatorID"] = prim.CreatorID;
+            row["OwnerID"] = prim.OwnerID;
+            row["GroupID"] = prim.GroupID;
+            row["LastOwnerID"] = prim.LastOwnerID;
+            row["OwnerMask"] = prim.OwnerMask;
+            row["NextOwnerMask"] = prim.NextOwnerMask;
+            row["GroupMask"] = prim.GroupMask;
+            row["EveryoneMask"] = prim.EveryoneMask;
+            row["BaseMask"] = prim.BaseMask;
+            // vectors
             row["PositionX"] = prim.OffsetPosition.X;
             row["PositionY"] = prim.OffsetPosition.Y;
             row["PositionZ"] = prim.OffsetPosition.Z;
+            row["VelocityX"] = prim.Velocity.X;
+            row["VelocityY"] = prim.Velocity.Y;
+            row["VelocityZ"] = prim.Velocity.Z;
+            row["AngularVelocityX"] = prim.AngularVelocity.X;
+            row["AngularVelocityY"] = prim.AngularVelocity.Y;
+            row["AngularVelocityZ"] = prim.AngularVelocity.Z;
+            row["AccelerationX"] = prim.Acceleration.X;
+            row["AccelerationY"] = prim.Acceleration.Y;
+            row["AccelerationZ"] = prim.Acceleration.Z;
+            // quaternions
+            row["RotationX"] = prim.RotationOffset.X;
+            row["RotationY"] = prim.RotationOffset.Y;
+            row["RotationZ"] = prim.RotationOffset.Z;
+            row["RotationW"] = prim.RotationOffset.W;
+        }
+
+        private void fillShapeRow(DataRow row, PrimitiveBaseShape shape)
+        {
+            
         }
 
         private void addPrim(SceneObjectPart prim)
@@ -245,13 +281,22 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["shapes"];
             
-            DataRow row = prims.Rows.Find(prim.UUID);
-            if (row == null) {
-                row = prims.NewRow();
-                // fillPrimRow(row, prim);
-                prims.Rows.Add(row);
+            DataRow primRow = prims.Rows.Find(prim.UUID);
+            if (primRow == null) {
+                primRow = prims.NewRow();
+                fillPrimRow(primRow, prim);
+                prims.Rows.Add(primRow);
             } else {
-                fillPrimRow(row, prim);
+                fillPrimRow(primRow, prim);
+            }
+
+            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+            if (shapeRow == null) {
+                shapeRow = prims.NewRow();
+                fillShapeRow(shapeRow, prim.Shape);
+                prims.Rows.Add(shapeRow);
+            } else {
+                fillPrimRow(shapeRow, prim);
             }
         }
 
