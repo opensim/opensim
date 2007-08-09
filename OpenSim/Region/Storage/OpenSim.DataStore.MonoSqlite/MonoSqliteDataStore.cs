@@ -184,9 +184,14 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private SqliteCommand createUpdateCommand(string table, string pk, Dictionary<string, DbType> defs) 
         {
             string sql = "update " + table + " set ";
+            string subsql = "";
             foreach (string key in defs.Keys) {
-                sql += key + "= :" + key + ", ";
+                if (subsql.Length > 0) { // 
+                    subsql += ", ";
+                }
+                subsql += key + "= :" + key;
             }
+            sql += subsql;
             sql += " where " + pk;
             SqliteCommand cmd = new SqliteCommand(sql);
 
