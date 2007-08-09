@@ -383,11 +383,11 @@ namespace OpenSim.Region.ClientStack
             agentData.child = false;
             agentData.firstname = this.firstName;
             agentData.lastname = this.lastName;
-            agentData.CapsPath=m_authenticateSessionsHandler.AgentCircuits[this.CircuitCode].CapsPath;
+            agentData.CapsPath = "";
             return agentData;
         }
 
-        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint externalIPEndPoint)
+        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint externalIPEndPoint, string capsURL)
         {
             LLVector3 look = new LLVector3(lookAt.X * 10, lookAt.Y * 10, lookAt.Z * 10);
 
@@ -407,14 +407,9 @@ namespace OpenSim.Region.ClientStack
             newSimPack.RegionData.SimIP += (uint)byteIP[0];
             newSimPack.RegionData.SimPort = (ushort)externalIPEndPoint.Port;
             //newSimPack.RegionData.SeedCapability = new byte[0];
-
-            string capsPath = "http://" + externalIPEndPoint.Address.ToString() + ":9000/CAPS/" + m_authenticateSessionsHandler.AgentCircuits[this.CircuitCode].CapsPath +"0000/";
-            System.Text.ASCIIEncoding enc=new System.Text.ASCIIEncoding();
-            newSimPack.RegionData.SeedCapability = enc.GetBytes(capsPath);
-
+            newSimPack.RegionData.SeedCapability = Helpers.StringToField(capsURL);
             
             this.OutPacket(newSimPack);
-            //this.DowngradeClient();
         }
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
@@ -450,17 +445,14 @@ namespace OpenSim.Region.ClientStack
             OutPacket(tpLocal);
         }
 
-        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags)
+        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags, string capsURL)
         {
             TeleportFinishPacket teleport = new TeleportFinishPacket();
             teleport.Info.AgentID = this.AgentID;
             teleport.Info.RegionHandle = regionHandle;
             teleport.Info.SimAccess = simAccess;
 
-            string capsPath = "http://" + newRegionEndPoint.Address.ToString() + ":9000/CAPS/" + m_authenticateSessionsHandler.AgentCircuits[this.CircuitCode].CapsPath + "0000/";
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-            teleport.Info.SeedCapability = enc.GetBytes(capsPath);
-
+            teleport.Info.SeedCapability = Helpers.StringToField(capsURL);
             //teleport.Info.SeedCapability = new byte[0];
 
             IPAddress oIP = newRegionEndPoint.Address;

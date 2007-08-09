@@ -224,7 +224,7 @@ namespace OpenSim.Framework.Communications.Caches
                 lock (this.SendingTextures)
                 {
                     this.SendingTextures.Remove(sender.request.ImageInfo.FullID);
-                    this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
+                   // this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
                 }
             }
         }
@@ -634,7 +634,8 @@ namespace OpenSim.Framework.Communications.Caches
         public class TextureSender
         {
             public AssetRequest request;
-          
+            private int counter = 0;
+
             public TextureSender(AssetRequest req)
             {
                 request = req;
@@ -644,8 +645,9 @@ namespace OpenSim.Framework.Communications.Caches
             public bool SendTexture()
             {
                 SendPacket();
+                counter++;
               
-                if ((request.PacketCounter > request.NumPackets) |(request.NumPackets ==1))
+                if ((request.PacketCounter > request.NumPackets) | (counter >120) |(request.NumPackets ==1))
                 {
                     return true;
                 }

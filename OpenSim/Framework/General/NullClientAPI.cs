@@ -118,10 +118,10 @@ namespace OpenSim.Framework
        public virtual void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look){}
        public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint){}
        public virtual AgentCircuitData RequestClientInfo() { return new AgentCircuitData(); }
-       public virtual void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint){}
+       public virtual void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint, string capsURL){}
        public virtual void SendMapBlock(List<MapBlockData> mapBlocks){}
        public virtual void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags){}
-       public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID, uint flags){}
+       public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID, uint flags, string capsURL){}
        public virtual void SendTeleportCancel(){}
        public virtual void SendTeleportLocationStart(){}
        public virtual void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance){}

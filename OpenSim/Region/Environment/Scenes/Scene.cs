@@ -75,6 +75,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Properties
 
+        public AgentCircuitManager AuthenticateHandler
+        {
+            get { return this.authenticateHandler; }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -600,7 +604,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
             
-          // client.OnCreateNewInventoryItem += CreateNewInventoryItem;
+           //client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             //client.OnCreateNewInventoryFolder += commsManager.UserProfiles.HandleCreateInventoryFolder;
             client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
@@ -922,7 +926,10 @@ namespace OpenSim.Region.Environment.Scenes
                     commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position, false);
 
-                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4));
+                    //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
+                    AgentCircuitData circuitdata = remoteClient.RequestClientInfo();
+                    string capsPath = "http://" + reg.ExternalEndPoint.Address.ToString() + ":9000/CAPS/" + this.AuthenticateHandler.AgentCircuits[circuitdata.circuitcode].CapsPath + "0000/";
+                    remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4), capsPath);
                 }
             }
         }

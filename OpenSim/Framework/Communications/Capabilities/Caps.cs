@@ -304,7 +304,7 @@ namespace OpenSim.Region.Capabilities
             private LLUUID newAssetID;
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
-            private bool SaveAssets = false;
+            private bool SaveAssets = true;
             private string m_assetName = "";
 
             /// <summary>

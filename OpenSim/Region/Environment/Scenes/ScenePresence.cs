@@ -620,7 +620,10 @@ namespace OpenSim.Region.Environment.Scenes
                 bool res = this.m_scene.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos, this._physActor.Flying);
                 if (res)
                 {
-                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint);
+                    //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
+                    AgentCircuitData circuitdata = this.ControllingClient.RequestClientInfo();
+                    string capsPath = "http://" + neighbourRegion.ExternalEndPoint.Address.ToString() + ":9000/CAPS/" +this.m_scene.AuthenticateHandler.AgentCircuits[circuitdata.circuitcode].CapsPath + "0000/";
+                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint, capsPath);
                     this.MakeChildAgent();
                 }
             }

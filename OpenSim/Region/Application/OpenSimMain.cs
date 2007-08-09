@@ -83,7 +83,7 @@ namespace OpenSim
                 {
                     startupSource = new IniConfigSource(iniFilePath);
 
-                    //enable follow line, if we want the original config source(normally commandline args) merged with ini file settings.
+                    //enable following line, if we want the original config source(normally commandline args) merged with ini file settings.
                     //in this case we have it so that if both sources have the same named setting, the command line value will overwrite the ini file value. 
                     //(as if someone has bothered to enter a command line arg, we should take notice of it)
                     //startupSource.Merge(configSource); 
