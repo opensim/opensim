@@ -311,7 +311,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private void addPrim(SceneObjectPart prim)
         {
             DataTable prims = ds.Tables["prims"];
-            DataTable shapes = ds.Tables["shapes"];
+            DataTable shapes = ds.Tables["primshapes"];
             
             DataRow primRow = prims.Rows.Find(prim.UUID);
             if (primRow == null) {
