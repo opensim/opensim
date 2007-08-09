@@ -70,6 +70,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         //public void llSay(UInt32 channelID, string text)
         public void llSay(object channelID, object text)
         {
+            //TODO: DO SOMETHING USEFUL HERE
             Common.SendToDebug("INTERNAL FUNCTION llSay(" + (UInt32)channelID + ", \"" + (string)text + "\");");
             Common.SendToLog("llSay Channel " + (UInt32)channelID + ", Text: \"" + (string)text + "\"");
         }

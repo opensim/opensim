@@ -44,8 +44,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // TODO: HOOK EVENTS UP TO SERVER!
             Common.SendToDebug("EventManager Start");
             
+            // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
+
             // Hook up a test event to our test form
             Common.SendToDebug("EventManager Hooking up dummy-event: touch_start");
+            // TODO: REPLACE THIS WITH A REAL TOUCH_START EVENT IN SERVER
             //myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);
         }
 

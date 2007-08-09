@@ -36,10 +36,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     {
         static public bool Debug = true;
 
-        public delegate void SendToDebugEventDelegate(string Message);
-        public delegate void SendToLogEventDelegate(string Message);
-        static public event SendToDebugEventDelegate SendToDebugEvent;
-        static public event SendToLogEventDelegate SendToLogEvent;
+        //public delegate void SendToDebugEventDelegate(string Message);
+        //public delegate void SendToLogEventDelegate(string Message);
+        //static public event SendToDebugEventDelegate SendToDebugEvent;
+        //static public event SendToLogEventDelegate SendToLogEvent;
 
         static public void SendToDebug(string Message)
         {
