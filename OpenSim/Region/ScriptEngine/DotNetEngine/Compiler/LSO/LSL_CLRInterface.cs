@@ -30,7 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
     public class LSL_CLRInterface
     {

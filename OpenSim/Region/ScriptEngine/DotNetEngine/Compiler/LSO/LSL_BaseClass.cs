@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
     public partial class LSL_BaseClass
     {
@@ -41,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             LSL_Builtins = LSLBuiltins;
 
-            Common.SendToLog("OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass.Start() called");
+            Common.SendToLog("OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass.Start() called");
             //LSL_Builtins.llSay(0, "Test");
             return;
         }

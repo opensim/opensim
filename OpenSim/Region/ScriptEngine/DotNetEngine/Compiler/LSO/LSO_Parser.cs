@@ -33,7 +33,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
     partial class LSO_Parser
     {

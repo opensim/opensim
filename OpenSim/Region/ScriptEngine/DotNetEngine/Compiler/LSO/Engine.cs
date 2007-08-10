@@ -32,7 +32,7 @@ using System.Reflection.Emit;
 using System.Threading;
 
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
 
 
@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             TypeBuilder typeBuilder = modBuilder.DefineType(
                                     "LSL_ScriptObject",
                                     TypeAttributes.Public | TypeAttributes.BeforeFieldInit,
-                                    typeof(OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass));
+                                    typeof(OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass));
             //,
             //                        typeof());
             //, typeof(LSL_BuiltIn_Commands_Interface));

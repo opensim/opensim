@@ -2,7 +2,7 @@
 //using System.Collections.Generic;
 //using System.Text;
 
-//namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+//namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 //{
 //    public partial class LSL_BaseClass
 //    {

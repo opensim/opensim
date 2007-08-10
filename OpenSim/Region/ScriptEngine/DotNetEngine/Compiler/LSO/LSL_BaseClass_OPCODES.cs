@@ -2,11 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
     public partial class LSL_BaseClass
     {
-
+        /*
+         * OPCODES
+         *
+         * These are internal "assembly" commands,
+         *  basic operators like "ADD", "PUSH" and "POP"
+         * 
+         * It also contains managed stack and keeps track of internal variables, etc.
+         * 
+         */
 
 
         public void StoreToLocal(UInt32 index)
