@@ -844,7 +844,7 @@ namespace OpenSim.Region.ClientStack
             
             byte[] rot = rotation.GetBytes();
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
-            
+
             OutPacket(outPacket);
         }
 

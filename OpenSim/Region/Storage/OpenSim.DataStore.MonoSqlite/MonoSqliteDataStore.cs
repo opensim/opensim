@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.LandManagement;
@@ -8,11 +9,12 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Interfaces;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 using libsecondlife;
 
 using System.Data;
 using System.Data.SqlTypes;
-// Yes, this won't compile on MS, need to deal with that later
+
 using Mono.Data.SqliteClient;
 
 namespace OpenSim.DataStore.MonoSqliteStorage
@@ -47,6 +49,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // TODO: see if the linkage actually holds.
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
             primDa.Fill(ds, "prims");
+            shapeDa.Fill(ds, "primshapes");
             ds.AcceptChanges();
 
             DataTable prims = ds.Tables["prims"];
@@ -54,7 +57,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             setupPrimCommands(primDa, conn);
             
             // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
-            shapeDa.Fill(ds, "primshapes");
             DataTable shapes = ds.Tables["primshapes"];
             shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
             setupShapeCommands(shapeDa, conn);
@@ -378,6 +380,11 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
             // s.TextureEntry = (byte[])row["Texture"];
+            
+            //following hack will only save the default face texture, any other textures on other faces
+            //won't be saved or restored.
+           LLObject.TextureEntry  texture = new LLObject.TextureEntry( new LLUUID((string)row["Texture"]));
+           s.TextureEntry = texture.ToBytes();
             return s;
         }
 
@@ -414,7 +421,15 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             row["ProfileHollow"] = s.ProfileHollow;
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
-            row["Texture"] = s.TextureEntry;
+
+            // And I couldn't work out how to save binary data either
+            // seems that the texture colum is being treated as a string in the Datarow 
+            // if you do a .getType() on it, it returns string, while the other columns return correct type
+            //following hack will only save the default face texture, any other textures on other faces
+            //won't be saved or restored.
+            // MW[10-08-07]
+            LLObject.TextureEntry text = new LLObject.TextureEntry(s.TextureEntry, 0, s.TextureEntry.Length);
+            row["Texture"] = text.DefaultTexture.TextureID.ToStringHyphenated();
 
         }
 
@@ -449,9 +464,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 addPrim(prim);
             }
             
-            MainLog.Instance.Verbose("Attempting to do update....");
+            MainLog.Instance.Verbose("Attempting to do database update....");
             primDa.Update(ds, "prims");
-            MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
+            shapeDa.Update(ds, "primshapes");
+           // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
 
         public void RemoveObject(LLUUID obj)
@@ -472,15 +488,23 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 SceneObjectGroup group = new SceneObjectGroup();
                 SceneObjectPart prim = buildPrim(primRow);
                 DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                if (shapeRow != null) {
+                if (shapeRow != null)
+                {
                     prim.Shape = buildShape(shapeRow);
                 }
-                group.Children.Add(prim.UUID, prim);
+                else
+                {
+                    Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                    prim.Shape = BoxShape.Default;
+                }
+                group.AddPart(prim);
                 // TODO: there are a couple of known issues to get this to work
                 //   * While we can add Children, we can't set the root part (or
                 //     or even figure out which should be the root part)
                 //   * region handle may need to be persisted, it isn't now
-                // retvals.Add(group);
+                group.RootPart = prim;
+                
+                retvals.Add(group);
             }
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " objects");
@@ -516,6 +540,15 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         public void Shutdown()
         {
             // TODO: DataSet commit
+        }
+
+        private void SaveAssetToFile(string filename, byte[] data)
+        {
+            FileStream fs = File.Create(filename);
+            BinaryWriter bw = new BinaryWriter(fs);
+            bw.Write(data);
+            bw.Close();
+            fs.Close();
         }
     }
 }

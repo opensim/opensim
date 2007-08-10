@@ -44,6 +44,27 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_parts = value; }
         }
 
+        public SceneObjectPart RootPart
+        {
+            set { m_rootPart = value; }
+        }
+
+        public ulong RegionHandle
+        {
+            get { return m_regionHandle; }
+            set
+            {
+                m_regionHandle = value;
+                lock (this.m_parts)
+                {
+                    foreach (SceneObjectPart part in this.m_parts.Values)
+                    {
+                        part.RegionHandle = m_regionHandle;
+                    }
+                }
+            }
+        }
+
         public override LLVector3 Pos
         {
             get { return m_rootPart.GroupPosition; }
@@ -79,9 +100,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Added because the Parcel code seems to use it
         /// but not sure a object should have this
-        /// as what does it tell us? that some avatar has selected it
+        /// as what does it tell us? that some avatar has selected it (but not what Avatar/user)
         /// think really there should be a list (or whatever) in each scenepresence
-        /// saying what prim(s) that user has selected at any time. 
+        /// saying what prim(s) that user has selected. 
         /// </summary>
         protected bool m_isSelected = false;
         public bool IsSelected
@@ -114,7 +135,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_scene = scene;
 
-            this.Pos = pos;
+           // this.Pos = pos;
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
             SceneObjectPart newPart = new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
@@ -136,6 +157,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = this.m_regionHandle;
 
             dupe.CopyRootPart(this.m_rootPart);
+            m_scene.EventManager.OnBackup += dupe.ProcessBackup;
 
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
@@ -145,6 +167,23 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return dupe;
+        }
+
+        /// <summary>
+        /// Added as a way for the storage provider to reset the scene, 
+        /// most likely a better way to do this sort of thing but for now...
+        /// </summary>
+        /// <param name="scene"></param>
+        public void SetScene(Scene scene)
+        {
+            m_scene = scene;
+            m_scene.EventManager.OnBackup += this.ProcessBackup;
+        }
+
+        public void AddPart(SceneObjectPart part)
+        {
+            part.SetParent(this);
+            this.m_parts.Add(part.UUID, part);
         }
 
         /// <summary>
@@ -617,6 +656,17 @@ namespace OpenSim.Region.Environment.Scenes
         public List<ScenePresence> RequestSceneAvatars()
         {
             return m_scene.RequestAvatarList();
+        }
+
+        public void SendFullUpdateToClient(IClientAPI remoteClient)
+        {
+            lock (this.m_parts)
+            {
+                foreach (SceneObjectPart part in this.m_parts.Values)
+                {
+                    this.SendPartFullUpdate(remoteClient, part);
+                }
+            }
         }
 
         /// <summary>

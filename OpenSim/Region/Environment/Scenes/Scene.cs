@@ -151,15 +151,6 @@ namespace OpenSim.Region.Environment.Scenes
             Avatars = new Dictionary<LLUUID, ScenePresence>();
             Prims = new Dictionary<LLUUID, SceneObjectGroup>();
 
-            MainLog.Instance.Verbose("Loading objects from datastore");
-            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects();
-            foreach (SceneObjectGroup prim in PrimsFromDB)
-            {
-                AddEntity(prim);
-            }
-            MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " object(s)");
-
-
             MainLog.Instance.Verbose("Creating LandMap");
             Terrain = new TerrainEngine((int)this.RegionInfo.RegionLocX, (int)this.RegionInfo.RegionLocY);
 
@@ -238,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 //backup scene data
                 storageCount++;
-                if (storageCount > 1200) //set to how often you want to backup 
+                if (storageCount > 600) //set to how often you want to backup 
                 {
                     Backup();
                     storageCount = 0;
@@ -462,12 +453,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void LoadPrimsFromStorage()
         {
-            MainLog.Instance.Verbose("World.cs: LoadPrimsFromStorage() - Loading primitives");
-            List<SceneObjectGroup> NewObjectsList = storageManager.DataStore.LoadObjects();
-            foreach (SceneObjectGroup obj in NewObjectsList)
+            MainLog.Instance.Verbose("Loading objects from datastore");
+            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects();
+            foreach (SceneObjectGroup prim in PrimsFromDB)
             {
-                this.Objects.Add(obj.UUID, obj);
+                AddEntityFromStorage(prim);
             }
+            MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " object(s)");
         }
 
         /// <summary>
@@ -518,6 +510,17 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+        }
+
+        public void AddEntityFromStorage(SceneObjectGroup sceneObject)
+        {
+            sceneObject.RegionHandle = this.m_regionHandle;
+            sceneObject.SetScene(this);
+            foreach (SceneObjectPart part in sceneObject.Children.Values)
+            {
+                part.LocalID = this.PrimIDAllocate();
+            }
+            this.AddEntity(sceneObject);
         }
 
         public void AddEntity(SceneObjectGroup sceneObject)
@@ -781,7 +784,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                   // ((SceneObject) ent).SendAllChildPrimsToClient(client);
+                    ((SceneObjectGroup) ent).SendFullUpdateToClient(client);
                 }
             }
         }

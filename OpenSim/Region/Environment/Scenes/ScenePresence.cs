@@ -556,6 +556,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
         #endregion
+
         #region Border Crossing Methods
         /// <summary>
         /// 
