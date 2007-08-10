@@ -636,7 +636,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.DataStore.MonoSqlite1" path="OpenSim/Region/Storage/OpenSim.DataStore.MonoSqlite" type="Library">
+    <Project name="OpenSim.DataStore.MonoSqlite" path="OpenSim/Region/Storage/OpenSim.DataStore.MonoSqlite" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>

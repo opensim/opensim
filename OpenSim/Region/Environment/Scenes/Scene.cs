@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 //backup scene data
                 storageCount++;
-                if (storageCount > 600) //set to how often you want to backup 
+                if (storageCount > 1200) //set to how often you want to backup 
                 {
                     Backup();
                     storageCount = 0;
