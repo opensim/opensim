@@ -44,9 +44,9 @@ namespace SimpleApp
         public event GenericCall OnRequestAvatarsData;
         public event AddNewPrim OnAddPrim;
         public event ObjectDuplicate OnObjectDuplicate;
-        public event UpdateVector OnGrapObject;
-        public event ObjectSelect OnDeGrapObject;
-        public event MoveObject OnGrapUpdate;
+        public event UpdateVector OnGrabObject;
+        public event ObjectSelect OnDeGrabObject;
+        public event MoveObject OnGrabUpdate;
 
 
         public event UpdateShape OnUpdatePrimShape;

@@ -61,7 +61,7 @@ namespace SimpleApp
             client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
             client.OnRequestMapBlocks += this.RequestMapBlocks;
             client.OnTeleportLocationRequest += this.RequestTeleportLocation;
-            client.OnGrapUpdate += this.MoveObject;
+            client.OnGrabUpdate += this.MoveObject;
             client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
             
             client.OnCompleteMovementToRegion += delegate()

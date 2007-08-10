@@ -588,7 +588,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnTeleportLocationRequest += RequestTeleportLocation;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
-            client.OnGrapUpdate += MoveObject;
+            client.OnGrabUpdate += MoveObject;
             client.OnDeRezObject += DeRezObject;
             client.OnNameFromUUIDRequest += commsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += PrimDescription;

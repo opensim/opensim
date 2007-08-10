@@ -290,24 +290,24 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectGrab:
-                        ObjectGrabPacket grap = (ObjectGrabPacket)Pack;
-                        if (OnGrapObject != null)
+                        ObjectGrabPacket grab = (ObjectGrabPacket)Pack; 
+                        if (OnGrabObject != null)
                         {
-                            OnGrapObject(grap.ObjectData.LocalID, grap.ObjectData.GrabOffset, this);
+                            OnGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this);
                         }
                         break;
                     case PacketType.ObjectGrabUpdate:
-                        ObjectGrabUpdatePacket grapUpdate = (ObjectGrabUpdatePacket)Pack;
-                        if (OnGrapUpdate != null)
+                        ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket)Pack;
+                        if (OnGrabUpdate != null)
                         {
-                            OnGrapUpdate(grapUpdate.ObjectData.ObjectID, grapUpdate.ObjectData.GrabOffsetInitial, grapUpdate.ObjectData.GrabPosition, this);
+                            OnGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial, grabUpdate.ObjectData.GrabPosition, this);
                         }
                         break;
                     case PacketType.ObjectDeGrab:
-                        ObjectDeGrabPacket deGrap = (ObjectDeGrabPacket)Pack;
-                        if (OnDeGrapObject != null)
+                        ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket)Pack;
+                        if (OnDeGrabObject != null)
                         {
-                            OnDeGrapObject(deGrap.ObjectData.LocalID, this);
+                            OnDeGrabObject(deGrab.ObjectData.LocalID, this);
                         }
                         break;
                     case PacketType.ObjectDescription:

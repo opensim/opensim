@@ -509,7 +509,7 @@ namespace OpenSim.Region.Environment.Scenes
                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(objectID);
                     if (hasPrim != false)
                     {
-                        ((SceneObjectGroup)ent).GrapMovement(offset, pos, remoteClient);
+                        ((SceneObjectGroup)ent).GrabMovement(offset, pos, remoteClient);
                         break;
                     }
                 }

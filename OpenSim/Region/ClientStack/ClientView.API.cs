@@ -55,10 +55,10 @@ namespace OpenSim.Region.ClientStack
         public event StartAnim OnStartAnim;
         public event GenericCall OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
-        public event UpdateVector OnGrapObject;
-        public event ObjectSelect OnDeGrapObject;
+        public event UpdateVector OnGrabObject;
+        public event ObjectSelect OnDeGrabObject;
         public event ObjectDuplicate OnObjectDuplicate;
-        public event MoveObject OnGrapUpdate;
+        public event MoveObject OnGrabUpdate;
         public event AddNewPrim OnAddPrim;
         public event ObjectExtraParams OnUpdateExtraParams;
         public event UpdateShape OnUpdatePrimShape;

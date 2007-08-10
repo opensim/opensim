@@ -108,9 +108,9 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall OnRequestAvatarsData;
         event AddNewPrim OnAddPrim;
         event ObjectDuplicate OnObjectDuplicate;
-        event UpdateVector OnGrapObject;
-        event ObjectSelect OnDeGrapObject;
-        event MoveObject OnGrapUpdate;
+        event UpdateVector OnGrabObject;
+        event ObjectSelect OnDeGrabObject;
+        event MoveObject OnGrabUpdate;
 
         event UpdateShape OnUpdatePrimShape;
         event ObjectExtraParams OnUpdateExtraParams;
