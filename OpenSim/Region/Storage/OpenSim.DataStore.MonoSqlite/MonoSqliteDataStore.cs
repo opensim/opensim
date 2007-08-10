@@ -541,14 +541,5 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             // TODO: DataSet commit
         }
-
-        private void SaveAssetToFile(string filename, byte[] data)
-        {
-            FileStream fs = File.Create(filename);
-            BinaryWriter bw = new BinaryWriter(fs);
-            bw.Write(data);
-            bw.Close();
-            fs.Close();
-        }
     }
 }
