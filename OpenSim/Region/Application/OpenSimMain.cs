@@ -68,7 +68,7 @@ namespace OpenSim
         protected List<Scene> m_localScenes = new List<Scene>();
 
         private bool m_silent;
-        private string m_logFilename = ("region-console-" + Guid.NewGuid().ToString() + ".log");
+        private string m_logFilename = ("region-console"  + ".log");
 
         public OpenSimMain(IConfigSource configSource)
             : base()
