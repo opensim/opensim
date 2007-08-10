@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Scenes
 
     public delegate void ForEachScenePresenceDelegate(ScenePresence presence);
 
-    public partial class Scene : SceneBase, ILocalStorageReceiver
+    public partial class Scene : SceneBase
     {
         protected Timer m_heartbeatTimer = new Timer();
         protected Dictionary<LLUUID, ScenePresence> Avatars;
@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 //backup scene data
                 storageCount++;
-                if (storageCount > 1200) //set to how often you want to backup 
+                if (storageCount > 600) //set to how often you want to backup 
                 {
                     Backup();
                     storageCount = 0;

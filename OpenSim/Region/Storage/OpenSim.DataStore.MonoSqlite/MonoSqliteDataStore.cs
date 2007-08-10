@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.IO;
 
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.LandManagement;
@@ -31,9 +30,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
         public void Initialise(string dbfile, string dbname)
         {
-            // for us, dbfile will be the connect string
+            string connectionString = "URI=file:" + dbfile + ",version=3";
+
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + dbfile);
-            SqliteConnection conn = new SqliteConnection(dbfile);
+            SqliteConnection conn = new SqliteConnection(connectionString);
 
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
@@ -301,6 +301,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                                                    Convert.ToSingle(row["RotationZ"]),
                                                    Convert.ToSingle(row["RotationW"])
                                                    );
+
             return prim;
         }
 

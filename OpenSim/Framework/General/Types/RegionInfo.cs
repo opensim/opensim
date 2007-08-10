@@ -29,6 +29,7 @@ using System;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using Nini.Config;
 using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
@@ -163,9 +164,55 @@ namespace OpenSim.Framework.Types
             m_externalHostName = externalUri;
         }
 
+        public void LoadFromNiniSource(IConfigSource source)
+        {
+            this.LoadFromNiniSource(source, "RegionInfo");
+        }
+
+        public void LoadFromNiniSource(IConfigSource source, string sectionName)
+        {
+            string errorMessage = "";
+            this.SimUUID = new LLUUID(source.Configs[sectionName].GetString("sim_UUID", LLUUID.Random().ToStringHyphenated()));
+            this.RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
+            this.m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
+            this.m_regionLocY = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_y", "1000"));
+            this.DataStore = source.Configs[sectionName].GetString("datastore", "OpenSim.db");
+
+            string ipAddress = source.Configs[sectionName].GetString("internal_ip_address", "0.0.0.0");
+            IPAddress ipAddressResult;
+            if (IPAddress.TryParse(ipAddress, out ipAddressResult))
+            {
+                this.m_internalEndPoint = new IPEndPoint(ipAddressResult, 0);
+            }
+            else
+            {
+                errorMessage = "needs an IP Address (IPAddress)";
+            }
+            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port",(int) 9000);
+
+            string externalHost = source.Configs[sectionName].GetString("external_host_name", "127.0.0.1");
+            if (externalHost != "SYSTEMIP")
+            {
+                this.m_externalHostName = externalHost;
+            }
+            else
+            {
+                this.m_externalHostName = Util.GetLocalHost().ToString();
+            }
+
+            this.MasterAvatarFirstName = source.Configs[sectionName].GetString("master_avatar_first", "Test");
+            this.MasterAvatarLastName = source.Configs[sectionName].GetString("master_avatar_last", "User");
+            this.MasterAvatarSandboxPassword = source.Configs[sectionName].GetString("master_avatar_pass", "test");
+
+            if (errorMessage != "")
+            {
+                // a error 
+            }
+        }
+
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(),true);
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Simulator Name", "OpenSim Test", false);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);

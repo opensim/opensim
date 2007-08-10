@@ -665,19 +665,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public static void CreateDefaultTextureEntry(string name)
+        public static void CreateDefaultTextureEntry()
         {
-            /* FileInfo fInfo = new FileInfo(name);
-             long numBytes = fInfo.Length;
-             FileStream fStream = new FileStream(name, FileMode.Open, FileAccess.Read);
-             BinaryReader br = new BinaryReader(fStream);
-             byte[] data1 = br.ReadBytes((int)numBytes);
-             br.Close();
-             fStream.Close();
-             DefaultTexture = data1;
-             LLObject.TextureEntry textu = new LLObject.TextureEntry(data1, 0, data1.Length);
-             Console.WriteLine("default texture entry: " + textu.ToString());*/
-
             LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
             textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");
             textu.CreateFace(1).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");

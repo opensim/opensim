@@ -60,8 +60,8 @@ namespace OpenSim
         public bool m_sandbox;
         public bool user_accounts;
         public bool m_gridLocalAsset;
-        protected bool m_useConfigFile;
-        public string m_configFileName;
+
+        protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
@@ -74,31 +74,30 @@ namespace OpenSim
             : base()
         {
             IConfigSource startupSource = configSource;
-            string iniFile = startupSource.Configs["Startup"].GetString("inifile", "NA");
-            if (iniFile != "NA")
-            {
-                //a INI file is set to be used for startup settings
-                string iniFilePath = Path.Combine(Util.configDir(), iniFile);
-                if (File.Exists(iniFilePath))
-                {
-                    startupSource = new IniConfigSource(iniFilePath);
+            string iniFile = startupSource.Configs["Startup"].GetString("inifile", "OpenSim.ini");
 
-                    //enable following line, if we want the original config source(normally commandline args) merged with ini file settings.
-                    //in this case we have it so that if both sources have the same named setting, the command line value will overwrite the ini file value. 
-                    //(as if someone has bothered to enter a command line arg, we should take notice of it)
-                    //startupSource.Merge(configSource); 
-                }
+            //check for .INI file (either default or name passed in command line)
+            string iniFilePath = Path.Combine(Util.configDir(), iniFile);
+            if (File.Exists(iniFilePath))
+            {
+                startupSource = new IniConfigSource(iniFilePath);
+
+                //enable following line, if we want the original config source(normally commandline args) merged with ini file settings.
+                //in this case we have it so that if both sources have the same named setting, the command line value will overwrite the ini file value. 
+                //(as if someone has bothered to enter a command line arg, we should take notice of it)
+                startupSource.Merge(configSource);
             }
+
             ReadConfigSettings(startupSource);
         }
 
         protected void ReadConfigSettings(IConfigSource configSource)
         {
-            m_useConfigFile = configSource.Configs["Startup"].GetBoolean("configfile", false);
             m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
             m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
-            m_configFileName = configSource.Configs["Startup"].GetString("config", "simconfig.xml");
             m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
+
+            m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
         }
 
         /// <summary>
@@ -110,7 +109,7 @@ namespace OpenSim
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            
+
             m_log = new LogBase(Path.Combine(Util.logDir(), m_logFilename), "Region", this, m_silent);
             MainLog.Instance = m_log;
 
@@ -131,12 +130,12 @@ namespace OpenSim
             }
 
             string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
-            
+
             if (!Directory.Exists(regionConfigPath))
             {
                 Directory.CreateDirectory(regionConfigPath);
             }
-            
+
             string[] configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
 
             if (configFiles.Length == 0)
@@ -175,7 +174,7 @@ namespace OpenSim
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
         {
-            return new StorageManager("OpenSim.DataStore.NullStorage.dll", regionInfo.DataStore, regionInfo.RegionName);
+            return new StorageManager(m_storageDLL, regionInfo.DataStore, regionInfo.RegionName);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
@@ -287,7 +286,7 @@ namespace OpenSim
 
                 case "terrain":
                     string result = "";
-                    foreach(Scene scene in m_localScenes)
+                    foreach (Scene scene in m_localScenes)
                     {
                         if (!scene.Terrain.RunTerrainCmd(cmdparams, ref result, scene.RegionInfo.RegionName))
                         {
@@ -296,21 +295,21 @@ namespace OpenSim
                     }
                     break;
                 case "script":
-                    foreach(Scene scene in m_localScenes )
+                    foreach (Scene scene in m_localScenes)
                     {
                         scene.SendCommandToScripts(cmdparams);
                     }
                     break;
 
                 case "backup":
-                    foreach(Scene scene in m_localScenes )
+                    foreach (Scene scene in m_localScenes)
                     {
                         scene.Backup();
                     }
                     break;
 
                 case "alert":
-                    foreach(Scene scene in m_localScenes)
+                    foreach (Scene scene in m_localScenes)
                     {
                         scene.HandleAlertCommand(cmdparams);
                     }
@@ -344,19 +343,19 @@ namespace OpenSim
                     for (int i = 0; i < m_localScenes.Count; i++)
                     {
                         Scene scene = m_localScenes[i];
-                        foreach (Entity entity in scene.Entities.Values )
+                        foreach (Entity entity in scene.Entities.Values)
                         {
-                            if ( entity is ScenePresence )
+                            if (entity is ScenePresence)
                             {
                                 ScenePresence scenePrescence = entity as ScenePresence;
                                 m_log.Error(
-                                    String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}", 
+                                    String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
                                                   scenePrescence.Firstname,
                                                   scenePrescence.Lastname,
-                                                  scenePrescence.UUID, 
+                                                  scenePrescence.UUID,
                                                   scenePrescence.ControllingClient.AgentId,
-                                                  "Unknown", 
-                                                  "Unknown", 
+                                                  "Unknown",
+                                                  "Unknown",
                                                   scene.RegionInfo.RegionName));
                             }
                         }

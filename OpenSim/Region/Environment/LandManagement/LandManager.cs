@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.LandManagement
     /// <summary>
     /// Handles Land objects and operations requiring information from other Land objects (divide, join, etc)
     /// </summary>
-    public class LandManager : ILocalStorageLandObjectReceiver
+    public class LandManager
     {
 
         #region Constants

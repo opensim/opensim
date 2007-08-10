@@ -32,6 +32,8 @@ using System.Net;
 using System.Text;
 using libsecondlife;
 
+using Nini.Config;
+
 namespace OpenSim.Framework.Utilities
 {
     public class Util
@@ -312,6 +314,29 @@ namespace OpenSim.Framework.Utilities
         public Util()
         {
 
+        }
+
+        // Nini (config) related Methods
+        public static IConfigSource ConvertDataRowToXMLConfig(System.Data.DataRow row, string fileName)
+        {
+            if(!File.Exists(fileName))
+            {
+                //create new file
+            }
+            XmlConfigSource config = new XmlConfigSource(fileName);
+            AddDataRowToConfig(config, row);
+            config.Save();
+
+            return config;
+        }
+
+        public static void AddDataRowToConfig(IConfigSource config, System.Data.DataRow row)
+        {
+            config.Configs.Add((string)row[0]);
+            for (int i = 0; i < row.Table.Columns.Count; i++)
+            {
+                config.Configs[(string)row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
+            }
         }
     }
 }

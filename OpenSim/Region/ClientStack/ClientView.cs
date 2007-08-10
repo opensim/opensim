@@ -120,7 +120,7 @@ namespace OpenSim.Region.ClientStack
         public void KillClient()
         {
             clientPingTimer.Stop();
-            this.m_inventoryCache.ClientLeaving(this.AgentID, null);
+           
             m_scene.RemoveClient(this.AgentId);
 
             m_clientThreads.Remove(this.CircuitCode);

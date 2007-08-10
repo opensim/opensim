@@ -64,17 +64,6 @@ namespace OpenSim.Assets
             }
         }
 
-        public AgentInventory FetchAgentsInventory(LLUUID agentID, IUserServer userserver)
-        {
-            AgentInventory res = null;
-            if (!this._agentsInventory.ContainsKey(agentID))
-            {
-                res = userserver.RequestAgentsInventory(agentID);
-                this._agentsInventory.Add(agentID,res);
-            }
-            return res;
-        }
-
         public AgentInventory GetAgentsInventory(LLUUID agentID)
         {
             if (this._agentsInventory.ContainsKey(agentID))
@@ -83,18 +72,6 @@ namespace OpenSim.Assets
             }
 
             return null;
-        }
-
-        public void ClientLeaving(LLUUID clientID, IUserServer userserver)
-        { 
-            if (this._agentsInventory.ContainsKey(clientID))
-            {
-                if (userserver != null)
-                {
-                    userserver.UpdateAgentsInventory(clientID, this._agentsInventory[clientID]);
-                }
-                this._agentsInventory.Remove(clientID);
-            }
         }
 
         public bool CreateNewInventoryFolder(ClientView remoteClient, LLUUID folderID)
