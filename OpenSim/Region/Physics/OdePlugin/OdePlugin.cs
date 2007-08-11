@@ -85,21 +85,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public OdeScene()
         {
-            contact.surface.mode = d.ContactFlags.Bounce | d.ContactFlags.SoftCFM;
-            contact.surface.mu = d.Infinity;
-            contact.surface.mu2 = 0.0f;
-            contact.surface.bounce = 0.1f;
-            contact.surface.bounce_vel = 0.1f;
-            contact.surface.soft_cfm = 0.01f;
+            contact.surface.mode |= d.ContactFlags.Approx1 | d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP;
+            contact.surface.mu = 10.0f;
+            contact.surface.bounce = 0.9f;
+            contact.surface.soft_erp = 0.005f;
+            contact.surface.soft_cfm = 0.00003f;
 
             world = d.WorldCreate();
             space = d.HashSpaceCreate(IntPtr.Zero);
             contactgroup = d.JointGroupCreate(0);
-            d.WorldSetGravity(world, 0.0f, 0.0f, -0.5f);
-            //d.WorldSetCFM(world, 1e-5f);
+            d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);   
             d.WorldSetAutoDisableFlag(world, false);
             d.WorldSetContactSurfaceLayer(world, 0.001f);
-           // d.CreatePlane(space, 0, 0, 1, 0);
             this._heightmap = new double[65536];
         }
 
@@ -154,16 +151,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             foreach (OdeCharacter actor in _characters)
             {
-                actor.Move(timeStep * 5f);
+                actor.Move(timeStep);
             }
             d.SpaceCollide(space, IntPtr.Zero, nearCallback);
-            d.WorldQuickStep(world, timeStep * 5f);
+            for (int i = 0; i < 50; i++)
+            {
+                d.WorldQuickStep(world, timeStep * 0.02f);
+            }
+
             d.JointGroupEmpty(contactgroup);
             foreach (OdeCharacter actor in _characters)
             {
                 actor.UpdatePosition();
             }
-
         }
 
         public override void GetResults()
@@ -221,7 +221,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
-        private bool flying;
+        private bool flying = false;
         //private float gravityAccel;
         private IntPtr BoundingCapsule;
         IntPtr capsule_geom;
@@ -232,8 +232,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             _velocity = new PhysicsVector();
             _position = pos;
             _acceleration = new PhysicsVector();
-            d.MassSetCapsule(out capsule_mass, 5.0f, 3, 0.5f, 2f);
-            capsule_geom = d.CreateCapsule(OdeScene.space, 0.5f, 2f);
+            d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
+            capsule_geom = d.CreateSphere(OdeScene.space, 1.0f);        /// not a typo!  Spheres roll, capsules tumble
             this.BoundingCapsule = d.BodyCreate(OdeScene.world);
             d.BodySetMass(BoundingCapsule, ref capsule_mass);
             d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
@@ -326,13 +326,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void Move(float timeStep)
         {
             PhysicsVector vec = new PhysicsVector();
-            vec.X = this._velocity.X * timeStep;
-            vec.Y = this._velocity.Y * timeStep;
+            d.Vector3 vel = d.BodyGetLinearVel(BoundingCapsule);
+            vec.X = (vel.X - this._velocity.X) * -75000.0f;
+            vec.Y = (vel.Y - this._velocity.Y) * -75000.0f;
             if (flying)
             {
-                vec.Z = (this._velocity.Z + 0.5f) * timeStep;
+                vec.Z = (vel.Z - this._velocity.Z) * -75000.0f;
             }
-            d.BodySetLinearVel(this.BoundingCapsule, vec.X, vec.Y, vec.Z);
+            d.BodyAddForce(this.BoundingCapsule, vec.X, vec.Y, vec.Z);
         }
 
         public void UpdatePosition()
@@ -340,7 +341,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.Vector3 vec = d.BodyGetPosition(BoundingCapsule);
             this._position.X = vec.X;
             this._position.Y = vec.Y;
-            this._position.Z = vec.Z+1.0f;
+            this._position.Z = vec.Z;
         }
     }
 
