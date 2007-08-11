@@ -123,7 +123,10 @@ namespace OpenSim.Framework.Data.DB4o
             IObjectSet result = database.Get(typeof(UserProfileData));
             foreach (UserProfileData row in result)
             {
-                userProfiles.Add(row.UUID, row);
+                if (!userProfiles.ContainsKey(row.UUID))
+                {
+                    userProfiles.Add(row.UUID, row);
+                }
             }
             database.Close();
         }
