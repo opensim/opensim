@@ -25,10 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications.Caches;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -37,10 +40,10 @@ namespace OpenSim.Region.Communications.Local
         public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
         public LocalUserServices UserServices;
 
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache )
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate )
             : base(serversInfo, httpServer, assetCache)
         {
-            UserServices = new LocalUserServices(this, serversInfo);
+            UserServices = new LocalUserServices(this, serversInfo, accountsAuthenticate);
             UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");
             UserServer = UserServices;
             GridServer = SandBoxServices;
@@ -52,5 +55,30 @@ namespace OpenSim.Region.Communications.Local
         {
             this.SandBoxServices.AddNewSession(regionHandle, login);
         }
+
+        public void do_create(string what)
+        {
+            switch (what)
+            {
+                case "user":
+                    string tempfirstname;
+                    string templastname;
+                    string tempMD5Passwd;
+                    uint regX = 1000;
+                    uint regY = 1000;
+
+                    tempfirstname = MainLog.Instance.CmdPrompt("First name");
+                    templastname = MainLog.Instance.CmdPrompt("Last name");
+                    tempMD5Passwd = MainLog.Instance.PasswdPrompt("Password");
+                    regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X"));
+                    regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y"));
+
+                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
+
+                    this.UserServices.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    break;
+            }
+        }
+
     }
 }

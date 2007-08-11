@@ -15,13 +15,15 @@ namespace OpenSim.Region.Communications.Local
         private NetworkServersInfo serversInfo;
         private uint defaultHomeX ;
         private uint defaultHomeY;
+        private bool authUsers = false;
 
-        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo)
+        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo, bool authenticate)
         {
             m_Parent = parent;
             this.serversInfo = serversInfo;
             defaultHomeX = this.serversInfo.DefaultHomeLocX;
             defaultHomeY = this.serversInfo.DefaultHomeLocY;
+            this.authUsers = authenticate;
         }
 
         public UserProfileData GetUserProfile(string firstName, string lastName)
@@ -68,9 +70,22 @@ namespace OpenSim.Region.Communications.Local
 
         public override bool AuthenticateUser(UserProfileData profile, string password)
         {
-            //for now we will accept any password in sandbox mode
-            Console.WriteLine("authorising user");
-            return true;
+            if (!authUsers)
+            {
+                //for now we will accept any password in sandbox mode
+                Console.WriteLine("authorising user");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine( "Authenticating " + profile.username + " " + profile.surname);
+
+                password = password.Remove(0, 3); //remove $1$
+
+                string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
+
+                return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            }
         }
 
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)

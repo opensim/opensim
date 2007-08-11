@@ -53,6 +53,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim
 {
+    public delegate void ConsoleCommand(string comParams);
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
@@ -68,7 +69,10 @@ namespace OpenSim
         protected List<Scene> m_localScenes = new List<Scene>();
 
         private bool m_silent;
-        private string m_logFilename = ("region-console"  + ".log");
+        private string m_logFilename = ("region-console.log");
+
+        private bool standaloneAuthenticate = false;
+        public ConsoleCommand CreateAccount = null;
 
         public OpenSimMain(IConfigSource configSource)
             : base()
@@ -98,6 +102,8 @@ namespace OpenSim
             m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
 
             m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+
+            standaloneAuthenticate = configSource.Configs["Startup"].GetBoolean("standalone_authenticate", false);
         }
 
         /// <summary>
@@ -122,7 +128,12 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache);
+                CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, standaloneAuthenticate);
+                m_commsManager = localComms;
+                if(standaloneAuthenticate)
+                {
+                    this.CreateAccount = localComms.do_create;
+                }
             }
             else
             {
@@ -318,6 +329,13 @@ namespace OpenSim
                 case "quit":
                 case "shutdown":
                     Shutdown();
+                    break;
+
+                case "create":
+                    if (CreateAccount != null)
+                    {
+                        CreateAccount(cmdparams[0]);
+                    }
                     break;
 
                 default:
