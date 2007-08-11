@@ -56,7 +56,7 @@ namespace OpenSim.Region.Communications.Local
             this.SandBoxServices.AddNewSession(regionHandle, login);
         }
 
-        public void do_create(string what)
+        public void doCreate(string what)
         {
             switch (what)
             {

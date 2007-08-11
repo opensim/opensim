@@ -121,23 +121,19 @@ namespace OpenSim
 
             base.StartUp();
 
-            if (!m_sandbox)
-            {
-                m_httpServer.AddStreamHandler(new SimStatusHandler());
-            }
-
             if (m_sandbox)
             {
                 CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, standaloneAuthenticate);
                 m_commsManager = localComms;
                 if(standaloneAuthenticate)
                 {
-                    this.CreateAccount = localComms.do_create;
+                    this.CreateAccount = localComms.doCreate;
                 }
             }
             else
             {
                 m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
+                m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
             string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
@@ -326,16 +322,16 @@ namespace OpenSim
                     }
                     break;
 
-                case "quit":
-                case "shutdown":
-                    Shutdown();
-                    break;
-
                 case "create":
                     if (CreateAccount != null)
                     {
                         CreateAccount(cmdparams[0]);
                     }
+                    break;
+
+                case "quit":
+                case "shutdown":
+                    Shutdown();
                     break;
 
                 default:

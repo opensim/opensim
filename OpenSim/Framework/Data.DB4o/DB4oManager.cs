@@ -127,6 +127,7 @@ namespace OpenSim.Framework.Data.DB4o
                 {
                     userProfiles.Add(row.UUID, row);
                 }
+                
             }
             database.Close();
         }

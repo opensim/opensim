@@ -12,6 +12,7 @@ create table prims (
         ParentID integer default 0, -- this.ParentID
         CreationDate integer, -- this.CreationDate
         Name varchar(256),
+	SceneGroupID char(36),
         -- various text fields
         Text varchar(256),
         Description varchar(256),

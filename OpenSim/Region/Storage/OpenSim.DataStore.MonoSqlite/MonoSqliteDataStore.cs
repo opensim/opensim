@@ -81,6 +81,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             data.Add("ParentID", DbType.Int32);
             data.Add("CreationDate", DbType.Int32);
             data.Add("Name", DbType.String);
+            data.Add("SceneGroupID", DbType.String);
             // various text fields
             data.Add("Text", DbType.String);
             data.Add("Description", DbType.String);
@@ -305,12 +306,14 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return prim;
         }
 
-        private void fillPrimRow(DataRow row, SceneObjectPart prim) 
+        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID) 
         {
+            Console.WriteLine("scene Group for this prim is " + sceneGroupID);
             row["UUID"] = prim.UUID;
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.PartName;
+            row["SceneGroupID"] = sceneGroupID; // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
             row["Description"] = prim.Description;
@@ -434,7 +437,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
         }
 
-        private void addPrim(SceneObjectPart prim)
+        private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -442,10 +445,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataRow primRow = prims.Rows.Find(prim.UUID);
             if (primRow == null) {
                 primRow = prims.NewRow();
-                fillPrimRow(primRow, prim);
+                fillPrimRow(primRow, prim, sceneGroupID);
                 prims.Rows.Add(primRow);
             } else {
-                fillPrimRow(primRow, prim);
+                fillPrimRow(primRow, prim, sceneGroupID);
             }
 
             DataRow shapeRow = shapes.Rows.Find(prim.UUID);
@@ -462,7 +465,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             foreach (SceneObjectPart prim in obj.Children.Values)
             {
-                addPrim(prim);
+                addPrim(prim, obj.UUID);
             }
             
             MainLog.Instance.Verbose("Attempting to do database update....");
