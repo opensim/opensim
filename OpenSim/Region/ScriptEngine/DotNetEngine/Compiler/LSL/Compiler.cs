@@ -7,7 +7,7 @@ using System.CodeDom.Compiler;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    class Compiler
+    public class Compiler
     {
         private LSL2CS.Converter.LSL2CSConverter LSL_Converter = new LSL2CS.Converter.LSL2CSConverter();
         private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
@@ -15,7 +15,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public string Compile(string LSOFileName)
         {
 
-            
+
             string OutFile = Path.GetFileNameWithoutExtension(LSOFileName);
 
             // TODO: Add error handling
@@ -37,7 +37,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 }
             }
 
-            
+
             return OutFile;
         }
 
