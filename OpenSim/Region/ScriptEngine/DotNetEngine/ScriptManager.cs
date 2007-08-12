@@ -114,15 +114,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             FileName = ScriptID;
 
             // * Does script need compile? Send it to LSL compiler first. (TODO: Use (and clean) compiler cache)
-            if (FileName.ToLower().EndsWith(".lsl"))
+            Common.SendToDebug("ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
+            switch (System.IO.Path.GetExtension(FileName).ToLower())
             {
-                Common.SendToDebug("ScriptManager Script is LSL, compiling to .Net Assembly");
-                // Create a new instance of the compiler (currently we don't want reuse)
-                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
-                // Compile
-                FileName = LSLCompiler.Compile(FileName);
+                case ".txt":
+                case ".lsl":
+                case ".cs":
+                    Common.SendToDebug("ScriptManager Script is CS/LSL, compiling to .Net Assembly");
+                    // Create a new instance of the compiler (currently we don't want reuse)
+                    OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
+                    // Compile
+                    FileName = LSLCompiler.Compile(FileName);
+                    break;
+                default:
+                    throw new Exception("Unknown script type.");
             }
 
+            Common.SendToDebug("Compilation done");
             // * Insert yield into code
             FileName = ProcessYield(FileName);
 
@@ -197,7 +205,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Type t;
             //try
             //{
-            t = a.GetType("LSL_ScriptObject", true);
+            t = a.GetType("SecondLife.Script", true);
             //}
             //catch (Exception e)
             //{

@@ -20,8 +20,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Output assembly name
             string OutFile = Path.GetFileNameWithoutExtension(LSOFileName) + ".dll";
 
+            Common.SendToDebug("Reading source code into memory");
             // TODO: Add error handling
-            string CS_Code = LSL_Converter.Convert(File.ReadAllText(LSOFileName));
+            string CS_Code;
+            switch (System.IO.Path.GetExtension(LSOFileName).ToLower())
+            {
+                case ".txt":
+                case ".lsl":
+                    Common.SendToDebug("Source code is LSL, converting to CS");
+                    CS_Code = LSL_Converter.Convert(File.ReadAllText(LSOFileName));
+                    break;
+                case ".cs":
+                    Common.SendToDebug("Source code is CS");
+                    CS_Code = File.ReadAllText(LSOFileName);
+                    break;
+                default:
+                    throw new Exception("Unknown script type.");
+            }
+
+            Common.SendToDebug("Compiling");
 
             // Do actual compile
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
