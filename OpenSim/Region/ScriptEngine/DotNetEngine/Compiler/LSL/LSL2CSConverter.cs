@@ -29,6 +29,8 @@ namespace LSL2CS.Converter
         public string Convert(string Script)
         {
             string Return = "";
+            QUOTES.Clear();
+
 
             //
             // Prepare script for processing
