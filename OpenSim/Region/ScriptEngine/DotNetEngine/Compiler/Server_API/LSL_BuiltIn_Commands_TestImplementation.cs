@@ -32,7 +32,7 @@ using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 {
-    public class LSL_BuiltIn_Commands_TestImplementation : LSL_BuiltIn_Commands_Interface
+    public class LSL_BuiltIn_Commands_TestImplementation //: LSL_BuiltIn_Commands_Interface
     {
         public LSL_BuiltIn_Commands_TestImplementation(string FullScriptID)
         {
