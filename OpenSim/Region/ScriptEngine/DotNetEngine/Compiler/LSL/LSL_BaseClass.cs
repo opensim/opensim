@@ -8,16 +8,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     public class LSL_BaseClass : LSL_BuiltIn_Commands_Interface
     {
         public UInt32 State = 0;
+        internal OpenSim.Region.Environment.Scenes.Scene World;
 
-        public void Start(string FullScriptID)
+        public void Start(OpenSim.Region.Environment.Scenes.Scene _World, string FullScriptID)
         {
+            World = _World;
             Common.SendToLog("OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID);
 
             return;
         }
 
-
-
+        //
+        // IMPLEMENT THESE!
+        //
 
 
 
