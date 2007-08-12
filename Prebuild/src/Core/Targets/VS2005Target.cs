@@ -368,12 +368,6 @@ namespace Prebuild.Core.Targets
                 throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
             }
 
-            // Hardcoded exclusion of unbuildable project
-            if( project.Name == "OpenSim.DataStore.MonoSqlite")
-            {
-                return;
-            }
-            
             ToolInfo toolInfo = (ToolInfo)tools[project.Language];
             string projectFile = Helper.MakeFilePath(project.FullPath, project.Name, toolInfo.FileExtension);
             StreamWriter ps = new StreamWriter(projectFile);
@@ -719,11 +713,6 @@ namespace Prebuild.Core.Targets
                     if (!tools.ContainsKey(project.Language))
                     {
                         throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
-                    }
-
-                    if (project.Name == "OpenSim.DataStore.MonoSqlite")
-                    {
-                        continue;
                     }
 
                     ToolInfo toolInfo = (ToolInfo)tools[project.Language];
