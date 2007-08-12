@@ -18,11 +18,12 @@ namespace LSL2CS.Converter
             DataTypes.Add("float", "float");
             DataTypes.Add("string", "string");
             DataTypes.Add("key", "string");
-            DataTypes.Add("vector", "vector");
-            DataTypes.Add("rotation", "rotation");
+            DataTypes.Add("vector", "Axiom.Math.Vector3");
+            DataTypes.Add("rotation", "Axiom.Math.Quaternion");
             DataTypes.Add("list", "list");
             DataTypes.Add("null", "null");
         }
+        
 
 
 
@@ -34,37 +35,14 @@ namespace LSL2CS.Converter
             // Prepare script for processing
             //
 
-            // Here we will remove those linebreaks that are allowed in so many languages.
-            // One hard-ass regex should do the job.
-
-            // Then we will add some linebreaks.
+            // Clean up linebreaks
             Script = Regex.Replace(Script, @"\r\n", "\n");
             Script = Regex.Replace(Script, @"\n", "\r\n");
-            //Script = Regex.Replace(Script, @"\n\s*{", @"{");
-            //Script = Regex.Replace(Script, @"[\r\n]", @"");
-
-            // Then we remove unwanted linebreaks            
-
-
-            ////
-            //// Split up script to process line by line
-            ////
-            //int count = 0;
-            //string line;
-            //Regex r = new Regex("\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);
-            //string[] lines = r.Split(Script);
-
-            //for (int i = 0; i < lines.Length; i++)
-            //{
-            //    // Remove space in front and back
-            //    line = lines[i].Trim();
-            //    count++;
-            //    Return += count + ". " + translate(line) + "\r\n";
-            //}
 
 
             // QUOTE REPLACEMENT
-            //char[] SA = Script.ToCharArray();
+            // temporarily replace quotes so we can work our magic on the script without
+            //  always considering if we are inside our outside ""'s
             string _Script = "";
             string C;
             bool in_quote = false;
@@ -129,8 +107,10 @@ namespace LSL2CS.Converter
 
 
 
-
+            //
             // PROCESS STATES
+            // Remove state definitions and add state names to start of each event within state
+            //
             int ilevel = 0;
             int lastlevel = 0;
             string ret = "";
@@ -190,13 +170,6 @@ namespace LSL2CS.Converter
                         current_statename = "";
                     }
 
-                    // if we moved from level 0 to level 1 don't add last word + {
-                    // if we moved from level 1 to level 0 don't add last }
-                    // if level > 0 cache all data so we can run regex on it when going to level 0
-
-
-
-
                     break;
                 }
                 lastlevel = ilevel;
@@ -209,17 +182,23 @@ namespace LSL2CS.Converter
 
 
 
-            // Replace CAST - (integer) with (int)
-            Script = Regex.Replace(Script, @"\(integer\)", @"(int)", RegexOptions.Compiled | RegexOptions.Multiline);
-            // Replace return types and function variables - integer a() and f(integer a, integer a)
-            Script = Regex.Replace(Script, @"(^|;|}|[\(,])(\s*int)eger(\s*)", @"$1$2$3", RegexOptions.Compiled | RegexOptions.Multiline);
+            foreach (string key in DataTypes.Keys)
+            {
+                string val;
+                DataTypes.TryGetValue(key, out val);
+
+                // Replace CAST - (integer) with (int)
+                Script = Regex.Replace(Script, @"\(" + key + @"\)", @"(" + val + ")", RegexOptions.Compiled | RegexOptions.Multiline);
+                // Replace return types and function variables - integer a() and f(integer a, integer a)
+                Script = Regex.Replace(Script, @"(^|;|}|[\(,])(\s*)" + key + @"(\s*)", @"$1$2" + val + "$3", RegexOptions.Compiled | RegexOptions.Multiline);
+            }
 
             // Add "void" in front of functions that needs it
             Script = Regex.Replace(Script, @"^(\s*)((?!if|switch|for)[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace <x,y,z> and <x,y,z,r>
-            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"Rotation.Parse($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"Vector.Parse($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new Axiom.Math.Quaternion($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"new Axiom.Math.Vector3($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace List []'s
             Script = Regex.Replace(Script, @"\[([^\]]*)\]", @"List.Parse($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
@@ -239,6 +218,7 @@ namespace LSL2CS.Converter
             }
 
 
+            // Add namespace, class name and inheritance
             Return = "namespace SecondLife {" + Environment.NewLine;
             Return += "public class Script : LSL_BaseClass {" + Environment.NewLine;
             Return += Script;
@@ -246,18 +226,6 @@ namespace LSL2CS.Converter
 
             return Return;
         }
-        //private string GetWord(char[] SA, int p)
-        //{
-        //    string ret = "";
-        //    for (int i = p; p < SA.Length; i++)
-        //    {
-        //        if (!rnw.IsMatch(SA[i].ToString()))
-        //            break;
-        //        ret += SA[i];
-        //    }
-        //    return ret;
-        //}
-
 
 
     }

@@ -16,16 +16,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
 
 
-            string OutFile = Path.GetFileNameWithoutExtension(LSOFileName);
+            // Output assembly name
+            string OutFile = Path.GetFileNameWithoutExtension(LSOFileName) + ".dll";
 
             // TODO: Add error handling
             string CS_Code = LSL_Converter.Convert(File.ReadAllText(LSOFileName));
 
+            // Do actual compile
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
-            parameters.GenerateExecutable = true;
+            parameters.IncludeDebugInformation = true;
+            parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
+            parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
             CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, CS_Code);
 
+            // Go through errors
             // TODO: Return errors to user somehow
             if (results.Errors.Count > 0)
             {

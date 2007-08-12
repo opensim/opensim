@@ -951,14 +951,9 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="OpenSim.Region.Environment" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.UserManagement" />
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
-      <Reference name="Db4objects.Db4o.dll"/>
-      <Reference name="XMLRPC.dll"/>
+      <Reference name="OpenSim.Framework"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match pattern="*.lso" recurse="true"/>

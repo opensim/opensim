@@ -137,7 +137,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             SetScript(ObjectID, ScriptID, Script);
             // We need to give (untrusted) assembly a private instance of BuiltIns
             //  this private copy will contain Read-Only FullScriptID so that it can bring that on to the server whenever needed.
-            OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
+            OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
             // Start the script - giving it BuiltIns
             Common.SendToDebug("ScriptManager initializing script, handing over private builtin command interface");
             Script.Start(LSLB);

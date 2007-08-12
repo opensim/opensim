@@ -1,4 +1,4 @@
-/*
+    /*
 * Copyright (c) Contributors, http://www.openmetaverse.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -30,7 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 {
     public class LSL_BuiltIn_Commands_TestImplementation : LSL_BuiltIn_Commands_Interface
     {
@@ -52,16 +52,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
         public UInt32 llFloor(float f) { return 0; }
         public UInt32 llCeil(float f) { return 0; }
         public UInt32 llRound(float f) { return 0; }
-        public float llVecMag(LSO_Enums.Vector v) { return 0; }
-        public LSO_Enums.Vector llVecNorm(LSO_Enums.Vector v) { return new LSO_Enums.Vector(); }
-        public float llVecDist(LSO_Enums.Vector a, LSO_Enums.Vector b) { return 0; }
-        public LSO_Enums.Vector llRot2Euler(LSO_Enums.Rotation r) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Rotation llEuler2Rot(LSO_Enums.Vector v) { return new LSO_Enums.Rotation(); }
-        public LSO_Enums.Rotation llAxes2Rot(LSO_Enums.Vector fwd, LSO_Enums.Vector left, LSO_Enums.Vector up) { return new LSO_Enums.Rotation(); }
-        public LSO_Enums.Vector llRot2Fwd(LSO_Enums.Rotation r) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Vector llRot2Left(LSO_Enums.Rotation r) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Vector llRot2Up(LSO_Enums.Rotation r) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Rotation llRotBetween(LSO_Enums.Vector start, LSO_Enums.Vector end) { return new LSO_Enums.Rotation(); }
+        public float llVecMag(Axiom.Math.Vector3 v) { return 0; }
+        public Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v) { return new Axiom.Math.Vector3(); }
+        public float llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b) { return 0; }
+        public Axiom.Math.Vector3 llRot2Euler(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Quaternion llEuler2Rot(Axiom.Math.Vector3 v) { return new Axiom.Math.Quaternion(); }
+        public Axiom.Math.Quaternion llAxes2Rot(Axiom.Math.Vector3 fwd, Axiom.Math.Vector3 left, Axiom.Math.Vector3 up) { return new Axiom.Math.Quaternion(); }
+        public Axiom.Math.Vector3 llRot2Fwd(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end) { return new Axiom.Math.Quaternion(); }
         public void llWhisper(UInt16 channelID, string text)
         {
             Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
@@ -75,40 +75,40 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToLog("llSay Channel " + (UInt32)channelID + ", Text: \"" + (string)text + "\"");
         }
         public void llShout(UInt16 channelID, string text) { return; }
-        public UInt32 llListen(UInt16 channelID, string name, LSO_Enums.Key ID, string msg) { return 0; }
+        public UInt32 llListen(UInt16 channelID, string name, string ID, string msg) { return 0; }
         public void llListenControl(UInt32 number, UInt32 active) { return; }
         public void llListenRemove(UInt32 number) { return; }
-        public void llSensor(string name, LSO_Enums.Key id, UInt32 type, float range, float arc) { return; }
-        public void llSensorRepeat(string name, LSO_Enums.Key id, UInt32 type, float range, float arc, float rate) { return; }
+        public void llSensor(string name, string id, UInt32 type, float range, float arc) { return; }
+        public void llSensorRepeat(string name, string id, UInt32 type, float range, float arc, float rate) { return; }
         public void llSensorRemove() { return; }
         public string llDetectedName(UInt32 number) { return ""; }
-        public LSO_Enums.Key llDetectedKey(UInt32 number) { return new LSO_Enums.Key(); }
-        public LSO_Enums.Key llDetectedOwner(UInt32 number) { return new LSO_Enums.Key(); }
+        public string llDetectedKey(UInt32 number) { return ""; }
+        public string llDetectedOwner(UInt32 number) { return ""; }
         public UInt32 llDetectedType(UInt32 number) { return 0; }
-        public LSO_Enums.Vector llDetectedPos(UInt32 number) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Vector llDetectedVel(UInt32 number) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Vector llDetectedGrab(UInt32 number) { return new LSO_Enums.Vector(); }
-        public LSO_Enums.Rotation llDetectedRot(UInt32 number) { return new LSO_Enums.Rotation(); }
+        public Axiom.Math.Vector3 llDetectedPos(UInt32 number) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llDetectedVel(UInt32 number) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llDetectedGrab(UInt32 number) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Quaternion llDetectedRot(UInt32 number) { return new Axiom.Math.Quaternion(); }
         public UInt32 llDetectedGroup(UInt32 number) { return 0; }
         public UInt32 llDetectedLinkNumber(UInt32 number) { return 0; }
         public void llDie() { return; }
-        public float llGround(LSO_Enums.Vector offset) { return 0; }
-        public float llCloud(LSO_Enums.Vector offset) { return 0; }
-        public LSO_Enums.Vector llWind(LSO_Enums.Vector offset) { return new LSO_Enums.Vector(); }
+        public float llGround(Axiom.Math.Vector3 offset) { return 0; }
+        public float llCloud(Axiom.Math.Vector3 offset) { return 0; }
+        public Axiom.Math.Vector3 llWind(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
         public void llSetStatus(UInt32 status, UInt32 value) { return; }
         public UInt32 llGetStatus(UInt32 status) { return 0; }
-        public void llSetScale(LSO_Enums.Vector scale) { return; }
-        public LSO_Enums.Vector llGetScale() { return new LSO_Enums.Vector(); }
-        public void llSetColor(LSO_Enums.Vector color, UInt32 face) { return; }
+        public void llSetScale(Axiom.Math.Vector3 scale) { return; }
+        public Axiom.Math.Vector3 llGetScale() { return new Axiom.Math.Vector3(); }
+        public void llSetColor(Axiom.Math.Vector3 color, UInt32 face) { return; }
         public float llGetAlpha(UInt32 face) { return 0; }
         public void llSetAlpha(float alpha, UInt32 face) { return; }
-        public LSO_Enums.Vector llGetColor(UInt32 face) { return new LSO_Enums.Vector(); }
+        public Axiom.Math.Vector3 llGetColor(UInt32 face) { return new Axiom.Math.Vector3(); }
         public void llSetTexture(string texture, UInt32 face) { return; }
         public void llScaleTexture(float u, float v, UInt32 face) { return; }
         public void llOffsetTexture(float u, float v, UInt32 face) { return; }
         public void llRotateTexture(float rotation, UInt32 face) { return; }
         public string llGetTexture(UInt32 face) { return ""; }
-        public void llSetPos(LSO_Enums.Vector pos) { return; }
+        public void llSetPos(Axiom.Math.Vector3 pos) { return; }
 
 
         public void llGetPos() { }
