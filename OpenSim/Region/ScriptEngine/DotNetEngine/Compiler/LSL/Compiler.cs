@@ -4,12 +4,13 @@ using System.Text;
 using System.IO;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
+using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class Compiler
     {
-        private LSL2CS.Converter.LSL2CSConverter LSL_Converter = new LSL2CS.Converter.LSL2CSConverter();
+        private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
         //private ICodeCompiler icc = codeProvider.CreateCompiler();
         public string Compile(string LSOFileName)
@@ -25,7 +26,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Do actual compile
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
             parameters.IncludeDebugInformation = true;
-            parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
+            // Add all available assemblies
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                parameters.ReferencedAssemblies.Add(asm.Location);
+            }
+            //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
             CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, CS_Code);

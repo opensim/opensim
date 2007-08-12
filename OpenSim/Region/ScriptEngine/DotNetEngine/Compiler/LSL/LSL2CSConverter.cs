@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace LSL2CS.Converter
+namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class LSL2CSConverter
     {
@@ -30,6 +30,7 @@ namespace LSL2CS.Converter
         public string Convert(string Script)
         {
             string Return = "";
+            Script = " \r\n" + Script;
 
             //
             // Prepare script for processing
@@ -143,7 +144,7 @@ namespace LSL2CS.Converter
                             // Go back to level 0, this is not a state
                             in_state = true;
                             current_statename = m.Groups[1].Captures[0].Value;
-                            Console.WriteLine("Current statename: " + current_statename);
+                            //Console.WriteLine("Current statename: " + current_statename);
                             cache = Regex.Replace(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{", "", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
                         ret += cache;
@@ -160,7 +161,7 @@ namespace LSL2CS.Converter
                             //Replace function names
                             // void dataserver(key query_id, string data) {
                             //cache = Regex.Replace(cache, @"([^a-zA-Z_]\s*)((?!if|switch|for)[a-zA-Z_]+\s*\([^\)]*\)[^{]*{)", "$1" + "<STATE>" + "$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-                            Console.WriteLine("Replacing using statename: " + current_statename);
+                            //Console.WriteLine("Replacing using statename: " + current_statename);
                             cache = Regex.Replace(cache, @"^(\s*)((?!if|switch|for)[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1" + current_statename + "_$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
 
@@ -219,10 +220,10 @@ namespace LSL2CS.Converter
 
 
             // Add namespace, class name and inheritance
-            Return = "namespace SecondLife {" + Environment.NewLine;
-            Return += "public class Script : LSL_BaseClass {" + Environment.NewLine;
+            Return = "namespace SecondLife {\r\n";
+            Return += "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass {\r\n";
             Return += Script;
-            Return += "} }" + Environment.NewLine;
+            Return += "} }\r\n";
 
             return Return;
         }
