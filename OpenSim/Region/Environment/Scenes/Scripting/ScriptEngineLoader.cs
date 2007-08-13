@@ -28,6 +28,7 @@
 /* Original code: Tedd Hansen */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Reflection;
 
@@ -41,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 
         public ScriptEngineInterface LoadScriptEngine(string EngineName)
         {
-            return LoadAndInitAssembly(@"ScriptEngines\OpenSim.Region.ScriptEngine." + EngineName + ".dll", 
+            return LoadAndInitAssembly(Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine." + EngineName + ".dll"), 
                         "OpenSim.Region.ScriptEngine." + EngineName + ".ScriptEngine");
         }
 
