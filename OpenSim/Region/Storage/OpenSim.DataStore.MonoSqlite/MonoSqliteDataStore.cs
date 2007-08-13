@@ -308,7 +308,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID) 
         {
-            Console.WriteLine("scene Group for this prim is " + sceneGroupID);
             row["UUID"] = prim.UUID;
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
@@ -481,37 +480,54 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
         public List<SceneObjectGroup> LoadObjects()
         {
+            Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
             
-            // This only supports 1 prim per SceneObjectGroup.  Need to fix later
             foreach (DataRow primRow in prims.Rows)
             {
-                SceneObjectGroup group = new SceneObjectGroup();
-                SceneObjectPart prim = buildPrim(primRow);
-                DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                if (shapeRow != null)
+                string uuid = (string)primRow["UUID"];
+                string objID = (string)primRow["SceneGroupID"];
+                if (uuid == objID) //is new SceneObjectGroup ?
                 {
-                    prim.Shape = buildShape(shapeRow);
+                    SceneObjectGroup group = new SceneObjectGroup();
+                    SceneObjectPart prim = buildPrim(primRow);
+                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                    if (shapeRow != null)
+                    {
+                        prim.Shape = buildShape(shapeRow);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                        prim.Shape = BoxShape.Default;
+                    }
+                    group.AddPart(prim);
+                    group.RootPart = prim;
+
+                    createdObjects.Add(group.UUID, group);
+                    retvals.Add(group);
                 }
                 else
                 {
-                    Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                    prim.Shape = BoxShape.Default;
+                    SceneObjectPart prim = buildPrim(primRow);
+                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                    if (shapeRow != null)
+                    {
+                        prim.Shape = buildShape(shapeRow);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                        prim.Shape = BoxShape.Default;
+                    }
+                    createdObjects[new LLUUID(objID)].AddPart(prim);
                 }
-                group.AddPart(prim);
-                // TODO: there are a couple of known issues to get this to work
-                //   * While we can add Children, we can't set the root part (or
-                //     or even figure out which should be the root part)
-                //   * region handle may need to be persisted, it isn't now
-                group.RootPart = prim;
-                
-                retvals.Add(group);
             }
 
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " objects");
+            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
 
             return retvals;
         }

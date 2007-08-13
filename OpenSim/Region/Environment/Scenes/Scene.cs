@@ -459,7 +459,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(prim);
             }
-            MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " object(s)");
+            MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
         /// <summary>
@@ -520,6 +520,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.LocalID = this.PrimIDAllocate();
             }
+            sceneObject.UpdateParentIDs();
             this.AddEntity(sceneObject);
         }
 

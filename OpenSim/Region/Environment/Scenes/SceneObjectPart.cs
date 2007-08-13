@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
 using System;
 using Axiom.Math;
 using libsecondlife;
@@ -248,6 +251,27 @@ namespace OpenSim.Region.Environment.Scenes
             this.ObjectFlags = flags;
         }
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xmlreader"></param>
+        /// <returns></returns>
+        public static SceneObjectPart FromXml(XmlReader xmlReader)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(SceneObjectPart));
+            return (SceneObjectPart)serializer.Deserialize(xmlReader);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xmlWriter"></param>
+        public void ToXml(XmlWriter xmlWriter)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(SceneObjectPart));
+            serializer.Serialize(xmlWriter, this);
+        }
 
         /// <summary>
         /// 

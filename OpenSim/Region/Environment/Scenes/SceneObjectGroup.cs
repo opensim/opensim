@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
+using System;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -22,6 +26,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
+        #region Properties
         /// <summary>
         /// 
         /// </summary>
@@ -111,12 +116,40 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_isSelected = value; }
         }
 
+        #endregion
+
+        #region Constructors
         /// <summary>
         /// 
         /// </summary>
         public SceneObjectGroup()
         {
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public SceneObjectGroup(Scene scene, ulong regionHandle, string xmlData)
+        {
+            m_scene = scene;
+            m_regionHandle = regionHandle;
+           
+            StringReader sr = new StringReader(xmlData);
+            XmlTextReader reader = new XmlTextReader(sr);
+            reader.ReadStartElement("SceneObjectGroup");
+            reader.ReadStartElement("RootPart");
+            this.m_rootPart = SceneObjectPart.FromXml(reader);
+            reader.ReadEndElement();
+            //TODO: read and create rest of the parts
+            reader.ReadEndElement();
+            reader.Close();
+            sr.Close();
+
+            this.m_parts.Add(m_rootPart.UUID, m_rootPart);
+            this.m_rootPart.LocalID = m_scene.PrimIDAllocate();
+            this.m_rootPart.RegionHandle = m_regionHandle;
+            m_scene.EventManager.OnBackup += this.ProcessBackup;
         }
 
         /// <summary>
@@ -142,7 +175,25 @@ namespace OpenSim.Region.Environment.Scenes
             this.SetPartAsRoot(newPart);
             m_scene.EventManager.OnBackup += this.ProcessBackup;
         }
+        #endregion
 
+        public string ToXmlString()
+        {
+            StringWriter sw = new StringWriter();
+            //StreamWriter st = new StreamWriter("testxml.txt");
+            XmlTextWriter writer = new XmlTextWriter(sw);
+            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
+            m_rootPart.ToXml(writer);
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+            writer.Close();
+           // System.Console.WriteLine("prim: " + sw.ToString());
+            return sw.ToString();
+          //  st.Close();
+        //   return "";
+            
+        }
 
         #region Copying
         /// <summary>
@@ -170,23 +221,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Added as a way for the storage provider to reset the scene, 
-        /// most likely a better way to do this sort of thing but for now...
-        /// </summary>
-        /// <param name="scene"></param>
-        public void SetScene(Scene scene)
-        {
-            m_scene = scene;
-            m_scene.EventManager.OnBackup += this.ProcessBackup;
-        }
-
-        public void AddPart(SceneObjectPart part)
-        {
-            part.SetParent(this);
-            this.m_parts.Add(part.UUID, part);
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="part"></param>
@@ -209,6 +243,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Scheduling
         /// <summary>
         /// 
         /// </summary>
@@ -264,15 +299,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="objectGroup"></param>
-        public void LinkToGroup(SceneObjectGroup objectGroup)
-        {
+        #endregion
 
-        }
-
+        #region SceneGroupPart Methods
         /// <summary>
         /// 
         /// </summary>
@@ -339,26 +368,37 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return false;
         }
+        #endregion
 
+        #region Packet Handlers
         /// <summary>
         /// 
         /// </summary>
-        public void TriggerTainted()
+        /// <param name="objectGroup"></param>
+        public void LinkToGroup(SceneObjectGroup objectGroup)
         {
-            if (OnPrimCountTainted != null)
-            {
-                this.OnPrimCountTainted();
-            }
+            SceneObjectPart linkPart = objectGroup.m_rootPart;
+            linkPart.OffsetPosition = linkPart.GroupPosition - this.Pos;
+            linkPart.GroupPosition = this.Pos;
+
+            Vector3 axPos = new Vector3(linkPart.OffsetPosition.X, linkPart.OffsetPosition.Y, linkPart.OffsetPosition.Z);
+            Quaternion parentRot = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
+            axPos = parentRot.Inverse() * axPos;
+            linkPart.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
+            Quaternion oldRot = new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X, linkPart.RotationOffset.Y, linkPart.RotationOffset.Z);
+            Quaternion newRot = parentRot * oldRot;
+            linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
+            linkPart.ParentID = this.m_rootPart.LocalID;
+            this.m_parts.Add(linkPart.UUID, linkPart);
+            linkPart.SetParent(this);
+            
+            //TODO: rest of parts
+
+            m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
+            m_scene.DeleteEntity(objectGroup.UUID);
+            this.ScheduleGroupForFullUpdate();
         }
-        
-         /// <summary>
-        /// Processes backup
-        /// </summary>
-        /// <param name="datastore"></param>
-        public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
-        {
-            datastore.StoreObject(this);
-        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -469,6 +509,7 @@ namespace OpenSim.Region.Environment.Scenes
                 part.UpdateTextureEntry(textureEntry);
             }
         }
+        #endregion
 
         #region Shape
         /// <summary>
@@ -485,6 +526,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        #region Resize
         /// <summary>
         /// 
         /// </summary>
@@ -498,6 +540,7 @@ namespace OpenSim.Region.Environment.Scenes
                 part.Resize(scale);
             }
         }
+        #endregion
 
         #region Position
         /// <summary>
@@ -636,8 +679,6 @@ namespace OpenSim.Region.Environment.Scenes
         private void SetPartAsRoot(SceneObjectPart part)
         {
             this.m_rootPart = part;
-            //this.m_uuid= part.UUID;
-           // this.m_localId = part.LocalID;
         }
 
         /// <summary>
@@ -658,6 +699,29 @@ namespace OpenSim.Region.Environment.Scenes
             return m_scene.RequestAvatarList();
         }
 
+        #region Events
+        /// <summary>
+        /// 
+        /// </summary>
+        public void TriggerTainted()
+        {
+            if (OnPrimCountTainted != null)
+            {
+                this.OnPrimCountTainted();
+            }
+        }
+
+        /// <summary>
+        /// Processes backup
+        /// </summary>
+        /// <param name="datastore"></param>
+        public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
+        {
+            datastore.StoreObject(this);
+        }
+        #endregion
+
+        #region Client Updating
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
             lock (this.m_parts)
@@ -700,6 +764,42 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 part.SendTerseUpdateToClient(remoteClient);
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// Added as a way for the storage provider to reset the scene, 
+        /// most likely a better way to do this sort of thing but for now...
+        /// </summary>
+        /// <param name="scene"></param>
+        public void SetScene(Scene scene)
+        {
+            m_scene = scene;
+            m_scene.EventManager.OnBackup += this.ProcessBackup;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="part"></param>
+        public void AddPart(SceneObjectPart part)
+        {
+            part.SetParent(this);
+            this.m_parts.Add(part.UUID, part);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void UpdateParentIDs()
+        {
+            foreach (SceneObjectPart part in this.m_parts.Values)
+            {
+                if (part.UUID != this.m_rootPart.UUID)
+                {
+                    part.ParentID = this.m_rootPart.LocalID;
+                }
             }
         }
     }
