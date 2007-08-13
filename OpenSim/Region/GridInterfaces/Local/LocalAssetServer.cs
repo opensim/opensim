@@ -280,19 +280,6 @@ namespace OpenSim.Region.GridInterfaces.Local
             db.Set(store);
             db.Commit();
 
-
-            /*
-            Image = new AssetBase();
-            Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000008");
-            Image.Name = "Default Avatar Face";
-            this.LoadAsset(Image, true, "femaleface.j2c");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();*/
-
             Image = new AssetBase();
             Image.FullID = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
             Image.Name = "Skin";
@@ -345,20 +332,6 @@ namespace OpenSim.Region.GridInterfaces.Local
             store.UUID = Image.FullID;
             db.Set(store);
             db.Commit();
-
-            /*Image = new AssetBase();
-            Image.FullID = new LLUUID("00000000-0000-2222-3333-000000000001");
-            Image.Name = "WelcomeNote";
-            Image.Type = 7;
-            Image.InvType = 7;
-            this.LoadAsset(Image, false, "welcomeNote.dat");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
-             */ 
 
             string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
             if(File.Exists(filePath))

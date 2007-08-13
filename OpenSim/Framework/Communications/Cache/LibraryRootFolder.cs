@@ -177,23 +177,6 @@ namespace OpenSim.Framework.Communications.Caches
             item.inventoryNextPermissions = 0;
             this.Items.Add(item.inventoryID, item);
 
-            /*
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = new LLUUID("00000000-0000-2222-4444-000000000001");
-            item.assetID = new LLUUID("00000000-0000-2222-3333-000000000001");
-            item.inventoryDescription = "Welcome";
-            item.inventoryName = "Welcome";
-            item.assetType = 7;
-            item.invType = 7;
-            item.parentFolderID = this.folderID;
-            item.inventoryCurrentPermissions = (1 << 15);
-            item.inventoryNextPermissions = (1 << 15);
-            item.inventoryEveryOnePermissions = (1 << 15);
-            item.inventoryBasePermissions = (1 << 15);
-            this.Items.Add(item.inventoryID, item);        
-             */
         }
 
         private void ReadItemsFromFile(IConfigSource source)
