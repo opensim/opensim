@@ -612,6 +612,8 @@ namespace OpenSim.Region.Environment.Scenes
             //client.OnCreateNewInventoryFolder += commsManager.UserProfiles.HandleCreateInventoryFolder;
             client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
+
+            client.OnGrabObject += ProcessObjectGrab;
         }
 
         protected ScenePresence CreateAndAddScenePresence(IClientAPI client)

@@ -1,4 +1,5 @@
 using libsecondlife;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -30,6 +31,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public delegate void OnShutdownDelegate();
         public event OnShutdownDelegate OnShutdown;
+
+        public delegate void ObjectGrabDelegate(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
+        public event ObjectGrabDelegate OnObjectGrab;
 
         public void TriggerOnScriptConsole(string[] args)
         {
@@ -86,6 +90,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (OnShutdown != null)
                 OnShutdown();
+        }
+
+        public void TriggerObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            if (OnObjectGrab != null)
+                OnObjectGrab(localID, offsetPos, remoteClient);
         }
     }
 }

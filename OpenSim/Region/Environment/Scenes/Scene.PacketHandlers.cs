@@ -740,5 +740,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
         }
+
+        public void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            this.EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);
+        }
     }
 }
