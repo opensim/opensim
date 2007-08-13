@@ -37,23 +37,25 @@ namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
+        public LocalBackEndServices InstanceServices = new LocalBackEndServices();
         public LocalUserServices UserServices;
+        public LocalLoginService LoginServices;
 
         public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate, string welcomeMessage )
             : base(serversInfo, httpServer, assetCache)
         {
-            UserServices = new LocalUserServices(this, serversInfo, accountsAuthenticate, welcomeMessage);
+            UserServices = new LocalUserServices(this, serversInfo);
             UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");
             UserServer = UserServices;
-            GridServer = SandBoxServices;
-            InterRegion = SandBoxServices;
-            httpServer.AddXmlRPCHandler("login_to_simulator", UserServices.XmlRpcLoginMethod);
+            GridServer = InstanceServices;
+            InterRegion = InstanceServices;
+            LoginServices = new LocalLoginService(UserServices, welcomeMessage, this, serversInfo, accountsAuthenticate);
+            httpServer.AddXmlRPCHandler("login_to_simulator", LoginServices.XmlRpcLoginMethod);
         }
 
         internal void InformRegionOfLogin(ulong regionHandle, Login login)
         {
-            this.SandBoxServices.AddNewSession(regionHandle, login);
+            this.InstanceServices.AddNewSession(regionHandle, login);
         }
 
         public void doCreate(string what)

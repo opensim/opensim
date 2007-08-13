@@ -47,6 +47,7 @@ namespace OpenSim.Grid.UserServer
         private UserConfig Cfg;
 
         public UserManager m_userManager;
+        public UserLoginService m_loginService;
 
         public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
@@ -92,10 +93,12 @@ namespace OpenSim.Grid.UserServer
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider);
 
+            m_loginService = new UserLoginService(m_userManager, Cfg, Cfg.DefaultStartupMsg);
+
             MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8002);
 
-            httpServer.AddXmlRPCHandler("login_to_simulator", m_userManager.XmlRpcLoginMethod);
+            httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
             httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
             httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
