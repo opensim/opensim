@@ -38,7 +38,9 @@ namespace OpenSim
         [STAThread]
         public static void Main(string[] args)
         {
+
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
+            
 
             Console.Write("Performing compatibility checks... ");
             string supported = "";
@@ -52,6 +54,10 @@ namespace OpenSim
             }
             
             Console.WriteLine("Starting...\n");
+
+            // Set current culture
+            
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo(""); // en
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);
 
