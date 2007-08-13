@@ -40,10 +40,10 @@ namespace OpenSim.Region.Communications.Local
         public LocalBackEndServices SandBoxServices = new LocalBackEndServices();
         public LocalUserServices UserServices;
 
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate )
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate, string welcomeMessage )
             : base(serversInfo, httpServer, assetCache)
         {
-            UserServices = new LocalUserServices(this, serversInfo, accountsAuthenticate);
+            UserServices = new LocalUserServices(this, serversInfo, accountsAuthenticate, welcomeMessage);
             UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");
             UserServer = UserServices;
             GridServer = SandBoxServices;

@@ -16,14 +16,19 @@ namespace OpenSim.Region.Communications.Local
         private uint defaultHomeX ;
         private uint defaultHomeY;
         private bool authUsers = false;
+        private string welcomeMessage = "Welcome to OpenSim";
 
-        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo, bool authenticate)
+        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo, bool authenticate, string welcomeMess)
         {
             m_Parent = parent;
             this.serversInfo = serversInfo;
             defaultHomeX = this.serversInfo.DefaultHomeLocX;
             defaultHomeY = this.serversInfo.DefaultHomeLocY;
             this.authUsers = authenticate;
+            if (welcomeMess != "")
+            {
+                this.welcomeMessage = welcomeMess;
+            }
         }
 
         public UserProfileData GetUserProfile(string firstName, string lastName)
@@ -47,7 +52,7 @@ namespace OpenSim.Region.Communications.Local
         /// <returns></returns>
         public override string GetMessage()
         {
-            return "Welcome to OpenSim";
+            return welcomeMessage;
         }
 
         public override UserProfileData GetTheUser(string firstname, string lastname)
@@ -59,13 +64,17 @@ namespace OpenSim.Region.Communications.Local
                 return profile;
             }
 
-            //no current user account so make one
-            Console.WriteLine("No User account found so creating a new one ");
-            this.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
-            
-            profile = getUserProfile(firstname, lastname);
+            if (!authUsers)
+            {
+                //no current user account so make one
+                Console.WriteLine("No User account found so creating a new one ");
+                this.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
 
-            return profile;
+                profile = getUserProfile(firstname, lastname);
+
+                return profile;
+            }
+            return null;
         }
 
         public override bool AuthenticateUser(UserProfileData profile, string password)

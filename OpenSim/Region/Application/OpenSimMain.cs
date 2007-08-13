@@ -72,6 +72,8 @@ namespace OpenSim
         private string m_logFilename = ("region-console.log");
 
         private bool standaloneAuthenticate = false;
+        private string welcomeMessage = null;
+
         public ConsoleCommand CreateAccount = null;
 
         public OpenSimMain(IConfigSource configSource)
@@ -104,6 +106,7 @@ namespace OpenSim
             m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
             standaloneAuthenticate = configSource.Configs["Startup"].GetBoolean("standalone_authenticate", false);
+            welcomeMessage = configSource.Configs["Startup"].GetString("standalone_welcome", "Welcome to OpenSim");
         }
 
         /// <summary>
@@ -123,7 +126,7 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, standaloneAuthenticate);
+                CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, standaloneAuthenticate, welcomeMessage);
                 m_commsManager = localComms;
                 if(standaloneAuthenticate)
                 {
