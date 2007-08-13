@@ -82,7 +82,7 @@ namespace OpenSim.Region.Environment.Scenes
                         part.GroupPosition = value;
                     }
                 }
-            } 
+            }
         }
 
         public override uint LocalId
@@ -112,7 +112,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected bool m_isSelected = false;
         public bool IsSelected
         {
-            get{ return m_isSelected;}
+            get { return m_isSelected; }
             set { m_isSelected = value; }
         }
 
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_scene = scene;
             m_regionHandle = regionHandle;
-           
+
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
             reader.ReadStartElement("SceneObjectGroup");
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_scene = scene;
 
-           // this.Pos = pos;
+            // this.Pos = pos;
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
             SceneObjectPart newPart = new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
@@ -188,11 +188,11 @@ namespace OpenSim.Region.Environment.Scenes
             writer.WriteEndElement();
             writer.WriteEndElement();
             writer.Close();
-           // System.Console.WriteLine("prim: " + sw.ToString());
+            // System.Console.WriteLine("prim: " + sw.ToString());
             return sw.ToString();
-          //  st.Close();
-        //   return "";
-            
+            //  st.Close();
+            //   return "";
+
         }
 
         #region Copying
@@ -391,7 +391,7 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.ParentID = this.m_rootPart.LocalID;
             this.m_parts.Add(linkPart.UUID, linkPart);
             linkPart.SetParent(this);
-            
+
             //TODO: rest of parts
 
             m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
@@ -450,11 +450,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name"></param>
         public void SetPartName(string name, uint localID)
         {
-             SceneObjectPart part = this.GetChildPrim(localID);
-             if (part != null)
-             {
-                 part.PartName = name;
-             }
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.PartName = name;
+            }
         }
 
         public void SetPartDescription(string des, uint localID)
@@ -463,6 +463,24 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.Description = des;
+            }
+        }
+
+        public void SetPartText(string text, uint localID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.Text = text;
+            }
+        }
+
+        public void SetPartText(string text, LLUUID partID)
+        {
+            SceneObjectPart part = this.GetChildPrim(partID);
+            if (part != null)
+            {
+                part.Text = text;
             }
         }
 
@@ -740,13 +758,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part)
         {
-            if( m_rootPart == part )
+            if (m_rootPart == part)
             {
-                part.SendFullUpdateToClient( remoteClient, Pos );
+                part.SendFullUpdateToClient(remoteClient, Pos);
             }
             else
             {
-                part.SendFullUpdateToClient( remoteClient );
+                part.SendFullUpdateToClient(remoteClient);
             }
         }
 
