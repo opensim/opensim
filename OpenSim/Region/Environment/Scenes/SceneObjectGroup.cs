@@ -203,20 +203,24 @@ namespace OpenSim.Region.Environment.Scenes
         public new SceneObjectGroup Copy()
         {
             SceneObjectGroup dupe = (SceneObjectGroup)this.MemberwiseClone();
+            dupe.m_parts.Clear();
             dupe.Pos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = this.m_regionHandle;
 
             dupe.CopyRootPart(this.m_rootPart);
-            m_scene.EventManager.OnBackup += dupe.ProcessBackup;
-
-            foreach (SceneObjectPart part in this.m_parts.Values)
+          
+            List<SceneObjectPart> partList = new List<SceneObjectPart>(this.m_parts.Values);
+            foreach (SceneObjectPart part in partList)
             {
-                if (part.UUID != this.m_rootPart.UUID)
+                if (part.UUID != this.m_rootPart.UUID) 
                 {
                     dupe.CopyPart(part);
                 }
             }
+            dupe.UpdateParentIDs();
+
+            m_scene.EventManager.OnBackup += dupe.ProcessBackup;
             return dupe;
         }
 
@@ -227,6 +231,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CopyRootPart(SceneObjectPart part)
         {
             SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate());
+            newPart.SetParent(this);
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
         }
@@ -580,7 +585,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                if (part.UUID == this.m_rootPart.UUID)
+                if (part.UUID== this.m_rootPart.UUID)
                 {
                     this.UpdateRootPosition(pos);
                 }
