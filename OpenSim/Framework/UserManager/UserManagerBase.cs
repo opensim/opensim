@@ -418,6 +418,31 @@ namespace OpenSim.Framework.UserManagement
             return inventoryLibOwner;
         }
 
+        protected virtual AgentInventory GetUsersInventory(LLUUID agentID)
+        {
+            AgentInventory userInventory = new AgentInventory();
+            userInventory.CreateRootFolder(agentID, false);
+
+            return userInventory;
+        }
+
+        protected virtual ArrayList CreateInventoryArray(AgentInventory userInventory)
+        {
+            ArrayList AgentInventoryArray = new ArrayList();
+            Hashtable TempHash;
+            foreach (InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
+            {
+                TempHash = new Hashtable();
+                TempHash["name"] = InvFolder.FolderName;
+                TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
+                TempHash["version"] = (Int32)InvFolder.Version;
+                TempHash["type_default"] = (Int32)InvFolder.DefaultType;
+                TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
+                AgentInventoryArray.Add(TempHash);
+            }
+            return AgentInventoryArray;
+        }
+
         /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
@@ -481,39 +506,24 @@ namespace OpenSim.Framework.UserManagement
 
                 try
                 {
-
-                    LLUUID AgentID = userProfile.UUID;
+                    LLUUID agentID = userProfile.UUID;
 
                     // Inventory Library Section
-                    ArrayList AgentInventoryArray = new ArrayList();
-                    Hashtable TempHash;
-
-                    AgentInventory Library = new AgentInventory();
-                    Library.CreateRootFolder(AgentID, false);
-
-                    foreach (InventoryFolder InvFolder in Library.InventoryFolders.Values)
-                    {
-                        TempHash = new Hashtable();
-                        TempHash["name"] = InvFolder.FolderName;
-                        TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
-                        TempHash["version"] = (Int32)InvFolder.Version;
-                        TempHash["type_default"] = (Int32)InvFolder.DefaultType;
-                        TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
-                        AgentInventoryArray.Add(TempHash);
-                    }
+                    AgentInventory userInventory = this.GetUsersInventory(agentID);
+                    ArrayList AgentInventoryArray = this.CreateInventoryArray(userInventory);
 
                     Hashtable InventoryRootHash = new Hashtable();
-                    InventoryRootHash["folder_id"] = Library.InventoryRoot.FolderID.ToStringHyphenated();
+                    InventoryRootHash["folder_id"] = userInventory.InventoryRoot.FolderID.ToStringHyphenated();
                     ArrayList InventoryRoot = new ArrayList();
                     InventoryRoot.Add(InventoryRootHash);
-                    userProfile.rootInventoryFolderID = Library.InventoryRoot.FolderID;
+                    userProfile.rootInventoryFolderID = userInventory.InventoryRoot.FolderID;
 
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());
 
                     logResponse.Lastname = userProfile.surname;
                     logResponse.Firstname = userProfile.username;
-                    logResponse.AgentID = AgentID.ToStringHyphenated();
+                    logResponse.AgentID = agentID.ToStringHyphenated();
                     logResponse.SessionID = userProfile.currentAgent.sessionID.ToStringHyphenated();
                     logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
                     logResponse.InventoryRoot = InventoryRoot;
