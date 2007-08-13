@@ -30,7 +30,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public float llAtan2(float x, float y) { return 0; }
         public float llSqrt(float f) { return 0; }
         public float llPow(float fbase, float fexponent) { return 0; }
-        public UInt32 llAbs(UInt32 i) { return 0; }
+        public UInt32 llAbs(Int32 i) { return 0; }
         public float llFabs(float f) { return 0; }
         public float llFrand(float mag) { return 0; }
         public UInt32 llFloor(float f) { return 0; }
@@ -95,131 +95,131 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llSetPos(Axiom.Math.Vector3 pos) { return; }
 
 
-        public void llGetPos() { }
-        public void llGetLocalPos() { }
-        public void llSetRot() { }
-        public void llGetRot() { }
-        public void llGetLocalRot() { }
-        public void llSetForce() { }
-        public void llGetForce() { }
-        public void llTarget() { }
-        public void llTargetRemove() { }
-        public void llRotTarget() { }
-        public void llRotTargetRemove() { }
-        public void llMoveToTarget() { }
+        public Axiom.Math.Vector3 llGetPos() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGetLocalPos() { return new Axiom.Math.Vector3(); }
+        public void llSetRot(Axiom.Math.Quaternion rot) { }
+        public Axiom.Math.Quaternion llGetRot() { return new Axiom.Math.Quaternion(); }
+        public Axiom.Math.Quaternion llGetLocalRot() { return new Axiom.Math.Quaternion(); }
+        public void llSetForce(Axiom.Math.Vector3 force, Int32 local) { }
+        public Axiom.Math.Vector3 llGetForce() { return new Axiom.Math.Vector3(); }
+        public Int32 llTarget(Axiom.Math.Vector3 position, float range) { return 0; }
+        public void llTargetRemove(Int32 number) { }
+        public Int32 llRotTarget(Axiom.Math.Quaternion rot, float error) { return 0; }
+        public void llRotTargetRemove(Int32 number) { }
+        public void llMoveToTarget(Axiom.Math.Vector3 target, float tau) { }
         public void llStopMoveToTarget() { }
-        public void llApplyImpulse() { }
-        public void llApplyRotationalImpulse() { }
-        public void llSetTorque() { }
-        public void llGetTorque() { }
-        public void llSetForceAndTorque() { }
-        public void llGetVel() { }
-        public void llGetAccel() { }
-        public void llGetOmega() { }
-        public void llGetTimeOfDay() { }
-        public void llGetWallclock() { }
-        public void llGetTime() { }
+        public void llApplyImpulse(Axiom.Math.Vector3 force, Int32 local) { }
+        public void llApplyRotationalImpulse(Axiom.Math.Vector3 force, Int32 local) { }
+        public void llSetTorque(Axiom.Math.Vector3 torque, Int32 local) { }
+        public Axiom.Math.Vector3 llGetTorque() { return new Axiom.Math.Vector3(); }
+        public void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, Int32 local) { }
+        public Axiom.Math.Vector3 llGetVel() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGetAccel() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGetOmega() { return new Axiom.Math.Vector3(); }
+        public float llGetTimeOfDay() { return 0; }
+        public float llGetWallclock() { return 0; }
+        public float llGetTime() { return 0; }
         public void llResetTime() { }
-        public void llGetAndResetTime() { }
+        public float llGetAndResetTime() { return 0; }
         public void llSound() { }
-        public void llPlaySound() { }
-        public void llLoopSound() { }
-        public void llLoopSoundMaster() { }
-        public void llLoopSoundSlave() { }
-        public void llPlaySoundSlave() { }
-        public void llTriggerSound() { }
+        public void llPlaySound(string sound, float volume) { }
+        public void llLoopSound(string sound, float volume) { }
+        public void llLoopSoundMaster(string sound, float volume) { }
+        public void llLoopSoundSlave(string sound, float volume) { }
+        public void llPlaySoundSlave(string sound, float volume) { }
+        public void llTriggerSound(string sound, float volume) { }
         public void llStopSound() { }
-        public void llPreloadSound() { }
-        public void llGetSubString() { }
-        public void llDeleteSubString() { }
-        public void llInsertString() { }
-        public void llToUpper() { }
-        public void llToLower() { }
-        public void llGiveMoney() { }
+        public void llPreloadSound(string sound) { }
+        public void llGetSubString(string src, Int32 start, Int32 end) { }
+        public string llDeleteSubString(string src, Int32 start, Int32 end) { return ""; }
+        public void llInsertString(string dst, Int32 position, string src) { }
+        public string llToUpper(string source) { return ""; }
+        public string llToLower(string source) { return ""; }
+        public Int32 llGiveMoney(string destination, Int32 amount) { return 0; }
         public void llMakeExplosion() { }
         public void llMakeFountain() { }
         public void llMakeSmoke() { }
         public void llMakeFire() { }
-        public void llRezObject() { }
-        public void llLookAt() { }
+        public void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, Int32 param) { }
+        public void llLookAt(Axiom.Math.Vector3 target, float strength, float damping) { }
         public void llStopLookAt() { }
-        public void llSetTimerEvent() { }
-        public void llSleep() { }
-        public void llGetMass() { }
-        public void llCollisionFilter() { }
-        public void llTakeControls() { }
+        public void llSetTimerEvent(float sec) { }
+        public void llSleep(float sec) { }
+        public float llGetMass() { return 0; }
+        public void llCollisionFilter(string name, string id, Int32 accept) { }
+        public void llTakeControls(Int32 controls, Int32 accept, Int32 pass_on) { }
         public void llReleaseControls() { }
-        public void llAttachToAvatar() { }
+        public void llAttachToAvatar(Int32 attachment) { }
         public void llDetachFromAvatar() { }
         public void llTakeCamera() { }
         public void llReleaseCamera() { }
-        public void llGetOwner() { }
-        public void llInstantMessage() { }
-        public void llEmail() { }
-        public void llGetNextEmail() { }
-        public void llGetKey() { }
-        public void llSetBuoyancy() { }
-        public void llSetHoverHeight() { }
+        public string llGetOwner() { return ""; }
+        public void llInstantMessage(string user, string message) { }
+        public void llEmail(string address, string subject, string message) { }
+        public void llGetNextEmail(string address, string subject) { }
+        public string llGetKey() { return ""; }
+        public void llSetBuoyancy(float buoyancy) { }
+        public void llSetHoverHeight(float height, Int32 water, float tau) { }
         public void llStopHover() { }
-        public void llMinEventDelay() { }
+        public void llMinEventDelay(float delay) { }
         public void llSoundPreload() { }
-        public void llRotLookAt() { }
-        public void llStringLength() { }
-        public void llStartAnimation() { }
-        public void llStopAnimation() { }
+        public void llRotLookAt(Axiom.Math.Quaternion target, float strength, float damping) { }
+        public Int32 llStringLength(string str) { return 0; }
+        public void llStartAnimation(string anim) { }
+        public void llStopAnimation(string anim) { }
         public void llPointAt() { }
         public void llStopPointAt() { }
-        public void llTargetOmega() { }
-        public void llGetStartParameter() { }
-        public void llGodLikeRezObject() { }
-        public void llRequestPermissions() { }
-        public void llGetPermissionsKey() { }
-        public void llGetPermissions() { }
-        public void llGetLinkNumber() { }
-        public void llSetLinkColor() { }
-        public void llCreateLink() { }
-        public void llBreakLink() { }
+        public void llTargetOmega(Axiom.Math.Vector3 axis, float spinrate, float gain) { }
+        public Int32 llGetStartParameter() { return 0; }
+        public void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos) { }
+        public void llRequestPermissions(string agent, Int32 perm) { }
+        public string llGetPermissionsKey() { return ""; }
+        public Int32 llGetPermissions() { return 0; }
+        public Int32 llGetLinkNumber() { return 0; }
+        public void llSetLinkColor(Int32 linknumber, Axiom.Math.Vector3 color, Int32 face) { }
+        public void llCreateLink(string target, Int32 parent) { }
+        public void llBreakLink(Int32 linknum) { }
         public void llBreakAllLinks() { }
-        public void llGetLinkKey() { }
-        public void llGetLinkName() { }
-        public void llGetInventoryNumber() { }
-        public void llGetInventoryName() { }
-        public void llSetScriptState() { }
-        public void llGetEnergy() { }
-        public void llGiveInventory() { }
-        public void llRemoveInventory() { }
-        public void llSetText() { }
-        public void llWater() { }
-        public void llPassTouches() { }
-        public void llRequestAgentData() { }
-        public void llRequestInventoryData() { }
-        public void llSetDamage() { }
-        public void llTeleportAgentHome() { }
-        public void llModifyLand() { }
-        public void llCollisionSound() { }
-        public void llCollisionSprite() { }
-        public void llGetAnimation() { }
+        public string llGetLinkKey(Int32 linknum) { return ""; }
+        public void llGetLinkName(Int32 linknum) { }
+        public Int32 llGetInventoryNumber(Int32 type) { return 0; }
+        public string llGetInventoryName(Int32 type, Int32 number) { return ""; }
+        public void llSetScriptState(string name, Int32 run) { }
+        public float llGetEnergy() { return 0; }
+        public void llGiveInventory(string destination, string inventory) { }
+        public void llRemoveInventory(string item) { }
+        public void llSetText(string text, Axiom.Math.Vector3 color, float alpha) { }
+        public float llWater(Axiom.Math.Vector3 offset) { return 0; }
+        public void llPassTouches(Int32 pass) { }
+        public string llRequestAgentData(string id, Int32 data) { return ""; }
+        public string llRequestInventoryData(string name) { return ""; }
+        public void llSetDamage(float damage) { }
+        public void llTeleportAgentHome(string agent) { }
+        public void llModifyLand(Int32 action, Int32 brush) { }
+        public void llCollisionSound(string impact_sound, float impact_volume) { }
+        public void llCollisionSprite(string impact_sprite) { }
+        public string llGetAnimation(string id) { return ""; }
         public void llResetScript() { }
-        public void llMessageLinked() { }
-        public void llPushObject() { }
-        public void llPassCollisions() { }
-        public void llGetScriptName() { }
-        public void llGetNumberOfSides() { }
-        public void llAxisAngle2Rot() { }
-        public void llRot2Axis() { }
+        public void llMessageLinked(Int32 linknum, Int32 num, string str, string id) { }
+        public void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, Int32 local) { }
+        public void llPassCollisions(Int32 pass) { }
+        public string llGetScriptName() { return ""; }
+        public Int32 llGetNumberOfSides() { return 0; }
+        public Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, float angle) { return new Axiom.Math.Quaternion(); }
+        public Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot) { return new Axiom.Math.Vector3(); }
         public void llRot2Angle() { }
-        public void llAcos() { }
-        public void llAsin() { }
-        public void llAngleBetween() { }
-        public void llGetInventoryKey() { }
-        public void llAllowInventoryDrop() { }
-        public void llGetSunDirection() { }
-        public void llGetTextureOffset() { }
-        public void llGetTextureScale() { }
-        public void llGetTextureRot() { }
-        public void llSubStringIndex() { }
-        public void llGetOwnerKey() { }
-        public void llGetCenterOfMass() { }
+        public float llAcos(float val) { return 0; }
+        public float llAsin(float val) { return 0; }
+        public float llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b) { return 0; }
+        public string llGetInventoryKey(string name) { return ""; }
+        public void llAllowInventoryDrop(Int32 add) { }
+        public Axiom.Math.Vector3 llGetSunDirection() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGetTextureOffset(Int32 face) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGetTextureScale(Int32 side) { return new Axiom.Math.Vector3(); }
+        public float llGetTextureRot(Int32 side) { return 0; }
+        public Int32 llSubStringIndex(string source, string pattern) { return 0; }
+        public string llGetOwnerKey(string id) { return ""; }
+        public Axiom.Math.Vector3 llGetCenterOfMass() { return new Axiom.Math.Vector3(); }
         public void llListSort() { }
         public void llGetListLength() { }
         public void llList2Integer() { }
@@ -238,22 +238,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llGetRegionCorner() { }
         public void llListInsertList() { }
         public void llListFindList() { }
-        public void llGetObjectName() { }
-        public void llSetObjectName() { }
-        public void llGetDate() { }
-        public void llEdgeOfWorld() { }
-        public void llGetAgentInfo() { }
-        public void llAdjustSoundVolume() { }
-        public void llSetSoundQueueing() { }
-        public void llSetSoundRadius() { }
-        public void llKey2Name() { }
-        public void llSetTextureAnim() { }
-        public void llTriggerSoundLimited() { }
-        public void llEjectFromLand() { }
+        public string llGetObjectName() { return ""; }
+        public void llSetObjectName(string name) { }
+        public string llGetDate() { return ""; }
+        public Int32 llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir) { return 0; }
+        public Int32 llGetAgentInfo(string id) { return 0; }
+        public void llAdjustSoundVolume(float volume) { }
+        public void llSetSoundQueueing(Int32 queue) { }
+        public void llSetSoundRadius(float radius) { }
+        public string llKey2Name(string id) { return ""; }
+        public void llSetTextureAnim(Int32 mode, Int32 face, Int32 sizex, Int32 sizey, float start, float length, float rate) { }
+        public void llTriggerSoundLimited(string sound, float volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west) { }
+        public void llEjectFromLand(string pest) { }
         public void llParseString2List() { }
-        public void llOverMyLand() { }
-        public void llGetLandOwnerAt() { }
-        public void llGetNotecardLine() { }
+        public Int32 llOverMyLand(string id) { return 0; }
+        public string llGetLandOwnerAt(Axiom.Math.Vector3 pos) { return ""; }
+        public string llGetNotecardLine(string name, Int32 line) { return ""; }
         public void llGetAgentSize() { }
         public void llSameGroup() { }
         public void llUnSit() { }

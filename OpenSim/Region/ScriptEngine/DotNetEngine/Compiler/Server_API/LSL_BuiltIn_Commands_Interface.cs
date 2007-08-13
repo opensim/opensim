@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         float llAtan2(float x, float y);
         float llSqrt(float f);
         float llPow(float fbase, float fexponent);
-        UInt32 llAbs(UInt32 i);
+        UInt32 llAbs(Int32 i);
         float llFabs(float f);
         float llFrand(float mag);
         UInt32 llFloor(float f);
@@ -95,131 +95,256 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         string llGetTexture(UInt32 face);
         void llSetPos(Axiom.Math.Vector3 pos);
 
-        void llGetPos();
-        void llGetLocalPos();
-        void llSetRot();
-        void llGetRot();
-        void llGetLocalRot();
-        void llSetForce();
-        void llGetForce();
-        void llTarget();
-        void llTargetRemove();
-        void llRotTarget();
-        void llRotTargetRemove();
-        void llMoveToTarget();
+        //wiki: vector llGetPos()
+        Axiom.Math.Vector3 llGetPos();
+        //wiki: vector llGetLocalPos()
+        Axiom.Math.Vector3 llGetLocalPos();
+        //wiki: llSetRot(rotation rot)
+        void llSetRot(Axiom.Math.Quaternion rot);
+        //wiki: rotation llGetRot()
+        Axiom.Math.Quaternion llGetRot();
+        //wiki: rotation llGetLocalRot()
+        Axiom.Math.Quaternion llGetLocalRot();
+        //wiki: llSetForce(vector force, integer local)
+        void llSetForce(Axiom.Math.Vector3 force, Int32 local);
+        //wiki: vector llGetForce()
+        Axiom.Math.Vector3 llGetForce();
+        //wiki: integer llTarget(vector position, float range)
+        Int32 llTarget(Axiom.Math.Vector3 position, float range);
+        //wiki: llTargetRemove(integer number)
+        void llTargetRemove(Int32 number);
+        //wiki: integer llRotTarget(rotation rot, float error)
+        Int32 llRotTarget(Axiom.Math.Quaternion rot, float error);
+        //wiki: integer llRotTargetRemove(integer number)
+        void llRotTargetRemove(Int32 number);
+        //wiki: llMoveToTarget(vector target, float tau)
+        void llMoveToTarget(Axiom.Math.Vector3 target, float tau);
+        //wiki: llStopMoveToTarget()
         void llStopMoveToTarget();
-        void llApplyImpulse();
-        void llApplyRotationalImpulse();
-        void llSetTorque();
-        void llGetTorque();
-        void llSetForceAndTorque();
-        void llGetVel();
-        void llGetAccel();
-        void llGetOmega();
-        void llGetTimeOfDay();
-        void llGetWallclock();
-        void llGetTime();
+        //wiki: llApplyImpulse(vector force, integer local)
+        void llApplyImpulse(Axiom.Math.Vector3 force, Int32 local);
+        //wiki: llapplyRotationalImpulse(vector force, integer local)
+        void llApplyRotationalImpulse(Axiom.Math.Vector3 force, Int32 local);
+        //wiki: llSetTorque(vector torque, integer local)
+        void llSetTorque(Axiom.Math.Vector3 torque, Int32 local);
+        //wiki: vector llGetTorque()
+        Axiom.Math.Vector3 llGetTorque();
+        //wiki: llSeForceAndTorque(vector force, vector torque, integer local)
+        void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, Int32 local);
+        //wiki: vector llGetVel()
+        Axiom.Math.Vector3 llGetVel();
+        //wiki: vector llGetAccel()
+        Axiom.Math.Vector3 llGetAccel();
+        //wiki: vector llGetOmega()
+        Axiom.Math.Vector3 llGetOmega();
+        //wiki: float llGetTimeOfDay()
+        float llGetTimeOfDay();
+        //wiki: float llGetWallclock()
+        float llGetWallclock();
+        //wiki: float llGetTime()
+        float llGetTime();
+        //wiki: llResetTime()
         void llResetTime();
-        void llGetAndResetTime();
+        //wiki: float llGetAndResetTime()
+        float llGetAndResetTime();
+        //wiki (deprecated) llSound(string sound, float volume, integer queue, integer loop)
         void llSound();
-        void llPlaySound();
-        void llLoopSound();
-        void llLoopSoundMaster();
-        void llLoopSoundSlave();
-        void llPlaySoundSlave();
-        void llTriggerSound();
+        //wiki: llPlaySound(string sound, float volume)
+        void llPlaySound(string sound, float volume);
+        //wiki: llLoopSound(string sound, float volume)
+        void llLoopSound(string sound, float volume);
+        //wiki: llLoopSoundMaster(string sound, float volume)
+        void llLoopSoundMaster(string sound, float volume);
+        //wiki: llLoopSoundSlave(string sound, float volume)
+        void llLoopSoundSlave(string sound, float volume);
+        //wiki llPlaySoundSlave(string sound, float volume)
+        void llPlaySoundSlave(string sound, float volume);
+        //wiki: llTriggerSound(string sound, float volume)
+        void llTriggerSound(string sound, float volume);
+        //wiki: llStopSound()
         void llStopSound();
-        void llPreloadSound();
-        void llGetSubString();
-        void llDeleteSubString();
-        void llInsertString();
-        void llToUpper();
-        void llToLower();
-        void llGiveMoney();
+        //wiki: llPreloadSound(string sound)
+        void llPreloadSound(string sound);
+        //wiki: string llGetSubString(string src, integer start, integer end)
+        void llGetSubString(string src, Int32 start, Int32 end);
+        //wiki: string llDeleteSubString(string src, integer start, integer end)
+        string llDeleteSubString(string src, Int32 start, Int32 end);
+        //wiki string llInsertString(string dst, integer position, string src)
+        void llInsertString(string dst, Int32 position, string src);
+        //wiki: string llToUpper(string source)
+        string llToUpper(string source);
+        //wiki: string llToLower(string source)
+        string llToLower(string source);
+        //wiki: integer llGiveMoney(key destination, integer amount)
+        Int32 llGiveMoney(string destination, Int32 amount);
+        //wiki: (deprecated)
         void llMakeExplosion();
+        //wiki: (deprecated)
         void llMakeFountain();
+        //wiki: (deprecated)
         void llMakeSmoke();
+        //wiki: (deprecated)
         void llMakeFire();
-        void llRezObject();
-        void llLookAt();
+        //wiki: llRezObject(string inventory, vector pos, vector rel, rotation rot, integer param)
+        void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, Int32 param);
+        //wiki: llLookAt(vector target, float strength, float damping)
+        void llLookAt(Axiom.Math.Vector3 target, float strength, float damping);
+        //wiki: llStopLookAt()
         void llStopLookAt();
-        void llSetTimerEvent();
-        void llSleep();
-        void llGetMass();
-        void llCollisionFilter();
-        void llTakeControls();
+        //wiki: llSetTimerEvent(float sec)
+        void llSetTimerEvent(float sec);
+        //wiki: llSleep(float sec)
+        void llSleep(float sec);
+        //wiki: float llGetMass()
+        float llGetMass();
+        //wiki: llCollisionFilter(string name, key id, integer accept)
+        void llCollisionFilter(string name, string id, Int32 accept);
+        //wiki: llTakeControls(integer controls, integer accept, integer pass_on)
+        void llTakeControls(Int32 controls, Int32 accept, Int32 pass_on);
+        //wiki: llReleaseControls()
         void llReleaseControls();
-        void llAttachToAvatar();
+        //wiki: llAttachToAvatar(integer attachment)
+        void llAttachToAvatar(Int32 attachment);
+        //wiki: llDetachFromAvatar()
         void llDetachFromAvatar();
+        //wiki: (deprecated) llTakeCamera()
         void llTakeCamera();
+        //wiki: (deprecated) llReleaseCamera()
         void llReleaseCamera();
-        void llGetOwner();
-        void llInstantMessage();
-        void llEmail();
-        void llGetNextEmail();
-        void llGetKey();
-        void llSetBuoyancy();
-        void llSetHoverHeight();
+        //wiki: key llGetOwner()
+        string llGetOwner();
+        //wiki: llInstantMessage(key user, string message)
+        void llInstantMessage(string user, string message);
+        //wiki: llEmail(string address, string subject, string message)
+        void llEmail(string address, string subject, string message);
+        //wiki: llGetNextEmail(string address, string subject)
+        void llGetNextEmail(string address, string subject);
+        //wiki:    key llGetKey()
+        string llGetKey();
+        //wiki: llSetBuoyancy(float buoyancy)
+        void llSetBuoyancy(float buoyancy);
+        //wiki: llSetHoverHeight(float height, integer water, float tau)
+        void llSetHoverHeight(float height, Int32 water, float tau);
+        //wiki: llStopHover
         void llStopHover();
-        void llMinEventDelay();
+        //wiki: llMinEventDelay(float delay)
+        void llMinEventDelay(float delay);
+        //wiki: (deprecated) llSoundPreload()
         void llSoundPreload();
-        void llRotLookAt();
-        void llStringLength();
-        void llStartAnimation();
-        void llStopAnimation();
+        //wiki: llRotLookAt(rotation target, float strength, float damping)
+        void llRotLookAt(Axiom.Math.Quaternion target, float strength, float damping);
+        //wiki: integer llStringLength(string str)
+        Int32 llStringLength(string str);
+        //wiki: llStartAnimation(string anim)
+        void llStartAnimation(string anim);
+        //wiki: llStopAnimation(string anim)
+        void llStopAnimation(string anim);
+        //wiki: (deprecated) llPointAt
         void llPointAt();
+        //wiki: (deprecated) llStopPointAt
         void llStopPointAt();
-        void llTargetOmega();
-        void llGetStartParameter();
-        void llGodLikeRezObject();
-        void llRequestPermissions();
-        void llGetPermissionsKey();
-        void llGetPermissions();
-        void llGetLinkNumber();
-        void llSetLinkColor();
-        void llCreateLink();
-        void llBreakLink();
+        //wiki: llTargetOmega(vector axis, float spinrate, float gain)
+        void llTargetOmega(Axiom.Math.Vector3 axis, float spinrate, float gain);
+        //wiki: integer llGetStartParameter()
+        Int32 llGetStartParameter();
+        //wiki: llGodLikeRezObject(key inventory, vector pos)
+        void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos);
+        //wiki: llRequestPermissions(key agent, integer perm)
+        void llRequestPermissions(string agent, Int32 perm);
+        //wiki: key llGetPermissionsKey()
+        string llGetPermissionsKey();
+        //wiki: integer llGetPermissions()
+        Int32 llGetPermissions();
+        //wiki integer llGetLinkNumber()
+        Int32 llGetLinkNumber();
+        //wiki: llSetLinkColor(integer linknumber, vector color, integer face)
+        void llSetLinkColor(Int32 linknumber, Axiom.Math.Vector3 color, Int32 face);
+        //wiki: llCreateLink(key target, integer parent)
+        void llCreateLink(string target, Int32 parent);
+        //wiki: llBreakLink(integer linknum)
+        void llBreakLink(Int32 linknum);
+        //wiki: llBreakAllLinks()
         void llBreakAllLinks();
-        void llGetLinkKey();
-        void llGetLinkName();
-        void llGetInventoryNumber();
-        void llGetInventoryName();
-        void llSetScriptState();
-        void llGetEnergy();
-        void llGiveInventory();
-        void llRemoveInventory();
-        void llSetText();
-        void llWater();
-        void llPassTouches();
-        void llRequestAgentData();
-        void llRequestInventoryData();
-        void llSetDamage();
-        void llTeleportAgentHome();
-        void llModifyLand();
-        void llCollisionSound();
-        void llCollisionSprite();
-        void llGetAnimation();
+        //wiki: key llGetLinkKey(integer linknum)
+        string llGetLinkKey(Int32 linknum);
+        //wiki: llGetLinkName(integer linknum)
+        void llGetLinkName(Int32 linknum);
+        //wiki: integer llGetInventoryNumber(integer type)
+        Int32 llGetInventoryNumber(Int32 type);
+        //wiki: string llGetInventoryName(integer type, integer number)
+        string llGetInventoryName(Int32 type, Int32 number);
+        //wiki: llSetScriptState(string name, integer run)
+        void llSetScriptState(string name, Int32 run);
+        //wiki: float llGetEnergy()
+        float llGetEnergy();
+        //wiki: llGiveInventory(key destination, string inventory)
+        void llGiveInventory(string destination, string inventory);
+        //wiki: llRemoveInventory(string item)
+        void llRemoveInventory(string item);
+        //wiki: llSetText(string text, vector color, float alpha)
+        void llSetText(string text, Axiom.Math.Vector3 color, float alpha);
+        //wiki: float llWater(vector offset)
+        float llWater(Axiom.Math.Vector3 offset);
+        //wiki: llPassTouches(integer pass)
+        void llPassTouches(Int32 pass);
+        //wiki: key llRequestAgentData(key id, integer data)
+        string llRequestAgentData(string id, Int32 data);
+        //wiki: key llRequestInventoryData(string name)
+        string llRequestInventoryData(string name);
+        //wiki: llSetDamage(float damage)
+        void llSetDamage(float damage);
+        //wiki: llTeleportAgentHome(key agent)
+        void llTeleportAgentHome(string agent);
+        //wiki: llModifyLand(integer action, integer brush)
+        void llModifyLand(Int32 action, Int32 brush);
+        //wiki: llCollisionSound(string impact_sound, float impact_volume)
+        void llCollisionSound(string impact_sound, float impact_volume);
+        //wiki: llCollisionSprite(string impact_sprite)
+        void llCollisionSprite(string impact_sprite);
+        //wiki: string llGetAnimation(key id)
+        string llGetAnimation(string id);
+        //wiki: llResetScript()
         void llResetScript();
-        void llMessageLinked();
-        void llPushObject();
-        void llPassCollisions();
-        void llGetScriptName();
-        void llGetNumberOfSides();
-        void llAxisAngle2Rot();
-        void llRot2Axis();
+        //wiki: llMessageLinked(integer linknum, integer num, string str, key id)
+        void llMessageLinked(Int32 linknum, Int32 num, string str, string id);
+        //wiki: llPushObject(key target, vector impulse, vector ang_impulse, integer local)
+        void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, Int32 local);
+        //wiki: llPassCollisions(integer pass)
+        void llPassCollisions(Int32 pass);
+        //wiki: string llGetScriptName()
+        string llGetScriptName();
+        //wiki: integer llGetNumberOfSides()
+        Int32 llGetNumberOfSides();
+        //wiki: rotation llAxisAngle2Rot(vector axis, float angle)
+        Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, float angle);
+        //wiki: vector llRot2Axis(rotation rot)
+        Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot);
         void llRot2Angle();
-        void llAcos();
-        void llAsin();
-        void llAngleBetween();
-        void llGetInventoryKey();
-        void llAllowInventoryDrop();
-        void llGetSunDirection();
-        void llGetTextureOffset();
-        void llGetTextureScale();
-        void llGetTextureRot();
-        void llSubStringIndex();
-        void llGetOwnerKey();
-        void llGetCenterOfMass();
+        //wiki: float llAcos(float val)
+        float llAcos(float val);
+        //wiki: float llAsin(float val)
+        float llAsin(float val);
+        //wiki: float llAngleBetween(rotation a, rotation b)
+        float llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b);
+        //wiki: string llGetInventoryKey(string name)
+        string llGetInventoryKey(string name);
+        //wiki: llAllowInventoryDrop(integer add)
+        void llAllowInventoryDrop(Int32 add);
+        //wiki: vector llGetSunDirection()
+        Axiom.Math.Vector3 llGetSunDirection();
+        //wiki: vector llGetTextureOffset(integer face)
+        Axiom.Math.Vector3 llGetTextureOffset(Int32 face);
+        //wiki: vector llGetTextureScale(integer side)
+        Axiom.Math.Vector3 llGetTextureScale(Int32 side);
+        //wiki: float llGetTextureRot(integer side)
+        float llGetTextureRot(Int32 side);
+        //wiki: integer llSubStringIndex(string source, string pattern)
+        Int32 llSubStringIndex(string source, string pattern);
+        //wiki: key llGetOwnerKey(key id)
+        string llGetOwnerKey(string id);
+        //wiki: vector llGetCenterOfMass()
+        Axiom.Math.Vector3 llGetCenterOfMass();
+        //wiki: list llListSort(list src, integer stride, integer ascending)
         void llListSort();
         void llGetListLength();
         void llList2Integer();
@@ -238,22 +363,37 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         void llGetRegionCorner();
         void llListInsertList();
         void llListFindList();
-        void llGetObjectName();
-        void llSetObjectName();
-        void llGetDate();
-        void llEdgeOfWorld();
-        void llGetAgentInfo();
-        void llAdjustSoundVolume();
-        void llSetSoundQueueing();
-        void llSetSoundRadius();
-        void llKey2Name();
-        void llSetTextureAnim();
-        void llTriggerSoundLimited();
-        void llEjectFromLand();
+        //wiki: string llGetObjectName()
+        string llGetObjectName();
+        //wiki: llSetObjectName(string name)
+        void llSetObjectName(string name);
+        //wiki: string llGetDate()
+        string llGetDate();
+        //wiki: integer llEdgeOfWorld(vector pos, vector dir)
+        Int32 llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir);
+        //wiki: integer llGetAgentInfo(key id)
+        Int32 llGetAgentInfo(string id);
+        //wiki: llAdjustSoundVolume(float volume)
+        void llAdjustSoundVolume(float volume);
+        //wiki: llSetSoundQueueing(integer queue)
+        void llSetSoundQueueing(Int32 queue);
+        //wiki: llSetSoundRadius(float radius)
+        void llSetSoundRadius(float radius);
+        //wiki: string llKey2Name(key id)
+        string llKey2Name(string id);
+        //wiki: llSetTextureAnim(integer mode, integer face, integer sizex, integer sizey, float start, float length, float rate)
+        void llSetTextureAnim(Int32 mode, Int32 face, Int32 sizex, Int32 sizey, float start, float length, float rate);
+        //wiki: llTriggerSoundLimited(string sound, float volume, vector top_north_east, vector bottom_south_west)
+        void llTriggerSoundLimited(string sound, float volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west);
+        //wiki: llEjectFromLand(key pest)
+        void llEjectFromLand(string pest);
         void llParseString2List();
-        void llOverMyLand();
-        void llGetLandOwnerAt();
-        void llGetNotecardLine();
+        //wiki: integer llOverMyLand(key id)
+        Int32 llOverMyLand(string id);
+        //wiki: key llGetLandOwnerAt(vector pos)
+        string llGetLandOwnerAt(Axiom.Math.Vector3 pos);
+        //wiki: key llGetNotecardLine(string name, integer line)
+        string llGetNotecardLine(string name, Int32 line);
         void llGetAgentSize();
         void llSameGroup();
         void llUnSit();
