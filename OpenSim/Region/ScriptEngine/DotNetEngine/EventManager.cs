@@ -29,6 +29,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using libsecondlife;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -49,14 +51,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Hook up a test event to our test form
             Common.SendToDebug("EventManager Hooking up dummy-event: touch_start");
             // TODO: REPLACE THIS WITH A REAL TOUCH_START EVENT IN SERVER
+            myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
             //myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);
         }
 
-        public void touch_start(string ObjectID)
+        public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             Common.SendToDebug("EventManager Event: touch_start");
-            myScriptEngine.myEventQueueManager.AddToObjectQueue(ObjectID, "touch_start", new object[] { (UInt32)0 });
+            myScriptEngine.myEventQueueManager.AddToObjectQueue("TEST", "touch_start", new object[] { (int)0 });
         }
 
 

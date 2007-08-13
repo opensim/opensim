@@ -56,9 +56,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r);
         Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r);
         Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end);
-        void llWhisper(UInt16 channelID, string text);
+        void llWhisper(int channelID, string text);
         //void llSay(UInt32 channelID, string text);
-        void llSay(object channelID, object text);
+        void llSay(int channelID, string text);
         void llShout(UInt16 channelID, string text);
         UInt32 llListen(UInt16 channelID, string name, string ID, string msg);
         void llListenControl(UInt32 number, UInt32 active);

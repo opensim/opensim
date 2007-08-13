@@ -197,10 +197,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //}
 
 
-            foreach (Type _t in a.GetTypes())
-            {
-                Console.WriteLine("Type: " + _t.ToString());
-            }
+            //foreach (Type _t in a.GetTypes())
+            //{
+            //    Console.WriteLine("Type: " + _t.ToString());
+            //}
 
             Type t;
             //try

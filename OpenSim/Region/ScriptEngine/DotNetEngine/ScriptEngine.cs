@@ -60,6 +60,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
+            
         }
         public void Shutdown()
         {

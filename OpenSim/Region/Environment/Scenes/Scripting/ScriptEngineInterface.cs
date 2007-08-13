@@ -36,5 +36,6 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
     {
         void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld);
         void Shutdown();
+        void StartScript(string ScriptID, string ObjectID);
     }
 }

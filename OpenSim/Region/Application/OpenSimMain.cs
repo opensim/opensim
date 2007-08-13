@@ -167,7 +167,11 @@ namespace OpenSim
                 Scene scene = SetupScene(regionInfo, out udpServer);
 
 
-                scene.AddScriptEngine(ScriptEngineLoader.LoadScriptEngine("DotNetEngine"));
+                OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
+                scene.AddScriptEngine(ScriptEngine);
+                // TODO: TEMP load default script
+                ScriptEngine.StartScript(Path.Combine("ScriptEngines", "default.lsl"), "TEST");
+
 
                 m_localScenes.Add(scene);
 

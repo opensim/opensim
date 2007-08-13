@@ -7,7 +7,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class LSL_BaseClass : LSL_BuiltIn_Commands_Interface
     {
-        public UInt32 State = 0;
+        public string State = "default";
         internal OpenSim.Region.Environment.Scenes.Scene World;
 
         public void Start(OpenSim.Region.Environment.Scenes.Scene _World, string FullScriptID)
@@ -46,17 +46,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
         public Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
         public Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end) { return new Axiom.Math.Quaternion(); }
-        public void llWhisper(UInt16 channelID, string text)
+        public void llWhisper(int channelID, string text)
         {
-            Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
-            Common.SendToLog("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
+            //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
+            Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
         }
         //public void llSay(UInt32 channelID, string text)
-        public void llSay(object channelID, object text)
+        public void llSay(int channelID, string text)
         {
             //TODO: DO SOMETHING USEFUL HERE
-            Common.SendToDebug("INTERNAL FUNCTION llSay(" + (UInt32)channelID + ", \"" + (string)text + "\");");
-            Common.SendToLog("llSay Channel " + (UInt32)channelID + ", Text: \"" + (string)text + "\"");
+            //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (UInt32)channelID + ", \"" + (string)text + "\");");
+            Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
+            //World.SimChat(
         }
         public void llShout(UInt16 channelID, string text) { return; }
         public UInt32 llListen(UInt16 channelID, string name, string ID, string msg) { return 0; }

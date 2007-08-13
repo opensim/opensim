@@ -162,7 +162,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             // void dataserver(key query_id, string data) {
                             //cache = Regex.Replace(cache, @"([^a-zA-Z_]\s*)((?!if|switch|for)[a-zA-Z_]+\s*\([^\)]*\)[^{]*{)", "$1" + "<STATE>" + "$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                             //Console.WriteLine("Replacing using statename: " + current_statename);
-                            cache = Regex.Replace(cache, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1" + current_statename + "_$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                            cache = Regex.Replace(cache, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"public $1" + current_statename + "_event_$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
 
                         ret += cache;
