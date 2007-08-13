@@ -154,13 +154,20 @@ namespace OpenSim
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
+            // Load all script engines found
+            OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader();
+            
             for (int i = 0; i < configFiles.Length; i++)
             {
                 //Console.WriteLine("Loading region config file");
                 RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i]);
 
+
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
+
+
+                scene.AddScriptEngine(ScriptEngineLoader.LoadScriptEngine("DotNetEngine"));
 
                 m_localScenes.Add(scene);
 
@@ -173,6 +180,8 @@ namespace OpenSim
             {
                 this.m_udpServers[i].ServerListener();
             }
+
+            
 
 
         }

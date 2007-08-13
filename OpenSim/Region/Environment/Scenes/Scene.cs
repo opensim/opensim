@@ -1012,5 +1012,14 @@ namespace OpenSim.Region.Environment.Scenes
             return result;
         }
         #endregion
+
+        #region Script Engine
+        private List<OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface> ScriptEngines = new List<OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface>();
+        public void AddScriptEngine(OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine)
+        {
+            ScriptEngines.Add(ScriptEngine);
+            ScriptEngine.InitializeEngine(this);
+        }
+        #endregion
     }
 }

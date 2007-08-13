@@ -139,5 +139,7 @@ namespace OpenSim.Region.ClientStack
         }
 
         protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager);
+
+
     }
 }

@@ -30,9 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 //TODO: WHERE TO PLACE THIS?
-namespace OpenSim.Region.ScriptEngine.DotNetEngine
+namespace OpenSim.Region.Environment.Scenes.Scripting
 {
-    interface ScriptEngineInterface
+    public interface ScriptEngineInterface
     {
         void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld);
         void Shutdown();

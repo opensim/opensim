@@ -32,7 +32,7 @@ using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
-    public class ScriptEngine : ScriptEngineInterface
+    public class ScriptEngine : OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface
     {
         //
         // This is the root object for ScriptEngine
