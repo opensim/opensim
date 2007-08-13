@@ -825,5 +825,15 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        public LLUUID GetPartsFullID(uint localID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                return part.UUID;
+            }
+            return null;
+        }
     }
 }

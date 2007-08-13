@@ -1023,5 +1023,23 @@ namespace OpenSim.Region.Environment.Scenes
             ScriptEngine.InitializeEngine(this);
         }
         #endregion
+
+        public LLUUID ConvertLocalIDToFullID(uint localID)
+        {
+             bool hasPrim = false;
+             foreach (EntityBase ent in Entities.Values)
+             {
+                 if (ent is SceneObjectGroup)
+                 {
+                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                     if (hasPrim != false)
+                     {
+                        return ((SceneObjectGroup)ent).GetPartsFullID(localID);
+                     }
+                 }
+             }
+
+             return null;
+        }
     }
 }

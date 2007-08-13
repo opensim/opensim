@@ -6,4 +6,18 @@
 	<Key Name="inventoryType" Value="7" />
 	<Key Name="fileName" Value="welcomeNote.dat" />
     </Section>
+    <Section Name="texture1">
+        <Key Name="assetID" Value="00000000-0000-2222-3333-000000000099" />
+        <Key Name="name" Value="femface" />
+	<Key Name="assetType" Value="0" />
+	<Key Name="inventoryType" Value="0" />
+	<Key Name="fileName" Value="femaleface.jp2" />
+    </Section>
+    <Section Name="test Object1">
+        <Key Name="assetID" Value="00000000-0000-8877-5566-000000000001" />
+        <Key Name="name" Value="test Object" />
+	<Key Name="assetType" Value="6" />
+	<Key Name="inventoryType" Value="6" />
+	<Key Name="fileName" Value="testObject.dat" />
+    </Section>
 </Nini>

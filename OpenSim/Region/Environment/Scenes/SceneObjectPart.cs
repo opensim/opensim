@@ -300,7 +300,11 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.Acceleration = new LLVector3(0, 0, 0);
             dupe.AngularVelocity = new LLVector3(0, 0, 0);
             dupe.ObjectFlags = this.ObjectFlags;
-            //TODO copy extraparams data and anything else not currently copied
+
+            byte[] extraP = new byte[this.Shape.ExtraParams.Length];
+            Array.Copy(this.Shape.ExtraParams, extraP, extraP.Length);
+            dupe.Shape.ExtraParams = extraP;
+
             return dupe;
         }
         #endregion
