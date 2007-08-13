@@ -443,8 +443,6 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.UpdateTaskInventory:
                         // Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
-                        AgentInventory myinventory = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
-
                         break;
                     case PacketType.MapLayerRequest:
                         this.RequestMapLayer();
