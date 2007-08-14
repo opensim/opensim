@@ -39,8 +39,10 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Capabilities
 {
-    public delegate void UpLoadedTexture(string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolder, byte[] data);
+    public delegate void UpLoadedAsset(string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolder, byte[] data);
+    public delegate LLUUID UpdateItem(LLUUID itemID, byte[] data);
     public delegate void NewInventoryItem(LLUUID userID, InventoryItemBase item);
+    public delegate LLUUID ItemUpdatedCallback(LLUUID userID, LLUUID itemID, byte[] data);
 
     public class Caps
     {
@@ -59,6 +61,7 @@ namespace OpenSim.Region.Capabilities
         private int eventQueueCount = 1;
         private Queue<string> CapsEventQueue = new Queue<string>();
         public NewInventoryItem AddNewInventoryItem = null;
+        public ItemUpdatedCallback ItemUpdatedCall = null;
 
         public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath, LLUUID agent)
         {
@@ -125,7 +128,8 @@ namespace OpenSim.Region.Capabilities
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath;
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
             caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
-           // caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
+            caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
+            caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             return caps;
         }
 
@@ -238,21 +242,24 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string NoteCardAgentInventory(string request, string path, string param)
         {
-            Console.WriteLine("notecard update request " + request);
-            string assetName = "notecardupdate";
+            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+            LLSDItemUpdate llsdRequest = new LLSDItemUpdate();
+            LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
+          
             string capsBase = "/CAPS/" + m_capsObjectPath;
-            LLUUID newAsset = LLUUID.Random();
-            LLUUID newInvItem = LLUUID.Random();
+            LLUUID newInvItem = llsdRequest.item_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            AssetUploader uploader = new AssetUploader(assetName, "description", newAsset, newInvItem, LLUUID.Zero, "", "", capsBase + uploaderPath, this.httpListener);
+            ItemUpdater uploader = new ItemUpdater(newInvItem, capsBase + uploaderPath, this.httpListener);
+            uploader.OnUpLoad += this.ItemUpdated;
+
             httpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase + uploaderPath;
 
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
-            //   uploader.OnUpLoad += this.UploadCompleteHandler;
+            
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
         }
 
@@ -321,9 +328,18 @@ namespace OpenSim.Region.Capabilities
 
         }
 
+        public LLUUID ItemUpdated(LLUUID itemID, byte[] data)
+        {
+            if (ItemUpdatedCall != null)
+            {
+               return ItemUpdatedCall(this.agentID, itemID, data);
+            }
+            return LLUUID.Zero;
+        }
+
         public class AssetUploader
         {
-            public event UpLoadedTexture OnUpLoad;
+            public event UpLoadedAsset OnUpLoad;
 
             private string uploaderPath = "";
             private LLUUID newAssetID;
@@ -390,6 +406,74 @@ namespace OpenSim.Region.Capabilities
                bw.Write(data);
                bw.Close();
                fs.Close();
+            }
+        }
+
+        public class ItemUpdater
+        {
+            public event UpdateItem OnUpLoad;
+
+            private string uploaderPath = "";
+            private LLUUID inventoryItemID;
+            private BaseHttpServer httpListener;
+            private bool SaveAssets = false;
+
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="assetID"></param>
+            /// <param name="inventoryItem"></param>
+            /// <param name="path"></param>
+            /// <param name="httpServer"></param>
+            public ItemUpdater( LLUUID inventoryItem, string path, BaseHttpServer httpServer)
+            {
+              
+                inventoryItemID = inventoryItem;
+                uploaderPath = path;
+                httpListener = httpServer;
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public string uploaderCaps(byte[] data, string path, string param)
+            {
+                LLUUID inv = this.inventoryItemID;
+                string res = "";
+                LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
+                LLUUID assetID = LLUUID.Zero;
+
+                if (OnUpLoad != null)
+                {
+                    assetID = OnUpLoad(inv, data);
+                }
+               
+                uploadComplete.new_asset = assetID.ToStringHyphenated();
+                uploadComplete.new_inventory_item = inv;
+                uploadComplete.state = "complete";
+
+                res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+
+                httpListener.RemoveStreamHandler("POST", uploaderPath);
+
+                if (this.SaveAssets)
+                    this.SaveAssetToFile("updateditem"+Util.RandomClass.Next(1,1000) + ".dat", data);
+
+                return res;
+            }
+
+            private void SaveAssetToFile(string filename, byte[] data)
+            {
+                FileStream fs = File.Create(filename);
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write(data);
+                bw.Close();
+                fs.Close();
             }
         }
     }

@@ -827,6 +827,7 @@ namespace OpenSim.Region.Environment.Scenes
                                  agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
                     cap.AddNewInventoryItem = this.AddInventoryItem;
+                    cap.ItemUpdatedCall = this.UpdateInventoryItemAsset;
                     if (capsHandlers.ContainsKey(agent.AgentID))
                     {
                         MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
@@ -1023,7 +1024,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScriptEngines.Add(ScriptEngine);
 
-            ScriptEngine.InitializeEngine(this, m_logger);        
+            ScriptEngine.InitializeEngine(this, m_logger);
         }
         #endregion
 
@@ -1046,7 +1047,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            if(this.Avatars.ContainsKey(userID))
+            if (this.Avatars.ContainsKey(userID))
             {
                 this.AddInventoryItem(this.Avatars[userID].ControllingClient, item);
             }
@@ -1060,6 +1061,46 @@ namespace OpenSim.Region.Environment.Scenes
                 userInfo.AddItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemUpdate(item);
             }
+        }
+
+        public LLUUID UpdateInventoryItemAsset(LLUUID userID, LLUUID itemID, byte[] data)
+        {
+            if (this.Avatars.ContainsKey(userID))
+            {
+                return this.UpdateInventoryItemAsset(this.Avatars[userID].ControllingClient, itemID, data);
+            }
+            return LLUUID.Zero;
+        }
+
+        public LLUUID UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                if (userInfo.RootFolder != null)
+                {
+                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        AssetBase asset;
+                        asset = new AssetBase();
+                        asset.FullID = LLUUID.Random();
+                        asset.Type = (sbyte)item.assetType;
+                        asset.InvType = (sbyte)item.invType;
+                        asset.Name = item.inventoryName;
+                        asset.Data = data;
+                        this.assetCache.AddAsset(asset);
+
+                        item.assetID = asset.FullID;
+                        userInfo.updateItem(remoteClient.AgentId, item);
+
+                        remoteClient.SendInventoryItemUpdate(item);
+
+                        return (asset.FullID);
+                    }
+                }
+            }
+            return LLUUID.Zero;
         }
 
     }

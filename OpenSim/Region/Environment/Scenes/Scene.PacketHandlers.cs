@@ -732,15 +732,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// Sends prims to a client
-        /// </summary>
-        /// <param name="RemoteClient">Client to send to</param>
-        public void GetInitialPrims(IClientAPI RemoteClient)
-        {
-
-        }
-
         public void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             this.EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);

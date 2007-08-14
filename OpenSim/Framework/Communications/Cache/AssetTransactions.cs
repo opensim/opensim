@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Communications.Caches
             private string uploaderPath = "";
 
             // Events
-            public event UpLoadedTexture OnUpLoad;
+            public event UpLoadedAsset OnUpLoad;
 
             // Methods
             public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem, LLUUID folderID, string path, BaseHttpServer httpServer)
@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications.Caches
             private string uploaderPath = "";
 
             // Events
-            public event UpLoadedTexture OnUpLoad;
+            public event UpLoadedAsset OnUpLoad;
 
             // Methods
             public void Initialise(LLUUID inventoryItem, string path, BaseHttpServer httpServer)

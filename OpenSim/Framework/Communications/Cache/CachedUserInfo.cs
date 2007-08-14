@@ -104,6 +104,14 @@ namespace OpenSim.Framework.Communications.Caches
                 this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
             }
         }
+
+        public void updateItem(LLUUID userID, InventoryItemBase itemInfo)
+        {
+            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            {
+                this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
+            }
+        }
     }
 
 

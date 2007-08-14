@@ -9,6 +9,7 @@ namespace OpenSim.Region.Capabilities
        // public string RequestTextureDownload = "";
        // public string ChatSessionRequest = "";
         public string UpdateNotecardAgentInventory = "";
+        public string UpdateScriptAgentInventory = "";
        // public string ParcelVoiceInfoRequest = "";
 
         public LLSDCapsDetails()
