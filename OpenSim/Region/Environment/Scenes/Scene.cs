@@ -609,7 +609,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
-            //client.OnCreateNewInventoryItem += CreateNewInventoryItem;
+            client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += commsManager.UserProfiles.HandleCreateInventoryFolder;
             client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;

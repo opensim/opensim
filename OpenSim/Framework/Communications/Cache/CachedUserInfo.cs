@@ -79,7 +79,6 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
-            Console.WriteLine("received new inventory item " + itemInfo.inventoryID + " with asset id of " + itemInfo.assetID);
             if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
             {
                 if (itemInfo.parentFolderID == this.RootFolder.folderID)
@@ -102,7 +101,6 @@ namespace OpenSim.Framework.Communications.Caches
             if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
             {
                 this.ItemReceive(userID, itemInfo);
-                Console.WriteLine("now adding inventory item to database");
                 this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
             }
         }
