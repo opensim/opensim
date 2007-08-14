@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
             myScriptEngine.myEventQueueManager.AddToObjectQueue("TEST", "touch_start", new object[] { (int)0 });
         }
 

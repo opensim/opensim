@@ -961,7 +961,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
-        <Match pattern="*.lso" recurse="true"/>
       </Files>
     </Project>
 

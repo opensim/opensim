@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     {
                         // Something in queue, process
                         QueueItemStruct QIS = EventQueue.Dequeue();
-                        myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
+                        //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
                         // TODO: Execute function
                         myScriptEngine.myScriptManager.ExecuteFunction(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
                     }
@@ -108,7 +108,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void AddToObjectQueue(string ObjectID, string FunctionName, object[] param)
         {
             // Determine all scripts in Object and add to their queue
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);
 
             foreach (string ScriptID in myScriptEngine.myScriptManager.GetScriptKeys(ObjectID))
             {
