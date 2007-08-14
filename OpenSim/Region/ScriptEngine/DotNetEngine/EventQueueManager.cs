@@ -34,6 +34,10 @@ using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
+    /// <summary>
+    /// EventQueueManager handles event queues
+    /// Events are queued and executed in separate thread
+    /// </summary>
     class EventQueueManager
     {
         private Thread EventQueueThread;

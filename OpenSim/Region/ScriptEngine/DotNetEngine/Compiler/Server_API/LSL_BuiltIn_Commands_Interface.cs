@@ -394,115 +394,208 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         string llGetLandOwnerAt(Axiom.Math.Vector3 pos);
         //wiki: key llGetNotecardLine(string name, integer line)
         string llGetNotecardLine(string name, Int32 line);
-        void llGetAgentSize();
-        void llSameGroup();
-        void llUnSit();
-        void llGroundSlope();
-        void llGroundNormal();
-        void llGroundContour();
-        void llGetAttached();
-        void llGetFreeMemory();
-        void llGetRegionName();
-        void llGetRegionTimeDilation();
-        void llGetRegionFPS();
-        void llParticleSystem();
-        void llGroundRepel();
+        //wiki: vector llGetAgentSize(key id)
+        Axiom.Math.Vector3 llGetAgentSize(string id);
+        //wiki: integer llSameGroup(key agent)
+        Int32 llSameGroup(string agent);
+        //wiki: llUnSit(key id)
+        void llUnSit(string id);
+        //wiki: vector llGroundSlope(vector offset)
+        Axiom.Math.Vector3 llGroundSlope(Axiom.Math.Vector3 offset);
+        //wiki: vector llGroundNormal(vector offset)
+        Axiom.Math.Vector3 llGroundNormal(Axiom.Math.Vector3 offset);
+        //wiki: vector llGroundContour(vector offset)
+        Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset);
+        //wiki: integer llGetAttached()
+        Int32 llGetAttached();
+        //wiki: integer llGetFreeMemory()
+        Int32 llGetFreeMemory();
+        //wiki: string llGetRegionName()
+        string llGetRegionName();
+        //wiki: float llGetRegionTimeDilation()
+        float llGetRegionTimeDilation();
+        //wiki: float llGetRegionFPS()
+        float llGetRegionFPS();
+        //wiki: llParticleSystem(List<Object> rules
+        void llParticleSystem(List<Object> rules);
+        //wiki: llGroundRepel(float height, integer water, float tau)
+        void llGroundRepel(float height, Int32 water, float tau);
         void llGiveInventoryList();
-        void llSetVehicleType();
-        void llSetVehicleFloatParam();
-        void llSetVehicleVectorParam();
-        void llSetVehicleRotationParam();
-        void llSetVehicleFlags();
-        void llRemoveVehicleFlags();
-        void llSitTarget();
-        void llAvatarOnSitTarget();
-        void llAddToLandPassList();
-        void llSetTouchText();
-        void llSetSitText();
-        void llSetCameraEyeOffset();
-        void llSetCameraAtOffset();
+        //wiki: llSetVehicleType(integer type)
+        void llSetVehicleType(Int32 type);
+        //wiki: llSetVehicleFloatParam(integer param, float value)
+        void llSetVehicleFloatParam(Int32 param, float value);
+        //wiki: llSetVehicleVectorParam(integer param, vector vec)
+        void llSetVehicleVectorParam(Int32 param, Axiom.Math.Vector3 vec);
+        //wiki: llSetVehicleRotationParam(integer param, rotation rot)
+        void llSetVehicleRotationParam(Int32 param, Axiom.Math.Quaternion rot);
+        //wiki: llSetVehicleFlags(integer flags)
+        void llSetVehicleFlags(Int32 flags);
+        //wiki: llRemoveVehicleFlags(integer flags)
+        void llRemoveVehicleFlags(Int32 flags);
+        //wiki: llSitTarget(vector offset, rotation rot)
+        void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot);
+        //wiki key llAvatarOnSitTarget()
+        string llAvatarOnSitTarget();
+        //wiki: llAddToLandPassList(key avatar, float hours)
+        void llAddToLandPassList(string avatar, float hours);
+        //wiki: llSetTouchText(string text)
+        void llSetTouchText(string text);
+        //wiki: llSetSitText(string text)
+        void llSetSitText(string text);
+        //wiki: llSetCameraEyeOffset(vector offset)
+        void llSetCameraEyeOffset(Axiom.Math.Vector3 offset);
+        //wiki: llSeteCameraAtOffset(vector offset)
+        void llSetCameraAtOffset(Axiom.Math.Vector3 offset);
         void llDumpList2String();
-        void llScriptDanger();
+        //wiki: integer llScriptDanger(vector pos)
+        void llScriptDanger(Axiom.Math.Vector3 pos);
         void llDialog();
-        void llVolumeDetect();
-        void llResetOtherScript();
-        void llGetScriptState();
+        //wiki: llVolumeDetect(integer detect)
+        void llVolumeDetect(Int32 detect);
+        //wiki: llResetOtherScript(string name)
+        void llResetOtherScript(string name);
+        //wiki: integer llGetScriptState(string name)
+        Int32 llGetScriptState(string name);
+        //wiki: (deprecated)
         void llRemoteLoadScript();
-        void llSetRemoteScriptAccessPin();
-        void llRemoteLoadScriptPin();
+        //wiki: llSetRemoteScriptAccessPin(integer pin)
+        void llSetRemoteScriptAccessPin(Int32 pin);
+        //wiki: llRemoteLoadScriptPin(key target, string name, integer pin, integer running, integer start_param)
+        void llRemoteLoadScriptPin(string target, string name, Int32 pin, Int32 running, Int32 start_param);
+        //wiki: llOpenRemoteDataChannel()
         void llOpenRemoteDataChannel();
-        void llSendRemoteData();
-        void llRemoteDataReply();
-        void llCloseRemoteDataChannel();
-        void llMD5String();
+        //wiki: key llSendRemoteData(key channel, string dest, integer idata, string sdata)
+        string llSendRemoteData(string channel, string dest, Int32 idata, string sdata);
+        //wiki: llRemoteDataReply(key channel, key message_id, string sdata, integer idata)
+        void llRemoteDataReply(string channel, string message_id, string sdata, Int32 idata);
+        //wiki: llCloseRemoteDataChannel(key channel)
+        void llCloseRemoteDataChannel(string channel);
+        //wiki: string llMD5String(string src, integer nonce)
+        void llMD5String(string src, Int32 nonce);
         void llSetPrimitiveParams();
-        void llStringToBase64();
-        void llBase64ToString();
+        //wiki: string llStringToBase64(string str)
+        string llStringToBase64(string str);
+        //wiki: string llBase64ToString(string str)
+        string llBase64ToString(string str);
+        //wiki: (deprecated)
         void llXorBase64Strings();
+        //wiki: llRemoteDataSetRegion()
         void llRemoteDataSetRegion();
-        void llLog10();
-        void llLog();
+        //wiki: float llLog10(float val)
+        float llLog10(float val);
+        //wiki: float llLog(float val)
+        float llLog(float val);
         void llGetAnimationList();
-        void llSetParcelMusicURL();
-        void llGetRootPosition();
-        void llGetRootRotation();
-        void llGetObjectDesc();
-        void llSetObjectDesc();
-        void llGetCreator();
-        void llGetTimestamp();
-        void llSetLinkAlpha();
-        void llGetNumberOfPrims();
-        void llGetNumberOfNotecardLines();
+        //wiki: llSetParcelMusicURL(string url)
+        void llSetParcelMusicURL(string url);
+        //wiki: vector llGetRootPosition()
+        Axiom.Math.Vector3 llGetRootPosition();
+        //wiki: rotation llGetRootRotation()
+        Axiom.Math.Quaternion llGetRootRotation();
+        //wiki: string llGetObjectDesc()
+        string llGetObjectDesc();
+        //wiki: llSetObjectDesc(string desc)
+        void llSetObjectDesc(string desc);
+        //wiki: key llGetCreator()
+        string llGetCreator();
+        //wiki: string llGetTimestamp()
+        string llGetTimestamp();
+        //wiki: llSetLinkAlpha(integer linknumber, float alpha, integer face)
+        void llSetLinkAlpha(Int32 linknumber, float alpha, Int32 face);
+        //wiki: integer llGetNumberOfPrims()
+        Int32 llGetNumberOfPrims();
+        //wiki: key llGetNumberOfNotecardLines(string name)
+        string llGetNumberOfNotecardLines(string name);
         void llGetBoundingBox();
-        void llGetGeometricCenter();
+        //wiki: vector llGetGeometricCenter()
+        Axiom.Math.Vector3 llGetGeometricCenter();
         void llGetPrimitiveParams();
-        void llIntegerToBase64();
-        void llBase64ToInteger();
-        void llGetGMTclock();
-        void llGetSimulatorHostname();
-        void llSetLocalRot();
+        //wiki: string llIntegerToBase64(integer number)
+        string llIntegerToBase64(Int32 number);
+        //wiki integer llBase64ToInteger(string str)
+        Int32 llBase64ToInteger(string str);
+        //wiki: float llGetGMTclock()
+        float llGetGMTclock();
+        //wiki: string llGetSimulatorHostname()
+        string llGetSimulatorHostname();
+        //llSetLocalRot(rotation rot)
+        void llSetLocalRot(Axiom.Math.Quaternion rot);
         void llParseStringKeepNulls();
-        void llRezAtRoot();
-        void llGetObjectPermMask();
-        void llSetObjectPermMask();
-        void llGetInventoryPermMask();
-        void llSetInventoryPermMask();
-        void llGetInventoryCreator();
-        void llOwnerSay();
-        void llRequestSimulatorData();
-        void llForceMouselook();
-        void llGetObjectMass();
+        //wiki: llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, integer param)
+        void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, Int32 param);
+        //wiki: integer llGetObjectPermMask(integer mask)
+        Int32 llGetObjectPermMask(Int32 mask);
+        //wiki: llSetObjectPermMask(integer mask, integer value)
+        void llSetObjectPermMask(Int32 mask, Int32 value);
+        //wiki integer llGetInventoryPermMask(string item, integer mask)
+        void llGetInventoryPermMask(string item, Int32 mask);
+        //wiki: llSetInventoryPermMask(string item, integer mask, integer value)
+        void llSetInventoryPermMask(string item, Int32 mask, Int32 value);
+        //wiki: key llGetInventoryCreator(string item)
+        string llGetInventoryCreator(string item);
+        //wiki: llOwnerSay(string msg)
+        void llOwnerSay(string msg);
+        //wiki: key llRequestSimulatorData(string simulator, integer data)
+        void llRequestSimulatorData(string simulator, Int32 data);
+        //wiki: llForceMouselook(integer mouselook)
+        void llForceMouselook(Int32 mouselook);
+        //wiki: float llGetObjectMass(key id)
+        float llGetObjectMass(string id);
         void llListReplaceList();
-        void llLoadURL();
+        //wiki: llLoadURL(key avatar_id, string message, string url)
+        void llLoadURL(string avatar_id, string message, string url);
         void llParcelMediaCommandList();
         void llParcelMediaQuery();
-        void llModPow();
-        void llGetInventoryType();
+        //wiki integer llModPow(integer a, integer b, integer c)
+        Int32 llModPow(Int32 a, Int32 b, Int32 c);
+        //wiki: integer llGetInventoryType(string name)
+        Int32 llGetInventoryType(string name);
         void llSetPayPrice();
-        void llGetCameraPos();
-        void llGetCameraRot();
+        //wiki: vector llGetCameraPos()
+        Axiom.Math.Vector3 llGetCameraPos();
+        //wiki rotation llGetCameraRot()
+        Axiom.Math.Quaternion llGetCameraRot();
+        //wiki: (deprecated)
         void llSetPrimURL();
+        //wiki: (deprecated)
         void llRefreshPrimURL();
-        void llEscapeURL();
-        void llUnescapeURL();
-        void llMapDestination();
-        void llAddToLandBanList();
-        void llRemoveFromLandPassList();
-        void llRemoveFromLandBanList();
+        //wiki: string llEscapeURL(string url)
+        string llEscapeURL(string url);
+        //wiki: string llUnescapeURL(string url)
+        string llUnescapeURL(string url);
+        //wiki: llMapDestination(string simname, vector pos, vector look_at)
+        void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at);
+        //wiki: llAddToLandBanList(key avatar, float hours)
+        void llAddToLandBanList(string avatar, float hours);
+        //wiki: llRemoveFromLandPassList(key avatar)
+        void llRemoveFromLandPassList(string avatar);
+        //wiki: llRemoveFromLandBanList(key avatar)
+        void llRemoveFromLandBanList(string avatar);
         void llSetCameraParams();
         void llClearCameraParams();
         void llListStatistics();
-        void llGetUnixTime();
-        void llGetParcelFlags();
-        void llGetRegionFlags();
-        void llXorBase64StringsCorrect();
+        //wiki: integer llGetUnixTime()
+        Int32 llGetUnixTime();
+        //wiki: integer llGetParcelFlags(vector pos)
+        Int32 llGetParcelFlags(Axiom.Math.Vector3 pos);
+        //wiki: integer llGetRegionFlags()
+        Int32 llGetRegionFlags();
+        //wiki: string llXorBase64StringsCorrect(string str1, string str2)
+        string llXorBase64StringsCorrect(string str1, string str2);
         void llHTTPRequest();
+        //wiki: llResetLandBanList()
         void llResetLandBanList();
+        //wiki: llResetLandPassList()
         void llResetLandPassList();
-        void llGetParcelPrimCount();
+        //wiki integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
+        Int32 llGetParcelPrimCount(Axiom.Math.Vector3 pos, Int32 category, Int32 sim_wide);
         void llGetParcelPrimOwners();
-        void llGetObjectPrimCount();
-        void llGetParcelMaxPrims();
-        void llGetParcelDetails();
+        //wiki: integer llGetObjectPrimCount(key object_id)
+        Int32 llGetObjectPrimCount(string object_id);
+        //wiki: integer llGetParcelMaxPrims( vector pos, integer sim_wide )
+        Int32 llGetParcelMaxPrims(Axiom.Math.Vector3 pos, Int32 sim_wide);
+        //wiki list llGetParcelDetails(vector pos, list params)
+        List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param);
     }
 }

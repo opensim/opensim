@@ -34,6 +34,11 @@ using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
+    /// <summary>
+    /// Loads scripts
+    /// Compiles them if necessary
+    /// Execute functions for EventQueueManager
+    /// </summary>
     class ScriptManager
     {
 
@@ -106,51 +111,63 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
-            string FileName;
+            string FileName = "";
 
-            // * Fetch script from server
-            // DEBUG - ScriptID is an actual filename during debug
-            //  (therefore we can also check type by looking at extension)
-            FileName = ScriptID;
-
-            // * Does script need compile? Send it to LSL compiler first. (TODO: Use (and clean) compiler cache)
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
-            switch (System.IO.Path.GetExtension(FileName).ToLower())
+            try
             {
-                case ".txt":
-                case ".lsl":
-                case ".cs":
-                    myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script is CS/LSL, compiling to .Net Assembly");
-                    // Create a new instance of the compiler (currently we don't want reuse)
-                    OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
-                    // Compile
-                    FileName = LSLCompiler.Compile(FileName);
-                    break;
-                default:
-                    throw new Exception("Unknown script type.");
+
+
+                // * Fetch script from server
+                // DEBUG - ScriptID is an actual filename during debug
+                //  (therefore we can also check type by looking at extension)
+                FileName = ScriptID;
+
+                // * Does script need compile? Send it to LSL compiler first. (TODO: Use (and clean) compiler cache)
+                //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
+                switch (System.IO.Path.GetExtension(FileName).ToLower())
+                {
+                    case ".txt":
+                    case ".lsl":
+                    case ".cs":
+                        myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script is CS/LSL, compiling to .Net Assembly");
+                        // Create a new instance of the compiler (currently we don't want reuse)
+                        OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
+                        // Compile
+                        FileName = LSLCompiler.Compile(FileName);
+                        break;
+                    default:
+                        throw new Exception("Unknown script type.");
+                }
+
+
+
+                myScriptEngine.m_logger.Verbose("ScriptEngine", "Compilation done");
+                // * Insert yield into code
+                FileName = ProcessYield(FileName);
+
+                // * Find next available AppDomain to put it in
+                AppDomain FreeAppDomain = GetFreeAppDomain();
+
+                // * Load and start script
+                //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
+                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
+                string FullScriptID = ScriptID + "." + ObjectID;
+                // Add it to our temporary active script keeper
+                //Scripts.Add(FullScriptID, Script);
+                SetScript(ObjectID, ScriptID, Script);
+                // We need to give (untrusted) assembly a private instance of BuiltIns
+                //  this private copy will contain Read-Only FullScriptID so that it can bring that on to the server whenever needed.
+                //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
+
+                // Start the script - giving it BuiltIns
+                //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
+                Script.Start(myScriptEngine.World, ScriptID);
+
             }
-
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "Compilation done");
-            // * Insert yield into code
-            FileName = ProcessYield(FileName);
-
-            // * Find next available AppDomain to put it in
-            AppDomain FreeAppDomain = GetFreeAppDomain();
-
-            // * Load and start script
-            //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
-            OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
-            string FullScriptID = ScriptID + "." + ObjectID;
-            // Add it to our temporary active script keeper
-            //Scripts.Add(FullScriptID, Script);
-            SetScript(ObjectID, ScriptID, Script);
-            // We need to give (untrusted) assembly a private instance of BuiltIns
-            //  this private copy will contain Read-Only FullScriptID so that it can bring that on to the server whenever needed.
-            //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
-
-            // Start the script - giving it BuiltIns
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
-            Script.Start(myScriptEngine.World, ScriptID);
+            catch (Exception e)
+            {
+                myScriptEngine.m_logger.Error("ScriptEngine", "Exception loading script \"" + FileName + "\": " + e.ToString());
+            }
 
 
         }
@@ -222,13 +239,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = myScriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);
 
             Type type = Script.GetType();
-            //object o = (object)Script;
 
-            //System.Collections.Generic.List<string> Functions = (System.Collections.Generic.List<string>)
-            //Type type = typeof(OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass);
+
             myScriptEngine.m_logger.Verbose("ScriptEngine", "Invoke: \"" + Script.State + "_event_" + FunctionName + "\"");
-            type.InvokeMember(Script.State + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
-            //System.Collections.Generic.List<string> Functions = (System.Collections.Generic.List<string>)type.InvokeMember("GetFunctions", BindingFlags.InvokeMethod, null, Script, null);
+
+            try
+            {
+                type.InvokeMember(Script.State + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
+            }
+            catch (Exception e)
+            {
+                myScriptEngine.m_logger.Error("ScriptEngine", "Exception attempting to executing script function: " + e.ToString());
+            }
 
 
             //foreach (MemberInfo mi in type.GetMembers())

@@ -32,11 +32,11 @@ using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
+    /// <summary>
+    /// This is the root object for ScriptEngine
+    /// </summary>
     public class ScriptEngine : OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface
     {
-        //
-        // This is the root object for ScriptEngine
-        //
 
         internal OpenSim.Region.Environment.Scenes.Scene World;
         internal EventManager myEventManager;                   // Handles and queues incoming events from OpenSim

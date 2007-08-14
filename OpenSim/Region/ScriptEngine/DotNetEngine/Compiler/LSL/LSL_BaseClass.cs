@@ -24,6 +24,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
 
+
         public float llSin(float f) { return 0; }
         public float llCos(float f) { return 0; }
         public float llTan(float f) { return 0; }
@@ -255,116 +256,120 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Int32 llOverMyLand(string id) { return 0; }
         public string llGetLandOwnerAt(Axiom.Math.Vector3 pos) { return ""; }
         public string llGetNotecardLine(string name, Int32 line) { return ""; }
-        public void llGetAgentSize() { }
-        public void llSameGroup() { }
-        public void llUnSit() { }
-        public void llGroundSlope() { }
-        public void llGroundNormal() { }
-        public void llGroundContour() { }
-        public void llGetAttached() { }
-        public void llGetFreeMemory() { }
-        public void llGetRegionName() { }
-        public void llGetRegionTimeDilation() { }
-        public void llGetRegionFPS() { }
-        public void llParticleSystem() { }
-        public void llGroundRepel() { }
+        public Axiom.Math.Vector3 llGetAgentSize(string id) { return new Axiom.Math.Vector3(); }
+        public Int32 llSameGroup(string agent) { return 0; }
+        public void llUnSit(string id) { }
+        public Axiom.Math.Vector3 llGroundSlope(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGroundNormal(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
+        public Int32 llGetAttached() { return 0; }
+        public Int32 llGetFreeMemory() { return 0; }
+        public string llGetRegionName() { return ""; }
+        public float llGetRegionTimeDilation() { return 0; }
+        public float llGetRegionFPS() { return 0; }
+        public void llParticleSystem(List<Object> rules) { }
+        public void llGroundRepel(float height, Int32 water, float tau) { }
         public void llGiveInventoryList() { }
-        public void llSetVehicleType() { }
-        public void llSetVehicleFloatParam() { }
-        public void llSetVehicleVectorParam() { }
-        public void llSetVehicleRotationParam() { }
-        public void llSetVehicleFlags() { }
-        public void llRemoveVehicleFlags() { }
-        public void llSitTarget() { }
-        public void llAvatarOnSitTarget() { }
-        public void llAddToLandPassList() { }
-        public void llSetTouchText() { }
-        public void llSetSitText() { }
-        public void llSetCameraEyeOffset() { }
-        public void llSetCameraAtOffset() { }
+        public void llSetVehicleType(Int32 type) { }
+        public void llSetVehicleFloatParam(Int32 param, float value) { }
+        public void llSetVehicleVectorParam(Int32 param, Axiom.Math.Vector3 vec) { }
+        public void llSetVehicleRotationParam(Int32 param, Axiom.Math.Quaternion rot) { }
+        public void llSetVehicleFlags(Int32 flags) { }
+        public void llRemoveVehicleFlags(Int32 flags) { }
+        public void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot) { }
+        public string llAvatarOnSitTarget() { return ""; }
+        public void llAddToLandPassList(string avatar, float hours) { }
+        public void llSetTouchText(string text)
+        {
+        }
+        public void llSetSitText(string text)
+        {
+        }
+        public void llSetCameraEyeOffset(Axiom.Math.Vector3 offset) { }
+        public void llSetCameraAtOffset(Axiom.Math.Vector3 offset) { }
         public void llDumpList2String() { }
-        public void llScriptDanger() { }
+        public void llScriptDanger(Axiom.Math.Vector3 pos) { }
         public void llDialog() { }
-        public void llVolumeDetect() { }
-        public void llResetOtherScript() { }
-        public void llGetScriptState() { }
+        public void llVolumeDetect(Int32 detect) { }
+        public void llResetOtherScript(string name) { }
+        public Int32 llGetScriptState(string name) { return 0; }
         public void llRemoteLoadScript() { }
-        public void llSetRemoteScriptAccessPin() { }
-        public void llRemoteLoadScriptPin() { }
+        public void llSetRemoteScriptAccessPin(Int32 pin) { }
+        public void llRemoteLoadScriptPin(string target, string name, Int32 pin, Int32 running, Int32 start_param) { }
         public void llOpenRemoteDataChannel() { }
-        public void llSendRemoteData() { }
-        public void llRemoteDataReply() { }
-        public void llCloseRemoteDataChannel() { }
-        public void llMD5String() { }
+        public string llSendRemoteData(string channel, string dest, Int32 idata, string sdata) { return ""; }
+        public void llRemoteDataReply(string channel, string message_id, string sdata, Int32 idata) { }
+        public void llCloseRemoteDataChannel(string channel) { }
+        public void llMD5String(string src, Int32 nonce) { }
         public void llSetPrimitiveParams() { }
-        public void llStringToBase64() { }
-        public void llBase64ToString() { }
+        public string llStringToBase64(string str) { return ""; }
+        public string llBase64ToString(string str) { return ""; }
         public void llXorBase64Strings() { }
         public void llRemoteDataSetRegion() { }
-        public void llLog10() { }
-        public void llLog() { }
+        public float llLog10(float val) { return 0; }
+        public float llLog(float val) { return 0; }
         public void llGetAnimationList() { }
-        public void llSetParcelMusicURL() { }
-        public void llGetRootPosition() { }
-        public void llGetRootRotation() { }
-        public void llGetObjectDesc() { }
-        public void llSetObjectDesc() { }
-        public void llGetCreator() { }
-        public void llGetTimestamp() { }
-        public void llSetLinkAlpha() { }
-        public void llGetNumberOfPrims() { }
-        public void llGetNumberOfNotecardLines() { }
+        public void llSetParcelMusicURL(string url) { }
+        public Axiom.Math.Vector3 llGetRootPosition() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Quaternion llGetRootRotation() { return new Axiom.Math.Quaternion(); }
+        public string llGetObjectDesc() { return ""; }
+        public void llSetObjectDesc(string desc) { }
+        public string llGetCreator() { return ""; }
+        public string llGetTimestamp() { return ""; }
+        public void llSetLinkAlpha(Int32 linknumber, float alpha, Int32 face) { }
+        public Int32 llGetNumberOfPrims() { return 0; }
+        public string llGetNumberOfNotecardLines(string name) { return ""; }
         public void llGetBoundingBox() { }
-        public void llGetGeometricCenter() { }
+        public Axiom.Math.Vector3 llGetGeometricCenter() { return new Axiom.Math.Vector3(); }
         public void llGetPrimitiveParams() { }
-        public void llIntegerToBase64() { }
-        public void llBase64ToInteger() { }
-        public void llGetGMTclock() { }
-        public void llGetSimulatorHostname() { }
-        public void llSetLocalRot() { }
+        public string llIntegerToBase64(Int32 number) { return ""; }
+        public Int32 llBase64ToInteger(string str) { return 0; }
+        public float llGetGMTclock() { return 0; }
+        public string llGetSimulatorHostname() { return ""; }
+        public void llSetLocalRot(Axiom.Math.Quaternion rot) { }
         public void llParseStringKeepNulls() { }
-        public void llRezAtRoot() { }
-        public void llGetObjectPermMask() { }
-        public void llSetObjectPermMask() { }
-        public void llGetInventoryPermMask() { }
-        public void llSetInventoryPermMask() { }
-        public void llGetInventoryCreator() { }
-        public void llOwnerSay() { }
-        public void llRequestSimulatorData() { }
-        public void llForceMouselook() { }
-        public void llGetObjectMass() { }
+        public void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, Int32 param) { }
+        public Int32 llGetObjectPermMask(Int32 mask) { return 0; }
+        public void llSetObjectPermMask(Int32 mask, Int32 value) { }
+        public void llGetInventoryPermMask(string item, Int32 mask) { }
+        public void llSetInventoryPermMask(string item, Int32 mask, Int32 value) { }
+        public string llGetInventoryCreator(string item) { return ""; }
+        public void llOwnerSay(string msg) { }
+        public void llRequestSimulatorData(string simulator, Int32 data) { }
+        public void llForceMouselook(Int32 mouselook) { }
+        public float llGetObjectMass(string id) { return 0; }
         public void llListReplaceList() { }
-        public void llLoadURL() { }
+        public void llLoadURL(string avatar_id, string message, string url) { }
         public void llParcelMediaCommandList() { }
         public void llParcelMediaQuery() { }
-        public void llModPow() { }
-        public void llGetInventoryType() { }
+        public Int32 llModPow(Int32 a, Int32 b, Int32 c) { return 0; }
+        public Int32 llGetInventoryType(string name) { return 0; }
         public void llSetPayPrice() { }
-        public void llGetCameraPos() { }
-        public void llGetCameraRot() { }
+        public Axiom.Math.Vector3 llGetCameraPos() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Quaternion llGetCameraRot() { return new Axiom.Math.Quaternion(); }
         public void llSetPrimURL() { }
         public void llRefreshPrimURL() { }
-        public void llEscapeURL() { }
-        public void llUnescapeURL() { }
-        public void llMapDestination() { }
-        public void llAddToLandBanList() { }
-        public void llRemoveFromLandPassList() { }
-        public void llRemoveFromLandBanList() { }
+        public string llEscapeURL(string url) { return ""; }
+        public string llUnescapeURL(string url) { return ""; }
+        public void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at) { }
+        public void llAddToLandBanList(string avatar, float hours) { }
+        public void llRemoveFromLandPassList(string avatar) { }
+        public void llRemoveFromLandBanList(string avatar) { }
         public void llSetCameraParams() { }
         public void llClearCameraParams() { }
         public void llListStatistics() { }
-        public void llGetUnixTime() { }
-        public void llGetParcelFlags() { }
-        public void llGetRegionFlags() { }
-        public void llXorBase64StringsCorrect() { }
+        public Int32 llGetUnixTime() { return 0; }
+        public Int32 llGetParcelFlags(Axiom.Math.Vector3 pos) { return 0; }
+        public Int32 llGetRegionFlags() { return 0; }
+        public string llXorBase64StringsCorrect(string str1, string str2) { return ""; }
         public void llHTTPRequest() { }
         public void llResetLandBanList() { }
         public void llResetLandPassList() { }
-        public void llGetParcelPrimCount() { }
+        public Int32 llGetParcelPrimCount(Axiom.Math.Vector3 pos, Int32 category, Int32 sim_wide) { return 0; }
         public void llGetParcelPrimOwners() { }
-        public void llGetObjectPrimCount() { }
-        public void llGetParcelMaxPrims() { }
-        public void llGetParcelDetails() { }
+        public Int32 llGetObjectPrimCount(string object_id) { return 0; }
+        public Int32 llGetParcelMaxPrims(Axiom.Math.Vector3 pos, Int32 sim_wide) { return 0; }
+        public List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param) { return new List<string>(); }
 
     }
 }
