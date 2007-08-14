@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
-            Common.SendToDebug("EventQueueManager Start");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Start");
             // Start worker thread
             EventQueueThread = new Thread(EventQueueThreadLoop);
             EventQueueThread.IsBackground = true;
@@ -70,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
                 catch (Exception e)
                 {
-                    Common.SendToDebug("EventQueueManager Exception killing worker thread: " + e.ToString());
+                    myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
                 }
             }
             // Todo: Clean up our queues
@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private void EventQueueThreadLoop()
         {
-            Common.SendToDebug("EventQueueManager Worker thread spawned");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
             try
             {
                 while (true)
@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     {
                         // Something in queue, process
                         QueueItemStruct QIS = EventQueue.Dequeue();
-                        Common.SendToDebug("Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
+                        myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
                         // TODO: Execute function
                         myScriptEngine.myScriptManager.ExecuteFunction(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
                     }
@@ -101,14 +101,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (ThreadAbortException tae)
             {
-                Common.SendToDebug("EventQueueManager Worker thread killed: " + tae.Message);
+                myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread killed: " + tae.Message);
             }
         }
 
         public void AddToObjectQueue(string ObjectID, string FunctionName, object[] param)
         {
             // Determine all scripts in Object and add to their queue
-            Common.SendToDebug("EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);
 
             foreach (string ScriptID in myScriptEngine.myScriptManager.GetScriptKeys(ObjectID))
             {

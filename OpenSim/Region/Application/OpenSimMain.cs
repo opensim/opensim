@@ -155,7 +155,7 @@ namespace OpenSim
             }
 
             // Load all script engines found
-            //OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader();
+            OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
             
             for (int i = 0; i < configFiles.Length; i++)
             {
@@ -166,11 +166,11 @@ namespace OpenSim
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
 
-
-                //OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
-                //scene.AddScriptEngine(ScriptEngine);
-                //// TODO: TEMP load default script
-                //ScriptEngine.StartScript(Path.Combine("ScriptEngines", "default.lsl"), "TEST");
+                
+                OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
+                scene.AddScriptEngine(ScriptEngine, m_log);
+                // TODO: TEMP load default script
+                ScriptEngine.StartScript(Path.Combine("ScriptEngines", "default.lsl"), "TEST");
 
 
                 m_localScenes.Add(scene);

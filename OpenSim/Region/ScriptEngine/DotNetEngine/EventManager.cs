@@ -44,12 +44,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             myScriptEngine = _ScriptEngine;
             // TODO: HOOK EVENTS UP TO SERVER!
-            Common.SendToDebug("EventManager Start");
-            
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Start");
             // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
             // Hook up a test event to our test form
-            Common.SendToDebug("EventManager Hooking up dummy-event: touch_start");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Hooking up dummy-event: touch_start");
             // TODO: REPLACE THIS WITH A REAL TOUCH_START EVENT IN SERVER
             myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
             //myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);
@@ -58,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            Common.SendToDebug("EventManager Event: touch_start");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
             myScriptEngine.myEventQueueManager.AddToObjectQueue("TEST", "touch_start", new object[] { (int)0 });
         }
 

@@ -35,6 +35,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     public static class Common
     {
         static public bool Debug = true;
+        static public ScriptEngine mySE;
 
         //public delegate void SendToDebugEventDelegate(string Message);
         //public delegate void SendToLogEventDelegate(string Message);
@@ -44,13 +45,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         static public void SendToDebug(string Message)
         {
             //if (Debug == true)
-            Console.WriteLine("SE:Debug: " + Message);
+            mySE.m_logger.Verbose("ScriptEngine", "Debug: " + Message);
             //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
         static public void SendToLog(string Message)
         {
             //if (Debug == true)
-            Console.WriteLine("SE:LOG: " + Message);
+            mySE.m_logger.Verbose("ScriptEngine", "LOG: " + Message);
             //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
     }

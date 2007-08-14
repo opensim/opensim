@@ -1017,10 +1017,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Script Engine
         private List<OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface> ScriptEngines = new List<OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface>();
-        public void AddScriptEngine(OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine)
+        public void AddScriptEngine(OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine, LogBase m_logger)
         {
             ScriptEngines.Add(ScriptEngine);
-            ScriptEngine.InitializeEngine(this);        
+            ScriptEngine.InitializeEngine(this, m_logger);        
         }
         #endregion
 

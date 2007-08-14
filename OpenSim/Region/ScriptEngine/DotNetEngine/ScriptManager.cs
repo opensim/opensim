@@ -41,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public ScriptManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
-            Common.SendToDebug("ScriptManager Start");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Start");
         }
 
 
@@ -102,7 +102,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="ObjectID"></param>
         public void StartScript(string ScriptID, string ObjectID)
         {
-            Common.SendToDebug("ScriptManager StartScript: ScriptID: " + ScriptID + ", ObjectID: " + ObjectID);
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager StartScript: ScriptID: " + ScriptID + ", ObjectID: " + ObjectID);
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
@@ -114,13 +114,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             FileName = ScriptID;
 
             // * Does script need compile? Send it to LSL compiler first. (TODO: Use (and clean) compiler cache)
-            Common.SendToDebug("ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
             switch (System.IO.Path.GetExtension(FileName).ToLower())
             {
                 case ".txt":
                 case ".lsl":
                 case ".cs":
-                    Common.SendToDebug("ScriptManager Script is CS/LSL, compiling to .Net Assembly");
+                    myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script is CS/LSL, compiling to .Net Assembly");
                     // Create a new instance of the compiler (currently we don't want reuse)
                     OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
                     // Compile
@@ -130,7 +130,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     throw new Exception("Unknown script type.");
             }
 
-            Common.SendToDebug("Compilation done");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "Compilation done");
             // * Insert yield into code
             FileName = ProcessYield(FileName);
 
@@ -149,7 +149,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
 
             // Start the script - giving it BuiltIns
-            Common.SendToDebug("ScriptManager initializing script, handing over private builtin command interface");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
             Script.Start(myScriptEngine.World, ScriptID);
 
 
@@ -174,7 +174,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <returns></returns>
         private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName)
         {
-            Common.SendToDebug("ScriptManager Loading Assembly " + FileName);
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
             // Load .Net Assembly (.dll)
             // Initialize and return it
 
@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         internal void ExecuteFunction(string ObjectID, string ScriptID, string FunctionName, object[] args)
         {
-            Common.SendToDebug("Executing Function ObjectID: " + ObjectID + ", ScriptID: " + ScriptID + ", FunctionName: " + FunctionName);
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "Executing Function ObjectID: " + ObjectID + ", ScriptID: " + ScriptID + ", FunctionName: " + FunctionName);
             OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = myScriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);
 
             Type type = Script.GetType();
@@ -226,7 +226,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             //System.Collections.Generic.List<string> Functions = (System.Collections.Generic.List<string>)
             //Type type = typeof(OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass);
-            Common.SendToDebug("Invoke: \"" + Script.State + "_event_" + FunctionName + "\"");
+            myScriptEngine.m_logger.Verbose("ScriptEngine", "Invoke: \"" + Script.State + "_event_" + FunctionName + "\"");
             type.InvokeMember(Script.State + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
             //System.Collections.Generic.List<string> Functions = (System.Collections.Generic.List<string>)type.InvokeMember("GetFunctions", BindingFlags.InvokeMethod, null, Script, null);
 

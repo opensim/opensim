@@ -36,14 +36,25 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class ScriptEngineLoader
     {
-        public ScriptEngineLoader()
+        private OpenSim.Framework.Console.LogBase m_log;
+        public ScriptEngineLoader(OpenSim.Framework.Console.LogBase logger)
         {
+            m_log = logger;
         }
 
         public ScriptEngineInterface LoadScriptEngine(string EngineName)
         {
-            return LoadAndInitAssembly(Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine." + EngineName + ".dll"), 
-                        "OpenSim.Region.ScriptEngine." + EngineName + ".ScriptEngine");
+            ScriptEngineInterface ret = null;
+            try
+            {
+                ret = LoadAndInitAssembly(Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine." + EngineName + ".dll"),
+                            "OpenSim.Region.ScriptEngine." + EngineName + ".ScriptEngine");
+            }
+            catch (Exception e)
+            {
+                m_log.Error("ScriptEngine", "Error loading assembly \"" + EngineName + "\": " + e.ToString());
+            }
+            return ret;
         }
 
         /// <summary>
@@ -73,6 +84,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
+            //    m_log.Error("ScriptEngine", "Error loading assembly \"" + FileName + "\": " + e.ToString());
             //}
 
 
@@ -89,9 +101,20 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
+            //    m_log.Error("ScriptEngine", "Error initializing type \"" + NameSpace + "\" from \"" + FileName + "\": " + e.ToString());
             //}
 
-            return (ScriptEngineInterface)Activator.CreateInstance(t);
+            ScriptEngineInterface ret;
+            //try
+            //{
+            ret = (ScriptEngineInterface)Activator.CreateInstance(t);
+            //}
+            //catch (Exception e)
+            //{
+            //    m_log.Error("ScriptEngine", "Error initializing type \"" + NameSpace + "\" from \"" + FileName + "\": " + e.ToString());
+            //}
+
+            return ret;
 
 
         }

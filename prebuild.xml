@@ -958,6 +958,7 @@
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match pattern="*.lso" recurse="true"/>

@@ -13,7 +13,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void Start(OpenSim.Region.Environment.Scenes.Scene _World, string FullScriptID)
         {
             World = _World;
-            Common.SendToLog("OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID);
+            Console.WriteLine("ScriptEngine", "LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID);
 
             return;
         }
@@ -49,14 +49,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llWhisper(int channelID, string text)
         {
             //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
-            Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
+            Console.WriteLine("ScriptEngine", "llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
         }
         //public void llSay(UInt32 channelID, string text)
         public void llSay(int channelID, string text)
         {
             //TODO: DO SOMETHING USEFUL HERE
             //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (UInt32)channelID + ", \"" + (string)text + "\");");
-            Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
+            Console.WriteLine("ScriptEngine", "llSay Channel " + channelID + ", Text: \"" + text + "\"");
             //World.SimChat(
         }
         public void llShout(UInt16 channelID, string text) { return; }

@@ -42,16 +42,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         internal EventManager myEventManager;                   // Handles and queues incoming events from OpenSim
         internal EventQueueManager myEventQueueManager;         // Executes events
         internal ScriptManager myScriptManager;                 // Load, unload and execute scripts
+        internal OpenSim.Framework.Console.LogBase m_logger;
 
         public ScriptEngine()
         {
-            Common.SendToDebug("ScriptEngine Object Initialized");
+            //Common.SendToDebug("ScriptEngine Object Initialized");
+            Common.mySE = this;
         }
 
-        public void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld)
+        public void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger)
         {
             World = Sceneworld;
-            Common.SendToDebug("ScriptEngine InitializeEngine()");
+            m_logger = logger;
+            
+            m_logger.Status("ScriptEngine", "InitializeEngine");
 
             // Create all objects we'll be using
             myEventQueueManager = new EventQueueManager(this);
@@ -71,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         [Obsolete("!!!FOR DEBUGGING ONLY!!!")]
         public void StartScript(string ScriptID, string ObjectID)
         {
-            Common.SendToDebug("ScriptEngine DEBUG: StartScript: " + ScriptID);
+            m_logger.Status("ScriptEngine", "DEBUG: StartScript: " + ScriptID);
             myScriptManager.StartScript(ScriptID, ObjectID);
         }
     }
