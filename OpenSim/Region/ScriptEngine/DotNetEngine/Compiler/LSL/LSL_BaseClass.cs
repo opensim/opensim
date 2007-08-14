@@ -9,6 +9,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     {
         public string State = "default";
         internal OpenSim.Region.Environment.Scenes.Scene World;
+        private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+
 
         public void Start(OpenSim.Region.Environment.Scenes.Scene _World, string FullScriptID)
         {
@@ -51,6 +53,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
             Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
+            //type for whisper is 0
+            //World.SimChat(enc.GetBytes(text), 0, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
+
         }
         //public void llSay(UInt32 channelID, string text)
         public void llSay(int channelID, string text)
@@ -58,9 +63,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //TODO: DO SOMETHING USEFUL HERE
             //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (UInt32)channelID + ", \"" + (string)text + "\");");
             Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
-            //World.SimChat(
+            //type for say is 1
+            //World.SimChat(enc.GetBytes(text), 1, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
         }
-        public void llShout(UInt16 channelID, string text) { return; }
+        public void llShout(UInt16 channelID, string text) {
+            Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
+            //type for shout is 2
+            //World.SimChat(enc.GetBytes(text), 2, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
+
+        }
         public UInt32 llListen(UInt16 channelID, string name, string ID, string msg) { return 0; }
         public void llListenControl(UInt32 number, UInt32 active) { return; }
         public void llListenRemove(UInt32 number) { return; }
