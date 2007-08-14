@@ -54,6 +54,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_eventManager; }
         }
 
+        public RegionInfo RegionsInfo
+        {
+            get { return m_regInfo; }
+        }
+
         protected string m_datastore;
 
         protected object m_syncRoot = new object();
