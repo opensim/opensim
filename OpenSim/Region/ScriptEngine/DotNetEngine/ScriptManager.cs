@@ -149,7 +149,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
 
             // Start the script - giving it BuiltIns
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
             Script.Start(myScriptEngine.World, ScriptID);
 
 

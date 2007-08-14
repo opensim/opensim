@@ -170,7 +170,7 @@ namespace OpenSim
                 OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
                 scene.AddScriptEngine(ScriptEngine, m_log);
                 // TODO: TEMP load default script
-                ScriptEngine.StartScript(Path.Combine("ScriptEngines", "default.lsl"), "TEST");
+                ScriptEngine.StartScript(Path.Combine("ScriptEngines", "Default.lsl"), "TEST");
 
 
                 m_localScenes.Add(scene);
