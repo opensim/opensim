@@ -44,6 +44,21 @@ namespace OpenSim.Framework.Communications.Caches
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
         public Dictionary<LLUUID, InventoryFolder> SubFolders = new Dictionary<LLUUID, InventoryFolder>();
 
+        public InventoryFolder(InventoryFolderBase folderbase)
+        {
+            this.agentID = folderbase.agentID;
+            this.folderID = folderbase.folderID;
+            this.name = folderbase.name;
+            this.parentID = folderbase.parentID;
+            this.type = folderbase.type;
+            this.version = folderbase.version;
+        }
+
+        public InventoryFolder()
+        {
+
+        }
+
         // Methods
         public InventoryFolder CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
         {

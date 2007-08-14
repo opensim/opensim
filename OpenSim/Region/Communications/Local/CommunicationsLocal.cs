@@ -32,23 +32,32 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public LocalBackEndServices InstanceServices = new LocalBackEndServices();
+        public LocalBackEndServices InstanceServices;
         public LocalUserServices UserServices;
         public LocalLoginService LoginServices;
+        public LocalInventoryService InvenServices;
 
         public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate, string welcomeMessage )
             : base(serversInfo, httpServer, assetCache)
         {
+            InvenServices = new LocalInventoryService();
+            InvenServices.AddPlugin("OpenSim.Framework.Data.SQLite.dll");
+            InventoryServer = InvenServices;
+
             UserServices = new LocalUserServices(this, serversInfo);
             UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");
             UserServer = UserServices;
+
+            InstanceServices = new LocalBackEndServices();
             GridServer = InstanceServices;
             InterRegion = InstanceServices;
+            
             LoginServices = new LocalLoginService(UserServices, welcomeMessage, this, serversInfo, accountsAuthenticate);
             httpServer.AddXmlRPCHandler("login_to_simulator", LoginServices.XmlRpcLoginMethod);
         }
@@ -78,6 +87,12 @@ namespace OpenSim.Region.Communications.Local
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
                     this.UserServices.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    UserProfileData userProf = this.UserServer.GetUserProfile(tempfirstname, templastname);
+                    if (userProf != null)
+                    {
+                        this.InvenServices.CreateNewUserInventory(userProf.UUID);
+                        Console.WriteLine("created new inventory set for " + tempfirstname + " " + templastname);
+                    }
                     break;
             }
         }

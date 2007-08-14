@@ -467,7 +467,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 addPrim(prim, obj.UUID);
             }
             
-            MainLog.Instance.Verbose("Attempting to do database update....");
+           // MainLog.Instance.Verbose("Attempting to do database update....");
             primDa.Update(ds, "prims");
             shapeDa.Update(ds, "primshapes");
            // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());

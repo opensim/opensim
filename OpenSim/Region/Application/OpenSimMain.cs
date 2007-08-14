@@ -155,7 +155,7 @@ namespace OpenSim
             }
 
             // Load all script engines found
-            OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader();
+            //OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader();
             
             for (int i = 0; i < configFiles.Length; i++)
             {
@@ -184,10 +184,6 @@ namespace OpenSim
             {
                 this.m_udpServers[i].ServerListener();
             }
-
-            
-
-
         }
 
         private static void CreateDefaultRegionInfoXml(string fileName)

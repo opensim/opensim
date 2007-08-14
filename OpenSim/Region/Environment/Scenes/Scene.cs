@@ -1020,7 +1020,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddScriptEngine(OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine)
         {
             ScriptEngines.Add(ScriptEngine);
-            ScriptEngine.InitializeEngine(this);        }
+            ScriptEngine.InitializeEngine(this);        
+        }
         #endregion
 
         public LLUUID ConvertLocalIDToFullID(uint localID)
@@ -1037,8 +1038,7 @@ namespace OpenSim.Region.Environment.Scenes
                      }
                  }
              }
-
-             return null;
+             return LLUUID.Zero;
         }
     }
 }

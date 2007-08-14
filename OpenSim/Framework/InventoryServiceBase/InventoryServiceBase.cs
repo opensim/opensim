@@ -12,11 +12,11 @@ namespace OpenSim.Framework.InventoryServiceBase
     public class InventoryServiceBase
     {
         protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
-        protected IAssetServer m_assetServer;
+        //protected IAssetServer m_assetServer;
 
-        public InventoryServiceBase(IAssetServer assetServer)
+        public InventoryServiceBase()
         {
-            m_assetServer = assetServer;
+            //m_assetServer = assetServer;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace OpenSim.Framework.InventoryServiceBase
         /// <param name="FileName">The filename to the user server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose("Inventorytorage: Attempting to load " + FileName);
+            MainLog.Instance.Verbose("Inventory", "Inventorystorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -108,13 +108,31 @@ namespace OpenSim.Framework.InventoryServiceBase
             return itemsList;
         }
 
+        public void AddFolder(InventoryFolderBase folder)
+        {
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.addInventoryFolder(folder);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="inventory"></param>
         public void AddNewInventorySet(UsersInventory inventory)
         {
+            foreach (InventoryFolderBase folder in inventory.Folders.Values)
+            {
+                this.AddFolder(folder);
+            }
+        }
 
+        public void CreateNewUserInventory(LLUUID user)
+        {
+            UsersInventory inven = new UsersInventory();
+            inven.CreateNewInventorySet(user);
+            this.AddNewInventorySet(inven);
         }
 
         public class UsersInventory
@@ -127,9 +145,45 @@ namespace OpenSim.Framework.InventoryServiceBase
 
             }
 
-            protected virtual void CreateNewInventorySet()
+            public virtual void CreateNewInventorySet(LLUUID user)
             {
+                InventoryFolderBase folder = new InventoryFolderBase();
+                folder.parentID = LLUUID.Zero;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "My Inventory";
+                folder.type = 8;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
 
+                LLUUID rootFolder = folder.folderID;
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Textures";
+                folder.type = 0;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Objects";
+                folder.type = 6;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Clothes";
+                folder.type = 5;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
             }
         }
     }

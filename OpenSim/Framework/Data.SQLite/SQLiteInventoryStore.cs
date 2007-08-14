@@ -1,0 +1,401 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
+using libsecondlife;
+
+using System.Data;
+using System.Data.SqlTypes;
+
+using Mono.Data.SqliteClient;
+
+namespace OpenSim.Framework.Data.SQLite
+{
+
+    public class SQLiteInventoryStore : IInventoryData
+    {
+        private const string invItemsSelect = "select * from inventoryitems";
+        private const string invFoldersSelect = "select * from inventoryfolders";
+
+        private DataSet ds;
+        private SqliteDataAdapter invItemsDa;
+        private SqliteDataAdapter invFoldersDa;
+
+        /// <summary>
+        /// Initialises the interface
+        /// </summary>
+        public void Initialise()
+        {
+            Initialise("inventoryStore.db", "inventoryDatabase");
+        }
+
+        public void Initialise(string dbfile, string dbname)
+        {
+            string connectionString = "URI=file:" + dbfile + ",version=3";
+
+            MainLog.Instance.Verbose("Inventory", "Sqlite - connecting: " + dbfile);
+            SqliteConnection conn = new SqliteConnection(connectionString);
+
+            SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
+            invItemsDa = new SqliteDataAdapter(itemsSelectCmd);
+            //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
+
+            SqliteCommand foldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
+            invFoldersDa = new SqliteDataAdapter(foldersSelectCmd);
+
+            ds = new DataSet();
+
+            invItemsDa.Fill(ds, "inventoryitems");
+            invFoldersDa.Fill(ds, "inventoryfolders");
+            ds.AcceptChanges();
+
+            DataTable itemsTable = ds.Tables["inventoryitems"];
+            itemsTable.PrimaryKey = new DataColumn[] { itemsTable.Columns["UUID"] };
+            setupItemsCommands(invItemsDa, conn);
+
+            // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
+            DataTable folderTable = ds.Tables["inventoryfolders"];
+            folderTable.PrimaryKey = new DataColumn[] { folderTable.Columns["UUID"] };
+            setupFoldersCommands(invFoldersDa, conn);
+            return;
+        }
+
+        private SqliteParameter createSqliteParameter(string name, DbType type)
+        {
+            SqliteParameter param = new SqliteParameter();
+            param.ParameterName = ":" + name;
+            param.DbType = type;
+            param.SourceColumn = name;
+            param.SourceVersion = DataRowVersion.Current;
+            return param;
+        }
+
+        private Dictionary<string, DbType> createInventoryItemsDataDefs()
+        {
+            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
+            data.Add("UUID", DbType.String); //inventoryID
+            data.Add("assetID", DbType.String);
+            data.Add("assetType", DbType.Int32);
+            data.Add("invType", DbType.Int32);
+            data.Add("parentFolderID", DbType.String);
+            data.Add("avatarID", DbType.String);
+            data.Add("creatorsID", DbType.String);
+
+            data.Add("inventoryName", DbType.String);
+            data.Add("inventoryDescription", DbType.String);
+            // permissions
+            data.Add("inventoryNextPermissions", DbType.Int32);
+            data.Add("inventoryCurrentPermissions", DbType.Int32);
+            data.Add("inventoryBasePermissions", DbType.Int32);
+            data.Add("inventoryEveryOnePermissions", DbType.Int32);
+           
+            return data;
+        }
+
+        private Dictionary<string, DbType> createShapeDataDefs()
+        {
+            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
+            data.Add("UUID", DbType.String); //folderID
+            // shape is an enum
+            data.Add("name", DbType.String);
+            // vectors
+            data.Add("agentID", DbType.String);
+            data.Add("parentID", DbType.String);
+            data.Add("type", DbType.Int32);
+            data.Add("version", DbType.Int32);
+            return data;
+        }
+
+        private SqliteCommand createInsertCommand(string table, Dictionary<string, DbType> defs)
+        {
+            /**
+             *  This is subtle enough to deserve some commentary.
+             *  Instead of doing *lots* and *lots of hardcoded strings
+             *  for database definitions we'll use the fact that
+             *  realistically all insert statements look like "insert
+             *  into A(b, c) values(:b, :c) on the parameterized query
+             *  front.  If we just have a list of b, c, etc... we can
+             *  generate these strings instead of typing them out.
+             */
+            string[] cols = new string[defs.Keys.Count];
+            defs.Keys.CopyTo(cols, 0);
+
+            string sql = "insert into " + table + "(";
+            sql += String.Join(", ", cols);
+            // important, the first ':' needs to be here, the rest get added in the join
+            sql += ") values (:";
+            sql += String.Join(", :", cols);
+            sql += ")";
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (KeyValuePair<string, DbType> kvp in defs)
+            {
+                cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
+            }
+            return cmd;
+        }
+
+        private SqliteCommand createUpdateCommand(string table, string pk, Dictionary<string, DbType> defs)
+        {
+            string sql = "update " + table + " set ";
+            string subsql = "";
+            foreach (string key in defs.Keys)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ", ";
+                }
+                subsql += key + "= :" + key;
+            }
+            sql += subsql;
+            sql += " where " + pk;
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (KeyValuePair<string, DbType> kvp in defs)
+            {
+                cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
+            }
+            return cmd;
+        }
+
+        private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            Dictionary<string, DbType> invDataDefs = createInventoryItemsDataDefs();
+
+            da.InsertCommand = createInsertCommand("inventoryitems", invDataDefs);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("inventoryitems", "UUID=:UUID", invDataDefs);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from inventoryitems where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
+
+        private void setupFoldersCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            Dictionary<string, DbType> shapeDataDefs = createShapeDataDefs();
+
+            da.InsertCommand = createInsertCommand("inventoryfolders", shapeDataDefs);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("inventoryfolders", "UUID=:UUID", shapeDataDefs);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from inventoryfolders where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
+
+        private InventoryFolderBase buildFolder(DataRow row)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase();
+            folder.folderID = new LLUUID((string)row["UUID"]);
+            folder.name = (string)row["name"];
+            folder.agentID = new LLUUID((string)row["agentID"]);
+            folder.parentID = new LLUUID((string)row["parentID"]);
+            folder.type = Convert.ToInt16(row["type"]);
+            folder.version = Convert.ToUInt16(row["version"]);
+            return folder;
+        }
+
+        private void fillFolderRow(DataRow row, InventoryFolderBase folder)
+        {
+            row["UUID"] = folder.folderID;
+            row["name"] = folder.name;
+            row["agentID"] = folder.agentID;
+            row["parentID"] = folder.parentID;
+            row["type"] = folder.type;
+            row["version"] = folder.version;
+        }
+
+        private void addFolder(InventoryFolderBase folder)
+        {
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+
+            DataRow inventoryRow = inventoryFolderTable.Rows.Find(folder.folderID);
+            if (inventoryRow == null)
+            {
+                inventoryRow = inventoryFolderTable.NewRow();
+                fillFolderRow(inventoryRow, folder);
+                inventoryFolderTable.Rows.Add(inventoryRow);
+            }
+            else
+            {
+                fillFolderRow(inventoryRow, folder);
+            }
+
+            this.invFoldersDa.Update(ds, "inventoryfolders");
+        }
+
+        public void Shutdown()
+        {
+            // TODO: DataSet commit
+        }
+
+        /// <summary>
+        /// Closes the interface
+        /// </summary>
+        public void Close()
+        {
+        }
+
+        /// <summary>
+        /// The plugin being loaded
+        /// </summary>
+        /// <returns>A string containing the plugin name</returns>
+        public string getName()
+        {
+            return "SQLite Inventory Data Interface";
+        }
+
+        /// <summary>
+        /// The plugins version
+        /// </summary>
+        /// <returns>A string containing the plugin version</returns>
+        public string getVersion()
+        {
+            return "0.1";
+        }
+
+        /// <summary>
+        /// Returns a list of inventory items contained within the specified folder
+        /// </summary>
+        /// <param name="folderID">The UUID of the target folder</param>
+        /// <returns>A List of InventoryItemBase items</returns>
+        public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a list of the root folders within a users inventory
+        /// </summary>
+        /// <param name="user">The user whos inventory is to be searched</param>
+        /// <returns>A list of folder objects</returns>
+        public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the users inventory root folder.
+        /// </summary>
+        /// <param name="user">The UUID of the user who is having inventory being returned</param>
+        /// <returns>Root inventory folder</returns>
+        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        {
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+            string selectExp = "agentID = '"+ user.ToString()+"' AND parentID = '"+ LLUUID.Zero.ToString()+"'";
+            DataRow[] rows = inventoryFolderTable.Select(selectExp);
+            foreach (DataRow row in rows)
+            {
+                folders.Add(this.buildFolder(row));
+            }
+
+            if (folders.Count == 1)
+            {
+                //we found the root
+                //System.Console.WriteLine("found root inventory folder");
+                return folders[0];
+            }
+            else if (folders.Count > 1)
+            {
+                //err shouldn't be more than one root
+                //System.Console.WriteLine("found more than one root inventory folder");
+            }
+            else if (folders.Count == 0)
+            {
+                // no root?
+                //System.Console.WriteLine("couldn't find root inventory folder");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a list of inventory folders contained in the folder 'parentID'
+        /// </summary>
+        /// <param name="parentID">The folder to get subfolders for</param>
+        /// <returns>A list of inventory folders</returns>
+        public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
+        {
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+            string selectExp = "parentID = '" + parentID.ToString() + "'";
+            DataRow[] rows = inventoryFolderTable.Select(selectExp);
+            foreach (DataRow row in rows)
+            {
+                folders.Add(this.buildFolder(row));
+            }
+           // System.Console.WriteLine("found " + folders.Count + " inventory folders");
+            return folders;
+        }
+
+        /// <summary>
+        /// Returns an inventory item by its UUID
+        /// </summary>
+        /// <param name="item">The UUID of the item to be returned</param>
+        /// <returns>A class containing item information</returns>
+        public InventoryItemBase getInventoryItem(LLUUID item)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a specified inventory folder by its UUID
+        /// </summary>
+        /// <param name="folder">The UUID of the folder to be returned</param>
+        /// <returns>A class containing folder information</returns>
+        public InventoryFolderBase getInventoryFolder(LLUUID folder)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Creates a new inventory item based on item
+        /// </summary>
+        /// <param name="item">The item to be created</param>
+        public void addInventoryItem(InventoryItemBase item)
+        {
+        }
+
+        /// <summary>
+        /// Updates an inventory item with item (updates based on ID)
+        /// </summary>
+        /// <param name="item">The updated item</param>
+        public void updateInventoryItem(InventoryItemBase item)
+        {
+        }
+
+        /// <summary>
+        /// Adds a new folder specified by folder
+        /// </summary>
+        /// <param name="folder">The inventory folder</param>
+        public void addInventoryFolder(InventoryFolderBase folder)
+        {
+            this.addFolder(folder);
+        }
+
+        /// <summary>
+        /// Updates a folder based on its ID with folder
+        /// </summary>
+        /// <param name="folder">The inventory folder</param>
+        public void updateInventoryFolder(InventoryFolderBase folder)
+        {
+            this.addFolder(folder);
+        }
+    }
+}
+

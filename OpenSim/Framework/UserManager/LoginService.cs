@@ -89,14 +89,14 @@ namespace OpenSim.Framework.UserManagement
                     LLUUID agentID = userProfile.UUID;
 
                     // Inventory Library Section
-                    AgentInventory userInventory = this.GetUsersInventory(agentID);
-                    ArrayList AgentInventoryArray = this.CreateInventoryArray(userInventory);
+                    InventoryData inventData = this.CreateInventoryData(agentID);
+                    ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                     Hashtable InventoryRootHash = new Hashtable();
-                    InventoryRootHash["folder_id"] = userInventory.InventoryRoot.FolderID.ToStringHyphenated();
+                    InventoryRootHash["folder_id"] = inventData.RootFolderID.ToStringHyphenated();
                     ArrayList InventoryRoot = new ArrayList();
                     InventoryRoot.Add(InventoryRootHash);
-                    userProfile.rootInventoryFolderID = userInventory.InventoryRoot.FolderID;
+                    userProfile.rootInventoryFolderID = inventData.RootFolderID;
 
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());
@@ -253,16 +253,11 @@ namespace OpenSim.Framework.UserManagement
             return inventoryLibOwner;
         }
 
-        protected virtual AgentInventory GetUsersInventory(LLUUID agentID)
+        protected virtual InventoryData CreateInventoryData(LLUUID userID)
         {
             AgentInventory userInventory = new AgentInventory();
-            userInventory.CreateRootFolder(agentID, false);
+            userInventory.CreateRootFolder(userID, false);
 
-            return userInventory;
-        }
-
-        protected virtual ArrayList CreateInventoryArray(AgentInventory userInventory)
-        {
             ArrayList AgentInventoryArray = new ArrayList();
             Hashtable TempHash;
             foreach (InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
@@ -275,7 +270,20 @@ namespace OpenSim.Framework.UserManagement
                 TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
                 AgentInventoryArray.Add(TempHash);
             }
-            return AgentInventoryArray;
+
+            return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
+        }
+
+        public class InventoryData
+        {
+            public ArrayList InventoryArray = null;
+            public LLUUID RootFolderID = LLUUID.Zero;
+
+            public InventoryData(ArrayList invList, LLUUID rootID)
+            {
+                InventoryArray = invList;
+                RootFolderID = rootID;
+            }
         }
     }
 }
