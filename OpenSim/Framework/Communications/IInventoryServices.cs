@@ -14,5 +14,6 @@ namespace OpenSim.Framework.Communications
     public interface IInventoryServices
     {
         void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
+        void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder);
     }
 }

@@ -47,5 +47,10 @@ namespace OpenSim.Region.Communications.Local
                 }
             }
         }
+
+        public void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
+        {
+            this.AddFolder(folder);
+        }
     }
 }

@@ -98,17 +98,24 @@ namespace OpenSim.Framework.Communications.Caches
         {
             if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
-                if (info.RootFolder.folderID == parentID)
+                if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
-                    info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
-                }
-                else
-                {
-                    InventoryFolder folder = info.RootFolder.HasSubFolder(parentID);
-                    if (folder != null)
+                    CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
+                    if (info.RootFolder.folderID == parentID)
                     {
-                        folder.CreateNewSubFolder(folderID, folderName, folderType);
+                       InventoryFolder createdFolder = info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+                       if (createdFolder != null)
+                       {
+                           this.m_parent.InventoryServer.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
+                       }
+                    }
+                    else
+                    {
+                        InventoryFolder folder = info.RootFolder.HasSubFolder(parentID);
+                        if (folder != null)
+                        {
+                            folder.CreateNewSubFolder(folderID, folderName, folderType);
+                        }
                     }
                 }
             }
@@ -127,20 +134,23 @@ namespace OpenSim.Framework.Communications.Caches
             }
             else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
-                if (info.RootFolder.folderID == folderID)
+                if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
-                    if (fetchItems)
+                    CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
+                    if (info.RootFolder.folderID == folderID)
                     {
-                        remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, info.RootFolder.RequestListOfItems());
+                        if (fetchItems)
+                        {
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, info.RootFolder.RequestListOfItems());
+                        }
                     }
-                }
-                else
-                {
-                    InventoryFolder folder = info.RootFolder.HasSubFolder(folderID);
-                    if ((folder != null) && fetchItems)
+                    else
                     {
-                        remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, folder.RequestListOfItems());
+                        InventoryFolder folder = info.RootFolder.HasSubFolder(folderID);
+                        if ((folder != null) && fetchItems)
+                        {
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, folder.RequestListOfItems());
+                        }
                     }
                 }
             }
@@ -154,10 +164,13 @@ namespace OpenSim.Framework.Communications.Caches
             }
             else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                InventoryItemBase item = this.UserProfiles[remoteClient.AgentId].RootFolder.HasItem(itemID);
-                if (item != null)
+                if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
-                    remoteClient.SendInventoryItemDetails(ownerID, item);
+                    InventoryItemBase item = this.UserProfiles[remoteClient.AgentId].RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        remoteClient.SendInventoryItemDetails(ownerID, item);
+                    }
                 }
             }
         }
@@ -168,7 +181,7 @@ namespace OpenSim.Framework.Communications.Caches
         /// <param name="userID"></param>
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
-             //this.m_parent.InventoryServer.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+             this.m_parent.InventoryServer.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
 
             //for now we manually create the root folder,
             // but should be requesting all inventory from inventory server.

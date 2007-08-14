@@ -41,8 +41,8 @@ namespace OpenSim.Framework.Communications.Caches
     public class CachedUserInfo
     {
         // Fields
-        public InventoryFolder RootFolder;
-        public UserProfileData UserProfile;
+        public InventoryFolder RootFolder = null;
+        public UserProfileData UserProfile = null;
 
         // Methods
         public void FolderReceive(LLUUID userID, InventoryFolder folderInfo)
