@@ -727,7 +727,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.inventoryCurrentPermissions = 2147483647;
                 item.inventoryNextPermissions = nextOwnerMask;
 
-                userInfo.ItemReceive(remoteClient.AgentId, item);
+                userInfo.AddItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemUpdate(item);
             }
         }

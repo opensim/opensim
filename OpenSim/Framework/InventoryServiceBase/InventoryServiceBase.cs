@@ -116,6 +116,14 @@ namespace OpenSim.Framework.InventoryServiceBase
             }
         }
 
+        public void AddItem(InventoryItemBase item)
+        {
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.addInventoryItem(item);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

@@ -40,9 +40,15 @@ namespace OpenSim.Framework.Communications.Caches
 {
     public class CachedUserInfo
     {
+        private CommunicationsManager m_parentCommsManager;
         // Fields
         public InventoryFolder RootFolder = null;
         public UserProfileData UserProfile = null;
+
+        public CachedUserInfo(CommunicationsManager commsManager)
+        {
+            m_parentCommsManager = commsManager;
+        }
 
         // Methods
         public void FolderReceive(LLUUID userID, InventoryFolder folderInfo)
@@ -73,6 +79,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
+            Console.WriteLine("received new inventory item " + itemInfo.inventoryID + " with asset id of " + itemInfo.assetID);
             if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
             {
                 if (itemInfo.parentFolderID == this.RootFolder.folderID)
@@ -84,11 +91,23 @@ namespace OpenSim.Framework.Communications.Caches
                     InventoryFolder folder = this.RootFolder.HasSubFolder(itemInfo.parentFolderID);
                     if (folder != null)
                     {
-                        folder.Items.Add(itemInfo.inventoryID, itemInfo);
+                        folder.Items.Add(itemInfo.inventoryID, itemInfo);                    
                     }
                 }
             }
         }
+
+        public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
+        {
+            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            {
+                this.ItemReceive(userID, itemInfo);
+                Console.WriteLine("now adding inventory item to database");
+                this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
+            }
+        }
     }
+
+
 }
 

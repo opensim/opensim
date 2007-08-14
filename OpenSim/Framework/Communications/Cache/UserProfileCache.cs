@@ -61,7 +61,7 @@ namespace OpenSim.Framework.Communications.Caches
         {
             if (!this.UserProfiles.ContainsKey(userID))
             {
-                CachedUserInfo userInfo = new CachedUserInfo();
+                CachedUserInfo userInfo = new CachedUserInfo(this.m_parent);
                 userInfo.UserProfile = this.RequestUserProfileForUser(userID);
                 if (userInfo.UserProfile != null)
                 {

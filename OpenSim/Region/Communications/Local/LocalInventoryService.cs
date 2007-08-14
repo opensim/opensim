@@ -43,6 +43,12 @@ namespace OpenSim.Region.Communications.Local
                     {
                         InventoryFolder newfolder = new InventoryFolder(folder);
                         folderCallBack(userID, newfolder);
+
+                        List<InventoryItemBase> items = this.RequestFolderItems(newfolder.folderID);
+                        foreach (InventoryItemBase item in items)
+                        {
+                            itemCallBack(userID, item);
+                        }
                     }
                 }
             }
@@ -51,6 +57,11 @@ namespace OpenSim.Region.Communications.Local
         public void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
         {
             this.AddFolder(folder);
+        }
+
+        public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            this.AddItem(item);
         }
     }
 }

@@ -128,7 +128,7 @@ namespace OpenSim.Framework.Communications.Caches
                 }
                 if (this.OnUpLoad != null)
                 {
-                    this.OnUpLoad(this.m_assetName, this.newAssetID, inventoryItemID, data);
+                    this.OnUpLoad(this.m_assetName, "description", this.newAssetID, inventoryItemID, LLUUID.Zero, data);
                 }
                 return text;
             }
@@ -266,7 +266,7 @@ namespace OpenSim.Framework.Communications.Caches
                 }
                 if (this.OnUpLoad != null)
                 {
-                    this.OnUpLoad(this.m_assetName, this.newAssetID, inventoryItemID, data);
+                    this.OnUpLoad(this.m_assetName, "description", this.newAssetID, inventoryItemID, LLUUID.Zero, data);
                 }
                 return text;
             }

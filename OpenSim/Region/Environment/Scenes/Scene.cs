@@ -41,8 +41,9 @@ using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
-using Caps=OpenSim.Region.Capabilities.Caps;
-using Timer=System.Timers.Timer;
+using OpenSim.Framework.Data;
+using Caps = OpenSim.Region.Capabilities.Caps;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -205,7 +206,7 @@ namespace OpenSim.Region.Environment.Scenes
                     phyScene.GetResults();
                 }
 
-                List<EntityBase> moveEntities = new List<EntityBase>( Entities.Values );
+                List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);
 
                 foreach (EntityBase entity in moveEntities)
                 {
@@ -503,9 +504,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (obj is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) obj).LocalId == localID)
+                    if (((SceneObjectGroup)obj).LocalId == localID)
                     {
-                        RemoveEntity((SceneObjectGroup) obj);
+                        RemoveEntity((SceneObjectGroup)obj);
                         return;
                     }
                 }
@@ -607,8 +608,8 @@ namespace OpenSim.Region.Environment.Scenes
                 new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
-            
-           //client.OnCreateNewInventoryItem += CreateNewInventoryItem;
+
+            //client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += commsManager.UserProfiles.HandleCreateInventoryFolder;
             client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
@@ -670,9 +671,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             ForEachScenePresence(
                 delegate(ScenePresence presence)
-                    {
-                        presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                    });
+                {
+                    presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                });
 
             lock (Avatars)
             {
@@ -689,7 +690,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             // TODO: Add the removal from physics ?
-            
+
             // Remove client agent from profile, so new logins will work
             commsManager.UserServer.clearUserAgent(agentID);
 
@@ -787,7 +788,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) ent).SendFullUpdateToClient(client);
+                    ((SceneObjectGroup)ent).SendFullUpdateToClient(client);
                 }
             }
         }
@@ -825,6 +826,7 @@ namespace OpenSim.Region.Environment.Scenes
                         new Caps(assetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port,
                                  agent.CapsPath, agent.AgentID);
                     cap.RegisterHandlers();
+                    cap.AddNewInventoryItem = this.AddInventoryItem;
                     if (capsHandlers.ContainsKey(agent.AgentID))
                     {
                         MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
@@ -1009,7 +1011,7 @@ namespace OpenSim.Region.Environment.Scenes
             string result = "";
             for (int i = pos; i < commandParams.Length; i++)
             {
-                result += commandParams[i]+ " ";
+                result += commandParams[i] + " ";
             }
             return result;
         }
@@ -1020,25 +1022,45 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddScriptEngine(OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine, LogBase m_logger)
         {
             ScriptEngines.Add(ScriptEngine);
+
             ScriptEngine.InitializeEngine(this, m_logger);        
         }
         #endregion
 
         public LLUUID ConvertLocalIDToFullID(uint localID)
         {
-             bool hasPrim = false;
-             foreach (EntityBase ent in Entities.Values)
-             {
-                 if (ent is SceneObjectGroup)
-                 {
-                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
-                     if (hasPrim != false)
-                     {
+            bool hasPrim = false;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
+                    {
                         return ((SceneObjectGroup)ent).GetPartsFullID(localID);
-                     }
-                 }
-             }
-             return LLUUID.Zero;
+                    }
+                }
+            }
+            return LLUUID.Zero;
         }
+
+        public void AddInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            if(this.Avatars.ContainsKey(userID))
+            {
+                this.AddInventoryItem(this.Avatars[userID].ControllingClient, item);
+            }
+        }
+
+        public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                userInfo.AddItem(remoteClient.AgentId, item);
+                remoteClient.SendInventoryItemUpdate(item);
+            }
+        }
+
     }
 }
