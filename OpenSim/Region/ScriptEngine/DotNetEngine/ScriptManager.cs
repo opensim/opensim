@@ -114,7 +114,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             FileName = ScriptID;
 
             // * Does script need compile? Send it to LSL compiler first. (TODO: Use (and clean) compiler cache)
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Script extension: " + System.IO.Path.GetExtension(FileName).ToLower());
             switch (System.IO.Path.GetExtension(FileName).ToLower())
             {
                 case ".txt":
@@ -174,7 +174,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <returns></returns>
         private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName)
         {
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
             // Load .Net Assembly (.dll)
             // Initialize and return it
 

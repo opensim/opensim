@@ -55,7 +55,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             World = Sceneworld;
             m_logger = logger;
             
-            m_logger.Status("ScriptEngine", "InitializeEngine");
+            //m_logger.Status("ScriptEngine", "InitializeEngine");
 
             // Create all objects we'll be using
             myEventQueueManager = new EventQueueManager(this);
@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         [Obsolete("!!!FOR DEBUGGING ONLY!!!")]
         public void StartScript(string ScriptID, string ObjectID)
         {
-            m_logger.Status("ScriptEngine", "DEBUG: StartScript: " + ScriptID);
+            m_logger.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
             myScriptManager.StartScript(ScriptID, ObjectID);
         }
     }

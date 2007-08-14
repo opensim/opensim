@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             myScriptEngine = _ScriptEngine;
             // TODO: HOOK EVENTS UP TO SERVER!
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Start");
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Start");
             // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
             // Hook up a test event to our test form

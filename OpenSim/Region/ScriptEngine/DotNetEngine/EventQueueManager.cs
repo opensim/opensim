@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Start");
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Start");
             // Start worker thread
             EventQueueThread = new Thread(EventQueueThreadLoop);
             EventQueueThread.IsBackground = true;
@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private void EventQueueThreadLoop()
         {
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
             try
             {
                 while (true)
