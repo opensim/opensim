@@ -34,21 +34,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 {
     public interface LSL_BuiltIn_Commands_Interface
     {
-        float llSin(float f);
-        float llCos(float f);
-        float llTan(float f);
-        float llAtan2(float x, float y);
-        float llSqrt(float f);
-        float llPow(float fbase, float fexponent);
-        Int32 llAbs(Int32 i);
-        float llFabs(float f);
-        float llFrand(float mag);
-        Int32 llFloor(float f);
-        Int32 llCeil(float f);
-        Int32 llRound(float f);
-        float llVecMag(Axiom.Math.Vector3 v);
+        double llSin(double f);
+        double llCos(double f);
+        double llTan(double f);
+        double llAtan2(double x, double y);
+        double llSqrt(double f);
+        double llPow(double fbase, double fexponent);
+        int llAbs(int i);
+        double llFabs(double f);
+        double llFrand(double mag);
+        int llFloor(double f);
+        int llCeil(double f);
+        int llRound(double f);
+        double llVecMag(Axiom.Math.Vector3 v);
         Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v);
-        float llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b);
+        double llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b);
         Axiom.Math.Vector3 llRot2Euler(Axiom.Math.Quaternion r);
         Axiom.Math.Quaternion llEuler2Rot(Axiom.Math.Vector3 v);
         Axiom.Math.Quaternion llAxes2Rot(Axiom.Math.Vector3 fwd, Axiom.Math.Vector3 left, Axiom.Math.Vector3 up);
@@ -57,42 +57,42 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r);
         Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end);
         void llWhisper(int channelID, string text);
-        //void llSay(UInt32 channelID, string text);
+        //void llSay(int channelID, string text);
         void llSay(int channelID, string text);
-        void llShout(UInt16 channelID, string text);
-        UInt32 llListen(UInt16 channelID, string name, string ID, string msg);
-        void llListenControl(UInt32 number, UInt32 active);
-        void llListenRemove(UInt32 number);
-        void llSensor(string name, string id, UInt32 type, float range, float arc);
-        void llSensorRepeat(string name, string id, UInt32 type, float range, float arc, float rate);
+        void llShout(int channelID, string text);
+        int llListen(int channelID, string name, string ID, string msg);
+        void llListenControl(int number, int active);
+        void llListenRemove(int number);
+        void llSensor(string name, string id, int type, double range, double arc);
+        void llSensorRepeat(string name, string id, int type, double range, double arc, double rate);
         void llSensorRemove();
-        string llDetectedName(UInt32 number);
-        string llDetectedKey(UInt32 number);
-        string llDetectedOwner(UInt32 number);
-        UInt32 llDetectedType(UInt32 number);
-        Axiom.Math.Vector3 llDetectedPos(UInt32 number);
-        Axiom.Math.Vector3 llDetectedVel(UInt32 number);
-        Axiom.Math.Vector3 llDetectedGrab(UInt32 number);
-        Axiom.Math.Quaternion llDetectedRot(UInt32 number);
-        UInt32 llDetectedGroup(UInt32 number);
-        UInt32 llDetectedLinkNumber(UInt32 number);
+        string llDetectedName(int number);
+        string llDetectedKey(int number);
+        string llDetectedOwner(int number);
+        int llDetectedType(int number);
+        Axiom.Math.Vector3 llDetectedPos(int number);
+        Axiom.Math.Vector3 llDetectedVel(int number);
+        Axiom.Math.Vector3 llDetectedGrab(int number);
+        Axiom.Math.Quaternion llDetectedRot(int number);
+        int llDetectedGroup(int number);
+        int llDetectedLinkNumber(int number);
         void llDie();
-        float llGround(Axiom.Math.Vector3 offset);
-        float llCloud(Axiom.Math.Vector3 offset);
+        double llGround(Axiom.Math.Vector3 offset);
+        double llCloud(Axiom.Math.Vector3 offset);
         Axiom.Math.Vector3 llWind(Axiom.Math.Vector3 offset);
-        void llSetStatus(UInt32 status, UInt32 value);
-        UInt32 llGetStatus(UInt32 status);
+        void llSetStatus(int status, int value);
+        int llGetStatus(int status);
         void llSetScale(Axiom.Math.Vector3 scale);
         Axiom.Math.Vector3 llGetScale();
-        void llSetColor(Axiom.Math.Vector3 color, UInt32 face);
-        float llGetAlpha(UInt32 face);
-        void llSetAlpha(float alpha, UInt32 face);
-        Axiom.Math.Vector3 llGetColor(UInt32 face);
-        void llSetTexture(string texture, UInt32 face);
-        void llScaleTexture(float u, float v, UInt32 face);
-        void llOffsetTexture(float u, float v, UInt32 face);
-        void llRotateTexture(float rotation, UInt32 face);
-        string llGetTexture(UInt32 face);
+        void llSetColor(Axiom.Math.Vector3 color, int face);
+        double llGetAlpha(int face);
+        void llSetAlpha(double alpha, int face);
+        Axiom.Math.Vector3 llGetColor(int face);
+        void llSetTexture(string texture, int face);
+        void llScaleTexture(double u, double v, int face);
+        void llOffsetTexture(double u, double v, int face);
+        void llRotateTexture(double rotation, int face);
+        string llGetTexture(int face);
         void llSetPos(Axiom.Math.Vector3 pos);
 
         //wiki: vector llGetPos()
@@ -106,77 +106,77 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: rotation llGetLocalRot()
         Axiom.Math.Quaternion llGetLocalRot();
         //wiki: llSetForce(vector force, integer local)
-        void llSetForce(Axiom.Math.Vector3 force, Int32 local);
+        void llSetForce(Axiom.Math.Vector3 force, int local);
         //wiki: vector llGetForce()
         Axiom.Math.Vector3 llGetForce();
-        //wiki: integer llTarget(vector position, float range)
-        Int32 llTarget(Axiom.Math.Vector3 position, float range);
+        //wiki: integer llTarget(vector position, double range)
+        int llTarget(Axiom.Math.Vector3 position, double range);
         //wiki: llTargetRemove(integer number)
-        void llTargetRemove(Int32 number);
-        //wiki: integer llRotTarget(rotation rot, float error)
-        Int32 llRotTarget(Axiom.Math.Quaternion rot, float error);
+        void llTargetRemove(int number);
+        //wiki: integer llRotTarget(rotation rot, double error)
+        int llRotTarget(Axiom.Math.Quaternion rot, double error);
         //wiki: integer llRotTargetRemove(integer number)
-        void llRotTargetRemove(Int32 number);
-        //wiki: llMoveToTarget(vector target, float tau)
-        void llMoveToTarget(Axiom.Math.Vector3 target, float tau);
+        void llRotTargetRemove(int number);
+        //wiki: llMoveToTarget(vector target, double tau)
+        void llMoveToTarget(Axiom.Math.Vector3 target, double tau);
         //wiki: llStopMoveToTarget()
         void llStopMoveToTarget();
         //wiki: llApplyImpulse(vector force, integer local)
-        void llApplyImpulse(Axiom.Math.Vector3 force, Int32 local);
+        void llApplyImpulse(Axiom.Math.Vector3 force, int local);
         //wiki: llapplyRotationalImpulse(vector force, integer local)
-        void llApplyRotationalImpulse(Axiom.Math.Vector3 force, Int32 local);
+        void llApplyRotationalImpulse(Axiom.Math.Vector3 force, int local);
         //wiki: llSetTorque(vector torque, integer local)
-        void llSetTorque(Axiom.Math.Vector3 torque, Int32 local);
+        void llSetTorque(Axiom.Math.Vector3 torque, int local);
         //wiki: vector llGetTorque()
         Axiom.Math.Vector3 llGetTorque();
         //wiki: llSeForceAndTorque(vector force, vector torque, integer local)
-        void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, Int32 local);
+        void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, int local);
         //wiki: vector llGetVel()
         Axiom.Math.Vector3 llGetVel();
         //wiki: vector llGetAccel()
         Axiom.Math.Vector3 llGetAccel();
         //wiki: vector llGetOmega()
         Axiom.Math.Vector3 llGetOmega();
-        //wiki: float llGetTimeOfDay()
-        float llGetTimeOfDay();
-        //wiki: float llGetWallclock()
-        float llGetWallclock();
-        //wiki: float llGetTime()
-        float llGetTime();
+        //wiki: double llGetTimeOfDay()
+        double llGetTimeOfDay();
+        //wiki: double llGetWallclock()
+        double llGetWallclock();
+        //wiki: double llGetTime()
+        double llGetTime();
         //wiki: llResetTime()
         void llResetTime();
-        //wiki: float llGetAndResetTime()
-        float llGetAndResetTime();
-        //wiki (deprecated) llSound(string sound, float volume, integer queue, integer loop)
+        //wiki: double llGetAndResetTime()
+        double llGetAndResetTime();
+        //wiki (deprecated) llSound(string sound, double volume, integer queue, integer loop)
         void llSound();
-        //wiki: llPlaySound(string sound, float volume)
-        void llPlaySound(string sound, float volume);
-        //wiki: llLoopSound(string sound, float volume)
-        void llLoopSound(string sound, float volume);
-        //wiki: llLoopSoundMaster(string sound, float volume)
-        void llLoopSoundMaster(string sound, float volume);
-        //wiki: llLoopSoundSlave(string sound, float volume)
-        void llLoopSoundSlave(string sound, float volume);
-        //wiki llPlaySoundSlave(string sound, float volume)
-        void llPlaySoundSlave(string sound, float volume);
-        //wiki: llTriggerSound(string sound, float volume)
-        void llTriggerSound(string sound, float volume);
+        //wiki: llPlaySound(string sound, double volume)
+        void llPlaySound(string sound, double volume);
+        //wiki: llLoopSound(string sound, double volume)
+        void llLoopSound(string sound, double volume);
+        //wiki: llLoopSoundMaster(string sound, double volume)
+        void llLoopSoundMaster(string sound, double volume);
+        //wiki: llLoopSoundSlave(string sound, double volume)
+        void llLoopSoundSlave(string sound, double volume);
+        //wiki llPlaySoundSlave(string sound, double volume)
+        void llPlaySoundSlave(string sound, double volume);
+        //wiki: llTriggerSound(string sound, double volume)
+        void llTriggerSound(string sound, double volume);
         //wiki: llStopSound()
         void llStopSound();
         //wiki: llPreloadSound(string sound)
         void llPreloadSound(string sound);
         //wiki: string llGetSubString(string src, integer start, integer end)
-        void llGetSubString(string src, Int32 start, Int32 end);
+        void llGetSubString(string src, int start, int end);
         //wiki: string llDeleteSubString(string src, integer start, integer end)
-        string llDeleteSubString(string src, Int32 start, Int32 end);
+        string llDeleteSubString(string src, int start, int end);
         //wiki string llInsertString(string dst, integer position, string src)
-        void llInsertString(string dst, Int32 position, string src);
+        void llInsertString(string dst, int position, string src);
         //wiki: string llToUpper(string source)
         string llToUpper(string source);
         //wiki: string llToLower(string source)
         string llToLower(string source);
         //wiki: integer llGiveMoney(key destination, integer amount)
-        Int32 llGiveMoney(string destination, Int32 amount);
+        int llGiveMoney(string destination, int amount);
         //wiki: (deprecated)
         void llMakeExplosion();
         //wiki: (deprecated)
@@ -186,25 +186,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: (deprecated)
         void llMakeFire();
         //wiki: llRezObject(string inventory, vector pos, vector rel, rotation rot, integer param)
-        void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, Int32 param);
-        //wiki: llLookAt(vector target, float strength, float damping)
-        void llLookAt(Axiom.Math.Vector3 target, float strength, float damping);
+        void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, int param);
+        //wiki: llLookAt(vector target, double strength, double damping)
+        void llLookAt(Axiom.Math.Vector3 target, double strength, double damping);
         //wiki: llStopLookAt()
         void llStopLookAt();
-        //wiki: llSetTimerEvent(float sec)
-        void llSetTimerEvent(float sec);
-        //wiki: llSleep(float sec)
-        void llSleep(float sec);
-        //wiki: float llGetMass()
-        float llGetMass();
+        //wiki: llSetTimerEvent(double sec)
+        void llSetTimerEvent(double sec);
+        //wiki: llSleep(double sec)
+        void llSleep(double sec);
+        //wiki: double llGetMass()
+        double llGetMass();
         //wiki: llCollisionFilter(string name, key id, integer accept)
-        void llCollisionFilter(string name, string id, Int32 accept);
+        void llCollisionFilter(string name, string id, int accept);
         //wiki: llTakeControls(integer controls, integer accept, integer pass_on)
-        void llTakeControls(Int32 controls, Int32 accept, Int32 pass_on);
+        void llTakeControls(int controls, int accept, int pass_on);
         //wiki: llReleaseControls()
         void llReleaseControls();
         //wiki: llAttachToAvatar(integer attachment)
-        void llAttachToAvatar(Int32 attachment);
+        void llAttachToAvatar(int attachment);
         //wiki: llDetachFromAvatar()
         void llDetachFromAvatar();
         //wiki: (deprecated) llTakeCamera()
@@ -221,20 +221,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         void llGetNextEmail(string address, string subject);
         //wiki:    key llGetKey()
         string llGetKey();
-        //wiki: llSetBuoyancy(float buoyancy)
-        void llSetBuoyancy(float buoyancy);
-        //wiki: llSetHoverHeight(float height, integer water, float tau)
-        void llSetHoverHeight(float height, Int32 water, float tau);
+        //wiki: llSetBuoyancy(double buoyancy)
+        void llSetBuoyancy(double buoyancy);
+        //wiki: llSetHoverHeight(double height, integer water, double tau)
+        void llSetHoverHeight(double height, int water, double tau);
         //wiki: llStopHover
         void llStopHover();
-        //wiki: llMinEventDelay(float delay)
-        void llMinEventDelay(float delay);
+        //wiki: llMinEventDelay(double delay)
+        void llMinEventDelay(double delay);
         //wiki: (deprecated) llSoundPreload()
         void llSoundPreload();
-        //wiki: llRotLookAt(rotation target, float strength, float damping)
-        void llRotLookAt(Axiom.Math.Quaternion target, float strength, float damping);
+        //wiki: llRotLookAt(rotation target, double strength, double damping)
+        void llRotLookAt(Axiom.Math.Quaternion target, double strength, double damping);
         //wiki: integer llStringLength(string str)
-        Int32 llStringLength(string str);
+        int llStringLength(string str);
         //wiki: llStartAnimation(string anim)
         void llStartAnimation(string anim);
         //wiki: llStopAnimation(string anim)
@@ -243,62 +243,62 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         void llPointAt();
         //wiki: (deprecated) llStopPointAt
         void llStopPointAt();
-        //wiki: llTargetOmega(vector axis, float spinrate, float gain)
-        void llTargetOmega(Axiom.Math.Vector3 axis, float spinrate, float gain);
+        //wiki: llTargetOmega(vector axis, double spinrate, double gain)
+        void llTargetOmega(Axiom.Math.Vector3 axis, double spinrate, double gain);
         //wiki: integer llGetStartParameter()
-        Int32 llGetStartParameter();
+        int llGetStartParameter();
         //wiki: llGodLikeRezObject(key inventory, vector pos)
         void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos);
         //wiki: llRequestPermissions(key agent, integer perm)
-        void llRequestPermissions(string agent, Int32 perm);
+        void llRequestPermissions(string agent, int perm);
         //wiki: key llGetPermissionsKey()
         string llGetPermissionsKey();
         //wiki: integer llGetPermissions()
-        Int32 llGetPermissions();
+        int llGetPermissions();
         //wiki integer llGetLinkNumber()
-        Int32 llGetLinkNumber();
+        int llGetLinkNumber();
         //wiki: llSetLinkColor(integer linknumber, vector color, integer face)
-        void llSetLinkColor(Int32 linknumber, Axiom.Math.Vector3 color, Int32 face);
+        void llSetLinkColor(int linknumber, Axiom.Math.Vector3 color, int face);
         //wiki: llCreateLink(key target, integer parent)
-        void llCreateLink(string target, Int32 parent);
+        void llCreateLink(string target, int parent);
         //wiki: llBreakLink(integer linknum)
-        void llBreakLink(Int32 linknum);
+        void llBreakLink(int linknum);
         //wiki: llBreakAllLinks()
         void llBreakAllLinks();
         //wiki: key llGetLinkKey(integer linknum)
-        string llGetLinkKey(Int32 linknum);
+        string llGetLinkKey(int linknum);
         //wiki: llGetLinkName(integer linknum)
-        void llGetLinkName(Int32 linknum);
+        void llGetLinkName(int linknum);
         //wiki: integer llGetInventoryNumber(integer type)
-        Int32 llGetInventoryNumber(Int32 type);
+        int llGetInventoryNumber(int type);
         //wiki: string llGetInventoryName(integer type, integer number)
-        string llGetInventoryName(Int32 type, Int32 number);
+        string llGetInventoryName(int type, int number);
         //wiki: llSetScriptState(string name, integer run)
-        void llSetScriptState(string name, Int32 run);
-        //wiki: float llGetEnergy()
-        float llGetEnergy();
+        void llSetScriptState(string name, int run);
+        //wiki: double llGetEnergy()
+        double llGetEnergy();
         //wiki: llGiveInventory(key destination, string inventory)
         void llGiveInventory(string destination, string inventory);
         //wiki: llRemoveInventory(string item)
         void llRemoveInventory(string item);
-        //wiki: llSetText(string text, vector color, float alpha)
-        void llSetText(string text, Axiom.Math.Vector3 color, float alpha);
-        //wiki: float llWater(vector offset)
-        float llWater(Axiom.Math.Vector3 offset);
+        //wiki: llSetText(string text, vector color, double alpha)
+        void llSetText(string text, Axiom.Math.Vector3 color, double alpha);
+        //wiki: double llWater(vector offset)
+        double llWater(Axiom.Math.Vector3 offset);
         //wiki: llPassTouches(integer pass)
-        void llPassTouches(Int32 pass);
+        void llPassTouches(int pass);
         //wiki: key llRequestAgentData(key id, integer data)
-        string llRequestAgentData(string id, Int32 data);
+        string llRequestAgentData(string id, int data);
         //wiki: key llRequestInventoryData(string name)
         string llRequestInventoryData(string name);
-        //wiki: llSetDamage(float damage)
-        void llSetDamage(float damage);
+        //wiki: llSetDamage(double damage)
+        void llSetDamage(double damage);
         //wiki: llTeleportAgentHome(key agent)
         void llTeleportAgentHome(string agent);
         //wiki: llModifyLand(integer action, integer brush)
-        void llModifyLand(Int32 action, Int32 brush);
-        //wiki: llCollisionSound(string impact_sound, float impact_volume)
-        void llCollisionSound(string impact_sound, float impact_volume);
+        void llModifyLand(int action, int brush);
+        //wiki: llCollisionSound(string impact_sound, double impact_volume)
+        void llCollisionSound(string impact_sound, double impact_volume);
         //wiki: llCollisionSprite(string impact_sprite)
         void llCollisionSprite(string impact_sprite);
         //wiki: string llGetAnimation(key id)
@@ -306,80 +306,80 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: llResetScript()
         void llResetScript();
         //wiki: llMessageLinked(integer linknum, integer num, string str, key id)
-        void llMessageLinked(Int32 linknum, Int32 num, string str, string id);
+        void llMessageLinked(int linknum, int num, string str, string id);
         //wiki: llPushObject(key target, vector impulse, vector ang_impulse, integer local)
-        void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, Int32 local);
+        void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, int local);
         //wiki: llPassCollisions(integer pass)
-        void llPassCollisions(Int32 pass);
+        void llPassCollisions(int pass);
         //wiki: string llGetScriptName()
         string llGetScriptName();
         //wiki: integer llGetNumberOfSides()
-        Int32 llGetNumberOfSides();
-        //wiki: rotation llAxisAngle2Rot(vector axis, float angle)
-        Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, float angle);
+        int llGetNumberOfSides();
+        //wiki: rotation llAxisAngle2Rot(vector axis, double angle)
+        Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, double angle);
         //wiki: vector llRot2Axis(rotation rot)
         Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot);
         void llRot2Angle();
-        //wiki: float llAcos(float val)
-        float llAcos(float val);
-        //wiki: float llAsin(float val)
-        float llAsin(float val);
-        //wiki: float llAngleBetween(rotation a, rotation b)
-        float llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b);
+        //wiki: double llAcos(double val)
+        double llAcos(double val);
+        //wiki: double llAsin(double val)
+        double llAsin(double val);
+        //wiki: double llAngleBetween(rotation a, rotation b)
+        double llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b);
         //wiki: string llGetInventoryKey(string name)
         string llGetInventoryKey(string name);
         //wiki: llAllowInventoryDrop(integer add)
-        void llAllowInventoryDrop(Int32 add);
+        void llAllowInventoryDrop(int add);
         //wiki: vector llGetSunDirection()
         Axiom.Math.Vector3 llGetSunDirection();
         //wiki: vector llGetTextureOffset(integer face)
-        Axiom.Math.Vector3 llGetTextureOffset(Int32 face);
+        Axiom.Math.Vector3 llGetTextureOffset(int face);
         //wiki: vector llGetTextureScale(integer side)
-        Axiom.Math.Vector3 llGetTextureScale(Int32 side);
-        //wiki: float llGetTextureRot(integer side)
-        float llGetTextureRot(Int32 side);
+        Axiom.Math.Vector3 llGetTextureScale(int side);
+        //wiki: double llGetTextureRot(integer side)
+        double llGetTextureRot(int side);
         //wiki: integer llSubStringIndex(string source, string pattern)
-        Int32 llSubStringIndex(string source, string pattern);
+        int llSubStringIndex(string source, string pattern);
         //wiki: key llGetOwnerKey(key id)
         string llGetOwnerKey(string id);
         //wiki: vector llGetCenterOfMass()
         Axiom.Math.Vector3 llGetCenterOfMass();
         //wiki: list llListSort(list src, integer stride, integer ascending)
-        List<string> llListSort(List<string> src, Int32 stride, Int32 ascending);
+        List<string> llListSort(List<string> src, int stride, int ascending);
         //integer llGetListLength(list src)
-        Int32 llGetListLength(List<string> src);
+        int llGetListLength(List<string> src);
         //wiki: integer llList2Integer(list src, integer index)
-        Int32 llList2Integer(List<string> src, Int32 index);
-        //wiki: float llList2Float(list src, integer index)
-        float llList2Float(List<string> src, Int32 index);
+        int llList2Integer(List<string> src, int index);
+        //wiki: double llList2double(list src, integer index)
+        double llList2double(List<string> src, int index);
         //wiki: string llList2String(list src, integer index)
-        string llList2String(List<string> src, Int32 index);
+        string llList2String(List<string> src, int index);
         //wiki: key llList2Key(list src, integer index)
-        string llList2Key(List<string> src, Int32 index);
+        string llList2Key(List<string> src, int index);
         //wiki: vector llList2Vector(list src, integer index)
-        Axiom.Math.Vector3 llList2Vector(List<string> src, Int32 index);
+        Axiom.Math.Vector3 llList2Vector(List<string> src, int index);
         //wiki rotation llList2Rot(list src, integer index)
-        Axiom.Math.Quaternion llList2Rot(List<string> src, Int32 index);
+        Axiom.Math.Quaternion llList2Rot(List<string> src, int index);
         //wiki: list llList2List(list src, integer start, integer end)
-        List<string> llList2List(List<string> src, Int32 start, Int32 end);
+        List<string> llList2List(List<string> src, int start, int end);
         //wiki: llDeleteSubList(list src, integer start, integer end)
-        List<string> llDeleteSubList(List<string> src, Int32 start, Int32 end);
+        List<string> llDeleteSubList(List<string> src, int start, int end);
         //wiki: integer llGetListEntryType( list src, integer index )
-        Int32 llGetListEntryType(List<string> src, Int32 index);
+        int llGetListEntryType(List<string> src, int index);
         //wiki: string llList2CSV( list src )
         string llList2CSV(List<string> src);
         //wiki: list llCSV2List( string src )
         List<string> llCSV2List(string src);
         //wiki: list llListRandomize( list src, integer stride )
-        List<string> llListRandomize(List<string> src, Int32 stride);
+        List<string> llListRandomize(List<string> src, int stride);
         //wiki: list llList2ListStrided( list src, integer start, integer end, integer stride )
-        List<string> llList2ListStrided(List<string> src, Int32 start, Int32 end, Int32 stride);
+        List<string> llList2ListStrided(List<string> src, int start, int end, int stride);
         //wiki: vector llGetRegionCorner( )
         Axiom.Math.Vector3 llGetRegionCorner();
         //wiki: list llListInsertList( list dest, list src, integer start )
-        List<string> llListInsertList(List<string> dest, List<string> src, Int32 start);
+        List<string> llListInsertList(List<string> dest, List<string> src, int start);
         //wiki: integer llListFindList( list src, list test )
-        Int32 llListFindList(List<string> src, List<string> test);
+        int llListFindList(List<string> src, List<string> test);
         //wiki: string llGetObjectName()
         string llGetObjectName();
         //wiki: llSetObjectName(string name)
@@ -387,34 +387,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: string llGetDate()
         string llGetDate();
         //wiki: integer llEdgeOfWorld(vector pos, vector dir)
-        Int32 llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir);
+        int llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir);
         //wiki: integer llGetAgentInfo(key id)
-        Int32 llGetAgentInfo(string id);
-        //wiki: llAdjustSoundVolume(float volume)
-        void llAdjustSoundVolume(float volume);
+        int llGetAgentInfo(string id);
+        //wiki: llAdjustSoundVolume(double volume)
+        void llAdjustSoundVolume(double volume);
         //wiki: llSetSoundQueueing(integer queue)
-        void llSetSoundQueueing(Int32 queue);
-        //wiki: llSetSoundRadius(float radius)
-        void llSetSoundRadius(float radius);
+        void llSetSoundQueueing(int queue);
+        //wiki: llSetSoundRadius(double radius)
+        void llSetSoundRadius(double radius);
         //wiki: string llKey2Name(key id)
         string llKey2Name(string id);
-        //wiki: llSetTextureAnim(integer mode, integer face, integer sizex, integer sizey, float start, float length, float rate)
-        void llSetTextureAnim(Int32 mode, Int32 face, Int32 sizex, Int32 sizey, float start, float length, float rate);
-        //wiki: llTriggerSoundLimited(string sound, float volume, vector top_north_east, vector bottom_south_west)
-        void llTriggerSoundLimited(string sound, float volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west);
+        //wiki: llSetTextureAnim(integer mode, integer face, integer sizex, integer sizey, double start, double length, double rate)
+        void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate);
+        //wiki: llTriggerSoundLimited(string sound, double volume, vector top_north_east, vector bottom_south_west)
+        void llTriggerSoundLimited(string sound, double volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west);
         //wiki: llEjectFromLand(key pest)
         void llEjectFromLand(string pest);
         void llParseString2List();
         //wiki: integer llOverMyLand(key id)
-        Int32 llOverMyLand(string id);
+        int llOverMyLand(string id);
         //wiki: key llGetLandOwnerAt(vector pos)
         string llGetLandOwnerAt(Axiom.Math.Vector3 pos);
         //wiki: key llGetNotecardLine(string name, integer line)
-        string llGetNotecardLine(string name, Int32 line);
+        string llGetNotecardLine(string name, int line);
         //wiki: vector llGetAgentSize(key id)
         Axiom.Math.Vector3 llGetAgentSize(string id);
         //wiki: integer llSameGroup(key agent)
-        Int32 llSameGroup(string agent);
+        int llSameGroup(string agent);
         //wiki: llUnSit(key id)
         void llUnSit(string id);
         //wiki: vector llGroundSlope(vector offset)
@@ -424,38 +424,38 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: vector llGroundContour(vector offset)
         Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset);
         //wiki: integer llGetAttached()
-        Int32 llGetAttached();
+        int llGetAttached();
         //wiki: integer llGetFreeMemory()
-        Int32 llGetFreeMemory();
+        int llGetFreeMemory();
         //wiki: string llGetRegionName()
         string llGetRegionName();
-        //wiki: float llGetRegionTimeDilation()
-        float llGetRegionTimeDilation();
-        //wiki: float llGetRegionFPS()
-        float llGetRegionFPS();
+        //wiki: double llGetRegionTimeDilation()
+        double llGetRegionTimeDilation();
+        //wiki: double llGetRegionFPS()
+        double llGetRegionFPS();
         //wiki: llParticleSystem(List<Object> rules
         void llParticleSystem(List<Object> rules);
-        //wiki: llGroundRepel(float height, integer water, float tau)
-        void llGroundRepel(float height, Int32 water, float tau);
+        //wiki: llGroundRepel(double height, integer water, double tau)
+        void llGroundRepel(double height, int water, double tau);
         void llGiveInventoryList();
         //wiki: llSetVehicleType(integer type)
-        void llSetVehicleType(Int32 type);
-        //wiki: llSetVehicleFloatParam(integer param, float value)
-        void llSetVehicleFloatParam(Int32 param, float value);
+        void llSetVehicleType(int type);
+        //wiki: llSetVehicledoubleParam(integer param, double value)
+        void llSetVehicledoubleParam(int param, double value);
         //wiki: llSetVehicleVectorParam(integer param, vector vec)
-        void llSetVehicleVectorParam(Int32 param, Axiom.Math.Vector3 vec);
+        void llSetVehicleVectorParam(int param, Axiom.Math.Vector3 vec);
         //wiki: llSetVehicleRotationParam(integer param, rotation rot)
-        void llSetVehicleRotationParam(Int32 param, Axiom.Math.Quaternion rot);
+        void llSetVehicleRotationParam(int param, Axiom.Math.Quaternion rot);
         //wiki: llSetVehicleFlags(integer flags)
-        void llSetVehicleFlags(Int32 flags);
+        void llSetVehicleFlags(int flags);
         //wiki: llRemoveVehicleFlags(integer flags)
-        void llRemoveVehicleFlags(Int32 flags);
+        void llRemoveVehicleFlags(int flags);
         //wiki: llSitTarget(vector offset, rotation rot)
         void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot);
         //wiki key llAvatarOnSitTarget()
         string llAvatarOnSitTarget();
-        //wiki: llAddToLandPassList(key avatar, float hours)
-        void llAddToLandPassList(string avatar, float hours);
+        //wiki: llAddToLandPassList(key avatar, double hours)
+        void llAddToLandPassList(string avatar, double hours);
         //wiki: llSetTouchText(string text)
         void llSetTouchText(string text);
         //wiki: llSetSitText(string text)
@@ -468,29 +468,29 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: integer llScriptDanger(vector pos)
         void llScriptDanger(Axiom.Math.Vector3 pos);
         //wiki: llDialog( key avatar, string message, list buttons, integer chat_channel )
-        void llDialog(string avatar, string message, List<string> buttons, Int32 chat_channel);
+        void llDialog(string avatar, string message, List<string> buttons, int chat_channel);
         //wiki: llVolumeDetect(integer detect)
-        void llVolumeDetect(Int32 detect);
+        void llVolumeDetect(int detect);
         //wiki: llResetOtherScript(string name)
         void llResetOtherScript(string name);
         //wiki: integer llGetScriptState(string name)
-        Int32 llGetScriptState(string name);
+        int llGetScriptState(string name);
         //wiki: (deprecated)
         void llRemoteLoadScript();
         //wiki: llSetRemoteScriptAccessPin(integer pin)
-        void llSetRemoteScriptAccessPin(Int32 pin);
+        void llSetRemoteScriptAccessPin(int pin);
         //wiki: llRemoteLoadScriptPin(key target, string name, integer pin, integer running, integer start_param)
-        void llRemoteLoadScriptPin(string target, string name, Int32 pin, Int32 running, Int32 start_param);
+        void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param);
         //wiki: llOpenRemoteDataChannel()
         void llOpenRemoteDataChannel();
         //wiki: key llSendRemoteData(key channel, string dest, integer idata, string sdata)
-        string llSendRemoteData(string channel, string dest, Int32 idata, string sdata);
+        string llSendRemoteData(string channel, string dest, int idata, string sdata);
         //wiki: llRemoteDataReply(key channel, key message_id, string sdata, integer idata)
-        void llRemoteDataReply(string channel, string message_id, string sdata, Int32 idata);
+        void llRemoteDataReply(string channel, string message_id, string sdata, int idata);
         //wiki: llCloseRemoteDataChannel(key channel)
         void llCloseRemoteDataChannel(string channel);
         //wiki: string llMD5String(string src, integer nonce)
-        string llMD5String(string src, Int32 nonce);
+        string llMD5String(string src, int nonce);
         //wiki: llSetPrimitiveParams( list rules )
         void llSetPrimitiveParams(List<string> rules);
         //wiki: string llStringToBase64(string str)
@@ -501,10 +501,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         void llXorBase64Strings();
         //wiki: llRemoteDataSetRegion()
         void llRemoteDataSetRegion();
-        //wiki: float llLog10(float val)
-        float llLog10(float val);
-        //wiki: float llLog(float val)
-        float llLog(float val);
+        //wiki: double llLog10(double val)
+        double llLog10(double val);
+        //wiki: double llLog(double val)
+        double llLog(double val);
         //wiki: list llGetAnimationList( key id )
         List<string> llGetAnimationList(string id);
         //wiki: llSetParcelMusicURL(string url)
@@ -521,10 +521,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         string llGetCreator();
         //wiki: string llGetTimestamp()
         string llGetTimestamp();
-        //wiki: llSetLinkAlpha(integer linknumber, float alpha, integer face)
-        void llSetLinkAlpha(Int32 linknumber, float alpha, Int32 face);
+        //wiki: llSetLinkAlpha(integer linknumber, double alpha, integer face)
+        void llSetLinkAlpha(int linknumber, double alpha, int face);
         //wiki: integer llGetNumberOfPrims()
-        Int32 llGetNumberOfPrims();
+        int llGetNumberOfPrims();
         //wiki: key llGetNumberOfNotecardLines(string name)
         string llGetNumberOfNotecardLines(string name);
         //wiki: list llGetBoundingBox( key object )
@@ -533,11 +533,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         Axiom.Math.Vector3 llGetGeometricCenter();
         void llGetPrimitiveParams();
         //wiki: string llIntegerToBase64(integer number)
-        string llIntegerToBase64(Int32 number);
+        string llIntegerToBase64(int number);
         //wiki integer llBase64ToInteger(string str)
-        Int32 llBase64ToInteger(string str);
-        //wiki: float llGetGMTclock()
-        float llGetGMTclock();
+        int llBase64ToInteger(string str);
+        //wiki: double llGetGMTclock()
+        double llGetGMTclock();
         //wiki: string llGetSimulatorHostname()
         string llGetSimulatorHostname();
         //llSetLocalRot(rotation rot)
@@ -545,25 +545,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: list llParseStringKeepNulls( string src, list separators, list spacers )
         List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers);
         //wiki: llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, integer param)
-        void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, Int32 param);
+        void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, int param);
         //wiki: integer llGetObjectPermMask(integer mask)
-        Int32 llGetObjectPermMask(Int32 mask);
+        int llGetObjectPermMask(int mask);
         //wiki: llSetObjectPermMask(integer mask, integer value)
-        void llSetObjectPermMask(Int32 mask, Int32 value);
+        void llSetObjectPermMask(int mask, int value);
         //wiki integer llGetInventoryPermMask(string item, integer mask)
-        void llGetInventoryPermMask(string item, Int32 mask);
+        void llGetInventoryPermMask(string item, int mask);
         //wiki: llSetInventoryPermMask(string item, integer mask, integer value)
-        void llSetInventoryPermMask(string item, Int32 mask, Int32 value);
+        void llSetInventoryPermMask(string item, int mask, int value);
         //wiki: key llGetInventoryCreator(string item)
         string llGetInventoryCreator(string item);
         //wiki: llOwnerSay(string msg)
         void llOwnerSay(string msg);
         //wiki: key llRequestSimulatorData(string simulator, integer data)
-        void llRequestSimulatorData(string simulator, Int32 data);
+        void llRequestSimulatorData(string simulator, int data);
         //wiki: llForceMouselook(integer mouselook)
-        void llForceMouselook(Int32 mouselook);
-        //wiki: float llGetObjectMass(key id)
-        float llGetObjectMass(string id);
+        void llForceMouselook(int mouselook);
+        //wiki: double llGetObjectMass(key id)
+        double llGetObjectMass(string id);
         void llListReplaceList();
         //wiki: llLoadURL(key avatar_id, string message, string url)
         void llLoadURL(string avatar_id, string message, string url);
@@ -571,11 +571,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         void llParcelMediaCommandList(List<string> commandList);
         void llParcelMediaQuery();
         //wiki integer llModPow(integer a, integer b, integer c)
-        Int32 llModPow(Int32 a, Int32 b, Int32 c);
+        int llModPow(int a, int b, int c);
         //wiki: integer llGetInventoryType(string name)
-        Int32 llGetInventoryType(string name);
+        int llGetInventoryType(string name);
         //wiki: llSetPayPrice( integer price, list quick_pay_buttons )
-        void llSetPayPrice(Int32 price, List<string> quick_pay_buttons);
+        void llSetPayPrice(int price, List<string> quick_pay_buttons);
         //wiki: vector llGetCameraPos()
         Axiom.Math.Vector3 llGetCameraPos();
         //wiki rotation llGetCameraRot()
@@ -590,8 +590,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         string llUnescapeURL(string url);
         //wiki: llMapDestination(string simname, vector pos, vector look_at)
         void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at);
-        //wiki: llAddToLandBanList(key avatar, float hours)
-        void llAddToLandBanList(string avatar, float hours);
+        //wiki: llAddToLandBanList(key avatar, double hours)
+        void llAddToLandBanList(string avatar, double hours);
         //wiki: llRemoveFromLandPassList(key avatar)
         void llRemoveFromLandPassList(string avatar);
         //wiki: llRemoveFromLandBanList(key avatar)
@@ -600,14 +600,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         void llSetCameraParams(List<string> rules);
         //wiki: llClearCameraParams()
         void llClearCameraParams();
-        //wiki: float llListStatistics( integer operation, list src )
-        float llListStatistics(Int32 operation, List<string> src);
+        //wiki: double llListStatistics( integer operation, list src )
+        double llListStatistics(int operation, List<string> src);
         //wiki: integer llGetUnixTime()
-        Int32 llGetUnixTime();
+        int llGetUnixTime();
         //wiki: integer llGetParcelFlags(vector pos)
-        Int32 llGetParcelFlags(Axiom.Math.Vector3 pos);
+        int llGetParcelFlags(Axiom.Math.Vector3 pos);
         //wiki: integer llGetRegionFlags()
-        Int32 llGetRegionFlags();
+        int llGetRegionFlags();
         //wiki: string llXorBase64StringsCorrect(string str1, string str2)
         string llXorBase64StringsCorrect(string str1, string str2);
         void llHTTPRequest();
@@ -616,13 +616,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: llResetLandPassList()
         void llResetLandPassList();
         //wiki integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
-        Int32 llGetParcelPrimCount(Axiom.Math.Vector3 pos, Int32 category, Int32 sim_wide);
+        int llGetParcelPrimCount(Axiom.Math.Vector3 pos, int category, int sim_wide);
         //wiki: list llGetParcelPrimOwners( vector pos )
         List<string> llGetParcelPrimOwners(Axiom.Math.Vector3 pos);
         //wiki: integer llGetObjectPrimCount(key object_id)
-        Int32 llGetObjectPrimCount(string object_id);
+        int llGetObjectPrimCount(string object_id);
         //wiki: integer llGetParcelMaxPrims( vector pos, integer sim_wide )
-        Int32 llGetParcelMaxPrims(Axiom.Math.Vector3 pos, Int32 sim_wide);
+        int llGetParcelMaxPrims(Axiom.Math.Vector3 pos, int sim_wide);
         //wiki list llGetParcelDetails(vector pos, list params)
         List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param);
     }

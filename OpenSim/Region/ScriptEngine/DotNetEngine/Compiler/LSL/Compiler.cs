@@ -40,6 +40,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             Common.SendToDebug("Compiling");
 
+            // DEBUG - write source to disk
+            try
+            {
+                File.WriteAllText(Path.Combine("ScriptEngines", "debug_" + Path.GetFileNameWithoutExtension(LSOFileName) + ".cs"), CS_Code);
+            }
+            catch { }
+
             // Do actual compile
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
             parameters.IncludeDebugInformation = true;

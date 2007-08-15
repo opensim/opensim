@@ -15,7 +15,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             DataTypes.Add("void", "void");
             DataTypes.Add("integer", "int");
-            DataTypes.Add("float", "float");
+            DataTypes.Add("float", "double");
             DataTypes.Add("string", "string");
             DataTypes.Add("key", "string");
             DataTypes.Add("vector", "Axiom.Math.Vector3");
@@ -58,6 +58,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 C = Script.Substring(p, 1);
                 while (true)
                 {
+                    // found " and last was not \ so this is not an escaped \"
                     if (C == "\"" && last_was_escape == false)
                     {
                         // Toggle inside/outside quote
@@ -68,12 +69,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         }
                         else
                         {
+                            if (quote == "")
+                            {
+                                // We didn't replace quote, probably because of empty string?
+                                _Script += quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]);
+                            }
                             // We just left a quote
                             QUOTES.Add(quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
                             quote = "";
                         }
                         break;
                     }
+
                     if (!in_quote)
                     {
                         // We are not inside a quote
