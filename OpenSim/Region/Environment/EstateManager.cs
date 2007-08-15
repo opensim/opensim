@@ -147,35 +147,37 @@ namespace OpenSim.Region.Environment
 
         public void handleEstateOwnerMessage(EstateOwnerMessagePacket packet, IClientAPI remote_client)
         {
-            if (remote_client.AgentId == m_regInfo.MasterAvatarAssignedUUID)
+            switch (Helpers.FieldToUTF8String(packet.MethodData.Method))
             {
-                switch (Helpers.FieldToUTF8String(packet.MethodData.Method))
-                {
-                    case "getinfo":
-                        this.sendRegionInfoPacketToAll();
-                        break;
-                    case "setregioninfo":
+                case "getinfo":
+                    this.sendRegionInfoPacketToAll();
+                    break;
+                case "setregioninfo":
+                    if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
                         estateSetRegionInfoHandler(packet);
-                        break;
-                    case "texturebase":
+                    break;
+                case "texturebase":
+                    if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
                         estateTextureBaseHandler(packet);
-                        break;
-                    case "texturedetail":
+                    break;
+                case "texturedetail":
+                    if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
                         estateTextureDetailHandler(packet);
-                        break;
-                    case "textureheights":
+                    break;
+                case "textureheights":
+                    if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
                         estateTextureHeightsHandler(packet);
-                        break;
-                    case "texturecommit":
-                        sendRegionHandshakeToAll();
-                        break;
-                    case "setregionterrain":
+                    break;
+                case "texturecommit":
+                    sendRegionHandshakeToAll();
+                    break;
+                case "setregionterrain":
+                    if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
                         estateSetRegionTerrainHandler(packet);
-                        break;
-                    default:
-                        MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
-                        break;
-                }
+                    break;
+                default:
+                    MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
+                    break;
             }
         }
 

@@ -260,6 +260,16 @@ namespace OpenSim.Region.Communications.OGS1
             Hashtable respData = new Hashtable();
             respData["online"] = "true";
 
+            foreach (ulong region in this.listeners.Keys)
+            {
+                Hashtable regData = new Hashtable();
+                RegionInfo reg = regions[region];
+                regData["status"] = "active";
+                regData["handle"] = region.ToString();
+
+                respData[reg.SimUUID.ToStringHyphenated()] = regData;
+            }
+
             response.Value = respData;
 
             return response;

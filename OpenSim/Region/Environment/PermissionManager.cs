@@ -15,35 +15,79 @@ namespace OpenSim.Region.Environment
     {
         protected Scene m_scene;
 
+        // Bypasses the permissions engine (always returns OK)
+        // disable in any production environment
+        // TODO: Change this to false when permissions are a desired default
+        // TODO: Move to configuration option.
+        private bool bypassPermissions = true;
+
         public PermissionManager(Scene scene)
         {
             m_scene = scene;
         }
 
-        public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
-        public event OnPermissionErrorDelegate OnPermissionError;
+        public void DisablePermissions()
+        {
+            bypassPermissions = true;
+        }
+
+        public void EnablePermissions()
+        {
+            bypassPermissions = false;
+        }
 
         protected virtual void SendPermissionError(LLUUID user, string reason)
         {
-            if (OnPermissionError != null)
-                OnPermissionError(user, reason);
+            m_scene.EventManager.TriggerPermissionError(user, reason);
         }
 
         protected virtual bool IsAdministrator(LLUUID user)
         {
+            if (bypassPermissions)
+                return bypassPermissions;
+
             return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
         }
 
         protected virtual bool IsEstateManager(LLUUID user)
+        {
+            if (bypassPermissions)
+                return bypassPermissions;
+
+            return false;
+        }
+
+        protected virtual bool IsGridUser(LLUUID user)
+        {
+            return true;
+        }
+
+        protected virtual bool IsGuest(LLUUID user)
         {
             return false;
         }
 
         public virtual bool CanRezObject(LLUUID user, LLVector3 position)
         {
+            bool permission = false;
+
+            string reason = "Insufficient permission";
+
+            if (IsAdministrator(user))
+                permission = true;
+            else
+                reason = "Not an administrator";
+
+            if (GenericParcelPermission(user, position))
+                permission = true;
+            else
+                reason = "Not the parcel owner";
+
+            if (!permission)
+                SendPermissionError(user, reason);
+
             return true;
         }
-
 
         #region Object Permissions
 
@@ -105,19 +149,71 @@ namespace OpenSim.Region.Environment
 
         #endregion
 
+        #region Communication Permissions
+
+        public virtual bool GenericCommunicationPermission(LLUUID user, LLUUID target)
+        {
+            bool permission = false;
+            string reason = "Only registered users may communicate with another account.";
+
+            if (IsGridUser(user))
+                permission = true;
+
+            if (!IsGridUser(user))
+            {
+                permission = false;
+                reason = "The person that you are messaging is not a registered user.";
+            }
+            if (IsAdministrator(user))
+                permission = true;
+
+            if (IsEstateManager(user))
+                permission = true;
+
+            if (!permission)
+                SendPermissionError(user, reason);
+
+            return permission;
+        }
+
+        public virtual bool CanInstantMessage(LLUUID user, LLUUID target)
+        {
+            return GenericCommunicationPermission(user, target);
+        }
+
+        public virtual bool CanInventoryTransfer(LLUUID user, LLUUID target)
+        {
+            return GenericCommunicationPermission(user, target);
+        }
+
+        #endregion
+
         public virtual bool CanEditScript(LLUUID user, LLUUID script)
         {
-            return false;
+            return IsAdministrator(user);
         }
 
         public virtual bool CanRunScript(LLUUID user, LLUUID script)
         {
-            return false;
+            return IsAdministrator(user);
         }
 
-        public virtual bool CanTerraform(LLUUID user, LLUUID position)
+        public virtual bool CanTerraform(LLUUID user, LLVector3 position)
         {
-            return false;
+            bool permission = false;
+
+            // Estate override
+            if (GenericEstatePermission(user))
+                permission = true;
+
+            // Land owner can terraform too
+            if (GenericParcelPermission(user, m_scene.LandManager.getLandObject(position.X, position.Y)))
+                permission = true;
+
+            if (!permission)
+                SendPermissionError(user, "Not authorized to terraform at this location.");
+
+            return permission;
         }
 
         #region Estate Permissions
@@ -166,6 +262,11 @@ namespace OpenSim.Region.Environment
                 permission = true;
 
             return permission;
+        }
+
+        protected virtual bool GenericParcelPermission(LLUUID user, LLVector3 pos)
+        {
+            return GenericParcelPermission(user, m_scene.LandManager.getLandObject(pos.X, pos.Y));
         }
 
         public virtual bool CanEditParcel(LLUUID user, Land parcel)

@@ -33,7 +33,16 @@ namespace OpenSim.Region.Environment.Scenes
         public event OnShutdownDelegate OnShutdown;
 
         public delegate void ObjectGrabDelegate(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
+        public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
         public event ObjectGrabDelegate OnObjectGrab;
+        public event OnPermissionErrorDelegate OnPermissionError;
+
+
+        public void TriggerPermissionError(LLUUID user, string reason)
+        {
+            if (OnPermissionError != null)
+                OnPermissionError(user, reason);
+        }
 
         public void TriggerOnScriptConsole(string[] args)
         {

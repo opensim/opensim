@@ -50,6 +50,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="west">Distance from the west border where the cursor is located</param>
         public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, IClientAPI remoteUser)
         {
+            // Do a permissions check before allowing terraforming.
+            // random users are now no longer allowed to terraform
+            // if permissions are enabled.
+            if (!PermissionsMngr.CanTerraform(remoteUser.AgentId, new LLVector3(north, west, 0)))
+                return;
+
             // Shiny.
             double size = (double)(1 << brushsize);
 
@@ -240,15 +246,18 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     if (selectedEnt != null)
                     {
-                        List<ScenePresence> avatars = this.RequestAvatarList();
-                        foreach (ScenePresence avatar in avatars)
+                        if (PermissionsMngr.CanDeRezObject(simClient.AgentId, selectedEnt.m_uuid))
                         {
-                            avatar.ControllingClient.SendKillObject(this.m_regionHandle, selectedEnt.LocalId);
-                        }
-                       
-                        lock (Entities)
-                        {
-                            Entities.Remove(selectedEnt.m_uuid);
+                            List<ScenePresence> avatars = this.RequestAvatarList();
+                            foreach (ScenePresence avatar in avatars)
+                            {
+                                avatar.ControllingClient.SendKillObject(this.m_regionHandle, selectedEnt.LocalId);
+                            }
+
+                            lock (Entities)
+                            {
+                                Entities.Remove(selectedEnt.m_uuid);
+                            }
                         }
                     }
                 }
@@ -501,16 +510,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            bool hasPrim = false;
-            foreach (EntityBase ent in Entities.Values)
+            if (PermissionsMngr.CanEditObject(remoteClient.AgentId, objectID))
             {
-                if (ent is SceneObjectGroup)
+                bool hasPrim = false;
+                foreach (EntityBase ent in Entities.Values)
                 {
-                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(objectID);
-                    if (hasPrim != false)
+                    if (ent is SceneObjectGroup)
                     {
-                        ((SceneObjectGroup)ent).GrabMovement(offset, pos, remoteClient);
-                        break;
+                        hasPrim = ((SceneObjectGroup)ent).HasChildPrim(objectID);
+                        if (hasPrim != false)
+                        {
+                            ((SceneObjectGroup)ent).GrabMovement(offset, pos, remoteClient);
+                            break;
+                        }
                     }
                 }
             }

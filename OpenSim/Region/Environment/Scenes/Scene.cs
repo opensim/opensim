@@ -110,6 +110,13 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_scriptManager; }
         }
 
+        private PermissionManager m_permissionManager;
+
+        public PermissionManager PermissionsMngr
+        {
+            get { return m_permissionManager; }
+        }
+
         public Dictionary<LLUUID, SceneObjectGroup> Objects
         {
             get { return Prims; }
@@ -143,9 +150,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_estateManager = new EstateManager(this, m_regInfo);
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
+            m_permissionManager = new PermissionManager(this);
 
             m_eventManager.OnParcelPrimCountAdd +=
                 m_LandManager.addPrimToLandPrimCounts;
+
+            m_eventManager.OnPermissionError += SendPermissionAlert;
 
             MainLog.Instance.Verbose("Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -966,6 +976,12 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Alert Methods
+
+        void SendPermissionAlert(LLUUID user, string reason)
+        {
+            SendAlertToUser(user, reason, false);
+        }
+
         public void SendGeneralAlert(string message)
         {
             foreach (ScenePresence presence in this.Avatars.Values)

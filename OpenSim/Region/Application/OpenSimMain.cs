@@ -320,6 +320,17 @@ namespace OpenSim
                     }
                     break;
 
+                case "permissions":
+                    // Treats each user as a super-admin when disabled
+                    foreach (Scene scene in m_localScenes)
+                    {
+                        if (Convert.ToBoolean(cmdparams[0]))
+                            scene.PermissionsMngr.EnablePermissions();
+                        else
+                            scene.PermissionsMngr.DisablePermissions();
+                    }
+                    break;
+
                 case "backup":
                     foreach (Scene scene in m_localScenes)
                     {
