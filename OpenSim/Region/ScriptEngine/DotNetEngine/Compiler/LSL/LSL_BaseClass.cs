@@ -714,14 +714,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Axiom.Math.Quaternion ZERO_ROTATION = new Axiom.Math.Quaternion(0, 0, 0, 0);
 
 
-        // Operator overloads
-        public class Axi
-        {
-        }
-        public static Axi operator *(Axi c1, double c2)
-        {
-
-        }
 
     }
 }
