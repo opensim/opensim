@@ -64,6 +64,8 @@ namespace OpenSim
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
+        protected string m_startupCommandsFile = "";
+
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
         protected List<Scene> m_localScenes = new List<Scene>();
@@ -104,6 +106,8 @@ namespace OpenSim
             m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
 
             m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+
+            m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
 
             standaloneAuthenticate = configSource.Configs["Startup"].GetBoolean("standalone_authenticate", false);
             welcomeMessage = configSource.Configs["Startup"].GetString("standalone_welcome", "Welcome to OpenSim");
@@ -183,6 +187,33 @@ namespace OpenSim
             for (int i = 0; i < m_udpServers.Count; i++)
             {
                 this.m_udpServers[i].ServerListener();
+            }
+
+            //Run Startup Commands
+            if (m_startupCommandsFile != "")
+            {
+                MainLog.Instance.Verbose("Running startup command script (" + m_startupCommandsFile + ")");
+                if (File.Exists(m_startupCommandsFile))
+                {
+                    StreamReader readFile = File.OpenText(m_startupCommandsFile);
+                    string currentCommand = "";
+                    while ((currentCommand = readFile.ReadLine()) != null)
+                    {
+                        if (currentCommand != "")
+                        {
+                            MainLog.Instance.Verbose("Running '" + currentCommand + "'");
+                            MainLog.Instance.MainLogRunCommand(currentCommand);
+                        }
+                    }
+                }
+                else
+                {
+                    MainLog.Instance.Error("Startup command script missing. Will not run startup commands");
+                }
+            }
+            else
+            {
+                MainLog.Instance.Verbose("No startup command script specified. Moving on...");
             }
         }
 

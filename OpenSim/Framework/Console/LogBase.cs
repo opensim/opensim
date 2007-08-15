@@ -409,9 +409,15 @@ namespace OpenSim.Framework.Console
 
         public void MainLogPrompt()
         {
-            string[] tempstrarray;
+
             string tempstr = this.CmdPrompt(this.componentname + "# ");
-            tempstrarray = tempstr.Split(' ');
+            MainLogRunCommand(tempstr);
+        }
+
+        public void MainLogRunCommand(string command)
+        {
+            string[] tempstrarray;
+            tempstrarray = command.Split(' ');
             string cmd = tempstrarray[0];
             Array.Reverse(tempstrarray);
             Array.Resize<string>(ref tempstrarray, tempstrarray.Length - 1);
