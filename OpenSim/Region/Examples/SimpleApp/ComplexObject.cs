@@ -41,6 +41,8 @@ namespace SimpleApp
             
             AddPart(new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0, 0, 1f)));
             AddPart(new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0, 0, -1f)));
+
+            UpdateParentIDs();
         }
     }
 }

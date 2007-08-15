@@ -858,5 +858,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return null;
         }
+        
+        public void UpdateText( string text )
+        {
+            m_rootPart.Text = text;
+            m_rootPart.ScheduleTerseUpdate();
+        }
     }
 }

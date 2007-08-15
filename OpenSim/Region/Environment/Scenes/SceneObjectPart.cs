@@ -279,6 +279,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetParent(SceneObjectGroup parent)
         {
             m_parentGroup = parent;
+
         }
 
         #region Copying
