@@ -41,14 +41,20 @@ namespace OpenSim.Framework.Communications.Caches
     public class AssetTransactionManager
     {
         // Fields
+        public CommunicationsManager CommsManager;
         public Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions = new Dictionary<LLUUID, AgentAssetTransactions>();
+
+        public AssetTransactionManager(CommunicationsManager commsManager)
+        {
+            CommsManager = commsManager;
+        }
 
         // Methods
         public AgentAssetTransactions AddUser(LLUUID userID)
         {
             if (!this.AgentTransactions.ContainsKey(userID))
             {
-                AgentAssetTransactions transactions = new AgentAssetTransactions(userID);
+                AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this);
                 this.AgentTransactions.Add(userID, transactions);
                 return transactions;
             }
@@ -64,18 +70,38 @@ namespace OpenSim.Framework.Communications.Caches
             return null;
         }
 
-        public void HandleInventoryFromTransaction()
+        public void HandleInventoryFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
         {
+            AgentAssetTransactions transactions = this.GetUserTransActions(remoteClient.AgentId);
+            if (transactions != null)
+            {
+                transactions.RequestCreateInventoryItem(remoteClient, transactionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
+            }
+
         }
 
-        public void HandleUDPUploadRequest()
+        public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data)
         {
+            AgentAssetTransactions transactions = this.GetUserTransActions(remoteClient.AgentId);
+            if (transactions != null)
+            {
+                AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
+                if (uploader != null)
+                {
+                    uploader.Initialise(remoteClient, assetID, transaction, type, data);
+                }
+            }
         }
 
-        public void HandleXfer(IClientAPI remoteClient, uint xferID, uint packetID, byte[] data)
+        public void HandleXfer(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
+            AgentAssetTransactions transactions = this.GetUserTransActions(remoteClient.AgentId);
+            if (transactions != null)
+            {
+                transactions.HandleXfer(xferID, packetID, data);
+            }
         }
     }
 }
 
- 
+

@@ -577,6 +577,7 @@ namespace OpenSim.Region.Environment.Scenes
             CreateAndAddScenePresence(client);
             m_LandManager.sendParcelOverlay(client);
             commsManager.UserProfiles.AddNewUser(client.AgentId);
+            commsManager.TransactionsManager.AddUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -625,6 +626,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnFetchInventory += commsManager.UserProfiles.HandleFetchInventory;
+            client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
+            client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
 
             client.OnGrabObject += ProcessObjectGrab;
         }

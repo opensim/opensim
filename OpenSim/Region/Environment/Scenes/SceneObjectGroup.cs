@@ -706,7 +706,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
         #endregion
         /// <summary>
         /// 

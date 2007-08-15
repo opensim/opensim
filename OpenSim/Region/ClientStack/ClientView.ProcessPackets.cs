@@ -217,7 +217,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectAdd:
                         if (OnAddPrim != null)
                         {
-                            ObjectAddPacket addPacket = (ObjectAddPacket) Pack ;
+                            ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
 
                             OnAddPrim(this.AgentId, addPacket.ObjectData.RayEnd, shape);
@@ -290,7 +290,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectGrab:
-                        ObjectGrabPacket grab = (ObjectGrabPacket)Pack; 
+                        ObjectGrabPacket grab = (ObjectGrabPacket)Pack;
                         if (OnGrabObject != null)
                         {
                             OnGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this);
@@ -338,7 +338,7 @@ namespace OpenSim.Region.ClientStack
                     #region Inventory/Asset/Other related packets
                     case PacketType.RequestImage:
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
-                        
+
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
                             m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet);
@@ -351,14 +351,20 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                       // Console.WriteLine(request.ToString());
-                        //this.UploadAssets.HandleUploadPacket(request, request.AssetBlock.TransactionID.Combine(this.SecureSessionID));
+                        if (OnAssetUploadRequest != null)
+                        {
+                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData);
+                        }
                         break;
                     case PacketType.RequestXfer:
                         //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.SendXferPacket:
-                        this.UploadAssets.HandleXferPacket((SendXferPacketPacket)Pack);
+                        SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;
+                        if (OnXferReceive != null)
+                        {
+                            OnXferReceive(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
+                        }
                         break;
                     case PacketType.CreateInventoryFolder:
                         if (this.OnCreateNewInventoryFolder != null)
@@ -369,18 +375,11 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.CreateInventoryItem:
                         CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
-                        if (createItem.InventoryBlock.TransactionID != LLUUID.Zero)
+                        if (this.OnCreateNewInventoryItem != null)
                         {
-                            this.UploadAssets.CreateInventoryItem(createItem);
-                        }
-                        else
-                        {
-                            if (this.OnCreateNewInventoryItem != null)
-                            {
-                                this.OnCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID, createItem.InventoryBlock.FolderID, createItem.InventoryBlock.CallbackID,
-                                    Util.FieldToString(createItem.InventoryBlock.Description), Util.FieldToString(createItem.InventoryBlock.Name), createItem.InventoryBlock.InvType,
-                                    createItem.InventoryBlock.Type, createItem.InventoryBlock.WearableType, createItem.InventoryBlock.NextOwnerMask);
-                            }
+                            this.OnCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID, createItem.InventoryBlock.FolderID, createItem.InventoryBlock.CallbackID,
+                                Util.FieldToString(createItem.InventoryBlock.Description), Util.FieldToString(createItem.InventoryBlock.Name), createItem.InventoryBlock.InvType,
+                                createItem.InventoryBlock.Type, createItem.InventoryBlock.WearableType, createItem.InventoryBlock.NextOwnerMask);
                         }
                         break;
                     case PacketType.FetchInventory:
@@ -558,7 +557,7 @@ namespace OpenSim.Region.ClientStack
                         if (OnParcelPropertiesUpdateRequest != null)
                         {
                             OnParcelPropertiesUpdateRequest(updatePacket, this);
-                            
+
                         }
                         break;
                     case PacketType.ParcelSelectObjects:

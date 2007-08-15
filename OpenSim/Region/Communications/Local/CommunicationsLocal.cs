@@ -33,6 +33,7 @@ using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -42,6 +43,7 @@ namespace OpenSim.Region.Communications.Local
         public LocalUserServices UserServices;
         public LocalLoginService LoginServices;
         public LocalInventoryService InvenServices;
+       // public CAPSService CapsServices;
 
         public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate, string welcomeMessage )
             : base(serversInfo, httpServer, assetCache)
@@ -57,6 +59,8 @@ namespace OpenSim.Region.Communications.Local
             InstanceServices = new LocalBackEndServices();
             GridServer = InstanceServices;
             InterRegion = InstanceServices;
+
+            //CapsServices = new CAPSService(httpServer);
             
             LoginServices = new LocalLoginService(UserServices, welcomeMessage, this, serversInfo, accountsAuthenticate);
             httpServer.AddXmlRPCHandler("login_to_simulator", LoginServices.XmlRpcLoginMethod);

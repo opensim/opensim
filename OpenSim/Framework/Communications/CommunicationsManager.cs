@@ -45,6 +45,7 @@ namespace OpenSim.Framework.Communications
         public IInventoryServices InventoryServer;
         public IInterRegionCommunications InterRegion;
         public UserProfileCache UserProfiles;
+        public AssetTransactionManager TransactionsManager;
         public AssetCache AssetCache;
 
         public NetworkServersInfo ServersInfo;
@@ -53,6 +54,7 @@ namespace OpenSim.Framework.Communications
             ServersInfo = serversInfo;
             this.AssetCache = assetCache;
             UserProfiles = new UserProfileCache(this);
+            TransactionsManager = new AssetTransactionManager(this);
         }
 
         #region Packet Handlers

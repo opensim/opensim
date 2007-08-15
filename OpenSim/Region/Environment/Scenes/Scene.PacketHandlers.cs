@@ -714,33 +714,41 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="nextOwnerMask"></param>
         public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
-            if (userInfo != null)
+            if (transActionID == LLUUID.Zero)
             {
-                AssetBase asset = new AssetBase();
-                asset.Name = name;
-                asset.Description = description;
-                asset.InvType = invType;
-                asset.Type = type;
-                asset.FullID = LLUUID.Random();
-                asset.Data = new byte[1];
-                this.assetCache.AddAsset(asset);
+                CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+                if (userInfo != null)
+                {
+                    AssetBase asset = new AssetBase();
+                    asset.Name = name;
+                    asset.Description = description;
+                    asset.InvType = invType;
+                    asset.Type = type;
+                    asset.FullID = LLUUID.Random();
+                    asset.Data = new byte[1];
+                    this.assetCache.AddAsset(asset);
 
-                InventoryItemBase item = new InventoryItemBase();
-                item.avatarID = remoteClient.AgentId;
-                item.creatorsID = remoteClient.AgentId;
-                item.inventoryID = LLUUID.Random();
-                item.assetID = asset.FullID;
-                item.inventoryDescription = description;
-                item.inventoryName = name;
-                item.assetType = invType;
-                item.invType = invType;
-                item.parentFolderID = folderID;
-                item.inventoryCurrentPermissions = 2147483647;
-                item.inventoryNextPermissions = nextOwnerMask;
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.avatarID = remoteClient.AgentId;
+                    item.creatorsID = remoteClient.AgentId;
+                    item.inventoryID = LLUUID.Random();
+                    item.assetID = asset.FullID;
+                    item.inventoryDescription = description;
+                    item.inventoryName = name;
+                    item.assetType = invType;
+                    item.invType = invType;
+                    item.parentFolderID = folderID;
+                    item.inventoryCurrentPermissions = 2147483647;
+                    item.inventoryNextPermissions = nextOwnerMask;
 
-                userInfo.AddItem(remoteClient.AgentId, item);
-                remoteClient.SendInventoryItemUpdate(item);
+                    userInfo.AddItem(remoteClient.AgentId, item);
+                    remoteClient.SendInventoryItemUpdate(item);
+                }
+            }
+            else
+            {
+                commsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
+                //System.Console.WriteLine("request to create inventory item from transaction " + transActionID);
             }
         }
 

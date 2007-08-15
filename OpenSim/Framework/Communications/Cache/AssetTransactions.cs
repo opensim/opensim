@@ -35,6 +35,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Data;
 using OpenSim.Region.Capabilities;
 using OpenSim.Framework.Servers;
 
@@ -47,11 +48,13 @@ namespace OpenSim.Framework.Communications.Caches
         public List<NoteCardCapsUpdate> NotecardUpdaters = new List<NoteCardCapsUpdate>();
         public LLUUID UserID;
         public Dictionary<LLUUID, AssetXferUploader> XferUploaders = new Dictionary<LLUUID, AssetXferUploader>();
+        public AssetTransactionManager Manager;
 
         // Methods
-        public AgentAssetTransactions(LLUUID agentID)
+        public AgentAssetTransactions(LLUUID agentID, AssetTransactionManager manager)
         {
             this.UserID = agentID;
+            Manager = manager;
         }
 
         public AssetCapsUploader RequestCapsUploader()
@@ -70,9 +73,34 @@ namespace OpenSim.Framework.Communications.Caches
 
         public AssetXferUploader RequestXferUploader(LLUUID transactionID)
         {
-            AssetXferUploader uploader = new AssetXferUploader();
-            this.XferUploaders.Add(transactionID, uploader);
-            return uploader;
+            if (!this.XferUploaders.ContainsKey(transactionID))
+            {
+                AssetXferUploader uploader = new AssetXferUploader(this);
+
+                this.XferUploaders.Add(transactionID, uploader);
+                return uploader;
+            }
+            return null;
+        }
+
+        public void HandleXfer(ulong xferID, uint packetID, byte[] data)
+        {
+            foreach (AssetXferUploader uploader in this.XferUploaders.Values)
+            {
+                if (uploader.XferID == xferID)
+                {
+                    uploader.HandleXferPacket(xferID, packetID, data);
+                    break;
+                }
+            }
+        }
+
+        public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
+        {
+            if (this.XferUploaders.ContainsKey(transactionID))
+            {
+                this.XferUploaders[transactionID].RequestCreateInventoryItem(remoteClient, transactionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
+            }
         }
 
         // Nested Types
@@ -143,10 +171,23 @@ namespace OpenSim.Framework.Communications.Caches
             private IClientAPI ourClient;
             public LLUUID TransactionID = LLUUID.Zero;
             public bool UploadComplete;
-            public uint XferID;
+            public ulong XferID;
+            private string m_name = "";
+            private string m_description = "";
+            private sbyte type = 0;
+            private sbyte invType = 0;
+            private uint nextPerm = 0;
+            private bool m_finished = false;
+            private bool m_createItem = false;
+            private AgentAssetTransactions m_userTransactions;
+
+            public AssetXferUploader(AgentAssetTransactions transactions)
+            {
+                this.m_userTransactions = transactions;
+            }
 
             // Methods
-            public void HandleXferPacket(uint xferID, uint packetID, byte[] data)
+            public void HandleXferPacket(ulong xferID, uint packetID, byte[] data)
             {
                 if (this.XferID == xferID)
                 {
@@ -216,6 +257,67 @@ namespace OpenSim.Framework.Communications.Caches
                 newPack.AssetBlock.Success = true;
                 newPack.AssetBlock.UUID = this.Asset.FullID;
                 this.ourClient.OutPacket(newPack);
+                this.m_finished = true;
+                if (m_createItem)
+                {
+                    DoCreateItem();
+                }
+                Console.WriteLine("upload complete "+ this.TransactionID);
+                //SaveAssetToFile("testudpupload" + Util.RandomClass.Next(1, 1000) + ".dat", this.Asset.Data);
+            }
+            private void SaveAssetToFile(string filename, byte[] data)
+            {
+                FileStream fs = File.Create(filename);
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write(data);
+                bw.Close();
+                fs.Close();
+            }
+
+            public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
+            {
+                if (this.TransactionID == transactionID)
+                {
+                    this.InventFolder = folderID;
+                    this.m_name = name;
+                    this.m_description = description;
+                    this.type = type;
+                    this.invType = invType;
+                    this.nextPerm = nextOwnerMask;
+                    this.Asset.Name = name;
+                    this.Asset.Description = description;
+                    this.Asset.Type = type;
+                    this.Asset.InvType = invType;
+                    m_createItem = true;
+                    if (m_finished)
+                    {
+                        DoCreateItem();
+                    }
+                }
+            }
+
+            private void DoCreateItem()
+            {
+                this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
+                CachedUserInfo userInfo = m_userTransactions.Manager.CommsManager.UserProfiles.GetUserDetails(ourClient.AgentId);
+                if (userInfo != null)
+                {
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.avatarID = this.ourClient.AgentId;
+                    item.creatorsID = ourClient.AgentId;
+                    item.inventoryID = LLUUID.Random();
+                    item.assetID = Asset.FullID;
+                    item.inventoryDescription = this.m_description;
+                    item.inventoryName = m_name;
+                    item.assetType = type;
+                    item.invType = this.invType;
+                    item.parentFolderID = this.InventFolder;
+                    item.inventoryCurrentPermissions = 2147483647;
+                    item.inventoryNextPermissions = this.nextPerm;
+
+                    userInfo.AddItem(ourClient.AgentId, item);
+                    ourClient.SendInventoryItemUpdate(item);
+                }
             }
         }
 

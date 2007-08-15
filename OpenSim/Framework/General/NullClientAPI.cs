@@ -57,6 +57,8 @@ namespace OpenSim.Framework
        public event FetchInventoryDescendents OnFetchInventoryDescendents;
        public event FetchInventory OnFetchInventory;
        public event RequestTaskInventory OnRequestTaskInventory;
+       public event UDPAssetUploadRequest OnAssetUploadRequest;
+       public event XferReceive OnXferReceive;
 
        public event UUIDNameRequest OnNameFromUUIDRequest;
 

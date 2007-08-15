@@ -90,6 +90,7 @@ namespace OpenSim.Region.Communications.Local
                 response.RegionY = reg.RegionLocY;
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
+               // response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CapsSeed/" + capsPath + "0000/";
                 theUser.currentAgent.currentRegion = reg.SimUUID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 
