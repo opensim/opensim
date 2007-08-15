@@ -221,8 +221,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, float angle) { return new Axiom.Math.Quaternion(); }
         public Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot) { return new Axiom.Math.Vector3(); }
         public void llRot2Angle() { }
-        public float llAcos(float val) { return 0; }
-        public float llAsin(float val) { return 0; }
+        public float llAcos(float val) { return (float)Math.Acos(val); }
+        public float llAsin(float val) { return (float)Math.Asin(val); }
         public float llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b) { return 0; }
         public string llGetInventoryKey(string name) { return ""; }
         public void llAllowInventoryDrop(Int32 add) { }
@@ -311,7 +311,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public string llSendRemoteData(string channel, string dest, Int32 idata, string sdata) { return ""; }
         public void llRemoteDataReply(string channel, string message_id, string sdata, Int32 idata) { }
         public void llCloseRemoteDataChannel(string channel) { }
-        public void llMD5String(string src, Int32 nonce) { }
+        public string llMD5String(string src, Int32 nonce) {
+            return OpenSim.Framework.Utilities.Util.Md5Hash(src + ":" + nonce.ToString());
+        }
         public void llSetPrimitiveParams() { }
         public string llStringToBase64(string str) { return ""; }
         public string llBase64ToString(string str) { return ""; }
@@ -353,7 +355,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llLoadURL(string avatar_id, string message, string url) { }
         public void llParcelMediaCommandList() { }
         public void llParcelMediaQuery() { }
-        public Int32 llModPow(Int32 a, Int32 b, Int32 c) { return 0; }
+
+        public Int32 llModPow(Int32 a, Int32 b, Int32 c) {
+            Int64 tmp = 0;
+            Int64 val = Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
+
+            return Convert.ToInt32(val);
+        }
+
         public Int32 llGetInventoryType(string name) { return 0; }
         public void llSetPayPrice() { }
         public Axiom.Math.Vector3 llGetCameraPos() { return new Axiom.Math.Vector3(); }
@@ -369,7 +378,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llSetCameraParams() { }
         public void llClearCameraParams() { }
         public void llListStatistics() { }
-        public Int32 llGetUnixTime() { return 0; }
+        public Int32 llGetUnixTime() {
+            return OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
+        }
         public Int32 llGetParcelFlags(Axiom.Math.Vector3 pos) { return 0; }
         public Int32 llGetRegionFlags() { return 0; }
         public string llXorBase64StringsCorrect(string str1, string str2) { return ""; }

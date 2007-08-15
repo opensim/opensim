@@ -472,7 +472,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: llCloseRemoteDataChannel(key channel)
         void llCloseRemoteDataChannel(string channel);
         //wiki: string llMD5String(string src, integer nonce)
-        void llMD5String(string src, Int32 nonce);
+        string llMD5String(string src, Int32 nonce);
         void llSetPrimitiveParams();
         //wiki: string llStringToBase64(string str)
         string llStringToBase64(string str);
