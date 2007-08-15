@@ -20,25 +20,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return;
         }
 
-        //
-        // IMPLEMENT THESE!
-        //
-
-
-
-
-        public float llSin(float f) { return 0; }
-        public float llCos(float f) { return 0; }
-        public float llTan(float f) { return 0; }
-        public float llAtan2(float x, float y) { return 0; }
-        public float llSqrt(float f) { return 0; }
-        public float llPow(float fbase, float fexponent) { return 0; }
-        public UInt32 llAbs(Int32 i) { return 0; }
-        public float llFabs(float f) { return 0; }
+//These are the implementations of the various ll-functions used by the LSL scripts.
+        //starting out, we use the System.Math library for trig functions. - CFK 8-14-07
+        public float llSin(float f) { return (float)Math.Sin(f); }
+        public float llCos(float f) { return (float)Math.Cos(f); }
+        public float llTan(float f) { return (float)Math.Tan(f); }
+        public float llAtan2(float x, float y) { return (float)Math.Atan2(y, x); }
+        public float llSqrt(float f) { return (float)Math.Sqrt(f); }
+        public float llPow(float fbase, float fexponent) { return (float)Math.Pow(fbase, fexponent); }
+        public Int32 llAbs(Int32 i) { return (Int32)Math.Abs(i); }
+        public float llFabs(float f) { return (float)Math.Abs(f); }
         public float llFrand(float mag) { return 0; }
-        public UInt32 llFloor(float f) { return 0; }
-        public UInt32 llCeil(float f) { return 0; }
-        public UInt32 llRound(float f) { return 0; }
+        public Int32 llFloor(float f) { return (Int32)Math.Floor(f); }
+        public Int32 llCeil(float f) { return (Int32)Math.Ceiling(f); }
+        public Int32 llRound(float f) { return (Int32)Math.Round(f, 1); }
         public float llVecMag(Axiom.Math.Vector3 v) { return 0; }
         public Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v) { return new Axiom.Math.Vector3(); }
         public float llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b) { return 0; }
@@ -233,24 +228,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Int32 llSubStringIndex(string source, string pattern) { return 0; }
         public string llGetOwnerKey(string id) { return ""; }
         public Axiom.Math.Vector3 llGetCenterOfMass() { return new Axiom.Math.Vector3(); }
-        public void llListSort() { }
-        public void llGetListLength() { }
-        public void llList2Integer() { }
-        public void llList2Float() { }
-        public void llList2String() { }
-        public void llList2Key() { }
-        public void llList2Vector() { }
-        public void llList2Rot() { }
-        public void llList2List() { }
-        public void llDeleteSubList() { }
-        public void llGetListEntryType() { }
-        public void llList2CSV() { }
-        public void llCSV2List() { }
-        public void llListRandomize() { }
-        public void llList2ListStrided() { }
-        public void llGetRegionCorner() { }
-        public void llListInsertList() { }
-        public void llListFindList() { }
+        public List<string> llListSort(List<string> src, Int32 stride, Int32 ascending)
+            { return new List<string>(); }
+        public Int32 llGetListLength(List<string> src) { return 0; }
+        public Int32 llList2Integer(List<string> src, Int32 index) { return 0;}
+        public float llList2Float(List<string> src, Int32 index) { return 0; }
+        public string llList2String(List<string> src, Int32 index) { return ""; }
+        public string llList2Key(List<string> src, Int32 index) { return ""; }
+        public Axiom.Math.Vector3 llList2Vector(List<string> src, Int32 index)
+            { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Quaternion llList2Rot(List<string> src, Int32 index) 
+            { return new Axiom.Math.Quaternion(); }
+        public List<string> llList2List(List<string> src, Int32 start, Int32 end) 
+            { return new List<string>(); }
+        public List<string> llDeleteSubList(List<string> src, Int32 start, Int32 end) 
+            { return new List<string>(); }
+        public Int32 llGetListEntryType(List<string> src, Int32 index) { return 0; }
+        public string llList2CSV(List<string> src) { return ""; }
+        public List<string> llCSV2List(string src)
+            { return new List<string>(); }
+        public List<string> llListRandomize(List<string> src, Int32 stride) 
+            { return new List<string>(); }
+        public List<string> llList2ListStrided(List<string> src, Int32 start, Int32 end, Int32 stride) 
+            { return new List<string>(); }
+        public Axiom.Math.Vector3 llGetRegionCorner()
+        { return new Axiom.Math.Vector3(); }
+        public List<string> llListInsertList(List<string> dest, List<string> src, Int32 start) 
+            { return new List<string>(); }
+        public Int32 llListFindList(List<string> src, List<string> test) { return 0; }
         public string llGetObjectName() { return ""; }
         public void llSetObjectName(string name) { }
         public string llGetDate() { return ""; }
@@ -300,7 +305,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llSetCameraAtOffset(Axiom.Math.Vector3 offset) { }
         public void llDumpList2String() { }
         public void llScriptDanger(Axiom.Math.Vector3 pos) { }
-        public void llDialog() { }
+        public void llDialog(string avatar, string message, List<string> buttons, Int32 chat_channel) { }
         public void llVolumeDetect(Int32 detect) { }
         public void llResetOtherScript(string name) { }
         public Int32 llGetScriptState(string name) { return 0; }
@@ -314,14 +319,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public string llMD5String(string src, Int32 nonce) {
             return OpenSim.Framework.Utilities.Util.Md5Hash(src + ":" + nonce.ToString());
         }
-        public void llSetPrimitiveParams() { }
+        public void llSetPrimitiveParams(List<string> rules) { }
         public string llStringToBase64(string str) { return ""; }
         public string llBase64ToString(string str) { return ""; }
         public void llXorBase64Strings() { }
         public void llRemoteDataSetRegion() { }
-        public float llLog10(float val) { return 0; }
-        public float llLog(float val) { return 0; }
-        public void llGetAnimationList() { }
+        public float llLog10(float val) { return (float)Math.Log10(val); }
+        public float llLog(float val) { return (float)Math.Log(val); }
+        public List<string> llGetAnimationList(string id) { return new List<string>(); }
         public void llSetParcelMusicURL(string url) { }
         public Axiom.Math.Vector3 llGetRootPosition() { return new Axiom.Math.Vector3(); }
         public Axiom.Math.Quaternion llGetRootRotation() { return new Axiom.Math.Quaternion(); }
@@ -332,7 +337,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llSetLinkAlpha(Int32 linknumber, float alpha, Int32 face) { }
         public Int32 llGetNumberOfPrims() { return 0; }
         public string llGetNumberOfNotecardLines(string name) { return ""; }
-        public void llGetBoundingBox() { }
+        public List<string> llGetBoundingBox(string obj) { return new List<string>(); }
         public Axiom.Math.Vector3 llGetGeometricCenter() { return new Axiom.Math.Vector3(); }
         public void llGetPrimitiveParams() { }
         public string llIntegerToBase64(Int32 number) { return ""; }
@@ -340,7 +345,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public float llGetGMTclock() { return 0; }
         public string llGetSimulatorHostname() { return ""; }
         public void llSetLocalRot(Axiom.Math.Quaternion rot) { }
-        public void llParseStringKeepNulls() { }
+        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers) 
+            { return new List<string>(); }
         public void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, Int32 param) { }
         public Int32 llGetObjectPermMask(Int32 mask) { return 0; }
         public void llSetObjectPermMask(Int32 mask, Int32 value) { }
@@ -353,7 +359,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public float llGetObjectMass(string id) { return 0; }
         public void llListReplaceList() { }
         public void llLoadURL(string avatar_id, string message, string url) { }
-        public void llParcelMediaCommandList() { }
+        public void llParcelMediaCommandList(List<string> commandList) { }
         public void llParcelMediaQuery() { }
 
         public Int32 llModPow(Int32 a, Int32 b, Int32 c) {
@@ -364,7 +370,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         }
 
         public Int32 llGetInventoryType(string name) { return 0; }
-        public void llSetPayPrice() { }
+        public void llSetPayPrice(Int32 price, List<string> quick_pay_buttons) { }
         public Axiom.Math.Vector3 llGetCameraPos() { return new Axiom.Math.Vector3(); }
         public Axiom.Math.Quaternion llGetCameraRot() { return new Axiom.Math.Quaternion(); }
         public void llSetPrimURL() { }
@@ -375,9 +381,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llAddToLandBanList(string avatar, float hours) { }
         public void llRemoveFromLandPassList(string avatar) { }
         public void llRemoveFromLandBanList(string avatar) { }
-        public void llSetCameraParams() { }
+        public void llSetCameraParams(List<string> rules) { }
         public void llClearCameraParams() { }
-        public void llListStatistics() { }
+        public float llListStatistics(Int32 operation, List<string> src) { return 0; }
         public Int32 llGetUnixTime() {
             return OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
         }
@@ -388,7 +394,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llResetLandBanList() { }
         public void llResetLandPassList() { }
         public Int32 llGetParcelPrimCount(Axiom.Math.Vector3 pos, Int32 category, Int32 sim_wide) { return 0; }
-        public void llGetParcelPrimOwners() { }
+        public List<string> llGetParcelPrimOwners(Axiom.Math.Vector3 pos) { return new List<string>(); }
         public Int32 llGetObjectPrimCount(string object_id) { return 0; }
         public Int32 llGetParcelMaxPrims(Axiom.Math.Vector3 pos, Int32 sim_wide) { return 0; }
         public List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param) { return new List<string>(); }
