@@ -16,9 +16,25 @@ namespace OpenSim.Framework.Types
     public enum HollowShape : byte
     {
         Same = 0,
-        // Fill in...
+        Circle = 16,
+            Square =32,
+        Triangle = 48
     }
 
+    public enum PCodeEnum : byte
+    {
+        Primitive = 9,
+        Avatar = 47
+    }
+    
+    public enum Extrusion : byte
+    {
+        Straight = 16,
+        Curve1 = 32,
+        Curve2 = 48,
+        Flexible = 128
+    }
+    
     public class PrimitiveBaseShape
     {
         private static byte[] m_defaultTextureEntry;
@@ -59,7 +75,7 @@ namespace OpenSim.Framework.Types
             }
         }
 
-        public HollowShape HoleShape
+        public HollowShape HollowShape
         {
             get
             {
@@ -87,6 +103,7 @@ namespace OpenSim.Framework.Types
         
         public PrimitiveBaseShape()
         {
+            PCode = (byte)PCodeEnum.Primitive;
             ExtraParams = new byte[1];
             TextureEntry = m_defaultTextureEntry;
         }
@@ -116,15 +133,14 @@ namespace OpenSim.Framework.Types
         public BoxShape()
             : base()
         {
-            PathCurve = 16;
+            PathCurve = (byte) Extrusion.Straight;
             ProfileShape = ProfileShape.Square;
-            PCode = 9;
             PathScaleX = 100;
             PathScaleY = 100;
         }
 
         public BoxShape(float side)
-            : base()
+            : this()
         {
             SetSide(side);
         }
@@ -151,15 +167,14 @@ namespace OpenSim.Framework.Types
         public CylinderShape()
             : base()
         {
-            PathCurve = 16;
+            PathCurve = (byte)Extrusion.Straight;
             ProfileShape = ProfileShape.Circle;
-            PCode = 9;
             PathScaleX = 100;
             PathScaleY = 100;
         }
 
         public CylinderShape(float radius, float heigth)
-            : base()
+            : this()
         {
             SetRadius(radius);
             SetHeigth(heigth);
@@ -167,7 +182,7 @@ namespace OpenSim.Framework.Types
 
         private void SetHeigth(float heigth)
         {
-            Scale.Y = heigth;            
+            Scale.Z = heigth;            
         }
 
         private void SetRadius(float radius)
