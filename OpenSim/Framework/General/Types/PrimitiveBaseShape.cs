@@ -110,10 +110,11 @@ namespace OpenSim.Framework.Types
             
         }                       
     }
-    
+
     public class BoxShape : PrimitiveBaseShape
     {
-        public BoxShape() : base()
+        public BoxShape()
+            : base()
         {
             PathCurve = 16;
             ProfileShape = ProfileShape.Square;
@@ -121,10 +122,16 @@ namespace OpenSim.Framework.Types
             PathScaleX = 100;
             PathScaleY = 100;
         }
-        
-        public void SetSide( float side )
+
+        public BoxShape(float side)
+            : base()
         {
-            Scale = new LLVector3( side, side, side );
+            SetSide(side);
+        }
+
+        public void SetSide(float side)
+        {
+            Scale = new LLVector3(side, side, side);
         }
 
         public static BoxShape Default
@@ -137,6 +144,35 @@ namespace OpenSim.Framework.Types
                 
                 return boxShape;
             }
+        }
+    }
+    public class CylinderShape : PrimitiveBaseShape
+    {
+        public CylinderShape()
+            : base()
+        {
+            PathCurve = 16;
+            ProfileShape = ProfileShape.Circle;
+            PCode = 9;
+            PathScaleX = 100;
+            PathScaleY = 100;
+        }
+
+        public CylinderShape(float radius, float heigth)
+            : base()
+        {
+            SetRadius(radius);
+            SetHeigth(heigth);
+        }
+
+        private void SetHeigth(float heigth)
+        {
+            Scale.Y = heigth;            
+        }
+
+        private void SetRadius(float radius)
+        {
+            Scale.X = Scale.Y = radius*2f;
         }
     }
 }

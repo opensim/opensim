@@ -35,6 +35,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return 1; }
         }
 
+        public LLQuaternion Rotation
+        {
+            get { return m_rootPart.RotationOffset; }
+        }
+	
+
         /// <summary>
         /// 
         /// </summary>
@@ -471,6 +477,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public string Text
+        {
+            get { return m_rootPart.Text; }
+            set { m_rootPart.Text = value; }
+        }
+	
+        
         public void SetPartText(string text, uint localID)
         {
             SceneObjectPart part = this.GetChildPrim(localID);
@@ -626,7 +639,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
-        #region Roation
+        #region Rotation
         /// <summary>
         /// 
         /// </summary>
@@ -791,6 +804,16 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        public override void UpdateMovement()
+        {
+            foreach( SceneObjectPart part in m_parts.Values )
+            {
+                part.UpdateMovement();
+            }
+            
+            base.UpdateMovement();
+        }
+        
         /// <summary>
         /// Added as a way for the storage provider to reset the scene, 
         /// most likely a better way to do this sort of thing but for now...

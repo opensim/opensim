@@ -13,8 +13,8 @@ namespace SimpleApp
     {
         private PerformanceCounter m_counter;
         
-        public CpuCounterObject(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos, PrimitiveBaseShape shape)
-            : base(world, regionHandle, ownerID, localID, pos, shape )
+        public CpuCounterObject(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos )
+            : base(world, regionHandle, ownerID, localID, pos, BoxShape.Default )
         {
             String objectName = "Processor";
             String counterName = "% Processor Time";

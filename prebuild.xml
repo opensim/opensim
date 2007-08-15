@@ -722,6 +722,7 @@
       <ReferencePath>../../../../bin/Physics/</ReferencePath>
 
       <Reference name="libsecondlife.dll"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data.dll"/>
       <Reference name="System.Xml"/>

@@ -65,14 +65,15 @@ namespace SimpleApp
             
             udpServer.ServerListener();
             
-            PrimitiveBaseShape shape = BoxShape.Default;
-            shape.Scale = new LLVector3(0.5f, 0.5f, 0.5f);
-            LLVector3 pos = new LLVector3(138, 129, 27);
+            LLVector3 pos = new LLVector3(110, 129, 27);
 
-            SceneObjectGroup sceneObject = new CpuCounterObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos, shape);
-           scene.AddEntity(sceneObject);
+            SceneObjectGroup sceneObject = new CpuCounterObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + new LLVector3( 1f, 1f, 1f ));
+            scene.AddEntity(sceneObject);
 
-            MyNpcCharacter m_character = new MyNpcCharacter( scene.EventManager );
+            ComplexObject complexObject = new ComplexObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + new LLVector3( 2f, 2f, 2f ));
+            scene.AddEntity(complexObject);
+
+            MyNpcCharacter m_character = new MyNpcCharacter(scene.EventManager);
             scene.AddNewClient(m_character, false);
           
             DirectoryInfo dirInfo = new DirectoryInfo( "." );

@@ -561,6 +561,10 @@ namespace OpenSim.Region.Environment.Scenes
             remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
         }
         #endregion
+
+        public virtual void UpdateMovement()
+        {
+        }
     }
 }
 
