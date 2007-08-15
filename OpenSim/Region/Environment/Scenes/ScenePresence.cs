@@ -34,6 +34,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -623,7 +624,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
                     AgentCircuitData circuitdata = this.ControllingClient.RequestClientInfo();
-                    string capsPath = "http://" + neighbourRegion.ExternalEndPoint.Address.ToString() + ":9000/CAPS/" +this.m_scene.AuthenticateHandler.AgentCircuits[circuitdata.circuitcode].CapsPath + "0000/";
+                    string capsPath = Util.GetCapsURL(this.ControllingClient.AgentId);
                     this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint, capsPath);
                     this.MakeChildAgent();
                 }

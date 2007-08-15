@@ -89,7 +89,6 @@ namespace OpenSim.Region.Communications.Local
                 response.RegionX = reg.RegionLocX;
                 response.RegionY = reg.RegionLocY;
 
-                //following port needs changing as we don't want a http listener for every region (or do we?)
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
                 theUser.currentAgent.currentRegion = reg.SimUUID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;

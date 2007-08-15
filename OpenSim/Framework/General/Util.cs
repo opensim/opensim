@@ -26,6 +26,7 @@
 * 
 */
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Net;
@@ -41,6 +42,7 @@ namespace OpenSim.Framework.Utilities
         private static Random randomClass = new Random();
         private static uint nextXferID = 5000;
         private static object XferLock = new object();
+        private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
         public static ulong UIntsToLong(uint X, uint Y)
         {
@@ -64,6 +66,11 @@ namespace OpenSim.Framework.Utilities
                 nextXferID++;
             }
             return id;
+        }
+
+        public Util()
+        {
+
         }
 
         public static string GetFileName(string file)
@@ -311,9 +318,25 @@ namespace OpenSim.Framework.Utilities
             return temp;
         }
 
-        public Util()
+        public static string GetCapsURL(LLUUID userID)
         {
+            if (capsURLS.ContainsKey(userID))
+            {
+                return capsURLS[userID];
+            }
+            return "";
+        }
 
+        public static void SetCapsURL(LLUUID userID, string url)
+        {
+            if (capsURLS.ContainsKey(userID))
+            {
+                capsURLS[userID] = url;
+            }
+            else
+            {
+                capsURLS.Add(userID, url);
+            }
         }
 
         // Nini (config) related Methods

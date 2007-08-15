@@ -36,6 +36,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
@@ -836,6 +837,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Caps cap =
                         new Caps(assetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port,
                                  agent.CapsPath, agent.AgentID);
+                    Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() + "/CAPS/" + agent.CapsPath + "0000/");
                     cap.RegisterHandlers();
                     cap.AddNewInventoryItem = this.AddInventoryItem;
                     cap.ItemUpdatedCall = this.UpdateInventoryItemAsset;
@@ -948,7 +950,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
                     AgentCircuitData circuitdata = remoteClient.RequestClientInfo();
-                    string capsPath = "http://" + reg.ExternalEndPoint.Address.ToString() + ":9000/CAPS/" + this.AuthenticateHandler.AgentCircuits[circuitdata.circuitcode].CapsPath + "0000/";
+                    string capsPath = Util.GetCapsURL(remoteClient.AgentId);
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4), capsPath);
                 }
             }
@@ -1111,7 +1113,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.assetID = asset.FullID;
                         userInfo.updateItem(remoteClient.AgentId, item);
 
-                        remoteClient.SendInventoryItemUpdate(item);
+                       // remoteClient.SendInventoryItemUpdate(item);
 
                         return (asset.FullID);
                     }

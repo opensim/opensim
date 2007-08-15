@@ -47,6 +47,11 @@ namespace OpenSim.Framework.Servers
         protected int m_port;
         protected bool m_firstcaps = true;
 
+        public int Port
+        {
+            get { return m_port; } 
+        }
+
         public BaseHttpServer(int port)
         {
             m_port = port;
