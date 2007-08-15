@@ -157,7 +157,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llLookAt(Axiom.Math.Vector3 target, float strength, float damping) { }
         public void llStopLookAt() { }
         public void llSetTimerEvent(float sec) { }
-        public void llSleep(float sec) { }
+        public void llSleep(float sec) { System.Threading.Thread.Sleep((int)(sec * 1000)); }
         public float llGetMass() { return 0; }
         public void llCollisionFilter(string name, string id, Int32 accept) { }
         public void llTakeControls(Int32 controls, Int32 accept, Int32 pass_on) { }
@@ -198,7 +198,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Int32 llGetInventoryNumber(Int32 type) { return 0; }
         public string llGetInventoryName(Int32 type, Int32 number) { return ""; }
         public void llSetScriptState(string name, Int32 run) { }
-        public float llGetEnergy() { return 0; }
+        public float llGetEnergy() { return 1.0f; }
         public void llGiveInventory(string destination, string inventory) { }
         public void llRemoveInventory(string item) { }
         public void llSetText(string text, Axiom.Math.Vector3 color, float alpha) { }
@@ -275,9 +275,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
         public Int32 llGetAttached() { return 0; }
         public Int32 llGetFreeMemory() { return 0; }
-        public string llGetRegionName() { return ""; }
-        public float llGetRegionTimeDilation() { return 0; }
-        public float llGetRegionFPS() { return 0; }
+        public string llGetRegionName() { return World.RegionInfo.RegionName; }
+        public float llGetRegionTimeDilation() { return 1.0f; }
+        public float llGetRegionFPS() { return 10.0f; }
         public void llParticleSystem(List<Object> rules) { }
         public void llGroundRepel(float height, Int32 water, float tau) { }
         public void llGiveInventoryList() { }
@@ -360,7 +360,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Int64 tmp = 0;
             Int64 val = Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
 
-            return Convert.ToInt32(val);
+            return Convert.ToInt32(tmp);
         }
 
         public Int32 llGetInventoryType(string name) { return 0; }
