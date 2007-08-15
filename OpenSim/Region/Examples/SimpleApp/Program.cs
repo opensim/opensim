@@ -70,9 +70,13 @@ namespace SimpleApp
             SceneObjectGroup sceneObject = new CpuCounterObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + new LLVector3( 1f, 1f, 1f ));
             scene.AddEntity(sceneObject);
 
-            ComplexObject complexObject = new ComplexObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + new LLVector3( 2f, 2f, 2f ));
-            scene.AddEntity(complexObject);
-
+            for (int i = 0; i < 27; i++)
+            {
+                LLVector3 posOffset = new LLVector3( (i%3)*4, (i%9)/3 * 4, (i/9) * 4 );
+                ComplexObject complexObject = new ComplexObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + posOffset );
+                scene.AddEntity(complexObject);
+            }
+            
             MyNpcCharacter m_character = new MyNpcCharacter(scene.EventManager);
             scene.AddNewClient(m_character, false);
           
