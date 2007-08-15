@@ -5,6 +5,7 @@ using OpenSim.Region.Environment.Scenes;
 using Axiom.Math;
 using libsecondlife;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Interfaces;
 
 namespace SimpleApp
 {
@@ -35,6 +36,8 @@ namespace SimpleApp
             base.UpdateMovement();
         }
 
+        
+        
         public ComplexObject(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos )
             : base(scene, regionHandle, ownerID, localID, pos, BoxShape.Default )
         {
@@ -50,6 +53,26 @@ namespace SimpleApp
             AddPart(new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(-0.75f, 0, 0), new LLQuaternion(0, -0.5f, -0.05f)));
             
             UpdateParentIDs();
+        }
+
+        public override void OnGrabPart(SceneObjectPart part, LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            m_parts.Remove(part.UUID);
+            remoteClient.SendKillObject(m_regionHandle, part.LocalID);
+            remoteClient.AddMoney(1);
+            remoteClient.SendChatMessage("Poof!", 1, Pos, "Party Party", LLUUID.Zero);
+        }
+
+        public override void OnGrabGroup( LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            if( m_parts.Count == 1 )
+            {
+                m_parts.Remove(m_rootPart.UUID);
+                m_scene.RemoveEntity(this);
+                remoteClient.SendKillObject(m_regionHandle, m_rootPart.LocalID);
+                remoteClient.AddMoney(50);
+                remoteClient.SendChatMessage("KABLAM!!!", 1, Pos, "Groupie Groupie", LLUUID.Zero);
+            }
         }
     }
 }

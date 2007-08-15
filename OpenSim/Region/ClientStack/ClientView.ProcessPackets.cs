@@ -38,6 +38,27 @@ namespace OpenSim.Region.ClientStack
 {
     public partial class ClientView
     {
+        private int m_moneyBalance;
+
+        public int MoneyBalance
+        {
+            get { return m_moneyBalance; }
+        }
+
+        public bool AddMoney( int debit )
+        {
+            if( m_moneyBalance + debit >= 0 )
+            {
+                m_moneyBalance += debit;
+                SendMoneyBalance( LLUUID.Zero, true, Helpers.StringToField("Poof Poof!"), m_moneyBalance );
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
@@ -521,7 +542,7 @@ namespace OpenSim.Region.ClientStack
                     #endregion
 
                     case PacketType.MoneyBalanceRequest:
-                        this.SendMoneyBalance(LLUUID.Zero, true, new byte[0], 1000);
+                        SendMoneyBalance(LLUUID.Zero, true, new byte[0], MoneyBalance);
                         break;
                     case PacketType.UUIDNameRequest:
                         UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;

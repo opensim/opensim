@@ -863,5 +863,28 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.Text = text;
             m_rootPart.ScheduleTerseUpdate();
         }
+
+        public void ObjectGrabHandler(uint localId, LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            if( m_rootPart.LocalID == localId )
+            {
+                OnGrabGroup(offsetPos, remoteClient);
+            }
+            else
+            {
+                SceneObjectPart part = GetChildPrim(localId);
+                OnGrabPart(part, offsetPos, remoteClient);
+            }
+        }
+
+        public virtual void OnGrabPart(SceneObjectPart part, LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            part.OnGrab(offsetPos, remoteClient);
+        }
+
+        public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+
+        }
     }
 }

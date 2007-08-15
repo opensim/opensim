@@ -87,6 +87,8 @@ namespace OpenSim.Region.ClientStack
 
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions )
         {
+            m_moneyBalance = 1000;
+
             m_scene = scene;
             m_clientThreads = clientThreads;
             m_assetCache = assetCache;

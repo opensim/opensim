@@ -145,6 +145,11 @@ namespace OpenSim.Framework
        public void SendAgentAlertMessage(string message, bool modal) { }
        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url) { }
 
+
+       public bool AddMoney(int debit)
+       {
+            return false;
+       }
    }
 }
 

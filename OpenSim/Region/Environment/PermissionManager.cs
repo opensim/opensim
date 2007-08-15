@@ -91,16 +91,23 @@ namespace OpenSim.Region.Environment
 
         #region Object Permissions
 
-        protected virtual bool GenericObjectPermission(LLUUID user, LLUUID obj)
+        protected virtual bool GenericObjectPermission(LLUUID user, LLUUID objId)
         {
             // Default: deny
             bool permission = false;
 
-            // If it's not an object, we cant edit it.
-            if (!(m_scene.Entities[obj] is SceneObjectGroup))
+            if( !m_scene.Entities.ContainsKey( objId ))
+            {
                 return false;
-
-            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[obj];
+            }
+            
+            // If it's not an object, we cant edit it.
+            if (!(m_scene.Entities[objId] is SceneObjectGroup))
+            {
+                return false;
+            }
+            
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objId];
             LLUUID taskOwner = null;  
 
             // Object owners should be able to edit their own content

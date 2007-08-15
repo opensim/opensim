@@ -566,6 +566,10 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void UpdateMovement()
         {
         }
+
+        public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+        }
     }
 }
 

@@ -202,5 +202,10 @@ namespace SimpleApp
 
             count++;
         }
+
+        public bool AddMoney(int debit)
+        {
+            return false;
+        }
     }
 }

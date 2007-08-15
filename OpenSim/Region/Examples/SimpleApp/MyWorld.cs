@@ -41,38 +41,43 @@ namespace SimpleApp
             this.CreateTerrainTexture();
         }
 
+        public override void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup obj = ent as SceneObjectGroup;
+                    
+                    if( obj.HasChildPrim( localID ) )
+                    {
+                        obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
+                        return;
+                    }                    
+                }
+            }
+            
+            base.ProcessObjectGrab(localID, offsetPos, remoteClient);
+        }
+
         #region IWorld Members
 
         override public void AddNewClient(IClientAPI client, bool child)
         {
+            SubscribeToClientEvents(client);
+
+            ScenePresence avatar = CreateAndAddScenePresence(client);
+            avatar.Pos = new LLVector3(128, 128, 26);
+
             LLVector3 pos = new LLVector3(128, 128, 128);
-            
-            client.OnRegionHandShakeReply += SendLayerData;
-            /*client.OnChatFromViewer +=
-                delegate(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
-                    {
-                        // Echo it (so you know what you typed)
-                        client.SendChatMessage(message, type, fromPos, fromName, fromAgentID);
-                        client.SendChatMessage("Ready.", 1, pos, "System", LLUUID.Zero );
-                    };
-            */
-            client.OnChatFromViewer += this.SimChat;
-            client.OnAddPrim += AddNewPrim;
-            client.OnUpdatePrimGroupPosition += this.UpdatePrimPosition;
-            client.OnRequestMapBlocks += this.RequestMapBlocks;
-            client.OnTeleportLocationRequest += this.RequestTeleportLocation;
-            client.OnGrabUpdate += this.MoveObject;
-            client.OnNameFromUUIDRequest += this.commsManager.HandleUUIDNameRequest;
-            
+
             client.OnCompleteMovementToRegion += delegate()
                  {
                      client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero );
                  };
 
-            client.SendRegionHandshake(m_regInfo);
 
-            ScenePresence avatar = CreateAndAddScenePresence(client);
-            avatar.Pos = new LLVector3(128, 128, 26);
+            client.SendRegionHandshake(m_regInfo);
         }
 
         #endregion
