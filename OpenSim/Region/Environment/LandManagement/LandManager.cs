@@ -202,8 +202,8 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns>Land object at the point supplied</returns>
         public Land getLandObject(float x_float, float y_float)
         {
-            int x = Convert.ToInt32(Math.Floor(Convert.ToDecimal(x_float) / Convert.ToDecimal(4.0)));
-            int y = Convert.ToInt32(Math.Floor(Convert.ToDecimal(y_float) / Convert.ToDecimal(4.0)));
+            int x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / Convert.ToDouble(4.0)));
+            int y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float) / Convert.ToDouble(4.0)));
             
             if (x > 63 || y > 63 || x < 0 || y < 0)
             {
