@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
@@ -47,7 +46,6 @@ namespace OpenSim.Region.ClientStack
     public abstract class RegionApplicationBase
     {
         protected AssetCache m_assetCache;
-        protected InventoryCache m_inventoryCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected DateTime m_startuptime;
         protected NetworkServersInfo m_networkServersInfo;
@@ -58,9 +56,9 @@ namespace OpenSim.Region.ClientStack
         protected LogBase m_log;
         protected CommunicationsManager m_commsManager;
 
-        public RegionApplicationBase( )
+        public RegionApplicationBase()
         {
-            m_startuptime = DateTime.Now;          
+            m_startuptime = DateTime.Now;
         }
 
         virtual public void StartUp()
@@ -69,16 +67,13 @@ namespace OpenSim.Region.ClientStack
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
             Initialize();
-            
+
             ScenePresence.CreateDefaultTextureEntry();
 
-            m_httpServer = new BaseHttpServer( m_httpServerPort );
+            m_httpServer = new BaseHttpServer(m_httpServerPort);
 
             m_log.Verbose("Starting HTTP server");
             m_httpServer.Start();
-
-            m_inventoryCache = new InventoryCache();
-           
         }
 
         protected abstract void Initialize();
@@ -90,21 +85,21 @@ namespace OpenSim.Region.ClientStack
         }
 
         protected abstract LogBase CreateLog();
-        protected abstract PhysicsScene GetPhysicsScene( );
+        protected abstract PhysicsScene GetPhysicsScene();
         protected abstract StorageManager CreateStorageManager(RegionInfo regionInfo);
-        
+
         protected PhysicsScene GetPhysicsScene(string engine)
         {
             PhysicsPluginManager physicsPluginManager;
             physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPlugins();
-            return physicsPluginManager.GetPhysicsScene( engine );
+            return physicsPluginManager.GetPhysicsScene(engine);
         }
 
         protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer)
         {
             AgentCircuitManager authen = new AgentCircuitManager();
-            udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_inventoryCache, m_log, authen);
+            udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_log, authen);
 
             StorageManager storageManager = CreateStorageManager(regionInfo);
             Scene scene = CreateScene(regionInfo, storageManager, authen);
@@ -113,9 +108,9 @@ namespace OpenSim.Region.ClientStack
 
             scene.LoadWorldMap();
 
-            scene.PhysScene = GetPhysicsScene( );
+            scene.PhysScene = GetPhysicsScene();
             scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
-            scene.LoadPrimsFromStorage(); 
+            scene.LoadPrimsFromStorage();
 
             //Master Avatar Setup
             UserProfileData masterAvatar = m_commsManager.UserServer.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);

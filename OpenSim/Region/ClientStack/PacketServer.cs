@@ -29,7 +29,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using libsecondlife.Packets;
-using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
@@ -122,9 +121,9 @@ namespace OpenSim.Region.ClientStack
             
         }
 
-        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions)
+        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
-            return new ClientView(remoteEP, initialcirpack, clientThreads, scene, assetCache, packServer, inventoryCache, authenSessions );
+            return new ClientView(remoteEP, initialcirpack, clientThreads, scene, assetCache, packServer, authenSessions );
         }
 
         /// <summary>
@@ -136,10 +135,10 @@ namespace OpenSim.Region.ClientStack
         /// <param name="inventoryCache"></param>
         /// <param name="authenticateSessionsClass"></param>
         /// <returns></returns>
-        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, InventoryCache inventoryCache, AgentCircuitManager authenticateSessionsClass)
+        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, AgentCircuitManager authenticateSessionsClass)
         {
             ClientView newuser =
-                CreateNewClient(epSender, useCircuit, ClientThreads, _localScene, assetCache, this, inventoryCache,
+                CreateNewClient(epSender, useCircuit, ClientThreads, _localScene, assetCache, this,
                                 authenticateSessionsClass);
             
             this.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);

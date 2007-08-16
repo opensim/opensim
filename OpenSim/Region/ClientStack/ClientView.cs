@@ -33,7 +33,6 @@ using System.Threading;
 using System.Timers;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
@@ -69,13 +68,13 @@ namespace OpenSim.Region.ClientStack
         public Thread ClientThread;
         public LLVector3 startpos;
 
-        private AgentAssetUpload UploadAssets;
+        //private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
         private bool debug = false;
         protected IScene m_scene;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
-        private InventoryCache m_inventoryCache;
+       // private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
         protected AgentCircuitManager m_authenticateSessionsHandler;
         private Encoding enc = Encoding.ASCII;
@@ -85,7 +84,7 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, InventoryCache inventoryCache, AgentCircuitManager authenSessions )
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions )
         {
             m_moneyBalance = 1000;
 
@@ -94,7 +93,7 @@ namespace OpenSim.Region.ClientStack
             m_assetCache = assetCache;
 
             m_networkServer = packServer;
-            m_inventoryCache = inventoryCache;
+           // m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
             MainLog.Instance.Verbose( "OpenSimClient.cs - Started up new client thread to handle incoming request");
@@ -105,7 +104,7 @@ namespace OpenSim.Region.ClientStack
 
             PacketQueue = new BlockingQueue<QueItem>();
 
-            this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
+            //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
             AckTimer = new Timer(500);
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();

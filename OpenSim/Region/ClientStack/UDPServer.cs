@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using libsecondlife.Packets;
-using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
@@ -55,7 +54,6 @@ namespace OpenSim.Region.ClientStack
         protected int listenPort;
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
-        protected InventoryCache m_inventoryCache;
         protected LogBase m_log;
         protected AgentCircuitManager m_authenticateSessionsClass;
 
@@ -84,11 +82,10 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        public UDPServer(int port, AssetCache assetCache, InventoryCache inventoryCache, LogBase console, AgentCircuitManager authenticateClass)
+        public UDPServer(int port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
         {
             listenPort = port;
             this.m_assetCache = assetCache;
-            this.m_inventoryCache = inventoryCache;
             this.m_log = console;
             this.m_authenticateSessionsClass = authenticateClass;
             this.CreatePacketServer();
@@ -133,7 +130,7 @@ namespace OpenSim.Region.ClientStack
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
             this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
 
-            this.PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_inventoryCache, m_authenticateSessionsClass); 
+            this.PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass); 
         }
 
         public void ServerListener()

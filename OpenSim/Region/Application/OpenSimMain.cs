@@ -30,7 +30,6 @@ using System;
 using System.IO;
 using libsecondlife;
 using Nini.Config;
-using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;

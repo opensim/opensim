@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using libsecondlife;
-using OpenSim.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;

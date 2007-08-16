@@ -411,7 +411,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.UpdateInventoryItem:
                         UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
                         //Console.WriteLine(Pack.ToString());
-                        for (int i = 0; i < update.InventoryData.Length; i++)
+                        /*for (int i = 0; i < update.InventoryData.Length; i++)
                         {
                             if (update.InventoryData[i].TransactionID != LLUUID.Zero)
                             {
@@ -439,7 +439,7 @@ namespace OpenSim.Region.ClientStack
                             {
                                 m_inventoryCache.UpdateInventoryItemDetails(this, update.InventoryData[i].ItemID, update.InventoryData[i]); ;
                             }
-                        }
+                        }*/
                         break;
                     case PacketType.RequestTaskInventory:
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;

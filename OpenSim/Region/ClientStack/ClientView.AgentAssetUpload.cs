@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Assets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
@@ -45,13 +44,13 @@ namespace OpenSim.Region.ClientStack
             private Dictionary<LLUUID, AssetTransaction> transactions = new Dictionary<LLUUID, AssetTransaction>();
             private ClientView ourClient;
             private AssetCache m_assetCache;
-            private InventoryCache m_inventoryCache;
+           // private InventoryCache m_inventoryCache;
 
-            public AgentAssetUpload(ClientView client, AssetCache assetCache, InventoryCache inventoryCache)
+            public AgentAssetUpload(ClientView client, AssetCache assetCache )
             {
                 this.ourClient = client;
                 m_assetCache = assetCache;
-                m_inventoryCache = inventoryCache;
+               // m_inventoryCache = inventoryCache;
             }
 
             public void AddUpload(LLUUID transactionID, AssetBase asset)
@@ -187,7 +186,7 @@ namespace OpenSim.Region.ClientStack
                                 if (trans.AddToInventory)
                                 {
                                     // m_assetCache.AddAsset(trans.Asset);
-                                    m_inventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
+                                    //m_inventoryCache.AddNewInventoryItem(this.ourClient, trans.InventFolder, trans.Asset);
                                 }
 
 
@@ -235,7 +234,7 @@ namespace OpenSim.Region.ClientStack
                     {
                         //already complete so we can add it to the inventory
                         //m_assetCache.AddAsset(trans.Asset);
-                        m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset);
+                       // m_inventoryCache.AddNewInventoryItem(this.ourClient, packet.InventoryBlock.FolderID, trans.Asset);
                     }
                     else
                     {
