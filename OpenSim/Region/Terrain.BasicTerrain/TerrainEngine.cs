@@ -400,6 +400,10 @@ namespace OpenSim.Region.Terrain
                                 LoadFromFileF32(args[2], Convert.ToInt32(args[3]), Convert.ToInt32(args[4]),
                                     Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
                                 break;
+                            case "img":
+                                LoadFromFileIMG(args[2], Convert.ToInt32(args[3]), Convert.ToInt32(args[4]),
+                                    Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+                                break;
                             default:
                                 resultText = "Unknown or unsupported image or data format";
                                 return false;
@@ -653,6 +657,43 @@ namespace OpenSim.Region.Terrain
 
             bs.Close();
             s.Close();
+
+            tainted++;
+        }
+
+        /// <summary>
+        /// Loads a larger tiled image across a terrain
+        /// </summary>
+        /// <param name="filename">Filename to load from (any generic image format should work)</param>
+        /// <param name="dimensionX">The dimensions of the image</param>
+        /// <param name="dimensionY">The dimensions of the image</param>
+        /// <param name="lowerboundX">Where sim coords begin for this patch</param>
+        /// <param name="lowerboundY">Where sim coords begin for this patch</param>
+        public void LoadFromFileIMG(string filename, int dimensionX, int dimensionY, int lowerboundX, int lowerboundY)
+        {
+            int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
+            int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
+
+            double[,] tempMap = new double[dimensionX, dimensionY];
+
+            System.Drawing.Bitmap lgrBmp = new Bitmap(filename);
+
+            int x, y;
+            for (x = 0; x < dimensionX; x++)
+            {
+                for (y = 0; y < dimensionY; y++)
+                {
+                    tempMap[x, y] = (float)lgrBmp.GetPixel(x, y).GetBrightness();
+                }
+            }
+
+            for (y = 0; y < h; y++)
+            {
+                for (x = 0; x < w; x++)
+                {
+                    heightmap.Set(x, y, tempMap[x + sectionToLoadX, y + sectionToLoadY]);
+                }
+            }
 
             tainted++;
         }
