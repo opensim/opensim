@@ -124,6 +124,14 @@ namespace OpenSim.Framework.InventoryServiceBase
             }
         }
 
+        public void deleteItem(InventoryItemBase item)
+        {
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.deleteInventoryItem(item);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

@@ -63,5 +63,10 @@ namespace OpenSim.Region.Communications.Local
         {
             this.AddItem(item);
         }
+
+        public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            this.deleteItem(item);
+        }
     }
 }

@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_rootPart.RotationOffset; }
         }
-	
+
 
         /// <summary>
         /// 
@@ -108,6 +108,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_rootPart.OwnerID; }
         }
 
+        public string Text
+        {
+            get { return m_rootPart.Text; }
+            set { m_rootPart.Text = value; }
+        }
+
         /// <summary>
         /// Added because the Parcel code seems to use it
         /// but not sure a object should have this
@@ -143,19 +149,40 @@ namespace OpenSim.Region.Environment.Scenes
 
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
+            reader.Read();
             reader.ReadStartElement("SceneObjectGroup");
             reader.ReadStartElement("RootPart");
             this.m_rootPart = SceneObjectPart.FromXml(reader);
             reader.ReadEndElement();
-            //TODO: read and create rest of the parts
-            reader.ReadEndElement();
+
+            while (reader.Read())
+            {
+                switch (reader.NodeType)
+                {
+                    case XmlNodeType.Element:
+                        if (reader.Name == "Part")
+                        {
+                            reader.Read();
+                            SceneObjectPart Part = SceneObjectPart.FromXml(reader);
+                            Part.LocalID = m_scene.PrimIDAllocate();
+                            this.AddPart(Part);
+                            Part.RegionHandle = m_regionHandle;
+                        }
+                        break;
+                    case XmlNodeType.EndElement:
+                        break;
+                }
+            }
             reader.Close();
             sr.Close();
-
+            this.m_rootPart.SetParent(this);
             this.m_parts.Add(m_rootPart.UUID, m_rootPart);
             this.m_rootPart.LocalID = m_scene.PrimIDAllocate();
+            this.m_rootPart.ParentID = 0;
             this.m_rootPart.RegionHandle = m_regionHandle;
+            this.UpdateParentIDs();
             m_scene.EventManager.OnBackup += this.ProcessBackup;
+            this.ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
@@ -192,6 +219,17 @@ namespace OpenSim.Region.Environment.Scenes
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
             m_rootPart.ToXml(writer);
             writer.WriteEndElement();
+            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
+            foreach (SceneObjectPart part in this.m_parts.Values)
+            {
+                if (part.UUID != this.m_rootPart.UUID)
+                {
+                    writer.WriteStartElement(String.Empty, "Part", String.Empty);
+                    part.ToXml(writer);
+                    writer.WriteEndElement();
+                }
+            }
+            writer.WriteEndElement();
             writer.WriteEndElement();
             writer.Close();
             // System.Console.WriteLine("prim: " + sw.ToString());
@@ -215,11 +253,11 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = this.m_regionHandle;
 
             dupe.CopyRootPart(this.m_rootPart);
-          
+
             List<SceneObjectPart> partList = new List<SceneObjectPart>(this.m_parts.Values);
             foreach (SceneObjectPart part in partList)
             {
-                if (part.UUID != this.m_rootPart.UUID) 
+                if (part.UUID != this.m_rootPart.UUID)
                 {
                     dupe.CopyPart(part);
                 }
@@ -477,13 +515,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public string Text
-        {
-            get { return m_rootPart.Text; }
-            set { m_rootPart.Text = value; }
-        }
-	
-        
         public void SetPartText(string text, uint localID)
         {
             SceneObjectPart part = this.GetChildPrim(localID);
@@ -500,6 +531,26 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.Text = text;
             }
+        }
+
+        public string GetPartName(uint localID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                return part.PartName;
+            }
+            return "";
+        }
+
+        public string GetPartDescription(uint localID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                return part.Description;
+            }
+            return "";
         }
 
         /// <summary>
@@ -598,7 +649,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                if (part.UUID== this.m_rootPart.UUID)
+                if (part.UUID == this.m_rootPart.UUID)
                 {
                     this.UpdateRootPosition(pos);
                 }
@@ -805,14 +856,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override void UpdateMovement()
         {
-            foreach( SceneObjectPart part in m_parts.Values )
+            foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.UpdateMovement();
             }
-            
+
             base.UpdateMovement();
         }
-        
+
         /// <summary>
         /// Added as a way for the storage provider to reset the scene, 
         /// most likely a better way to do this sort of thing but for now...
@@ -857,8 +908,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return null;
         }
-        
-        public void UpdateText( string text )
+
+        public void UpdateText(string text)
         {
             m_rootPart.Text = text;
             m_rootPart.ScheduleTerseUpdate();
@@ -866,7 +917,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ObjectGrabHandler(uint localId, LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            if( m_rootPart.LocalID == localId )
+            if (m_rootPart.LocalID == localId)
             {
                 OnGrabGroup(offsetPos, remoteClient);
             }
@@ -885,6 +936,19 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
         {
 
+        }
+
+        public void DeleteGroup()
+        {
+            m_scene.EventManager.OnBackup -= this.ProcessBackup;
+            foreach (SceneObjectPart part in this.m_parts.Values)
+            {
+                List<ScenePresence> avatars = this.RequestSceneAvatars();
+                for (int i = 0; i < avatars.Count; i++)
+                {
+                    avatars[i].ControllingClient.SendKillObject(this.m_regionHandle, part.LocalID);
+                }
+            }
         }
     }
 }

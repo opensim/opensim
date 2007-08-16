@@ -105,12 +105,26 @@ namespace OpenSim.Framework.Communications.Caches
             }
         }
 
-        public void updateItem(LLUUID userID, InventoryItemBase itemInfo)
+        public void UpdateItem(LLUUID userID, InventoryItemBase itemInfo)
         {
             if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
             {
                 this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
             }
+        }
+
+        public bool DeleteItem(LLUUID userID, InventoryItemBase item)
+        {
+            bool result = false;
+            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            {
+                result = RootFolder.DeleteItem(item.inventoryID);
+                if (result)
+                {
+                    this.m_parentCommsManager.InventoryServer.DeleteInventoryItem(userID, item);
+                }
+            }
+            return result;
         }
     }
 

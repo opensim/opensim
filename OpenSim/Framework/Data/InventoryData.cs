@@ -202,6 +202,12 @@ namespace OpenSim.Framework.Data
         void updateInventoryItem(InventoryItemBase item);
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        void deleteInventoryItem(InventoryItemBase item);
+
+        /// <summary>
         /// Adds a new folder specified by folder
         /// </summary>
         /// <param name="folder">The inventory folder</param>

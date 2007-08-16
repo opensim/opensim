@@ -538,7 +538,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddEntity(SceneObjectGroup sceneObject)
         {
-            Entities.Add(sceneObject.UUID, sceneObject);
+            if(!Entities.ContainsKey(sceneObject.UUID))
+            {
+                Entities.Add(sceneObject.UUID, sceneObject);
+            }
         }
 
         public void RemoveEntity(SceneObjectGroup sceneObject)
@@ -604,6 +607,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectDeselect += DeselectPrim;
             client.OnGrabUpdate += MoveObject;
             client.OnDeRezObject += DeRezObject;
+            client.OnRezObject += RezObject;
             client.OnNameFromUUIDRequest += commsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += PrimDescription;
             client.OnObjectName += PrimName;
@@ -1114,7 +1118,7 @@ namespace OpenSim.Region.Environment.Scenes
                         this.assetCache.AddAsset(asset);
 
                         item.assetID = asset.FullID;
-                        userInfo.updateItem(remoteClient.AgentId, item);
+                        userInfo.UpdateItem(remoteClient.AgentId, item);
 
                        // remoteClient.SendInventoryItemUpdate(item);
 

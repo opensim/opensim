@@ -90,6 +90,26 @@ namespace OpenSim.Framework.Communications.Caches
             return base2;
         }
 
+        public bool DeleteItem(LLUUID itemID)
+        {
+            bool found = false;
+            if (this.Items.ContainsKey(itemID))
+            {
+                Items.Remove(itemID);
+                return true;
+            }
+            foreach (InventoryFolder folder in this.SubFolders.Values)
+            {
+                found = folder.DeleteItem(itemID);
+                if (found == true)
+                {
+                    break;
+                }
+            }
+            return found;
+        }
+
+
         public InventoryFolder HasSubFolder(LLUUID folderID)
         {
             InventoryFolder returnFolder = null;

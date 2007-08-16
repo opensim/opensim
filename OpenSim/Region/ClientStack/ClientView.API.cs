@@ -630,6 +630,18 @@ namespace OpenSim.Region.ClientStack
             OutPacket(InventoryReply);
         }
 
+        public void SendRemoveInventoryItem(LLUUID itemID)
+        {
+            RemoveInventoryItemPacket remove = new RemoveInventoryItemPacket();
+            remove.AgentData.AgentID = this.AgentID;
+            remove.AgentData.SessionID = this.SessionID;
+            remove.InventoryData = new RemoveInventoryItemPacket.InventoryDataBlock[1];
+            remove.InventoryData[0] = new RemoveInventoryItemPacket.InventoryDataBlock();
+            remove.InventoryData[0].ItemID = itemID;
+
+            OutPacket(remove);
+        }
+
         public void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
         {
             ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();

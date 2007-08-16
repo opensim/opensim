@@ -137,6 +137,16 @@ namespace OpenSim.Framework.Communications.Caches
             return asset;
         }
 
+        public AssetBase GetAsset(LLUUID assetID, bool isTexture)
+        {
+           AssetBase asset = GetAsset(assetID);
+           if (asset == null)
+           {
+               this._assetServer.RequestAsset(assetID, isTexture);
+           }
+           return asset;
+        }
+
         public void AddAsset(AssetBase asset)
         {
             // Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
@@ -241,44 +251,51 @@ namespace OpenSim.Framework.Communications.Caches
                 if (IsTexture)
                 {
                    // Console.WriteLine("asset  recieved from asset server");
+                   
                     TextureImage image = new TextureImage(asset);
-                    this.Textures.Add(image.FullID, image);
-                    if (this.RequestedTextures.ContainsKey(image.FullID))
+                    if (!this.Textures.ContainsKey(image.FullID))
                     {
-                        AssetRequest req = this.RequestedTextures[image.FullID];
-                        req.ImageInfo = image;
-                        if (image.Data.LongLength > 600)
+                        this.Textures.Add(image.FullID, image);
+                        if (this.RequestedTextures.ContainsKey(image.FullID))
                         {
-                            //over 600 bytes so split up file
-                            req.NumPackets = 1 + (int)(image.Data.Length - 600 ) / 1000;
+                            AssetRequest req = this.RequestedTextures[image.FullID];
+                            req.ImageInfo = image;
+                            if (image.Data.LongLength > 600)
+                            {
+                                //over 600 bytes so split up file
+                                req.NumPackets = 1 + (int)(image.Data.Length - 600) / 1000;
+                            }
+                            else
+                            {
+                                req.NumPackets = 1;
+                            }
+                            this.RequestedTextures.Remove(image.FullID);
+                            this.TextureRequests.Add(req);
                         }
-                        else
-                        {
-                            req.NumPackets = 1;
-                        }
-                        this.RequestedTextures.Remove(image.FullID);
-                        this.TextureRequests.Add(req);
                     }
                 }
                 else
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
-                    this.Assets.Add(assetInf.FullID, assetInf);
-                    if (this.RequestedAssets.ContainsKey(assetInf.FullID))
+                    if (!this.Assets.ContainsKey(assetInf.FullID))
                     {
-                        AssetRequest req = this.RequestedAssets[assetInf.FullID];
-                        req.AssetInf = assetInf;
-                        if (assetInf.Data.LongLength > 600)
+                        this.Assets.Add(assetInf.FullID, assetInf);
+                        if (this.RequestedAssets.ContainsKey(assetInf.FullID))
                         {
-                            //over 600 bytes so split up file
-                            req.NumPackets = 1 + (int)(assetInf.Data.Length - 600 + 999) / 1000;
+                            AssetRequest req = this.RequestedAssets[assetInf.FullID];
+                            req.AssetInf = assetInf;
+                            if (assetInf.Data.LongLength > 600)
+                            {
+                                //over 600 bytes so split up file
+                                req.NumPackets = 1 + (int)(assetInf.Data.Length - 600 + 999) / 1000;
+                            }
+                            else
+                            {
+                                req.NumPackets = 1;
+                            }
+                            this.RequestedAssets.Remove(assetInf.FullID);
+                            this.AssetRequests.Add(req);
                         }
-                        else
-                        {
-                            req.NumPackets = 1;
-                        }
-                        this.RequestedAssets.Remove(assetInf.FullID);
-                        this.AssetRequests.Add(req);
                     }
                 }
             }

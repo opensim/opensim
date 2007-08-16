@@ -29,5 +29,10 @@ namespace OpenSim.Region.Communications.OGS1
         {
 
         }
+
+        public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+
+        }
     }
 }

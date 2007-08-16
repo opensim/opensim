@@ -320,6 +320,15 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        public void deleteInventoryItem(InventoryItemBase item)
+        {
+
+        }
+
+        /// <summary>
         /// Creates a new inventory folder
         /// </summary>
         /// <param name="folder">Folder to create</param>

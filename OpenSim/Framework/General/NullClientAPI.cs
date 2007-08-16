@@ -138,6 +138,7 @@ namespace OpenSim.Framework
        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items){}
        public virtual void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item){}
        public virtual void SendInventoryItemUpdate(InventoryItemBase Item) { }
+       public virtual void SendRemoveInventoryItem(LLUUID itemID) { }
        public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName) { }
 
        public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname){}

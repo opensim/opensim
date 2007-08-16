@@ -34,6 +34,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -209,23 +210,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="primAsset"></param>
-        /// <param name="pos"></param>
-        public void RezObject(AssetBase primAsset, LLVector3 pos)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="packet"></param>
         /// <param name="simClient"></param>
-        public void DeRezObject(Packet packet, IClientAPI simClient)
+        public void DeRezObject(Packet packet, IClientAPI remoteClient)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
 
-            
+
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
             {
                 //currently following code not used (or don't know of any case of destination being zero
@@ -246,22 +237,88 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     if (selectedEnt != null)
                     {
-                        if (PermissionsMngr.CanDeRezObject(simClient.AgentId, selectedEnt.m_uuid))
+                        if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId,((SceneObjectGroup)selectedEnt).UUID))
                         {
-                            List<ScenePresence> avatars = this.RequestAvatarList();
-                            foreach (ScenePresence avatar in avatars)
+                            string sceneObjectXml = ((SceneObjectGroup)selectedEnt).ToXmlString();
+                            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+                            if (userInfo != null)
                             {
-                                avatar.ControllingClient.SendKillObject(this.m_regionHandle, selectedEnt.LocalId);
+                                AssetBase asset = new AssetBase();
+                                asset.Name = ((SceneObjectGroup)selectedEnt).GetPartName(selectedEnt.LocalId);
+                                asset.Description = ((SceneObjectGroup)selectedEnt).GetPartDescription(selectedEnt.LocalId);
+                                asset.InvType = 6;
+                                asset.Type = 6;
+                                asset.FullID = LLUUID.Random();
+                                asset.Data = Helpers.StringToField(sceneObjectXml);
+                                this.assetCache.AddAsset(asset);
+                                
+
+                                InventoryItemBase item = new InventoryItemBase();
+                                item.avatarID = remoteClient.AgentId;
+                                item.creatorsID = remoteClient.AgentId;
+                                item.inventoryID = LLUUID.Random();
+                                item.assetID = asset.FullID;
+                                item.inventoryDescription = asset.Description;
+                                item.inventoryName = asset.Name;
+                                item.assetType = asset.Type;
+                                item.invType = asset.InvType;
+                                item.parentFolderID = DeRezPacket.AgentBlock.DestinationID;
+                                item.inventoryCurrentPermissions = 2147483647;
+                                item.inventoryNextPermissions = 2147483647;
+
+                                userInfo.AddItem(remoteClient.AgentId, item);
+                                remoteClient.SendInventoryItemUpdate(item);
                             }
+
+                            ((SceneObjectGroup)selectedEnt).DeleteGroup();
 
                             lock (Entities)
                             {
-                                Entities.Remove(selectedEnt.m_uuid);
+                                Entities.Remove(((SceneObjectGroup) selectedEnt).UUID);
                             }
                         }
                     }
                 }
             }
+        }
+
+        public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                if(userInfo.RootFolder != null)
+                {
+                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        AssetBase rezAsset = this.assetCache.GetAsset(item.assetID, false);
+                        if (rezAsset != null)
+                        {
+                            this.AddRezObject(Util.FieldToString(rezAsset.Data), pos);
+                            userInfo.DeleteItem(remoteClient.AgentId, item);
+                            remoteClient.SendRemoveInventoryItem(itemID);
+                        }
+                        else
+                        {               
+                            rezAsset = this.assetCache.GetAsset(item.assetID, false);
+                            if (rezAsset != null)
+                            {
+                                this.AddRezObject(Util.FieldToString(rezAsset.Data), pos);
+                                userInfo.DeleteItem(remoteClient.AgentId, item);
+                                remoteClient.SendRemoveInventoryItem(itemID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddRezObject(string xmlData, LLVector3 pos)
+        {
+            SceneObjectGroup group = new SceneObjectGroup(this, this.m_regionHandle, xmlData);
+            this.AddEntity(group);
+            group.Pos = pos;
         }
 
         /// <summary>
@@ -301,11 +358,11 @@ namespace OpenSim.Region.Environment.Scenes
                 this.Entities.Add(copy.UUID, copy);
 
                 copy.ScheduleGroupForFullUpdate();
-               /* List<ScenePresence> avatars = this.RequestAvatarList();
-                for (int i = 0; i < avatars.Count; i++)
-                {
-                   // copy.SendAllChildPrimsToClient(avatars[i].ControllingClient);
-                }*/
+                /* List<ScenePresence> avatars = this.RequestAvatarList();
+                 for (int i = 0; i < avatars.Count; i++)
+                 {
+                    // copy.SendAllChildPrimsToClient(avatars[i].ControllingClient);
+                 }*/
 
             }
             else
@@ -620,7 +677,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         ((SceneObjectGroup)ent).UpdateGroupRotation(pos, rot);
-                       // prim.UpdateGroupMouseRotation(pos, rot);
+                        // prim.UpdateGroupMouseRotation(pos, rot);
                         break;
                     }
                 }
@@ -665,7 +722,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                   // prim = ((SceneObject)ent).HasChildPrim(localID);
+                    // prim = ((SceneObject)ent).HasChildPrim(localID);
                     if (prim != null)
                     {
                         prim.UpdateSingleRotation(rot);
@@ -692,7 +749,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         ((SceneObjectGroup)ent).Resize(scale, localID);
-                       // prim.ResizeGoup(scale);
+                        // prim.ResizeGoup(scale);
                         break;
                     }
                 }

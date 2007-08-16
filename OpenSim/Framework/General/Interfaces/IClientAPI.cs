@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Interfaces
 {
     public delegate void ChatFromViewer(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID toAgentID, uint timestamp, string fromAgentName, string message); // Cut down from full list
-    public delegate void RezObject(AssetBase primAsset, LLVector3 pos);
+    public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
     public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
     public delegate void StartAnim(LLUUID animID, int seq);
@@ -210,6 +210,7 @@ namespace OpenSim.Framework.Interfaces
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items);
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);
         void SendInventoryItemUpdate(InventoryItemBase Item);
+        void SendRemoveInventoryItem(LLUUID itemID);
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
 
         void SendNameReply(LLUUID profileId, string firstname, string lastname);

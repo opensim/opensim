@@ -45,12 +45,12 @@ namespace OpenSim.Region.ClientStack
             get { return m_moneyBalance; }
         }
 
-        public bool AddMoney( int debit )
+        public bool AddMoney(int debit)
         {
-            if( m_moneyBalance + debit >= 0 )
+            if (m_moneyBalance + debit >= 0)
             {
                 m_moneyBalance += debit;
-                SendMoneyBalance( LLUUID.Zero, true, Helpers.StringToField("Poof Poof!"), m_moneyBalance );
+                SendMoneyBalance(LLUUID.Zero, true, Helpers.StringToField("Poof Poof!"), m_moneyBalance);
                 return true;
             }
             else
@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack
                 return false;
             }
         }
-        
+
         protected override void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
@@ -126,21 +126,9 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
-                        AgentInventory inven = this.m_inventoryCache.GetAgentsInventory(this.AgentID);
-                        if (inven != null)
+                        if (OnRezObject != null)
                         {
-                            if (inven.InventoryItems.ContainsKey(rezPacket.InventoryData.ItemID))
-                            {
-                                AssetBase asset = this.m_assetCache.GetAsset(inven.InventoryItems[rezPacket.InventoryData.ItemID].AssetID);
-                                if (asset != null)
-                                {
-                                    if (OnRezObject != null)
-                                    {
-                                        this.OnRezObject(asset, rezPacket.RezData.RayEnd);
-                                        this.m_inventoryCache.DeleteInventoryItem(this, rezPacket.InventoryData.ItemID);
-                                    }
-                                }
-                            }
+                            this.OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);                       
                         }
                         break;
                     case PacketType.DeRezObject:
