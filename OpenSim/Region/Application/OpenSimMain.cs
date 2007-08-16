@@ -74,7 +74,9 @@ namespace OpenSim
         private string m_logFilename = ("region-console.log");
 
         private bool standaloneAuthenticate = false;
-        private string welcomeMessage = null;
+        private string standaloneWelcomeMessage = null;
+        private string standaloneInventoryPlugin = "";
+        private string standaloneUserPlugin = "";
 
         public ConsoleCommand CreateAccount = null;
 
@@ -109,8 +111,10 @@ namespace OpenSim
 
             m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
 
-            standaloneAuthenticate = configSource.Configs["Startup"].GetBoolean("standalone_authenticate", false);
-            welcomeMessage = configSource.Configs["Startup"].GetString("standalone_welcome", "Welcome to OpenSim");
+            standaloneAuthenticate = configSource.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
+            standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
+            standaloneInventoryPlugin = configSource.Configs["StandAlone"].GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
+            standaloneUserPlugin = configSource.Configs["StandAlone"].GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
         }
 
         /// <summary>
@@ -130,7 +134,8 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, standaloneAuthenticate, welcomeMessage);
+                CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings(standaloneWelcomeMessage, standaloneAuthenticate, standaloneInventoryPlugin, standaloneUserPlugin);
+                CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings);
                 m_commsManager = localComms;
                 if(standaloneAuthenticate)
                 {

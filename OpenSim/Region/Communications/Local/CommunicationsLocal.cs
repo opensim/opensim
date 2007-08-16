@@ -44,16 +44,19 @@ namespace OpenSim.Region.Communications.Local
         public LocalLoginService LoginServices;
         public LocalInventoryService InvenServices;
        // public CAPSService CapsServices;
+        private LocalSettings m_settings;
 
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool accountsAuthenticate, string welcomeMessage )
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings )
             : base(serversInfo, httpServer, assetCache)
         {
+            m_settings = settings;
+
             InvenServices = new LocalInventoryService();
-            InvenServices.AddPlugin("OpenSim.Framework.Data.SQLite.dll");
+            InvenServices.AddPlugin(m_settings.InventoryPlugin);
             InventoryServer = InvenServices;
 
             UserServices = new LocalUserServices(this, serversInfo);
-            UserServices.AddPlugin("OpenSim.Framework.Data.DB4o.dll");
+            UserServices.AddPlugin(m_settings.UserDatabasePlugin);
             UserServer = UserServices;
 
             InstanceServices = new LocalBackEndServices();
@@ -62,7 +65,7 @@ namespace OpenSim.Region.Communications.Local
 
             //CapsServices = new CAPSService(httpServer);
             
-            LoginServices = new LocalLoginService(UserServices, welcomeMessage, this, serversInfo, accountsAuthenticate);
+            LoginServices = new LocalLoginService(UserServices, m_settings.WelcomeMessage, this, serversInfo, m_settings.AccountAuthentication);
             httpServer.AddXmlRPCHandler("login_to_simulator", LoginServices.XmlRpcLoginMethod);
         }
 
@@ -98,6 +101,28 @@ namespace OpenSim.Region.Communications.Local
                         Console.WriteLine("created new inventory set for " + tempfirstname + " " + templastname);
                     }
                     break;
+            }
+        }
+
+        public class LocalSettings
+        {
+            public string WelcomeMessage = "";
+            public bool AccountAuthentication = false;
+            public string InventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
+            public string UserDatabasePlugin = "OpenSim.Framework.Data.DB4o.dll";
+
+            public LocalSettings(string welcomeMessage, bool accountsAuthenticate, string inventoryPlugin, string userPlugin)
+            {
+                WelcomeMessage = welcomeMessage;
+                AccountAuthentication = accountsAuthenticate;
+                if (inventoryPlugin != "")
+                {
+                    InventoryPlugin = inventoryPlugin;
+                }
+                if (userPlugin != "")
+                {
+                    UserDatabasePlugin = userPlugin;
+                }
             }
         }
 

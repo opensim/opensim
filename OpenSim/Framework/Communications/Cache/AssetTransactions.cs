@@ -262,7 +262,7 @@ namespace OpenSim.Framework.Communications.Caches
                 {
                     DoCreateItem();
                 }
-                Console.WriteLine("upload complete "+ this.TransactionID);
+              // Console.WriteLine("upload complete "+ this.TransactionID);
                 //SaveAssetToFile("testudpupload" + Util.RandomClass.Next(1, 1000) + ".dat", this.Asset.Data);
             }
             private void SaveAssetToFile(string filename, byte[] data)
@@ -318,6 +318,11 @@ namespace OpenSim.Framework.Communications.Caches
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemUpdate(item);
                 }
+            }
+
+            public void UpdateInventoryItem(LLUUID itemID)
+            {
+
             }
         }
 

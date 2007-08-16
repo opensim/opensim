@@ -47,7 +47,8 @@ namespace SimpleApp
         {
             base.StartUp();
 
-            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, false, "");
+            CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings("", false, "", "");
+            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings);
 
             m_log.Notice(m_log.LineInfo);
             
