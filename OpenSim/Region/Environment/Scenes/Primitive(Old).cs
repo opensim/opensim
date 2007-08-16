@@ -715,5 +715,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             OnPrimCountTainted();
         }
+
+        public override void SetText(string text, Vector3 color, double alpha)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }

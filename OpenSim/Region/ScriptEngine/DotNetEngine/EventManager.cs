@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
             // Hook up a test event to our test form
-            myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Hooking up dummy-event: touch_start");
+            myScriptEngine.Log.Verbose("ScriptEngine", "EventManager Hooking up dummy-event: touch_start");
             // TODO: REPLACE THIS WITH A REAL TOUCH_START EVENT IN SERVER
             myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
             //myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);

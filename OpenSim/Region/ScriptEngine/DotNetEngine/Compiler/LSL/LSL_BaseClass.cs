@@ -12,20 +12,27 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     public class LSL_BaseClass : LSL_BuiltIn_Commands_Interface
     {
         public string State = "default";
-        internal OpenSim.Region.Environment.Scenes.Scene World;
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
 
-        IScriptHost m_host;
-        
-        public LSL_BaseClass( IScriptHost host )
+        protected ScriptManager m_manager;
+        protected IScriptHost m_host;
+        protected IScriptHost m_root;
+
+        public LSL_BaseClass(ScriptManager manager, IScriptHost host, IScriptHost root)
         {
+            m_manager = manager;
             m_host = host;
+            m_root = root;
         }
-        
-        public void Start(OpenSim.Region.Environment.Scenes.Scene _World, string FullScriptID)
+
+        public Scene World
         {
-            World = _World;
-            MainLog.Instance.Notice( "ScriptEngine", "LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID + ": Hosted by [" + m_host.Name + ":" + m_host.UUID + "@"+m_host.AbsolutePosition +"]");
+            get { return m_manager.World; }
+        }
+
+        public void Start(string FullScriptID)
+        {
+            MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID + ": Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
 
             return;
         }
@@ -54,12 +61,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
         public Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
         public Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end) { return new Axiom.Math.Quaternion(); }
+
         public void llWhisper(int channelID, string text)
         {
             //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
             Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
             //type for whisper is 0
-            //World.SimChat(enc.GetBytes(text), 0, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
+            World.SimChat(Helpers.StringToField(text),
+                          0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+
 
         }
         //public void llSay(int channelID, string text)
@@ -69,22 +79,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (int)channelID + ", \"" + (string)text + "\");");
             Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
             //type for say is 1
-            
-            LLVector3 fromPos = m_host.AbsolutePosition; // Position of parent
-            string fromName = m_host.Name; // Name of script parent
-            LLUUID fromUUID = m_host.UUID; // UUID of parent
 
-            World.SimChat( Helpers.StringToField( text ), 1, fromPos, fromName, fromUUID );
+            World.SimChat(Helpers.StringToField(text),
+                           1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
-        
+
         public void llShout(int channelID, string text)
         {
             Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
             //type for shout is 2
-            //World.SimChat(enc.GetBytes(text), 2, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
+            World.SimChat(Helpers.StringToField(text),
+                          2, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
         }
-        
+
         public int llListen(int channelID, string name, string ID, string msg) { return 0; }
         public void llListenControl(int number, int active) { return; }
         public void llListenRemove(int number) { return; }
@@ -120,8 +128,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public string llGetTexture(int face) { return ""; }
         public void llSetPos(Axiom.Math.Vector3 pos) { return; }
 
-
-        public Axiom.Math.Vector3 llGetPos() { return new Axiom.Math.Vector3(); }
+        public Axiom.Math.Vector3 llGetPos()
+        {
+            throw new NotImplementedException("llGetPos");
+             // return m_host.AbsolutePosition;
+        }
+        
         public Axiom.Math.Vector3 llGetLocalPos() { return new Axiom.Math.Vector3(); }
         public void llSetRot(Axiom.Math.Quaternion rot) { }
         public Axiom.Math.Quaternion llGetRot() { return new Axiom.Math.Quaternion(); }
@@ -214,7 +226,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public double llGetEnergy() { return 1.0f; }
         public void llGiveInventory(string destination, string inventory) { }
         public void llRemoveInventory(string item) { }
-        public void llSetText(string text, Axiom.Math.Vector3 color, double alpha) { }
+        
+        public void llSetText(string text, Axiom.Math.Vector3 color, double alpha)
+        {
+            m_host.SetText(text, color, alpha );
+        }
+        
         public double llWater(Axiom.Math.Vector3 offset) { return 0; }
         public void llPassTouches(int pass) { }
         public string llRequestAgentData(string id, int data) { return ""; }
@@ -298,7 +315,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
         public int llGetAttached() { return 0; }
         public int llGetFreeMemory() { return 0; }
-        public string llGetRegionName() { return World.RegionInfo.RegionName; }
+        public string llGetRegionName() { return m_manager.RegionName; }
         public double llGetRegionTimeDilation() { return 1.0f; }
         public double llGetRegionFPS() { return 10.0f; }
         public void llParticleSystem(List<Object> rules) { }
@@ -316,6 +333,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llSetTouchText(string text)
         {
         }
+        
         public void llSetSitText(string text)
         {
         }
@@ -347,8 +365,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public double llLog(double val) { return (double)Math.Log(val); }
         public List<string> llGetAnimationList(string id) { return new List<string>(); }
         public void llSetParcelMusicURL(string url) { }
-        public Axiom.Math.Vector3 llGetRootPosition() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llGetRootRotation() { return new Axiom.Math.Quaternion(); }
+
+        public Axiom.Math.Vector3 llGetRootPosition()
+        {
+            throw new NotImplementedException("llGetRootPosition");
+            //return m_root.AbsolutePosition;
+        }
+
+        public Axiom.Math.Quaternion llGetRootRotation()
+        {
+            return new Axiom.Math.Quaternion();
+        }
+
         public string llGetObjectDesc() { return ""; }
         public void llSetObjectDesc(string desc) { }
         public string llGetCreator() { return ""; }

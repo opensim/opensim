@@ -949,5 +949,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        public override void SetText(string text, Vector3 color, double alpha)
+        {
+            Text = text;
+        }
     }
 }

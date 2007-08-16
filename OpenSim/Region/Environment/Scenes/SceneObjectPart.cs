@@ -576,6 +576,11 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
         {
         }
+
+        public void SetText(string text, Vector3 color, double alpha)
+        {
+            Text = text;            
+        }
     }
 }
 

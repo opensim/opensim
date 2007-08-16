@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -42,7 +43,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         internal EventManager myEventManager;                   // Handles and queues incoming events from OpenSim
         internal EventQueueManager myEventQueueManager;         // Executes events
         internal ScriptManager myScriptManager;                 // Load, unload and execute scripts
-        internal OpenSim.Framework.Console.LogBase m_logger;
+
+        private OpenSim.Framework.Console.LogBase m_log;
 
         public ScriptEngine()
         {
@@ -50,10 +52,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Common.mySE = this;
         }
 
+        public LogBase Log
+        {
+            get { return m_log; }
+        }
+
         public void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger)
         {
             World = Sceneworld;
-            m_logger = logger;
+            m_log = logger;
             
             //m_logger.Status("ScriptEngine", "InitializeEngine");
 
@@ -75,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         [Obsolete("!!!FOR DEBUGGING ONLY!!!")]
         public void StartScript(string ScriptID, string ObjectID)
         {
-            m_logger.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
+            Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
             myScriptManager.StartScript(ScriptID, ObjectID);
         }
     }

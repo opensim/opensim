@@ -45,13 +45,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         static public void SendToDebug(string Message)
         {
             //if (Debug == true)
-            mySE.m_logger.Verbose("ScriptEngine", "Debug: " + Message);
+            mySE.Log.Verbose("ScriptEngine", "Debug: " + Message);
             //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
         static public void SendToLog(string Message)
         {
             //if (Debug == true)
-            mySE.m_logger.Verbose("ScriptEngine", "LOG: " + Message);
+            mySE.Log.Verbose("ScriptEngine", "LOG: " + Message);
             //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
     }

@@ -22,5 +22,10 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
         {
             get { return m_pos; }
         }
+
+        public void SetText(string text, Axiom.Math.Vector3 color, double alpha)
+        {
+            Console.WriteLine("Tried to SetText [{0}] on NullScriptHost", text);
+        }
     }
 }

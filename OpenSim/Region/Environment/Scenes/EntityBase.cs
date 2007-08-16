@@ -130,5 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void LandRenegerated()
         {
         }
-    }
+
+        public abstract void SetText(string text, Vector3 color, double alpha);
+   }
 }

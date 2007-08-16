@@ -10,5 +10,6 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
         string Name { get; }
         LLUUID UUID { get; }
         LLVector3 AbsolutePosition { get; }
+        void SetText(string text, Axiom.Math.Vector3 color, double alpha);
     }
 }

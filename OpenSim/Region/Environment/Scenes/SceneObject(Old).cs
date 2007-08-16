@@ -311,5 +311,9 @@ namespace OpenSim.Region.Environment.Scenes
             client.OutPacket(proper);
         }
 
+        public override void SetText(string text, Axiom.Math.Vector3 color, double alpha)
+        {
+            throw new System.Exception("The method or operation is not implemented.");
+        }
     }
 }
