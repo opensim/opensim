@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene = world;
             m_eventManager = eventManager;
 
-            this.Pos = pos;
+            this.AbsolutePosition = pos;
             this.CreateRootFromShape(ownerID, localID, shape, pos);
 
             registerEvents();
@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.rootPrimitive = newRoot;
 
             dupe.m_children.Add(dupe.rootPrimitive);
-            dupe.rootPrimitive.Pos = this.Pos;
+            dupe.rootPrimitive.AbsolutePosition = this.AbsolutePosition;
             dupe.Rotation = this.Rotation;
             dupe.LocalId = m_scene.PrimIDAllocate();
 
@@ -274,7 +274,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void GrapMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            this.rootPrimitive.Pos = pos;
+            this.rootPrimitive.AbsolutePosition = pos;
             this.rootPrimitive.SendTerseUpdateForAllChildren(remoteClient);
         }
 

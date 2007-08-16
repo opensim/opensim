@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public override LLVector3 Pos
+        public override LLVector3 AbsolutePosition
         {
             get
             {

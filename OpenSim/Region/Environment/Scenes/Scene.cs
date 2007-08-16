@@ -645,7 +645,7 @@ namespace OpenSim.Region.Environment.Scenes
             MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Adding new avatar to world");
             MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Starting RegionHandshake ");
 
-            PhysicsVector pVec = new PhysicsVector(newAvatar.Pos.X, newAvatar.Pos.Y, newAvatar.Pos.Z);
+            PhysicsVector pVec = new PhysicsVector(newAvatar.AbsolutePosition.X, newAvatar.AbsolutePosition.Y, newAvatar.AbsolutePosition.Z);
             lock (m_syncRoot)
             {
                 newAvatar.PhysActor = phyScene.AddAvatar(pVec);

@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
+using libsecondlife;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -11,11 +15,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         internal OpenSim.Region.Environment.Scenes.Scene World;
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
 
-
+        IScriptHost m_host;
+        
+        public LSL_BaseClass( IScriptHost host )
+        {
+            m_host = host;
+        }
+        
         public void Start(OpenSim.Region.Environment.Scenes.Scene _World, string FullScriptID)
         {
             World = _World;
-            Console.WriteLine("ScriptEngine", "LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID);
+            MainLog.Instance.Notice( "ScriptEngine", "LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID + ": Hosted by [" + m_host.Name + ":" + m_host.UUID + "@"+m_host.AbsolutePosition +"]");
 
             return;
         }
@@ -59,8 +69,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (int)channelID + ", \"" + (string)text + "\");");
             Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
             //type for say is 1
-            //World.SimChat(enc.GetBytes(text), 1, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
+            
+            LLVector3 fromPos = m_host.AbsolutePosition; // Position of parent
+            string fromName = m_host.Name; // Name of script parent
+            LLUUID fromUUID = m_host.UUID; // UUID of parent
+
+            World.SimChat( Helpers.StringToField( text ), 1, fromPos, fromName, fromUUID );
         }
+        
         public void llShout(int channelID, string text)
         {
             Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
@@ -68,6 +84,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //World.SimChat(enc.GetBytes(text), 2, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)], MY_OBJECT_NAME, World.Objects[World.ConvertLocalIDToFullID(MY_OBJECT_ID)]);
 
         }
+        
         public int llListen(int channelID, string name, string ID, string msg) { return 0; }
         public void llListenControl(int number, int active) { return; }
         public void llListenRemove(int number) { return; }

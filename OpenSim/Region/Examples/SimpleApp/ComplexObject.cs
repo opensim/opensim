@@ -60,7 +60,7 @@ namespace SimpleApp
             m_parts.Remove(part.UUID);
             remoteClient.SendKillObject(m_regionHandle, part.LocalID);
             remoteClient.AddMoney(1);
-            remoteClient.SendChatMessage("Poof!", 1, Pos, "Party Party", LLUUID.Zero);
+            remoteClient.SendChatMessage("Poof!", 1, this.AbsolutePosition, "Party Party", LLUUID.Zero);
         }
 
         public override void OnGrabGroup( LLVector3 offsetPos, IClientAPI remoteClient)
@@ -71,7 +71,7 @@ namespace SimpleApp
                 m_scene.RemoveEntity(this);
                 remoteClient.SendKillObject(m_regionHandle, m_rootPart.LocalID);
                 remoteClient.AddMoney(50);
-                remoteClient.SendChatMessage("KABLAM!!!", 1, Pos, "Groupie Groupie", LLUUID.Zero);
+                remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", LLUUID.Zero);
             }
         }
     }

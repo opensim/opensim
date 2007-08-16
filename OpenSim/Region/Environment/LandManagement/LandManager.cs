@@ -532,7 +532,7 @@ namespace OpenSim.Region.Environment.LandManagement
             ScenePresence clientAvatar = m_scene.RequestAvatar(remote_client.AgentId);
             if (clientAvatar != null)
             {
-                Land over = getLandObject(clientAvatar.Pos.X,clientAvatar.Pos.Y);
+                Land over = getLandObject(clientAvatar.AbsolutePosition.X,clientAvatar.AbsolutePosition.Y);
                 if (over != null)
                 {
                     over.sendLandProperties(0, false, 0, remote_client);
@@ -554,7 +554,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void addPrimToLandPrimCounts(SceneObjectGroup obj)
         {
-            LLVector3 position = obj.Pos;
+            LLVector3 position = obj.AbsolutePosition;
             Land landUnderPrim = getLandObject(position.X, position.Y);
             if (landUnderPrim != null)
             {

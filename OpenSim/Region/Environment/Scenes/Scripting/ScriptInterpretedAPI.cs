@@ -74,7 +74,7 @@ namespace OpenSim.Region.Scripting
         [Obsolete("Unimplemented")]
         public void osAddToLandPassList(Key avatar, float hours)
         {
-            Vector myPosition = Task.Pos;
+            Vector myPosition = Task.AbsolutePosition;
             Land myParcel = Scene.LandManager.getLandObject(myPosition.X, myPosition.Y);
 
             OpenSim.Framework.Console.MainLog.Instance.Warn("script", "Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");

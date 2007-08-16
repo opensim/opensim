@@ -156,7 +156,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_firstname = ControllingClient.FirstName;
             this.m_lastname = ControllingClient.LastName;
             m_localId = m_scene.NextLocalId;
-            Pos = ControllingClient.StartPos;
+            AbsolutePosition = ControllingClient.StartPos;
 
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
@@ -205,7 +205,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (this.childAgent == true)
             {
                 this.Velocity = new LLVector3(0, 0, 0);
-                this.Pos = new LLVector3(128, 128, 70);
+                this.AbsolutePosition = new LLVector3(128, 128, 70);
 
             }
         }
@@ -217,7 +217,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void MakeAvatar(LLVector3 pos, bool isFlying)
         {
             //this.childAvatar = false;
-            this.Pos = pos;
+            this.AbsolutePosition = pos;
             this._physActor.Flying = isFlying;
             this.newAvatar = true;
             this.childAgent = false;
@@ -236,7 +236,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void Teleport(LLVector3 pos)
         {
-            this.Pos = pos;
+            this.AbsolutePosition = pos;
             this.SendTerseUpdateToALLClients();
         }
 
@@ -278,7 +278,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 look = new LLVector3(0.99f, 0.042f, 0);
             }
-            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo, Pos, look);
+            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             if (this.childAgent)
             {
                 this.childAgent = false;
@@ -427,7 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RemoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
-            LLVector3 pos = this.Pos;
+            LLVector3 pos = this.AbsolutePosition;
             LLVector3 vel = this.Velocity;
             RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle, 64096, this.LocalId, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z));
         }
@@ -450,7 +450,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
-            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
+            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.AbsolutePosition, this.m_textureEntry.ToBytes());
         }
 
         public void SendFullUpdateToALLClients()
@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.Pos, this.m_textureEntry.ToBytes());
+            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.AbsolutePosition, this.m_textureEntry.ToBytes());
             if (!this.childAgent)
             {
                 this.m_scene.InformClientOfNeighbours(this.ControllingClient);
@@ -547,9 +547,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void CheckForSignificantMovement()
         {
-            if (libsecondlife.Helpers.VecDist(this.Pos, this.posLastSignificantMove) > 2.0)
+            if (libsecondlife.Helpers.VecDist(this.AbsolutePosition, this.posLastSignificantMove) > 2.0)
             {
-                this.posLastSignificantMove = this.Pos;
+                this.posLastSignificantMove = this.AbsolutePosition;
                 if (OnSignificantClientMovement != null)
                 {
                     OnSignificantClientMovement(this.ControllingClient);
@@ -564,7 +564,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void CheckForBorderCrossing()
         {
-            LLVector3 pos2 = this.Pos;
+            LLVector3 pos2 = this.AbsolutePosition;
             LLVector3 vel = this.Velocity;
 
             float timeStep = 0.1f;
@@ -588,7 +588,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void CrossToNewRegion()
         {
-            LLVector3 pos = this.Pos;
+            LLVector3 pos = this.AbsolutePosition;
             LLVector3 newpos = new LLVector3(pos.X, pos.Y, pos.Z);
             uint neighbourx = this.m_regionInfo.RegionLocX;
             uint neighboury = this.m_regionInfo.RegionLocY;

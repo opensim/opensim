@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (this.Avatars.ContainsKey(fromAgentID))
             {
                 avatar = this.Avatars[fromAgentID];
-                fromPos = avatar.Pos;
+                fromPos = avatar.AbsolutePosition;
                 fromName = avatar.Firstname + " " + avatar.Lastname;
                 avatar = null;
             }
@@ -170,7 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                   if (this.Avatars.ContainsKey(presence.ControllingClient.AgentId))
                                                   {
                                                       avatar = this.Avatars[presence.ControllingClient.AgentId];
-                                                      dis = (int)avatar.Pos.GetDistanceTo(fromPos);
+                                                      dis = (int)avatar.AbsolutePosition.GetDistanceTo(fromPos);
                                                   }
 
                                                   switch (type)
@@ -354,7 +354,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (originPrim != null)
             {
                 SceneObjectGroup copy = originPrim.Copy();
-                copy.Pos = copy.Pos + offset;
+                copy.AbsolutePosition = copy.AbsolutePosition + offset;
                 this.Entities.Add(copy.UUID, copy);
 
                 copy.ScheduleGroupForFullUpdate();

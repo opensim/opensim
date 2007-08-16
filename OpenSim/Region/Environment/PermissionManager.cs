@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment
                 permission = true;
 
             // Users should be able to edit what is over their land.
-            if (m_scene.LandManager.getLandObject(task.Pos.X, task.Pos.Y).landData.ownerID == user)
+            if (m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y).landData.ownerID == user)
                 permission = true;
 
             // Estate users should be able to edit anything in the sim

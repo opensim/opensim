@@ -9,11 +9,12 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.Environment.Scenes
 {
 
-    public class SceneObjectPart
+    public class SceneObjectPart : IScriptHost
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
@@ -55,11 +56,11 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_localID = value; }
         }
 
-        protected string m_partName;
-        public virtual string PartName
+        protected string m_name;
+        public virtual string Name
         {
-            get { return m_partName; }
-            set { m_partName = value; }
+            get { return m_name; }
+            set { m_name = value; }
         }
 
         protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
@@ -91,11 +92,16 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_groupPosition = value; }
         }
 
-        protected LLVector3 m_offset;
+        protected LLVector3 m_offsetPosition;
         public LLVector3 OffsetPosition
         {
-            get { return m_offset; }
-            set { m_offset = value; }
+            get { return m_offsetPosition; }
+            set { m_offsetPosition = value; }
+        }
+
+        public LLVector3 AbsolutePosition
+        {
+            get { return m_offsetPosition + m_groupPosition; }
         }
 
         protected LLQuaternion m_rotationOffset;
@@ -195,7 +201,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
         {
-            this.m_partName = "Primitive";
+            this.m_name = "Primitive";
             this.m_regionHandle = regionHandle;
             this.m_parentGroup = parent;
 

@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Reflection;
+using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -148,10 +149,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // * Find next available AppDomain to put it in
                 AppDomain FreeAppDomain = GetFreeAppDomain();
 
-                // * Load and start script
+                // * Load and start script, for now with dummy host
+                
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
-                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
-                string FullScriptID = ScriptID + "." + ObjectID;
+                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, new NullScriptHost() );
+                string FullScriptID = ScriptID + "." + ObjectID;                               
                 // Add it to our temporary active script keeper
                 //Scripts.Add(FullScriptID, Script);
                 SetScript(ObjectID, ScriptID, Script);
@@ -161,6 +163,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 // Start the script - giving it BuiltIns
                 //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
+                
                 Script.Start(myScriptEngine.World, ScriptID);
 
             }
@@ -189,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="FreeAppDomain">AppDomain to load script into</param>
         /// <param name="FileName">FileName of script assembly (.dll)</param>
         /// <returns></returns>
-        private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName)
+        private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName, IScriptHost host)
         {
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
             // Load .Net Assembly (.dll)
@@ -228,7 +231,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //{
             //}
 
-            return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t);
+            object[] args = new object[] { host };
+            
+            return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t, args );
 
 
         }

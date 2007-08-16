@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public override LLVector3 Pos
+        public override LLVector3 AbsolutePosition
         {
             get { return m_rootPart.GroupPosition; }
             set
@@ -248,7 +248,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup dupe = (SceneObjectGroup)this.MemberwiseClone();
             dupe.m_parts.Clear();
-            dupe.Pos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
+            dupe.AbsolutePosition = new LLVector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = this.m_regionHandle;
 
@@ -427,8 +427,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
             SceneObjectPart linkPart = objectGroup.m_rootPart;
-            linkPart.OffsetPosition = linkPart.GroupPosition - this.Pos;
-            linkPart.GroupPosition = this.Pos;
+            linkPart.OffsetPosition = linkPart.GroupPosition - this.AbsolutePosition;
+            linkPart.GroupPosition = this.AbsolutePosition;
 
             Vector3 axPos = new Vector3(linkPart.OffsetPosition.X, linkPart.OffsetPosition.Y, linkPart.OffsetPosition.Z);
             Quaternion parentRot = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
@@ -456,7 +456,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void GrabMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            this.Pos = pos;
+            this.AbsolutePosition = pos;
             this.m_rootPart.SendTerseUpdateToAllClients();
         }
 
@@ -482,7 +482,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].TouchName = enc.GetBytes(this.m_rootPart.TouchName + "\0");
             proper.ObjectData[0].TextureID = new byte[0];
             proper.ObjectData[0].SitName = enc.GetBytes(this.m_rootPart.SitName + "\0");
-            proper.ObjectData[0].Name = enc.GetBytes(this.m_rootPart.PartName + "\0");
+            proper.ObjectData[0].Name = enc.GetBytes(this.m_rootPart.Name + "\0");
             proper.ObjectData[0].Description = enc.GetBytes(this.m_rootPart.Description + "\0");
             proper.ObjectData[0].OwnerMask = this.m_rootPart.OwnerMask;
             proper.ObjectData[0].NextOwnerMask = this.m_rootPart.NextOwnerMask;
@@ -502,7 +502,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                part.PartName = name;
+                part.Name = name;
             }
         }
 
@@ -636,7 +636,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(LLVector3 pos)
         {
-            this.Pos = pos;
+            this.AbsolutePosition = pos;
         }
 
         /// <summary>
@@ -667,7 +667,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void UpdateRootPosition(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-            LLVector3 oldPos = new LLVector3(this.Pos.X + this.m_rootPart.OffsetPosition.X, this.Pos.Y + this.m_rootPart.OffsetPosition.Y, this.Pos.Z + this.m_rootPart.OffsetPosition.Z);
+            LLVector3 oldPos = new LLVector3(this.AbsolutePosition.X + this.m_rootPart.OffsetPosition.X, this.AbsolutePosition.Y + this.m_rootPart.OffsetPosition.Y, this.AbsolutePosition.Z + this.m_rootPart.OffsetPosition.Z);
             LLVector3 diff = oldPos - newPos;
             Axiom.Math.Vector3 axDiff = new Vector3(diff.X, diff.Y, diff.Z);
             Axiom.Math.Quaternion partRotation = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
@@ -683,7 +683,7 @@ namespace OpenSim.Region.Environment.Scenes
                     obPart.OffsetPosition = obPart.OffsetPosition + diff;
                 }
             }
-            this.Pos = newPos;
+            this.AbsolutePosition = newPos;
             pos.X = newPos.X;
             pos.Y = newPos.Y;
             pos.Z = newPos.Z;
@@ -708,7 +708,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupRotation(LLVector3 pos, LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
-            this.Pos = pos;
+            this.AbsolutePosition = pos;
         }
 
         /// <summary>
@@ -828,7 +828,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart == part)
             {
-                part.SendFullUpdateToClient(remoteClient, Pos);
+                part.SendFullUpdateToClient(remoteClient, AbsolutePosition);
             }
             else
             {
@@ -845,7 +845,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart == part)
             {
-                part.SendTerseUpdateToClient(remoteClient, Pos);
+                part.SendTerseUpdateToClient(remoteClient, AbsolutePosition);
             }
             else
             {

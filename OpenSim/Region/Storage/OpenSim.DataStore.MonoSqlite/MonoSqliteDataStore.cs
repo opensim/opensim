@@ -253,7 +253,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // of sucks.  No idea if there is a shortcut here or not.
             prim.ParentID = Convert.ToUInt32(row["ParentID"]);
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
-            prim.PartName = (String)row["Name"];
+            prim.Name = (String)row["Name"];
             // various text fields
             prim.Text = (String)row["Text"];
             prim.Description = (String)row["Description"];
@@ -311,7 +311,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             row["UUID"] = prim.UUID;
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
-            row["Name"] = prim.PartName;
+            row["Name"] = prim.Name;
             row["SceneGroupID"] = sceneGroupID; // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;

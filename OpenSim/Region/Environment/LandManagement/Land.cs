@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.LandManagement
             List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-                Land over = m_scene.LandManager.getLandObject((int)Math.Round(avatars[i].Pos.X), (int)Math.Round(avatars[i].Pos.Y));
+                Land over = m_scene.LandManager.getLandObject((int)Math.Round(avatars[i].AbsolutePosition.X), (int)Math.Round(avatars[i].AbsolutePosition.Y));
                 if (over.landData.localID == this.landData.localID)
                 {
                     sendLandProperties(0, false, 0, avatars[i].ControllingClient);

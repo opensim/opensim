@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using Axiom.Math;
 using libsecondlife;
+using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class EntityBase
+    public abstract class EntityBase : IScriptHost
     {
         protected List<EntityBase> m_children;
 
@@ -37,7 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public virtual LLVector3 Pos
+        public virtual LLVector3 AbsolutePosition
         {
             get { return m_pos; }
             set { m_pos = value; }

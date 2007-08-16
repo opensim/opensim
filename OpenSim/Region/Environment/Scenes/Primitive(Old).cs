@@ -57,14 +57,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// If rootprim, will return world position
         /// otherwise will return local offset from rootprim
         /// </summary>
-        public override LLVector3 Pos
+        public override LLVector3 AbsolutePosition
         {
             get
             {
                 if (m_isRootPrim)
                 {
                     //if we are rootprim then our offset should be zero
-                    return m_pos + m_Parent.Pos;
+                    return m_pos + m_Parent.AbsolutePosition;
                 }
                 else
                 {
@@ -75,9 +75,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_isRootPrim)
                 {
-                    m_Parent.Pos = value;
+                    m_Parent.AbsolutePosition = value;
                 }
-                m_pos = value - m_Parent.Pos;
+                m_pos = value - m_Parent.AbsolutePosition;
             }
         }
 
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    return Pos;
+                    return AbsolutePosition;
                 }
             }
         }
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             OwnerID = ownerID;
             CreatorID = OwnerID;
             LastOwnerID = LLUUID.Zero;
-            Pos = pos;
+            AbsolutePosition = pos;
             m_uuid = LLUUID.Random();
             m_localId = (uint)(localID);
 
@@ -335,13 +335,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="rootParent"></param>
         public void SetNewParent(Primitive newParent, SceneObjectOLD rootParent)
         {
-            LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
+            LLVector3 oldPos = new LLVector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             m_isRootPrim = false;
             m_Parent = newParent;
             ParentID = newParent.LocalId;
             m_RootParent = rootParent;
             m_RootParent.AddChildToList(this);
-            Pos = oldPos;
+            AbsolutePosition = oldPos;
             Vector3 axPos = new Vector3(m_pos.X, m_pos.Y, m_pos.Z);
             axPos = m_Parent.Rotation.Inverse() * axPos;
             m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetRootParent(SceneObjectOLD newRoot, Primitive newParent, LLVector3 oldParentPosition,
                                   Quaternion oldParentRotation)
         {
-            LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
+            LLVector3 oldPos = new LLVector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             Vector3 axOldPos = new Vector3(oldPos.X, oldPos.Y, oldPos.Z);
             axOldPos = oldParentRotation * axOldPos;
             oldPos = new LLVector3(axOldPos.x, axOldPos.y, axOldPos.z);
@@ -379,7 +379,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_RootParent = newRoot;
             m_RootParent.AddChildToList(this);
-            Pos = oldPos;
+            AbsolutePosition = oldPos;
             Vector3 axPos = new Vector3(m_pos.X, m_pos.Y, m_pos.Z);
             axPos = m_Parent.Rotation.Inverse() * axPos;
             m_pos = new LLVector3(axPos.x, axPos.y, axPos.z);
@@ -445,7 +445,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
 
-            Pos = newPos;
+            AbsolutePosition = newPos;
             ScheduleTerseUpdate();
 
             OnPrimCountTainted();
@@ -461,14 +461,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_isRootPrim)
             {
                 LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-                LLVector3 oldPos = new LLVector3(Pos.X, Pos.Y, Pos.Z);
+                LLVector3 oldPos = new LLVector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
                 LLVector3 diff = oldPos - newPos;
                 Vector3 axDiff = new Vector3(diff.X, diff.Y, diff.Z);
                 axDiff = Rotation.Inverse() * axDiff;
                 diff.X = axDiff.x;
                 diff.Y = axDiff.y;
                 diff.Z = axDiff.z;
-                Pos = newPos;
+                AbsolutePosition = newPos;
 
                 foreach (Primitive prim in m_children)
                 {
@@ -507,7 +507,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupMouseRotation(LLVector3 pos, LLQuaternion rot)
         {
             Rotation = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
-            Pos = pos;
+            AbsolutePosition = pos;
             ScheduleTerseUpdate();
         }
 
@@ -644,7 +644,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
             LLVector3 lPos;
-            lPos = Pos;
+            lPos = AbsolutePosition;
             LLQuaternion lRot;
             lRot = new LLQuaternion(Rotation.x, Rotation.y, Rotation.z, Rotation.w);
 
@@ -690,7 +690,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             Quaternion lRot;
 
-            lPos = Pos;
+            lPos = AbsolutePosition;
             lRot = Rotation;
 
             LLQuaternion mRot = new LLQuaternion(lRot.x, lRot.y, lRot.z, lRot.w);
