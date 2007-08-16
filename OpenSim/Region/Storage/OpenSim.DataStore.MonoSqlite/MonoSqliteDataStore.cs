@@ -475,7 +475,24 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
         public void RemoveObject(LLUUID obj)
         {
-            // TODO: remove code
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["primshapes"];
+
+            string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
+            DataRow[] primRows = prims.Select(selectExp);
+            foreach (DataRow row in primRows)
+            {
+                LLUUID uuid = new LLUUID((string)row["UUID"]);
+                DataRow shapeRow = shapes.Rows.Find(uuid);
+                if (shapeRow != null)
+                {
+                    shapeRow.Delete();
+                }
+                row.Delete();
+            }
+
+            primDa.Update(ds, "prims");
+            shapeDa.Update(ds, "primshapes");
         }
 
         public List<SceneObjectGroup> LoadObjects()

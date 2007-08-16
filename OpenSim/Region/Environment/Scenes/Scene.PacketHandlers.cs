@@ -270,6 +270,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemUpdate(item);
                             }
 
+                            storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID);
                             ((SceneObjectGroup)selectedEnt).DeleteGroup();
 
                             lock (Entities)
@@ -318,7 +319,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup group = new SceneObjectGroup(this, this.m_regionHandle, xmlData);
             this.AddEntity(group);
-            group.Pos = pos;
+            group.AbsolutePosition = pos;
         }
 
         /// <summary>

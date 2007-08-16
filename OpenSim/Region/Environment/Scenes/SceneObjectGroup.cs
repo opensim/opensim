@@ -35,11 +35,10 @@ namespace OpenSim.Region.Environment.Scenes
             get { return 1; }
         }
 
-        public LLQuaternion Rotation
+        public LLQuaternion GroupRotation
         {
             get { return m_rootPart.RotationOffset; }
         }
-
 
         /// <summary>
         /// 
@@ -538,7 +537,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                return part.PartName;
+                return part.Name;
             }
             return "";
         }
