@@ -102,6 +102,7 @@ namespace OpenSim
 
         protected void ReadConfigSettings(IConfigSource configSource)
         {
+            m_networkServersInfo = new NetworkServersInfo();
             m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
             m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
             m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
@@ -114,6 +115,8 @@ namespace OpenSim
             standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
             standaloneInventoryPlugin = configSource.Configs["StandAlone"].GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
             standaloneUserPlugin = configSource.Configs["StandAlone"].GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
+
+            m_networkServersInfo.loadFromConfiguration(configSource);
         }
 
         /// <summary>
@@ -134,9 +137,9 @@ namespace OpenSim
             if (m_sandbox)
             {
                 CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings(standaloneWelcomeMessage, standaloneAuthenticate, standaloneInventoryPlugin, standaloneUserPlugin);
-                CommunicationsLocal localComms  = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings);
+                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings);
                 m_commsManager = localComms;
-                if(standaloneAuthenticate)
+                if (standaloneAuthenticate)
                 {
                     this.CreateAccount = localComms.doCreate;
                 }
@@ -164,7 +167,7 @@ namespace OpenSim
 
             // Load all script engines found
             OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
-            
+
             for (int i = 0; i < configFiles.Length; i++)
             {
                 //Console.WriteLine("Loading region config file");
@@ -174,7 +177,7 @@ namespace OpenSim
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
 
-                
+
                 OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
                 scene.AddScriptEngine(ScriptEngine, m_log);
                 // TODO: TEMP load default script
@@ -238,7 +241,6 @@ namespace OpenSim
 
         protected override void Initialize()
         {
-            m_networkServersInfo = new NetworkServersInfo("NETWORK SERVERS INFO", Path.Combine(Util.configDir(), "network_servers_information.xml"));
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }

@@ -30,6 +30,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Configuration;
 
+using Nini.Config;
 namespace OpenSim.Framework.Types
 {
     public class NetworkServersInfo
@@ -48,15 +49,12 @@ namespace OpenSim.Framework.Types
         public int HttpListenerPort = 9000;
         public int RemotingListenerPort = 8895;
 
-        private ConfigurationMember configMember;
 
-        public NetworkServersInfo(string description, string filename)
+        public NetworkServersInfo()
         {
-            configMember = new ConfigurationMember(filename, description, loadConfigurationOptions, handleConfigurationItem);
-            configMember.performConfigurationRetrieve();
         }
 
-        public NetworkServersInfo( uint defaultHomeLocX, uint defaultHomeLocY )
+        public NetworkServersInfo(uint defaultHomeLocX, uint defaultHomeLocY)
         {
             m_defaultHomeLocX = defaultHomeLocX;
             m_defaultHomeLocY = defaultHomeLocY;
@@ -74,65 +72,21 @@ namespace OpenSim.Framework.Types
             get { return m_defaultHomeLocY.Value; }
         }
 
-        public void loadConfigurationOptions()
+        public void loadFromConfiguration(IConfigSource config)
         {
+            m_defaultHomeLocX = (uint)config.Configs["StandAlone"].GetInt("default_location_x", 1000);
+            m_defaultHomeLocY = (uint)config.Configs["StandAlone"].GetInt("default_location_y", 1000);
 
-            configMember.addConfigurationOption("HttpListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "HTTP Listener Port", "9000", false);
-            configMember.addConfigurationOption("RemotingListenerPort", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Remoting Listener Port", "8895", false);
-            configMember.addConfigurationOption("DefaultLocationX", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (X Axis)", "1000", false);
-            configMember.addConfigurationOption("DefaultLocationY", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Default Home Location (Y Axis)", "1000", false);
+            HttpListenerPort = config.Configs["Network"].GetInt("http_listener_port", 9000);
+            RemotingListenerPort = config.Configs["Network"].GetInt("remoting_listener_port", 8895);
+            GridURL = config.Configs["Network"].GetString("grid_server_url", "http://127.0.0.1:8001");
+            GridSendKey = config.Configs["Network"].GetString("grid_send_key", "null");
+            GridRecvKey = config.Configs["Network"].GetString("grid_recv_key", "null");
+            UserURL = config.Configs["Network"].GetString("user_server_url", "http://127.0.0.1:8002");
+            UserSendKey = config.Configs["Network"].GetString("user_send_key", "null");
+            UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
+            AssetURL = config.Configs["Network"].GetString("asset_server_url", "http://127.0.0.1:8003");
 
-            configMember.addConfigurationOption("GridServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Grid Server URL", "http://127.0.0.1:8001", false);
-            configMember.addConfigurationOption("GridSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null", false);
-            configMember.addConfigurationOption("GridRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null", false);
-
-            configMember.addConfigurationOption("UserServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "User Server URL", "http://127.0.0.1:8002", false);
-            configMember.addConfigurationOption("UserSendKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to user server", "null", false);
-            configMember.addConfigurationOption("UserRecvKey", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from user server", "null", false);
-
-            configMember.addConfigurationOption("AssetServerURL", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Asset Server URL", "http://127.0.0.1:8003", false);
-        }
-
-        public bool handleConfigurationItem(string configuration_key, object configuration_object)
-        {
-            switch (configuration_key)
-            {
-                case "HttpListenerPort":
-                    this.HttpListenerPort = (int)configuration_object;
-                    break;
-                case "RemotingListenerPort":
-                    this.RemotingListenerPort = (int)configuration_object;
-                    break;
-                case "DefaultLocationX":
-                    this.m_defaultHomeLocX = (uint)configuration_object;
-                    break;
-                case "DefaultLocationY":
-                    this.m_defaultHomeLocY = (uint)configuration_object;
-                    break;
-                case "GridServerURL":
-                    this.GridURL = (string)configuration_object;
-                    break;
-                case "GridSendKey":
-                    this.GridSendKey = (string)configuration_object;
-                    break;
-                case "GridRecvKey":
-                    this.GridRecvKey = (string)configuration_object;
-                    break;
-                case "UserServerURL":
-                    this.UserURL = (string)configuration_object;
-                    break;
-                case "UserSendKey":
-                    this.UserSendKey = (string)configuration_object;
-                    break;
-                case "UserRecvKey":
-                    this.UserRecvKey = (string)configuration_object;
-                    break;
-                case "AssetServerURL":
-                    this.AssetURL = (string)configuration_object;
-                    break;
-            }
-
-            return true;
         }
     }
 }
