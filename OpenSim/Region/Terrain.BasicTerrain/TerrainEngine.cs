@@ -272,7 +272,15 @@ namespace OpenSim.Region.Terrain
         /// <returns>If the operation was successful (if not, the error is placed into resultText)</returns>
         public bool RunTerrainCmd(string[] args, ref string resultText, string simName)
         {
-            string command = args[0];
+            string command;
+            if (args.Length > 0)
+            {
+                command = args[0];
+            }
+            else
+            {
+                command = "help";
+            }
 
             try
             {
