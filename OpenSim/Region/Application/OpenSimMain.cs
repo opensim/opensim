@@ -350,6 +350,22 @@ namespace OpenSim
                         }
                     }
                     break;
+                case "terrain-sim":
+                    string result2 = "";
+                    foreach (Scene scene in m_localScenes)
+                    {
+                        if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
+                        {
+                            string[] tmpCmdparams = new string[cmdparams.Length - 1];
+                            cmdparams.CopyTo(tmpCmdparams,1);
+
+                            if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result2, scene.RegionInfo.RegionName))
+                            {
+                                m_log.Error(result2);
+                            }
+                        }
+                    }
+                    break;
                 case "script":
                     foreach (Scene scene in m_localScenes)
                     {

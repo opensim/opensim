@@ -426,7 +426,10 @@ namespace OpenSim.Region.Terrain
                                 break;
 
                             case "grdmap":
-                                ExportImage(filename, args[3]);
+                                if (args.Length >= 4)
+                                    ExportImage(filename, args[3]);
+                                else
+                                    ExportImage(filename, "defaultstripe.png");
                                 break;
 
                             case "png":
