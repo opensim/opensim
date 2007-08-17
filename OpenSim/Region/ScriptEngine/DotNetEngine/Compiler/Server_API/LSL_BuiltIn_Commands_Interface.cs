@@ -166,11 +166,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //wiki: llPreloadSound(string sound)
         void llPreloadSound(string sound);
         //wiki: string llGetSubString(string src, integer start, integer end)
-        void llGetSubString(string src, int start, int end);
+        string llGetSubString(string src, int start, int end);
         //wiki: string llDeleteSubString(string src, integer start, integer end)
         string llDeleteSubString(string src, int start, int end);
         //wiki string llInsertString(string dst, integer position, string src)
-        void llInsertString(string dst, int position, string src);
+        string llInsertString(string dst, int position, string src);
         //wiki: string llToUpper(string source)
         string llToUpper(string source);
         //wiki: string llToLower(string source)

@@ -47,7 +47,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public double llPow(double fbase, double fexponent) { return (double)Math.Pow(fbase, fexponent); }
         public int llAbs(int i) { return (int)Math.Abs(i); }
         public double llFabs(double f) { return (double)Math.Abs(f); }
-        public double llFrand(double mag) { return 0; }
+ 
+        public double llFrand(double mag) 
+        {
+            lock(OpenSim.Framework.Utilities.Util.RandomClass)
+            {
+                return OpenSim.Framework.Utilities.Util.RandomClass.Next((int)mag); 
+            }
+        }
         public int llFloor(double f) { return (int)Math.Floor(f); }
         public int llCeil(double f) { return (int)Math.Ceiling(f); }
         public int llRound(double f) { return (int)Math.Round(f, 1); }
@@ -168,11 +175,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llTriggerSound(string sound, double volume) { }
         public void llStopSound() { }
         public void llPreloadSound(string sound) { }
-        public void llGetSubString(string src, int start, int end) { }
+        public string llGetSubString(string src, int start, int end) { return src.Substring(start, end); }
         public string llDeleteSubString(string src, int start, int end) { return ""; }
-        public void llInsertString(string dst, int position, string src) { }
-        public string llToUpper(string source) { return ""; }
-        public string llToLower(string source) { return ""; }
+        public string llInsertString(string dst, int position, string src) { return ""; }
+        public string llToUpper(string src) { return src.ToUpper(); }
+        public string llToLower(string src) { return src.ToLower(); }
         public int llGiveMoney(string destination, int amount) { return 0; }
         public void llMakeExplosion() { }
         public void llMakeFountain() { }
