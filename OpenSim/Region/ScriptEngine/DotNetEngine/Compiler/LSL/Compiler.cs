@@ -19,6 +19,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Output assembly name
             string OutFile = Path.Combine("ScriptEngines", Path.GetFileNameWithoutExtension(LSOFileName) + ".dll");
+            //string OutFile = Path.Combine("ScriptEngines", "SecondLife.Script.dll");
 
             Common.SendToDebug("Reading source code into memory");
             // TODO: Add error handling

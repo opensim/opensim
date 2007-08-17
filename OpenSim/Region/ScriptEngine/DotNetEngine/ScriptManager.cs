@@ -190,7 +190,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private string ProcessYield(string FileName)
         {
             // TODO: Create a new assembly and copy old but insert Yield Code
-            return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
+            //return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
+            return FileName;
         }
 
         private AppDomain GetFreeAppDomain()
