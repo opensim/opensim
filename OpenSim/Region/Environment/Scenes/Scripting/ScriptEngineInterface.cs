@@ -29,6 +29,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Region.Environment.Scenes.Scripting;
+
 //TODO: WHERE TO PLACE THIS?
 namespace OpenSim.Region.Environment.Scenes.Scripting
 {
@@ -36,6 +38,6 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
     {
         void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger);
         void Shutdown();
-        void StartScript(string ScriptID, string ObjectID);
+        void StartScript(string ScriptID, IScriptHost ObjectID);
     }
 }

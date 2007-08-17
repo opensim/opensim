@@ -232,8 +232,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Return += @"
                 public Script( 
                     OpenSim.Region.ScriptEngine.DotNetEngine.ScriptManager manager,
-                    OpenSim.Region.Environment.Scenes.Scripting.IScriptHost host, 
-                    OpenSim.Region.Environment.Scenes.Scripting.IScriptHost root ) : base( manager, host, root ) { }"+"\r\n";
+                    OpenSim.Region.Environment.Scenes.Scripting.IScriptHost host ) : base( manager, host ) { }"+"\r\n";
             Return += Script;
             Return += "} }\r\n";
 

@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Reflection;
+using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -45,7 +46,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private Queue<QueueItemStruct> EventQueue = new Queue<QueueItemStruct>();
         private struct QueueItemStruct
         {
-            public string ObjectID;
+            public IScriptHost ObjectID;
             public string ScriptID;
             public string FunctionName;
             public object[] param;
@@ -109,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
-        public void AddToObjectQueue(string ObjectID, string FunctionName, object[] param)
+        public void AddToObjectQueue(IScriptHost ObjectID, string FunctionName, object[] param)
         {
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);

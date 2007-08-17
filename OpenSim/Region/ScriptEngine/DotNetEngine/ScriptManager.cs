@@ -53,7 +53,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
 
         // Object<string, Script<string, script>>
-        internal Dictionary<string, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>> Scripts = new Dictionary<string, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>>();
+        internal Dictionary<IScriptHost, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>> Scripts = new Dictionary<IScriptHost, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>>();
         public Scene World
         {
             get
@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
 
-        internal Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>.KeyCollection GetScriptKeys(string ObjectID)
+        internal Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>.KeyCollection GetScriptKeys(IScriptHost ObjectID)
         {
             if (Scripts.ContainsKey(ObjectID) == false)
                 return null;
@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         }
 
-        internal OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass GetScript(string ObjectID, string ScriptID)
+        internal OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass GetScript(IScriptHost ObjectID, string ScriptID)
         {
             if (Scripts.ContainsKey(ObjectID) == false)
                 return null;
@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return Script;
 
         }
-        internal void SetScript(string ObjectID, string ScriptID, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script)
+        internal void SetScript(IScriptHost ObjectID, string ScriptID, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script)
         {
             // Create object if it doesn't exist
             if (Scripts.ContainsKey(ObjectID) == false)
@@ -116,8 +116,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// </summary>
         /// <param name="ScriptID"></param>
         /// <param name="ObjectID"></param>
-        public void StartScript(string ScriptID, string ObjectID)
+        public void StartScript(string ScriptID, IScriptHost ObjectID)
         {
+            //IScriptHost root = host.GetRoot();
             m_scriptEngine.Log.Verbose("ScriptEngine", "ScriptManager StartScript: ScriptID: " + ScriptID + ", ObjectID: " + ObjectID);
 
             // We will initialize and start the script.
@@ -162,11 +163,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // * Load and start script, for now with dummy host
                 
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
-                IScriptHost host = new NullScriptHost();
-                IScriptHost root = host;
                 
-                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, host, root );
-                string FullScriptID = ScriptID + "." + ObjectID;                               
+                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
+                //string FullScriptID = ScriptID + "." + ObjectID;                               
                 // Add it to our temporary active script keeper
                 //Scripts.Add(FullScriptID, Script);
                 SetScript(ObjectID, ScriptID, Script);
@@ -206,7 +205,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="FreeAppDomain">AppDomain to load script into</param>
         /// <param name="FileName">FileName of script assembly (.dll)</param>
         /// <returns></returns>
-        private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName, IScriptHost host, IScriptHost root)
+        private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName, IScriptHost host)
         {
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
             // Load .Net Assembly (.dll)
@@ -249,8 +248,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             object[] args = new object[]
                 {
                     this, 
-                    host, 
-                    root
+                    host
                 };
             
             return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t, args );
@@ -258,7 +256,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         }
 
-        internal void ExecuteFunction(string ObjectID, string ScriptID, string FunctionName, object[] args)
+        internal void ExecuteFunction(IScriptHost ObjectID, string ScriptID, string FunctionName, object[] args)
         {
             m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function ObjectID: " + ObjectID + ", ScriptID: " + ScriptID + ", FunctionName: " + FunctionName);
             OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);

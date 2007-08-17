@@ -16,13 +16,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         protected ScriptManager m_manager;
         protected IScriptHost m_host;
-        protected IScriptHost m_root;
 
-        public LSL_BaseClass(ScriptManager manager, IScriptHost host, IScriptHost root)
+        public LSL_BaseClass(ScriptManager manager, IScriptHost host)
         {
             m_manager = manager;
             m_host = host;
-            m_root = root;
         }
 
         public Scene World

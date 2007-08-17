@@ -7,6 +7,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class NullScriptHost : IScriptHost
     {
+
         LLVector3 m_pos = new LLVector3( 128, 128, 30 );
         public string Name
         {

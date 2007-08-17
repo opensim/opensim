@@ -18,6 +18,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
+
         public LLUUID CreatorID;
         public LLUUID OwnerID;
         public LLUUID GroupID;

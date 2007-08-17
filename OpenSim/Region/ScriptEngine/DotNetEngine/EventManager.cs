@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -40,6 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     class EventManager
     {
         private ScriptEngine myScriptEngine;
+        public IScriptHost TEMP_OBJECT_ID;
         public EventManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
@@ -58,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             // Add to queue for all scripts in ObjectID object
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
-            myScriptEngine.myEventQueueManager.AddToObjectQueue("TEST", "touch_start", new object[] { (int)0 });
+            myScriptEngine.myEventQueueManager.AddToObjectQueue(TEMP_OBJECT_ID, "touch_start", new object[] { (int)0 });
         }
 
 

@@ -1,3 +1,4 @@
+integer touch_count = 0;
 default {
     state_entry()
     {
@@ -6,6 +7,7 @@ default {
 
     touch_start(integer total_number)
     {
-        llSay(0, "Object was touched.");
+	touch_count++;
+        llSay(0, "Object was touched. Touch count: " + touch_count);
     }
 }

@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework.Console;
+//using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -80,8 +82,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         // !!!FOR DEBUGGING ONLY!!! (for executing script directly from test app)
         [Obsolete("!!!FOR DEBUGGING ONLY!!!")]
-        public void StartScript(string ScriptID, string ObjectID)
+        public void StartScript(string ScriptID, IScriptHost ObjectID)
         {
+            this.myEventManager.TEMP_OBJECT_ID = ObjectID;
             Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
             myScriptManager.StartScript(ScriptID, ObjectID);
         }
