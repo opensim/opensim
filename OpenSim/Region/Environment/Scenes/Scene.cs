@@ -950,7 +950,8 @@ namespace OpenSim.Region.Environment.Scenes
                     AgentCircuitData agent = remoteClient.RequestClientInfo();
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
-                    agent.startpos = new LLVector3(128, 128, 70);
+//                    agent.startpos = new LLVector3(128, 128, 70);
+                    agent.startpos = position;
                     agent.child = true;
                     commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position, false);
