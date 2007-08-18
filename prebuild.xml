@@ -954,7 +954,6 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -981,7 +980,6 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
       <Reference name="OpenSim.Region.Environment" />
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>

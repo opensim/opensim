@@ -71,7 +71,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //ads.ApplicationName = "DotNetScriptEngine";
             //ads.DynamicBase = ads.ApplicationBase;
             
-            Console.WriteLine("AppDomain BaseDirectory: " + ads.ApplicationBase);
+            //Console.WriteLine("AppDomain BaseDirectory: " + ads.ApplicationBase);
             ads.DisallowBindingRedirects = false;
             ads.DisallowCodeDownload = true;
             ads.ShadowCopyFiles = "true";
@@ -95,13 +95,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 
             }
 
-            Console.WriteLine("Assembly file: " + this.GetType().Assembly.CodeBase);
-            Console.WriteLine("Assembly name: " + this.GetType().ToString());
+            //Console.WriteLine("Assembly file: " + this.GetType().Assembly.CodeBase);
+            //Console.WriteLine("Assembly name: " + this.GetType().ToString());
             //AD.CreateInstanceFrom(this.GetType().Assembly.CodeBase, "OpenSim.Region.ScriptEngine.DotNetEngine.ScriptEngine");
 
             //AD.Load(this.GetType().Assembly.CodeBase);
 
-            Console.WriteLine("Done preparing new appdomain.");
+            Console.WriteLine("Done preparing new AppDomain.");
             return AD;
 
         }

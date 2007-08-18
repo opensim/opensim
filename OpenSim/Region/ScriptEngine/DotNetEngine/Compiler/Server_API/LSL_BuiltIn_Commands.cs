@@ -60,16 +60,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public int llFloor(double f) { return (int)Math.Floor(f); }
         public int llCeil(double f) { return (int)Math.Ceiling(f); }
         public int llRound(double f) { return (int)Math.Round(f, 1); }
-        public double llVecMag(Axiom.Math.Vector3 v) { return 0; }
-        public Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v) { return new Axiom.Math.Vector3(); }
-        public double llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b) { return 0; }
-        public Axiom.Math.Vector3 llRot2Euler(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llEuler2Rot(Axiom.Math.Vector3 v) { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Quaternion llAxes2Rot(Axiom.Math.Vector3 fwd, Axiom.Math.Vector3 left, Axiom.Math.Vector3 up) { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Vector3 llRot2Fwd(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end) { return new Axiom.Math.Quaternion(); }
+        public double llVecMag(LSL_Types.Vector3 v) { return 0; }
+        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v) { return new LSL_Types.Vector3(); }
+        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b) { return 0; }
+        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v) { return new LSL_Types.Quaternion(); }
+        public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up) { return new LSL_Types.Quaternion(); }
+        public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end) { return new LSL_Types.Quaternion(); }
 
         public void llWhisper(int channelID, string text)
         {
@@ -112,57 +112,57 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public string llDetectedKey(int number) { return ""; }
         public string llDetectedOwner(int number) { return ""; }
         public int llDetectedType(int number) { return 0; }
-        public Axiom.Math.Vector3 llDetectedPos(int number) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llDetectedVel(int number) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llDetectedGrab(int number) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llDetectedRot(int number) { return new Axiom.Math.Quaternion(); }
+        public LSL_Types.Vector3 llDetectedPos(int number) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llDetectedVel(int number) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llDetectedGrab(int number) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llDetectedRot(int number) { return new LSL_Types.Quaternion(); }
         public int llDetectedGroup(int number) { return 0; }
         public int llDetectedLinkNumber(int number) { return 0; }
         public void llDie() { return; }
-        public double llGround(Axiom.Math.Vector3 offset) { return 0; }
-        public double llCloud(Axiom.Math.Vector3 offset) { return 0; }
-        public Axiom.Math.Vector3 llWind(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
+        public double llGround(LSL_Types.Vector3 offset) { return 0; }
+        public double llCloud(LSL_Types.Vector3 offset) { return 0; }
+        public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
         public void llSetStatus(int status, int value) { return; }
         public int llGetStatus(int status) { return 0; }
-        public void llSetScale(Axiom.Math.Vector3 scale) { return; }
-        public Axiom.Math.Vector3 llGetScale() { return new Axiom.Math.Vector3(); }
-        public void llSetColor(Axiom.Math.Vector3 color, int face) { return; }
+        public void llSetScale(LSL_Types.Vector3 scale) { return; }
+        public LSL_Types.Vector3 llGetScale() { return new LSL_Types.Vector3(); }
+        public void llSetColor(LSL_Types.Vector3 color, int face) { return; }
         public double llGetAlpha(int face) { return 0; }
         public void llSetAlpha(double alpha, int face) { return; }
-        public Axiom.Math.Vector3 llGetColor(int face) { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Vector3 llGetColor(int face) { return new LSL_Types.Vector3(); }
         public void llSetTexture(string texture, int face) { return; }
         public void llScaleTexture(double u, double v, int face) { return; }
         public void llOffsetTexture(double u, double v, int face) { return; }
         public void llRotateTexture(double rotation, int face) { return; }
         public string llGetTexture(int face) { return ""; }
-        public void llSetPos(Axiom.Math.Vector3 pos) { return; }
+        public void llSetPos(LSL_Types.Vector3 pos) { return; }
 
-        public Axiom.Math.Vector3 llGetPos()
+        public LSL_Types.Vector3 llGetPos()
         {
             throw new NotImplementedException("llGetPos");
             // return m_host.AbsolutePosition;
         }
 
-        public Axiom.Math.Vector3 llGetLocalPos() { return new Axiom.Math.Vector3(); }
-        public void llSetRot(Axiom.Math.Quaternion rot) { }
-        public Axiom.Math.Quaternion llGetRot() { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Quaternion llGetLocalRot() { return new Axiom.Math.Quaternion(); }
-        public void llSetForce(Axiom.Math.Vector3 force, int local) { }
-        public Axiom.Math.Vector3 llGetForce() { return new Axiom.Math.Vector3(); }
-        public int llTarget(Axiom.Math.Vector3 position, double range) { return 0; }
+        public LSL_Types.Vector3 llGetLocalPos() { return new LSL_Types.Vector3(); }
+        public void llSetRot(LSL_Types.Quaternion rot) { }
+        public LSL_Types.Quaternion llGetRot() { return new LSL_Types.Quaternion(); }
+        public LSL_Types.Quaternion llGetLocalRot() { return new LSL_Types.Quaternion(); }
+        public void llSetForce(LSL_Types.Vector3 force, int local) { }
+        public LSL_Types.Vector3 llGetForce() { return new LSL_Types.Vector3(); }
+        public int llTarget(LSL_Types.Vector3 position, double range) { return 0; }
         public void llTargetRemove(int number) { }
-        public int llRotTarget(Axiom.Math.Quaternion rot, double error) { return 0; }
+        public int llRotTarget(LSL_Types.Quaternion rot, double error) { return 0; }
         public void llRotTargetRemove(int number) { }
-        public void llMoveToTarget(Axiom.Math.Vector3 target, double tau) { }
+        public void llMoveToTarget(LSL_Types.Vector3 target, double tau) { }
         public void llStopMoveToTarget() { }
-        public void llApplyImpulse(Axiom.Math.Vector3 force, int local) { }
-        public void llApplyRotationalImpulse(Axiom.Math.Vector3 force, int local) { }
-        public void llSetTorque(Axiom.Math.Vector3 torque, int local) { }
-        public Axiom.Math.Vector3 llGetTorque() { return new Axiom.Math.Vector3(); }
-        public void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, int local) { }
-        public Axiom.Math.Vector3 llGetVel() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetAccel() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetOmega() { return new Axiom.Math.Vector3(); }
+        public void llApplyImpulse(LSL_Types.Vector3 force, int local) { }
+        public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local) { }
+        public void llSetTorque(LSL_Types.Vector3 torque, int local) { }
+        public LSL_Types.Vector3 llGetTorque() { return new LSL_Types.Vector3(); }
+        public void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local) { }
+        public LSL_Types.Vector3 llGetVel() { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetAccel() { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetOmega() { return new LSL_Types.Vector3(); }
         public double llGetTimeOfDay() { return 0; }
         public double llGetWallclock() { return 0; }
         public double llGetTime() { return 0; }
@@ -187,8 +187,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llMakeFountain() { }
         public void llMakeSmoke() { }
         public void llMakeFire() { }
-        public void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, int param) { }
-        public void llLookAt(Axiom.Math.Vector3 target, double strength, double damping) { }
+        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param) { }
+        public void llLookAt(LSL_Types.Vector3 target, double strength, double damping) { }
         public void llStopLookAt() { }
         public void llSetTimerEvent(double sec) { }
         public void llSleep(double sec) { System.Threading.Thread.Sleep((int)(sec * 1000)); }
@@ -210,7 +210,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llStopHover() { }
         public void llMinEventDelay(double delay) { }
         public void llSoundPreload() { }
-        public void llRotLookAt(Axiom.Math.Quaternion target, double strength, double damping) { }
+        public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping) { }
 
         public int llStringLength(string str)
         {
@@ -228,14 +228,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llStopAnimation(string anim) { }
         public void llPointAt() { }
         public void llStopPointAt() { }
-        public void llTargetOmega(Axiom.Math.Vector3 axis, double spinrate, double gain) { }
+        public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain) { }
         public int llGetStartParameter() { return 0; }
-        public void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos) { }
+        public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos) { }
         public void llRequestPermissions(string agent, int perm) { }
         public string llGetPermissionsKey() { return ""; }
         public int llGetPermissions() { return 0; }
         public int llGetLinkNumber() { return 0; }
-        public void llSetLinkColor(int linknumber, Axiom.Math.Vector3 color, int face) { }
+        public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face) { }
         public void llCreateLink(string target, int parent) { }
         public void llBreakLink(int linknum) { }
         public void llBreakAllLinks() { }
@@ -248,12 +248,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llGiveInventory(string destination, string inventory) { }
         public void llRemoveInventory(string item) { }
 
-        public void llSetText(string text, Axiom.Math.Vector3 color, double alpha)
+        public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
         {
-            m_host.SetText(text, color, alpha);
+            // TEMP DISABLED UNTIL WE CAN AGREE UPON VECTOR/ROTATION FORMAT
+            //m_host.SetText(text, color, alpha);
         }
 
-        public double llWater(Axiom.Math.Vector3 offset) { return 0; }
+        public double llWater(LSL_Types.Vector3 offset) { return 0; }
         public void llPassTouches(int pass) { }
         public string llRequestAgentData(string id, int data) { return ""; }
         public string llRequestInventoryData(string name) { return ""; }
@@ -265,25 +266,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public string llGetAnimation(string id) { return ""; }
         public void llResetScript() { }
         public void llMessageLinked(int linknum, int num, string str, string id) { }
-        public void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, int local) { }
+        public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local) { }
         public void llPassCollisions(int pass) { }
         public string llGetScriptName() { return ""; }
         public int llGetNumberOfSides() { return 0; }
-        public Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, double angle) { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot) { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle) { return new LSL_Types.Quaternion(); }
+        public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot) { return new LSL_Types.Vector3(); }
         public void llRot2Angle() { }
         public double llAcos(double val) { return (double)Math.Acos(val); }
         public double llAsin(double val) { return (double)Math.Asin(val); }
-        public double llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b) { return 0; }
+        public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b) { return 0; }
         public string llGetInventoryKey(string name) { return ""; }
         public void llAllowInventoryDrop(int add) { }
-        public Axiom.Math.Vector3 llGetSunDirection() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetTextureOffset(int face) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetTextureScale(int side) { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Vector3 llGetSunDirection() { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetTextureOffset(int face) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetTextureScale(int side) { return new LSL_Types.Vector3(); }
         public double llGetTextureRot(int side) { return 0; }
         public int llSubStringIndex(string source, string pattern) { return 0; }
         public string llGetOwnerKey(string id) { return ""; }
-        public Axiom.Math.Vector3 llGetCenterOfMass() { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Vector3 llGetCenterOfMass() { return new LSL_Types.Vector3(); }
         public List<string> llListSort(List<string> src, int stride, int ascending)
         { return new List<string>(); }
         public int llGetListLength(List<string> src) { return 0; }
@@ -291,10 +292,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public double llList2double(List<string> src, int index) { return 0; }
         public string llList2String(List<string> src, int index) { return ""; }
         public string llList2Key(List<string> src, int index) { return ""; }
-        public Axiom.Math.Vector3 llList2Vector(List<string> src, int index)
-        { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llList2Rot(List<string> src, int index)
-        { return new Axiom.Math.Quaternion(); }
+        public LSL_Types.Vector3 llList2Vector(List<string> src, int index)
+        { return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llList2Rot(List<string> src, int index)
+        { return new LSL_Types.Quaternion(); }
         public List<string> llList2List(List<string> src, int start, int end)
         { return new List<string>(); }
         public List<string> llDeleteSubList(List<string> src, int start, int end)
@@ -307,33 +308,33 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         { return new List<string>(); }
         public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
         { return new List<string>(); }
-        public Axiom.Math.Vector3 llGetRegionCorner()
-        { return new Axiom.Math.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0); }
+        public LSL_Types.Vector3 llGetRegionCorner()
+        { return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0); }
         public List<string> llListInsertList(List<string> dest, List<string> src, int start)
         { return new List<string>(); }
         public int llListFindList(List<string> src, List<string> test) { return 0; }
         public string llGetObjectName() { return ""; }
         public void llSetObjectName(string name) { }
         public string llGetDate() { return ""; }
-        public int llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir) { return 0; }
+        public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir) { return 0; }
         public int llGetAgentInfo(string id) { return 0; }
         public void llAdjustSoundVolume(double volume) { }
         public void llSetSoundQueueing(int queue) { }
         public void llSetSoundRadius(double radius) { }
         public string llKey2Name(string id) { return ""; }
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { }
-        public void llTriggerSoundLimited(string sound, double volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west) { }
+        public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west) { }
         public void llEjectFromLand(string pest) { }
         public void llParseString2List() { }
         public int llOverMyLand(string id) { return 0; }
-        public string llGetLandOwnerAt(Axiom.Math.Vector3 pos) { return ""; }
+        public string llGetLandOwnerAt(LSL_Types.Vector3 pos) { return ""; }
         public string llGetNotecardLine(string name, int line) { return ""; }
-        public Axiom.Math.Vector3 llGetAgentSize(string id) { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Vector3 llGetAgentSize(string id) { return new LSL_Types.Vector3(); }
         public int llSameGroup(string agent) { return 0; }
         public void llUnSit(string id) { }
-        public Axiom.Math.Vector3 llGroundSlope(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGroundNormal(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
         public int llGetAttached() { return 0; }
         public int llGetFreeMemory() { return 0; }
         public string llGetRegionName() { return m_manager.RegionName; }
@@ -344,11 +345,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llGiveInventoryList() { }
         public void llSetVehicleType(int type) { }
         public void llSetVehicledoubleParam(int param, double value) { }
-        public void llSetVehicleVectorParam(int param, Axiom.Math.Vector3 vec) { }
-        public void llSetVehicleRotationParam(int param, Axiom.Math.Quaternion rot) { }
+        public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec) { }
+        public void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot) { }
         public void llSetVehicleFlags(int flags) { }
         public void llRemoveVehicleFlags(int flags) { }
-        public void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot) { }
+        public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot) { }
         public string llAvatarOnSitTarget() { return ""; }
         public void llAddToLandPassList(string avatar, double hours) { }
         public void llSetTouchText(string text)
@@ -358,10 +359,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llSetSitText(string text)
         {
         }
-        public void llSetCameraEyeOffset(Axiom.Math.Vector3 offset) { }
-        public void llSetCameraAtOffset(Axiom.Math.Vector3 offset) { }
+        public void llSetCameraEyeOffset(LSL_Types.Vector3 offset) { }
+        public void llSetCameraAtOffset(LSL_Types.Vector3 offset) { }
         public void llDumpList2String() { }
-        public void llScriptDanger(Axiom.Math.Vector3 pos) { }
+        public void llScriptDanger(LSL_Types.Vector3 pos) { }
         public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { }
         public void llVolumeDetect(int detect) { }
         public void llResetOtherScript(string name) { }
@@ -387,15 +388,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public List<string> llGetAnimationList(string id) { return new List<string>(); }
         public void llSetParcelMusicURL(string url) { }
 
-        public Axiom.Math.Vector3 llGetRootPosition()
+        public LSL_Types.Vector3 llGetRootPosition()
         {
             throw new NotImplementedException("llGetRootPosition");
             //return m_root.AbsolutePosition;
         }
 
-        public Axiom.Math.Quaternion llGetRootRotation()
+        public LSL_Types.Quaternion llGetRootRotation()
         {
-            return new Axiom.Math.Quaternion();
+            return new LSL_Types.Quaternion();
         }
 
         public string llGetObjectDesc() { return ""; }
@@ -406,16 +407,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public int llGetNumberOfPrims() { return 0; }
         public string llGetNumberOfNotecardLines(string name) { return ""; }
         public List<string> llGetBoundingBox(string obj) { return new List<string>(); }
-        public Axiom.Math.Vector3 llGetGeometricCenter() { return new Axiom.Math.Vector3(); }
+        public LSL_Types.Vector3 llGetGeometricCenter() { return new LSL_Types.Vector3(); }
         public void llGetPrimitiveParams() { }
         public string llIntegerToBase64(int number) { return ""; }
         public int llBase64ToInteger(string str) { return 0; }
         public double llGetGMTclock() { return 0; }
         public string llGetSimulatorHostname() { return ""; }
-        public void llSetLocalRot(Axiom.Math.Quaternion rot) { }
+        public void llSetLocalRot(LSL_Types.Quaternion rot) { }
         public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
         { return new List<string>(); }
-        public void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, int param) { }
+        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param) { }
         public int llGetObjectPermMask(int mask) { return 0; }
         public void llSetObjectPermMask(int mask, int value) { }
         public void llGetInventoryPermMask(string item, int mask) { }
@@ -440,13 +441,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llGetInventoryType(string name) { return 0; }
         public void llSetPayPrice(int price, List<string> quick_pay_buttons) { }
-        public Axiom.Math.Vector3 llGetCameraPos() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llGetCameraRot() { return new Axiom.Math.Quaternion(); }
+        public LSL_Types.Vector3 llGetCameraPos() { return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llGetCameraRot() { return new LSL_Types.Quaternion(); }
         public void llSetPrimURL() { }
         public void llRefreshPrimURL() { }
         public string llEscapeURL(string url) { return ""; }
         public string llUnescapeURL(string url) { return ""; }
-        public void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at) { }
+        public void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at) { }
         public void llAddToLandBanList(string avatar, double hours) { }
         public void llRemoveFromLandPassList(string avatar) { }
         public void llRemoveFromLandBanList(string avatar) { }
@@ -457,17 +458,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             return OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
         }
-        public int llGetParcelFlags(Axiom.Math.Vector3 pos) { return 0; }
+        public int llGetParcelFlags(LSL_Types.Vector3 pos) { return 0; }
         public int llGetRegionFlags() { return 0; }
         public string llXorBase64StringsCorrect(string str1, string str2) { return ""; }
         public void llHTTPRequest() { }
         public void llResetLandBanList() { }
         public void llResetLandPassList() { }
-        public int llGetParcelPrimCount(Axiom.Math.Vector3 pos, int category, int sim_wide) { return 0; }
-        public List<string> llGetParcelPrimOwners(Axiom.Math.Vector3 pos) { return new List<string>(); }
+        public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide) { return 0; }
+        public List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos) { return new List<string>(); }
         public int llGetObjectPrimCount(string object_id) { return 0; }
-        public int llGetParcelMaxPrims(Axiom.Math.Vector3 pos, int sim_wide) { return 0; }
-        public List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param) { return new List<string>(); }
+        public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide) { return 0; }
+        public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param) { return new List<string>(); }
 
 
     }

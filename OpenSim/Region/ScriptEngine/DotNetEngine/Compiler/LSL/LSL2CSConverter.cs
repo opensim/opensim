@@ -18,8 +18,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             DataTypes.Add("float", "double");
             DataTypes.Add("string", "string");
             DataTypes.Add("key", "string");
-            DataTypes.Add("vector", "Axiom.Math.Vector3");
-            DataTypes.Add("rotation", "Axiom.Math.Quaternion");
+            DataTypes.Add("vector", "LSL_Types.Vector3");
+            DataTypes.Add("rotation", "LSL_Types.Quaternion");
             DataTypes.Add("list", "list");
             DataTypes.Add("null", "null");
         }
@@ -205,8 +205,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Script = Regex.Replace(Script, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace <x,y,z> and <x,y,z,r>
-            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new Axiom.Math.Quaternion($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"new Axiom.Math.Vector3($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Quaternion($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Vector3($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace List []'s
             Script = Regex.Replace(Script, @"\[([^\]]*)\]", @"List.Parse($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
@@ -227,7 +227,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
             // Add namespace, class name and inheritance
-            Return = "namespace SecondLife {\r\n";
+            Return = "" +
+            "using System;\r\n" +
+            "using System.Collections.Generic;\r\n" +
+            "using System.Text;\r\n" +
+            "using OpenSim.Region.ScriptEngine.Common;\r\n" +
+            "namespace SecondLife {\r\n";
             Return += "[Serializable] public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass {\r\n";
             Return += @"public Script() { }"+"\r\n";
             Return += Script;

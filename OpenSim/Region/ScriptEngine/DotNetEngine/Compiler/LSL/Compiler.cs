@@ -8,6 +8,7 @@ using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
+    
     public class Compiler
     {
         private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
@@ -52,13 +53,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
             parameters.IncludeDebugInformation = true;
             // Add all available assemblies
-            //foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    Console.WriteLine("Adding assembly: " + asm.Location);
-            //    parameters.ReferencedAssemblies.Add(asm.Location);
-            //}
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                //Console.WriteLine("Adding assembly: " + asm.Location);
+                //parameters.ReferencedAssemblies.Add(asm.Location);
+            }
 
-            parameters.ReferencedAssemblies.Add(this.GetType().Assembly.CodeBase);
+            string rootPath = Path.GetDirectoryName(this.GetType().Assembly.Location);
+            Console.WriteLine("Assembly location: " + rootPath);
+            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Common.dll"));
+            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.DotNetEngine.dll"));
+            
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;

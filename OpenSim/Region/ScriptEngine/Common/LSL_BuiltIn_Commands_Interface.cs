@@ -48,16 +48,16 @@ namespace OpenSim.Region.ScriptEngine.Common
         int llFloor(double f);
         int llCeil(double f);
         int llRound(double f);
-        double llVecMag(Axiom.Math.Vector3 v);
-        Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v);
-        double llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b);
-        Axiom.Math.Vector3 llRot2Euler(Axiom.Math.Quaternion r);
-        Axiom.Math.Quaternion llEuler2Rot(Axiom.Math.Vector3 v);
-        Axiom.Math.Quaternion llAxes2Rot(Axiom.Math.Vector3 fwd, Axiom.Math.Vector3 left, Axiom.Math.Vector3 up);
-        Axiom.Math.Vector3 llRot2Fwd(Axiom.Math.Quaternion r);
-        Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r);
-        Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r);
-        Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end);
+        double llVecMag(LSL_Types.Vector3 v);
+        LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v);
+        double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b);
+        LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r);
+        LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v);
+        LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up);
+        LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r);
+        LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r);
+        LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r);
+        LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end);
         void llWhisper(int channelID, string text);
         //void llSay(int channelID, string text);
         void llSay(int channelID, string text);
@@ -72,73 +72,73 @@ namespace OpenSim.Region.ScriptEngine.Common
         string llDetectedKey(int number);
         string llDetectedOwner(int number);
         int llDetectedType(int number);
-        Axiom.Math.Vector3 llDetectedPos(int number);
-        Axiom.Math.Vector3 llDetectedVel(int number);
-        Axiom.Math.Vector3 llDetectedGrab(int number);
-        Axiom.Math.Quaternion llDetectedRot(int number);
+        LSL_Types.Vector3 llDetectedPos(int number);
+        LSL_Types.Vector3 llDetectedVel(int number);
+        LSL_Types.Vector3 llDetectedGrab(int number);
+        LSL_Types.Quaternion llDetectedRot(int number);
         int llDetectedGroup(int number);
         int llDetectedLinkNumber(int number);
         void llDie();
-        double llGround(Axiom.Math.Vector3 offset);
-        double llCloud(Axiom.Math.Vector3 offset);
-        Axiom.Math.Vector3 llWind(Axiom.Math.Vector3 offset);
+        double llGround(LSL_Types.Vector3 offset);
+        double llCloud(LSL_Types.Vector3 offset);
+        LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset);
         void llSetStatus(int status, int value);
         int llGetStatus(int status);
-        void llSetScale(Axiom.Math.Vector3 scale);
-        Axiom.Math.Vector3 llGetScale();
-        void llSetColor(Axiom.Math.Vector3 color, int face);
+        void llSetScale(LSL_Types.Vector3 scale);
+        LSL_Types.Vector3 llGetScale();
+        void llSetColor(LSL_Types.Vector3 color, int face);
         double llGetAlpha(int face);
         void llSetAlpha(double alpha, int face);
-        Axiom.Math.Vector3 llGetColor(int face);
+        LSL_Types.Vector3 llGetColor(int face);
         void llSetTexture(string texture, int face);
         void llScaleTexture(double u, double v, int face);
         void llOffsetTexture(double u, double v, int face);
         void llRotateTexture(double rotation, int face);
         string llGetTexture(int face);
-        void llSetPos(Axiom.Math.Vector3 pos);
+        void llSetPos(LSL_Types.Vector3 pos);
 
         //wiki: vector llGetPos()
-        Axiom.Math.Vector3 llGetPos();
+        LSL_Types.Vector3 llGetPos();
         //wiki: vector llGetLocalPos()
-        Axiom.Math.Vector3 llGetLocalPos();
+        LSL_Types.Vector3 llGetLocalPos();
         //wiki: llSetRot(rotation rot)
-        void llSetRot(Axiom.Math.Quaternion rot);
+        void llSetRot(LSL_Types.Quaternion rot);
         //wiki: rotation llGetRot()
-        Axiom.Math.Quaternion llGetRot();
+        LSL_Types.Quaternion llGetRot();
         //wiki: rotation llGetLocalRot()
-        Axiom.Math.Quaternion llGetLocalRot();
+        LSL_Types.Quaternion llGetLocalRot();
         //wiki: llSetForce(vector force, integer local)
-        void llSetForce(Axiom.Math.Vector3 force, int local);
+        void llSetForce(LSL_Types.Vector3 force, int local);
         //wiki: vector llGetForce()
-        Axiom.Math.Vector3 llGetForce();
+        LSL_Types.Vector3 llGetForce();
         //wiki: integer llTarget(vector position, double range)
-        int llTarget(Axiom.Math.Vector3 position, double range);
+        int llTarget(LSL_Types.Vector3 position, double range);
         //wiki: llTargetRemove(integer number)
         void llTargetRemove(int number);
         //wiki: integer llRotTarget(rotation rot, double error)
-        int llRotTarget(Axiom.Math.Quaternion rot, double error);
+        int llRotTarget(LSL_Types.Quaternion rot, double error);
         //wiki: integer llRotTargetRemove(integer number)
         void llRotTargetRemove(int number);
         //wiki: llMoveToTarget(vector target, double tau)
-        void llMoveToTarget(Axiom.Math.Vector3 target, double tau);
+        void llMoveToTarget(LSL_Types.Vector3 target, double tau);
         //wiki: llStopMoveToTarget()
         void llStopMoveToTarget();
         //wiki: llApplyImpulse(vector force, integer local)
-        void llApplyImpulse(Axiom.Math.Vector3 force, int local);
+        void llApplyImpulse(LSL_Types.Vector3 force, int local);
         //wiki: llapplyRotationalImpulse(vector force, integer local)
-        void llApplyRotationalImpulse(Axiom.Math.Vector3 force, int local);
+        void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local);
         //wiki: llSetTorque(vector torque, integer local)
-        void llSetTorque(Axiom.Math.Vector3 torque, int local);
+        void llSetTorque(LSL_Types.Vector3 torque, int local);
         //wiki: vector llGetTorque()
-        Axiom.Math.Vector3 llGetTorque();
+        LSL_Types.Vector3 llGetTorque();
         //wiki: llSeForceAndTorque(vector force, vector torque, integer local)
-        void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, int local);
+        void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local);
         //wiki: vector llGetVel()
-        Axiom.Math.Vector3 llGetVel();
+        LSL_Types.Vector3 llGetVel();
         //wiki: vector llGetAccel()
-        Axiom.Math.Vector3 llGetAccel();
+        LSL_Types.Vector3 llGetAccel();
         //wiki: vector llGetOmega()
-        Axiom.Math.Vector3 llGetOmega();
+        LSL_Types.Vector3 llGetOmega();
         //wiki: double llGetTimeOfDay()
         double llGetTimeOfDay();
         //wiki: double llGetWallclock()
@@ -188,9 +188,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: (deprecated)
         void llMakeFire();
         //wiki: llRezObject(string inventory, vector pos, vector rel, rotation rot, integer param)
-        void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, int param);
+        void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param);
         //wiki: llLookAt(vector target, double strength, double damping)
-        void llLookAt(Axiom.Math.Vector3 target, double strength, double damping);
+        void llLookAt(LSL_Types.Vector3 target, double strength, double damping);
         //wiki: llStopLookAt()
         void llStopLookAt();
         //wiki: llSetTimerEvent(double sec)
@@ -234,7 +234,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: (deprecated) llSoundPreload()
         void llSoundPreload();
         //wiki: llRotLookAt(rotation target, double strength, double damping)
-        void llRotLookAt(Axiom.Math.Quaternion target, double strength, double damping);
+        void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping);
         //wiki: integer llStringLength(string str)
         int llStringLength(string str);
         //wiki: llStartAnimation(string anim)
@@ -246,11 +246,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: (deprecated) llStopPointAt
         void llStopPointAt();
         //wiki: llTargetOmega(vector axis, double spinrate, double gain)
-        void llTargetOmega(Axiom.Math.Vector3 axis, double spinrate, double gain);
+        void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain);
         //wiki: integer llGetStartParameter()
         int llGetStartParameter();
         //wiki: llGodLikeRezObject(key inventory, vector pos)
-        void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos);
+        void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos);
         //wiki: llRequestPermissions(key agent, integer perm)
         void llRequestPermissions(string agent, int perm);
         //wiki: key llGetPermissionsKey()
@@ -260,7 +260,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki integer llGetLinkNumber()
         int llGetLinkNumber();
         //wiki: llSetLinkColor(integer linknumber, vector color, integer face)
-        void llSetLinkColor(int linknumber, Axiom.Math.Vector3 color, int face);
+        void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face);
         //wiki: llCreateLink(key target, integer parent)
         void llCreateLink(string target, int parent);
         //wiki: llBreakLink(integer linknum)
@@ -284,9 +284,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llRemoveInventory(string item)
         void llRemoveInventory(string item);
         //wiki: llSetText(string text, vector color, double alpha)
-        void llSetText(string text, Axiom.Math.Vector3 color, double alpha);
+        void llSetText(string text, LSL_Types.Vector3 color, double alpha);
         //wiki: double llWater(vector offset)
-        double llWater(Axiom.Math.Vector3 offset);
+        double llWater(LSL_Types.Vector3 offset);
         //wiki: llPassTouches(integer pass)
         void llPassTouches(int pass);
         //wiki: key llRequestAgentData(key id, integer data)
@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llMessageLinked(integer linknum, integer num, string str, key id)
         void llMessageLinked(int linknum, int num, string str, string id);
         //wiki: llPushObject(key target, vector impulse, vector ang_impulse, integer local)
-        void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, int local);
+        void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local);
         //wiki: llPassCollisions(integer pass)
         void llPassCollisions(int pass);
         //wiki: string llGetScriptName()
@@ -318,26 +318,26 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: integer llGetNumberOfSides()
         int llGetNumberOfSides();
         //wiki: rotation llAxisAngle2Rot(vector axis, double angle)
-        Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, double angle);
+        LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle);
         //wiki: vector llRot2Axis(rotation rot)
-        Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot);
+        LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot);
         void llRot2Angle();
         //wiki: double llAcos(double val)
         double llAcos(double val);
         //wiki: double llAsin(double val)
         double llAsin(double val);
         //wiki: double llAngleBetween(rotation a, rotation b)
-        double llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b);
+        double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b);
         //wiki: string llGetInventoryKey(string name)
         string llGetInventoryKey(string name);
         //wiki: llAllowInventoryDrop(integer add)
         void llAllowInventoryDrop(int add);
         //wiki: vector llGetSunDirection()
-        Axiom.Math.Vector3 llGetSunDirection();
+        LSL_Types.Vector3 llGetSunDirection();
         //wiki: vector llGetTextureOffset(integer face)
-        Axiom.Math.Vector3 llGetTextureOffset(int face);
+        LSL_Types.Vector3 llGetTextureOffset(int face);
         //wiki: vector llGetTextureScale(integer side)
-        Axiom.Math.Vector3 llGetTextureScale(int side);
+        LSL_Types.Vector3 llGetTextureScale(int side);
         //wiki: double llGetTextureRot(integer side)
         double llGetTextureRot(int side);
         //wiki: integer llSubStringIndex(string source, string pattern)
@@ -345,7 +345,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: key llGetOwnerKey(key id)
         string llGetOwnerKey(string id);
         //wiki: vector llGetCenterOfMass()
-        Axiom.Math.Vector3 llGetCenterOfMass();
+        LSL_Types.Vector3 llGetCenterOfMass();
         //wiki: list llListSort(list src, integer stride, integer ascending)
         List<string> llListSort(List<string> src, int stride, int ascending);
         //integer llGetListLength(list src)
@@ -359,9 +359,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: key llList2Key(list src, integer index)
         string llList2Key(List<string> src, int index);
         //wiki: vector llList2Vector(list src, integer index)
-        Axiom.Math.Vector3 llList2Vector(List<string> src, int index);
+        LSL_Types.Vector3 llList2Vector(List<string> src, int index);
         //wiki rotation llList2Rot(list src, integer index)
-        Axiom.Math.Quaternion llList2Rot(List<string> src, int index);
+        LSL_Types.Quaternion llList2Rot(List<string> src, int index);
         //wiki: list llList2List(list src, integer start, integer end)
         List<string> llList2List(List<string> src, int start, int end);
         //wiki: llDeleteSubList(list src, integer start, integer end)
@@ -377,7 +377,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: list llList2ListStrided( list src, integer start, integer end, integer stride )
         List<string> llList2ListStrided(List<string> src, int start, int end, int stride);
         //wiki: vector llGetRegionCorner( )
-        Axiom.Math.Vector3 llGetRegionCorner();
+        LSL_Types.Vector3 llGetRegionCorner();
         //wiki: list llListInsertList( list dest, list src, integer start )
         List<string> llListInsertList(List<string> dest, List<string> src, int start);
         //wiki: integer llListFindList( list src, list test )
@@ -389,7 +389,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llGetDate()
         string llGetDate();
         //wiki: integer llEdgeOfWorld(vector pos, vector dir)
-        int llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir);
+        int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir);
         //wiki: integer llGetAgentInfo(key id)
         int llGetAgentInfo(string id);
         //wiki: llAdjustSoundVolume(double volume)
@@ -403,28 +403,28 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetTextureAnim(integer mode, integer face, integer sizex, integer sizey, double start, double length, double rate)
         void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate);
         //wiki: llTriggerSoundLimited(string sound, double volume, vector top_north_east, vector bottom_south_west)
-        void llTriggerSoundLimited(string sound, double volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west);
+        void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west);
         //wiki: llEjectFromLand(key pest)
         void llEjectFromLand(string pest);
         void llParseString2List();
         //wiki: integer llOverMyLand(key id)
         int llOverMyLand(string id);
         //wiki: key llGetLandOwnerAt(vector pos)
-        string llGetLandOwnerAt(Axiom.Math.Vector3 pos);
+        string llGetLandOwnerAt(LSL_Types.Vector3 pos);
         //wiki: key llGetNotecardLine(string name, integer line)
         string llGetNotecardLine(string name, int line);
         //wiki: vector llGetAgentSize(key id)
-        Axiom.Math.Vector3 llGetAgentSize(string id);
+        LSL_Types.Vector3 llGetAgentSize(string id);
         //wiki: integer llSameGroup(key agent)
         int llSameGroup(string agent);
         //wiki: llUnSit(key id)
         void llUnSit(string id);
         //wiki: vector llGroundSlope(vector offset)
-        Axiom.Math.Vector3 llGroundSlope(Axiom.Math.Vector3 offset);
+        LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset);
         //wiki: vector llGroundNormal(vector offset)
-        Axiom.Math.Vector3 llGroundNormal(Axiom.Math.Vector3 offset);
+        LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset);
         //wiki: vector llGroundContour(vector offset)
-        Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset);
+        LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset);
         //wiki: integer llGetAttached()
         int llGetAttached();
         //wiki: integer llGetFreeMemory()
@@ -445,15 +445,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetVehicledoubleParam(integer param, double value)
         void llSetVehicledoubleParam(int param, double value);
         //wiki: llSetVehicleVectorParam(integer param, vector vec)
-        void llSetVehicleVectorParam(int param, Axiom.Math.Vector3 vec);
+        void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec);
         //wiki: llSetVehicleRotationParam(integer param, rotation rot)
-        void llSetVehicleRotationParam(int param, Axiom.Math.Quaternion rot);
+        void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot);
         //wiki: llSetVehicleFlags(integer flags)
         void llSetVehicleFlags(int flags);
         //wiki: llRemoveVehicleFlags(integer flags)
         void llRemoveVehicleFlags(int flags);
         //wiki: llSitTarget(vector offset, rotation rot)
-        void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot);
+        void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot);
         //wiki key llAvatarOnSitTarget()
         string llAvatarOnSitTarget();
         //wiki: llAddToLandPassList(key avatar, double hours)
@@ -463,12 +463,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetSitText(string text)
         void llSetSitText(string text);
         //wiki: llSetCameraEyeOffset(vector offset)
-        void llSetCameraEyeOffset(Axiom.Math.Vector3 offset);
+        void llSetCameraEyeOffset(LSL_Types.Vector3 offset);
         //wiki: llSeteCameraAtOffset(vector offset)
-        void llSetCameraAtOffset(Axiom.Math.Vector3 offset);
+        void llSetCameraAtOffset(LSL_Types.Vector3 offset);
         void llDumpList2String();
         //wiki: integer llScriptDanger(vector pos)
-        void llScriptDanger(Axiom.Math.Vector3 pos);
+        void llScriptDanger(LSL_Types.Vector3 pos);
         //wiki: llDialog( key avatar, string message, list buttons, integer chat_channel )
         void llDialog(string avatar, string message, List<string> buttons, int chat_channel);
         //wiki: llVolumeDetect(integer detect)
@@ -512,9 +512,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetParcelMusicURL(string url)
         void llSetParcelMusicURL(string url);
         //wiki: vector llGetRootPosition()
-        Axiom.Math.Vector3 llGetRootPosition();
+        LSL_Types.Vector3 llGetRootPosition();
         //wiki: rotation llGetRootRotation()
-        Axiom.Math.Quaternion llGetRootRotation();
+        LSL_Types.Quaternion llGetRootRotation();
         //wiki: string llGetObjectDesc()
         string llGetObjectDesc();
         //wiki: llSetObjectDesc(string desc)
@@ -532,7 +532,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: list llGetBoundingBox( key object )
         List<string> llGetBoundingBox(string obj);
         //wiki: vector llGetGeometricCenter()
-        Axiom.Math.Vector3 llGetGeometricCenter();
+        LSL_Types.Vector3 llGetGeometricCenter();
         void llGetPrimitiveParams();
         //wiki: string llIntegerToBase64(integer number)
         string llIntegerToBase64(int number);
@@ -543,11 +543,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llGetSimulatorHostname()
         string llGetSimulatorHostname();
         //llSetLocalRot(rotation rot)
-        void llSetLocalRot(Axiom.Math.Quaternion rot);
+        void llSetLocalRot(LSL_Types.Quaternion rot);
         //wiki: list llParseStringKeepNulls( string src, list separators, list spacers )
         List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers);
         //wiki: llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, integer param)
-        void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, int param);
+        void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param);
         //wiki: integer llGetObjectPermMask(integer mask)
         int llGetObjectPermMask(int mask);
         //wiki: llSetObjectPermMask(integer mask, integer value)
@@ -579,9 +579,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetPayPrice( integer price, list quick_pay_buttons )
         void llSetPayPrice(int price, List<string> quick_pay_buttons);
         //wiki: vector llGetCameraPos()
-        Axiom.Math.Vector3 llGetCameraPos();
+        LSL_Types.Vector3 llGetCameraPos();
         //wiki rotation llGetCameraRot()
-        Axiom.Math.Quaternion llGetCameraRot();
+        LSL_Types.Quaternion llGetCameraRot();
         //wiki: (deprecated)
         void llSetPrimURL();
         //wiki: (deprecated)
@@ -591,7 +591,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llUnescapeURL(string url)
         string llUnescapeURL(string url);
         //wiki: llMapDestination(string simname, vector pos, vector look_at)
-        void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at);
+        void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at);
         //wiki: llAddToLandBanList(key avatar, double hours)
         void llAddToLandBanList(string avatar, double hours);
         //wiki: llRemoveFromLandPassList(key avatar)
@@ -607,7 +607,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: integer llGetUnixTime()
         int llGetUnixTime();
         //wiki: integer llGetParcelFlags(vector pos)
-        int llGetParcelFlags(Axiom.Math.Vector3 pos);
+        int llGetParcelFlags(LSL_Types.Vector3 pos);
         //wiki: integer llGetRegionFlags()
         int llGetRegionFlags();
         //wiki: string llXorBase64StringsCorrect(string str1, string str2)
@@ -618,14 +618,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llResetLandPassList()
         void llResetLandPassList();
         //wiki integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
-        int llGetParcelPrimCount(Axiom.Math.Vector3 pos, int category, int sim_wide);
+        int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide);
         //wiki: list llGetParcelPrimOwners( vector pos )
-        List<string> llGetParcelPrimOwners(Axiom.Math.Vector3 pos);
+        List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos);
         //wiki: integer llGetObjectPrimCount(key object_id)
         int llGetObjectPrimCount(string object_id);
         //wiki: integer llGetParcelMaxPrims( vector pos, integer sim_wide )
-        int llGetParcelMaxPrims(Axiom.Math.Vector3 pos, int sim_wide);
+        int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
         //wiki list llGetParcelDetails(vector pos, list params)
-        List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param);
+        List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param);
     }
 }
