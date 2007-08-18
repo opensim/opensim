@@ -292,7 +292,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
         { return new List<string>(); }
         public Axiom.Math.Vector3 llGetRegionCorner()
-        { return new Axiom.Math.Vector3(); }
+        { return new Axiom.Math.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0); }
         public List<string> llListInsertList(List<string> dest, List<string> src, int start)
         { return new List<string>(); }
         public int llListFindList(List<string> src, List<string> test) { return 0; }
