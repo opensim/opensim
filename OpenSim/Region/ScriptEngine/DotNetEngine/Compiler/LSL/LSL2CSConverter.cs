@@ -229,10 +229,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Add namespace, class name and inheritance
             Return = "namespace SecondLife {\r\n";
             Return += "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass {\r\n";
-            Return += @"
-                public Script( 
-                    OpenSim.Region.ScriptEngine.DotNetEngine.ScriptManager manager,
-                    OpenSim.Region.Environment.Scenes.Scripting.IScriptHost host ) : base( manager, host ) { }"+"\r\n";
+            Return += @"public Script() { }"+"\r\n";
             Return += Script;
             Return += "} }\r\n";
 

@@ -38,6 +38,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// <summary>
     /// This is the root object for ScriptEngine
     /// </summary>
+    [Serializable]
     public class ScriptEngine : OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface
     {
 
@@ -45,6 +46,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         internal EventManager myEventManager;                   // Handles and queues incoming events from OpenSim
         internal EventQueueManager myEventQueueManager;         // Executes events
         internal ScriptManager myScriptManager;                 // Load, unload and execute scripts
+        internal AppDomainManager myAppDomainManager;
 
         private OpenSim.Framework.Console.LogBase m_log;
 
@@ -70,6 +72,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             myEventQueueManager = new EventQueueManager(this);
             myEventManager = new EventManager(this);
             myScriptManager = new ScriptManager(this);
+            myAppDomainManager = new AppDomainManager(this);
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?

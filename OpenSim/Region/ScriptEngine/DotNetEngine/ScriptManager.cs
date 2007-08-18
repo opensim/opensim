@@ -31,8 +31,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Reflection;
+using System.Runtime.Remoting;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -41,6 +43,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// Compiles them if necessary
     /// Execute functions for EventQueueManager
     /// </summary>
+    [Serializable]
     public class ScriptManager
     {
 
@@ -49,6 +52,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             m_scriptEngine = scriptEngine;
             m_scriptEngine.Log.Verbose("ScriptEngine", "ScriptManager Start");
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+
+            Console.WriteLine("CurrentDomain_AssemblyResolve: " + args.Name);
+            return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
+
         }
 
 
@@ -158,13 +170,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 FileName = ProcessYield(FileName);
 
                 // * Find next available AppDomain to put it in
-                AppDomain FreeAppDomain = GetFreeAppDomain();
+                AppDomain FreeAppDomain = m_scriptEngine.myAppDomainManager.GetFreeAppDomain();
 
                 // * Load and start script, for now with dummy host
                 
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
                 
+                //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
                 OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
+
                 //string FullScriptID = ScriptID + "." + ObjectID;                               
                 // Add it to our temporary active script keeper
                 //Scripts.Add(FullScriptID, Script);
@@ -175,8 +189,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 // Start the script - giving it BuiltIns
                 //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
-                
-                Script.Start( ScriptID );
+
+                Script.Start(new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands(this, ObjectID));
 
             }
             catch (Exception e)
@@ -193,11 +207,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return FileName;
         }
 
-        private AppDomain GetFreeAppDomain()
-        {
-            // TODO: Find an available AppDomain - if none, create one and add default security
-            return Thread.GetDomain();
-        }
+        //private AppDomain GetFreeAppDomain()
+        //{
+        //    // TODO: Find an available AppDomain - if none, create one and add default security
+        //    return Thread.GetDomain();
+        //}
 
         /// <summary>
         /// Does actual loading and initialization of script Assembly
@@ -207,6 +221,33 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <returns></returns>
         private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName, IScriptHost host)
         {
+            //object[] ADargs = new object[]
+            //    {
+            //        this, 
+            //        host
+            //    };
+
+            ////LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
+            //Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
+
+            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            
+            //Type mytype = mbrt.GetType();
+            
+            
+                       
+
+            //Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
+
+
+            ////mbrt.Start();
+            //return mbrt;
+
+
+
+
+
+
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
             // Load .Net Assembly (.dll)
             // Initialize and return it
@@ -242,13 +283,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //}
             //catch (Exception e)
             //{
-            //}
+            //} 
 
             // Create constructor arguments
             object[] args = new object[]
                 {
-                    this, 
-                    host
+//                    this, 
+//                    host
                 };
             
             return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t, args );

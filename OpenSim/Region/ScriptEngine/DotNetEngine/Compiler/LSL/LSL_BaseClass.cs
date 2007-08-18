@@ -2,468 +2,378 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
-using libsecondlife;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Framework.Console;
+using System.Threading;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    public class LSL_BaseClass : LSL_BuiltIn_Commands_Interface
+    public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
-        public string State = "default";
-        private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
 
-        protected ScriptManager m_manager;
-        protected IScriptHost m_host;
+        public LSL_BuiltIn_Commands m_LSL_Functions;
 
-        public LSL_BaseClass(ScriptManager manager, IScriptHost host)
+        public LSL_BaseClass()
         {
-            m_manager = manager;
-            m_host = host;
+        }
+        public string State
+        {
+            get { return m_LSL_Functions.State; }
         }
 
-        public Scene World
-        {
-            get { return m_manager.World; }
-        }
 
-        public void Start(string FullScriptID)
+        public void Start(LSL_BuiltIn_Commands LSL_Functions)
         {
-            MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. FullScriptID: " + FullScriptID + ": Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
+            m_LSL_Functions = LSL_Functions;
+
+            MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called.");
+
+            // Get this AppDomain's settings and display some of them.
+            AppDomainSetup ads = AppDomain.CurrentDomain.SetupInformation;
+            Console.WriteLine("AppName={0}, AppBase={1}, ConfigFile={2}",
+                ads.ApplicationName,
+                ads.ApplicationBase,
+                ads.ConfigurationFile
+            );
+
+            // Display the name of the calling AppDomain and the name 
+            // of the second domain.
+            // NOTE: The application's thread has transitioned between 
+            // AppDomains.
+            Console.WriteLine("Calling to '{0}'.",
+                Thread.GetDomain().FriendlyName
+            );
 
             return;
         }
 
-        //These are the implementations of the various ll-functions used by the LSL scripts.
-        //starting out, we use the System.Math library for trig functions. - CFK 8-14-07
-        public double llSin(double f) { return (double)Math.Sin(f); }
-        public double llCos(double f) { return (double)Math.Cos(f); }
-        public double llTan(double f) { return (double)Math.Tan(f); }
-        public double llAtan2(double x, double y) { return (double)Math.Atan2(y, x); }
-        public double llSqrt(double f) { return (double)Math.Sqrt(f); }
-        public double llPow(double fbase, double fexponent) { return (double)Math.Pow(fbase, fexponent); }
-        public int llAbs(int i) { return (int)Math.Abs(i); }
-        public double llFabs(double f) { return (double)Math.Abs(f); }
- 
-        public double llFrand(double mag) 
-        {
-            lock(OpenSim.Framework.Utilities.Util.RandomClass)
-            {
-                return OpenSim.Framework.Utilities.Util.RandomClass.Next((int)mag); 
-            }
-        }
-        public int llFloor(double f) { return (int)Math.Floor(f); }
-        public int llCeil(double f) { return (int)Math.Ceiling(f); }
-        public int llRound(double f) { return (int)Math.Round(f, 1); }
-        public double llVecMag(Axiom.Math.Vector3 v) { return 0; }
-        public Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v) { return new Axiom.Math.Vector3(); }
-        public double llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b) { return 0; }
-        public Axiom.Math.Vector3 llRot2Euler(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llEuler2Rot(Axiom.Math.Vector3 v) { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Quaternion llAxes2Rot(Axiom.Math.Vector3 fwd, Axiom.Math.Vector3 left, Axiom.Math.Vector3 up) { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Vector3 llRot2Fwd(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end) { return new Axiom.Math.Quaternion(); }
-
-        public void llWhisper(int channelID, string text)
-        {
-            //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
-            Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
-            //type for whisper is 0
-            World.SimChat(Helpers.StringToField(text),
-                          0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-
-
-        }
-        //public void llSay(int channelID, string text)
-        public void llSay(int channelID, string text)
-        {
-            //TODO: DO SOMETHING USEFUL HERE
-            //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (int)channelID + ", \"" + (string)text + "\");");
-            Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
-            //type for say is 1
-
-            World.SimChat(Helpers.StringToField(text),
-                           1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-        }
-
-        public void llShout(int channelID, string text)
-        {
-            Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
-            //type for shout is 2
-            World.SimChat(Helpers.StringToField(text),
-                          2, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-
-        }
-
-        public int llListen(int channelID, string name, string ID, string msg) { return 0; }
-        public void llListenControl(int number, int active) { return; }
-        public void llListenRemove(int number) { return; }
-        public void llSensor(string name, string id, int type, double range, double arc) { return; }
-        public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate) { return; }
-        public void llSensorRemove() { return; }
-        public string llDetectedName(int number) { return ""; }
-        public string llDetectedKey(int number) { return ""; }
-        public string llDetectedOwner(int number) { return ""; }
-        public int llDetectedType(int number) { return 0; }
-        public Axiom.Math.Vector3 llDetectedPos(int number) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llDetectedVel(int number) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llDetectedGrab(int number) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llDetectedRot(int number) { return new Axiom.Math.Quaternion(); }
-        public int llDetectedGroup(int number) { return 0; }
-        public int llDetectedLinkNumber(int number) { return 0; }
-        public void llDie() { return; }
-        public double llGround(Axiom.Math.Vector3 offset) { return 0; }
-        public double llCloud(Axiom.Math.Vector3 offset) { return 0; }
-        public Axiom.Math.Vector3 llWind(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
-        public void llSetStatus(int status, int value) { return; }
-        public int llGetStatus(int status) { return 0; }
-        public void llSetScale(Axiom.Math.Vector3 scale) { return; }
-        public Axiom.Math.Vector3 llGetScale() { return new Axiom.Math.Vector3(); }
-        public void llSetColor(Axiom.Math.Vector3 color, int face) { return; }
-        public double llGetAlpha(int face) { return 0; }
-        public void llSetAlpha(double alpha, int face) { return; }
-        public Axiom.Math.Vector3 llGetColor(int face) { return new Axiom.Math.Vector3(); }
-        public void llSetTexture(string texture, int face) { return; }
-        public void llScaleTexture(double u, double v, int face) { return; }
-        public void llOffsetTexture(double u, double v, int face) { return; }
-        public void llRotateTexture(double rotation, int face) { return; }
-        public string llGetTexture(int face) { return ""; }
-        public void llSetPos(Axiom.Math.Vector3 pos) { return; }
-
-        public Axiom.Math.Vector3 llGetPos()
-        {
-            throw new NotImplementedException("llGetPos");
-             // return m_host.AbsolutePosition;
-        }
-        
-        public Axiom.Math.Vector3 llGetLocalPos() { return new Axiom.Math.Vector3(); }
-        public void llSetRot(Axiom.Math.Quaternion rot) { }
-        public Axiom.Math.Quaternion llGetRot() { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Quaternion llGetLocalRot() { return new Axiom.Math.Quaternion(); }
-        public void llSetForce(Axiom.Math.Vector3 force, int local) { }
-        public Axiom.Math.Vector3 llGetForce() { return new Axiom.Math.Vector3(); }
-        public int llTarget(Axiom.Math.Vector3 position, double range) { return 0; }
-        public void llTargetRemove(int number) { }
-        public int llRotTarget(Axiom.Math.Quaternion rot, double error) { return 0; }
-        public void llRotTargetRemove(int number) { }
-        public void llMoveToTarget(Axiom.Math.Vector3 target, double tau) { }
-        public void llStopMoveToTarget() { }
-        public void llApplyImpulse(Axiom.Math.Vector3 force, int local) { }
-        public void llApplyRotationalImpulse(Axiom.Math.Vector3 force, int local) { }
-        public void llSetTorque(Axiom.Math.Vector3 torque, int local) { }
-        public Axiom.Math.Vector3 llGetTorque() { return new Axiom.Math.Vector3(); }
-        public void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, int local) { }
-        public Axiom.Math.Vector3 llGetVel() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetAccel() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetOmega() { return new Axiom.Math.Vector3(); }
-        public double llGetTimeOfDay() { return 0; }
-        public double llGetWallclock() { return 0; }
-        public double llGetTime() { return 0; }
-        public void llResetTime() { }
-        public double llGetAndResetTime() { return 0; }
-        public void llSound() { }
-        public void llPlaySound(string sound, double volume) { }
-        public void llLoopSound(string sound, double volume) { }
-        public void llLoopSoundMaster(string sound, double volume) { }
-        public void llLoopSoundSlave(string sound, double volume) { }
-        public void llPlaySoundSlave(string sound, double volume) { }
-        public void llTriggerSound(string sound, double volume) { }
-        public void llStopSound() { }
-        public void llPreloadSound(string sound) { }
-        public string llGetSubString(string src, int start, int end) { return src.Substring(start, end); }
-        public string llDeleteSubString(string src, int start, int end) { return ""; }
-        public string llInsertString(string dst, int position, string src) { return ""; }
-        public string llToUpper(string src) { return src.ToUpper(); }
-        public string llToLower(string src) { return src.ToLower(); }
-        public int llGiveMoney(string destination, int amount) { return 0; }
-        public void llMakeExplosion() { }
-        public void llMakeFountain() { }
-        public void llMakeSmoke() { }
-        public void llMakeFire() { }
-        public void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, int param) { }
-        public void llLookAt(Axiom.Math.Vector3 target, double strength, double damping) { }
-        public void llStopLookAt() { }
-        public void llSetTimerEvent(double sec) { }
-        public void llSleep(double sec) { System.Threading.Thread.Sleep((int)(sec * 1000)); }
-        public double llGetMass() { return 0; }
-        public void llCollisionFilter(string name, string id, int accept) { }
-        public void llTakeControls(int controls, int accept, int pass_on) { }
-        public void llReleaseControls() { }
-        public void llAttachToAvatar(int attachment) { }
-        public void llDetachFromAvatar() { }
-        public void llTakeCamera() { }
-        public void llReleaseCamera() { }
-        public string llGetOwner() { return ""; }
-        public void llInstantMessage(string user, string message) { }
-        public void llEmail(string address, string subject, string message) { }
-        public void llGetNextEmail(string address, string subject) { }
-        public string llGetKey() { return ""; }
-        public void llSetBuoyancy(double buoyancy) { }
-        public void llSetHoverHeight(double height, int water, double tau) { }
-        public void llStopHover() { }
-        public void llMinEventDelay(double delay) { }
-        public void llSoundPreload() { }
-        public void llRotLookAt(Axiom.Math.Quaternion target, double strength, double damping) { }
-
-        public int llStringLength(string str)
-        {
-            if(str.Length > 0)
-            {
-                return str.Length;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        public void llStartAnimation(string anim) { }
-        public void llStopAnimation(string anim) { }
-        public void llPointAt() { }
-        public void llStopPointAt() { }
-        public void llTargetOmega(Axiom.Math.Vector3 axis, double spinrate, double gain) { }
-        public int llGetStartParameter() { return 0; }
-        public void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos) { }
-        public void llRequestPermissions(string agent, int perm) { }
-        public string llGetPermissionsKey() { return ""; }
-        public int llGetPermissions() { return 0; }
-        public int llGetLinkNumber() { return 0; }
-        public void llSetLinkColor(int linknumber, Axiom.Math.Vector3 color, int face) { }
-        public void llCreateLink(string target, int parent) { }
-        public void llBreakLink(int linknum) { }
-        public void llBreakAllLinks() { }
-        public string llGetLinkKey(int linknum) { return ""; }
-        public void llGetLinkName(int linknum) { }
-        public int llGetInventoryNumber(int type) { return 0; }
-        public string llGetInventoryName(int type, int number) { return ""; }
-        public void llSetScriptState(string name, int run) { }
-        public double llGetEnergy() { return 1.0f; }
-        public void llGiveInventory(string destination, string inventory) { }
-        public void llRemoveInventory(string item) { }
-        
-        public void llSetText(string text, Axiom.Math.Vector3 color, double alpha)
-        {
-            m_host.SetText(text, color, alpha );
-        }
-        
-        public double llWater(Axiom.Math.Vector3 offset) { return 0; }
-        public void llPassTouches(int pass) { }
-        public string llRequestAgentData(string id, int data) { return ""; }
-        public string llRequestInventoryData(string name) { return ""; }
-        public void llSetDamage(double damage) { }
-        public void llTeleportAgentHome(string agent) { }
-        public void llModifyLand(int action, int brush) { }
-        public void llCollisionSound(string impact_sound, double impact_volume) { }
-        public void llCollisionSprite(string impact_sprite) { }
-        public string llGetAnimation(string id) { return ""; }
-        public void llResetScript() { }
-        public void llMessageLinked(int linknum, int num, string str, string id) { }
-        public void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, int local) { }
-        public void llPassCollisions(int pass) { }
-        public string llGetScriptName() { return ""; }
-        public int llGetNumberOfSides() { return 0; }
-        public Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, double angle) { return new Axiom.Math.Quaternion(); }
-        public Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot) { return new Axiom.Math.Vector3(); }
-        public void llRot2Angle() { }
-        public double llAcos(double val) { return (double)Math.Acos(val); }
-        public double llAsin(double val) { return (double)Math.Asin(val); }
-        public double llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b) { return 0; }
-        public string llGetInventoryKey(string name) { return ""; }
-        public void llAllowInventoryDrop(int add) { }
-        public Axiom.Math.Vector3 llGetSunDirection() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetTextureOffset(int face) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGetTextureScale(int side) { return new Axiom.Math.Vector3(); }
-        public double llGetTextureRot(int side) { return 0; }
-        public int llSubStringIndex(string source, string pattern) { return 0; }
-        public string llGetOwnerKey(string id) { return ""; }
-        public Axiom.Math.Vector3 llGetCenterOfMass() { return new Axiom.Math.Vector3(); }
-        public List<string> llListSort(List<string> src, int stride, int ascending)
-        { return new List<string>(); }
-        public int llGetListLength(List<string> src) { return 0; }
-        public int llList2Integer(List<string> src, int index) { return 0; }
-        public double llList2double(List<string> src, int index) { return 0; }
-        public string llList2String(List<string> src, int index) { return ""; }
-        public string llList2Key(List<string> src, int index) { return ""; }
-        public Axiom.Math.Vector3 llList2Vector(List<string> src, int index)
-        { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llList2Rot(List<string> src, int index)
-        { return new Axiom.Math.Quaternion(); }
-        public List<string> llList2List(List<string> src, int start, int end)
-        { return new List<string>(); }
-        public List<string> llDeleteSubList(List<string> src, int start, int end)
-        { return new List<string>(); }
-        public int llGetListEntryType(List<string> src, int index) { return 0; }
-        public string llList2CSV(List<string> src) { return ""; }
-        public List<string> llCSV2List(string src)
-        { return new List<string>(); }
-        public List<string> llListRandomize(List<string> src, int stride)
-        { return new List<string>(); }
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
-        { return new List<string>(); }
-        public Axiom.Math.Vector3 llGetRegionCorner()
-        { return new Axiom.Math.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0); }
-        public List<string> llListInsertList(List<string> dest, List<string> src, int start)
-        { return new List<string>(); }
-        public int llListFindList(List<string> src, List<string> test) { return 0; }
-        public string llGetObjectName() { return ""; }
-        public void llSetObjectName(string name) { }
-        public string llGetDate() { return ""; }
-        public int llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir) { return 0; }
-        public int llGetAgentInfo(string id) { return 0; }
-        public void llAdjustSoundVolume(double volume) { }
-        public void llSetSoundQueueing(int queue) { }
-        public void llSetSoundRadius(double radius) { }
-        public string llKey2Name(string id) { return ""; }
-        public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { }
-        public void llTriggerSoundLimited(string sound, double volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west) { }
-        public void llEjectFromLand(string pest) { }
-        public void llParseString2List() { }
-        public int llOverMyLand(string id) { return 0; }
-        public string llGetLandOwnerAt(Axiom.Math.Vector3 pos) { return ""; }
-        public string llGetNotecardLine(string name, int line) { return ""; }
-        public Axiom.Math.Vector3 llGetAgentSize(string id) { return new Axiom.Math.Vector3(); }
-        public int llSameGroup(string agent) { return 0; }
-        public void llUnSit(string id) { }
-        public Axiom.Math.Vector3 llGroundSlope(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGroundNormal(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset) { return new Axiom.Math.Vector3(); }
-        public int llGetAttached() { return 0; }
-        public int llGetFreeMemory() { return 0; }
-        public string llGetRegionName() { return m_manager.RegionName; }
-        public double llGetRegionTimeDilation() { return 1.0f; }
-        public double llGetRegionFPS() { return 10.0f; }
-        public void llParticleSystem(List<Object> rules) { }
-        public void llGroundRepel(double height, int water, double tau) { }
-        public void llGiveInventoryList() { }
-        public void llSetVehicleType(int type) { }
-        public void llSetVehicledoubleParam(int param, double value) { }
-        public void llSetVehicleVectorParam(int param, Axiom.Math.Vector3 vec) { }
-        public void llSetVehicleRotationParam(int param, Axiom.Math.Quaternion rot) { }
-        public void llSetVehicleFlags(int flags) { }
-        public void llRemoveVehicleFlags(int flags) { }
-        public void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot) { }
-        public string llAvatarOnSitTarget() { return ""; }
-        public void llAddToLandPassList(string avatar, double hours) { }
-        public void llSetTouchText(string text)
-        {
-        }
-        
-        public void llSetSitText(string text)
-        {
-        }
-        public void llSetCameraEyeOffset(Axiom.Math.Vector3 offset) { }
-        public void llSetCameraAtOffset(Axiom.Math.Vector3 offset) { }
-        public void llDumpList2String() { }
-        public void llScriptDanger(Axiom.Math.Vector3 pos) { }
-        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { }
-        public void llVolumeDetect(int detect) { }
-        public void llResetOtherScript(string name) { }
-        public int llGetScriptState(string name) { return 0; }
-        public void llRemoteLoadScript() { }
-        public void llSetRemoteScriptAccessPin(int pin) { }
-        public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { }
-        public void llOpenRemoteDataChannel() { }
-        public string llSendRemoteData(string channel, string dest, int idata, string sdata) { return ""; }
-        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { }
-        public void llCloseRemoteDataChannel(string channel) { }
-        public string llMD5String(string src, int nonce)
-        {
-            return OpenSim.Framework.Utilities.Util.Md5Hash(src + ":" + nonce.ToString());
-        }
-        public void llSetPrimitiveParams(List<string> rules) { }
-        public string llStringToBase64(string str) { return ""; }
-        public string llBase64ToString(string str) { return ""; }
-        public void llXorBase64Strings() { }
-        public void llRemoteDataSetRegion() { }
-        public double llLog10(double val) { return (double)Math.Log10(val); }
-        public double llLog(double val) { return (double)Math.Log(val); }
-        public List<string> llGetAnimationList(string id) { return new List<string>(); }
-        public void llSetParcelMusicURL(string url) { }
-
-        public Axiom.Math.Vector3 llGetRootPosition()
-        {
-            throw new NotImplementedException("llGetRootPosition");
-            //return m_root.AbsolutePosition;
-        }
-
-        public Axiom.Math.Quaternion llGetRootRotation()
-        {
-            return new Axiom.Math.Quaternion();
-        }
-
-        public string llGetObjectDesc() { return ""; }
-        public void llSetObjectDesc(string desc) { }
-        public string llGetCreator() { return ""; }
-        public string llGetTimestamp() { return ""; }
-        public void llSetLinkAlpha(int linknumber, double alpha, int face) { }
-        public int llGetNumberOfPrims() { return 0; }
-        public string llGetNumberOfNotecardLines(string name) { return ""; }
-        public List<string> llGetBoundingBox(string obj) { return new List<string>(); }
-        public Axiom.Math.Vector3 llGetGeometricCenter() { return new Axiom.Math.Vector3(); }
-        public void llGetPrimitiveParams() { }
-        public string llIntegerToBase64(int number) { return ""; }
-        public int llBase64ToInteger(string str) { return 0; }
-        public double llGetGMTclock() { return 0; }
-        public string llGetSimulatorHostname() { return ""; }
-        public void llSetLocalRot(Axiom.Math.Quaternion rot) { }
-        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
-        { return new List<string>(); }
-        public void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, int param) { }
-        public int llGetObjectPermMask(int mask) { return 0; }
-        public void llSetObjectPermMask(int mask, int value) { }
-        public void llGetInventoryPermMask(string item, int mask) { }
-        public void llSetInventoryPermMask(string item, int mask, int value) { }
-        public string llGetInventoryCreator(string item) { return ""; }
-        public void llOwnerSay(string msg) { }
-        public void llRequestSimulatorData(string simulator, int data) { }
-        public void llForceMouselook(int mouselook) { }
-        public double llGetObjectMass(string id) { return 0; }
-        public void llListReplaceList() { }
-        public void llLoadURL(string avatar_id, string message, string url) { }
-        public void llParcelMediaCommandList(List<string> commandList) { }
-        public void llParcelMediaQuery() { }
-
-        public int llModPow(int a, int b, int c)
-        {
-            Int64 tmp = 0;
-            Int64 val = Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
-
-            return Convert.ToInt32(tmp);
-        }
-
-        public int llGetInventoryType(string name) { return 0; }
-        public void llSetPayPrice(int price, List<string> quick_pay_buttons) { }
-        public Axiom.Math.Vector3 llGetCameraPos() { return new Axiom.Math.Vector3(); }
-        public Axiom.Math.Quaternion llGetCameraRot() { return new Axiom.Math.Quaternion(); }
-        public void llSetPrimURL() { }
-        public void llRefreshPrimURL() { }
-        public string llEscapeURL(string url) { return ""; }
-        public string llUnescapeURL(string url) { return ""; }
-        public void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at) { }
-        public void llAddToLandBanList(string avatar, double hours) { }
-        public void llRemoveFromLandPassList(string avatar) { }
-        public void llRemoveFromLandBanList(string avatar) { }
-        public void llSetCameraParams(List<string> rules) { }
-        public void llClearCameraParams() { }
-        public double llListStatistics(int operation, List<string> src) { return 0; }
-        public int llGetUnixTime()
-        {
-            return OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
-        }
-        public int llGetParcelFlags(Axiom.Math.Vector3 pos) { return 0; }
-        public int llGetRegionFlags() { return 0; }
-        public string llXorBase64StringsCorrect(string str1, string str2) { return ""; }
-        public void llHTTPRequest() { }
-        public void llResetLandBanList() { }
-        public void llResetLandPassList() { }
-        public int llGetParcelPrimCount(Axiom.Math.Vector3 pos, int category, int sim_wide) { return 0; }
-        public List<string> llGetParcelPrimOwners(Axiom.Math.Vector3 pos) { return new List<string>(); }
-        public int llGetObjectPrimCount(string object_id) { return 0; }
-        public int llGetParcelMaxPrims(Axiom.Math.Vector3 pos, int sim_wide) { return 0; }
-        public List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param) { return new List<string>(); }
+        public double llSin(double f) { return m_LSL_Functions.llSin(f); }
+        public double llCos(double f) { return m_LSL_Functions.llCos(f); }
+        public double llTan(double f) { return m_LSL_Functions.llTan(f); }
+        public double llAtan2(double x, double y) { return m_LSL_Functions.llAtan2(x, y); }
+        public double llSqrt(double f) { return m_LSL_Functions.llSqrt(f); }
+        public double llPow(double fbase, double fexponent) { return m_LSL_Functions.llPow(fbase, fexponent); }
+        public int llAbs(int i) { return m_LSL_Functions.llAbs(i); }
+        public double llFabs(double f) { return m_LSL_Functions.llFabs(f); }
+        public double llFrand(double mag) { return m_LSL_Functions.llFrand(mag); }
+        public int llFloor(double f) { return m_LSL_Functions.llFloor(f); }
+        public int llCeil(double f) { return m_LSL_Functions.llCeil(f); }
+        public int llRound(double f) { return m_LSL_Functions.llRound(f); }
+        public double llVecMag(Axiom.Math.Vector3 v) { return m_LSL_Functions.llVecMag(v); }
+        public Axiom.Math.Vector3 llVecNorm(Axiom.Math.Vector3 v) { return m_LSL_Functions.llVecNorm(v); }
+        public double llVecDist(Axiom.Math.Vector3 a, Axiom.Math.Vector3 b) { return m_LSL_Functions.llVecDist(a, b); }
+        public Axiom.Math.Vector3 llRot2Euler(Axiom.Math.Quaternion r) { return m_LSL_Functions.llRot2Euler(r); }
+        public Axiom.Math.Quaternion llEuler2Rot(Axiom.Math.Vector3 v) { return m_LSL_Functions.llEuler2Rot(v); }
+        public Axiom.Math.Quaternion llAxes2Rot(Axiom.Math.Vector3 fwd, Axiom.Math.Vector3 left, Axiom.Math.Vector3 up) { return m_LSL_Functions.llAxes2Rot(fwd, left, up); }
+        public Axiom.Math.Vector3 llRot2Fwd(Axiom.Math.Quaternion r) { return m_LSL_Functions.llRot2Fwd(r); }
+        public Axiom.Math.Vector3 llRot2Left(Axiom.Math.Quaternion r) { return m_LSL_Functions.llRot2Left(r); }
+        public Axiom.Math.Vector3 llRot2Up(Axiom.Math.Quaternion r) { return m_LSL_Functions.llRot2Up(r); }
+        public Axiom.Math.Quaternion llRotBetween(Axiom.Math.Vector3 start, Axiom.Math.Vector3 end) { return m_LSL_Functions.llRotBetween(start, end); }
+        public void llWhisper(int channelID, string text) { m_LSL_Functions.llWhisper(channelID, text); }
+        public void llSay(int channelID, string text) { m_LSL_Functions.llSay(channelID, text); }
+        public void llShout(int channelID, string text) { m_LSL_Functions.llShout(channelID, text); }
+        public int llListen(int channelID, string name, string ID, string msg) { return m_LSL_Functions.llListen(channelID, name, ID, msg); }
+        public void llListenControl(int number, int active) { m_LSL_Functions.llListenControl(number, active); }
+        public void llListenRemove(int number) { m_LSL_Functions.llListenRemove(number); }
+        public void llSensor(string name, string id, int type, double range, double arc) { m_LSL_Functions.llSensor(name, id, type, range, arc); }
+        public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate) { m_LSL_Functions.llSensorRepeat(name, id, type, range, arc, rate); }
+        public void llSensorRemove() { m_LSL_Functions.llSensorRemove(); }
+        public string llDetectedName(int number) { return m_LSL_Functions.llDetectedName(number); }
+        public string llDetectedKey(int number) { return m_LSL_Functions.llDetectedKey(number); }
+        public string llDetectedOwner(int number) { return m_LSL_Functions.llDetectedOwner(number); }
+        public int llDetectedType(int number) { return m_LSL_Functions.llDetectedType(number); }
+        public Axiom.Math.Vector3 llDetectedPos(int number) { return m_LSL_Functions.llDetectedPos(number); }
+        public Axiom.Math.Vector3 llDetectedVel(int number) { return m_LSL_Functions.llDetectedVel(number); }
+        public Axiom.Math.Vector3 llDetectedGrab(int number) { return m_LSL_Functions.llDetectedGrab(number); }
+        public Axiom.Math.Quaternion llDetectedRot(int number) { return m_LSL_Functions.llDetectedRot(number); }
+        public int llDetectedGroup(int number) { return m_LSL_Functions.llDetectedGroup(number); }
+        public int llDetectedLinkNumber(int number) { return m_LSL_Functions.llDetectedLinkNumber(number); }
+        public void llDie() { m_LSL_Functions.llDie(); }
+        public double llGround(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llGround(offset); }
+        public double llCloud(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llCloud(offset); }
+        public Axiom.Math.Vector3 llWind(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llWind(offset); }
+        public void llSetStatus(int status, int value) { m_LSL_Functions.llSetStatus(status, value); }
+        public int llGetStatus(int status) { return m_LSL_Functions.llGetStatus(status); }
+        public void llSetScale(Axiom.Math.Vector3 scale) { m_LSL_Functions.llSetScale(scale); }
+        public Axiom.Math.Vector3 llGetScale() { return m_LSL_Functions.llGetScale(); }
+        public void llSetColor(Axiom.Math.Vector3 color, int face) { m_LSL_Functions.llSetColor(color, face); }
+        public double llGetAlpha(int face) { return m_LSL_Functions.llGetAlpha(face); }
+        public void llSetAlpha(double alpha, int face) { m_LSL_Functions.llSetAlpha(alpha, face); }
+        public Axiom.Math.Vector3 llGetColor(int face) { return m_LSL_Functions.llGetColor(face); }
+        public void llSetTexture(string texture, int face) { m_LSL_Functions.llSetTexture(texture, face); }
+        public void llScaleTexture(double u, double v, int face) { m_LSL_Functions.llScaleTexture(u, v, face); }
+        public void llOffsetTexture(double u, double v, int face) { m_LSL_Functions.llOffsetTexture(u, v, face); }
+        public void llRotateTexture(double rotation, int face) { m_LSL_Functions.llRotateTexture(rotation, face); }
+        public string llGetTexture(int face) { return m_LSL_Functions.llGetTexture(face); }
+        public void llSetPos(Axiom.Math.Vector3 pos) { m_LSL_Functions.llSetPos(pos); }
+        public Axiom.Math.Vector3 llGetPos() { return m_LSL_Functions.llGetPos(); }
+        public Axiom.Math.Vector3 llGetLocalPos() { return m_LSL_Functions.llGetLocalPos(); }
+        public void llSetRot(Axiom.Math.Quaternion rot) { m_LSL_Functions.llSetRot(rot); }
+        public Axiom.Math.Quaternion llGetRot() { return m_LSL_Functions.llGetRot(); }
+        public Axiom.Math.Quaternion llGetLocalRot() { return m_LSL_Functions.llGetLocalRot(); }
+        public void llSetForce(Axiom.Math.Vector3 force, int local) { m_LSL_Functions.llSetForce(force, local); }
+        public Axiom.Math.Vector3 llGetForce() { return m_LSL_Functions.llGetForce(); }
+        public int llTarget(Axiom.Math.Vector3 position, double range) { return m_LSL_Functions.llTarget(position, range); }
+        public void llTargetRemove(int number) { m_LSL_Functions.llTargetRemove(number); }
+        public int llRotTarget(Axiom.Math.Quaternion rot, double error) { return m_LSL_Functions.llRotTarget(rot, error); }
+        public void llRotTargetRemove(int number) { m_LSL_Functions.llRotTargetRemove(number); }
+        public void llMoveToTarget(Axiom.Math.Vector3 target, double tau) { m_LSL_Functions.llMoveToTarget(target, tau); }
+        public void llStopMoveToTarget() { m_LSL_Functions.llStopMoveToTarget(); }
+        public void llApplyImpulse(Axiom.Math.Vector3 force, int local) { m_LSL_Functions.llApplyImpulse(force, local); }
+        public void llApplyRotationalImpulse(Axiom.Math.Vector3 force, int local) { m_LSL_Functions.llApplyRotationalImpulse(force, local); }
+        public void llSetTorque(Axiom.Math.Vector3 torque, int local) { m_LSL_Functions.llSetTorque(torque, local); }
+        public Axiom.Math.Vector3 llGetTorque() { return m_LSL_Functions.llGetTorque(); }
+        public void llSetForceAndTorque(Axiom.Math.Vector3 force, Axiom.Math.Vector3 torque, int local) { m_LSL_Functions.llSetForceAndTorque(force, torque, local); }
+        public Axiom.Math.Vector3 llGetVel() { return m_LSL_Functions.llGetVel(); }
+        public Axiom.Math.Vector3 llGetAccel() { return m_LSL_Functions.llGetAccel(); }
+        public Axiom.Math.Vector3 llGetOmega() { return m_LSL_Functions.llGetOmega(); }
+        public double llGetTimeOfDay() { return m_LSL_Functions.llGetTimeOfDay(); }
+        public double llGetWallclock() { return m_LSL_Functions.llGetWallclock(); }
+        public double llGetTime() { return m_LSL_Functions.llGetTime(); }
+        public void llResetTime() { m_LSL_Functions.llResetTime(); }
+        public double llGetAndResetTime() { return m_LSL_Functions.llGetAndResetTime(); }
+        public void llSound() { m_LSL_Functions.llSound(); }
+        public void llPlaySound(string sound, double volume) { m_LSL_Functions.llPlaySound(sound, volume); }
+        public void llLoopSound(string sound, double volume) { m_LSL_Functions.llLoopSound(sound, volume); }
+        public void llLoopSoundMaster(string sound, double volume) { m_LSL_Functions.llLoopSoundMaster(sound, volume); }
+        public void llLoopSoundSlave(string sound, double volume) { m_LSL_Functions.llLoopSoundSlave(sound, volume); }
+        public void llPlaySoundSlave(string sound, double volume) { m_LSL_Functions.llPlaySoundSlave(sound, volume); }
+        public void llTriggerSound(string sound, double volume) { m_LSL_Functions.llTriggerSound(sound, volume); }
+        public void llStopSound() { m_LSL_Functions.llStopSound(); }
+        public void llPreloadSound(string sound) { m_LSL_Functions.llPreloadSound(sound); }
+        public string llGetSubString(string src, int start, int end) { return m_LSL_Functions.llGetSubString(src, start, end); }
+        public string llDeleteSubString(string src, int start, int end) { return m_LSL_Functions.llDeleteSubString(src, start, end); }
+        public string llInsertString(string dst, int position, string src) { return m_LSL_Functions.llInsertString(dst, position, src); }
+        public string llToUpper(string source) { return m_LSL_Functions.llToUpper(source); }
+        public string llToLower(string source) { return m_LSL_Functions.llToLower(source); }
+        public int llGiveMoney(string destination, int amount) { return m_LSL_Functions.llGiveMoney(destination, amount); }
+        public void llMakeExplosion() { m_LSL_Functions.llMakeExplosion(); }
+        public void llMakeFountain() { m_LSL_Functions.llMakeFountain(); }
+        public void llMakeSmoke() { m_LSL_Functions.llMakeSmoke(); }
+        public void llMakeFire() { m_LSL_Functions.llMakeFire(); }
+        public void llRezObject(string inventory, Axiom.Math.Vector3 pos, Axiom.Math.Quaternion rot, int param) { m_LSL_Functions.llRezObject(inventory, pos, rot, param); }
+        public void llLookAt(Axiom.Math.Vector3 target, double strength, double damping) { m_LSL_Functions.llLookAt(target, strength, damping); }
+        public void llStopLookAt() { m_LSL_Functions.llStopLookAt(); }
+        public void llSetTimerEvent(double sec) { m_LSL_Functions.llSetTimerEvent(sec); }
+        public void llSleep(double sec) { m_LSL_Functions.llSleep(sec); }
+        public double llGetMass() { return m_LSL_Functions.llGetMass(); }
+        public void llCollisionFilter(string name, string id, int accept) { m_LSL_Functions.llCollisionFilter(name, id, accept); }
+        public void llTakeControls(int controls, int accept, int pass_on) { m_LSL_Functions.llTakeControls(controls, accept, pass_on); }
+        public void llReleaseControls() { m_LSL_Functions.llReleaseControls(); }
+        public void llAttachToAvatar(int attachment) { m_LSL_Functions.llAttachToAvatar(attachment); }
+        public void llDetachFromAvatar() { m_LSL_Functions.llDetachFromAvatar(); }
+        public void llTakeCamera() { m_LSL_Functions.llTakeCamera(); }
+        public void llReleaseCamera() { m_LSL_Functions.llReleaseCamera(); }
+        public string llGetOwner() { return m_LSL_Functions.llGetOwner(); }
+        public void llInstantMessage(string user, string message) { m_LSL_Functions.llInstantMessage(user, message); }
+        public void llEmail(string address, string subject, string message) { m_LSL_Functions.llEmail(address, subject, message); }
+        public void llGetNextEmail(string address, string subject) { m_LSL_Functions.llGetNextEmail(address, subject); }
+        public string llGetKey() { return m_LSL_Functions.llGetKey(); }
+        public void llSetBuoyancy(double buoyancy) { m_LSL_Functions.llSetBuoyancy(buoyancy); }
+        public void llSetHoverHeight(double height, int water, double tau) { m_LSL_Functions.llSetHoverHeight(height, water, tau); }
+        public void llStopHover() { m_LSL_Functions.llStopHover(); }
+        public void llMinEventDelay(double delay) { m_LSL_Functions.llMinEventDelay(delay); }
+        public void llSoundPreload() { m_LSL_Functions.llSoundPreload(); }
+        public void llRotLookAt(Axiom.Math.Quaternion target, double strength, double damping) { m_LSL_Functions.llRotLookAt(target, strength, damping); }
+        public int llStringLength(string str) { return m_LSL_Functions.llStringLength(str); }
+        public void llStartAnimation(string anim) { m_LSL_Functions.llStartAnimation(anim); }
+        public void llStopAnimation(string anim) { m_LSL_Functions.llStopAnimation(anim); }
+        public void llPointAt() { m_LSL_Functions.llPointAt(); }
+        public void llStopPointAt() { m_LSL_Functions.llStopPointAt(); }
+        public void llTargetOmega(Axiom.Math.Vector3 axis, double spinrate, double gain) { m_LSL_Functions.llTargetOmega(axis, spinrate, gain); }
+        public int llGetStartParameter() { return m_LSL_Functions.llGetStartParameter(); }
+        public void llGodLikeRezObject(string inventory, Axiom.Math.Vector3 pos) { m_LSL_Functions.llGodLikeRezObject(inventory, pos); }
+        public void llRequestPermissions(string agent, int perm) { m_LSL_Functions.llRequestPermissions(agent, perm); }
+        public string llGetPermissionsKey() { return m_LSL_Functions.llGetPermissionsKey(); }
+        public int llGetPermissions() { return m_LSL_Functions.llGetPermissions(); }
+        public int llGetLinkNumber() { return m_LSL_Functions.llGetLinkNumber(); }
+        public void llSetLinkColor(int linknumber, Axiom.Math.Vector3 color, int face) { m_LSL_Functions.llSetLinkColor(linknumber, color, face); }
+        public void llCreateLink(string target, int parent) { m_LSL_Functions.llCreateLink(target, parent); }
+        public void llBreakLink(int linknum) { m_LSL_Functions.llBreakLink(linknum); }
+        public void llBreakAllLinks() { m_LSL_Functions.llBreakAllLinks(); }
+        public string llGetLinkKey(int linknum) { return m_LSL_Functions.llGetLinkKey(linknum); }
+        public void llGetLinkName(int linknum) { m_LSL_Functions.llGetLinkName(linknum); }
+        public int llGetInventoryNumber(int type) { return m_LSL_Functions.llGetInventoryNumber(type); }
+        public string llGetInventoryName(int type, int number) { return m_LSL_Functions.llGetInventoryName(type, number); }
+        public void llSetScriptState(string name, int run) { m_LSL_Functions.llSetScriptState(name, run); }
+        public double llGetEnergy() { return m_LSL_Functions.llGetEnergy(); }
+        public void llGiveInventory(string destination, string inventory) { m_LSL_Functions.llGiveInventory(destination, inventory); }
+        public void llRemoveInventory(string item) { m_LSL_Functions.llRemoveInventory(item); }
+        public void llSetText(string text, Axiom.Math.Vector3 color, double alpha) { m_LSL_Functions.llSetText(text, color, alpha); }
+        public double llWater(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llWater(offset); }
+        public void llPassTouches(int pass) { m_LSL_Functions.llPassTouches(pass); }
+        public string llRequestAgentData(string id, int data) { return m_LSL_Functions.llRequestAgentData(id, data); }
+        public string llRequestInventoryData(string name) { return m_LSL_Functions.llRequestInventoryData(name); }
+        public void llSetDamage(double damage) { m_LSL_Functions.llSetDamage(damage); }
+        public void llTeleportAgentHome(string agent) { m_LSL_Functions.llTeleportAgentHome(agent); }
+        public void llModifyLand(int action, int brush) { m_LSL_Functions.llModifyLand(action, brush); }
+        public void llCollisionSound(string impact_sound, double impact_volume) { m_LSL_Functions.llCollisionSound(impact_sound, impact_volume); }
+        public void llCollisionSprite(string impact_sprite) { m_LSL_Functions.llCollisionSprite(impact_sprite); }
+        public string llGetAnimation(string id) { return m_LSL_Functions.llGetAnimation(id); }
+        public void llResetScript() { m_LSL_Functions.llResetScript(); }
+        public void llMessageLinked(int linknum, int num, string str, string id) { m_LSL_Functions.llMessageLinked(linknum, num, str, id); }
+        public void llPushObject(string target, Axiom.Math.Vector3 impulse, Axiom.Math.Vector3 ang_impulse, int local) { m_LSL_Functions.llPushObject(target, impulse, ang_impulse, local); }
+        public void llPassCollisions(int pass) { m_LSL_Functions.llPassCollisions(pass); }
+        public string llGetScriptName() { return m_LSL_Functions.llGetScriptName(); }
+        public int llGetNumberOfSides() { return m_LSL_Functions.llGetNumberOfSides(); }
+        public Axiom.Math.Quaternion llAxisAngle2Rot(Axiom.Math.Vector3 axis, double angle) { return m_LSL_Functions.llAxisAngle2Rot(axis, angle); }
+        public Axiom.Math.Vector3 llRot2Axis(Axiom.Math.Quaternion rot) { return m_LSL_Functions.llRot2Axis(rot); }
+        public void llRot2Angle() { m_LSL_Functions.llRot2Angle(); }
+        public double llAcos(double val) { return m_LSL_Functions.llAcos(val); }
+        public double llAsin(double val) { return m_LSL_Functions.llAsin(val); }
+        public double llAngleBetween(Axiom.Math.Quaternion a, Axiom.Math.Quaternion b) { return m_LSL_Functions.llAngleBetween(a, b); }
+        public string llGetInventoryKey(string name) { return m_LSL_Functions.llGetInventoryKey(name); }
+        public void llAllowInventoryDrop(int add) { m_LSL_Functions.llAllowInventoryDrop(add); }
+        public Axiom.Math.Vector3 llGetSunDirection() { return m_LSL_Functions.llGetSunDirection(); }
+        public Axiom.Math.Vector3 llGetTextureOffset(int face) { return m_LSL_Functions.llGetTextureOffset(face); }
+        public Axiom.Math.Vector3 llGetTextureScale(int side) { return m_LSL_Functions.llGetTextureScale(side); }
+        public double llGetTextureRot(int side) { return m_LSL_Functions.llGetTextureRot(side); }
+        public int llSubStringIndex(string source, string pattern) { return m_LSL_Functions.llSubStringIndex(source, pattern); }
+        public string llGetOwnerKey(string id) { return m_LSL_Functions.llGetOwnerKey(id); }
+        public Axiom.Math.Vector3 llGetCenterOfMass() { return m_LSL_Functions.llGetCenterOfMass(); }
+        public List<string> llListSort(List<string> src, int stride, int ascending) { return m_LSL_Functions.llListSort(src, stride, ascending); }
+        public int llGetListLength(List<string> src) { return m_LSL_Functions.llGetListLength(src); }
+        public int llList2Integer(List<string> src, int index) { return m_LSL_Functions.llList2Integer(src, index); }
+        public double llList2double(List<string> src, int index) { return m_LSL_Functions.llList2double(src, index); }
+        public string llList2String(List<string> src, int index) { return m_LSL_Functions.llList2String(src, index); }
+        public string llList2Key(List<string> src, int index) { return m_LSL_Functions.llList2Key(src, index); }
+        public Axiom.Math.Vector3 llList2Vector(List<string> src, int index) { return m_LSL_Functions.llList2Vector(src, index); }
+        public Axiom.Math.Quaternion llList2Rot(List<string> src, int index) { return m_LSL_Functions.llList2Rot(src, index); }
+        public List<string> llList2List(List<string> src, int start, int end) { return m_LSL_Functions.llList2List(src, start, end); }
+        public List<string> llDeleteSubList(List<string> src, int start, int end) { return m_LSL_Functions.llDeleteSubList(src, start, end); }
+        public int llGetListEntryType(List<string> src, int index) { return m_LSL_Functions.llGetListEntryType(src, index); }
+        public string llList2CSV(List<string> src) { return m_LSL_Functions.llList2CSV(src); }
+        public List<string> llCSV2List(string src) { return m_LSL_Functions.llCSV2List(src); }
+        public List<string> llListRandomize(List<string> src, int stride) { return m_LSL_Functions.llListRandomize(src, stride); }
+        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) { return m_LSL_Functions.llList2ListStrided(src, start, end, stride); }
+        public Axiom.Math.Vector3 llGetRegionCorner() { return m_LSL_Functions.llGetRegionCorner(); }
+        public List<string> llListInsertList(List<string> dest, List<string> src, int start) { return m_LSL_Functions.llListInsertList(dest, src, start); }
+        public int llListFindList(List<string> src, List<string> test) { return m_LSL_Functions.llListFindList(src, test); }
+        public string llGetObjectName() { return m_LSL_Functions.llGetObjectName(); }
+        public void llSetObjectName(string name) { m_LSL_Functions.llSetObjectName(name); }
+        public string llGetDate() { return m_LSL_Functions.llGetDate(); }
+        public int llEdgeOfWorld(Axiom.Math.Vector3 pos, Axiom.Math.Vector3 dir) { return m_LSL_Functions.llEdgeOfWorld(pos, dir); }
+        public int llGetAgentInfo(string id) { return m_LSL_Functions.llGetAgentInfo(id); }
+        public void llAdjustSoundVolume(double volume) { m_LSL_Functions.llAdjustSoundVolume(volume); }
+        public void llSetSoundQueueing(int queue) { m_LSL_Functions.llSetSoundQueueing(queue); }
+        public void llSetSoundRadius(double radius) { m_LSL_Functions.llSetSoundRadius(radius); }
+        public string llKey2Name(string id) { return m_LSL_Functions.llKey2Name(id); }
+        public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { m_LSL_Functions.llSetTextureAnim(mode, face, sizex, sizey, start, length, rate); }
+        public void llTriggerSoundLimited(string sound, double volume, Axiom.Math.Vector3 top_north_east, Axiom.Math.Vector3 bottom_south_west) { m_LSL_Functions.llTriggerSoundLimited(sound, volume, top_north_east, bottom_south_west); }
+        public void llEjectFromLand(string pest) { m_LSL_Functions.llEjectFromLand(pest); }
+        public void llParseString2List() { m_LSL_Functions.llParseString2List(); }
+        public int llOverMyLand(string id) { return m_LSL_Functions.llOverMyLand(id); }
+        public string llGetLandOwnerAt(Axiom.Math.Vector3 pos) { return m_LSL_Functions.llGetLandOwnerAt(pos); }
+        public string llGetNotecardLine(string name, int line) { return m_LSL_Functions.llGetNotecardLine(name, line); }
+        public Axiom.Math.Vector3 llGetAgentSize(string id) { return m_LSL_Functions.llGetAgentSize(id); }
+        public int llSameGroup(string agent) { return m_LSL_Functions.llSameGroup(agent); }
+        public void llUnSit(string id) { m_LSL_Functions.llUnSit(id); }
+        public Axiom.Math.Vector3 llGroundSlope(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llGroundSlope(offset); }
+        public Axiom.Math.Vector3 llGroundNormal(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llGroundNormal(offset); }
+        public Axiom.Math.Vector3 llGroundContour(Axiom.Math.Vector3 offset) { return m_LSL_Functions.llGroundContour(offset); }
+        public int llGetAttached() { return m_LSL_Functions.llGetAttached(); }
+        public int llGetFreeMemory() { return m_LSL_Functions.llGetFreeMemory(); }
+        public string llGetRegionName() { return m_LSL_Functions.llGetRegionName(); }
+        public double llGetRegionTimeDilation() { return m_LSL_Functions.llGetRegionTimeDilation(); }
+        public double llGetRegionFPS() { return m_LSL_Functions.llGetRegionFPS(); }
+        public void llParticleSystem(List<Object> rules) { m_LSL_Functions.llParticleSystem(rules); }
+        public void llGroundRepel(double height, int water, double tau) { m_LSL_Functions.llGroundRepel(height, water, tau); }
+        public void llGiveInventoryList() { m_LSL_Functions.llGiveInventoryList(); }
+        public void llSetVehicleType(int type) { m_LSL_Functions.llSetVehicleType(type); }
+        public void llSetVehicledoubleParam(int param, double value) { m_LSL_Functions.llSetVehicledoubleParam(param, value); }
+        public void llSetVehicleVectorParam(int param, Axiom.Math.Vector3 vec) { m_LSL_Functions.llSetVehicleVectorParam(param, vec); }
+        public void llSetVehicleRotationParam(int param, Axiom.Math.Quaternion rot) { m_LSL_Functions.llSetVehicleRotationParam(param, rot); }
+        public void llSetVehicleFlags(int flags) { m_LSL_Functions.llSetVehicleFlags(flags); }
+        public void llRemoveVehicleFlags(int flags) { m_LSL_Functions.llRemoveVehicleFlags(flags); }
+        public void llSitTarget(Axiom.Math.Vector3 offset, Axiom.Math.Quaternion rot) { m_LSL_Functions.llSitTarget(offset, rot); }
+        public string llAvatarOnSitTarget() { return m_LSL_Functions.llAvatarOnSitTarget(); }
+        public void llAddToLandPassList(string avatar, double hours) { m_LSL_Functions.llAddToLandPassList(avatar, hours); }
+        public void llSetTouchText(string text) { m_LSL_Functions.llSetTouchText(text); }
+        public void llSetSitText(string text) { m_LSL_Functions.llSetSitText(text); }
+        public void llSetCameraEyeOffset(Axiom.Math.Vector3 offset) { m_LSL_Functions.llSetCameraEyeOffset(offset); }
+        public void llSetCameraAtOffset(Axiom.Math.Vector3 offset) { m_LSL_Functions.llSetCameraAtOffset(offset); }
+        public void llDumpList2String() { m_LSL_Functions.llDumpList2String(); }
+        public void llScriptDanger(Axiom.Math.Vector3 pos) { m_LSL_Functions.llScriptDanger(pos); }
+        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { m_LSL_Functions.llDialog(avatar, message, buttons, chat_channel); }
+        public void llVolumeDetect(int detect) { m_LSL_Functions.llVolumeDetect(detect); }
+        public void llResetOtherScript(string name) { m_LSL_Functions.llResetOtherScript(name); }
+        public int llGetScriptState(string name) { return m_LSL_Functions.llGetScriptState(name); }
+        public void llRemoteLoadScript() { m_LSL_Functions.llRemoteLoadScript(); }
+        public void llSetRemoteScriptAccessPin(int pin) { m_LSL_Functions.llSetRemoteScriptAccessPin(pin); }
+        public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { m_LSL_Functions.llRemoteLoadScriptPin(target, name, pin, running, start_param); }
+        public void llOpenRemoteDataChannel() { m_LSL_Functions.llOpenRemoteDataChannel(); }
+        public string llSendRemoteData(string channel, string dest, int idata, string sdata) { return m_LSL_Functions.llSendRemoteData(channel, dest, idata, sdata); }
+        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { m_LSL_Functions.llRemoteDataReply(channel, message_id, sdata, idata); }
+        public void llCloseRemoteDataChannel(string channel) { m_LSL_Functions.llCloseRemoteDataChannel(channel); }
+        public string llMD5String(string src, int nonce) { return m_LSL_Functions.llMD5String(src, nonce); }
+        public void llSetPrimitiveParams(List<string> rules) { m_LSL_Functions.llSetPrimitiveParams(rules); }
+        public string llStringToBase64(string str) { return m_LSL_Functions.llStringToBase64(str); }
+        public string llBase64ToString(string str) { return m_LSL_Functions.llBase64ToString(str); }
+        public void llXorBase64Strings() { m_LSL_Functions.llXorBase64Strings(); }
+        public void llRemoteDataSetRegion() { m_LSL_Functions.llRemoteDataSetRegion(); }
+        public double llLog10(double val) { return m_LSL_Functions.llLog10(val); }
+        public double llLog(double val) { return m_LSL_Functions.llLog(val); }
+        public List<string> llGetAnimationList(string id) { return m_LSL_Functions.llGetAnimationList(id); }
+        public void llSetParcelMusicURL(string url) { m_LSL_Functions.llSetParcelMusicURL(url); }
+        public Axiom.Math.Vector3 llGetRootPosition() { return m_LSL_Functions.llGetRootPosition(); }
+        public Axiom.Math.Quaternion llGetRootRotation() { return m_LSL_Functions.llGetRootRotation(); }
+        public string llGetObjectDesc() { return m_LSL_Functions.llGetObjectDesc(); }
+        public void llSetObjectDesc(string desc) { m_LSL_Functions.llSetObjectDesc(desc); }
+        public string llGetCreator() { return m_LSL_Functions.llGetCreator(); }
+        public string llGetTimestamp() { return m_LSL_Functions.llGetTimestamp(); }
+        public void llSetLinkAlpha(int linknumber, double alpha, int face) { m_LSL_Functions.llSetLinkAlpha(linknumber, alpha, face); }
+        public int llGetNumberOfPrims() { return m_LSL_Functions.llGetNumberOfPrims(); }
+        public string llGetNumberOfNotecardLines(string name) { return m_LSL_Functions.llGetNumberOfNotecardLines(name); }
+        public List<string> llGetBoundingBox(string obj) { return m_LSL_Functions.llGetBoundingBox(obj); }
+        public Axiom.Math.Vector3 llGetGeometricCenter() { return m_LSL_Functions.llGetGeometricCenter(); }
+        public void llGetPrimitiveParams() { m_LSL_Functions.llGetPrimitiveParams(); }
+        public string llIntegerToBase64(int number) { return m_LSL_Functions.llIntegerToBase64(number); }
+        public int llBase64ToInteger(string str) { return m_LSL_Functions.llBase64ToInteger(str); }
+        public double llGetGMTclock() { return m_LSL_Functions.llGetGMTclock(); }
+        public string llGetSimulatorHostname() { return m_LSL_Functions.llGetSimulatorHostname(); }
+        public void llSetLocalRot(Axiom.Math.Quaternion rot) { m_LSL_Functions.llSetLocalRot(rot); }
+        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers) { return m_LSL_Functions.llParseStringKeepNulls(src, seperators, spacers); }
+        public void llRezAtRoot(string inventory, Axiom.Math.Vector3 position, Axiom.Math.Vector3 velocity, Axiom.Math.Quaternion rot, int param) { m_LSL_Functions.llRezAtRoot(inventory, position, velocity, rot, param); }
+        public int llGetObjectPermMask(int mask) { return m_LSL_Functions.llGetObjectPermMask(mask); }
+        public void llSetObjectPermMask(int mask, int value) { m_LSL_Functions.llSetObjectPermMask(mask, value); }
+        public void llGetInventoryPermMask(string item, int mask) { m_LSL_Functions.llGetInventoryPermMask(item, mask); }
+        public void llSetInventoryPermMask(string item, int mask, int value) { m_LSL_Functions.llSetInventoryPermMask(item, mask, value); }
+        public string llGetInventoryCreator(string item) { return m_LSL_Functions.llGetInventoryCreator(item); }
+        public void llOwnerSay(string msg) { m_LSL_Functions.llOwnerSay(msg); }
+        public void llRequestSimulatorData(string simulator, int data) { m_LSL_Functions.llRequestSimulatorData(simulator, data); }
+        public void llForceMouselook(int mouselook) { m_LSL_Functions.llForceMouselook(mouselook); }
+        public double llGetObjectMass(string id) { return m_LSL_Functions.llGetObjectMass(id); }
+        public void llListReplaceList() { m_LSL_Functions.llListReplaceList(); }
+        public void llLoadURL(string avatar_id, string message, string url) { m_LSL_Functions.llLoadURL(avatar_id, message, url); }
+        public void llParcelMediaCommandList(List<string> commandList) { m_LSL_Functions.llParcelMediaCommandList(commandList); }
+        public void llParcelMediaQuery() { m_LSL_Functions.llParcelMediaQuery(); }
+        public int llModPow(int a, int b, int c) { return m_LSL_Functions.llModPow(a, b, c); }
+        public int llGetInventoryType(string name) { return m_LSL_Functions.llGetInventoryType(name); }
+        public void llSetPayPrice(int price, List<string> quick_pay_buttons) { m_LSL_Functions.llSetPayPrice(price, quick_pay_buttons); }
+        public Axiom.Math.Vector3 llGetCameraPos() { return m_LSL_Functions.llGetCameraPos(); }
+        public Axiom.Math.Quaternion llGetCameraRot() { return m_LSL_Functions.llGetCameraRot(); }
+        public void llSetPrimURL() { m_LSL_Functions.llSetPrimURL(); }
+        public void llRefreshPrimURL() { m_LSL_Functions.llRefreshPrimURL(); }
+        public string llEscapeURL(string url) { return m_LSL_Functions.llEscapeURL(url); }
+        public string llUnescapeURL(string url) { return m_LSL_Functions.llUnescapeURL(url); }
+        public void llMapDestination(string simname, Axiom.Math.Vector3 pos, Axiom.Math.Vector3 look_at) { m_LSL_Functions.llMapDestination(simname, pos, look_at); }
+        public void llAddToLandBanList(string avatar, double hours) { m_LSL_Functions.llAddToLandBanList(avatar, hours); }
+        public void llRemoveFromLandPassList(string avatar) { m_LSL_Functions.llRemoveFromLandPassList(avatar); }
+        public void llRemoveFromLandBanList(string avatar) { m_LSL_Functions.llRemoveFromLandBanList(avatar); }
+        public void llSetCameraParams(List<string> rules) { m_LSL_Functions.llSetCameraParams(rules); }
+        public void llClearCameraParams() { m_LSL_Functions.llClearCameraParams(); }
+        public double llListStatistics(int operation, List<string> src) { return m_LSL_Functions.llListStatistics(operation, src); }
+        public int llGetUnixTime() { return m_LSL_Functions.llGetUnixTime(); }
+        public int llGetParcelFlags(Axiom.Math.Vector3 pos) { return m_LSL_Functions.llGetParcelFlags(pos); }
+        public int llGetRegionFlags() { return m_LSL_Functions.llGetRegionFlags(); }
+        public string llXorBase64StringsCorrect(string str1, string str2) { return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2); }
+        public void llHTTPRequest() { m_LSL_Functions.llHTTPRequest(); }
+        public void llResetLandBanList() { m_LSL_Functions.llResetLandBanList(); }
+        public void llResetLandPassList() { m_LSL_Functions.llResetLandPassList(); }
+        public int llGetParcelPrimCount(Axiom.Math.Vector3 pos, int category, int sim_wide) { return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide); }
+        public List<string> llGetParcelPrimOwners(Axiom.Math.Vector3 pos) { return m_LSL_Functions.llGetParcelPrimOwners(pos); }
+        public int llGetObjectPrimCount(string object_id) { return m_LSL_Functions.llGetObjectPrimCount(object_id); }
+        public int llGetParcelMaxPrims(Axiom.Math.Vector3 pos, int sim_wide) { return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide); }
+        public List<string> llGetParcelDetails(Axiom.Math.Vector3 pos, List<string> param) { return m_LSL_Functions.llGetParcelDetails(pos, param); }
 
 
 

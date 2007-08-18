@@ -8,6 +8,10 @@ using Rail.MSIL;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
+    /// <summary>
+    /// Tedds Sandbox for RAIL/microtrheading. This class is only for testing purposes!
+    /// Its offspring will be the actual implementation.
+    /// </summary>
     class TempDotNetMicroThreadingCodeInjector
     {
         public static string TestFix(string FileName)
