@@ -207,7 +207,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public void llMinEventDelay(double delay) { }
         public void llSoundPreload() { }
         public void llRotLookAt(Axiom.Math.Quaternion target, double strength, double damping) { }
-        public int llStringLength(string str) { return 0; }
+
+        public int llStringLength(string str)
+        {
+            if(str.Length > 0)
+            {
+                return str.Length;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
         public void llStartAnimation(string anim) { }
         public void llStopAnimation(string anim) { }
         public void llPointAt() { }
