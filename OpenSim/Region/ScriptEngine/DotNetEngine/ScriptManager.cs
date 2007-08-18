@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
 
-            Console.WriteLine("CurrentDomain_AssemblyResolve: " + args.Name);
+            //Console.WriteLine("CurrentDomain_AssemblyResolve: " + args.Name);
             return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
 
         }
@@ -231,11 +231,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
 
             //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
-            
             //Type mytype = mbrt.GetType();
-            
-            
-                       
 
             //Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
 

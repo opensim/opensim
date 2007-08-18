@@ -85,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 //Console.WriteLine("Loading: " + a.GetName(true));
                 try
                 {
-                    AD.Load(a.GetName(true));
+                    //AD.Load(a.GetName(true));
                     
                 }
                 catch (Exception e)
@@ -106,10 +106,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         }
 
-        public class NOOP : MarshalByRefType
-        {
-            public NOOP() {
-            }
-        }
     }
 }

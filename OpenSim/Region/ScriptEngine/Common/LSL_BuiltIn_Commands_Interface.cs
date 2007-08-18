@@ -30,7 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
+namespace OpenSim.Region.ScriptEngine.Common
 {
     public interface LSL_BuiltIn_Commands_Interface
     {
