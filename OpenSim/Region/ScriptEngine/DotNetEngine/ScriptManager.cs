@@ -35,6 +35,7 @@ using System.Runtime.Remoting;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
+using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -227,14 +228,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
             Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
 
-            LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            LSL_BuiltIn_Commands_Interface mbrt = (LSL_BuiltIn_Commands_Interface)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
             Type mytype = mbrt.GetType();
 
             Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
 
 
             //mbrt.Start();
-            return mbrt;
+            return (LSL_BaseClass)mbrt;
 
 
 

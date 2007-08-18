@@ -940,12 +940,12 @@
     <Project name="OpenSim.Region.ScriptEngine.Common" path="OpenSim/Region/ScriptEngine/Common" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
