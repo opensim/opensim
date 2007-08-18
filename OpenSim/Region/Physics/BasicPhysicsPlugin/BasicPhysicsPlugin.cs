@@ -90,7 +90,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         }
 
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
             return null;
         }

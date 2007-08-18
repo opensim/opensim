@@ -26,6 +26,7 @@
 * 
 */
 using OpenSim.Framework.Console;
+using Axiom.Math;
 
 namespace OpenSim.Physics.Manager
 {
@@ -43,7 +44,7 @@ namespace OpenSim.Physics.Manager
 
         public abstract void RemoveAvatar(PhysicsActor actor);
 
-        public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size);
+        public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation);
 
         public abstract void Simulate(float timeStep);
 
@@ -73,7 +74,7 @@ namespace OpenSim.Physics.Manager
 
             }
 
-            public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+            public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
             {
                 MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;

@@ -103,7 +103,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 		
-		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
 		{
 			Vec3 pos = new Vec3();
 			pos.X = position.X;

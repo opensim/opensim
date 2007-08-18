@@ -80,6 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private double[] _heightmap;
         static private d.NearCallback nearCallback = near;
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
+        private List<OdePrim> _prims = new List<OdePrim>();
         private static d.ContactGeom[] contacts = new d.ContactGeom[30];
         private static d.Contact contact;
 
@@ -134,7 +135,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -144,7 +145,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             siz.X = size.X;
             siz.Y = size.Y;
             siz.Z = size.Z;
-            return new OdePrim();
+            Quaternion rot = new Quaternion();
+            rot.w = rotation.w;
+            rot.x = rotation.x;
+            rot.y = rotation.y;
+            rot.z = rotation.z;
+            OdePrim newPrim = new OdePrim(this, pos, siz, rot);
+            this._prims.Add(newPrim);
+            return newPrim;
         }
 
         public override void Simulate(float timeStep)
@@ -347,15 +355,29 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdePrim : PhysicsActor
     {
+
         private PhysicsVector _position;
         private PhysicsVector _velocity;
+        private PhysicsVector _size;
         private PhysicsVector _acceleration;
+        private Quaternion _orientation;
+        private IntPtr BoundingCapsule;
+        IntPtr capsule_geom;
+        d.Mass capsule_mass;
 
-        public OdePrim()
+        public OdePrim(OdeScene parent_scene, PhysicsVector pos, PhysicsVector size, Quaternion rotation)
         {
             _velocity = new PhysicsVector();
-            _position = new PhysicsVector();
+            _position = pos;
+            _size = size;
             _acceleration = new PhysicsVector();
+            d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
+            capsule_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
+            this.BoundingCapsule = d.BodyCreate(OdeScene.world);
+            d.BodySetMass(BoundingCapsule, ref capsule_mass);
+            d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
+            d.GeomSetBody(capsule_geom, BoundingCapsule);
+            _orientation = rotation;
         }
         public override bool Flying
         {
@@ -420,12 +442,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                Quaternion res = new Quaternion();
-                return res;
+                return _orientation;
             }
             set
             {
-
+                _orientation = value;
             }
         }
 
