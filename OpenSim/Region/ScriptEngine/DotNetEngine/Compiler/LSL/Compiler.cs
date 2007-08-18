@@ -61,7 +61,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
             string rootPathSE = Path.GetDirectoryName(this.GetType().Assembly.Location);
-            Console.WriteLine("Assembly location: " + rootPath);
+            //Console.WriteLine("Assembly location: " + rootPath);
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Common.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPathSE, "OpenSim.Region.ScriptEngine.DotNetEngine.dll"));
             

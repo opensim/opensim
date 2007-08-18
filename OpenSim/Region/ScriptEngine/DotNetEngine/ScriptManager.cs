@@ -226,96 +226,102 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
 
             //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
-            Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
+            //Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
 
-            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
-            LSL_BuiltIn_Commands_Interface mbrt = (LSL_BuiltIn_Commands_Interface)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            //LSL_BuiltIn_Commands_Interface mbrt = (LSL_BuiltIn_Commands_Interface)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
             Type mytype = mbrt.GetType();
 
             Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
 
 
             //mbrt.Start();
-            return (LSL_BaseClass)mbrt;
+            return mbrt;
+            //return (LSL_BaseClass)mbrt;
 
 
 
 
 
 
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
-            // Load .Net Assembly (.dll)
-            // Initialize and return it
+//            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
+//            // Load .Net Assembly (.dll)
+//            // Initialize and return it
 
-            // TODO: Add error handling
-            // Script might not follow our rules since users can upload -anything-
+//            // TODO: Add error handling
+//            // Script might not follow our rules since users can upload -anything-
 
-            Assembly a;
-            //try
-            //{
-
-
-            // Load to default appdomain (temporary)
-            a = Assembly.LoadFrom(FileName);
-            // Load to specified appdomain
-            // TODO: Insert security
-            //a = FreeAppDomain.Load(FileName);
-            //}
-            //catch (Exception e)
-            //{
-            //}
+//            Assembly a;
+//            //try
+//            //{
 
 
-            //foreach (Type _t in a.GetTypes())
-            //{
-            //    Console.WriteLine("Type: " + _t.ToString());
-            //}
+//            // Load to default appdomain (temporary)
+//            a = Assembly.LoadFrom(FileName);
+//            // Load to specified appdomain
+//            // TODO: Insert security
+//            //a = FreeAppDomain.Load(FileName);
+//            //}
+//            //catch (Exception e)
+//            //{
+//            //}
 
-            Type t;
-            //try
-            //{
-            t = a.GetType("SecondLife.Script", true);
-            //}
-            //catch (Exception e)
-            //{
-            //} 
 
-            // Create constructor arguments
-            object[] args = new object[]
-                {
-//                    this, 
-//                    host
-                };
+//            //foreach (Type _t in a.GetTypes())
+//            //{
+//            //    Console.WriteLine("Type: " + _t.ToString());
+//            //}
+
+//            Type t;
+//            //try
+//            //{
+//            t = a.GetType("SecondLife.Script", true);
+//            //}
+//            //catch (Exception e)
+//            //{
+//            //} 
+
+//            // Create constructor arguments
+//            object[] args = new object[]
+//                {
+////                    this, 
+////                    host
+//                };
             
-            return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t, args );
+//            return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t, args );
 
 
         }
 
         internal void ExecuteFunction(IScriptHost ObjectID, string ScriptID, string FunctionName, object[] args)
         {
+
+            // Execute a function in the script
             m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function ObjectID: " + ObjectID + ", ScriptID: " + ScriptID + ", FunctionName: " + FunctionName);
             OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);
 
-            Type type = Script.GetType();
+            Script.ExecuteEvent(FunctionName, args);
+
+            //Type type = Script.GetType();
 
 
-            m_scriptEngine.Log.Verbose("ScriptEngine", "Invoke: \"" + Script.State() + "_event_" + FunctionName + "\"");
+            ////foreach (MemberInfo mi in type.GetMembers())
+            ////{
+            ////    Common.SendToDebug("Member found: " + mi.ToString());
+            ////}
 
-            try
-            {
-                type.InvokeMember(Script.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
-            }
-            catch (Exception e)
-            {
-                m_scriptEngine.Log.Error("ScriptEngine", "Exception attempting to executing script function: " + e.ToString());
-            }
+            //m_scriptEngine.Log.Verbose("ScriptEngine", "Invoke: \"" + Script.State() + "_event_" + FunctionName + "\"");
 
-
-            //foreach (MemberInfo mi in type.GetMembers())
+            //try
             //{
-            //    Common.SendToDebug("Member found: " + mi.ToString());
+            //    type.InvokeMember(Script.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
             //}
+            //catch (Exception e)
+            //{
+            //    m_scriptEngine.Log.Error("ScriptEngine", "Exception attempting to executing script function: " + e.ToString());
+            //}
+
+
 
         }
 

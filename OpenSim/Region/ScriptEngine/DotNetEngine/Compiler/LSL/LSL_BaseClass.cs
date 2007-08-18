@@ -4,6 +4,8 @@ using System.Text;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 using System.Threading;
+using System.Reflection;
+
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -44,6 +46,33 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             );
 
             return;
+        }
+
+        public void ExecuteEvent(string FunctionName, object[] args)
+        {
+            //foreach (MemberInfo mi in this.GetType().GetMembers())
+            //{
+                //if (mi.ToString().ToLower().Contains("default"))
+                //{
+                //    Console.WriteLine("Member found: " + mi.ToString());
+                //}
+            //}
+
+                Type type = this.GetType();
+
+                Console.WriteLine("ScriptEngine Invoke: \"" + this.State() + "_event_" + FunctionName + "\"");
+
+                try
+                {
+                    type.InvokeMember(this.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, this, args);
+                }
+                catch (Exception e)
+                {
+                    // TODO: Send to correct place
+                    Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
+                }
+
+
         }
 
 
