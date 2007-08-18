@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         QueueItemStruct QIS = EventQueue.Dequeue();
                         //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
                         // TODO: Execute function
-                        myScriptEngine.myScriptManager.ExecuteFunction(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
+                        myScriptEngine.myScriptManager.ExecuteEvent(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
                     }
                 }
             }

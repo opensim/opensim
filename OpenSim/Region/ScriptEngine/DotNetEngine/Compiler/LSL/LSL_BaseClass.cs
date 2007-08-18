@@ -9,8 +9,17 @@ using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
+    public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, IScript
     {
+        private Executor m_Exec;
+        public Executor Exec {
+            get
+            {
+                if (m_Exec == null)
+                    m_Exec = new Executor(this);
+                return m_Exec;
+            }
+        }
 
         public LSL_BuiltIn_Commands_Interface m_LSL_Functions;
 
@@ -46,33 +55,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             );
 
             return;
-        }
-
-        public void ExecuteEvent(string FunctionName, object[] args)
-        {
-            //foreach (MemberInfo mi in this.GetType().GetMembers())
-            //{
-                //if (mi.ToString().ToLower().Contains("default"))
-                //{
-                //    Console.WriteLine("Member found: " + mi.ToString());
-                //}
-            //}
-
-                Type type = this.GetType();
-
-                Console.WriteLine("ScriptEngine Invoke: \"" + this.State() + "_event_" + FunctionName + "\"");
-
-                try
-                {
-                    type.InvokeMember(this.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, this, args);
-                }
-                catch (Exception e)
-                {
-                    // TODO: Send to correct place
-                    Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
-                }
-
-
         }
 
 

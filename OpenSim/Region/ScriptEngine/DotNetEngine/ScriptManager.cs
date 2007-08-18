@@ -42,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// <summary>
     /// Loads scripts
     /// Compiles them if necessary
-    /// Execute functions for EventQueueManager
+    /// Execute functions for EventQueueManager (Sends them to script on other AppDomain for execution)
     /// </summary>
     [Serializable]
     public class ScriptManager
@@ -182,18 +182,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
                 OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
 
-                //string FullScriptID = ScriptID + "." + ObjectID;                               
                 // Add it to our temporary active script keeper
                 //Scripts.Add(FullScriptID, Script);
                 SetScript(ObjectID, ScriptID, Script);
                 // We need to give (untrusted) assembly a private instance of BuiltIns
                 //  this private copy will contain Read-Only FullScriptID so that it can bring that on to the server whenever needed.
-                //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_Interface LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands_TestImplementation(FullScriptID);
+                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands(this, ObjectID);
 
                 // Start the script - giving it BuiltIns
-                //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager initializing script, handing over private builtin command interface");
-
-                Script.Start(new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands(this, ObjectID));
+                Script.Start(LSLB);
 
             }
             catch (Exception e)
@@ -209,12 +206,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
             return FileName;
         }
-
-        //private AppDomain GetFreeAppDomain()
-        //{
-        //    // TODO: Find an available AppDomain - if none, create one and add default security
-        //    return Thread.GetDomain();
-        //}
 
         /// <summary>
         /// Does actual loading and initialization of script Assembly
@@ -239,68 +230,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return mbrt;
             //return (LSL_BaseClass)mbrt;
 
-
-
-
-
-
-//            //myScriptEngine.m_logger.Verbose("ScriptEngine", "ScriptManager Loading Assembly " + FileName);
-//            // Load .Net Assembly (.dll)
-//            // Initialize and return it
-
-//            // TODO: Add error handling
-//            // Script might not follow our rules since users can upload -anything-
-
-//            Assembly a;
-//            //try
-//            //{
-
-
-//            // Load to default appdomain (temporary)
-//            a = Assembly.LoadFrom(FileName);
-//            // Load to specified appdomain
-//            // TODO: Insert security
-//            //a = FreeAppDomain.Load(FileName);
-//            //}
-//            //catch (Exception e)
-//            //{
-//            //}
-
-
-//            //foreach (Type _t in a.GetTypes())
-//            //{
-//            //    Console.WriteLine("Type: " + _t.ToString());
-//            //}
-
-//            Type t;
-//            //try
-//            //{
-//            t = a.GetType("SecondLife.Script", true);
-//            //}
-//            //catch (Exception e)
-//            //{
-//            //} 
-
-//            // Create constructor arguments
-//            object[] args = new object[]
-//                {
-////                    this, 
-////                    host
-//                };
-            
-//            return (OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass)Activator.CreateInstance(t, args );
-
-
         }
 
-        internal void ExecuteFunction(IScriptHost ObjectID, string ScriptID, string FunctionName, object[] args)
+        /// <summary>
+        /// Execute a LL-event-function in Script
+        /// </summary>
+        /// <param name="ObjectID">Object the script is located in</param>
+        /// <param name="ScriptID">Script ID</param>
+        /// <param name="FunctionName">Name of function</param>
+        /// <param name="args">Arguments to pass to function</param>
+        internal void ExecuteEvent(IScriptHost ObjectID, string ScriptID, string FunctionName, object[] args)
         {
 
             // Execute a function in the script
             m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function ObjectID: " + ObjectID + ", ScriptID: " + ScriptID + ", FunctionName: " + FunctionName);
             OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);
 
-            Script.ExecuteEvent(FunctionName, args);
+            // Must be done in correct AppDomain, so leaving it up to the script itself
+
+            Script.Exec.ExecuteEvent(FunctionName, args);
 
             //Type type = Script.GetType();
 

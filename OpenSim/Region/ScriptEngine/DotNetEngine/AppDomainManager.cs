@@ -12,9 +12,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     {
         private int MaxScriptsPerAppDomain = 1;
         /// <summary>
-        /// List of all AppDomains
+        /// Internal list of all AppDomains
         /// </summary>
         private List<AppDomainStructure> AppDomains = new List<AppDomainStructure>();
+        /// <summary>
+        /// Structure to keep track of data around AppDomain
+        /// </summary>
         private struct AppDomainStructure
         {
             /// <summary>
@@ -37,10 +40,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private object GetLock = new object(); // Mutex
         private object FreeLock = new object(); // Mutex
 
-                private ScriptEngine m_scriptEngine;
-        public AppDomainManager(ScriptEngine scriptEngine)
+        //private ScriptEngine m_scriptEngine;
+        //public AppDomainManager(ScriptEngine scriptEngine)
+        public AppDomainManager()
         {
-            m_scriptEngine = scriptEngine;
+            //m_scriptEngine = scriptEngine;
         }
 
         /// <summary>
@@ -54,6 +58,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Current full?
                 if (CurrentAD.ScriptsLoaded >= MaxScriptsPerAppDomain)
                 {
+                    // Add it to AppDomains list and empty current
                     AppDomains.Add(CurrentAD);
                     CurrentAD = new AppDomainStructure();   
                 }
@@ -68,7 +73,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 }
 
-                // Increase number of scripts loaded
+                // Increase number of scripts loaded into this
+                // TODO:
+                // - We assume that every time someone wants an AppDomain they will load into it
+                //   if this assumption is wrong we end up with a miscount and will never unload it.
+                //   
                 CurrentAD.ScriptsLoaded++;
                 // Return AppDomain
                 return CurrentAD.CurrentAppDomain;
@@ -84,46 +93,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             // Create and prepare a new AppDomain
             AppDomainNameCount++;
-            // TODO: Currently security and configuration match current appdomain
+            // TODO: Currently security match current appdomain
 
             // Construct and initialize settings for a second AppDomain.
             AppDomainSetup ads = new AppDomainSetup();
             ads.ApplicationBase = AppDomain.CurrentDomain.BaseDirectory;
-                //Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptEngines");
-            //ads.ApplicationName = "DotNetScriptEngine";
-            //ads.DynamicBase = ads.ApplicationBase;
-            
-            //Console.WriteLine("AppDomain BaseDirectory: " + ads.ApplicationBase);
             ads.DisallowBindingRedirects = false;
             ads.DisallowCodeDownload = true;
-            ads.ShadowCopyFiles = "true";
-            
-            ads.ConfigurationFile =
-                AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+            ads.ShadowCopyFiles = "true"; // Enabled shadowing
+            ads.ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
-            //foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    //Console.WriteLine("Loading: " + a.GetName(true));
-            //    try
-            //    {
-            //        //AD.Load(a.GetName(true));
-                    
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        //Console.WriteLine("FAILED load");
-            //    }
-                
-            //}
 
-            //Console.WriteLine("Assembly file: " + this.GetType().Assembly.CodeBase);
-            //Console.WriteLine("Assembly name: " + this.GetType().ToString());
-            //AD.CreateInstanceFrom(this.GetType().Assembly.CodeBase, "OpenSim.Region.ScriptEngine.DotNetEngine.ScriptEngine");
-
-            //AD.Load(this.GetType().Assembly.CodeBase);
-
-            Console.WriteLine("Done preparing new AppDomain.");
+            // Return the new AppDomain
             return AD;
 
         }
@@ -135,14 +117,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             lock (FreeLock)
             {
+                // Go through all
                 foreach (AppDomainStructure ads in new System.Collections.ArrayList(AppDomains))
                 {
+                    // Don't process current AppDomain
                     if (ads.CurrentAppDomain != CurrentAD.CurrentAppDomain)
                     {
                         // Not current AppDomain
-                        if (ads.ScriptsLoaded == ads.ScriptsWaitingUnload)
+                        // Is number of unloaded bigger or equal to number of loaded?
+                        if (ads.ScriptsLoaded <= ads.ScriptsWaitingUnload)
                         {
+                            // Remove from internal list
                             AppDomains.Remove(ads);
+                            // Unload
                             AppDomain.Unload(ads.CurrentAppDomain);
                         }
                     }
@@ -159,16 +146,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             lock (FreeLock)
             {
+                // Check if it is current AppDomain
                 if (CurrentAD.CurrentAppDomain == ad)
                 {
+                    // Yes - increase
                     CurrentAD.ScriptsWaitingUnload++;
                     return;
                 }
 
+                // Lopp through all AppDomains
                 foreach (AppDomainStructure ads in new System.Collections.ArrayList(AppDomains))
                 {
                     if (ads.CurrentAppDomain == ad)
                     {
+                        // Found it - messy code to increase structure
                         AppDomainStructure ads2 = ads;
                         ads2.ScriptsWaitingUnload++;
                         AppDomains.Remove(ads);
@@ -178,5 +169,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 } // foreach
             } // lock
         }
+
     }
 }

@@ -16,6 +16,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
     /// </summary>
     public class LSL_BuiltIn_Commands: MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
+
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
         private ScriptManager m_manager;
         private IScriptHost m_host;
@@ -74,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llWhisper(int channelID, string text)
         {
             //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
-            Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
+            //Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
             //type for whisper is 0
             World.SimChat(Helpers.StringToField(text),
                           0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
@@ -86,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             //TODO: DO SOMETHING USEFUL HERE
             //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (int)channelID + ", \"" + (string)text + "\");");
-            Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
+            //Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
             //type for say is 1
 
             World.SimChat(Helpers.StringToField(text),
@@ -95,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llShout(int channelID, string text)
         {
-            Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
+            //Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
             //type for shout is 2
             World.SimChat(Helpers.StringToField(text),
                           2, m_host.AbsolutePosition, m_host.Name, m_host.UUID);

@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             myEventQueueManager = new EventQueueManager(this);
             myEventManager = new EventManager(this);
             myScriptManager = new ScriptManager(this);
-            myAppDomainManager = new AppDomainManager(this);
+            myAppDomainManager = new AppDomainManager();
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
