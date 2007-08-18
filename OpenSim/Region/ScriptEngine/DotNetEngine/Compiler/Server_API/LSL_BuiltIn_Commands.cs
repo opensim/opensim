@@ -14,7 +14,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
-    public class LSL_BuiltIn_Commands: LSL_BuiltIn_Commands_Interface
+    public class LSL_BuiltIn_Commands: MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
         private ScriptManager m_manager;

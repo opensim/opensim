@@ -233,7 +233,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             "using System.Text;\r\n" +
             "using OpenSim.Region.ScriptEngine.Common;\r\n" +
             "namespace SecondLife {\r\n";
-            Return += "[Serializable] public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass {\r\n";
+            Return += "" + 
+                //"[Serializable] " +
+                "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass {\r\n";
             Return += @"public Script() { }"+"\r\n";
             Return += Script;
             Return += "} }\r\n";

@@ -7,8 +7,7 @@ using System.Threading;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    [Serializable]
-    public class LSL_BaseClass : LSL_BuiltIn_Commands_Interface
+    public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
 
         public LSL_BuiltIn_Commands_Interface m_LSL_Functions;
