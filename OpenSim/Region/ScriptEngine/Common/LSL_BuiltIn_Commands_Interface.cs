@@ -34,6 +34,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 {
     public interface LSL_BuiltIn_Commands_Interface
     {
+        string State();
+
         double llSin(double f);
         double llCos(double f);
         double llTan(double f);

@@ -65,6 +65,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
 
         // Object<string, Script<string, script>>
+        // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
+        // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
         internal Dictionary<IScriptHost, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>> Scripts = new Dictionary<IScriptHost, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>>();
         public Scene World
         {
@@ -221,23 +223,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <returns></returns>
         private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName, IScriptHost host)
         {
-            //object[] ADargs = new object[]
-            //    {
-            //        this, 
-            //        host
-            //    };
 
-            ////LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
-            //Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
+            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
+            Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
 
-            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
-            //Type mytype = mbrt.GetType();
+            LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            Type mytype = mbrt.GetType();
 
-            //Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
+            Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
 
 
-            ////mbrt.Start();
-            //return mbrt;
+            //mbrt.Start();
+            return mbrt;
 
 
 
@@ -301,11 +298,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Type type = Script.GetType();
 
 
-            m_scriptEngine.Log.Verbose("ScriptEngine", "Invoke: \"" + Script.State + "_event_" + FunctionName + "\"");
+            m_scriptEngine.Log.Verbose("ScriptEngine", "Invoke: \"" + Script.State() + "_event_" + FunctionName + "\"");
 
             try
             {
-                type.InvokeMember(Script.State + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
+                type.InvokeMember(Script.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
             }
             catch (Exception e)
             {

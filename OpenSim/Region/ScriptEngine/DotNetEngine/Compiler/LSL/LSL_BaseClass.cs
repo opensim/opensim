@@ -7,21 +7,22 @@ using System.Threading;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
+    [Serializable]
+    public class LSL_BaseClass : LSL_BuiltIn_Commands_Interface
     {
 
-        public LSL_BuiltIn_Commands m_LSL_Functions;
+        public LSL_BuiltIn_Commands_Interface m_LSL_Functions;
 
         public LSL_BaseClass()
         {
         }
-        public string State
+        public string State()
         {
-            get { return m_LSL_Functions.State; }
+            return m_LSL_Functions.State();
         }
 
 
-        public void Start(LSL_BuiltIn_Commands LSL_Functions)
+        public void Start(LSL_BuiltIn_Commands_Interface LSL_Functions)
         {
             m_LSL_Functions = LSL_Functions;
 

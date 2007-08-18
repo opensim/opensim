@@ -52,10 +52,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
             parameters.IncludeDebugInformation = true;
             // Add all available assemblies
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                parameters.ReferencedAssemblies.Add(asm.Location);
-            }
+            //foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    Console.WriteLine("Adding assembly: " + asm.Location);
+            //    parameters.ReferencedAssemblies.Add(asm.Location);
+            //}
+
+            parameters.ReferencedAssemblies.Add(this.GetType().Assembly.CodeBase);
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;

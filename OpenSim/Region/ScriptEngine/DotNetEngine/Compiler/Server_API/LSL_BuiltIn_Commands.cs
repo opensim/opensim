@@ -14,7 +14,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
-    [Serializable]
     public class LSL_BuiltIn_Commands: LSL_BuiltIn_Commands_Interface
     {
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
@@ -30,7 +29,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         }
 
 
-        public string State = "default";
+        private string m_state = "default";
+        public string State() {
+            return m_state;
+        }
 
         public Scene World
         {
