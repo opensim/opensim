@@ -69,7 +69,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // Object<string, Script<string, script>>
         // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
         // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-        internal Dictionary<IScriptHost, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>> Scripts = new Dictionary<IScriptHost, Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>>();
+        internal Dictionary<IScriptHost, Dictionary<string, LSL_BaseClass>> Scripts = new Dictionary<IScriptHost, Dictionary<string, LSL_BaseClass>>();
         public Scene World
         {
             get
@@ -79,45 +79,45 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
 
-        internal Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>.KeyCollection GetScriptKeys(IScriptHost ObjectID)
+        internal Dictionary<string, LSL_BaseClass>.KeyCollection GetScriptKeys(IScriptHost ObjectID)
         {
             if (Scripts.ContainsKey(ObjectID) == false)
                 return null;
 
-            Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass> Obj;
+            Dictionary<string, LSL_BaseClass> Obj;
             Scripts.TryGetValue(ObjectID, out Obj);
 
             return Obj.Keys;
 
         }
 
-        internal OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass GetScript(IScriptHost ObjectID, string ScriptID)
+        internal LSL_BaseClass GetScript(IScriptHost ObjectID, string ScriptID)
         {
             if (Scripts.ContainsKey(ObjectID) == false)
                 return null;
 
-            Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass> Obj;
+            Dictionary<string, LSL_BaseClass> Obj;
             Scripts.TryGetValue(ObjectID, out Obj);
             if (Obj.ContainsKey(ScriptID) == false)
                 return null;
 
             // Get script
-            OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script;
+            LSL_BaseClass Script;
             Obj.TryGetValue(ScriptID, out Script);
 
             return Script;
 
         }
-        internal void SetScript(IScriptHost ObjectID, string ScriptID, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script)
+        internal void SetScript(IScriptHost ObjectID, string ScriptID, LSL_BaseClass Script)
         {
             // Create object if it doesn't exist
             if (Scripts.ContainsKey(ObjectID) == false)
             {
-                Scripts.Add(ObjectID, new Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass>());
+                Scripts.Add(ObjectID, new Dictionary<string, LSL_BaseClass>());
             }
 
             // Delete script if it exists
-            Dictionary<string, OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass> Obj;
+            Dictionary<string, LSL_BaseClass> Obj;
             Scripts.TryGetValue(ObjectID, out Obj);
             if (Obj.ContainsKey(ScriptID) == true)
                 Obj.Remove(ScriptID);
@@ -126,7 +126,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Obj.Add(ScriptID, Script);
 
         }
+        internal void RemoveScript(IScriptHost ObjectID, string ScriptID)
+        {
+            // Don't have that object?
+            if (Scripts.ContainsKey(ObjectID) == false)
+                return;
 
+            // Delete script if it exists
+            Dictionary<string, LSL_BaseClass> Obj;
+            Scripts.TryGetValue(ObjectID, out Obj);
+            if (Obj.ContainsKey(ScriptID) == true)
+                Obj.Remove(ScriptID);
+
+        }
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
         /// </summary>
@@ -207,7 +219,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
 
         }
-        private string ProcessYield(string FileName)
+        public void StopScript(string ScriptID, IScriptHost ObjectID)
+        {
+            // Stop script
+
+            // Get AppDomain
+            AppDomain ad = GetScript(ObjectID, ScriptID).Exec.GetAppDomain();
+            // Tell script not to accept new requests
+            GetScript(ObjectID, ScriptID).Exec.StopScript();
+            // Remove from internal structure
+            RemoveScript(ObjectID, ScriptID);
+            // Tell AppDomain that we have stopped script
+            m_scriptEngine.myAppDomainManager.StopScript(ad);
+        }
+            private string ProcessYield(string FileName)
         {
             // TODO: Create a new assembly and copy old but insert Yield Code
             //return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
@@ -228,32 +253,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // Execute a function in the script
             m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function ObjectID: " + ObjectID + ", ScriptID: " + ScriptID + ", FunctionName: " + FunctionName);
-            OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);
+            LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(ObjectID, ScriptID);
 
             // Must be done in correct AppDomain, so leaving it up to the script itself
-
             Script.Exec.ExecuteEvent(FunctionName, args);
-
-            //Type type = Script.GetType();
-
-
-            ////foreach (MemberInfo mi in type.GetMembers())
-            ////{
-            ////    Common.SendToDebug("Member found: " + mi.ToString());
-            ////}
-
-            //m_scriptEngine.Log.Verbose("ScriptEngine", "Invoke: \"" + Script.State() + "_event_" + FunctionName + "\"");
-
-            //try
-            //{
-            //    type.InvokeMember(Script.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, Script, args);
-            //}
-            //catch (Exception e)
-            //{
-            //    m_scriptEngine.Log.Error("ScriptEngine", "Exception attempting to executing script function: " + e.ToString());
-            //}
-
-
 
         }
 

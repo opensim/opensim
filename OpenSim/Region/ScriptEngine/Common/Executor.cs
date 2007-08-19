@@ -17,12 +17,24 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private IScript m_Script;
         private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();
+        private bool m_Running = true;
+
 
         public Executor(IScript Script)
         {
             m_Script = Script;
 
         }
+
+        public void StopScript()
+        {
+            m_Running = false;
+        }
+        public AppDomain GetAppDomain()
+        {
+            return AppDomain.CurrentDomain;
+        }
+
         public void ExecuteEvent(string FunctionName, object[] args)
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
@@ -36,7 +48,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             //}
             //}
 
-
+            if (m_Running == false)
+            {
+                // Script is inactive, do not execute!
+                return;
+            }
 
             string EventName = m_Script.State() + "_event_" + FunctionName;
 
