@@ -80,6 +80,7 @@ namespace OpenSim.Region.ClientStack
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;
+        public event RequestAvatarProperties OnRequestAvatarProperties;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
@@ -735,7 +736,6 @@ namespace OpenSim.Region.ClientStack
             int sunPhase = (phase + 2) / 2;
             if ((sunPhase < 12) || (sunPhase > 36))
             {
-
                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, 0.8f, -0.8f);
                 //Console.WriteLine("sending night");
             }
@@ -759,6 +759,22 @@ namespace OpenSim.Region.ClientStack
             OutPacket(viewertime);
         }
 
+        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID)
+        {
+            AvatarPropertiesReplyPacket avatarReply = new AvatarPropertiesReplyPacket();
+            avatarReply.AgentData.AgentID = this.AgentID;
+            avatarReply.AgentData.AvatarID = avatarID;
+            avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
+            avatarReply.PropertiesData.BornOn = Helpers.StringToField(bornOn);
+            avatarReply.PropertiesData.CharterMember = Helpers.StringToField(charterMember);
+            avatarReply.PropertiesData.FLAboutText = Helpers.StringToField(flAbout);
+            avatarReply.PropertiesData.Flags = 0;
+            avatarReply.PropertiesData.FLImageID = flImageID;
+            avatarReply.PropertiesData.ImageID = imageID;
+            avatarReply.PropertiesData.ProfileURL = Helpers.StringToField(profileURL);
+            avatarReply.PropertiesData.PartnerID = partnerID;
+            OutPacket(avatarReply);
+        }
         #endregion
 
         #region Appearance/ Wearables Methods

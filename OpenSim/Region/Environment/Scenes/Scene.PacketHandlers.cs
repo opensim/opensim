@@ -761,6 +761,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="remoteClient"></param>
+        /// <param name="avatarID"></param>
+        public void RequestAvatarProperty(IClientAPI remoteClient, LLUUID avatarID)
+        {
+            string about = "OpenSim crash test dummy";
+            string bornOn = "Before now";
+            string flAbout = "First life? What is one of those? OpenSim is my life!";
+            LLUUID partner = new LLUUID("11111111-1111-0000-0000-000100bba000");
+            remoteClient.SendAvatarProperties(avatarID, about, bornOn, "", flAbout, 0, LLUUID.Zero, LLUUID.Zero, "", partner);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
         /// <param name="xferID"></param>
         /// <param name="fileName"></param>
         public void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName)

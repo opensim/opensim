@@ -44,6 +44,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
     public delegate void TeleportLocationRequest(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
     public delegate void DisconnectUser();
+    public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
 
     public delegate void GenericCall(IClientAPI remoteClient);
     public delegate void GenericCall2();
@@ -103,6 +104,7 @@ namespace OpenSim.Framework.Interfaces
         event RequestMapBlocks OnRequestMapBlocks;
         event TeleportLocationRequest OnTeleportLocationRequest;
         event DisconnectUser OnDisconnectUser;
+        event RequestAvatarProperties OnRequestAvatarProperties;
 
         event GenericCall4 OnDeRezObject;
         event GenericCall OnRegionHandShakeReply;
@@ -226,5 +228,6 @@ namespace OpenSim.Framework.Interfaces
         bool AddMoney( int debit );
 
         void SendViewerTime(int phase);
+        void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
     }
 }

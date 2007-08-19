@@ -22,6 +22,7 @@ namespace OpenSim.Framework
        public event RequestMapBlocks OnRequestMapBlocks;
        public event TeleportLocationRequest OnTeleportLocationRequest;
        public event DisconnectUser OnDisconnectUser;
+       public event RequestAvatarProperties OnRequestAvatarProperties;
 
        public event GenericCall4 OnDeRezObject;
        public event GenericCall OnRegionHandShakeReply;
@@ -158,6 +159,7 @@ namespace OpenSim.Framework
        }
 
        public void SendViewerTime(int phase) { }
+       public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID) { }
    }
 }
 

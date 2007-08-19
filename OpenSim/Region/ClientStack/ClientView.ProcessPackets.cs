@@ -97,19 +97,10 @@ namespace OpenSim.Region.ClientStack
                     #region  Scene/Avatar
                     case PacketType.AvatarPropertiesRequest:
                         AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
-                        AvatarPropertiesReplyPacket avatarReply = new AvatarPropertiesReplyPacket();
-                        avatarReply.AgentData.AgentID = this.AgentID;
-                        avatarReply.AgentData.AvatarID = avatarProperties.AgentData.AvatarID;
-                        avatarReply.PropertiesData.AboutText = Helpers.StringToField( "OpenSim crash test dummy");
-                        avatarReply.PropertiesData.BornOn = Helpers.StringToField("Before now");
-                        avatarReply.PropertiesData.CharterMember = new byte[0];
-                        avatarReply.PropertiesData.FLAboutText = Helpers.StringToField("First life? What is one of those? OpenSim is my life!");
-                        avatarReply.PropertiesData.Flags = 0;
-                        avatarReply.PropertiesData.FLImageID = LLUUID.Zero;
-                        avatarReply.PropertiesData.ImageID = LLUUID.Zero;
-                        avatarReply.PropertiesData.ProfileURL = new byte[0];
-                        avatarReply.PropertiesData.PartnerID = new LLUUID("11111111-1111-0000-0000-000100bba000");
-                        OutPacket(avatarReply);
+                        if (OnRequestAvatarProperties != null)
+                        {
+                            OnRequestAvatarProperties(this, avatarProperties.AgentData.AvatarID);
+                        }
                         break;
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;

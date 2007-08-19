@@ -711,6 +711,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
            // client.OnRequestXfer += RequestXfer;
 
+            client.OnRequestAvatarProperties += RequestAvatarProperty;
+
             client.OnGrabObject += ProcessObjectGrab;
         }
 
