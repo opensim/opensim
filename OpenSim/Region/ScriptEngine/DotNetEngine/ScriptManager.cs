@@ -34,6 +34,7 @@ using System.Reflection;
 using System.Runtime.Remoting;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 using OpenSim.Region.ScriptEngine.Common;
 
@@ -176,7 +177,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
                 
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
-                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName, ObjectID);
+                long before;
+                before = GC.GetTotalMemory(true);
+                LSL_BaseClass Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
+                Console.WriteLine("Script occupies {0} bytes", GC.GetTotalMemory(true) - before);
+                before = GC.GetTotalMemory(true);
+                Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
+                Console.WriteLine("Script occupies {0} bytes", GC.GetTotalMemory(true) - before);
+                before = GC.GetTotalMemory(true);
+                Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
+                Console.WriteLine("Script occupies {0} bytes", GC.GetTotalMemory(true) - before);
                 
 
                 // Add it to our temporary active script keeper
@@ -184,7 +194,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 SetScript(ObjectID, ScriptID, Script);
                 // We need to give (untrusted) assembly a private instance of BuiltIns
                 //  this private copy will contain Read-Only FullScriptID so that it can bring that on to the server whenever needed.
-                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands LSLB = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL_BuiltIn_Commands(this, ObjectID);
+                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(this, ObjectID);
 
                 // Start the script - giving it BuiltIns
                 Script.Start(LSLB);

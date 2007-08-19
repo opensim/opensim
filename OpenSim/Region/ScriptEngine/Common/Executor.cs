@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
-    public class Executor: MarshalByRefObject
+    public class Executor : MarshalByRefObject
     {
         /* TODO:
          * 
@@ -16,10 +16,12 @@ namespace OpenSim.Region.ScriptEngine.Common
          */
 
         private IScript m_Script;
+        private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();
 
         public Executor(IScript Script)
         {
             m_Script = Script;
+
         }
         public void ExecuteEvent(string FunctionName, object[] args)
         {
@@ -34,23 +36,51 @@ namespace OpenSim.Region.ScriptEngine.Common
             //}
             //}
 
-            Type type = m_Script.GetType();
 
-            Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \"" + m_Script.State() + "_event_" + FunctionName + "\"");
 
+            string EventName = m_Script.State() + "_event_" + FunctionName;
+
+            //type.InvokeMember(EventName, BindingFlags.InvokeMethod, null, m_Script, args);
+
+            Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \"" + EventName + "\"");
+
+            if (Events.ContainsKey(EventName) == false)
+            {
+                // Not found, create
+                Type type = m_Script.GetType();
+                try
+                {
+                    MethodInfo mi = type.GetMethod(EventName);
+                    Events.Add(EventName, mi);
+                }
+                catch (Exception e)
+                {
+                    // Event name not found, cache it as not found
+                    Events.Add(EventName, null);
+                }
+            }
+
+            // Get event
+            MethodInfo ev = null;
+            Events.TryGetValue(EventName, out ev);
+
+            if (ev == null) // No event by that name!
+                return;
+
+            // Found
             try
             {
-                type.InvokeMember(m_Script.State() + "_event_" + FunctionName, BindingFlags.InvokeMethod, null, m_Script, args);
+                // Invoke it
+                ev.Invoke(m_Script, args);
+
             }
             catch (Exception e)
             {
                 // TODO: Send to correct place
                 Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
             }
-
-
         }
 
-
     }
+
 }
