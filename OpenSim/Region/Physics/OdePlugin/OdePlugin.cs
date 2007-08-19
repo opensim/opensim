@@ -272,6 +272,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return new PhysicsVector(0,0,0);
+            }
+            set
+            {
+            }
+        }
+
+
         public override PhysicsVector Velocity
         {
             get
@@ -355,15 +367,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdePrim : PhysicsActor
     {
-
         private PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
         private Quaternion _orientation;
-        private IntPtr BoundingCapsule;
-        IntPtr capsule_geom;
-        d.Mass capsule_mass;
+        IntPtr prim_geom;
 
         public OdePrim(OdeScene parent_scene, PhysicsVector pos, PhysicsVector size, Quaternion rotation)
         {
@@ -371,14 +380,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position = pos;
             _size = size;
             _acceleration = new PhysicsVector();
-            d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
-            capsule_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
-            this.BoundingCapsule = d.BodyCreate(OdeScene.world);
-            d.BodySetMass(BoundingCapsule, ref capsule_mass);
-            d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
-            d.GeomSetBody(capsule_geom, BoundingCapsule);
             _orientation = rotation;
+            prim_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
+            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+            d.Quaternion myrot = new d.Quaternion();
+            myrot.W = rotation.w;
+            myrot.X = rotation.x;
+            myrot.Y = rotation.y;
+            myrot.Z = rotation.z;
+            d.GeomSetQuaternion(prim_geom, ref myrot);
         }
+
         public override bool Flying
         {
             get
@@ -387,29 +399,31 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-
             }
         }
+
         public override PhysicsVector Position
         {
             get
             {
-                PhysicsVector pos = new PhysicsVector();
-                //	PhysicsVector vec = this._prim.Position;
-                //pos.X = vec.X;
-                //pos.Y = vec.Y;
-                //pos.Z = vec.Z;
-                return pos;
-
+                return _position;
             }
             set
             {
-                /*PhysicsVector vec = value;
-                PhysicsVector pos = new PhysicsVector();
-                pos.X = vec.X;
-                pos.Y = vec.Y;
-                pos.Z = vec.Z;
-                this._prim.Position = pos;*/
+                _position = value;
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+            }
+        }
+
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return _size;
+            }
+            set
+            {
+                _size = value;
             }
         }
 
@@ -430,11 +444,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             get
             {
                 return false;
-                //return this._prim.Kinematic;
             }
             set
             {
-                //this._prim.Kinematic = value;
             }
         }
 
@@ -447,6 +459,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _orientation = value;
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.W = _orientation.w;
+                myrot.X = _orientation.x;
+                myrot.Y = _orientation.y;
+                myrot.Z = _orientation.z;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
             }
         }
 
@@ -456,8 +474,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 return _acceleration;
             }
-
         }
+
         public void SetAcceleration(PhysicsVector accel)
         {
             this._acceleration = accel;
@@ -465,15 +483,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void AddForce(PhysicsVector force)
         {
-
         }
 
         public override void SetMomentum(PhysicsVector momentum)
         {
-
         }
-
-
     }
-
 }

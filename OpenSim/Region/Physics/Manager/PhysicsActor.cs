@@ -49,6 +49,12 @@ namespace OpenSim.Physics.Manager
             }
         }
 
+        public abstract PhysicsVector Size
+        {
+            get;
+            set;
+        }
+
         public abstract PhysicsVector Position
         {
             get;
@@ -92,6 +98,18 @@ namespace OpenSim.Physics.Manager
     public class NullPhysicsActor : PhysicsActor
     {
         public override PhysicsVector Position
+        {
+            get
+            {
+                return PhysicsVector.Zero;
+            }
+            set
+            {
+                return;
+            }
+        }
+
+        public override PhysicsVector Size
         {
             get
             {

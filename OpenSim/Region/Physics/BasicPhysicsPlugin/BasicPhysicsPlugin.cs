@@ -203,6 +203,17 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             }
         }
 
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return new PhysicsVector(0, 0, 0);
+            }
+            set
+            {
+            }
+        }
+
         public override PhysicsVector Velocity
         {
             get

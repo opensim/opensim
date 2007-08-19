@@ -216,7 +216,17 @@ namespace OpenSim.Region.Physics.PhysXPlugin
                 this._character.Position = ps;
 			}
 		}
-		
+
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return new PhysicsVector(0,0,0);
+            }
+            set
+            {
+            }
+        }
 		public override PhysicsVector Velocity
 		{
 			get
@@ -353,7 +363,18 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 				this._prim.Position = pos;
 			}
 		}
-		
+
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return new PhysicsVector(0, 0, 0);
+            }
+            set
+            {
+            }
+        }
+
 		public override PhysicsVector Velocity
 		{
 			get
