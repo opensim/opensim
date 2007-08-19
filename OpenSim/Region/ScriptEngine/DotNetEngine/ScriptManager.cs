@@ -184,9 +184,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 before = GC.GetTotalMemory(true);
                 Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
                 Console.WriteLine("Script occupies {0} bytes", GC.GetTotalMemory(true) - before);
-                before = GC.GetTotalMemory(true);
-                Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
-                Console.WriteLine("Script occupies {0} bytes", GC.GetTotalMemory(true) - before);
+                //before = GC.GetTotalMemory(true);
+                //Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
+                //Console.WriteLine("Script occupies {0} bytes", GC.GetTotalMemory(true) - before);
                 
 
                 // Add it to our temporary active script keeper

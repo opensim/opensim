@@ -42,11 +42,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     class EventQueueManager
     {
+        /// <summary>
+        /// List of threads processing event queue
+        /// </summary>
         private List<Thread> EventQueueThreads = new List<Thread>();
-        private object QueueLock = new object();
+        private object QueueLock = new object(); // Mutex lock object
+        /// <summary>
+        /// How many ms to sleep if queue is empty
+        /// </summary>
         private int NothingToDoSleepms = 50;
+        /// <summary>
+        /// How many threads to process queue with
+        /// </summary>
         private int NumberOfThreads = 2;
+        /// <summary>
+        /// Queue containing events waiting to be executed
+        /// </summary>
         private Queue<QueueItemStruct> EventQueue = new Queue<QueueItemStruct>();
+        /// <summary>
+        /// Queue item structure
+        /// </summary>
         private struct QueueItemStruct
         {
             public IScriptHost ObjectID;
@@ -55,13 +70,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             public object[] param;
         }
 
+        /// <summary>
+        /// List of ObjectID locks for mutex processing of script events
+        /// </summary>
+        private List<IScriptHost> ObjectLocks = new List<IScriptHost>();
+        private object TryLockLock = new object(); // Mutex lock object
+
         private ScriptEngine myScriptEngine;
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Start");
-            // Start worker thread
 
+            //
+            // Start event queue processing threads (worker threads)
+            //
             for (int ThreadCount = 0; ThreadCount <= NumberOfThreads; ThreadCount++)
             {
                 Thread EventQueueThread = new Thread(EventQueueThreadLoop);
@@ -92,9 +114,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             EventQueueThreads.Clear();
             // Todo: Clean up our queues
+            EventQueue.Clear();
 
         }
 
+        /// <summary>
+        /// Queue processing thread loop
+        /// </summary>
         private void EventQueueThreadLoop()
         {
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
@@ -156,8 +182,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
-        private List<IScriptHost> ObjectLocks = new List<IScriptHost>();
-        private object TryLockLock = new object();
+        /// <summary>
+        /// Try to get a mutex lock on ObjectID
+        /// </summary>
+        /// <param name="ObjectID"></param>
+        /// <returns></returns>
         private bool TryLock(IScriptHost ObjectID)
         {
             lock (TryLockLock)
@@ -174,6 +203,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
+        /// <summary>
+        /// Release mutex lock on ObjectID
+        /// </summary>
+        /// <param name="ObjectID"></param>
         private void ReleaseLock(IScriptHost ObjectID)
         {
             lock (TryLockLock)
@@ -185,6 +218,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
+        /// <summary>
+        /// Add event to event execution queue
+        /// </summary>
+        /// <param name="ObjectID"></param>
+        /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
+        /// <param name="param">Array of parameters to match event mask</param>
         public void AddToObjectQueue(IScriptHost ObjectID, string FunctionName, object[] param)
         {
             // Determine all scripts in Object and add to their queue
@@ -210,10 +249,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 }
             }
-            //public void AddToScriptQueue(string ObjectID, string FunctionName, object[] param)
-            //{
-            //    // Add to script queue
-            //}
+
         }
 
     }
