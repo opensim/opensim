@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private ulong m_regionHandle;
 
-        public bool childAgent = false;
+        public bool childAgent = true;
         public bool IsRestrictedToRegion = false;
 
         private bool newForce = false;
@@ -495,6 +495,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.SendArrearanceToAllOtherAgents();
 
             this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
+            this.ControllingClient.SendViewerTime(this.m_scene.TimePhase);
         }
 
         /// <summary>

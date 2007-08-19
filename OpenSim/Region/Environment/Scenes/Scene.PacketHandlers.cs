@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.Scenes
                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
                     if (hasPrim != false)
                     {
-                        ((SceneObjectGroup)ent).GetPartInventory(remoteClient, primLocalID);
+                        ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
                         break;
                     }
                 }
@@ -755,6 +755,25 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="xferID"></param>
+        /// <param name="fileName"></param>
+        public void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName)
+        {
+            /*
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    ((SceneObjectGroup)ent).RequestInventoryFile(remoteClient, ((SceneObjectGroup)ent).LocalId, xferID);
+                    break;
+                }
+            }*/
         }
 
         /// <summary>

@@ -31,7 +31,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint GroupMask = FULL_MASK_PERMISSIONS;
         public uint EveryoneMask = FULL_MASK_PERMISSIONS;
         public uint BaseMask = FULL_MASK_PERMISSIONS;
-       
+
         protected byte[] m_particleSystem = new byte[0];
 
         protected SceneObjectGroup m_parentGroup;
@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID UUID
         {
             get { return m_uuid; }
-            set { m_uuid = value ; }
+            set { m_uuid = value; }
         }
 
         protected uint m_localID;
@@ -64,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 2048 + 524288 + 268435456 + 128;
+        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 268435456 + 128;
         public uint ObjectFlags
         {
             get { return (uint)m_flags; }
@@ -221,7 +221,6 @@ namespace OpenSim.Region.Environment.Scenes
             this.AngularVelocity = new LLVector3(0, 0, 0);
             this.Acceleration = new LLVector3(0, 0, 0);
 
-            
 
             //temporary code just so the m_flags field doesn't give a compiler warning
             if (m_flags == LLObject.ObjectFlags.AllowInventoryDrop)
@@ -233,6 +232,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Re/create a SceneObjectPart (prim)
+        /// currently not used, and maybe won't be
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="parent"></param>
@@ -396,12 +396,58 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Inventory
-        public void GetInventory(IClientAPI client, uint localID)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="localID"></param>
+        public void GetInventoryFileName(IClientAPI client, uint localID)
         {
             if (localID == this.m_localID)
             {
+               // client.SendTaskInventory(this.m_uuid, 0, Helpers.StringToField("primInventory"));
                 client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="xferID"></param>
+        public void RequestInventoryFile(IClientAPI client, ulong xferID)
+        {
+            // a test item
+            InventoryStringBuilder invString = new InventoryStringBuilder();
+            invString.AddItemStart();
+            invString.AddNameValueLine("item_id", LLUUID.Random().ToStringHyphenated());
+            invString.AddNameValueLine("parent_id", this.UUID.ToStringHyphenated());
+
+            invString.AddPermissionsStart();
+            invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
+            invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
+            invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
+            invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
+            invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
+            invString.AddNameValueLine("creator_id", client.AgentId.ToStringHyphenated());
+            invString.AddNameValueLine("owner_id", client.AgentId.ToStringHyphenated());
+            invString.AddNameValueLine("last_owner_id", LLUUID.Zero.ToStringHyphenated());
+            invString.AddNameValueLine("group_id", LLUUID.Zero.ToStringHyphenated());
+            invString.AddSectionEnd();
+
+            invString.AddNameValueLine("asset_id", "00000000-0000-0000-9999-000000000002");
+            invString.AddNameValueLine("type", "texture");
+            invString.AddNameValueLine("inv_type" , "texture");
+            invString.AddNameValueLine("flags", "0x00");
+            invString.AddNameValueLine("name", "Test inventory" + "|");
+            invString.AddNameValueLine("desc", "test description" + "|");
+            invString.AddNameValueLine("creation_date", "10000");
+            invString.AddSectionEnd();
+
+            byte[] fileInv = Helpers.StringToField(invString.BuildString);
+            byte[] data = new byte[fileInv.Length + 4];
+            Array.Copy(fileInv, 0,data , 4, fileInv.Length);
+            client.SendXferPacket(xferID, 0 + 0x80000000, data);
         }
         #endregion
 
@@ -422,7 +468,7 @@ namespace OpenSim.Region.Environment.Scenes
             Array.Copy(data, 0, this.m_shape.ExtraParams, i, data.Length);
 
             this.ScheduleFullUpdate();
-            
+
         }
         #endregion
 
@@ -497,7 +543,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SendFullUpdate(IClientAPI remoteClient)
         {
-            m_parentGroup.SendPartFullUpdate( remoteClient, this );
+            m_parentGroup.SendPartFullUpdate(remoteClient, this);
         }
 
         /// <summary>
@@ -580,7 +626,46 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetText(string text, Vector3 color, double alpha)
         {
-            Text = text;            
+            Text = text;
+        }
+
+        public class InventoryStringBuilder
+        {
+            public string BuildString = "";
+
+            public InventoryStringBuilder()
+            {
+
+            }
+
+            public void AddItemStart()
+            {
+                BuildString += "\tinv_item\t0\n";
+                BuildString += "\t{\n";
+            }
+
+            public void AddPermissionsStart()
+            {
+                BuildString += "\tpermissions 0\n";
+                BuildString += "\t{\n";
+            }
+
+            public void AddSectionEnd()
+            {
+                BuildString += "\t}\n";
+            }
+
+            public void AddLine(string addLine)
+            {
+                BuildString += addLine;
+            }
+
+            public void AddNameValueLine(string name, string value)
+            {
+                BuildString += "\t\t";
+                BuildString += name + "\t";
+                BuildString += value + "\n";
+            }
         }
     }
 }

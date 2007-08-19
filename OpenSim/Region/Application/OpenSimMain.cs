@@ -340,6 +340,28 @@ namespace OpenSim
                     }
                     break;
 
+                case "save-xml":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_localScenes[0].SavePrimsToXml(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_localScenes[0].SavePrimsToXml("test.xml");
+                    }
+                    break;
+
+                case "load-xml":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_localScenes[0].LoadPrimsFromXml(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_localScenes[0].LoadPrimsFromXml("test.xml");
+                    }
+                    break;
+
                 case "terrain":
                     string result = "";
                     foreach (Scene scene in m_localScenes)
@@ -357,7 +379,7 @@ namespace OpenSim
                         if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
                         {
                             string[] tmpCmdparams = new string[cmdparams.Length - 1];
-                            cmdparams.CopyTo(tmpCmdparams,1);
+                            cmdparams.CopyTo(tmpCmdparams, 1);
 
                             if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result2, scene.RegionInfo.RegionName))
                             {

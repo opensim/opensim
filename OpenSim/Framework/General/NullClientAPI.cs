@@ -59,6 +59,7 @@ namespace OpenSim.Framework
        public event RequestTaskInventory OnRequestTaskInventory;
        public event UDPAssetUploadRequest OnAssetUploadRequest;
        public event XferReceive OnXferReceive;
+       public event RequestXfer OnRequestXfer;
 
        public event UUIDNameRequest OnNameFromUUIDRequest;
 
@@ -140,6 +141,10 @@ namespace OpenSim.Framework
        public virtual void SendInventoryItemUpdate(InventoryItemBase Item) { }
        public virtual void SendRemoveInventoryItem(LLUUID itemID) { }
        public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName) { }
+       public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data) { }
+
+       public virtual void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID) { }
+       public virtual void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags) { }
 
        public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname){}
        public void SendAlertMessage(string message) { }
@@ -151,6 +156,8 @@ namespace OpenSim.Framework
        {
             return false;
        }
+
+       public void SendViewerTime(int phase) { }
    }
 }
 

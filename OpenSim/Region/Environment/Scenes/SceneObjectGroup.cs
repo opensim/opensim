@@ -212,7 +212,6 @@ namespace OpenSim.Region.Environment.Scenes
         public string ToXmlString()
         {
             StringWriter sw = new StringWriter();
-            //StreamWriter st = new StreamWriter("testxml.txt");
             XmlTextWriter writer = new XmlTextWriter(sw);
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
@@ -231,11 +230,7 @@ namespace OpenSim.Region.Environment.Scenes
             writer.WriteEndElement();
             writer.WriteEndElement();
             writer.Close();
-            // System.Console.WriteLine("prim: " + sw.ToString());
             return sw.ToString();
-            //  st.Close();
-            //   return "";
-
         }
 
         #region Copying
@@ -557,12 +552,26 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="localID"></param>
-        public void GetPartInventory(IClientAPI remoteClient, uint localID)
+        public void GetPartInventoryFileName(IClientAPI remoteClient, uint localID)
         {
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                part.GetInventory(remoteClient, localID);
+                part.GetInventoryFileName(remoteClient, localID);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="partID"></param>
+        public void RequestInventoryFile(IClientAPI remoteClient, uint localID, ulong xferID)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                part.RequestInventoryFile(remoteClient, xferID);
             }
         }
 
@@ -636,6 +645,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupPosition(LLVector3 pos)
         {
             this.AbsolutePosition = pos;
+
         }
 
         /// <summary>

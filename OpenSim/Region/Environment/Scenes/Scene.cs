@@ -29,6 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Timers;
+using System.IO;
+using System.Xml;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -65,6 +67,10 @@ namespace OpenSim.Region.Environment.Scenes
         private int storageCount;
         private int terrainCheckCount;
         private int landPrimCheckCount;
+
+        private int m_timePhase = 24;
+        private int m_timeUpdateCount;
+
         private Mutex updateLock;
 
         protected StorageManager storageManager;
@@ -121,6 +127,11 @@ namespace OpenSim.Region.Environment.Scenes
         public Dictionary<LLUUID, SceneObjectGroup> Objects
         {
             get { return Prims; }
+        }
+
+        public int TimePhase
+        {
+            get { return this.m_timePhase; }
         }
 
         #endregion
@@ -299,6 +310,26 @@ namespace OpenSim.Region.Environment.Scenes
                         //Perform land update of prim count
                         performParcelPrimCountUpdate();
                         landPrimCheckCount = 0;
+                    }
+                }
+
+                m_timeUpdateCount++;
+                if (m_timeUpdateCount > 600)
+                {
+                    List<ScenePresence> Avatars = this.RequestAvatarList();
+                    foreach (ScenePresence avatar in Avatars)
+                    {
+                        if (!avatar.childAgent)
+                        {
+                            //Console.WriteLine("sending time update " + timePhase + " from region " + m_regionHandle + " to avatar " + avatar.Firstname);
+                            avatar.ControllingClient.SendViewerTime(m_timePhase);
+                        }
+                    }
+                    m_timeUpdateCount = 0;
+                    m_timePhase++;
+                    if (m_timePhase > 94)
+                    {
+                        m_timePhase = 0;
                     }
                 }
             }
@@ -538,7 +569,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddEntity(SceneObjectGroup sceneObject)
         {
-            if(!Entities.ContainsKey(sceneObject.UUID))
+            if (!Entities.ContainsKey(sceneObject.UUID))
             {
                 Entities.Add(sceneObject.UUID, sceneObject);
             }
@@ -562,6 +593,52 @@ namespace OpenSim.Region.Environment.Scenes
         {
             prim.OnPrimCountTainted += m_LandManager.setPrimsTainted;
         }
+
+        public void LoadPrimsFromXml(string fileName)
+        {
+            XmlDocument doc = new XmlDocument();
+            XmlNode rootNode;
+            int primCount = 0;
+            if (File.Exists(fileName))
+            {
+                XmlTextReader reader = new XmlTextReader(fileName);
+                reader.WhitespaceHandling = WhitespaceHandling.None;
+                doc.Load(reader);
+                reader.Close();
+                rootNode = doc.FirstChild;
+                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
+                {
+                    SceneObjectGroup obj = new SceneObjectGroup(this,
+                                this.m_regionHandle, aPrimNode.OuterXml);
+                    AddEntity(obj);
+                    primCount++;
+                }
+            }
+            else
+            {
+                throw new Exception("Could not open file " + fileName + " for reading");
+            }
+        }
+
+        public void SavePrimsToXml(string fileName)
+        {
+            FileStream file = new FileStream(fileName, FileMode.Create);
+            StreamWriter stream = new StreamWriter(file);
+            int primCount = 0;
+            stream.WriteLine("<scene>\n");
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    stream.WriteLine(((SceneObjectGroup)ent).ToXmlString());
+                    primCount++;
+                }
+            }
+            stream.WriteLine("</scene>\n");
+            stream.Close();
+            file.Close();
+        }
+
 
         #endregion
 
@@ -632,6 +709,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnFetchInventory += commsManager.UserProfiles.HandleFetchInventory;
             client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
+           // client.OnRequestXfer += RequestXfer;
 
             client.OnGrabObject += ProcessObjectGrab;
         }
@@ -950,7 +1028,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AgentCircuitData agent = remoteClient.RequestClientInfo();
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
-//                    agent.startpos = new LLVector3(128, 128, 70);
+                    //                    agent.startpos = new LLVector3(128, 128, 70);
                     agent.startpos = position;
                     agent.child = true;
                     commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
@@ -1121,7 +1199,15 @@ namespace OpenSim.Region.Environment.Scenes
                         item.assetID = asset.FullID;
                         userInfo.UpdateItem(remoteClient.AgentId, item);
 
-                       // remoteClient.SendInventoryItemUpdate(item);
+                        // remoteClient.SendInventoryItemUpdate(item);
+                        if (item.invType == 7)
+                        {
+                            //do we want to know about updated note cards?
+                        }
+                        else if (item.invType == 10)
+                        {
+                            // do we want to know about updated scripts
+                        }
 
                         return (asset.FullID);
                     }

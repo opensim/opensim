@@ -89,6 +89,7 @@ namespace OpenSim.Framework.Interfaces
 
     public delegate void UDPAssetUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data);
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
+    public delegate void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName);
 
     public interface IClientAPI
     {
@@ -140,6 +141,7 @@ namespace OpenSim.Framework.Interfaces
         event RequestTaskInventory OnRequestTaskInventory;
         event UDPAssetUploadRequest OnAssetUploadRequest;
         event XferReceive OnXferReceive;
+        event RequestXfer OnRequestXfer;
 
         event UUIDNameRequest OnNameFromUUIDRequest;
 
@@ -212,11 +214,17 @@ namespace OpenSim.Framework.Interfaces
         void SendInventoryItemUpdate(InventoryItemBase Item);
         void SendRemoveInventoryItem(LLUUID itemID);
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
+        void SendXferPacket(ulong xferID, uint packet, byte[] data);
+
+        void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID);
+        void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags);
 
         void SendNameReply(LLUUID profileId, string firstname, string lastname);
         void SendAlertMessage(string message);
         void SendAgentAlertMessage(string message, bool modal);
         void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
         bool AddMoney( int debit );
+
+        void SendViewerTime(int phase);
     }
 }

@@ -62,10 +62,8 @@ namespace OpenSim
             ArgvConfigSource configSource = new ArgvConfigSource(args);
 
             configSource.AddSwitch("Startup", "inifile");
-            configSource.AddSwitch("Startup", "configfile");
             configSource.AddSwitch("Startup", "gridmode");
             configSource.AddSwitch("Startup", "physics");
-            configSource.AddSwitch("Startup", "config");
             configSource.AddSwitch("Startup", "noverbose");
 
             OpenSimMain sim = new OpenSimMain(configSource);

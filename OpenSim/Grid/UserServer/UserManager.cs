@@ -114,7 +114,7 @@ namespace OpenSim.Grid.UserServer
         }
 
         #region XMLRPC User Methods
-        //should most likely move out of here and into the grid's userserver sub class
+
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();

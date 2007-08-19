@@ -95,6 +95,22 @@ namespace OpenSim.Region.ClientStack
                         break;
 
                     #region  Scene/Avatar
+                    case PacketType.AvatarPropertiesRequest:
+                        AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
+                        AvatarPropertiesReplyPacket avatarReply = new AvatarPropertiesReplyPacket();
+                        avatarReply.AgentData.AgentID = this.AgentID;
+                        avatarReply.AgentData.AvatarID = avatarProperties.AgentData.AvatarID;
+                        avatarReply.PropertiesData.AboutText = Helpers.StringToField( "OpenSim crash test dummy");
+                        avatarReply.PropertiesData.BornOn = Helpers.StringToField("Before now");
+                        avatarReply.PropertiesData.CharterMember = new byte[0];
+                        avatarReply.PropertiesData.FLAboutText = Helpers.StringToField("First life? What is one of those? OpenSim is my life!");
+                        avatarReply.PropertiesData.Flags = 0;
+                        avatarReply.PropertiesData.FLImageID = LLUUID.Zero;
+                        avatarReply.PropertiesData.ImageID = LLUUID.Zero;
+                        avatarReply.PropertiesData.ProfileURL = new byte[0];
+                        avatarReply.PropertiesData.PartnerID = new LLUUID("11111111-1111-0000-0000-000100bba000");
+                        OutPacket(avatarReply);
+                        break;
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
                         if (Util.FieldToString(inchatpack.ChatData.Message) == "")
@@ -128,7 +144,7 @@ namespace OpenSim.Region.ClientStack
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
                         if (OnRezObject != null)
                         {
-                            this.OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);                       
+                            this.OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);
                         }
                         break;
                     case PacketType.DeRezObject:
@@ -366,7 +382,11 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.RequestXfer:
-                        //Console.WriteLine(Pack.ToString());
+                        RequestXferPacket xferReq = (RequestXferPacket)Pack;
+                        if (OnRequestXfer != null)
+                        {
+                            OnRequestXfer(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
+                        }
                         break;
                     case PacketType.SendXferPacket:
                         SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;

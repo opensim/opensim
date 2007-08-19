@@ -12,12 +12,12 @@ namespace OpenSim.Framework.Types
         RightTriangle = 4,
         HalfCircle = 5
     }
-    
+
     public enum HollowShape : byte
     {
         Same = 0,
         Circle = 16,
-            Square =32,
+        Square = 32,
         Triangle = 48
     }
 
@@ -26,7 +26,7 @@ namespace OpenSim.Framework.Types
         Primitive = 9,
         Avatar = 47
     }
-    
+
     public enum Extrusion : byte
     {
         Straight = 16,
@@ -34,11 +34,11 @@ namespace OpenSim.Framework.Types
         Curve2 = 48,
         Flexible = 128
     }
-    
+
     public class PrimitiveBaseShape
     {
         private static byte[] m_defaultTextureEntry;
-        
+
         public byte PCode;
         public ushort PathBegin;
         public ushort PathEnd;
@@ -100,14 +100,14 @@ namespace OpenSim.Framework.Types
         {
             m_defaultTextureEntry = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005")).ToBytes();
         }
-        
+
         public PrimitiveBaseShape()
         {
             PCode = (byte)PCodeEnum.Primitive;
             ExtraParams = new byte[1];
             TextureEntry = m_defaultTextureEntry;
         }
-        
+
         //void returns need to change of course
         public virtual void GetMesh()
         {
@@ -121,11 +121,12 @@ namespace OpenSim.Framework.Types
     }
 
     public class GenericShape : PrimitiveBaseShape
-    {        
-        public GenericShape() : base()
+    {
+        public GenericShape()
+            : base()
         {
-            
-        }                       
+
+        }
     }
 
     public class BoxShape : PrimitiveBaseShape
@@ -133,7 +134,7 @@ namespace OpenSim.Framework.Types
         public BoxShape()
             : base()
         {
-            PathCurve = (byte) Extrusion.Straight;
+            PathCurve = (byte)Extrusion.Straight;
             ProfileShape = ProfileShape.Square;
             PathScaleX = 100;
             PathScaleY = 100;
@@ -156,8 +157,8 @@ namespace OpenSim.Framework.Types
             {
                 BoxShape boxShape = new BoxShape();
 
-                boxShape.SetSide( 0.5f );
-                
+                boxShape.SetSide(0.5f);
+
                 return boxShape;
             }
         }
@@ -182,12 +183,12 @@ namespace OpenSim.Framework.Types
 
         private void SetHeigth(float heigth)
         {
-            Scale.Z = heigth;            
+            Scale.Z = heigth;
         }
 
         private void SetRadius(float radius)
         {
-            Scale.X = Scale.Y = radius*2f;
+            Scale.X = Scale.Y = radius * 2f;
         }
     }
 }

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
 
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.LandManagement;
@@ -38,7 +41,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
             //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
-            
+
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
             shapeDa = new SqliteDataAdapter(shapeSelectCmd);
             // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
@@ -55,12 +58,12 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable prims = ds.Tables["prims"];
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
             setupPrimCommands(primDa, conn);
-            
+
             // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
             DataTable shapes = ds.Tables["primshapes"];
             shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
             setupShapeCommands(shapeDa, conn);
-            
+
             return;
         }
 
@@ -158,7 +161,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return data;
         }
 
-        private SqliteCommand createInsertCommand(string table, Dictionary<string, DbType> defs) 
+        private SqliteCommand createInsertCommand(string table, Dictionary<string, DbType> defs)
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -171,7 +174,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
              */
             string[] cols = new string[defs.Keys.Count];
             defs.Keys.CopyTo(cols, 0);
-            
+
             string sql = "insert into " + table + "(";
             sql += String.Join(", ", cols);
             // important, the first ':' needs to be here, the rest get added in the join
@@ -179,21 +182,24 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             sql += String.Join(", :", cols);
             sql += ")";
             SqliteCommand cmd = new SqliteCommand(sql);
-            
+
             // this provides the binding for all our parameters, so
             // much less code than it used to be
-            foreach (KeyValuePair<string, DbType> kvp in defs) {
+            foreach (KeyValuePair<string, DbType> kvp in defs)
+            {
                 cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
             }
             return cmd;
         }
 
-        private SqliteCommand createUpdateCommand(string table, string pk, Dictionary<string, DbType> defs) 
+        private SqliteCommand createUpdateCommand(string table, string pk, Dictionary<string, DbType> defs)
         {
             string sql = "update " + table + " set ";
             string subsql = "";
-            foreach (string key in defs.Keys) {
-                if (subsql.Length > 0) { // a map function would rock so much here
+            foreach (string key in defs.Keys)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
                     subsql += ", ";
                 }
                 subsql += key + "= :" + key;
@@ -204,7 +210,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
-            foreach (KeyValuePair<string, DbType> kvp in defs) {
+            foreach (KeyValuePair<string, DbType> kvp in defs)
+            {
                 cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
             }
             return cmd;
@@ -213,13 +220,13 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             Dictionary<string, DbType> primDataDefs = createPrimDataDefs();
-            
+
             da.InsertCommand = createInsertCommand("prims", primDataDefs);
             da.InsertCommand.Connection = conn;
 
             da.UpdateCommand = createUpdateCommand("prims", "UUID=:UUID", primDataDefs);
             da.UpdateCommand.Connection = conn;
-            
+
             SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
             delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
             delete.Connection = conn;
@@ -229,13 +236,13 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             Dictionary<string, DbType> shapeDataDefs = createShapeDataDefs();
-            
+
             da.InsertCommand = createInsertCommand("primshapes", shapeDataDefs);
             da.InsertCommand.Connection = conn;
 
             da.UpdateCommand = createUpdateCommand("primshapes", "UUID=:UUID", shapeDataDefs);
             da.UpdateCommand.Connection = conn;
-            
+
             SqliteCommand delete = new SqliteCommand("delete from primshapes where UUID = :UUID");
             delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
             delete.Connection = conn;
@@ -271,8 +278,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
             // vectors
             prim.OffsetPosition = new LLVector3(
-                                                Convert.ToSingle(row["PositionX"]), 
-                                                Convert.ToSingle(row["PositionY"]), 
+                                                Convert.ToSingle(row["PositionX"]),
+                                                Convert.ToSingle(row["PositionY"]),
                                                 Convert.ToSingle(row["PositionZ"])
                                                 );
             prim.GroupPosition = new LLVector3(
@@ -306,7 +313,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return prim;
         }
 
-        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID) 
+        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID)
         {
             row["UUID"] = prim.UUID;
             row["ParentID"] = prim.ParentID;
@@ -383,11 +390,22 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
             // s.TextureEntry = (byte[])row["Texture"];
-            
-            //following hack will only save the default face texture, any other textures on other faces
-            //won't be saved or restored.
-           LLObject.TextureEntry  texture = new LLObject.TextureEntry( new LLUUID((string)row["Texture"]));
-           s.TextureEntry = texture.ToBytes();
+
+            string texture = (string)row["Texture"];
+            if (!texture.StartsWith("<"))
+            {
+                //here so that we can still work with old format database files (ie from before I added xml serialization)
+                 LLObject.TextureEntry textureEntry = null;
+                textureEntry = new LLObject.TextureEntry(new LLUUID(texture));
+                s.TextureEntry = textureEntry.ToBytes();
+            }
+            else
+            {
+                TextureBlock textureEntry = TextureBlock.FromXmlString(texture);
+                s.TextureEntry = textureEntry.TextureData;
+                s.ExtraParams = textureEntry.ExtraParams;
+            }
+
             return s;
         }
 
@@ -428,34 +446,41 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // And I couldn't work out how to save binary data either
             // seems that the texture colum is being treated as a string in the Datarow 
             // if you do a .getType() on it, it returns string, while the other columns return correct type
-            //following hack will only save the default face texture, any other textures on other faces
-            //won't be saved or restored.
             // MW[10-08-07]
-            LLObject.TextureEntry text = new LLObject.TextureEntry(s.TextureEntry, 0, s.TextureEntry.Length);
-            row["Texture"] = text.DefaultTexture.TextureID.ToStringHyphenated();
-
+            // Added following xml hack but not really ideal , also ExtraParams isn't currently part of the database
+            // am a bit worried about adding it now as some people will have old format databases, so for now including that data in this xml data
+            // MW[17-08-07]
+            TextureBlock textureBlock = new TextureBlock(s.TextureEntry);
+            textureBlock.ExtraParams = s.ExtraParams;
+            row["Texture"] = textureBlock.ToXMLString();
         }
 
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
-            
+
             DataRow primRow = prims.Rows.Find(prim.UUID);
-            if (primRow == null) {
+            if (primRow == null)
+            {
                 primRow = prims.NewRow();
                 fillPrimRow(primRow, prim, sceneGroupID);
                 prims.Rows.Add(primRow);
-            } else {
+            }
+            else
+            {
                 fillPrimRow(primRow, prim, sceneGroupID);
             }
 
             DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-            if (shapeRow == null) {
+            if (shapeRow == null)
+            {
                 shapeRow = shapes.NewRow();
                 fillShapeRow(shapeRow, prim);
                 shapes.Rows.Add(shapeRow);
-            } else {
+            }
+            else
+            {
                 fillShapeRow(shapeRow, prim);
             }
         }
@@ -466,11 +491,11 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             {
                 addPrim(prim, obj.UUID);
             }
-            
-           // MainLog.Instance.Verbose("Attempting to do database update....");
+
+            // MainLog.Instance.Verbose("Attempting to do database update....");
             primDa.Update(ds, "prims");
             shapeDa.Update(ds, "primshapes");
-           // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
+            // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
 
         public void RemoveObject(LLUUID obj)
@@ -502,7 +527,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
-            
+
             foreach (DataRow primRow in prims.Rows)
             {
                 string uuid = (string)primRow["UUID"];
@@ -548,7 +573,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
             return retvals;
         }
-        
+
         public void StoreTerrain(double[,] ter)
         {
 
@@ -577,6 +602,43 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         public void Shutdown()
         {
             // TODO: DataSet commit
+        }
+
+        public class TextureBlock
+        {
+            public byte[] TextureData;
+            public byte[] ExtraParams = new byte[1];
+
+            public TextureBlock(byte[] data)
+            {
+                TextureData = data;
+            }
+
+            public TextureBlock()
+            {
+
+            }
+
+            public string ToXMLString()
+            {
+                StringWriter sw = new StringWriter();
+                XmlTextWriter writer = new XmlTextWriter(sw);
+                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+                serializer.Serialize(writer, this);
+                return sw.ToString();
+            }
+
+            public static TextureBlock FromXmlString(string xmlData)
+            {
+                TextureBlock textureEntry = null;
+                StringReader sr = new StringReader(xmlData);
+                XmlTextReader reader = new XmlTextReader(sr);
+                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+                textureEntry = (TextureBlock)serializer.Deserialize(reader);
+                reader.Close();
+                sr.Close();
+                return textureEntry;
+            }
         }
     }
 }
