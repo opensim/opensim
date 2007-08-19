@@ -5,6 +5,10 @@ using System.Reflection;
 using System.Threading;
 using System.Runtime.Remoting;
 using System.IO;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
+using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -51,7 +55,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// Find a free AppDomain, creating one if necessary
         /// </summary>
         /// <returns>Free AppDomain</returns>
-        internal AppDomain GetFreeAppDomain()
+        private AppDomainStructure GetFreeAppDomain()
         {
             FreeAppDomains();
             lock(GetLock) {
@@ -78,9 +82,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // - We assume that every time someone wants an AppDomain they will load into it
                 //   if this assumption is wrong we end up with a miscount and will never unload it.
                 //   
-                CurrentAD.ScriptsLoaded++;
+                
                 // Return AppDomain
-                return CurrentAD.CurrentAppDomain;
+                return CurrentAD;
             } // lock
         }
 
@@ -136,13 +140,37 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 } // foreach
             } // lock
         }
+        
+
+
+        public OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadScript(string FileName, IScriptHost host) 
+        {
+            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
+            //Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
+            // * Find next available AppDomain to put it in
+            AppDomainStructure FreeAppDomain = GetFreeAppDomain();
+            
+
+            LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            //LSL_BuiltIn_Commands_Interface mbrt = (LSL_BuiltIn_Commands_Interface)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            //Type mytype = mbrt.GetType();
+            //Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
+
+            FreeAppDomain.ScriptsLoaded++;
+
+            //mbrt.Start();
+            return mbrt;
+            //return (LSL_BaseClass)mbrt;
+
+        }
+
 
         /// <summary>
         /// Increase "dead script" counter for an AppDomain
         /// </summary>
         /// <param name="ad"></param>
-        [Obsolete("Needs optimizing!!!")]
-        public void StopScriptInAppDomain(AppDomain ad)
+        [Obsolete("Needs fixing!!!")]
+        public void StopScript(AppDomain ad)
         {
             lock (FreeLock)
             {
@@ -169,6 +197,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 } // foreach
             } // lock
         }
+
 
     }
 }

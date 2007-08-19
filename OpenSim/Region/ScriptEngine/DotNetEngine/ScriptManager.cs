@@ -172,15 +172,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // * Insert yield into code
                 FileName = ProcessYield(FileName);
 
-                // * Find next available AppDomain to put it in
-                AppDomain FreeAppDomain = m_scriptEngine.myAppDomainManager.GetFreeAppDomain();
 
-                // * Load and start script, for now with dummy host
-                
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName);
                 
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
-                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, ObjectID);
+                OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName, ObjectID);
+                
 
                 // Add it to our temporary active script keeper
                 //Scripts.Add(FullScriptID, Script);
@@ -207,30 +204,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return FileName;
         }
 
-        /// <summary>
-        /// Does actual loading and initialization of script Assembly
-        /// </summary>
-        /// <param name="FreeAppDomain">AppDomain to load script into</param>
-        /// <param name="FileName">FileName of script assembly (.dll)</param>
-        /// <returns></returns>
-        private OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadAndInitAssembly(AppDomain FreeAppDomain, string FileName, IScriptHost host)
-        {
 
-            //LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceAndUnwrap(FileName, "SecondLife.Script");
-            //Console.WriteLine("Base directory: " + AppDomain.CurrentDomain.BaseDirectory);
-
-            LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
-            //LSL_BuiltIn_Commands_Interface mbrt = (LSL_BuiltIn_Commands_Interface)FreeAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
-            Type mytype = mbrt.GetType();
-
-            Console.WriteLine("is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
-
-
-            //mbrt.Start();
-            return mbrt;
-            //return (LSL_BaseClass)mbrt;
-
-        }
 
         /// <summary>
         /// Execute a LL-event-function in Script
