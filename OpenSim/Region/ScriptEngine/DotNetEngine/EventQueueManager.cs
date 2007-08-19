@@ -42,8 +42,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     class EventQueueManager
     {
-        private Thread EventQueueThread;
-        private int NothingToDoSleepms = 200;
+        private List<Thread> EventQueueThreads = new List<Thread>();
+        private object QueueLock = new object();
+        private int NothingToDoSleepms = 50;
+        private int NumberOfThreads = 2;
         private Queue<QueueItemStruct> EventQueue = new Queue<QueueItemStruct>();
         private struct QueueItemStruct
         {
@@ -59,26 +61,36 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             myScriptEngine = _ScriptEngine;
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Start");
             // Start worker thread
-            EventQueueThread = new Thread(EventQueueThreadLoop);
-            EventQueueThread.IsBackground = true;
-            EventQueueThread.Name = "EventQueueManagerThread";
-            EventQueueThread.Start();
+
+            for (int ThreadCount = 0; ThreadCount <= NumberOfThreads; ThreadCount++)
+            {
+                Thread EventQueueThread = new Thread(EventQueueThreadLoop);
+                EventQueueThreads.Add(EventQueueThread);
+                EventQueueThread.IsBackground = true;
+                EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
+                EventQueueThread.Start();
+            }
         }
         ~EventQueueManager()
         {
-            // Kill worker thread
-            if (EventQueueThread != null && EventQueueThread.IsAlive == true)
+
+            // Kill worker threads
+            foreach (Thread EventQueueThread in new System.Collections.ArrayList(EventQueueThreads))
             {
-                try
+                if (EventQueueThread != null && EventQueueThread.IsAlive == true)
                 {
-                    EventQueueThread.Abort();
-                    EventQueueThread.Join();
-                }
-                catch (Exception e)
-                {
-                    myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
+                    try
+                    {
+                        EventQueueThread.Abort();
+                        EventQueueThread.Join();
+                    }
+                    catch (Exception e)
+                    {
+                        myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
+                    }
                 }
             }
+            EventQueueThreads.Clear();
             // Todo: Clean up our queues
 
         }
@@ -88,8 +100,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
             try
             {
+                QueueItemStruct BlankQIS = new QueueItemStruct();
                 while (true)
                 {
+                    QueueItemStruct QIS = BlankQIS;
+                    bool GotItem = false;
+
                     if (EventQueue.Count == 0)
                     {
                         // Nothing to do? Sleep a bit waiting for something to do
@@ -98,16 +114,74 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     else
                     {
                         // Something in queue, process
-                        QueueItemStruct QIS = EventQueue.Dequeue();
                         //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
-                        // TODO: Execute function
-                        myScriptEngine.myScriptManager.ExecuteEvent(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
-                    }
-                }
-            }
+
+                        // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
+                        lock (QueueLock)
+                        {
+                            GotItem = false;
+                            for (int qc = 0; qc < EventQueue.Count; qc++)
+                            {
+                                // Get queue item
+                                QIS = EventQueue.Dequeue();
+
+                                // Check if object is being processed by someone else
+                                if (TryLock(QIS.ObjectID) == false)
+                                {
+                                    // Object is already being processed, requeue it
+                                    EventQueue.Enqueue(QIS);
+                                }
+                                else
+                                {
+                                    // We have lock on an object and can process it
+                                    GotItem = true;
+                                    break;
+                                }
+                            } // go through queue
+                        } // lock
+
+                        if (GotItem == true)
+                        {
+                            // Execute function
+                            myScriptEngine.myScriptManager.ExecuteEvent(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
+                            ReleaseLock(QIS.ObjectID);
+                        }
+
+                    } // Something in queue
+                } // while
+            } // try
             catch (ThreadAbortException tae)
             {
                 myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Worker thread killed: " + tae.Message);
+            }
+        }
+
+        private List<IScriptHost> ObjectLocks = new List<IScriptHost>();
+        private object TryLockLock = new object();
+        private bool TryLock(IScriptHost ObjectID)
+        {
+            lock (TryLockLock)
+            {
+                if (ObjectLocks.Contains(ObjectID) == true)
+                {
+                    return false;
+                }
+                else
+                {
+                    ObjectLocks.Add(ObjectID);
+                    return true;
+                }
+            }
+        }
+
+        private void ReleaseLock(IScriptHost ObjectID)
+        {
+            lock (TryLockLock)
+            {
+                if (ObjectLocks.Contains(ObjectID) == true)
+                {
+                    ObjectLocks.Remove(ObjectID);
+                }
             }
         }
 
@@ -116,27 +190,31 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);
 
-            foreach (string ScriptID in myScriptEngine.myScriptManager.GetScriptKeys(ObjectID))
+            lock (QueueLock)
             {
-                // Add to each script in that object
-                // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
 
-                // Create a structure and add data
-                QueueItemStruct QIS = new QueueItemStruct();
-                QIS.ObjectID = ObjectID;
-                QIS.ScriptID = ScriptID;
-                QIS.FunctionName = FunctionName;
-                QIS.param = param;
+                foreach (string ScriptID in myScriptEngine.myScriptManager.GetScriptKeys(ObjectID))
+                {
+                    // Add to each script in that object
+                    // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
 
-                // Add it to queue
-                EventQueue.Enqueue(QIS);
-                
+                    // Create a structure and add data
+                    QueueItemStruct QIS = new QueueItemStruct();
+                    QIS.ObjectID = ObjectID;
+                    QIS.ScriptID = ScriptID;
+                    QIS.FunctionName = FunctionName;
+                    QIS.param = param;
+
+                    // Add it to queue
+                    EventQueue.Enqueue(QIS);
+
+                }
             }
+            //public void AddToScriptQueue(string ObjectID, string FunctionName, object[] param)
+            //{
+            //    // Add to script queue
+            //}
         }
-        //public void AddToScriptQueue(string ObjectID, string FunctionName, object[] param)
-        //{
-        //    // Add to script queue
-        //}
 
     }
 }
