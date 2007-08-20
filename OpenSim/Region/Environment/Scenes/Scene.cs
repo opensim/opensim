@@ -694,11 +694,9 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_LandManager.handleParcelPropertiesRequest);
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_LandManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_LandManager.handleParcelJoinRequest);
-            client.OnParcelPropertiesUpdateRequest +=
-                new ParcelPropertiesUpdateRequest(m_LandManager.handleParcelPropertiesUpdateRequest);
+            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(m_LandManager.handleParcelPropertiesUpdateRequest);
             client.OnParcelSelectObjects += new ParcelSelectObjects(m_LandManager.handleParcelSelectObjectsRequest);
-            client.OnParcelObjectOwnerRequest +=
-                new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
+            client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 

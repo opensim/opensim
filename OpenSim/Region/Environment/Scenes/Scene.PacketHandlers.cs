@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="timestamp"></param>
         /// <param name="fromAgentName"></param>
         /// <param name="message"></param>
-        public void InstantMessage(LLUUID fromAgentID, LLUUID toAgentID, uint timestamp, string fromAgentName, string message)
+        public void InstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp, string fromAgentName, string message, byte dialog)
         {
             if (this.Avatars.ContainsKey(toAgentID))
             {
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence fromAvatar = this.Avatars[fromAgentID];
                     ScenePresence toAvatar = this.Avatars[toAgentID];
                     string fromName = fromAvatar.Firstname + " " + fromAvatar.Lastname;
-                    toAvatar.ControllingClient.SendInstantMessage(message, toAgentID, fromName);
+                    toAvatar.ControllingClient.SendInstantMessage( fromAgentID, fromAgentSession, message, toAgentID, imSessionID, fromName, dialog, timestamp);
                 }
                 else
                 {

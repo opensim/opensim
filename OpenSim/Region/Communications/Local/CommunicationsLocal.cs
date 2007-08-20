@@ -98,7 +98,7 @@ namespace OpenSim.Region.Communications.Local
                     if (userProf != null)
                     {
                         this.InvenServices.CreateNewUserInventory(userProf.UUID);
-                        Console.WriteLine("created new inventory set for " + tempfirstname + " " + templastname);
+                        Console.WriteLine("Created new inventory set for " + tempfirstname + " " + templastname);
                     }
                     break;
             }

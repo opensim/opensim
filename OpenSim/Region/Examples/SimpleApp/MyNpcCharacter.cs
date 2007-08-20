@@ -130,7 +130,7 @@ namespace SimpleApp
         public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId) { }
         public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID) { }
         public virtual void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID) { }
-        public virtual void SendInstantMessage(string message, LLUUID target, string fromName) { }
+        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent, LLUUID imSessionID, string fromName, byte dialog, uint timeStamp) { }
         public virtual void SendLayerData(float[] map) { }
         public virtual void SendLayerData(int px, int py, float[] map) { }
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look) { }

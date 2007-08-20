@@ -273,23 +273,5 @@ namespace OpenSim.Region.ClientStack
             this.ClientThread.Abort();
         }
 
-        #region Inventory Creation
-        private void SetupInventory(AuthenticateResponse sessionInfo)
-        {
-
-        }
-        private AgentInventory CreateInventory(LLUUID baseFolder)
-        {
-            AgentInventory inventory = null;
-
-            return inventory;
-        }
-
-        private void CreateInventoryItem(CreateInventoryItemPacket packet)
-        {
-
-        }
-        #endregion
-
     }
 }

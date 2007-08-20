@@ -121,14 +121,12 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.ImprovedInstantMessage:
                         ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
-
                         string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                         string IMmessage = Util.FieldToString(msgpack.MessageBlock.Message);
-
                         if (OnInstantMessage != null)
                         {
-                            this.OnInstantMessage(msgpack.AgentData.AgentID, msgpack.MessageBlock.ToAgentID,
-                                msgpack.MessageBlock.Timestamp, IMfromName, IMmessage);
+                            this.OnInstantMessage(msgpack.AgentData.AgentID, msgpack.AgentData.SessionID, msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
+                                msgpack.MessageBlock.Timestamp, IMfromName, IMmessage, msgpack.MessageBlock.Dialog);
                         }
                         break;
                     case PacketType.RezObject:
@@ -235,7 +233,6 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-
                             OnAddPrim(this.AgentId, addPacket.ObjectData.RayEnd, shape);
                         }
                         break;
@@ -460,8 +457,11 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
-                        // Console.WriteLine(Pack.ToString());
+                         //Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
+                        break;
+                    case PacketType.RezScript:
+                        //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.MapLayerRequest:
                         this.RequestMapLayer();

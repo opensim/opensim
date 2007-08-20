@@ -268,29 +268,27 @@ namespace OpenSim.Region.ClientStack
         /// <remarks>TODO</remarks>
         /// <param name="message"></param>
         /// <param name="target"></param>
-        public void SendInstantMessage(string message, LLUUID target, string fromName)
+        public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent, LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
-            if (message != "typing")
-            {
+
                 Encoding enc = Encoding.ASCII;
                 ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
-                msg.AgentData.AgentID = this.AgentID;
-                msg.AgentData.SessionID = this.SessionID;
+                msg.AgentData.AgentID = fromAgent;
+                msg.AgentData.SessionID = fromAgentSession;
                 msg.MessageBlock.FromAgentName = enc.GetBytes(fromName + " \0");
-                msg.MessageBlock.Dialog = 0;
+                msg.MessageBlock.Dialog = dialog;
                 msg.MessageBlock.FromGroup = false;
-                msg.MessageBlock.ID = target.Combine(this.SecureSessionID);
+                msg.MessageBlock.ID = imSessionID;
                 msg.MessageBlock.Offline = 0;
                 msg.MessageBlock.ParentEstateID = 0;
                 msg.MessageBlock.Position = new LLVector3();
-                msg.MessageBlock.RegionID = new LLUUID();
-                msg.MessageBlock.Timestamp = 0;
-                msg.MessageBlock.ToAgentID = target;
+                msg.MessageBlock.RegionID = LLUUID.Random();
+                msg.MessageBlock.Timestamp = timeStamp;
+                msg.MessageBlock.ToAgentID = toAgent;
                 msg.MessageBlock.Message = enc.GetBytes(message + "\0");
                 msg.MessageBlock.BinaryBucket = new byte[0];
 
                 this.OutPacket(msg);
-            }
         }
 
         /// <summary>
@@ -927,7 +925,7 @@ namespace OpenSim.Region.ClientStack
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
-            outPacket.RegionData.TimeDilation = timeDilation;
+            outPacket.RegionData.TimeDilation =  timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
 
             outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, flags);
@@ -938,6 +936,9 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].Text = Helpers.StringToField(text);
             outPacket.ObjectData[0].ParentID = parentID;
             outPacket.ObjectData[0].PSBlock = particleSystem;
+            outPacket.ObjectData[0].ClickAction = 0;
+            //outPacket.ObjectData[0].Flags = 0;
+            outPacket.ObjectData[0].Radius = 20;
 
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
@@ -1045,6 +1046,7 @@ namespace OpenSim.Region.ClientStack
             bytes[i++] = (byte)((ac >> 8) % 256);
 
             dat.Data = bytes;
+
             return (dat);
         }
 
@@ -1196,7 +1198,7 @@ namespace OpenSim.Region.ClientStack
             ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
             SetDefaultAvatarPacketValues(ref objdata);
-            objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);
+            objdata.UpdateFlags =  61 + (9 << 8) + (130 << 16) + (16 << 24);
             objdata.PathCurve = 16;
             objdata.ProfileCurve = 1;
             objdata.PathScaleX = 100;
