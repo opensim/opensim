@@ -47,10 +47,10 @@ namespace OpenSim.Region.Interfaces
         /// <param name="dbname">The name of the database to store to (may not be applicable)</param>
         void Initialise(string filename, string dbname);
 
-        void StoreObject(SceneObjectGroup obj);
-        void RemoveObject(LLUUID uuid);
+        void StoreObject(SceneObjectGroup obj, LLUUID regionUUID);
+        void RemoveObject(LLUUID uuid, LLUUID regionUUID);
 
-        List<SceneObjectGroup> LoadObjects();
+        List<SceneObjectGroup> LoadObjects(LLUUID regionUUID);
 
         void StoreTerrain(double[,] terrain);
         double[,] LoadTerrain();

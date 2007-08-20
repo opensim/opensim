@@ -18,17 +18,17 @@ namespace OpenSim.DataStore.NullStorage
             return;
         }
 
-        public void StoreObject(SceneObjectGroup obj)
+        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
 
         }
 
-        public void RemoveObject(LLUUID obj)
+        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
 
         }
 
-        public List<SceneObjectGroup> LoadObjects()
+        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             return new List<SceneObjectGroup>();
         }

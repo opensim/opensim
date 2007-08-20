@@ -270,7 +270,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemUpdate(item);
                             }
 
-                            storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID);
+                            storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID, m_regInfo.SimUUID);
                             ((SceneObjectGroup)selectedEnt).DeleteGroup();
 
                             lock (Entities)

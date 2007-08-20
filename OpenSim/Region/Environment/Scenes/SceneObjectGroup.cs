@@ -436,10 +436,24 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.SetParent(this);
 
             //TODO: rest of parts
+            foreach (SceneObjectPart part in objectGroup.Children.Values)
+            {
+                if (part.UUID != objectGroup.m_rootPart.UUID)
+                {
+                    this.LinkNonRootPart(part);
+                }
+            }
 
             m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
             m_scene.DeleteEntity(objectGroup.UUID);
             this.ScheduleGroupForFullUpdate();
+        }
+
+        private void LinkNonRootPart(SceneObjectPart part)
+        {
+            part.SetParent(this);
+            part.ParentID = this.m_rootPart.LocalID;
+            this.m_parts.Add(part.UUID, part);
         }
 
         /// <summary>
@@ -812,7 +826,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
         {
-            datastore.StoreObject(this);
+            datastore.StoreObject(this, m_scene.RegionInfo.SimUUID);
         }
         #endregion
 

@@ -40,8 +40,8 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Communications.Caches;
- 
-using Timer=System.Timers.Timer;
+
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -74,7 +74,7 @@ namespace OpenSim.Region.ClientStack
         protected IScene m_scene;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
-       // private InventoryCache m_inventoryCache;
+        // private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
         protected AgentCircuitManager m_authenticateSessionsHandler;
         private Encoding enc = Encoding.ASCII;
@@ -84,7 +84,7 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions )
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
             m_moneyBalance = 1000;
 
@@ -93,10 +93,10 @@ namespace OpenSim.Region.ClientStack
             m_assetCache = assetCache;
 
             m_networkServer = packServer;
-           // m_inventoryCache = inventoryCache;
+            // m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
-            MainLog.Instance.Verbose( "OpenSimClient.cs - Started up new client thread to handle incoming request");
+            MainLog.Instance.Verbose("OpenSimClient.cs - Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ClientStack
         public void KillClient()
         {
             clientPingTimer.Stop();
-           
+
             m_scene.RemoveClient(this.AgentId);
 
             m_clientThreads.Remove(this.CircuitCode);
@@ -186,14 +186,15 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void ClientLoop()
         {
-            MainLog.Instance.Verbose( "OpenSimClient.cs:ClientLoop() - Entered loop");
+            MainLog.Instance.Verbose("OpenSimClient.cs:ClientLoop() - Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
                 if (nextPacket.Incoming)
                 {
                     //is a incoming packet
-                    if (nextPacket.Packet.Type != PacketType.AgentUpdate) {
+                    if (nextPacket.Packet.Type != PacketType.AgentUpdate)
+                    {
                         packetsReceived++;
                     }
                     ProcessInPacket(nextPacket.Packet);
@@ -209,15 +210,21 @@ namespace OpenSim.Region.ClientStack
 
         protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
         {
-            if (packetsReceived == lastPacketsReceived) {
+            if (packetsReceived == lastPacketsReceived)
+            {
                 probesWithNoIngressPackets++;
-                if (probesWithNoIngressPackets > 30) {
+                if (probesWithNoIngressPackets > 30)
+                {
                     this.KillClient();
-                 } else {
+                }
+                else
+                {
                     // this will normally trigger at least one packet (ping response)
                     SendStartPingCheck(0);
-                 }
-            } else {
+                }
+            }
+            else
+            {
                 // Something received in the meantime - we can reset the counters
                 probesWithNoIngressPackets = 0;
                 lastPacketsReceived = packetsReceived;
@@ -232,7 +239,7 @@ namespace OpenSim.Region.ClientStack
             clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             clientPingTimer.Enabled = true;
 
-            MainLog.Instance.Verbose( "OpenSimClient.cs:InitNewClient() - Adding viewer agent to scene");
+            MainLog.Instance.Verbose("OpenSimClient.cs:InitNewClient() - Adding viewer agent to scene");
             this.m_scene.AddNewClient(this, false);
         }
 

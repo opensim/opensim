@@ -180,6 +180,8 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence.LoadAnims();
 
             httpListener = httpServer;
+
+            
         }
 
         #endregion
@@ -497,7 +499,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("Loading objects from datastore");
-            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects();
+            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects(this.m_regInfo.SimUUID);
             foreach (SceneObjectGroup prim in PrimsFromDB)
             {
                 AddEntityFromStorage(prim);
@@ -707,7 +709,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnFetchInventory += commsManager.UserProfiles.HandleFetchInventory;
             client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
-           // client.OnRequestXfer += RequestXfer;
+            // client.OnRequestXfer += RequestXfer;
 
             client.OnRequestAvatarProperties += RequestAvatarProperty;
 
@@ -919,9 +921,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap =
-                        new Caps(assetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port,
-                                 agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(assetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
                     Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() + "/CAPS/" + agent.CapsPath + "0000/");
                     cap.RegisterHandlers();
                     cap.AddNewInventoryItem = this.AddInventoryItem;

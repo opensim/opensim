@@ -496,6 +496,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
             this.ControllingClient.SendViewerTime(this.m_scene.TimePhase);
+
+            //Please don't remove the following code (at least not yet), just leave it commented out
+            //gives the user god powers, should help with debuging things in the future
+            /*
+            GrantGodlikePowersPacket grant = new GrantGodlikePowersPacket();
+            grant.AgentData.AgentID = this.ControllingClient.AgentId;
+            grant.AgentData.SessionID = this.ControllingClient.SessionId;
+            grant.GrantData.GodLevel = 255;
+            grant.GrantData.Token = LLUUID.Random();
+            this.ControllingClient.OutPacket(grant);*/
         }
 
         /// <summary>

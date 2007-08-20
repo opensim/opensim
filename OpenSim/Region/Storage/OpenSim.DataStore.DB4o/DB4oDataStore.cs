@@ -43,12 +43,12 @@ namespace OpenSim.DataStore.DB4oStorage
             return;
         }
 
-        public void StoreObject(SceneObjectGroup obj)
+        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             db.Set(obj);
         }
 
-        public void RemoveObject(LLUUID obj)
+        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             IObjectSet result = db.Query(new SceneObjectQuery(obj));
             if (result.Count > 0)
@@ -58,7 +58,7 @@ namespace OpenSim.DataStore.DB4oStorage
             }
         }
 
-        public List<SceneObjectGroup> LoadObjects()
+        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             IObjectSet result = db.Get(typeof(SceneObjectGroup));
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();

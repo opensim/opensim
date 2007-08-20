@@ -485,7 +485,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             }
         }
 
-        public void StoreObject(SceneObjectGroup obj)
+        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             foreach (SceneObjectPart prim in obj.Children.Values)
             {
@@ -498,7 +498,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
 
-        public void RemoveObject(LLUUID obj)
+        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -520,7 +520,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             shapeDa.Update(ds, "primshapes");
         }
 
-        public List<SceneObjectGroup> LoadObjects()
+        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
