@@ -127,6 +127,16 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_isSelected = value; }
         }
 
+        // The UUID for the Region this Object is in.
+        public LLUUID RegionUUID
+        {
+            get
+            {
+                if (m_scene != null)
+                { return m_scene.RegionInfo.SimUUID; }
+                return LLUUID.Zero;
+            }
+        }
         #endregion
 
         #region Constructors
