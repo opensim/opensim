@@ -41,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         }
 
         //These are the implementations of the various ll-functions used by the LSL scripts.
-        //starting out, we use the System.Math library for trig functions. - CFK 8-14-07
+        //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f) { return (double)Math.Sin(f); }
         public double llCos(double f) { return (double)Math.Cos(f); }
         public double llTan(double f) { return (double)Math.Tan(f); }
@@ -60,12 +60,71 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         }
         public int llFloor(double f) { return (int)Math.Floor(f); }
         public int llCeil(double f) { return (int)Math.Ceiling(f); }
-        public int llRound(double f) { return (int)Math.Round(f, 1); }
-        public double llVecMag(LSL_Types.Vector3 v) { return 0; }
-        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v) { return new LSL_Types.Vector3(); }
-        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b) { return 0; }
-        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
-        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v) { return new LSL_Types.Quaternion(); }
+        public int llRound(double f) { return (int)Math.Round(f, 3); }
+
+        //This next group are vector operations involving squaring and square root. ckrinke
+        public double llVecMag(LSL_Types.Vector3 v) { return (v.X*v.X + v.Y*v.Y + v.Z*v.Z); }
+        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v) 
+        {
+            double mag = v.X * v.X + v.Y * v.Y + v.Z * v.Z;
+            LSL_Types.Vector3 nor =  new LSL_Types.Vector3();
+            nor.X = v.X / mag; nor.Y = v.Y / mag; nor.Z = v.Z / mag;
+            return nor;
+        }
+
+        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b) 
+        {
+            double dx = a.X - b.X; double dy = a.Y - b.Y; double dz = a.Z - b.Z;
+            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
+        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r) 
+        {
+            //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
+            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.X * r.X, r.Y * r.Y, r.Z * r.Z, r.R * r.R);
+            double m = (t.X + t.Y + t.Z + t.R);
+            if (m == 0) return new LSL_Types.Vector3();
+            double n = 2 * (r.Y * r.R + r.X * r.Z);
+            double p = m * m - n * n;
+            if (p > 0)
+                return new LSL_Types.Vector3(Math.Atan2(2.0 * (r.X*r.R - r.Y*r.Z),(-t.X - t.Y + t.Z + t.R)),
+                  Math.Atan2(n,Math.Sqrt(p)), Math.Atan2(2.0 * (r.Z*r.R - r.X*r.Y),( t.X - t.Y - t.Z + t.R)));
+            else if(n>0)
+                return new LSL_Types.Vector3( 0.0, Math.PI/2, Math.Atan2((r.Z*r.R + r.X*r.Y), 0.5 - t.X - t.Z));
+            else
+                return new LSL_Types.Vector3( 0.0, -Math.PI/2, Math.Atan2((r.Z*r.R + r.X*r.Y), 0.5 - t.X - t.Z));
+       }
+
+        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v) 
+        { //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
+              float err = 0.00001f;
+            double ax = Math.Sin(v.X / 2); double aw = Math.Cos(v.X / 2);
+            double by = Math.Sin(v.Y / 2); double bw = Math.Cos(v.Y / 2);
+            double cz = Math.Sin(v.Z / 2); double cw = Math.Cos(v.Z / 2);
+            LSL_Types.Quaternion a1 = new LSL_Types.Quaternion(0.0, 0.0, cz, cw);
+            LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
+            LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
+            LSL_Types.Quaternion a = new LSL_Types.Quaternion();
+//This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
+            LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax * bw * cw + aw * by * cz,
+                  aw * by * cw - ax * bw * cz, aw * bw * cz + ax * by * cw, aw * bw * cw - ax * by * cz);
+            LSL_Types.Quaternion c = new LSL_Types.Quaternion(); 
+//This addition doesnt compile yet c = a + b;
+            LSL_Types.Quaternion d = new LSL_Types.Quaternion(); 
+//This addition doesnt compile yet d = a - b;
+            if ((Math.Abs(c.X) > err && Math.Abs(d.X) > err) ||
+                (Math.Abs(c.Y) > err && Math.Abs(d.Y) > err) ||
+                (Math.Abs(c.Z) > err && Math.Abs(d.Z) > err) ||
+                (Math.Abs(c.R) > err && Math.Abs(d.R) > err))
+            {
+                //return a new Quaternion that is null until I figure this out
+                //                return b;
+                //            return a;
+            }
+            return new LSL_Types.Quaternion(); 
+        }
+
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up) { return new LSL_Types.Quaternion(); }
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
         public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r) { return new LSL_Types.Vector3(); }
@@ -85,7 +144,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //public void llSay(int channelID, string text)
         public void llSay(int channelID, string text)
         {
-            //TODO: DO SOMETHING USEFUL HERE
             //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (int)channelID + ", \"" + (string)text + "\");");
             //Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
             //type for say is 1
@@ -436,7 +494,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             Int64 tmp = 0;
             Int64 val = Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
-
             return Convert.ToInt32(tmp);
         }
 

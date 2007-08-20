@@ -160,7 +160,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// Increase "dead script" counter for an AppDomain
         /// </summary>
         /// <param name="ad"></param>
-        [Obsolete("Needs fixing, needs a real purpose in life!!!")]
+        //[Obsolete("Needs fixing, needs a real purpose in life!!!")]
         public void StopScript(AppDomain ad)
         {
             lock (FreeLock)

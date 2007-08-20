@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
 
-            //Console.WriteLine("CurrentDomain_AssemblyResolve: " + args.Name);
+            //Console.WriteLine("ScriptManager.CurrentDomain_AssemblyResolve: " + args.Name);
             return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
 
         }
