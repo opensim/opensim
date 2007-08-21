@@ -103,6 +103,15 @@ namespace OpenSim.Framework.Communications.Caches
             }
         }
 
+        public AssetBase GetTransactionAsset(LLUUID transactionID)
+        {
+            if (this.XferUploaders.ContainsKey(transactionID))
+            {
+                return XferUploaders[transactionID].GetAssetData();
+            }
+            return null;
+        }
+
         // Nested Types
         public class AssetCapsUploader
         {
@@ -298,6 +307,7 @@ namespace OpenSim.Framework.Communications.Caches
 
             private void DoCreateItem()
             {
+                //really need to fix this call, if lbsa71 saw this he would die. 
                 this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
                 CachedUserInfo userInfo = m_userTransactions.Manager.CommsManager.UserProfiles.GetUserDetails(ourClient.AgentId);
                 if (userInfo != null)
@@ -323,6 +333,15 @@ namespace OpenSim.Framework.Communications.Caches
             public void UpdateInventoryItem(LLUUID itemID)
             {
 
+            }
+
+            public AssetBase GetAssetData()
+            {
+                if (m_finished)
+                {
+                    return this.Asset;
+                }
+                return null;
             }
         }
 

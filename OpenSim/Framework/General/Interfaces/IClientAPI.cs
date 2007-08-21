@@ -87,6 +87,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void FetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
     public delegate void FetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID);
     public delegate void RequestTaskInventory(IClientAPI remoteClient, uint localID);
+    public delegate void UpdateInventoryItemTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID, LLUUID itemID);
 
     public delegate void UDPAssetUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data);
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
@@ -141,6 +142,7 @@ namespace OpenSim.Framework.Interfaces
         event FetchInventoryDescendents OnFetchInventoryDescendents;
         event FetchInventory OnFetchInventory;
         event RequestTaskInventory OnRequestTaskInventory;
+        event UpdateInventoryItemTransaction OnUpdateInventoryItem;
         event UDPAssetUploadRequest OnAssetUploadRequest;
         event XferReceive OnXferReceive;
         event RequestXfer OnRequestXfer;

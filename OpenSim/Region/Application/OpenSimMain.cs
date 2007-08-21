@@ -71,11 +71,13 @@ namespace OpenSim
 
         private bool m_silent;
         private string m_logFilename = ("region-console.log");
+        private bool m_permissions = false;
 
         private bool standaloneAuthenticate = false;
         private string standaloneWelcomeMessage = null;
         private string standaloneInventoryPlugin = "";
         private string standaloneUserPlugin = "";
+        
 
         public ConsoleCommand CreateAccount = null;
 
@@ -106,6 +108,7 @@ namespace OpenSim
             m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
             m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
             m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
+            m_permissions = configSource.Configs["Startup"].GetBoolean("serverside_object_permissions", false);
 
             m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
@@ -182,7 +185,12 @@ namespace OpenSim
                 scene.AddScriptEngine(ScriptEngine, m_log);
                 // TODO: TEMP load default script
                 ScriptEngine.StartScript(Path.Combine("ScriptEngines", "Default.lsl"), new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost());
-
+                
+                //Server side object editing permissions checking
+                if (m_permissions)
+                    scene.PermissionsMngr.EnablePermissions();
+                else
+                    scene.PermissionsMngr.DisablePermissions();
 
                 m_localScenes.Add(scene);
 

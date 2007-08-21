@@ -1,0 +1,325 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+using libsecondlife;
+using libsecondlife.Packets;
+using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Communications.Caches;
+using OpenSim.Framework.Data;
+using OpenSim.Framework.Utilities;
+
+namespace OpenSim.Region.Environment.Scenes
+{
+    public partial class Scene
+    {
+        //split these method into this partial as a lot of these (hopefully) are only temporary and won't be needed once Caps is more complete
+        // or at least some of they can be moved somewhere else
+
+        public void AddInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            if (this.Avatars.ContainsKey(userID))
+            {
+                this.AddInventoryItem(this.Avatars[userID].ControllingClient, item);
+            }
+        }
+
+        public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                userInfo.AddItem(remoteClient.AgentId, item);
+                remoteClient.SendInventoryItemUpdate(item);
+            }
+        }
+
+        public LLUUID CapsUpdateInventoryItemAsset(LLUUID userID, LLUUID itemID, byte[] data)
+        {
+            if (this.Avatars.ContainsKey(userID))
+            {
+                return this.CapsUpdateInventoryItemAsset(this.Avatars[userID].ControllingClient, itemID, data);
+            }
+            return LLUUID.Zero;
+        }
+
+        public LLUUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                if (userInfo.RootFolder != null)
+                {
+                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        AssetBase asset;
+                        asset = new AssetBase();
+                        asset.FullID = LLUUID.Random();
+                        asset.Type = (sbyte)item.assetType;
+                        asset.InvType = (sbyte)item.invType;
+                        asset.Name = item.inventoryName;
+                        asset.Data = data;
+                        commsManager.AssetCache.AddAsset(asset);
+
+                        item.assetID = asset.FullID;
+                        userInfo.UpdateItem(remoteClient.AgentId, item);
+
+                        // remoteClient.SendInventoryItemUpdate(item);
+                        if (item.invType == 7)
+                        {
+                            //do we want to know about updated note cards?
+                        }
+                        else if (item.invType == 10)
+                        {
+                            // do we want to know about updated scripts
+                        }
+
+                        return (asset.FullID);
+                    }
+                }
+            }
+            return LLUUID.Zero;
+        }
+
+        public void UDPUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID, LLUUID itemID)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                if (userInfo.RootFolder != null)
+                {
+                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        AgentAssetTransactions transactions = commsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
+                        if (transactions != null)
+                        {
+                            AssetBase asset = null;
+                            bool addToCache = false;
+
+                            asset = commsManager.AssetCache.GetAsset(assetID);
+                            if (asset == null)
+                            {
+                                asset = transactions.GetTransactionAsset(transactionID);
+                                addToCache = true;
+                            }
+
+                            if (asset != null)
+                            {
+                                if (asset.FullID == assetID)
+                                {
+                                    asset.Name = item.inventoryName;
+                                    asset.Description = item.inventoryDescription;
+                                    asset.InvType = (sbyte) item.invType;
+                                    asset.Type = (sbyte) item.assetType;
+                                    item.assetID = asset.FullID;
+
+                                    if (addToCache)
+                                    {
+                                        commsManager.AssetCache.AddAsset(asset);
+                                    }
+
+                                    userInfo.UpdateItem(remoteClient.AgentId, item);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// temporary method to test out creating new inventory items
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transActionID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="description"></param>
+        /// <param name="name"></param>
+        /// <param name="invType"></param>
+        /// <param name="type"></param>
+        /// <param name="wearableType"></param>
+        /// <param name="nextOwnerMask"></param>
+        public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
+        {
+            if (transActionID == LLUUID.Zero)
+            {
+                CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+                if (userInfo != null)
+                {
+                    AssetBase asset = new AssetBase();
+                    asset.Name = name;
+                    asset.Description = description;
+                    asset.InvType = invType;
+                    asset.Type = type;
+                    asset.FullID = LLUUID.Random();
+                    asset.Data = new byte[1];
+                    this.commsManager.AssetCache.AddAsset(asset);
+
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.avatarID = remoteClient.AgentId;
+                    item.creatorsID = remoteClient.AgentId;
+                    item.inventoryID = LLUUID.Random();
+                    item.assetID = asset.FullID;
+                    item.inventoryDescription = description;
+                    item.inventoryName = name;
+                    item.assetType = invType;
+                    item.invType = invType;
+                    item.parentFolderID = folderID;
+                    item.inventoryCurrentPermissions = 2147483647;
+                    item.inventoryNextPermissions = nextOwnerMask;
+
+                    userInfo.AddItem(remoteClient.AgentId, item);
+                    remoteClient.SendInventoryItemUpdate(item);
+                }
+            }
+            else
+            {
+                commsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
+                //System.Console.WriteLine("request to create inventory item from transaction " + transActionID);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="primLocalID"></param>
+        public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
+        {
+
+            bool hasPrim = false;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
+                    if (hasPrim != false)
+                    {
+                        ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <param name="simClient"></param>
+        public void DeRezObject(Packet packet, IClientAPI remoteClient)
+        {
+            DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
+
+
+            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
+            {
+                //currently following code not used (or don't know of any case of destination being zero
+            }
+            else
+            {
+                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
+                {
+                    EntityBase selectedEnt = null;
+                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
+                    foreach (EntityBase ent in this.Entities.Values)
+                    {
+                        if (ent.LocalId == Data.ObjectLocalID)
+                        {
+                            selectedEnt = ent;
+                            break;
+                        }
+                    }
+                    if (selectedEnt != null)
+                    {
+                        if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId, ((SceneObjectGroup)selectedEnt).UUID))
+                        {
+                            string sceneObjectXml = ((SceneObjectGroup)selectedEnt).ToXmlString();
+                            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+                            if (userInfo != null)
+                            {
+                                AssetBase asset = new AssetBase();
+                                asset.Name = ((SceneObjectGroup)selectedEnt).GetPartName(selectedEnt.LocalId);
+                                asset.Description = ((SceneObjectGroup)selectedEnt).GetPartDescription(selectedEnt.LocalId);
+                                asset.InvType = 6;
+                                asset.Type = 6;
+                                asset.FullID = LLUUID.Random();
+                                asset.Data = Helpers.StringToField(sceneObjectXml);
+                                commsManager.AssetCache.AddAsset(asset);
+
+
+                                InventoryItemBase item = new InventoryItemBase();
+                                item.avatarID = remoteClient.AgentId;
+                                item.creatorsID = remoteClient.AgentId;
+                                item.inventoryID = LLUUID.Random();
+                                item.assetID = asset.FullID;
+                                item.inventoryDescription = asset.Description;
+                                item.inventoryName = asset.Name;
+                                item.assetType = asset.Type;
+                                item.invType = asset.InvType;
+                                item.parentFolderID = DeRezPacket.AgentBlock.DestinationID;
+                                item.inventoryCurrentPermissions = 2147483647;
+                                item.inventoryNextPermissions = 2147483647;
+
+                                userInfo.AddItem(remoteClient.AgentId, item);
+                                remoteClient.SendInventoryItemUpdate(item);
+                            }
+
+                            storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID, m_regInfo.SimUUID);
+                            ((SceneObjectGroup)selectedEnt).DeleteGroup();
+
+                            lock (Entities)
+                            {
+                                Entities.Remove(((SceneObjectGroup)selectedEnt).UUID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                if (userInfo.RootFolder != null)
+                {
+                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        AssetBase rezAsset = commsManager.AssetCache.GetAsset(item.assetID, false);
+                        if (rezAsset != null)
+                        {
+                            this.AddRezObject(Util.FieldToString(rezAsset.Data), pos);
+                            userInfo.DeleteItem(remoteClient.AgentId, item);
+                            remoteClient.SendRemoveInventoryItem(itemID);
+                        }
+                        else
+                        {
+                            //lets try once more incase the asset cache is being slow getting the asset from server
+                            rezAsset = commsManager.AssetCache.GetAsset(item.assetID, false);
+                            if (rezAsset != null)
+                            {
+                                this.AddRezObject(Util.FieldToString(rezAsset.Data), pos);
+                                userInfo.DeleteItem(remoteClient.AgentId, item);
+                                remoteClient.SendRemoveInventoryItem(itemID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddRezObject(string xmlData, LLVector3 pos)
+        {
+            SceneObjectGroup group = new SceneObjectGroup(this, this.m_regionHandle, xmlData);
+            this.AddEntity(group);
+            group.AbsolutePosition = pos;
+        }
+    }
+
+}

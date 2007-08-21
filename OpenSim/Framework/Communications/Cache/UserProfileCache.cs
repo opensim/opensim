@@ -182,17 +182,6 @@ namespace OpenSim.Framework.Communications.Caches
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
              this.m_parent.InventoryServer.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
-
-            //for now we manually create the root folder,
-            // but should be requesting all inventory from inventory server.
-           /* InventoryFolder folderInfo = new InventoryFolder();
-            folderInfo.agentID = userID;
-            folderInfo.folderID = userInfo.UserProfile.rootInventoryFolderID;
-            folderInfo.name = "My Inventory";
-            folderInfo.parentID = LLUUID.Zero;
-            folderInfo.type = 8;
-            folderInfo.version = 1;
-            userInfo.FolderReceive(userID, folderInfo);*/
         }
 
         /// <summary>

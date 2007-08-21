@@ -72,6 +72,7 @@ namespace SimpleApp
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event FetchInventory OnFetchInventory;
         public event RequestTaskInventory OnRequestTaskInventory;
+        public event UpdateInventoryItemTransaction OnUpdateInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;

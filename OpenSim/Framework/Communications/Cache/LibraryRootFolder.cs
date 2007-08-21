@@ -9,6 +9,10 @@ using Nini.Config;
 
 namespace OpenSim.Framework.Communications.Caches
 {
+    /// <summary>
+    /// Basically a hack to give us a Inventory library while we don't have a inventory server
+    /// once the server is fully implemented then should read the data from that
+    /// </summary>
     public class LibraryRootFolder : InventoryFolder
     {
         private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");

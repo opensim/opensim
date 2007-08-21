@@ -207,120 +207,6 @@ namespace OpenSim.Region.Environment.Scenes
                                               });
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="simClient"></param>
-        public void DeRezObject(Packet packet, IClientAPI remoteClient)
-        {
-            DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
-
-
-            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
-            {
-                //currently following code not used (or don't know of any case of destination being zero
-            }
-            else
-            {
-                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
-                {
-                    EntityBase selectedEnt = null;
-                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
-                    foreach (EntityBase ent in this.Entities.Values)
-                    {
-                        if (ent.LocalId == Data.ObjectLocalID)
-                        {
-                            selectedEnt = ent;
-                            break;
-                        }
-                    }
-                    if (selectedEnt != null)
-                    {
-                        if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId,((SceneObjectGroup)selectedEnt).UUID))
-                        {
-                            string sceneObjectXml = ((SceneObjectGroup)selectedEnt).ToXmlString();
-                            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
-                            if (userInfo != null)
-                            {
-                                AssetBase asset = new AssetBase();
-                                asset.Name = ((SceneObjectGroup)selectedEnt).GetPartName(selectedEnt.LocalId);
-                                asset.Description = ((SceneObjectGroup)selectedEnt).GetPartDescription(selectedEnt.LocalId);
-                                asset.InvType = 6;
-                                asset.Type = 6;
-                                asset.FullID = LLUUID.Random();
-                                asset.Data = Helpers.StringToField(sceneObjectXml);
-                                this.assetCache.AddAsset(asset);
-                                
-
-                                InventoryItemBase item = new InventoryItemBase();
-                                item.avatarID = remoteClient.AgentId;
-                                item.creatorsID = remoteClient.AgentId;
-                                item.inventoryID = LLUUID.Random();
-                                item.assetID = asset.FullID;
-                                item.inventoryDescription = asset.Description;
-                                item.inventoryName = asset.Name;
-                                item.assetType = asset.Type;
-                                item.invType = asset.InvType;
-                                item.parentFolderID = DeRezPacket.AgentBlock.DestinationID;
-                                item.inventoryCurrentPermissions = 2147483647;
-                                item.inventoryNextPermissions = 2147483647;
-
-                                userInfo.AddItem(remoteClient.AgentId, item);
-                                remoteClient.SendInventoryItemUpdate(item);
-                            }
-
-                            storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID, m_regInfo.SimUUID);
-                            ((SceneObjectGroup)selectedEnt).DeleteGroup();
-
-                            lock (Entities)
-                            {
-                                Entities.Remove(((SceneObjectGroup) selectedEnt).UUID);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
-        {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
-            if (userInfo != null)
-            {
-                if(userInfo.RootFolder != null)
-                {
-                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
-                    if (item != null)
-                    {
-                        AssetBase rezAsset = this.assetCache.GetAsset(item.assetID, false);
-                        if (rezAsset != null)
-                        {
-                            this.AddRezObject(Util.FieldToString(rezAsset.Data), pos);
-                            userInfo.DeleteItem(remoteClient.AgentId, item);
-                            remoteClient.SendRemoveInventoryItem(itemID);
-                        }
-                        else
-                        {               
-                            rezAsset = this.assetCache.GetAsset(item.assetID, false);
-                            if (rezAsset != null)
-                            {
-                                this.AddRezObject(Util.FieldToString(rezAsset.Data), pos);
-                                userInfo.DeleteItem(remoteClient.AgentId, item);
-                                remoteClient.SendRemoveInventoryItem(itemID);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private void AddRezObject(string xmlData, LLVector3 pos)
-        {
-            SceneObjectGroup group = new SceneObjectGroup(this, this.m_regionHandle, xmlData);
-            this.AddEntity(group);
-            group.AbsolutePosition = pos;
-        }
 
         /// <summary>
         /// 
@@ -450,29 +336,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         ((SceneObjectGroup)ent).UpdateExtraParam(primLocalID, type, inUse, data);
-                        break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="primLocalID"></param>
-        public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
-        {
-
-            bool hasPrim = false;
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
-                    if (hasPrim != false)
-                    {
-                        ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
                         break;
                     }
                 }
@@ -790,59 +653,7 @@ namespace OpenSim.Region.Environment.Scenes
             }*/
         }
 
-        /// <summary>
-        /// temporary method to test out creating new inventory items
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="transActionID"></param>
-        /// <param name="folderID"></param>
-        /// <param name="callbackID"></param>
-        /// <param name="description"></param>
-        /// <param name="name"></param>
-        /// <param name="invType"></param>
-        /// <param name="type"></param>
-        /// <param name="wearableType"></param>
-        /// <param name="nextOwnerMask"></param>
-        public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
-        {
-            if (transActionID == LLUUID.Zero)
-            {
-                CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
-                if (userInfo != null)
-                {
-                    AssetBase asset = new AssetBase();
-                    asset.Name = name;
-                    asset.Description = description;
-                    asset.InvType = invType;
-                    asset.Type = type;
-                    asset.FullID = LLUUID.Random();
-                    asset.Data = new byte[1];
-                    this.assetCache.AddAsset(asset);
-
-                    InventoryItemBase item = new InventoryItemBase();
-                    item.avatarID = remoteClient.AgentId;
-                    item.creatorsID = remoteClient.AgentId;
-                    item.inventoryID = LLUUID.Random();
-                    item.assetID = asset.FullID;
-                    item.inventoryDescription = description;
-                    item.inventoryName = name;
-                    item.assetType = invType;
-                    item.invType = invType;
-                    item.parentFolderID = folderID;
-                    item.inventoryCurrentPermissions = 2147483647;
-                    item.inventoryNextPermissions = nextOwnerMask;
-
-                    userInfo.AddItem(remoteClient.AgentId, item);
-                    remoteClient.SendInventoryItemUpdate(item);
-                }
-            }
-            else
-            {
-                commsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
-                //System.Console.WriteLine("request to create inventory item from transaction " + transActionID);
-            }
-        }
-
+       
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             this.EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);

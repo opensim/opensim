@@ -180,8 +180,6 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence.LoadAnims();
 
             httpListener = httpServer;
-
-            
         }
 
         #endregion
@@ -486,7 +484,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Data = data;
             asset.Name = "terrainImage";
             asset.Type = 0;
-            assetCache.AddAsset(asset);
+            commsManager.AssetCache.AddAsset(asset);
         }
 
         #endregion
@@ -707,6 +705,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnFetchInventory += commsManager.UserProfiles.HandleFetchInventory;
+            client.OnUpdateInventoryItem += UDPUpdateInventoryItemAsset;
             client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
             // client.OnRequestXfer += RequestXfer;
@@ -921,11 +920,11 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(assetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(commsManager.AssetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
                     Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() + "/CAPS/" + agent.CapsPath + "0000/");
                     cap.RegisterHandlers();
                     cap.AddNewInventoryItem = this.AddInventoryItem;
-                    cap.ItemUpdatedCall = this.UpdateInventoryItemAsset;
+                    cap.ItemUpdatedCall = this.CapsUpdateInventoryItemAsset;
                     if (capsHandlers.ContainsKey(agent.AgentID))
                     {
                         MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
@@ -1149,72 +1148,5 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return LLUUID.Zero;
         }
-
-        public void AddInventoryItem(LLUUID userID, InventoryItemBase item)
-        {
-            if (this.Avatars.ContainsKey(userID))
-            {
-                this.AddInventoryItem(this.Avatars[userID].ControllingClient, item);
-            }
-        }
-
-        public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
-        {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
-            if (userInfo != null)
-            {
-                userInfo.AddItem(remoteClient.AgentId, item);
-                remoteClient.SendInventoryItemUpdate(item);
-            }
-        }
-
-        public LLUUID UpdateInventoryItemAsset(LLUUID userID, LLUUID itemID, byte[] data)
-        {
-            if (this.Avatars.ContainsKey(userID))
-            {
-                return this.UpdateInventoryItemAsset(this.Avatars[userID].ControllingClient, itemID, data);
-            }
-            return LLUUID.Zero;
-        }
-
-        public LLUUID UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
-        {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
-            if (userInfo != null)
-            {
-                if (userInfo.RootFolder != null)
-                {
-                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
-                    if (item != null)
-                    {
-                        AssetBase asset;
-                        asset = new AssetBase();
-                        asset.FullID = LLUUID.Random();
-                        asset.Type = (sbyte)item.assetType;
-                        asset.InvType = (sbyte)item.invType;
-                        asset.Name = item.inventoryName;
-                        asset.Data = data;
-                        this.assetCache.AddAsset(asset);
-
-                        item.assetID = asset.FullID;
-                        userInfo.UpdateItem(remoteClient.AgentId, item);
-
-                        // remoteClient.SendInventoryItemUpdate(item);
-                        if (item.invType == 7)
-                        {
-                            //do we want to know about updated note cards?
-                        }
-                        else if (item.invType == 10)
-                        {
-                            // do we want to know about updated scripts
-                        }
-
-                        return (asset.FullID);
-                    }
-                }
-            }
-            return LLUUID.Zero;
-        }
-
     }
 }
