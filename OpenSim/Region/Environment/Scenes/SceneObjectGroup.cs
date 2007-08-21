@@ -443,7 +443,7 @@ namespace OpenSim.Region.Environment.Scenes
             axPos = parentRot.Inverse() * axPos;
             linkPart.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
             Quaternion oldRot = new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X, linkPart.RotationOffset.Y, linkPart.RotationOffset.Z);
-            Quaternion newRot = parentRot * oldRot;
+            Quaternion newRot = parentRot.Inverse() * oldRot;
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
             linkPart.ParentID = this.m_rootPart.LocalID;
             this.m_parts.Add(linkPart.UUID, linkPart);
@@ -463,6 +463,7 @@ namespace OpenSim.Region.Environment.Scenes
             objectGroup.DeleteParts();
             this.ScheduleGroupForFullUpdate();
         }
+
 
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation)
         {
