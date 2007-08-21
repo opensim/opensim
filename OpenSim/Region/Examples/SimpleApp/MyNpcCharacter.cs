@@ -76,6 +76,7 @@ namespace SimpleApp
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
+        public event RezScript OnRezScript;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
 

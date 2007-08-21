@@ -111,8 +111,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     asset.Name = item.inventoryName;
                                     asset.Description = item.inventoryDescription;
-                                    asset.InvType = (sbyte) item.invType;
-                                    asset.Type = (sbyte) item.assetType;
+                                    asset.InvType = (sbyte)item.invType;
+                                    asset.Type = (sbyte)item.assetType;
                                     item.assetID = asset.FullID;
 
                                     if (addToCache)
@@ -200,6 +200,44 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
                         break;
+                    }
+                }
+            }
+        }
+
+        public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                if (userInfo.RootFolder != null)
+                {
+                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    if (item != null)
+                    {
+                        bool isTexture = false;
+                        if (item.invType == 0)
+                        {
+                            isTexture = true;
+                        }
+                        AssetBase rezAsset = commsManager.AssetCache.GetAsset(item.assetID, isTexture);
+                        if (rezAsset != null)
+                        {
+                            string script = Util.FieldToString(rezAsset.Data);
+                            //Console.WriteLine("rez script "+script);
+                            this.EventManager.TriggerRezScript(localID, script);
+                        }
+                        else
+                        {
+                            //lets try once more incase the asset cache is being slow getting the asset from server
+                            rezAsset = commsManager.AssetCache.GetAsset(item.assetID, isTexture);
+                            if (rezAsset != null)
+                            {
+                                string script = Util.FieldToString(rezAsset.Data);
+                               // Console.WriteLine("rez script " + script);
+                                this.EventManager.TriggerRezScript(localID, script);
+                            }
+                        }
                     }
                 }
             }
@@ -320,6 +358,8 @@ namespace OpenSim.Region.Environment.Scenes
             this.AddEntity(group);
             group.AbsolutePosition = pos;
         }
+
+
     }
 
 }

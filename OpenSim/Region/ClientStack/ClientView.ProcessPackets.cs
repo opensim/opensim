@@ -472,6 +472,11 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.RezScript:
                         //Console.WriteLine(Pack.ToString());
+                        RezScriptPacket rezScript = (RezScriptPacket)Pack;
+                        if (OnRezScript != null)
+                        {
+                            OnRezScript(this, rezScript.InventoryBlock.ItemID, rezScript.UpdateBlock.ObjectLocalID);
+                        }
                         break;
                     case PacketType.MapLayerRequest:
                         this.RequestMapLayer();

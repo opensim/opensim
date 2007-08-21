@@ -396,6 +396,15 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Inventory
+        public void AddInventoryItem()
+        {
+
+        }
+
+        public void RemoveInventoryItem()
+        {
+
+        }
         /// <summary>
         /// 
         /// </summary>

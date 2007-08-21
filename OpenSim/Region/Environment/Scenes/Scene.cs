@@ -711,6 +711,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
             // client.OnRequestXfer += RequestXfer;
+            client.OnRezScript += RezScript;
 
             client.OnRequestAvatarProperties += RequestAvatarProperty;
 
