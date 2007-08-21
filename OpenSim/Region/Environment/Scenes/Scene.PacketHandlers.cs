@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence fromAvatar = this.Avatars[fromAgentID];
                     ScenePresence toAvatar = this.Avatars[toAgentID];
                     string fromName = fromAvatar.Firstname + " " + fromAvatar.Lastname;
-                    toAvatar.ControllingClient.SendInstantMessage( fromAgentID, fromAgentSession, message, toAgentID, imSessionID, fromName, dialog, timestamp);
+                    toAvatar.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message, toAgentID, imSessionID, fromName, dialog, timestamp);
                 }
                 else
                 {
@@ -508,15 +508,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdatePrimSinglePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
         {
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObjectGroup)
                 {
-                    //prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateSinglePosition(pos);
+                        ((SceneObjectGroup)ent).UpdateSinglePosition(pos, localID);
                         break;
                     }
                 }
@@ -653,7 +653,7 @@ namespace OpenSim.Region.Environment.Scenes
             }*/
         }
 
-       
+
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             this.EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);

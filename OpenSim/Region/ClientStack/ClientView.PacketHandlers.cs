@@ -80,7 +80,7 @@ namespace OpenSim.Region.ClientStack
         protected bool MultipleObjUpdate(ClientView simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
-            //System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
+           // System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
             {
                 #region position

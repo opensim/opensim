@@ -610,6 +610,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup obj = new SceneObjectGroup(this,
                                 this.m_regionHandle, aPrimNode.OuterXml);
+                    //if we want this to be a import method then we need new uuids for the object to avoid any clashes
+                    //obj.RegenerateFullIDs(); 
                     AddEntity(obj);
                     primCount++;
                 }

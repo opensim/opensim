@@ -64,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 +4 +8 + 268435456 + 128;
+        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 268435456 + 128;
         public uint ObjectFlags
         {
             get { return (uint)m_flags; }
@@ -405,7 +405,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (localID == this.m_localID)
             {
-               //client.SendTaskInventory(this.m_uuid, 1, Helpers.StringToField("primInventory2"));
+                //client.SendTaskInventory(this.m_uuid, 1, Helpers.StringToField("primInventory2"));
                 client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
             }
         }
@@ -421,7 +421,7 @@ namespace OpenSim.Region.Environment.Scenes
             InventoryStringBuilder invString = new InventoryStringBuilder();
             invString.AddItemStart();
             invString.AddNameValueLine("item_id", LLUUID.Random().ToStringHyphenated());
-            invString.AddNameValueLine("parent_id",LLUUID.Zero.ToStringHyphenated());
+            invString.AddNameValueLine("parent_id", LLUUID.Zero.ToStringHyphenated());
 
             invString.AddPermissionsStart();
             invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
@@ -437,7 +437,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             invString.AddNameValueLine("asset_id", "00000000-0000-2222-3333-000000000001");
             invString.AddNameValueLine("type", "lsltext");
-            invString.AddNameValueLine("inv_type" , "lsltext");
+            invString.AddNameValueLine("inv_type", "lsltext");
             invString.AddNameValueLine("flags", "0x00");
             invString.AddNameValueLine("name", "Test inventory" + "|");
             invString.AddNameValueLine("desc", "test description" + "|");
@@ -447,7 +447,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] fileInv = Helpers.StringToField(invString.BuildString);
             byte[] data = new byte[fileInv.Length + 4];
             Array.Copy(Helpers.IntToBytes(fileInv.Length), 0, data, 0, 4);
-            Array.Copy(fileInv, 0,data , 4, fileInv.Length);
+            Array.Copy(fileInv, 0, data, 4, fileInv.Length);
             client.SendXferPacket(xferID, 0 + 0x80000000, data);
         }
         #endregion
