@@ -460,6 +460,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
             m_scene.DeleteEntity(objectGroup.UUID);
+            
             objectGroup.DeleteParts();
             this.ScheduleGroupForFullUpdate();
         }
@@ -741,9 +742,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             this.AbsolutePosition = newPos;
-            pos.X = newPos.X;
-            pos.Y = newPos.Y;
-            pos.Z = newPos.Z;
             this.ScheduleGroupForTerseUpdate();
         }
         #endregion

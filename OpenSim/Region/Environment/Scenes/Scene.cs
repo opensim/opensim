@@ -877,6 +877,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (Entities.ContainsKey(entID))
             {
                 Entities.Remove(entID);
+                storageManager.DataStore.RemoveObject(entID, this.m_regInfo.SimUUID);
                 return true;
             }
             return false;
