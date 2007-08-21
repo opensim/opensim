@@ -541,7 +541,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         ((SceneObjectGroup)ent).UpdateGroupRotation(pos, rot);
-                        // prim.UpdateGroupMouseRotation(pos, rot);
                         break;
                     }
                 }
@@ -565,7 +564,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         ((SceneObjectGroup)ent).UpdateGroupRotation(rot);
-                        //prim.UpdateGroupRotation(rot);
                         break;
                     }
                 }
@@ -580,16 +578,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
         {
-            //Console.WriteLine("trying to update single prim rotation");
-            Primitive prim = null;
+            bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObjectGroup)
                 {
-                    // prim = ((SceneObject)ent).HasChildPrim(localID);
-                    if (prim != null)
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
                     {
-                        prim.UpdateSingleRotation(rot);
+                        ((SceneObjectGroup)ent).UpdateSingleRotation(rot, localID);
                         break;
                     }
                 }
@@ -613,7 +610,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         ((SceneObjectGroup)ent).Resize(scale, localID);
-                        // prim.ResizeGoup(scale);
                         break;
                     }
                 }

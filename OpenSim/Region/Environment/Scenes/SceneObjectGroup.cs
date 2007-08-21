@@ -755,6 +755,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupRotation(LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
+            this.ScheduleGroupForTerseUpdate();
         }
 
         /// <summary>
@@ -766,6 +767,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             this.m_rootPart.UpdateRotation(rot);
             this.AbsolutePosition = pos;
+            this.ScheduleGroupForTerseUpdate();
         }
 
         /// <summary>
@@ -813,6 +815,7 @@ namespace OpenSim.Region.Environment.Scenes
                     prim.RotationOffset = new LLQuaternion(newRot.w, newRot.x, newRot.y, newRot.z);
                 }
             }
+            this.m_rootPart.ScheduleTerseUpdate();
         }
         #endregion
         /// <summary>
