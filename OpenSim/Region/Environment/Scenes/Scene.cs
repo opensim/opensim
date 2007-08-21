@@ -883,6 +883,15 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        public void SendKillObject(uint localID)
+        {
+            List<ScenePresence> avatars = this.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].ControllingClient.SendKillObject(this.m_regionHandle, localID);
+            }
+        }
+
         public void SendAllSceneObjectsToClient(IClientAPI client)
         {
             foreach (EntityBase ent in Entities.Values)

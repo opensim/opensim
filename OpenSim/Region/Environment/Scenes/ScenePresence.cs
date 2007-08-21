@@ -461,8 +461,11 @@ namespace OpenSim.Region.Environment.Scenes
                 this.SendFullUpdateToOtherClient(avatar);
                 if (avatar.LocalId != this.LocalId)
                 {
-                    avatar.SendFullUpdateToOtherClient(this);
-                    avatar.SendAppearanceToOtherAgent(this);
+                    if (!avatar.childAgent)
+                    {
+                        avatar.SendFullUpdateToOtherClient(this);
+                        avatar.SendAppearanceToOtherAgent(this);
+                    }
                 }
             }
         }
@@ -479,8 +482,8 @@ namespace OpenSim.Region.Environment.Scenes
                 this.newAvatar = false;
             }
 
-            // this.SendFullUpdateToALLClients();
-            //  this.SendArrearanceToAllOtherAgents();
+             this.SendFullUpdateToALLClients();
+             this.SendArrearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -491,8 +494,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             this.ControllingClient.SendWearables(this.Wearables);
 
-            this.SendFullUpdateToALLClients();
-            this.SendArrearanceToAllOtherAgents();
+            //this.SendFullUpdateToALLClients();
+            //this.SendArrearanceToAllOtherAgents();
 
             this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
             this.ControllingClient.SendViewerTime(this.m_scene.TimePhase);
@@ -638,6 +641,7 @@ namespace OpenSim.Region.Environment.Scenes
                     string capsPath = Util.GetCapsURL(this.ControllingClient.AgentId);
                     this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint, capsPath);
                     this.MakeChildAgent();
+                    this.m_scene.SendKillObject(this.m_localId);
                 }
             }
         }
