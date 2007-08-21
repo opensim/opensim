@@ -34,6 +34,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         public void Initialise(string dbfile, string dbname)
         {
             string connectionString = "URI=file:" + dbfile + ",version=3";
+            
+            ds = new DataSet();
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + dbfile);
             SqliteConnection conn = new SqliteConnection(connectionString);
@@ -46,12 +48,17 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             shapeDa = new SqliteDataAdapter(shapeSelectCmd);
             // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
 
-            ds = new DataSet();
 
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
-            primDa.Fill(ds, "prims");
+            try {
+                primDa.Fill(ds, "prims");
+            } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
+                InitDB(conn);
+                primDa.Fill(ds, "prims");
+            }
+
             shapeDa.Fill(ds, "primshapes");
             ds.AcceptChanges();
 
@@ -67,6 +74,17 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return;
         }
 
+        ///<summary>
+        /// This is a convenience function that collapses 5 repetitive
+        /// lines for defining SqliteParameters to 2 parameters:
+        /// column name and database type.
+        ///        
+        /// It assumes certain conventions like :param as the param
+        /// name to replace in parametrized queries, and that source
+        /// version is always current version, both of which are fine
+        /// for us.
+        ///</summary>
+        ///<returns>a built sqlite parameter</returns>
         private SqliteParameter createSqliteParameter(string name, DbType type)
         {
             SqliteParameter param = new SqliteParameter();
@@ -77,89 +95,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return param;
         }
 
-        private Dictionary<string, DbType> createPrimDataDefs()
-        {
-            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("UUID", DbType.String);
-            data.Add("ParentID", DbType.Int32);
-            data.Add("CreationDate", DbType.Int32);
-            data.Add("Name", DbType.String);
-            data.Add("SceneGroupID", DbType.String);
-            // various text fields
-            data.Add("Text", DbType.String);
-            data.Add("Description", DbType.String);
-            data.Add("SitName", DbType.String);
-            data.Add("TouchName", DbType.String);
-            // permissions
-            data.Add("CreatorID", DbType.String);
-            data.Add("OwnerID", DbType.String);
-            data.Add("GroupID", DbType.String);
-            data.Add("LastOwnerID", DbType.String);
-            data.Add("OwnerMask", DbType.Int32);
-            data.Add("NextOwnerMask", DbType.Int32);
-            data.Add("GroupMask", DbType.Int32);
-            data.Add("EveryoneMask", DbType.Int32);
-            data.Add("BaseMask", DbType.Int32);
-            // vectors
-            data.Add("PositionX", DbType.Double);
-            data.Add("PositionY", DbType.Double);
-            data.Add("PositionZ", DbType.Double);
-            data.Add("GroupPositionX", DbType.Double);
-            data.Add("GroupPositionY", DbType.Double);
-            data.Add("GroupPositionZ", DbType.Double);
-            data.Add("VelocityX", DbType.Double);
-            data.Add("VelocityY", DbType.Double);
-            data.Add("VelocityZ", DbType.Double);
-            data.Add("AngularVelocityX", DbType.Double);
-            data.Add("AngularVelocityY", DbType.Double);
-            data.Add("AngularVelocityZ", DbType.Double);
-            data.Add("AccelerationX", DbType.Double);
-            data.Add("AccelerationY", DbType.Double);
-            data.Add("AccelerationZ", DbType.Double);
-            // quaternions
-            data.Add("RotationX", DbType.Double);
-            data.Add("RotationY", DbType.Double);
-            data.Add("RotationZ", DbType.Double);
-            data.Add("RotationW", DbType.Double);
-            return data;
-        }
-
-        private Dictionary<string, DbType> createShapeDataDefs()
-        {
-            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("UUID", DbType.String);
-            // shape is an enum
-            data.Add("Shape", DbType.Int32);
-            // vectors
-            data.Add("ScaleX", DbType.Double);
-            data.Add("ScaleY", DbType.Double);
-            data.Add("ScaleZ", DbType.Double);
-            // paths
-            data.Add("PCode", DbType.Int32);
-            data.Add("PathBegin", DbType.Int32);
-            data.Add("PathEnd", DbType.Int32);
-            data.Add("PathScaleX", DbType.Int32);
-            data.Add("PathScaleY", DbType.Int32);
-            data.Add("PathShearX", DbType.Int32);
-            data.Add("PathShearY", DbType.Int32);
-            data.Add("PathSkew", DbType.Int32);
-            data.Add("PathCurve", DbType.Int32);
-            data.Add("PathRadiusOffset", DbType.Int32);
-            data.Add("PathRevolutions", DbType.Int32);
-            data.Add("PathTaperX", DbType.Int32);
-            data.Add("PathTaperY", DbType.Int32);
-            data.Add("PathTwist", DbType.Int32);
-            data.Add("PathTwistBegin", DbType.Int32);
-            // profile
-            data.Add("ProfileBegin", DbType.Int32);
-            data.Add("ProfileEnd", DbType.Int32);
-            data.Add("ProfileCurve", DbType.Int32);
-            data.Add("ProfileHollow", DbType.Int32);
-            // text TODO: this isn't right, but I'm not sure the right
-            // way to specify this as a blob atm
-            data.Add("Texture", DbType.Binary);
-            return data;
-        }
 
         private SqliteCommand createInsertCommand(string table, Dictionary<string, DbType> defs)
         {
@@ -639,6 +574,147 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 sr.Close();
                 return textureEntry;
             }
+        }
+        
+        private void InitDB(SqliteConnection conn)
+        {
+            string createPrims = defineTable("prims", "UUID", createPrimDataDefs());
+            string createShapes = defineTable("primshapes", "UUID", createShapeDataDefs());
+            
+            SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
+            SqliteCommand scmd = new SqliteCommand(createShapes, conn);
+            conn.Open();
+            pcmd.ExecuteNonQuery();
+            scmd.ExecuteNonQuery();
+            conn.Close(); 
+        }
+
+        private string defineTable(string name, string primkey, Dictionary<string, DbType> cols)
+        {
+            string sql = "create table " + name + "(";
+            string subsql = "";
+            foreach (string key in cols.Keys)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ",\n";
+                }
+                subsql += key + " " + sqliteType(cols[key]);
+                if(key == primkey) 
+                {
+                    subsql += " primary key";
+                }
+            }
+            sql += subsql;
+            sql += ")";
+            return sql;
+        }
+        
+        private string sqliteType(DbType type)
+        {
+            switch(type) {
+            case DbType.String:
+                return "varchar(255)";
+                
+            case DbType.Int32:
+                return "integer";
+                
+            case DbType.Double:
+                return "float";
+
+            case DbType.Binary:
+                return "blob";
+
+            default:
+                return "varchar(255)";
+            }
+        }
+        
+        /// Methods after this point are big data definition
+                /// methods, and aren't really interesting unless you are
+        /// adjusting the schema.
+        private Dictionary<string, DbType> createPrimDataDefs()
+        {
+            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
+            data.Add("UUID", DbType.String);
+            data.Add("ParentID", DbType.Int32);
+            data.Add("CreationDate", DbType.Int32);
+            data.Add("Name", DbType.String);
+            data.Add("SceneGroupID", DbType.String);
+            // various text fields
+            data.Add("Text", DbType.String);
+            data.Add("Description", DbType.String);
+            data.Add("SitName", DbType.String);
+            data.Add("TouchName", DbType.String);
+            // permissions
+            data.Add("CreatorID", DbType.String);
+            data.Add("OwnerID", DbType.String);
+            data.Add("GroupID", DbType.String);
+            data.Add("LastOwnerID", DbType.String);
+            data.Add("OwnerMask", DbType.Int32);
+            data.Add("NextOwnerMask", DbType.Int32);
+            data.Add("GroupMask", DbType.Int32);
+            data.Add("EveryoneMask", DbType.Int32);
+            data.Add("BaseMask", DbType.Int32);
+            // vectors
+            data.Add("PositionX", DbType.Double);
+            data.Add("PositionY", DbType.Double);
+            data.Add("PositionZ", DbType.Double);
+            data.Add("GroupPositionX", DbType.Double);
+            data.Add("GroupPositionY", DbType.Double);
+            data.Add("GroupPositionZ", DbType.Double);
+            data.Add("VelocityX", DbType.Double);
+            data.Add("VelocityY", DbType.Double);
+            data.Add("VelocityZ", DbType.Double);
+            data.Add("AngularVelocityX", DbType.Double);
+            data.Add("AngularVelocityY", DbType.Double);
+            data.Add("AngularVelocityZ", DbType.Double);
+            data.Add("AccelerationX", DbType.Double);
+            data.Add("AccelerationY", DbType.Double);
+            data.Add("AccelerationZ", DbType.Double);
+            // quaternions
+            data.Add("RotationX", DbType.Double);
+            data.Add("RotationY", DbType.Double);
+            data.Add("RotationZ", DbType.Double);
+            data.Add("RotationW", DbType.Double);
+            return data;
+        }
+            
+        private Dictionary<string, DbType> createShapeDataDefs()
+        {
+            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
+            data.Add("UUID", DbType.String);
+            // shape is an enum
+            data.Add("Shape", DbType.Int32);
+            // vectors
+            data.Add("ScaleX", DbType.Double);
+            data.Add("ScaleY", DbType.Double);
+            data.Add("ScaleZ", DbType.Double);
+            // paths
+            data.Add("PCode", DbType.Int32);
+            data.Add("PathBegin", DbType.Int32);
+            data.Add("PathEnd", DbType.Int32);
+            data.Add("PathScaleX", DbType.Int32);
+            data.Add("PathScaleY", DbType.Int32);
+            data.Add("PathShearX", DbType.Int32);
+            data.Add("PathShearY", DbType.Int32);
+            data.Add("PathSkew", DbType.Int32);
+            data.Add("PathCurve", DbType.Int32);
+            data.Add("PathRadiusOffset", DbType.Int32);
+            data.Add("PathRevolutions", DbType.Int32);
+            data.Add("PathTaperX", DbType.Int32);
+            data.Add("PathTaperY", DbType.Int32);
+            data.Add("PathTwist", DbType.Int32);
+            data.Add("PathTwistBegin", DbType.Int32);
+            // profile
+            data.Add("ProfileBegin", DbType.Int32);
+            data.Add("ProfileEnd", DbType.Int32);
+            data.Add("ProfileCurve", DbType.Int32);
+            data.Add("ProfileHollow", DbType.Int32);
+            // text TODO: this isn't right, but I'm not sure the right
+            // way to specify this as a blob atm
+            data.Add("Texture", DbType.Binary);
+            return data;
         }
     }
 }
