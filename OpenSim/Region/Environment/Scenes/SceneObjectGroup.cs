@@ -612,7 +612,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(uint localID, XferManagaer xferManager)
+        public string RequestInventoryFile(uint localID, XferManager xferManager)
         {
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)

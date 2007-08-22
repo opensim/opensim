@@ -450,7 +450,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(XferManagaer xferManager)
+        public string RequestInventoryFile(XferManager xferManager)
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, this.UUID);

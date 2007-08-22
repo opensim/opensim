@@ -8,12 +8,12 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Environment
 {
-    public class XferManagaer
+    public class XferManager
     {
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
 
-        public XferManagaer()
+        public XferManager()
         {
 
         }

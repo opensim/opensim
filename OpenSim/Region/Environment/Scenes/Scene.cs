@@ -77,7 +77,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected AgentCircuitManager authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
-        protected XferManagaer xferManager;
+        protected XferManager xferManager;
 
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
             m_permissionManager = new PermissionManager(this);
-            xferManager = new XferManagaer();
+            xferManager = new XferManager();
 
             m_eventManager.OnParcelPrimCountAdd +=
                 m_LandManager.addPrimToLandPrimCounts;
