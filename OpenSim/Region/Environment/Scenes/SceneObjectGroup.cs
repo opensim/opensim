@@ -362,7 +362,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="primID"></param>
         /// <returns></returns>
-        private SceneObjectPart GetChildPrim(LLUUID primID)
+        public SceneObjectPart GetChildPart(LLUUID primID)
         {
             SceneObjectPart childPart = null;
             if (this.m_parts.ContainsKey(primID))
@@ -377,7 +377,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
-        private SceneObjectPart GetChildPrim(uint localID)
+        public SceneObjectPart GetChildPart(uint localID)
         {
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
@@ -543,7 +543,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name"></param>
         public void SetPartName(string name, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.Name = name;
@@ -552,7 +552,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetPartDescription(string des, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.Description = des;
@@ -561,7 +561,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetPartText(string text, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.Text = text;
@@ -570,7 +570,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetPartText(string text, LLUUID partID)
         {
-            SceneObjectPart part = this.GetChildPrim(partID);
+            SceneObjectPart part = this.GetChildPart(partID);
             if (part != null)
             {
                 part.Text = text;
@@ -579,7 +579,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public string GetPartName(uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 return part.Name;
@@ -589,7 +589,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public string GetPartDescription(uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 return part.Description;
@@ -604,7 +604,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public bool GetPartInventoryFileName(IClientAPI remoteClient, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                return part.GetInventoryFileName(remoteClient, localID);
@@ -614,7 +614,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public string RequestInventoryFile(uint localID, XferManager xferManager)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 return part.RequestInventoryFile(xferManager);
@@ -624,7 +624,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
@@ -652,7 +652,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="data"></param>
         public void UpdateExtraParam(uint localID, ushort type, bool inUse, byte[] data)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.UpdateExtraParam(type, inUse, data);
@@ -666,7 +666,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(uint localID, byte[] textureEntry)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.UpdateTextureEntry(textureEntry);
@@ -681,7 +681,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.UpdateShape(shapeBlock);
@@ -697,7 +697,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void Resize(LLVector3 scale, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 part.Resize(scale);
@@ -723,7 +723,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void UpdateSinglePosition(LLVector3 pos, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 if (part.UUID == this.m_rootPart.UUID)
@@ -795,7 +795,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void UpdateSingleRotation(LLQuaternion rot, uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 if (part.UUID == this.m_rootPart.UUID)
@@ -987,7 +987,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID GetPartsFullID(uint localID)
         {
-            SceneObjectPart part = this.GetChildPrim(localID);
+            SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
                 return part.UUID;
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                SceneObjectPart part = GetChildPrim(localId);
+                SceneObjectPart part = GetChildPart(localId);
                 OnGrabPart(part, offsetPos, remoteClient);
             }
         }

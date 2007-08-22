@@ -476,6 +476,16 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.UpdateTaskInventory:
                         //Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
+                        if (OnUpdateTaskInventory != null)
+                        {
+                            if (updatetask.UpdateData.Key == 0)
+                            {
+                                OnUpdateTaskInventory(this, updatetask.InventoryData.ItemID, updatetask.InventoryData.FolderID, updatetask.UpdateData.LocalID);
+                            }
+                        }
+                        break;
+                    case PacketType.MoveTaskInventory:
+                        //Console.WriteLine(Pack.ToString());
                         break;
                     case PacketType.RezScript:
                         //Console.WriteLine(Pack.ToString());

@@ -238,7 +238,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
             m_folderID = LLUUID.Random();
-
+           
             //temporary code just so the m_flags field doesn't give a compiler warning
             if (m_flags == LLObject.ObjectFlags.AllowInventoryDrop)
             {
