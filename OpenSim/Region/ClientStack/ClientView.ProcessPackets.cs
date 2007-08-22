@@ -383,6 +383,13 @@ namespace OpenSim.Region.ClientStack
                             OnXferReceive(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
                         }
                         break;
+                    case PacketType.ConfirmXferPacket:
+                        ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket)Pack;
+                        if (OnConfirmXfer != null)
+                        {
+                            OnConfirmXfer(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
+                        }
+                        break;
                     case PacketType.CreateInventoryFolder:
                         if (this.OnCreateNewInventoryFolder != null)
                         {

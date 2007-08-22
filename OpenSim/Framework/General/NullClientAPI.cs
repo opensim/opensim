@@ -62,6 +62,7 @@ namespace OpenSim.Framework
        public event UDPAssetUploadRequest OnAssetUploadRequest;
        public event XferReceive OnXferReceive;
        public event RequestXfer OnRequestXfer;
+       public event ConfirmXfer OnConfirmXfer;
        public event RezScript OnRezScript;
 
        public event UUIDNameRequest OnNameFromUUIDRequest;

@@ -10,6 +10,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -18,6 +19,10 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
 
+        private string m_inventoryFileName = "";
+        private LLUUID m_folderID = LLUUID.Zero;
+
+        protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
 
         public LLUUID CreatorID;
         public LLUUID OwnerID;
@@ -42,6 +47,16 @@ namespace OpenSim.Region.Environment.Scenes
         private byte m_updateFlag;
 
         #region Properties
+
+        /// <summary>
+        /// Serial count for inventory file , used to tell if inventory has changed
+        /// no need for this to be part of Database backup
+        /// </summary>
+        protected uint m_inventorySerial = 0;
+        public uint InventorySerial
+        {
+            get { return m_inventorySerial; }
+        }
 
         protected LLUUID m_uuid;
         public LLUUID UUID
@@ -221,6 +236,8 @@ namespace OpenSim.Region.Environment.Scenes
             this.AngularVelocity = new LLVector3(0, 0, 0);
             this.Acceleration = new LLVector3(0, 0, 0);
 
+            m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
+            m_folderID = LLUUID.Random();
 
             //temporary code just so the m_flags field doesn't give a compiler warning
             if (m_flags == LLObject.ObjectFlags.AllowInventoryDrop)
@@ -396,9 +413,12 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Inventory
-        public void AddInventoryItem()
+        public void AddInventoryItem(TaskInventoryItem item)
         {
-
+            item.parent_id = m_folderID;
+            item.creation_date = 1000;
+            this.TaskInventory.Add(item.item_id, item);
+            this.m_inventorySerial++;
         }
 
         public void RemoveInventoryItem()
@@ -410,54 +430,63 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="client"></param>
         /// <param name="localID"></param>
-        public void GetInventoryFileName(IClientAPI client, uint localID)
+        public bool GetInventoryFileName(IClientAPI client, uint localID)
         {
             if (localID == this.m_localID)
             {
+                if (this.m_inventorySerial > 0)
+                {
+                    client.SendTaskInventory(this.m_uuid, (short)m_inventorySerial, Helpers.StringToField(m_inventoryFileName));
+                    return true;
+                }
+                else
+                {
+                    client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
+                    return false;
+                }
                 //client.SendTaskInventory(this.m_uuid, 1, Helpers.StringToField("primInventory2"));
-                client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
+                //client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
             }
+            return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="xferID"></param>
-        public void RequestInventoryFile(IClientAPI client, ulong xferID)
+        public string RequestInventoryFile(XferManagaer xferManager)
         {
-            // a test item
-            InventoryStringBuilder invString = new InventoryStringBuilder();
-            invString.AddItemStart();
-            invString.AddNameValueLine("item_id", LLUUID.Random().ToStringHyphenated());
-            invString.AddNameValueLine("parent_id", LLUUID.Zero.ToStringHyphenated());
+            byte[] fileData = new byte[0];
+            InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, this.UUID);
+            foreach (TaskInventoryItem item in this.TaskInventory.Values)
+            {
+                invString.AddItemStart();
+                invString.AddNameValueLine("item_id", item.item_id.ToStringHyphenated());
+                invString.AddNameValueLine("parent_id", item.parent_id.ToStringHyphenated());
 
-            invString.AddPermissionsStart();
-            invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
-            invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
-            invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
-            invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
-            invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
-            invString.AddNameValueLine("creator_id", client.AgentId.ToStringHyphenated());
-            invString.AddNameValueLine("owner_id", client.AgentId.ToStringHyphenated());
-            invString.AddNameValueLine("last_owner_id", LLUUID.Zero.ToStringHyphenated());
-            invString.AddNameValueLine("group_id", LLUUID.Zero.ToStringHyphenated());
-            invString.AddSectionEnd();
+                invString.AddPermissionsStart();
+                invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
+                invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
+                invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
+                invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
+                invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
+                invString.AddNameValueLine("creator_id", item.creator_id.ToStringHyphenated());
+                invString.AddNameValueLine("owner_id", item.owner_id.ToStringHyphenated());
+                invString.AddNameValueLine("last_owner_id", item.last_owner_id.ToStringHyphenated());
+                invString.AddNameValueLine("group_id", item.group_id.ToStringHyphenated());
+                invString.AddSectionEnd();
 
-            invString.AddNameValueLine("asset_id", "00000000-0000-2222-3333-000000000001");
-            invString.AddNameValueLine("type", "lsltext");
-            invString.AddNameValueLine("inv_type", "lsltext");
-            invString.AddNameValueLine("flags", "0x00");
-            invString.AddNameValueLine("name", "Test inventory" + "|");
-            invString.AddNameValueLine("desc", "test description" + "|");
-            invString.AddNameValueLine("creation_date", "10000");
-            invString.AddSectionEnd();
-
-            byte[] fileInv = Helpers.StringToField(invString.BuildString);
-            byte[] data = new byte[fileInv.Length + 4];
-            Array.Copy(Helpers.IntToBytes(fileInv.Length), 0, data, 0, 4);
-            Array.Copy(fileInv, 0, data, 4, fileInv.Length);
-            client.SendXferPacket(xferID, 0 + 0x80000000, data);
+                invString.AddNameValueLine("asset_id", item.asset_id.ToStringHyphenated());
+                invString.AddNameValueLine("type", item.type);
+                invString.AddNameValueLine("inv_type", item.inv_type);
+                invString.AddNameValueLine("flags", "0x00");
+                invString.AddNameValueLine("name", item.name + "|");
+                invString.AddNameValueLine("desc", item.desc + "|");
+                invString.AddNameValueLine("creation_date", item.creation_date.ToString());
+                invString.AddSectionEnd();
+            }
+            fileData = Helpers.StringToField(invString.BuildString);
+            if (fileData.Length > 2)
+            {
+                xferManager.AddNewFile(m_inventoryFileName, fileData);
+            }
+            return "";
         }
         #endregion
 
@@ -643,9 +672,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             public string BuildString = "";
 
-            public InventoryStringBuilder()
+            public InventoryStringBuilder(LLUUID folderID, LLUUID parentID)
             {
-
+                BuildString += "\tinv_object\t0\n\t{\n";
+                this.AddNameValueLine("obj_id", folderID.ToStringHyphenated());
+                this.AddNameValueLine("parent_id", parentID.ToStringHyphenated());
+                this.AddNameValueLine("type", "category");
+                this.AddNameValueLine("name", "Contents");
+                this.AddSectionEnd();
             }
 
             public void AddItemStart()
@@ -675,6 +709,55 @@ namespace OpenSim.Region.Environment.Scenes
                 BuildString += "\t\t";
                 BuildString += name + "\t";
                 BuildString += value + "\n";
+            }
+
+            public void Close()
+            {
+            }
+        }
+
+        public class TaskInventoryItem
+        {
+            public string[] AssetTypes = new string[]
+                {
+                    "texture",
+                    "sound",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "", 
+                    "",
+                    "lsltext",
+                    ""
+                };
+            public LLUUID item_id = LLUUID.Zero;
+            public LLUUID parent_id = LLUUID.Zero;
+
+            public uint base_mask = FULL_MASK_PERMISSIONS;
+            public uint owner_mask = FULL_MASK_PERMISSIONS;
+            public uint group_mask = FULL_MASK_PERMISSIONS;
+            public uint everyone_mask = FULL_MASK_PERMISSIONS;
+            public uint next_owner_mask = FULL_MASK_PERMISSIONS;
+            public LLUUID creator_id = LLUUID.Zero;
+            public LLUUID owner_id = LLUUID.Zero;
+            public LLUUID last_owner_id = LLUUID.Zero;
+            public LLUUID group_id = LLUUID.Zero;
+
+            public LLUUID asset_id = LLUUID.Zero;
+            public string type = "";
+            public string inv_type = "";
+            public uint flags = 0;
+            public string name = "";
+            public string desc = "";
+            public uint creation_date = 0;
+            public string FileName = "";
+
+            public TaskInventoryItem()
+            {
+                FileName = "taskItem" + LLUUID.Random().ToString();
             }
         }
     }

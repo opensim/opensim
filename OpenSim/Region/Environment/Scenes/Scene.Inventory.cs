@@ -189,7 +189,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="primLocalID"></param>
         public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
         {
-
             bool hasPrim = false;
             foreach (EntityBase ent in Entities.Values)
             {
@@ -198,7 +197,11 @@ namespace OpenSim.Region.Environment.Scenes
                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(primLocalID);
                     if (hasPrim != false)
                     {
-                        ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
+                        bool fileChange = ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
+                        if (fileChange)
+                        {
+                            ((SceneObjectGroup)ent).RequestInventoryFile(primLocalID, xferManager);
+                        }
                         break;
                     }
                 }
@@ -216,6 +219,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (item != null)
                     {
                         bool isTexture = false;
+                        bool rezzed = false;
                         if (item.invType == 0)
                         {
                             isTexture = true;
@@ -226,6 +230,7 @@ namespace OpenSim.Region.Environment.Scenes
                             string script = Util.FieldToString(rezAsset.Data);
                             //Console.WriteLine("rez script "+script);
                             this.EventManager.TriggerRezScript(localID, script);
+                            rezzed = true;
                         }
                         else
                         {
@@ -236,7 +241,30 @@ namespace OpenSim.Region.Environment.Scenes
                                 string script = Util.FieldToString(rezAsset.Data);
                                // Console.WriteLine("rez script " + script);
                                 this.EventManager.TriggerRezScript(localID, script);
+                                rezzed = true;
                             }
+                        }
+
+                        if (rezzed)
+                        {
+                             bool hasPrim = false;
+                             foreach (EntityBase ent in Entities.Values)
+                             {
+                                 if (ent is SceneObjectGroup)
+                                 {
+                                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                                     if (hasPrim != false)
+                                     {
+                                         bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item);
+                                         if (added)
+                                         {
+                                             userInfo.DeleteItem(remoteClient.AgentId, item);
+                                             remoteClient.SendRemoveInventoryItem(itemID);
+                                         }
+                                     }
+                                 }
+                             }
+                            
                         }
                     }
                 }

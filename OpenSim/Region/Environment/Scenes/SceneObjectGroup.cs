@@ -10,6 +10,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
+using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -518,7 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].FolderID = LLUUID.Zero;
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
-            proper.ObjectData[0].InventorySerial = 0;
+            proper.ObjectData[0].InventorySerial = (short) this.m_rootPart.InventorySerial;
             proper.ObjectData[0].LastOwnerID = this.m_rootPart.LastOwnerID;
             proper.ObjectData[0].ObjectID = this.UUID;
             proper.ObjectData[0].OwnerID = this.m_rootPart.OwnerID;
@@ -601,27 +602,45 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="localID"></param>
-        public void GetPartInventoryFileName(IClientAPI remoteClient, uint localID)
+        public bool GetPartInventoryFileName(IClientAPI remoteClient, uint localID)
         {
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                part.GetInventoryFileName(remoteClient, localID);
+               return part.GetInventoryFileName(remoteClient, localID);
             }
+            return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="partID"></param>
-        public void RequestInventoryFile(IClientAPI remoteClient, uint localID, ulong xferID)
+        public string RequestInventoryFile(uint localID, XferManagaer xferManager)
         {
             SceneObjectPart part = this.GetChildPrim(localID);
             if (part != null)
             {
-                part.RequestInventoryFile(remoteClient, xferID);
+                return part.RequestInventoryFile(xferManager);
             }
+            return "";
+        }
+
+        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item)
+        {
+            SceneObjectPart part = this.GetChildPrim(localID);
+            if (part != null)
+            {
+                SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
+                taskItem.item_id = item.inventoryID;
+                taskItem.asset_id = item.assetID;
+                taskItem.name = item.inventoryName;
+                taskItem.desc = item.inventoryDescription;
+                taskItem.owner_id = item.avatarID;
+                taskItem.creator_id = item.creatorsID;
+                taskItem.type = taskItem.AssetTypes[item.assetType];
+                taskItem.inv_type = taskItem.AssetTypes[item.invType];
+                part.AddInventoryItem(taskItem);
+                return true;
+            }
+            return false;
+            
         }
 
         /// <summary>

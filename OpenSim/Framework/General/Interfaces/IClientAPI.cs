@@ -93,6 +93,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void UDPAssetUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data);
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
     public delegate void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName);
+    public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
 
     public interface IClientAPI
     {
@@ -147,6 +148,7 @@ namespace OpenSim.Framework.Interfaces
         event UDPAssetUploadRequest OnAssetUploadRequest;
         event XferReceive OnXferReceive;
         event RequestXfer OnRequestXfer;
+        event ConfirmXfer OnConfirmXfer;
         event RezScript OnRezScript;
 
         event UUIDNameRequest OnNameFromUUIDRequest;
