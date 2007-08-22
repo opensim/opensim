@@ -422,10 +422,28 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_inventorySerial++;
         }
 
-        public void RemoveInventoryItem()
+        public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
         {
-
+            if (localID == this.LocalID)
+            {
+                if (this.TaskInventory.ContainsKey(itemID))
+                {
+                    string type = TaskInventory[itemID].inv_type;
+                    this.TaskInventory.Remove(itemID);
+                    this.m_inventorySerial++;
+                    if (type == "lsltext")
+                    {
+                        return 10;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+            return -1;
         }
+
         /// <summary>
         /// 
         /// </summary>

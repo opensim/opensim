@@ -40,6 +40,8 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
         public event NewRezScript OnRezScript;
 
+        public delegate void RemoveScript(uint localID, LLUUID itemID);
+        public event RemoveScript OnRemoveScript;
 
         public void TriggerPermissionError(LLUUID user, string reason)
         {
@@ -115,6 +117,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (OnRezScript != null)
             {
                 OnRezScript(localID, itemID, script);
+            }
+        }
+
+        public void TriggerRemoveScript(uint localID, LLUUID itemID)
+        {
+            if (OnRemoveScript != null)
+            {
+                OnRemoveScript(localID, itemID);
             }
         }
     }

@@ -484,6 +484,13 @@ namespace OpenSim.Region.ClientStack
                             }
                         }
                         break;
+                    case PacketType.RemoveTaskInventory:
+                        RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket)Pack;
+                        if (OnRemoveTaskItem != null)
+                        {
+                            OnRemoveTaskItem(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
+                        }
+                        break;
                     case PacketType.MoveTaskInventory:
                         //Console.WriteLine(Pack.ToString());
                         break;

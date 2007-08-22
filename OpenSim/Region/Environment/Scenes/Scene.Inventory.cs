@@ -208,6 +208,26 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID)
+        {
+            bool hasPrim = false;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
+                    {
+                        int type = ((SceneObjectGroup)ent).RemoveInventoryItem(remoteClient, localID, itemID);
+                        if (type == 10)
+                        {
+                            this.EventManager.TriggerRemoveScript(localID, itemID);
+                        }
+                    }
+                }
+            }
+        }
+
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
             CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);

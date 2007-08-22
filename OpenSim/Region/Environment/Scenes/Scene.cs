@@ -716,6 +716,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRequestXfer += xferManager.RequestXfer;
             client.OnConfirmXfer += xferManager.AckPacket;
             client.OnRezScript += RezScript;
+            client.OnRemoveTaskItem += RemoveTaskInventory;
 
             client.OnRequestAvatarProperties += RequestAvatarProperty;
 

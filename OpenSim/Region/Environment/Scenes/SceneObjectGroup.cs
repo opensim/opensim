@@ -643,6 +643,16 @@ namespace OpenSim.Region.Environment.Scenes
             
         }
 
+        public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
+        {
+             SceneObjectPart part = this.GetChildPart(localID);
+             if (part != null)
+             {
+                return part.RemoveInventoryItem(remoteClient, localID, itemID);
+             }
+             return -1;
+        }
+
         /// <summary>
         /// 
         /// </summary>

@@ -79,6 +79,7 @@ namespace SimpleApp
         public event ConfirmXfer OnConfirmXfer;
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
+        public event RemoveTaskInventory OnRemoveTaskItem;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
 
