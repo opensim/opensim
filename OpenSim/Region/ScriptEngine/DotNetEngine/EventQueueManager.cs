@@ -239,6 +239,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             lock (QueueLock)
             {
 
+                // Do we have any scripts in this object at all? If not, return
+                if (myScriptEngine.myScriptManager.Scripts.ContainsKey(localID) == false)
+                    return;
+
                 foreach (LLUUID itemID in myScriptEngine.myScriptManager.GetScriptKeys(localID))
                 {
                     // Add to each script in that object

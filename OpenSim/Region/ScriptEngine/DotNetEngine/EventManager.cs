@@ -54,6 +54,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //myScriptEngine.Log.Verbose("ScriptEngine", "EventManager Hooking up to server events");
             myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
             myScriptEngine.World.EventManager.OnRezScript += new OpenSim.Region.Environment.Scenes.EventManager.NewRezScript(OnRezScript);
+            myScriptEngine.World.EventManager.OnRemoveScript += new OpenSim.Region.Environment.Scenes.EventManager.RemoveScript(OnRemoveScript);
 
         }
 
@@ -73,6 +74,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //    Path.Combine("ScriptEngines", "Default.lsl"), 
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
+            Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " + script.Length);
             myScriptEngine.myScriptManager.StartScript(
                 localID,
                 itemID,
@@ -80,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             );
 
         }
-        public void OnDeRezScript(uint localID, LLUUID itemID)
+        public void OnRemoveScript(uint localID, LLUUID itemID)
         {
             //myScriptEngine.myScriptManager.StartScript(
             //    Path.Combine("ScriptEngines", "Default.lsl"), 

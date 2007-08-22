@@ -13,7 +13,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     {
         private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
-        private int ScriptCompileCounter = 0;
+        private static UInt64 ScriptCompileCounter = 0;
         //private ICodeCompiler icc = codeProvider.CreateCompiler();
         public string CompileFromFile(string LSOFileName)
         {
