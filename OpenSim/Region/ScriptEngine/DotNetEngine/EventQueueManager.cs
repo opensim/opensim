@@ -32,6 +32,7 @@ using System.Text;
 using System.Threading;
 using System.Reflection;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using libsecondlife;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -64,16 +65,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// </summary>
         private struct QueueItemStruct
         {
-            public IScriptHost ObjectID;
-            public string ScriptID;
+            public uint localID;
+            public LLUUID itemID;
             public string FunctionName;
             public object[] param;
         }
 
         /// <summary>
-        /// List of ObjectID locks for mutex processing of script events
+        /// List of localID locks for mutex processing of script events
         /// </summary>
-        private List<IScriptHost> ObjectLocks = new List<IScriptHost>();
+        private List<uint> ObjectLocks = new List<uint>();
         private object TryLockLock = new object(); // Mutex lock object
 
         private ScriptEngine myScriptEngine;
@@ -140,7 +141,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     else
                     {
                         // Something in queue, process
-                        //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for ObjectID: " + QIS.ObjectID + ", ScriptID: " + QIS.ScriptID + ", FunctionName: " + QIS.FunctionName);
+                        //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
 
                         // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
                         lock (QueueLock)
@@ -152,7 +153,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 QIS = EventQueue.Dequeue();
 
                                 // Check if object is being processed by someone else
-                                if (TryLock(QIS.ObjectID) == false)
+                                if (TryLock(QIS.localID) == false)
                                 {
                                     // Object is already being processed, requeue it
                                     EventQueue.Enqueue(QIS);
@@ -169,8 +170,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         if (GotItem == true)
                         {
                             // Execute function
-                            myScriptEngine.myScriptManager.ExecuteEvent(QIS.ObjectID, QIS.ScriptID, QIS.FunctionName, QIS.param);
-                            ReleaseLock(QIS.ObjectID);
+                            try
+                            {
+                                myScriptEngine.myScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.FunctionName, QIS.param);
+                            }
+                            finally
+                            {
+                                ReleaseLock(QIS.localID);
+                            }
                         }
 
                     } // Something in queue
@@ -183,37 +190,37 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
         /// <summary>
-        /// Try to get a mutex lock on ObjectID
+        /// Try to get a mutex lock on localID
         /// </summary>
-        /// <param name="ObjectID"></param>
+        /// <param name="localID"></param>
         /// <returns></returns>
-        private bool TryLock(IScriptHost ObjectID)
+        private bool TryLock(uint localID)
         {
             lock (TryLockLock)
             {
-                if (ObjectLocks.Contains(ObjectID) == true)
+                if (ObjectLocks.Contains(localID) == true)
                 {
                     return false;
                 }
                 else
                 {
-                    ObjectLocks.Add(ObjectID);
+                    ObjectLocks.Add(localID);
                     return true;
                 }
             }
         }
 
         /// <summary>
-        /// Release mutex lock on ObjectID
+        /// Release mutex lock on localID
         /// </summary>
-        /// <param name="ObjectID"></param>
-        private void ReleaseLock(IScriptHost ObjectID)
+        /// <param name="localID"></param>
+        private void ReleaseLock(uint localID)
         {
             lock (TryLockLock)
             {
-                if (ObjectLocks.Contains(ObjectID) == true)
+                if (ObjectLocks.Contains(localID) == true)
                 {
-                    ObjectLocks.Remove(ObjectID);
+                    ObjectLocks.Remove(localID);
                 }
             }
         }
@@ -221,26 +228,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <summary>
         /// Add event to event execution queue
         /// </summary>
-        /// <param name="ObjectID"></param>
+        /// <param name="localID"></param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToObjectQueue(IScriptHost ObjectID, string FunctionName, object[] param)
+        public void AddToObjectQueue(uint localID, string FunctionName, object[] param)
         {
             // Determine all scripts in Object and add to their queue
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding ObjectID: " + ObjectID + ", FunctionName: " + FunctionName);
+            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
 
             lock (QueueLock)
             {
 
-                foreach (string ScriptID in myScriptEngine.myScriptManager.GetScriptKeys(ObjectID))
+                foreach (LLUUID itemID in myScriptEngine.myScriptManager.GetScriptKeys(localID))
                 {
                     // Add to each script in that object
                     // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
 
                     // Create a structure and add data
                     QueueItemStruct QIS = new QueueItemStruct();
-                    QIS.ObjectID = ObjectID;
-                    QIS.ScriptID = ScriptID;
+                    QIS.localID = localID;
+                    QIS.itemID = itemID;
                     QIS.FunctionName = FunctionName;
                     QIS.param = param;
 

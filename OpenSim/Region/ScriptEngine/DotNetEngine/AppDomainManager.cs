@@ -9,6 +9,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 using OpenSim.Region.ScriptEngine.Common;
+using libsecondlife;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {

@@ -13,39 +13,51 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     {
         private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
+        private int ScriptCompileCounter = 0;
         //private ICodeCompiler icc = codeProvider.CreateCompiler();
-        public string Compile(string LSOFileName)
+        public string CompileFromFile(string LSOFileName)
         {
-
-
-            // Output assembly name
-            string OutFile = Path.Combine("ScriptEngines", Path.GetFileNameWithoutExtension(LSOFileName) + ".dll");
-            //string OutFile = Path.Combine("ScriptEngines", "SecondLife.Script.dll");
-
-            Common.SendToDebug("Reading source code into memory");
-            // TODO: Add error handling
             string CS_Code;
             switch (System.IO.Path.GetExtension(LSOFileName).ToLower())
             {
                 case ".txt":
                 case ".lsl":
                     Common.SendToDebug("Source code is LSL, converting to CS");
-                    CS_Code = LSL_Converter.Convert(File.ReadAllText(LSOFileName));
-                    break;
+                    return CompileFromLSLText(File.ReadAllText(LSOFileName));
                 case ".cs":
                     Common.SendToDebug("Source code is CS");
-                    CS_Code = File.ReadAllText(LSOFileName);
-                    break;
+                    return CompileFromCSText(File.ReadAllText(LSOFileName));
                 default:
                     throw new Exception("Unknown script type.");
             }
+        }
+        /// <summary>
+        /// Converts script from LSL to CS and calls CompileFromCSText
+        /// </summary>
+        /// <param name="Script">LSL script</param>
+        /// <returns>Filename to .dll assembly</returns>
+        public string CompileFromLSLText(string Script)
+        {
+            return CompileFromCSText(LSL_Converter.Convert(Script));
+        }
+        /// <summary>
+        /// Compile CS script to .Net assembly (.dll)
+        /// </summary>
+        /// <param name="Script">CS script</param>
+        /// <returns>Filename to .dll assembly</returns>
+        public string CompileFromCSText(string Script)
+        {
 
-            Common.SendToDebug("Compiling");
+
+            // Output assembly name
+            ScriptCompileCounter++;
+            string OutFile = Path.Combine("ScriptEngines", "Script_" + ScriptCompileCounter + ".dll");
+            //string OutFile = Path.Combine("ScriptEngines", "SecondLife.Script.dll");
 
             // DEBUG - write source to disk
             try
             {
-                File.WriteAllText(Path.Combine("ScriptEngines", "debug_" + Path.GetFileNameWithoutExtension(LSOFileName) + ".cs"), CS_Code);
+                File.WriteAllText(Path.Combine("ScriptEngines", "debug_" + Path.GetFileNameWithoutExtension(OutFile) + ".cs"), Script);
             }
             catch { }
 
@@ -68,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
-            CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, CS_Code);
+            CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, Script);
 
             // Go through errors
             // TODO: Return errors to user somehow

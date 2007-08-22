@@ -64,9 +64,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger)
         {
+
             World = Sceneworld;
             m_log = logger;
-            
+
+            Log.Verbose("ScriptEngine", "DotNet & LSL ScriptEngine initializing");
+
             //m_logger.Status("ScriptEngine", "InitializeEngine");
 
             // Create all objects we'll be using
@@ -78,30 +81,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
             
-            // Event hook for when scripts are dragged to script inventory
-            World.EventManager.OnRezScript += NewRezScriptHandler;
             
         }
-
-        private void NewRezScriptHandler(uint localID, LLUUID itemID, string script)
-    {
-        // TODO: Add code to compile script and wire up script to object
-        // Either the script is a stand-alone entity with a reference to public  host,
-        // Or the host has a reference to the script because it was in its inventory.
-    }
-        
+            
         public void Shutdown()
         {
             // We are shutting down
         }
 
-        // !!!FOR DEBUGGING ONLY!!! (for executing script directly from test app)
-        [Obsolete("!!!FOR DEBUGGING ONLY!!!")]
-        public void StartScript(string ScriptID, IScriptHost ObjectID)
-        {
-            this.myEventManager.TEMP_OBJECT_ID = ObjectID;
-            Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
-            myScriptManager.StartScript(ScriptID, ObjectID);
-        }
+        //// !!!FOR DEBUGGING ONLY!!! (for executing script directly from test app)
+        //[Obsolete("!!!FOR DEBUGGING ONLY!!!")]
+        //public void StartScript(string ScriptID, IScriptHost ObjectID)
+        //{
+        //    this.myEventManager.TEMP_OBJECT_ID = ObjectID;
+        //    Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
+        //    myScriptManager.StartScript(ScriptID, ObjectID);
+        //}
     }
 }

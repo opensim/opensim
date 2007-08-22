@@ -42,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     class EventManager
     {
         private ScriptEngine myScriptEngine;
-        public IScriptHost TEMP_OBJECT_ID;
+        //public IScriptHost TEMP_OBJECT_ID;
         public EventManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
@@ -51,19 +51,47 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
             // Hook up a test event to our test form
-            myScriptEngine.Log.Verbose("ScriptEngine", "EventManager Hooking up dummy-event: touch_start");
-            // TODO: REPLACE THIS WITH A REAL TOUCH_START EVENT IN SERVER
+            //myScriptEngine.Log.Verbose("ScriptEngine", "EventManager Hooking up to server events");
             myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
-            //myScriptEngine.World.touch_start += new TempWorldInterfaceEventDelegates.touch_start(touch_start);
+            myScriptEngine.World.EventManager.OnRezScript += new OpenSim.Region.Environment.Scenes.EventManager.NewRezScript(OnRezScript);
+
         }
 
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
-            myScriptEngine.myEventQueueManager.AddToObjectQueue(TEMP_OBJECT_ID, "touch_start", new object[] { (int)0 });
+            myScriptEngine.myEventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] { (int)1 });
         }
+        public void OnRezScript(uint localID, LLUUID itemID, string script)
+        {
+            // TODO: Add code to compile script and wire up script to object
+            // Either the script is a stand-alone entity with a reference to public  host,
+            // Or the host has a reference to the script because it was in its inventory.
 
+            //myScriptEngine.myScriptManager.StartScript(
+            //    Path.Combine("ScriptEngines", "Default.lsl"), 
+            //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
+            //);
+            myScriptEngine.myScriptManager.StartScript(
+                localID,
+                itemID,
+                script
+            );
+
+        }
+        public void OnDeRezScript(uint localID, LLUUID itemID)
+        {
+            //myScriptEngine.myScriptManager.StartScript(
+            //    Path.Combine("ScriptEngines", "Default.lsl"), 
+            //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
+            //);
+            myScriptEngine.myScriptManager.StopScript(
+                localID,
+                itemID
+            );
+
+        }
 
         // TODO: Replace placeholders below
         //  These needs to be hooked up to OpenSim during init of this class

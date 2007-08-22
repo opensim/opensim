@@ -38,6 +38,6 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
     {
         void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger);
         void Shutdown();
-        void StartScript(string ScriptID, IScriptHost ObjectID);
+//        void StartScript(string ScriptID, IScriptHost ObjectID);
     }
 }

@@ -183,8 +183,6 @@ namespace OpenSim
 
                 OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
                 scene.AddScriptEngine(ScriptEngine, m_log);
-                // TODO: TEMP load default script
-                ScriptEngine.StartScript(Path.Combine("ScriptEngines", "Default.lsl"), new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost());
                 
                 //Server side object editing permissions checking
                 if (m_permissions)
