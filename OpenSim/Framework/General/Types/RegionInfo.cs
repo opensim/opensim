@@ -269,7 +269,8 @@ namespace OpenSim.Framework.Types
                     this.MasterAvatarLastName = (string)configuration_result;
                     break;
                 case "master_avatar_pass":
-                    this.MasterAvatarSandboxPassword = (string)configuration_result;
+                    string tempMD5Passwd = (string)configuration_result;
+                    this.MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
                     break;
             }
 
