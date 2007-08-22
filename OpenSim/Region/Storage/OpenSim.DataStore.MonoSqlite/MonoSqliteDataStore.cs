@@ -52,22 +52,14 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
-            TestPrimsTable(conn);
+            TestTables(conn);
             
             ds.Tables.Add(createPrimTable());
-            DataTable prims = ds.Tables["prims"];
-            primDa.Fill(prims);
-            MainLog.Instance.Verbose(ds.GetXmlSchema());
-            
-            shapeDa.Fill(ds, "primshapes");
-            ds.AcceptChanges();
-
-            prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
+            primDa.Fill(ds.Tables["prims"]);
             setupPrimCommands(primDa, conn);
 
-            // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
-            DataTable shapes = ds.Tables["primshapes"];
-            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
+            ds.Tables.Add(createShapeTable());
+            primDa.Fill(ds.Tables["primshapes"]);
             setupShapeCommands(shapeDa, conn);
 
             return;
@@ -642,28 +634,37 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             }
         }
         
-        private bool TestPrimsTable(SqliteConnection conn)
+        private bool TestTables(SqliteConnection conn)
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
-            SqliteDataAdapter da = new SqliteDataAdapter(primSelectCmd);
-            DataSet tmp = new DataSet();
+            SqliteDataAdapter primDa = new SqliteDataAdapter(primSelectCmd);
+            SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
+            SqliteDataAdapter shapeDa = new SqliteDataAdapter(shapeSelectCmd);
+
+            DataSet tmpDS = new DataSet();
             try {
-                da.Fill(tmp, "prims");
+                primDa.Fill(tmpDS, "prims");
+                shapeDa.Fill(tmpDS, "primshapes");
             } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
                 MainLog.Instance.Verbose("SQLite Database does exist... creating");
                 InitDB(conn);
             }
 
-            //             Dictionary<string, DbType> defs = createPrimDataDefs();
-            //             // da.FillSchema(ds, SchemaType.Mapped, "prims");
-            da.Fill(tmp, "prims");
-            MainLog.Instance.Verbose("DATASTORE", "Filled prims...");
-            //             DataTable prims = ds.Tables["prims"];
-            //             foreach (DataColumn col in prims.Columns)
-            //             {
-            //                 MainLog.Instance.Verbose("Found: " + col);
-            //             }
-            //             return true;
+            primDa.Fill(tmpDS, "prims");
+            shapeDa.Fill(tmpDS, "primshapes");
+
+            foreach (DataColumn col in createPrimTable().Columns) {
+                if (! tmpDS.Tables["prims"].Columns.Contains(col.ColumnName) ) {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            foreach (DataColumn col in createShapeTable().Columns) {
+                if (! tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName) ) {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -729,54 +730,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return prims;
         }
 
-        private Dictionary<string, DbType> createPrimDataDefs()
-        {
-            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("UUID", DbType.String);
-            data.Add("ParentID", DbType.Int32);
-            data.Add("CreationDate", DbType.Int32);
-            data.Add("Name", DbType.String);
-            data.Add("SceneGroupID", DbType.String);
-            // various text fields
-            data.Add("Text", DbType.String);
-            data.Add("Description", DbType.String);
-            data.Add("SitName", DbType.String);
-            data.Add("TouchName", DbType.String);
-            // permissions
-            data.Add("CreatorID", DbType.String);
-            data.Add("OwnerID", DbType.String);
-            data.Add("GroupID", DbType.String);
-            data.Add("LastOwnerID", DbType.String);
-            data.Add("OwnerMask", DbType.Int32);
-            data.Add("NextOwnerMask", DbType.Int32);
-            data.Add("GroupMask", DbType.Int32);
-            data.Add("EveryoneMask", DbType.Int32);
-            data.Add("BaseMask", DbType.Int32);
-            // vectors
-            data.Add("PositionX", DbType.Double);
-            data.Add("PositionY", DbType.Double);
-            data.Add("PositionZ", DbType.Double);
-            data.Add("GroupPositionX", DbType.Double);
-            data.Add("GroupPositionY", DbType.Double);
-            data.Add("GroupPositionZ", DbType.Double);
-            data.Add("VelocityX", DbType.Double);
-            data.Add("VelocityY", DbType.Double);
-            data.Add("VelocityZ", DbType.Double);
-            data.Add("AngularVelocityX", DbType.Double);
-            data.Add("AngularVelocityY", DbType.Double);
-            data.Add("AngularVelocityZ", DbType.Double);
-            data.Add("AccelerationX", DbType.Double);
-            data.Add("AccelerationY", DbType.Double);
-            data.Add("AccelerationZ", DbType.Double);
-            // quaternions
-            data.Add("RotationX", DbType.Double);
-            data.Add("RotationY", DbType.Double);
-            data.Add("RotationZ", DbType.Double);
-            data.Add("RotationW", DbType.Double);
-            return data;
-        }
-            
-
         private DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
@@ -811,47 +764,11 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // text TODO: this isn't right, but I'm not sure the right
             // way to specify this as a blob atm
             createCol(shapes, "Texture", typeof(System.Byte[]));
+            createCol(shapes, "ExtraParams", typeof(System.Byte[]));
 
             shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
 
             return shapes;
-        }
-
-        private Dictionary<string, DbType> createShapeDataDefs()
-        {
-            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("UUID", DbType.String);
-            // shape is an enum
-            data.Add("Shape", DbType.Int32);
-            // vectors
-            data.Add("ScaleX", DbType.Double);
-            data.Add("ScaleY", DbType.Double);
-            data.Add("ScaleZ", DbType.Double);
-            // paths
-            data.Add("PCode", DbType.Int32);
-            data.Add("PathBegin", DbType.Int32);
-            data.Add("PathEnd", DbType.Int32);
-            data.Add("PathScaleX", DbType.Int32);
-            data.Add("PathScaleY", DbType.Int32);
-            data.Add("PathShearX", DbType.Int32);
-            data.Add("PathShearY", DbType.Int32);
-            data.Add("PathSkew", DbType.Int32);
-            data.Add("PathCurve", DbType.Int32);
-            data.Add("PathRadiusOffset", DbType.Int32);
-            data.Add("PathRevolutions", DbType.Int32);
-            data.Add("PathTaperX", DbType.Int32);
-            data.Add("PathTaperY", DbType.Int32);
-            data.Add("PathTwist", DbType.Int32);
-            data.Add("PathTwistBegin", DbType.Int32);
-            // profile
-            data.Add("ProfileBegin", DbType.Int32);
-            data.Add("ProfileEnd", DbType.Int32);
-            data.Add("ProfileCurve", DbType.Int32);
-            data.Add("ProfileHollow", DbType.Int32);
-            // text TODO: this isn't right, but I'm not sure the right
-            // way to specify this as a blob atm
-            data.Add("Texture", DbType.Binary);
-            return data;
         }
     }
 }
