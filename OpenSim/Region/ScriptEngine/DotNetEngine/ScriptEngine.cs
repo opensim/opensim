@@ -32,6 +32,7 @@ using System.Text;
 using OpenSim.Framework.Console;
 //using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using libsecondlife;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -82,7 +83,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             
         }
 
-        private void NewRezScriptHandler(uint localID, string script)
+        private void NewRezScriptHandler(uint localID, LLUUID itemID, string script)
     {
         // TODO: Add code to compile script and wire up script to object
         // Either the script is a stand-alone entity with a reference to public  host,
