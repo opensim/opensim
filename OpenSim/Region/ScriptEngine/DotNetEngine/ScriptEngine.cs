@@ -77,7 +77,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
             
+            // Event hook for when scripts are dragged to script inventory
+            World.EventManager.OnRezScript += NewRezScriptHandler;
+            
         }
+
+        private void NewRezScriptHandler(uint localID, string script)
+    {
+        // TODO: Add code to compile script and wire up script to object
+        // Either the script is a stand-alone entity with a reference to public  host,
+        // Or the host has a reference to the script because it was in its inventory.
+    }
+        
         public void Shutdown()
         {
             // We are shutting down
