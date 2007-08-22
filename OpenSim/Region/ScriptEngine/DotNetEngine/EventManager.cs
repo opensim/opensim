@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
             // Hook up a test event to our test form
-            //myScriptEngine.Log.Verbose("ScriptEngine", "EventManager Hooking up to server events");
+            myScriptEngine.Log.Verbose("ScriptEngine", "Hooking up to server events");
             myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
             myScriptEngine.World.EventManager.OnRezScript += new OpenSim.Region.Environment.Scenes.EventManager.NewRezScript(OnRezScript);
             myScriptEngine.World.EventManager.OnRemoveScript += new OpenSim.Region.Environment.Scenes.EventManager.RemoveScript(OnRemoveScript);
@@ -62,6 +62,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             // Add to queue for all scripts in ObjectID object
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
+            Console.WriteLine("touch_start localID: " + localID);
             myScriptEngine.myEventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] { (int)1 });
         }
         public void OnRezScript(uint localID, LLUUID itemID, string script)
@@ -75,11 +76,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " + script.Length);
-            myScriptEngine.myScriptManager.StartScript(
-                localID,
-                itemID,
-                script
-            );
+            myScriptEngine.myScriptManager.StartScript(localID, itemID, script);
 
         }
         public void OnRemoveScript(uint localID, LLUUID itemID)

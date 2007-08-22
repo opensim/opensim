@@ -58,6 +58,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <returns>Free AppDomain</returns>
         private AppDomainStructure GetFreeAppDomain()
         {
+            Console.WriteLine("Finding free AppDomain");
             FreeAppDomains(); // Outsite lock, has its own GetLock
             lock (GetLock)
             {
@@ -141,8 +142,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Find next available AppDomain to put it in
             AppDomainStructure FreeAppDomain = GetFreeAppDomain();
             
-            if (FreeAppDomain == null) Console.WriteLine("FreeAppDomain == null");
-            if (FreeAppDomain.CurrentAppDomain == null) Console.WriteLine("FreeAppDomain.CurrentAppDomain  == null");
+            //if (FreeAppDomain == null) Console.WriteLine("FreeAppDomain == null");
+            //if (FreeAppDomain.CurrentAppDomain == null) Console.WriteLine("FreeAppDomain.CurrentAppDomain  == null");
+            Console.WriteLine("Loading into AppDomain: " + FileName);
             LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
             //Type mytype = mbrt.GetType();
             Console.WriteLine("ScriptEngine AppDomainManager: is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
