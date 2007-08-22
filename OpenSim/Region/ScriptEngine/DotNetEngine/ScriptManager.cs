@@ -170,11 +170,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 
                 //OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass Script = LoadAndInitAssembly(FreeAppDomain, FileName, localID);
 
-                //long before;
-                //before = GC.GetTotalMemory(true);
+                long before;
+                before = GC.GetTotalMemory(false);
                 LSL_BaseClass CompiledScript = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
-                //Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
-                //before = GC.GetTotalMemory(true);
+                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(false) - before);
+                //before = GC.GetTotalMemory(false);
 
 
                 //Script = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
