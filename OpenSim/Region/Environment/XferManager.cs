@@ -26,7 +26,6 @@ namespace OpenSim.Region.Environment
         /// <param name="fileName"></param>
         public void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName)
         {
-            Console.WriteLine("xfer request for " + fileName);
             lock (NewFiles)
             {
                 if (NewFiles.ContainsKey(fileName))
@@ -100,7 +99,6 @@ namespace OpenSim.Region.Environment
                     Array.Copy(Data, 0, transferData, 4, Data.Length);
                     Client.SendXferPacket(XferID, 0 + 0x80000000, transferData);
                     complete = true;
-                    Console.WriteLine("xfer is under 1000 bytes");
                 }
                 else
                 {

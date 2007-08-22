@@ -717,7 +717,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public class TaskInventoryItem
         {
-            public string[] AssetTypes = new string[]
+            public static string[] Types = new string[]
                 {
                     "texture",
                     "sound",
@@ -734,7 +734,7 @@ namespace OpenSim.Region.Environment.Scenes
                 };
 
             public LLUUID item_id = LLUUID.Zero;
-            public LLUUID parent_id = LLUUID.Zero;
+            public LLUUID parent_id = LLUUID.Zero; //parent folder id 
 
             public uint base_mask = FULL_MASK_PERMISSIONS;
             public uint owner_mask = FULL_MASK_PERMISSIONS;

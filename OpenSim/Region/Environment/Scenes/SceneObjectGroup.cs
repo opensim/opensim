@@ -634,8 +634,8 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.desc = item.inventoryDescription;
                 taskItem.owner_id = item.avatarID;
                 taskItem.creator_id = item.creatorsID;
-                taskItem.type = taskItem.AssetTypes[item.assetType];
-                taskItem.inv_type = taskItem.AssetTypes[item.invType];
+                taskItem.type = SceneObjectPart.TaskInventoryItem.Types[item.assetType];
+                taskItem.inv_type = SceneObjectPart.TaskInventoryItem.Types[item.invType];
                 part.AddInventoryItem(taskItem);
                 return true;
             }
