@@ -37,7 +37,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event ObjectGrabDelegate OnObjectGrab;
         public event OnPermissionErrorDelegate OnPermissionError;
 
-        public delegate void NewRezScript(uint localID, string script);
+        public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
         public event NewRezScript OnRezScript;
 
 
@@ -110,11 +110,11 @@ namespace OpenSim.Region.Environment.Scenes
                 OnObjectGrab(localID, offsetPos, remoteClient);
         }
 
-        public void TriggerRezScript(uint localID, string script)
+        public void TriggerRezScript(uint localID, LLUUID itemID, string script)
         {
             if (OnRezScript != null)
             {
-                OnRezScript(localID, script);
+                OnRezScript(localID, itemID, script);
             }
         }
     }

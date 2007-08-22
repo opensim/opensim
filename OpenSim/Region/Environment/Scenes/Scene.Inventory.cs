@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             string script = Util.FieldToString(rezAsset.Data);
                             //Console.WriteLine("rez script "+script);
-                            this.EventManager.TriggerRezScript(localID, script);
+                            this.EventManager.TriggerRezScript(localID, itemID, script);
                             rezzed = true;
                         }
                         else
@@ -240,7 +240,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 string script = Util.FieldToString(rezAsset.Data);
                                // Console.WriteLine("rez script " + script);
-                                this.EventManager.TriggerRezScript(localID, script);
+                                this.EventManager.TriggerRezScript(localID, itemID, script);
                                 rezzed = true;
                             }
                         }
