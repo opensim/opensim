@@ -417,6 +417,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             item.parent_id = m_folderID;
             item.creation_date = 1000;
+            item.ParentPartID = this.UUID;
             this.TaskInventory.Add(item.item_id, item);
             this.m_inventorySerial++;
         }
@@ -444,8 +445,6 @@ namespace OpenSim.Region.Environment.Scenes
                     client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
                     return false;
                 }
-                //client.SendTaskInventory(this.m_uuid, 1, Helpers.StringToField("primInventory2"));
-                //client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
             }
             return false;
         }
@@ -733,6 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
                     "lsltext",
                     ""
                 };
+
             public LLUUID item_id = LLUUID.Zero;
             public LLUUID parent_id = LLUUID.Zero;
 
@@ -753,11 +753,11 @@ namespace OpenSim.Region.Environment.Scenes
             public string name = "";
             public string desc = "";
             public uint creation_date = 0;
-            public string FileName = "";
+
+            public LLUUID ParentPartID = LLUUID.Zero;
 
             public TaskInventoryItem()
             {
-                FileName = "taskItem" + LLUUID.Random().ToString();
             }
         }
     }
