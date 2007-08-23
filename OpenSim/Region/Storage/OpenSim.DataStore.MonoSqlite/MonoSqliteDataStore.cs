@@ -62,10 +62,12 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             ds.Tables.Add(createPrimTable());
             primDa.Fill(ds.Tables["prims"]);
             setupPrimCommands(primDa, conn);
+            MainLog.Instance.Verbose("DATASTORE", "Populated Prim Definitions");
 
             ds.Tables.Add(createShapeTable());
             shapeDa.Fill(ds.Tables["primshapes"]);
             setupShapeCommands(shapeDa, conn);
+            MainLog.Instance.Verbose("DATASTORE", "Populated Prim Shapes");
 
             return;
         }
@@ -481,22 +483,23 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             s.ProfileHollow = Convert.ToByte(row["ProfileHollow"]);
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
-            // s.TextureEntry = (byte[])row["Texture"];
-
-            string texture = (string)row["Texture"];
-            if (!texture.StartsWith("<"))
-            {
-                //here so that we can still work with old format database files (ie from before I added xml serialization)
-                 LLObject.TextureEntry textureEntry = null;
-                textureEntry = new LLObject.TextureEntry(new LLUUID(texture));
-                s.TextureEntry = textureEntry.ToBytes();
-            }
-            else
-            {
-                TextureBlock textureEntry = TextureBlock.FromXmlString(texture);
-                s.TextureEntry = textureEntry.TextureData;
-                s.ExtraParams = textureEntry.ExtraParams;
-            }
+            s.TextureEntry = (byte[])row["Texture"];
+            s.ExtraParams = (byte[])row["ExtraParams"];
+            // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+            //             string texture = encoding.GetString((Byte[])row["Texture"]);
+            //             if (!texture.StartsWith("<"))
+            //             {
+            //                 //here so that we can still work with old format database files (ie from before I added xml serialization)
+            //                  LLObject.TextureEntry textureEntry = null;
+            //                 textureEntry = new LLObject.TextureEntry(new LLUUID(texture));
+            //                 s.TextureEntry = textureEntry.ToBytes();
+            //             }
+            //             else
+            //             {
+            //                 TextureBlock textureEntry = TextureBlock.FromXmlString(texture);
+            //                 s.TextureEntry = textureEntry.TextureData;
+            //                 s.ExtraParams = textureEntry.ExtraParams;
+            // }
 
             return s;
         }
@@ -542,9 +545,12 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // Added following xml hack but not really ideal , also ExtraParams isn't currently part of the database
             // am a bit worried about adding it now as some people will have old format databases, so for now including that data in this xml data
             // MW[17-08-07]
-            TextureBlock textureBlock = new TextureBlock(s.TextureEntry);
-            textureBlock.ExtraParams = s.ExtraParams;
-            row["Texture"] = textureBlock.ToXMLString();
+            row["Texture"] = s.TextureEntry;
+            row["ExtraParams"] = s.ExtraParams;
+            // TextureBlock textureBlock = new TextureBlock(s.TextureEntry);
+            //             textureBlock.ExtraParams = s.ExtraParams;
+            //             System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+            // row["Texture"] = encoding.GetBytes(textureBlock.ToXMLString());
         }
 
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID)
@@ -752,7 +758,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 primDa.Fill(tmpDS, "prims");
                 shapeDa.Fill(tmpDS, "primshapes");
             } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
-                MainLog.Instance.Verbose("SQLite Database does exist... creating");
+                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
 
