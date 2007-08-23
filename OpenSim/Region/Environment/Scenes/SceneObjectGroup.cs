@@ -717,6 +717,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.Resize(scale);
+                if (part.UUID == this.m_rootPart.UUID)
+                {
+                    if (m_rootPart.PhysActor != null)
+                    {
+                        m_rootPart.PhysActor.Size = new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z);
+                    }
+                }
             }
         }
         #endregion
@@ -789,6 +796,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupRotation(LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
+            if (m_rootPart.PhysActor != null)
+            {
+                m_rootPart.PhysActor.Orientation = new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z);
+            }
             this.ScheduleGroupForTerseUpdate();
         }
 
@@ -800,6 +811,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateGroupRotation(LLVector3 pos, LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
+            if (m_rootPart.PhysActor != null)
+            {
+                m_rootPart.PhysActor.Orientation = new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z);
+            }
             this.AbsolutePosition = pos;
             this.ScheduleGroupForTerseUpdate();
         }
@@ -832,6 +847,10 @@ namespace OpenSim.Region.Environment.Scenes
         private void UpdateRootRotation(LLQuaternion rot)
         {
             this.m_rootPart.UpdateRotation(rot);
+            if (m_rootPart.PhysActor != null)
+            {
+                m_rootPart.PhysActor.Orientation = new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z);
+            }
             Axiom.Math.Quaternion axRot = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
             Axiom.Math.Quaternion oldParentRot = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
 

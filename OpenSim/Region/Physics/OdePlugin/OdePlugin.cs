@@ -148,7 +148,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
-            Console.WriteLine("+++++++++++++++++++++++++++++++++AddPrim pos: " + position + " size: " + size + " quat: " + rotation); 
+            //Console.WriteLine("+++++++++++++++++++++++++++++++++AddPrim pos: " + position + " size: " + size + " quat: " + rotation); 
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
@@ -437,7 +437,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting pos: " + value);
+                //Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting pos: " + value);
                 _position = value;
                 Monitor.Enter(typeof(OdeScene));
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
@@ -454,8 +454,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting size: " + value);
+                //Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting size: " + value);
                 _size = value;
+                Monitor.Enter(typeof(OdeScene));
+                d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                Monitor.Exit(typeof(OdeScene));
             }
         }
 
@@ -490,6 +493,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
+                //Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting Orientation");
                 _orientation = value;
                 Monitor.Enter(typeof(OdeScene));
                 d.Quaternion myrot = new d.Quaternion();
