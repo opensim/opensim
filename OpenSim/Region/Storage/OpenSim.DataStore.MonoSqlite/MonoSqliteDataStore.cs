@@ -21,12 +21,11 @@ using Mono.Data.SqliteClient;
 
 namespace OpenSim.DataStore.MonoSqliteStorage
 {
-
     public class MonoSqliteDataStore : IRegionDataStore
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
-
+        
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
@@ -76,7 +75,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             foreach (SceneObjectPart prim in obj.Children.Values)
             {
-                addPrim(prim, obj.UUID);
+                addPrim(prim, obj.UUID, regionUUID);
             }
 
             // MainLog.Instance.Verbose("Attempting to do database update....");
@@ -84,7 +83,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             shapeDa.Update(ds, "primshapes");
             // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
-
+        
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             DataTable prims = ds.Tables["prims"];
@@ -115,7 +114,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
-            foreach (DataRow primRow in prims.Rows)
+            string byRegion = "RegionUUID = '" + regionUUID.ToString()  + "'";
+            foreach (DataRow primRow in prims.Select(byRegion))
             {
                 string uuid = (string)primRow["UUID"];
                 string objID = (string)primRow["SceneGroupID"];
@@ -191,42 +191,42 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // TODO: DataSet commit
         }
 
-        public class TextureBlock
-        {
-            public byte[] TextureData;
-            public byte[] ExtraParams = new byte[1];
+//         public class TextureBlock
+//         {
+//             public byte[] TextureData;
+//             public byte[] ExtraParams = new byte[1];
 
-            public TextureBlock(byte[] data)
-            {
-                TextureData = data;
-            }
+//             public TextureBlock(byte[] data)
+//             {
+//                 TextureData = data;
+//             }
 
-            public TextureBlock()
-            {
+//             public TextureBlock()
+//             {
 
-            }
+//             }
 
-            public string ToXMLString()
-            {
-                StringWriter sw = new StringWriter();
-                XmlTextWriter writer = new XmlTextWriter(sw);
-                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-                serializer.Serialize(writer, this);
-                return sw.ToString();
-            }
+//             public string ToXMLString()
+//             {
+//                 StringWriter sw = new StringWriter();
+//                 XmlTextWriter writer = new XmlTextWriter(sw);
+//                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+//                 serializer.Serialize(writer, this);
+//                 return sw.ToString();
+//             }
 
-            public static TextureBlock FromXmlString(string xmlData)
-            {
-                TextureBlock textureEntry = null;
-                StringReader sr = new StringReader(xmlData);
-                XmlTextReader reader = new XmlTextReader(sr);
-                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-                textureEntry = (TextureBlock)serializer.Deserialize(reader);
-                reader.Close();
-                sr.Close();
-                return textureEntry;
-            }
-        }
+//             public static TextureBlock FromXmlString(string xmlData)
+//             {
+//                 TextureBlock textureEntry = null;
+//                 StringReader sr = new StringReader(xmlData);
+//                 XmlTextReader reader = new XmlTextReader(sr);
+//                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+//                 textureEntry = (TextureBlock)serializer.Deserialize(reader);
+//                 reader.Close();
+//                 sr.Close();
+//                 return textureEntry;
+//             }
+//         }
 
         /***********************************************************************
          *
@@ -247,6 +247,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable prims = new DataTable("prims");
 
             createCol(prims, "UUID", typeof(System.String));
+            createCol(prims, "RegionUUID", typeof(System.String));
             createCol(prims, "ParentID", typeof(System.Int32));
             createCol(prims, "CreationDate", typeof(System.Int32));
             createCol(prims, "Name", typeof(System.String));
@@ -407,9 +408,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return prim;
         }
 
-        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID)
+        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"] = prim.UUID;
+            row["RegionUUID"] = regionUUID;
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
@@ -500,10 +502,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             //                 s.TextureEntry = textureEntry.TextureData;
             //                 s.ExtraParams = textureEntry.ExtraParams;
             // }
-
+            
             return s;
         }
-
+        
         private void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
@@ -553,21 +555,21 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // row["Texture"] = encoding.GetBytes(textureBlock.ToXMLString());
         }
 
-        private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID)
+        private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
-
+            
             DataRow primRow = prims.Rows.Find(prim.UUID);
             if (primRow == null)
             {
                 primRow = prims.NewRow();
-                fillPrimRow(primRow, prim, sceneGroupID);
+                fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
                 prims.Rows.Add(primRow);
             }
             else
             {
-                fillPrimRow(primRow, prim, sceneGroupID);
+                fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
             }
 
             DataRow shapeRow = shapes.Rows.Find(prim.UUID);
