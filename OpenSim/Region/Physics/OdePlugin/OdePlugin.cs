@@ -143,7 +143,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
+           
+        }
 
+        public override void RemovePrim(PhysicsActor prim)
+        {
+            if (prim is OdePrim)
+            {
+                d.GeomDestroy(((OdePrim)prim).prim_geom);
+                this._prims.Remove((OdePrim)prim);
+            }
         }
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
@@ -397,7 +406,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
         private Quaternion _orientation;
-        IntPtr prim_geom;
+        public IntPtr prim_geom;
 
         public OdePrim(OdeScene parent_scene, PhysicsVector pos, PhysicsVector size, Quaternion rotation)
         {

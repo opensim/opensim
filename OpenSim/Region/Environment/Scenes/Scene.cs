@@ -504,11 +504,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
-               // rootPart.PhysActor = phyScene.AddPrim(
-               //        new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
-               //        new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-               //        new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-              //                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                rootPart.PhysActor = phyScene.AddPrim(
+                       new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
+                       new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                      new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                                                 rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
             }
             MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
@@ -547,8 +547,8 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup sceneOb = new SceneObjectGroup(this, this.m_regionHandle, ownerID, PrimIDAllocate(), pos, shape);
             AddEntity(sceneOb);
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
-            //rootPart.PhysActor =phyScene.AddPrim(new PhysicsVector(pos.X, pos.Y, pos.Z), new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
-            //    new Axiom.Math.Quaternion());
+            rootPart.PhysActor =phyScene.AddPrim(new PhysicsVector(pos.X, pos.Y, pos.Z), new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
+                new Axiom.Math.Quaternion());
         }
 
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
@@ -626,11 +626,11 @@ namespace OpenSim.Region.Environment.Scenes
                     AddEntity(obj);
 
                    SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-                  //rootPart.PhysActor = phyScene.AddPrim(
-                   //     new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
-                  //     new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                  //      new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                  //                                rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                  rootPart.PhysActor = phyScene.AddPrim(
+                        new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
+                       new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                        new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                                                  rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
                     primCount++;
                 }
             }

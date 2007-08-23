@@ -44,6 +44,8 @@ namespace OpenSim.Physics.Manager
 
         public abstract void RemoveAvatar(PhysicsActor actor);
 
+        public abstract void RemovePrim(PhysicsActor prim);
+
         public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation);
 
         public abstract void Simulate(float timeStep);
@@ -70,6 +72,11 @@ namespace OpenSim.Physics.Manager
             }
 
             public override void RemoveAvatar(PhysicsActor actor)
+            {
+
+            }
+
+            public override void RemovePrim(PhysicsActor prim)
             {
 
             }

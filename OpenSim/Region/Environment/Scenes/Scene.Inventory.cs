@@ -8,6 +8,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Utilities;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -354,6 +355,12 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemUpdate(item);
                             }
 
+                            SceneObjectPart rootPart = ((SceneObjectGroup)selectedEnt).GetChildPart(((SceneObjectGroup)selectedEnt).UUID);
+                            if (rootPart.PhysActor != null)
+                            {
+                                this.phyScene.RemovePrim(rootPart.PhysActor);
+                            }
+                            
                             storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID, m_regInfo.SimUUID);
                             ((SceneObjectGroup)selectedEnt).DeleteGroup();
 
@@ -361,6 +368,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 Entities.Remove(((SceneObjectGroup)selectedEnt).UUID);
                             }
+                            ((SceneObjectGroup)selectedEnt).DeleteParts();
                         }
                     }
                 }
@@ -405,6 +413,12 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = new SceneObjectGroup(this, this.m_regionHandle, xmlData);
             this.AddEntity(group);
             group.AbsolutePosition = pos;
+            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+             rootPart.PhysActor = phyScene.AddPrim(
+                    new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
+                    new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                    new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                                               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
         }
 
 

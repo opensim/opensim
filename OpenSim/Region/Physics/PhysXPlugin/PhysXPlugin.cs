@@ -98,6 +98,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 			return act;
 		}
 
+        public override void RemovePrim(PhysicsActor prim)
+        {
+
+        }
+
         public override void RemoveAvatar(PhysicsActor actor)
         {
 

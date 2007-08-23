@@ -80,6 +80,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             return act;
         }
 
+        public override void RemovePrim(PhysicsActor prim)
+        {
+
+        }
+
         public override void RemoveAvatar(PhysicsActor actor)
         {
             BasicActor act = (BasicActor)actor;
