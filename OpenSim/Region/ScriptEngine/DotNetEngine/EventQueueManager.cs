@@ -90,6 +90,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 Thread EventQueueThread = new Thread(EventQueueThreadLoop);
                 EventQueueThreads.Add(EventQueueThread);
                 EventQueueThread.IsBackground = true;
+                EventQueueThread.Priority = ThreadPriority.BelowNormal;
                 EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
                 EventQueueThread.Start();
             }

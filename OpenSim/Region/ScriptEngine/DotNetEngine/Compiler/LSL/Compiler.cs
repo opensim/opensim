@@ -17,7 +17,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         //private ICodeCompiler icc = codeProvider.CreateCompiler();
         public string CompileFromFile(string LSOFileName)
         {
-            string CS_Code;
             switch (System.IO.Path.GetExtension(LSOFileName).ToLower())
             {
                 case ".txt":

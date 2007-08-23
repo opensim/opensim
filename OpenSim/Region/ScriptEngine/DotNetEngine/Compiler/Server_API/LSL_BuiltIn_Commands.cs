@@ -133,19 +133,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llWhisper(int channelID, string text)
         {
-            //Common.SendToDebug("INTERNAL FUNCTION llWhisper(" + channelID + ", \"" + text + "\");");
-            //Console.WriteLine("llWhisper Channel " + channelID + ", Text: \"" + text + "\"");
             //type for whisper is 0
             World.SimChat(Helpers.StringToField(text),
                           0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-
-
         }
-        //public void llSay(int channelID, string text)
         public void llSay(int channelID, string text)
         {
-            //Common.SendToDebug("INTERNAL FUNCTION llSay(" + (int)channelID + ", \"" + (string)text + "\");");
-            //Console.WriteLine("llSay Channel " + channelID + ", Text: \"" + text + "\"");
             //type for say is 1
 
             World.SimChat(Helpers.StringToField(text),
@@ -154,11 +147,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llShout(int channelID, string text)
         {
-            //Console.WriteLine("llShout Channel " + channelID + ", Text: \"" + text + "\"");
             //type for shout is 2
             World.SimChat(Helpers.StringToField(text),
                           2, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-
         }
 
         public int llListen(int channelID, string name, string ID, string msg) { return 0; }
