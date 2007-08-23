@@ -503,6 +503,11 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectGroup prim in PrimsFromDB)
             {
                 AddEntityFromStorage(prim);
+              //  phyScene.AddPrim(
+              //      new PhysicsVector(prim.RootPart.AbsolutePosition.X, prim.RootPart.AbsolutePosition.Y, prim.RootPart.AbsolutePosition.Z),
+              //      new PhysicsVector(prim.RootPart.Scale.X, prim.RootPart.Scale.Y, prim.RootPart.Scale.Z),
+              //      new Axiom.Math.Quaternion(prim.RootPart.RotationOffset.W, prim.RootPart.RotationOffset.X,
+              //                                prim.RootPart.RotationOffset.Y, prim.RootPart.RotationOffset.Z));
             }
             MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
@@ -540,6 +545,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup sceneOb = new SceneObjectGroup(this, this.m_regionHandle, ownerID, PrimIDAllocate(), pos, shape);
             AddEntity(sceneOb);
+            //phyScene.AddPrim(new PhysicsVector(pos.X, pos.Y, pos.Z), new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
+            //    new Axiom.Math.Quaternion());
         }
 
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
@@ -615,6 +622,11 @@ namespace OpenSim.Region.Environment.Scenes
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
                     //obj.RegenerateFullIDs(); 
                     AddEntity(obj);
+                   // phyScene.AddPrim(
+                   //     new PhysicsVector(obj.RootPart.AbsolutePosition.X, obj.RootPart.AbsolutePosition.Y, obj.RootPart.AbsolutePosition.Z),
+                   //     new PhysicsVector(obj.RootPart.Scale.X, obj.RootPart.Scale.Y, obj.RootPart.Scale.Z),
+                   //     new Axiom.Math.Quaternion(obj.RootPart.RotationOffset.W, obj.RootPart.RotationOffset.X,
+                   //                               obj.RootPart.RotationOffset.Y, obj.RootPart.RotationOffset.Z));
                     primCount++;
                 }
             }

@@ -57,6 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public SceneObjectPart RootPart
         {
+            get { return this.m_rootPart; }
             set { m_rootPart = value; }
         }
 
