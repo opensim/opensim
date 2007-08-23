@@ -11,6 +11,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Data;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -88,6 +89,10 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         part.GroupPosition = value;
                     }
+                }
+                if (m_rootPart.PhysActor != null)
+                {
+                    m_rootPart.PhysActor.Position = new PhysicsVector(m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y, m_rootPart.GroupPosition.Z);
                 }
             }
         }

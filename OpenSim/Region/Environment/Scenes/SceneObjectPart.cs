@@ -11,6 +11,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Framework.Utilities;
+using OpenSim.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -21,6 +22,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         private string m_inventoryFileName = "";
         private LLUUID m_folderID = LLUUID.Zero;
+
+        public PhysicsActor PhysActor = null;
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
 
