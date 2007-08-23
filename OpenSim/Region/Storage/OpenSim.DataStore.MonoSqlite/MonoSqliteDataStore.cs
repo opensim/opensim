@@ -59,7 +59,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             setupPrimCommands(primDa, conn);
 
             ds.Tables.Add(createShapeTable());
-            primDa.Fill(ds.Tables["primshapes"]);
+            shapeDa.Fill(ds.Tables["primshapes"]);
             setupShapeCommands(shapeDa, conn);
 
             return;
@@ -132,10 +132,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             {
                 cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
             }
-            // foreach (KeyValuePair<string, DbType> kvp in defs)
-            // {
-            //     cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
-            // }
             return cmd;
         }
 
