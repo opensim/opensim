@@ -31,6 +31,11 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
 
+        /***********************************************************************
+         *
+         *  Public Interface Functions
+         *
+         **********************************************************************/
         public void Initialise(string dbfile, string dbname)
         {
             string connectionString = "URI=file:" + dbfile + ",version=3";
@@ -65,129 +70,276 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return;
         }
 
-        ///<summary>
-        /// This is a convenience function that collapses 5 repetitive
-        /// lines for defining SqliteParameters to 2 parameters:
-        /// column name and database type.
-        ///        
-        /// It assumes certain conventions like :param as the param
-        /// name to replace in parametrized queries, and that source
-        /// version is always current version, both of which are fine
-        /// for us.
-        ///</summary>
-        ///<returns>a built sqlite parameter</returns>
-        private SqliteParameter createSqliteParameter(string name, System.Type type)
+        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            SqliteParameter param = new SqliteParameter();
-            param.ParameterName = ":" + name;
-            param.DbType = dbtypeFromType(type);
-            param.SourceColumn = name;
-            param.SourceVersion = DataRowVersion.Current;
-            return param;
-        }
-
-        private DbType dbtypeFromType(Type type)
-        {
-            if (type == typeof(System.String)) {
-                return DbType.String;
-            } else if (type == typeof(System.Int32)) {
-                return DbType.Int32;
-            } else if (type == typeof(System.Double)) {
-                return DbType.Double;
-            } else if (type == typeof(System.Byte[])) {
-                return DbType.Binary;
-            } else {
-                return DbType.String;
-            }
-        }
-
-        private SqliteCommand createInsertCommand(string table, DataTable dt)
-        {
-            /**
-             *  This is subtle enough to deserve some commentary.
-             *  Instead of doing *lots* and *lots of hardcoded strings
-             *  for database definitions we'll use the fact that
-             *  realistically all insert statements look like "insert
-             *  into A(b, c) values(:b, :c) on the parameterized query
-             *  front.  If we just have a list of b, c, etc... we can
-             *  generate these strings instead of typing them out.
-             */
-            string[] cols = new string[dt.Columns.Count];
-            for (int i = 0; i < dt.Columns.Count; i++) {
-                DataColumn col = dt.Columns[i];
-                cols[i] = col.ColumnName;
-            }
-
-            string sql = "insert into " + table + "(";
-            sql += String.Join(", ", cols);
-            // important, the first ':' needs to be here, the rest get added in the join
-            sql += ") values (:";
-            sql += String.Join(", :", cols);
-            sql += ")";
-            SqliteCommand cmd = new SqliteCommand(sql);
-
-            // this provides the binding for all our parameters, so
-            // much less code than it used to be
-            foreach (DataColumn col in dt.Columns) 
+            foreach (SceneObjectPart prim in obj.Children.Values)
             {
-                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+                addPrim(prim, obj.UUID);
             }
-            return cmd;
+
+            // MainLog.Instance.Verbose("Attempting to do database update....");
+            primDa.Update(ds, "prims");
+            shapeDa.Update(ds, "primshapes");
+            // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
 
-        private SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            string sql = "update " + table + " set ";
-            string subsql = "";
-            foreach (DataColumn col in dt.Columns)
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["primshapes"];
+
+            string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
+            DataRow[] primRows = prims.Select(selectExp);
+            foreach (DataRow row in primRows)
             {
-                if (subsql.Length > 0)
-                { // a map function would rock so much here
-                    subsql += ", ";
+                LLUUID uuid = new LLUUID((string)row["UUID"]);
+                DataRow shapeRow = shapes.Rows.Find(uuid);
+                if (shapeRow != null)
+                {
+                    shapeRow.Delete();
                 }
-                subsql += col.ColumnName + "= :" + col.ColumnName;
+                row.Delete();
             }
-            sql += subsql;
-            sql += " where " + pk;
-            SqliteCommand cmd = new SqliteCommand(sql);
 
-            // this provides the binding for all our parameters, so
-            // much less code than it used to be
+            primDa.Update(ds, "prims");
+            shapeDa.Update(ds, "primshapes");
+        }
 
-            foreach (DataColumn col in dt.Columns) 
+        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
+        {
+            Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
+            List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
+
+            DataTable prims = ds.Tables["prims"];
+            DataTable shapes = ds.Tables["primshapes"];
+
+            foreach (DataRow primRow in prims.Rows)
             {
-                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+                string uuid = (string)primRow["UUID"];
+                string objID = (string)primRow["SceneGroupID"];
+                if (uuid == objID) //is new SceneObjectGroup ?
+                {
+                    SceneObjectGroup group = new SceneObjectGroup();
+                    SceneObjectPart prim = buildPrim(primRow);
+                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                    if (shapeRow != null)
+                    {
+                        prim.Shape = buildShape(shapeRow);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                        prim.Shape = BoxShape.Default;
+                    }
+                    group.AddPart(prim);
+                    group.RootPart = prim;
+
+                    createdObjects.Add(group.UUID, group);
+                    retvals.Add(group);
+                }
+                else
+                {
+                    SceneObjectPart prim = buildPrim(primRow);
+                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                    if (shapeRow != null)
+                    {
+                        prim.Shape = buildShape(shapeRow);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                        prim.Shape = BoxShape.Default;
+                    }
+                    createdObjects[new LLUUID(objID)].AddPart(prim);
+                }
             }
-            return cmd;
+
+            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
+
+            return retvals;
         }
 
-        private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
+        public void StoreTerrain(double[,] ter)
         {
-            da.InsertCommand = createInsertCommand("prims", ds.Tables["prims"]);
-            da.InsertCommand.Connection = conn;
 
-            da.UpdateCommand = createUpdateCommand("prims", "UUID=:UUID", ds.Tables["prims"]);
-            da.UpdateCommand.Connection = conn;
-
-            SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
-            delete.Connection = conn;
-            da.DeleteCommand = delete;
         }
 
-        private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
+        public double[,] LoadTerrain()
         {
-            da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
-            da.InsertCommand.Connection = conn;
-
-            da.UpdateCommand = createUpdateCommand("primshapes", "UUID=:UUID", ds.Tables["primshapes"]);
-            da.UpdateCommand.Connection = conn;
-
-            SqliteCommand delete = new SqliteCommand("delete from primshapes where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
-            delete.Connection = conn;
-            da.DeleteCommand = delete;
+            return null;
         }
+
+        public void RemoveLandObject(uint id)
+        {
+
+        }
+
+        public void StoreParcel(Land parcel)
+        {
+
+        }
+
+        public List<Land> LoadLandObjects()
+        {
+            return new List<Land>();
+        }
+
+        public void Shutdown()
+        {
+            // TODO: DataSet commit
+        }
+
+        public class TextureBlock
+        {
+            public byte[] TextureData;
+            public byte[] ExtraParams = new byte[1];
+
+            public TextureBlock(byte[] data)
+            {
+                TextureData = data;
+            }
+
+            public TextureBlock()
+            {
+
+            }
+
+            public string ToXMLString()
+            {
+                StringWriter sw = new StringWriter();
+                XmlTextWriter writer = new XmlTextWriter(sw);
+                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+                serializer.Serialize(writer, this);
+                return sw.ToString();
+            }
+
+            public static TextureBlock FromXmlString(string xmlData)
+            {
+                TextureBlock textureEntry = null;
+                StringReader sr = new StringReader(xmlData);
+                XmlTextReader reader = new XmlTextReader(sr);
+                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+                textureEntry = (TextureBlock)serializer.Deserialize(reader);
+                reader.Close();
+                sr.Close();
+                return textureEntry;
+            }
+        }
+
+        /***********************************************************************
+         *
+         *  Database Definition Functions
+         * 
+         *  This should be db agnostic as we define them in ADO.NET terms
+         *
+         **********************************************************************/
+        
+        private void createCol(DataTable dt, string name, System.Type type)
+        {
+            DataColumn col = new DataColumn(name, type);
+            dt.Columns.Add(col);
+        }
+
+        private DataTable createPrimTable()
+        {
+            DataTable prims = new DataTable("prims");
+
+            createCol(prims, "UUID", typeof(System.String));
+            createCol(prims, "ParentID", typeof(System.Int32));
+            createCol(prims, "CreationDate", typeof(System.Int32));
+            createCol(prims, "Name", typeof(System.String));
+            createCol(prims, "SceneGroupID", typeof(System.String));
+            // various text fields
+            createCol(prims, "Text", typeof(System.String));
+            createCol(prims, "Description", typeof(System.String));
+            createCol(prims, "SitName", typeof(System.String));
+            createCol(prims, "TouchName", typeof(System.String));
+            // permissions
+            createCol(prims, "CreatorID", typeof(System.String));
+            createCol(prims, "OwnerID", typeof(System.String));
+            createCol(prims, "GroupID", typeof(System.String));
+            createCol(prims, "LastOwnerID", typeof(System.String));
+            createCol(prims, "OwnerMask", typeof(System.Int32));
+            createCol(prims, "NextOwnerMask", typeof(System.Int32));
+            createCol(prims, "GroupMask", typeof(System.Int32));
+            createCol(prims, "EveryoneMask", typeof(System.Int32));
+            createCol(prims, "BaseMask", typeof(System.Int32));
+            // vectors
+            createCol(prims, "PositionX", typeof(System.Double));
+            createCol(prims, "PositionY", typeof(System.Double));
+            createCol(prims, "PositionZ", typeof(System.Double));
+            createCol(prims, "GroupPositionX", typeof(System.Double));
+            createCol(prims, "GroupPositionY", typeof(System.Double));
+            createCol(prims, "GroupPositionZ", typeof(System.Double));
+            createCol(prims, "VelocityX", typeof(System.Double));
+            createCol(prims, "VelocityY", typeof(System.Double));
+            createCol(prims, "VelocityZ", typeof(System.Double));
+            createCol(prims, "AngularVelocityX", typeof(System.Double));
+            createCol(prims, "AngularVelocityY", typeof(System.Double));
+            createCol(prims, "AngularVelocityZ", typeof(System.Double));
+            createCol(prims, "AccelerationX", typeof(System.Double));
+            createCol(prims, "AccelerationY", typeof(System.Double));
+            createCol(prims, "AccelerationZ", typeof(System.Double));
+            // quaternions
+            createCol(prims, "RotationX", typeof(System.Double));
+            createCol(prims, "RotationY", typeof(System.Double));
+            createCol(prims, "RotationZ", typeof(System.Double));
+            createCol(prims, "RotationW", typeof(System.Double));
+            
+            // Add in contraints
+            prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
+
+            return prims;
+        }
+
+        private DataTable createShapeTable()
+        {
+            DataTable shapes = new DataTable("primshapes");
+            createCol(shapes, "UUID", typeof(System.String));
+            // shape is an enum
+            createCol(shapes, "Shape", typeof(System.Int32));
+            // vectors
+            createCol(shapes, "ScaleX", typeof(System.Double));
+            createCol(shapes, "ScaleY", typeof(System.Double));
+            createCol(shapes, "ScaleZ", typeof(System.Double));
+            // paths
+            createCol(shapes, "PCode", typeof(System.Int32));
+            createCol(shapes, "PathBegin", typeof(System.Int32));
+            createCol(shapes, "PathEnd", typeof(System.Int32));
+            createCol(shapes, "PathScaleX", typeof(System.Int32));
+            createCol(shapes, "PathScaleY", typeof(System.Int32));
+            createCol(shapes, "PathShearX", typeof(System.Int32));
+            createCol(shapes, "PathShearY", typeof(System.Int32));
+            createCol(shapes, "PathSkew", typeof(System.Int32));
+            createCol(shapes, "PathCurve", typeof(System.Int32));
+            createCol(shapes, "PathRadiusOffset", typeof(System.Int32));
+            createCol(shapes, "PathRevolutions", typeof(System.Int32));
+            createCol(shapes, "PathTaperX", typeof(System.Int32));
+            createCol(shapes, "PathTaperY", typeof(System.Int32));
+            createCol(shapes, "PathTwist", typeof(System.Int32));
+            createCol(shapes, "PathTwistBegin", typeof(System.Int32));
+            // profile
+            createCol(shapes, "ProfileBegin", typeof(System.Int32));
+            createCol(shapes, "ProfileEnd", typeof(System.Int32));
+            createCol(shapes, "ProfileCurve", typeof(System.Int32));
+            createCol(shapes, "ProfileHollow", typeof(System.Int32));
+            // text TODO: this isn't right, but I'm not sure the right
+            // way to specify this as a blob atm
+            createCol(shapes, "Texture", typeof(System.Byte[]));
+            createCol(shapes, "ExtraParams", typeof(System.Byte[]));
+
+            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
+
+            return shapes;
+        }
+        
+        /***********************************************************************
+         *  
+         *  Convert between ADO.NET <=> OpenSim Objects
+         *
+         *  These should be database independant
+         *
+         **********************************************************************/
 
         private SceneObjectPart buildPrim(DataRow row)
         {
@@ -424,175 +576,77 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 fillShapeRow(shapeRow, prim);
             }
         }
-
-        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
-        {
-            foreach (SceneObjectPart prim in obj.Children.Values)
-            {
-                addPrim(prim, obj.UUID);
-            }
-
-            // MainLog.Instance.Verbose("Attempting to do database update....");
-            primDa.Update(ds, "prims");
-            shapeDa.Update(ds, "primshapes");
-            // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
-        }
-
-        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
-        {
-            DataTable prims = ds.Tables["prims"];
-            DataTable shapes = ds.Tables["primshapes"];
-
-            string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
-            DataRow[] primRows = prims.Select(selectExp);
-            foreach (DataRow row in primRows)
-            {
-                LLUUID uuid = new LLUUID((string)row["UUID"]);
-                DataRow shapeRow = shapes.Rows.Find(uuid);
-                if (shapeRow != null)
-                {
-                    shapeRow.Delete();
-                }
-                row.Delete();
-            }
-
-            primDa.Update(ds, "prims");
-            shapeDa.Update(ds, "primshapes");
-        }
-
-        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
-        {
-            Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
-            List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
-
-            DataTable prims = ds.Tables["prims"];
-            DataTable shapes = ds.Tables["primshapes"];
-
-            foreach (DataRow primRow in prims.Rows)
-            {
-                string uuid = (string)primRow["UUID"];
-                string objID = (string)primRow["SceneGroupID"];
-                if (uuid == objID) //is new SceneObjectGroup ?
-                {
-                    SceneObjectGroup group = new SceneObjectGroup();
-                    SceneObjectPart prim = buildPrim(primRow);
-                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                    if (shapeRow != null)
-                    {
-                        prim.Shape = buildShape(shapeRow);
-                    }
-                    else
-                    {
-                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                        prim.Shape = BoxShape.Default;
-                    }
-                    group.AddPart(prim);
-                    group.RootPart = prim;
-
-                    createdObjects.Add(group.UUID, group);
-                    retvals.Add(group);
-                }
-                else
-                {
-                    SceneObjectPart prim = buildPrim(primRow);
-                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                    if (shapeRow != null)
-                    {
-                        prim.Shape = buildShape(shapeRow);
-                    }
-                    else
-                    {
-                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                        prim.Shape = BoxShape.Default;
-                    }
-                    createdObjects[new LLUUID(objID)].AddPart(prim);
-                }
-            }
-
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
-
-            return retvals;
-        }
-
-        public void StoreTerrain(double[,] ter)
-        {
-
-        }
-
-        public double[,] LoadTerrain()
-        {
-            return null;
-        }
-
-        public void RemoveLandObject(uint id)
-        {
-
-        }
-
-        public void StoreParcel(Land parcel)
-        {
-
-        }
-
-        public List<Land> LoadLandObjects()
-        {
-            return new List<Land>();
-        }
-
-        public void Shutdown()
-        {
-            // TODO: DataSet commit
-        }
-
-        public class TextureBlock
-        {
-            public byte[] TextureData;
-            public byte[] ExtraParams = new byte[1];
-
-            public TextureBlock(byte[] data)
-            {
-                TextureData = data;
-            }
-
-            public TextureBlock()
-            {
-
-            }
-
-            public string ToXMLString()
-            {
-                StringWriter sw = new StringWriter();
-                XmlTextWriter writer = new XmlTextWriter(sw);
-                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-                serializer.Serialize(writer, this);
-                return sw.ToString();
-            }
-
-            public static TextureBlock FromXmlString(string xmlData)
-            {
-                TextureBlock textureEntry = null;
-                StringReader sr = new StringReader(xmlData);
-                XmlTextReader reader = new XmlTextReader(sr);
-                XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-                textureEntry = (TextureBlock)serializer.Deserialize(reader);
-                reader.Close();
-                sr.Close();
-                return textureEntry;
-            }
-        }
         
-        private void InitDB(SqliteConnection conn)
+        /***********************************************************************
+         *
+         *  SQL Statement Creation Functions
+         *
+         *  These functions create SQL statements for update, insert, and create.
+         *  They can probably be factored later to have a db independant
+         *  portion and a db specific portion
+         *
+         **********************************************************************/
+
+        private SqliteCommand createInsertCommand(string table, DataTable dt)
         {
-            string createPrims = defineTable(createPrimTable());
-            string createShapes = defineTable(createShapeTable());
-            
-            SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
-            SqliteCommand scmd = new SqliteCommand(createShapes, conn);
-            conn.Open();
-            pcmd.ExecuteNonQuery();
-            scmd.ExecuteNonQuery();
-            conn.Close(); 
+            /**
+             *  This is subtle enough to deserve some commentary.
+             *  Instead of doing *lots* and *lots of hardcoded strings
+             *  for database definitions we'll use the fact that
+             *  realistically all insert statements look like "insert
+             *  into A(b, c) values(:b, :c) on the parameterized query
+             *  front.  If we just have a list of b, c, etc... we can
+             *  generate these strings instead of typing them out.
+             */
+            string[] cols = new string[dt.Columns.Count];
+            for (int i = 0; i < dt.Columns.Count; i++) {
+                DataColumn col = dt.Columns[i];
+                cols[i] = col.ColumnName;
+            }
+
+            string sql = "insert into " + table + "(";
+            sql += String.Join(", ", cols);
+            // important, the first ':' needs to be here, the rest get added in the join
+            sql += ") values (:";
+            sql += String.Join(", :", cols);
+            sql += ")";
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (DataColumn col in dt.Columns) 
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
         }
+
+        private SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        {
+            string sql = "update " + table + " set ";
+            string subsql = "";
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ", ";
+                }
+                subsql += col.ColumnName + "= :" + col.ColumnName;
+            }
+            sql += subsql;
+            sql += " where " + pk;
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+
+            foreach (DataColumn col in dt.Columns) 
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
+        }
+
 
         private string defineTable(DataTable dt)
         {
@@ -614,22 +668,78 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             sql += ")";
             return sql;
         }
-        
-        private string sqliteType(Type type)
+
+        /***********************************************************************
+         *
+         *  Database Binding functions
+         *
+         *  These will be db specific due to typing, and minor differences
+         *  in databases.
+         *
+         **********************************************************************/
+
+        ///<summary>
+        /// This is a convenience function that collapses 5 repetitive
+        /// lines for defining SqliteParameters to 2 parameters:
+        /// column name and database type.
+        ///        
+        /// It assumes certain conventions like :param as the param
+        /// name to replace in parametrized queries, and that source
+        /// version is always current version, both of which are fine
+        /// for us.
+        ///</summary>
+        ///<returns>a built sqlite parameter</returns>
+        private SqliteParameter createSqliteParameter(string name, System.Type type)
         {
-            if (type == typeof(System.String)) {
-                return "varchar(255)";
-            } else if (type == typeof(System.Int32)) {
-                return "integer";
-            } else if (type == typeof(System.Double)) {
-                return "float";
-            } else if (type == typeof(System.Byte[])) {
-                return "blob";
-            } else {
-                return "string";
-            }
+            SqliteParameter param = new SqliteParameter();
+            param.ParameterName = ":" + name;
+            param.DbType = dbtypeFromType(type);
+            param.SourceColumn = name;
+            param.SourceVersion = DataRowVersion.Current;
+            return param;
+        }
+
+        private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("prims", ds.Tables["prims"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("prims", "UUID=:UUID", ds.Tables["prims"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
         }
         
+        private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("primshapes", "UUID=:UUID", ds.Tables["primshapes"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from primshapes where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
+
+        private void InitDB(SqliteConnection conn)
+        {
+            string createPrims = defineTable(createPrimTable());
+            string createShapes = defineTable(createShapeTable());
+            
+            SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
+            SqliteCommand scmd = new SqliteCommand(createShapes, conn);
+            conn.Open();
+            pcmd.ExecuteNonQuery();
+            scmd.ExecuteNonQuery();
+            conn.Close(); 
+        }
+
         private bool TestTables(SqliteConnection conn)
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
@@ -664,107 +774,42 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             return true;
         }
 
-        /// Methods after this point are big data definition
-        /// methods, and aren't really interesting unless you are
-        /// adjusting the schema.
-
-        private void createCol(DataTable dt, string name, System.Type type)
+        /***********************************************************************
+         *
+         *  Type conversion functions
+         *
+         **********************************************************************/
+        
+        private DbType dbtypeFromType(Type type)
         {
-            DataColumn col = new DataColumn(name, type);
-            dt.Columns.Add(col);
+            if (type == typeof(System.String)) {
+                return DbType.String;
+            } else if (type == typeof(System.Int32)) {
+                return DbType.Int32;
+            } else if (type == typeof(System.Double)) {
+                return DbType.Double;
+            } else if (type == typeof(System.Byte[])) {
+                return DbType.Binary;
+            } else {
+                return DbType.String;
+            }
         }
-
-        private DataTable createPrimTable()
+        
+        // this is something we'll need to implement for each db
+        // slightly differently.
+        private string sqliteType(Type type)
         {
-            DataTable prims = new DataTable("prims");
-
-            createCol(prims, "UUID", typeof(System.String));
-            createCol(prims, "ParentID", typeof(System.Int32));
-            createCol(prims, "CreationDate", typeof(System.Int32));
-            createCol(prims, "Name", typeof(System.String));
-            createCol(prims, "SceneGroupID", typeof(System.String));
-            // various text fields
-            createCol(prims, "Text", typeof(System.String));
-            createCol(prims, "Description", typeof(System.String));
-            createCol(prims, "SitName", typeof(System.String));
-            createCol(prims, "TouchName", typeof(System.String));
-            // permissions
-            createCol(prims, "CreatorID", typeof(System.String));
-            createCol(prims, "OwnerID", typeof(System.String));
-            createCol(prims, "GroupID", typeof(System.String));
-            createCol(prims, "LastOwnerID", typeof(System.String));
-            createCol(prims, "OwnerMask", typeof(System.Int32));
-            createCol(prims, "NextOwnerMask", typeof(System.Int32));
-            createCol(prims, "GroupMask", typeof(System.Int32));
-            createCol(prims, "EveryoneMask", typeof(System.Int32));
-            createCol(prims, "BaseMask", typeof(System.Int32));
-            // vectors
-            createCol(prims, "PositionX", typeof(System.Double));
-            createCol(prims, "PositionY", typeof(System.Double));
-            createCol(prims, "PositionZ", typeof(System.Double));
-            createCol(prims, "GroupPositionX", typeof(System.Double));
-            createCol(prims, "GroupPositionY", typeof(System.Double));
-            createCol(prims, "GroupPositionZ", typeof(System.Double));
-            createCol(prims, "VelocityX", typeof(System.Double));
-            createCol(prims, "VelocityY", typeof(System.Double));
-            createCol(prims, "VelocityZ", typeof(System.Double));
-            createCol(prims, "AngularVelocityX", typeof(System.Double));
-            createCol(prims, "AngularVelocityY", typeof(System.Double));
-            createCol(prims, "AngularVelocityZ", typeof(System.Double));
-            createCol(prims, "AccelerationX", typeof(System.Double));
-            createCol(prims, "AccelerationY", typeof(System.Double));
-            createCol(prims, "AccelerationZ", typeof(System.Double));
-            // quaternions
-            createCol(prims, "RotationX", typeof(System.Double));
-            createCol(prims, "RotationY", typeof(System.Double));
-            createCol(prims, "RotationZ", typeof(System.Double));
-            createCol(prims, "RotationW", typeof(System.Double));
-            
-            // Add in contraints
-            prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
-
-            return prims;
-        }
-
-        private DataTable createShapeTable()
-        {
-            DataTable shapes = new DataTable("primshapes");
-            createCol(shapes, "UUID", typeof(System.String));
-            // shape is an enum
-            createCol(shapes, "Shape", typeof(System.Int32));
-            // vectors
-            createCol(shapes, "ScaleX", typeof(System.Double));
-            createCol(shapes, "ScaleY", typeof(System.Double));
-            createCol(shapes, "ScaleZ", typeof(System.Double));
-            // paths
-            createCol(shapes, "PCode", typeof(System.Int32));
-            createCol(shapes, "PathBegin", typeof(System.Int32));
-            createCol(shapes, "PathEnd", typeof(System.Int32));
-            createCol(shapes, "PathScaleX", typeof(System.Int32));
-            createCol(shapes, "PathScaleY", typeof(System.Int32));
-            createCol(shapes, "PathShearX", typeof(System.Int32));
-            createCol(shapes, "PathShearY", typeof(System.Int32));
-            createCol(shapes, "PathSkew", typeof(System.Int32));
-            createCol(shapes, "PathCurve", typeof(System.Int32));
-            createCol(shapes, "PathRadiusOffset", typeof(System.Int32));
-            createCol(shapes, "PathRevolutions", typeof(System.Int32));
-            createCol(shapes, "PathTaperX", typeof(System.Int32));
-            createCol(shapes, "PathTaperY", typeof(System.Int32));
-            createCol(shapes, "PathTwist", typeof(System.Int32));
-            createCol(shapes, "PathTwistBegin", typeof(System.Int32));
-            // profile
-            createCol(shapes, "ProfileBegin", typeof(System.Int32));
-            createCol(shapes, "ProfileEnd", typeof(System.Int32));
-            createCol(shapes, "ProfileCurve", typeof(System.Int32));
-            createCol(shapes, "ProfileHollow", typeof(System.Int32));
-            // text TODO: this isn't right, but I'm not sure the right
-            // way to specify this as a blob atm
-            createCol(shapes, "Texture", typeof(System.Byte[]));
-            createCol(shapes, "ExtraParams", typeof(System.Byte[]));
-
-            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
-
-            return shapes;
+            if (type == typeof(System.String)) {
+                return "varchar(255)";
+            } else if (type == typeof(System.Int32)) {
+                return "integer";
+            } else if (type == typeof(System.Double)) {
+                return "float";
+            } else if (type == typeof(System.Byte[])) {
+                return "blob";
+            } else {
+                return "string";
+            }
         }
     }
 }
