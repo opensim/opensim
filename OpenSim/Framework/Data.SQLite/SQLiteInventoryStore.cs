@@ -48,175 +48,18 @@ namespace OpenSim.Framework.Data.SQLite
 
             ds = new DataSet();
 
-            invItemsDa.Fill(ds, "inventoryitems");
-            invFoldersDa.Fill(ds, "inventoryfolders");
-            ds.AcceptChanges();
-
-            DataTable itemsTable = ds.Tables["inventoryitems"];
-            itemsTable.PrimaryKey = new DataColumn[] { itemsTable.Columns["UUID"] };
-            setupItemsCommands(invItemsDa, conn);
-
-            // shapeDa.FillSchema(ds, SchemaType.Source, "ShapeSchema");
-            DataTable folderTable = ds.Tables["inventoryfolders"];
-            folderTable.PrimaryKey = new DataColumn[] { folderTable.Columns["UUID"] };
+            ds.Tables.Add(createInventoryFoldersTable());
+            invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
             setupFoldersCommands(invFoldersDa, conn);
+            MainLog.Instance.Verbose("DATASTORE", "Populated Intentory Folders Definitions");
+
+            ds.Tables.Add(createInventoryItemsTable());
+            invItemsDa.Fill(ds.Tables["inventoryitems"]);
+            setupItemsCommands(invItemsDa, conn);
+            MainLog.Instance.Verbose("DATASTORE", "Populated Intentory Items Definitions");
+
+            ds.AcceptChanges();
             return;
-        }
-
-        private SqliteParameter createSqliteParameter(string name, DbType type)
-        {
-            SqliteParameter param = new SqliteParameter();
-            param.ParameterName = ":" + name;
-            param.DbType = type;
-            param.SourceColumn = name;
-            param.SourceVersion = DataRowVersion.Current;
-            return param;
-        }
-
-        private Dictionary<string, DbType> createInventoryItemsDataDefs()
-        {
-            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("UUID", DbType.String); //inventoryID
-            data.Add("assetID", DbType.String);
-            data.Add("assetType", DbType.Int32);
-            data.Add("invType", DbType.Int32);
-            data.Add("parentFolderID", DbType.String);
-            data.Add("avatarID", DbType.String);
-            data.Add("creatorsID", DbType.String);
-
-            data.Add("inventoryName", DbType.String);
-            data.Add("inventoryDescription", DbType.String);
-            // permissions
-            data.Add("inventoryNextPermissions", DbType.Int32);
-            data.Add("inventoryCurrentPermissions", DbType.Int32);
-            data.Add("inventoryBasePermissions", DbType.Int32);
-            data.Add("inventoryEveryOnePermissions", DbType.Int32);
-
-            return data;
-        }
-
-        private Dictionary<string, DbType> createShapeDataDefs()
-        {
-            Dictionary<string, DbType> data = new Dictionary<string, DbType>();
-            data.Add("UUID", DbType.String); //folderID
-            // shape is an enum
-            data.Add("name", DbType.String);
-            // vectors
-            data.Add("agentID", DbType.String);
-            data.Add("parentID", DbType.String);
-            data.Add("type", DbType.Int32);
-            data.Add("version", DbType.Int32);
-            return data;
-        }
-
-        private SqliteCommand createInsertCommand(string table, Dictionary<string, DbType> defs)
-        {
-            /**
-             *  This is subtle enough to deserve some commentary.
-             *  Instead of doing *lots* and *lots of hardcoded strings
-             *  for database definitions we'll use the fact that
-             *  realistically all insert statements look like "insert
-             *  into A(b, c) values(:b, :c) on the parameterized query
-             *  front.  If we just have a list of b, c, etc... we can
-             *  generate these strings instead of typing them out.
-             */
-            string[] cols = new string[defs.Keys.Count];
-            defs.Keys.CopyTo(cols, 0);
-
-            string sql = "insert into " + table + "(";
-            sql += String.Join(", ", cols);
-            // important, the first ':' needs to be here, the rest get added in the join
-            sql += ") values (:";
-            sql += String.Join(", :", cols);
-            sql += ")";
-            SqliteCommand cmd = new SqliteCommand(sql);
-
-            // this provides the binding for all our parameters, so
-            // much less code than it used to be
-            foreach (KeyValuePair<string, DbType> kvp in defs)
-            {
-                cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
-            }
-            return cmd;
-        }
-
-        private SqliteCommand createUpdateCommand(string table, string pk, Dictionary<string, DbType> defs)
-        {
-            string sql = "update " + table + " set ";
-            string subsql = "";
-            foreach (string key in defs.Keys)
-            {
-                if (subsql.Length > 0)
-                { // a map function would rock so much here
-                    subsql += ", ";
-                }
-                subsql += key + "= :" + key;
-            }
-            sql += subsql;
-            sql += " where " + pk;
-            SqliteCommand cmd = new SqliteCommand(sql);
-
-            // this provides the binding for all our parameters, so
-            // much less code than it used to be
-            foreach (KeyValuePair<string, DbType> kvp in defs)
-            {
-                cmd.Parameters.Add(createSqliteParameter(kvp.Key, kvp.Value));
-            }
-            return cmd;
-        }
-
-        private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
-        {
-            Dictionary<string, DbType> invDataDefs = createInventoryItemsDataDefs();
-
-            da.InsertCommand = createInsertCommand("inventoryitems", invDataDefs);
-            da.InsertCommand.Connection = conn;
-
-            da.UpdateCommand = createUpdateCommand("inventoryitems", "UUID=:UUID", invDataDefs);
-            da.UpdateCommand.Connection = conn;
-
-            SqliteCommand delete = new SqliteCommand("delete from inventoryitems where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
-            delete.Connection = conn;
-            da.DeleteCommand = delete;
-        }
-
-        private void setupFoldersCommands(SqliteDataAdapter da, SqliteConnection conn)
-        {
-            Dictionary<string, DbType> shapeDataDefs = createShapeDataDefs();
-
-            da.InsertCommand = createInsertCommand("inventoryfolders", shapeDataDefs);
-            da.InsertCommand.Connection = conn;
-
-            da.UpdateCommand = createUpdateCommand("inventoryfolders", "UUID=:UUID", shapeDataDefs);
-            da.UpdateCommand.Connection = conn;
-
-            SqliteCommand delete = new SqliteCommand("delete from inventoryfolders where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", DbType.String));
-            delete.Connection = conn;
-            da.DeleteCommand = delete;
-        }
-
-        private InventoryFolderBase buildFolder(DataRow row)
-        {
-            InventoryFolderBase folder = new InventoryFolderBase();
-            folder.folderID = new LLUUID((string)row["UUID"]);
-            folder.name = (string)row["name"];
-            folder.agentID = new LLUUID((string)row["agentID"]);
-            folder.parentID = new LLUUID((string)row["parentID"]);
-            folder.type = Convert.ToInt16(row["type"]);
-            folder.version = Convert.ToUInt16(row["version"]);
-            return folder;
-        }
-
-        private void fillFolderRow(DataRow row, InventoryFolderBase folder)
-        {
-            row["UUID"] = folder.folderID;
-            row["name"] = folder.name;
-            row["agentID"] = folder.agentID;
-            row["parentID"] = folder.parentID;
-            row["type"] = folder.type;
-            row["version"] = folder.version;
         }
 
         public InventoryItemBase BuildItem(DataRow row)
@@ -479,6 +322,322 @@ namespace OpenSim.Framework.Data.SQLite
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
             this.addFolder(folder);
+        }
+
+
+        /***********************************************************************
+         *
+         *  Data Table definitions
+         *
+         **********************************************************************/
+        
+        private void createCol(DataTable dt, string name, System.Type type)
+        {
+            DataColumn col = new DataColumn(name, type);
+            dt.Columns.Add(col);
+        }
+
+        private DataTable createInventoryItemsTable()
+        {
+            DataTable inv = new DataTable("inventoryitems");
+            
+            createCol(inv, "UUID", typeof(System.String)); //inventoryID
+            createCol(inv, "assetID", typeof(System.String));
+            createCol(inv, "assetType", typeof(System.Int32));
+            createCol(inv, "invType", typeof(System.Int32));
+            createCol(inv, "parentFolderID", typeof(System.String));
+            createCol(inv, "avatarID", typeof(System.String));
+            createCol(inv, "creatorsID", typeof(System.String));
+
+            createCol(inv, "inventoryName", typeof(System.String));
+            createCol(inv, "inventoryDescription", typeof(System.String));
+            // permissions
+            createCol(inv, "inventoryNextPermissions", typeof(System.Int32));
+            createCol(inv, "inventoryCurrentPermissions", typeof(System.Int32));
+            createCol(inv, "inventoryBasePermissions", typeof(System.Int32));
+            createCol(inv, "inventoryEveryOnePermissions", typeof(System.Int32));
+            
+            inv.PrimaryKey = new DataColumn[] { inv.Columns["UUID"] };
+            return inv;
+        }
+        
+        private DataTable createInventoryFoldersTable()
+        {
+            DataTable fol = new DataTable("inventoryfolders");
+            
+            createCol(fol, "UUID", typeof(System.String)); //folderID
+            createCol(fol, "name", typeof(System.String));
+            createCol(fol, "agentID", typeof(System.String));
+            createCol(fol, "parentID", typeof(System.String));
+            createCol(fol, "type", typeof(System.Int32));
+            createCol(fol, "version", typeof(System.Int32));
+            
+            fol.PrimaryKey = new DataColumn[] { fol.Columns["UUID"] };
+            return fol;
+        }
+
+        private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("inventoryitems", ds.Tables["inventoryitems"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("inventoryitems", "UUID=:UUID", ds.Tables["inventoryitems"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from inventoryitems where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
+
+        private void setupFoldersCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("inventoryfolders", ds.Tables["inventoryfolders"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("inventoryfolders", "UUID=:UUID", ds.Tables["inventoryfolders"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from inventoryfolders where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
+
+        private InventoryFolderBase buildFolder(DataRow row)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase();
+            folder.folderID = new LLUUID((string)row["UUID"]);
+            folder.name = (string)row["name"];
+            folder.agentID = new LLUUID((string)row["agentID"]);
+            folder.parentID = new LLUUID((string)row["parentID"]);
+            folder.type = Convert.ToInt16(row["type"]);
+            folder.version = Convert.ToUInt16(row["version"]);
+            return folder;
+        }
+
+        private void fillFolderRow(DataRow row, InventoryFolderBase folder)
+        {
+            row["UUID"] = folder.folderID;
+            row["name"] = folder.name;
+            row["agentID"] = folder.agentID;
+            row["parentID"] = folder.parentID;
+            row["type"] = folder.type;
+            row["version"] = folder.version;
+        }
+
+
+        /***********************************************************************
+         *
+         *  SQL Statement Creation Functions
+         *
+         *  These functions create SQL statements for update, insert, and create.
+         *  They can probably be factored later to have a db independant
+         *  portion and a db specific portion
+         *
+         **********************************************************************/
+
+        private SqliteCommand createInsertCommand(string table, DataTable dt)
+        {
+            /**
+             *  This is subtle enough to deserve some commentary.
+             *  Instead of doing *lots* and *lots of hardcoded strings
+             *  for database definitions we'll use the fact that
+             *  realistically all insert statements look like "insert
+             *  into A(b, c) values(:b, :c) on the parameterized query
+             *  front.  If we just have a list of b, c, etc... we can
+             *  generate these strings instead of typing them out.
+             */
+            string[] cols = new string[dt.Columns.Count];
+            for (int i = 0; i < dt.Columns.Count; i++) {
+                DataColumn col = dt.Columns[i];
+                cols[i] = col.ColumnName;
+            }
+
+            string sql = "insert into " + table + "(";
+            sql += String.Join(", ", cols);
+            // important, the first ':' needs to be here, the rest get added in the join
+            sql += ") values (:";
+            sql += String.Join(", :", cols);
+            sql += ")";
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (DataColumn col in dt.Columns) 
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
+        }
+
+        private SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        {
+            string sql = "update " + table + " set ";
+            string subsql = "";
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ", ";
+                }
+                subsql += col.ColumnName + "= :" + col.ColumnName;
+            }
+            sql += subsql;
+            sql += " where " + pk;
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+
+            foreach (DataColumn col in dt.Columns) 
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
+        }
+
+
+        private string defineTable(DataTable dt)
+        {
+            string sql = "create table " + dt.TableName + "(";
+            string subsql = "";
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ",\n";
+                }
+                subsql += col.ColumnName + " " + sqliteType(col.DataType);
+                if(col == dt.PrimaryKey[0])
+                {
+                    subsql += " primary key";
+                }
+            }
+            sql += subsql;
+            sql += ")";
+            return sql;
+        }
+
+        /***********************************************************************
+         *
+         *  Database Binding functions
+         *
+         *  These will be db specific due to typing, and minor differences
+         *  in databases.
+         *
+         **********************************************************************/
+
+        ///<summary>
+        /// This is a convenience function that collapses 5 repetitive
+        /// lines for defining SqliteParameters to 2 parameters:
+        /// column name and database type.
+        ///        
+        /// It assumes certain conventions like :param as the param
+        /// name to replace in parametrized queries, and that source
+        /// version is always current version, both of which are fine
+        /// for us.
+        ///</summary>
+        ///<returns>a built sqlite parameter</returns>
+        private SqliteParameter createSqliteParameter(string name, System.Type type)
+        {
+            SqliteParameter param = new SqliteParameter();
+            param.ParameterName = ":" + name;
+            param.DbType = dbtypeFromType(type);
+            param.SourceColumn = name;
+            param.SourceVersion = DataRowVersion.Current;
+            return param;
+        }
+
+        /***********************************************************************
+         *
+         *  Test and Initialization code
+         *
+         **********************************************************************/
+        private void InitDB(SqliteConnection conn)
+        {
+            string createInventoryItems = defineTable(createInventoryItemsTable());
+            string createInventoryFolders = defineTable(createInventoryFoldersTable());
+            
+            SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
+            SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
+            conn.Open();
+            pcmd.ExecuteNonQuery();
+            scmd.ExecuteNonQuery();
+            conn.Close(); 
+        }
+
+        private bool TestTables(SqliteConnection conn)
+        {
+            SqliteCommand invItemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
+            SqliteDataAdapter pDa = new SqliteDataAdapter(invItemsSelectCmd);
+            SqliteCommand invFoldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
+            SqliteDataAdapter sDa = new SqliteDataAdapter(invFoldersSelectCmd);
+
+            DataSet tmpDS = new DataSet();
+            try {
+                pDa.Fill(tmpDS, "inventoryitems");
+                sDa.Fill(tmpDS, "inventoryfolders");
+            } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
+                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                InitDB(conn);
+            }
+
+            pDa.Fill(tmpDS, "inventoryitems");
+            sDa.Fill(tmpDS, "inventoryfolders");
+
+            foreach (DataColumn col in createInventoryItemsTable().Columns) {
+                if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName) ) {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            foreach (DataColumn col in createInventoryFoldersTable().Columns) {
+                if (! tmpDS.Tables["inventoryfolders"].Columns.Contains(col.ColumnName) ) {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+        /***********************************************************************
+         *
+         *  Type conversion functions
+         *
+         **********************************************************************/
+        
+        private DbType dbtypeFromType(Type type)
+        {
+            if (type == typeof(System.String)) {
+                return DbType.String;
+            } else if (type == typeof(System.Int32)) {
+                return DbType.Int32;
+            } else if (type == typeof(System.Double)) {
+                return DbType.Double;
+            } else if (type == typeof(System.Byte[])) {
+                return DbType.Binary;
+            } else {
+                return DbType.String;
+            }
+        }
+        
+        // this is something we'll need to implement for each db
+        // slightly differently.
+        private string sqliteType(Type type)
+        {
+            if (type == typeof(System.String)) {
+                return "varchar(255)";
+            } else if (type == typeof(System.Int32)) {
+                return "integer";
+            } else if (type == typeof(System.Double)) {
+                return "float";
+            } else if (type == typeof(System.Byte[])) {
+                return "blob";
+            } else {
+                return "string";
+            }
         }
     }
 }
