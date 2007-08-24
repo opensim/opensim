@@ -39,6 +39,8 @@ namespace OpenSim.Framework.Data.SQLite
             MainLog.Instance.Verbose("Inventory", "Sqlite - connecting: " + dbfile);
             SqliteConnection conn = new SqliteConnection(connectionString);
 
+            TestTables(conn);
+
             SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
             invItemsDa = new SqliteDataAdapter(itemsSelectCmd);
             //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
