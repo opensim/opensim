@@ -221,6 +221,7 @@ namespace OpenSim.Region.Environment.Scenes
             this._physActor.Flying = isFlying;
             this.newAvatar = true;
             this.childAgent = false;
+            this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
         }
 
         protected void MakeChildAgent()
@@ -282,6 +283,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (this.childAgent)
             {
                 this.childAgent = false;
+                
+                //this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
             }
         }
 
