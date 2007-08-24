@@ -456,6 +456,12 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_parts.Add(linkPart.UUID, linkPart);
             linkPart.SetParent(this);
 
+            if (linkPart.PhysActor != null)
+            {
+                m_scene.PhysScene.RemovePrim(linkPart.PhysActor);
+                linkPart.PhysActor = null;
+            }
+
             //TODO: rest of parts
             foreach (SceneObjectPart part in objectGroup.Children.Values)
             {

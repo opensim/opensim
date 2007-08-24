@@ -220,6 +220,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         int type = ((SceneObjectGroup)ent).RemoveInventoryItem(remoteClient, localID, itemID);
+                        ((SceneObjectGroup)ent).GetProperites(remoteClient);
                         if (type == 10)
                         {
                             this.EventManager.TriggerRemoveScript(localID, itemID);
@@ -277,6 +278,7 @@ namespace OpenSim.Region.Environment.Scenes
                                      if (hasPrim != false)
                                      {
                                          bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item);
+                                         ((SceneObjectGroup)ent).GetProperites(remoteClient);
                                          if (added)
                                          {
                                              userInfo.DeleteItem(remoteClient.AgentId, item);
@@ -359,6 +361,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if (rootPart.PhysActor != null)
                             {
                                 this.phyScene.RemovePrim(rootPart.PhysActor);
+                                rootPart.PhysActor = null;
                             }
                             
                             storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID, m_regInfo.SimUUID);
