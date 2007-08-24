@@ -233,6 +233,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
             CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            LLUUID copyID = LLUUID.Random();
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)
@@ -251,7 +252,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             string script = Util.FieldToString(rezAsset.Data);
                             //Console.WriteLine("rez script "+script);
-                            this.EventManager.TriggerRezScript(localID, itemID, script);
+                            this.EventManager.TriggerRezScript(localID, copyID, script);
                             rezzed = true;
                         }
                         else
@@ -262,7 +263,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 string script = Util.FieldToString(rezAsset.Data);
                                // Console.WriteLine("rez script " + script);
-                                this.EventManager.TriggerRezScript(localID, itemID, script);
+                                this.EventManager.TriggerRezScript(localID, copyID, script);
                                 rezzed = true;
                             }
                         }
@@ -277,13 +278,10 @@ namespace OpenSim.Region.Environment.Scenes
                                      hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
                                      if (hasPrim != false)
                                      {
-                                         bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item);
+
+                                         bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item, copyID);
                                          ((SceneObjectGroup)ent).GetProperites(remoteClient);
-                                         if (added)
-                                         {
-                                             userInfo.DeleteItem(remoteClient.AgentId, item);
-                                             remoteClient.SendRemoveInventoryItem(itemID);
-                                         }
+                                         
                                      }
                                  }
                              }

@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 268435456 + 128;
+        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 268435456 + 128 + (uint)LLObject.ObjectFlags.Physics;
         public uint ObjectFlags
         {
             get { return (uint)m_flags; }

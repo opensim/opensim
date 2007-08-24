@@ -655,6 +655,33 @@ namespace OpenSim.Region.Environment.Scenes
             
         }
 
+        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item, LLUUID copyItemID)
+        {
+            if (copyItemID != LLUUID.Zero)
+            {
+                SceneObjectPart part = this.GetChildPart(localID);
+                if (part != null)
+                {
+                    SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
+                    taskItem.item_id = copyItemID;
+                    taskItem.asset_id = item.assetID;
+                    taskItem.name = item.inventoryName;
+                    taskItem.desc = item.inventoryDescription;
+                    taskItem.owner_id = new LLUUID(item.avatarID.ToString());
+                    taskItem.creator_id = new LLUUID(item.creatorsID.ToString());
+                    taskItem.type = SceneObjectPart.TaskInventoryItem.Types[item.assetType];
+                    taskItem.inv_type = SceneObjectPart.TaskInventoryItem.Types[item.invType];
+                    part.AddInventoryItem(taskItem);
+                    return true;
+                }
+            }
+            else
+            {
+               return AddInventoryItem(remoteClient, localID, item);
+            }
+            return false;
+        }
+
         public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
         {
              SceneObjectPart part = this.GetChildPart(localID);
