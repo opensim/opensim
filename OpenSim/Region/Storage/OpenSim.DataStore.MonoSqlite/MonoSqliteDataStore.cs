@@ -59,12 +59,17 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             TestTables(conn);
 
             ds.Tables.Add(createPrimTable());
-            primDa.Fill(ds.Tables["prims"]);
             setupPrimCommands(primDa, conn);
+            primDa.Fill(ds.Tables["prims"]);
             MainLog.Instance.Verbose("DATASTORE", "Populated Prim Definitions");
 
             ds.Tables.Add(createShapeTable());
+            setupShapeCommands(shapeDa, conn);
 
+            // WORKAROUND: This is a work around for sqlite on
+            // windows, which gets really unhappy with blob columns
+            // that have no sample data in them.  At some point we
+            // need to actually find a proper way to handle this.
             try
             {
                 shapeDa.Fill(ds.Tables["primshapes"]);
@@ -73,10 +78,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             {
                 MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
             }
-
-            setupShapeCommands(shapeDa, conn);
             MainLog.Instance.Verbose("DATASTORE", "Populated Prim Shapes");
-
             return;
         }
 
@@ -84,12 +86,15 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             foreach (SceneObjectPart prim in obj.Children.Values)
             {
+                MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
                 addPrim(prim, obj.UUID, regionUUID);
             }
-
+            
+            
             // MainLog.Instance.Verbose("Attempting to do database update....");
             primDa.Update(ds, "prims");
             shapeDa.Update(ds, "primshapes");
+            ds.AcceptChanges();
             // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
         
@@ -124,7 +129,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable shapes = ds.Tables["primshapes"];
 
             string byRegion = "RegionUUID = '" + regionUUID.ToString()  + "'";
-            foreach (DataRow primRow in prims.Select(byRegion))
+            DataRow[] primsForRegion = prims.Select(byRegion);
+            MainLog.Instance.Verbose("DATASTORE", "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+            
+            foreach (DataRow primRow in primsForRegion)
             {
                 string uuid = (string)primRow["UUID"];
                 string objID = (string)primRow["SceneGroupID"];
