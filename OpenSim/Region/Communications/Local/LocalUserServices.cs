@@ -63,6 +63,10 @@ namespace OpenSim.Region.Communications.Local
             {
                 Console.WriteLine("Unknown Master User after creation attempt. No clue what to do here.");
             }
+            else
+            {
+                 m_Parent.InvenServices.CreateNewUserInventory(profile.UUID);
+            }
 
             return profile;
         }

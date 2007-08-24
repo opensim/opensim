@@ -213,28 +213,6 @@ namespace OpenSim
             }
         }
 
-        private void RunCommandScript(string fileName)
-        {
-            MainLog.Instance.Verbose("Running command script (" + fileName + ")");
-            if (File.Exists(fileName))
-            {
-                StreamReader readFile = File.OpenText(fileName);
-                string currentCommand = "";
-                while ((currentCommand = readFile.ReadLine()) != null)
-                {
-                    if (currentCommand != "")
-                    {
-                        MainLog.Instance.Verbose("Running '" + currentCommand + "'");
-                        MainLog.Instance.MainLogRunCommand(currentCommand);
-                    }
-                }
-            }
-            else
-            {
-                MainLog.Instance.Error("Command script missing. Can not run commands");
-            }
-        }
-
         private static void CreateDefaultRegionInfoXml(string fileName)
         {
             new RegionInfo("DEFAULT REGION CONFIG", fileName);
@@ -322,6 +300,32 @@ namespace OpenSim
         }
 
         #region Console Commands
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileName"></param>
+        private void RunCommandScript(string fileName)
+        {
+            MainLog.Instance.Verbose("Running command script (" + fileName + ")");
+            if (File.Exists(fileName))
+            {
+                StreamReader readFile = File.OpenText(fileName);
+                string currentCommand = "";
+                while ((currentCommand = readFile.ReadLine()) != null)
+                {
+                    if (currentCommand != "")
+                    {
+                        MainLog.Instance.Verbose("Running '" + currentCommand + "'");
+                        MainLog.Instance.MainLogRunCommand(currentCommand);
+                    }
+                }
+            }
+            else
+            {
+                MainLog.Instance.Error("Command script missing. Can not run commands");
+            }
+        }
+
         /// <summary>
         /// Runs commands issued by the server console from the operator
         /// </summary>
