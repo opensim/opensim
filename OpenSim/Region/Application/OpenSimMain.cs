@@ -205,28 +205,33 @@ namespace OpenSim
             //Run Startup Commands
             if (m_startupCommandsFile != "")
             {
-                MainLog.Instance.Verbose("Running startup command script (" + m_startupCommandsFile + ")");
-                if (File.Exists(m_startupCommandsFile))
-                {
-                    StreamReader readFile = File.OpenText(m_startupCommandsFile);
-                    string currentCommand = "";
-                    while ((currentCommand = readFile.ReadLine()) != null)
-                    {
-                        if (currentCommand != "")
-                        {
-                            MainLog.Instance.Verbose("Running '" + currentCommand + "'");
-                            MainLog.Instance.MainLogRunCommand(currentCommand);
-                        }
-                    }
-                }
-                else
-                {
-                    MainLog.Instance.Error("Startup command script missing. Will not run startup commands");
-                }
+                RunCommandScript(m_startupCommandsFile);
             }
             else
             {
                 MainLog.Instance.Verbose("No startup command script specified. Moving on...");
+            }
+        }
+
+        private void RunCommandScript(string fileName)
+        {
+            MainLog.Instance.Verbose("Running command script (" + fileName + ")");
+            if (File.Exists(fileName))
+            {
+                StreamReader readFile = File.OpenText(fileName);
+                string currentCommand = "";
+                while ((currentCommand = readFile.ReadLine()) != null)
+                {
+                    if (currentCommand != "")
+                    {
+                        MainLog.Instance.Verbose("Running '" + currentCommand + "'");
+                        MainLog.Instance.MainLogRunCommand(currentCommand);
+                    }
+                }
+            }
+            else
+            {
+                MainLog.Instance.Error("Command script missing. Can not run commands");
             }
         }
 
@@ -400,6 +405,13 @@ namespace OpenSim
                     foreach (Scene scene in m_localScenes)
                     {
                         scene.SendCommandToScripts(cmdparams);
+                    }
+                    break;
+
+                case "command-script":
+                    if (cmdparams.Length > 0)
+                    {
+                        RunCommandScript(cmdparams[0]);
                     }
                     break;
 
