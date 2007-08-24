@@ -751,21 +751,21 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         private bool TestTables(SqliteConnection conn)
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
-            SqliteDataAdapter primDa = new SqliteDataAdapter(primSelectCmd);
+            SqliteDataAdapter pDa = new SqliteDataAdapter(primSelectCmd);
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
-            SqliteDataAdapter shapeDa = new SqliteDataAdapter(shapeSelectCmd);
+            SqliteDataAdapter sDa = new SqliteDataAdapter(shapeSelectCmd);
 
             DataSet tmpDS = new DataSet();
             try {
-                primDa.Fill(tmpDS, "prims");
-                shapeDa.Fill(tmpDS, "primshapes");
+                pDa.Fill(tmpDS, "prims");
+                sDa.Fill(tmpDS, "primshapes");
             } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
 
-            primDa.Fill(tmpDS, "prims");
-            shapeDa.Fill(tmpDS, "primshapes");
+            pDa.Fill(tmpDS, "prims");
+            sDa.Fill(tmpDS, "primshapes");
 
             foreach (DataColumn col in createPrimTable().Columns) {
                 if (! tmpDS.Tables["prims"].Columns.Contains(col.ColumnName) ) {
