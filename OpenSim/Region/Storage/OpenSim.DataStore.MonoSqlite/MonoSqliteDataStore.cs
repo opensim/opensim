@@ -57,14 +57,23 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // TODO: see if the linkage actually holds.
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
             TestTables(conn);
-            
+
             ds.Tables.Add(createPrimTable());
             primDa.Fill(ds.Tables["prims"]);
             setupPrimCommands(primDa, conn);
             MainLog.Instance.Verbose("DATASTORE", "Populated Prim Definitions");
 
             ds.Tables.Add(createShapeTable());
-            shapeDa.Fill(ds.Tables["primshapes"]);
+
+            try
+            {
+                shapeDa.Fill(ds.Tables["primshapes"]);
+            }
+            catch (Exception)
+            {
+                MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
+            }
+
             setupShapeCommands(shapeDa, conn);
             MainLog.Instance.Verbose("DATASTORE", "Populated Prim Shapes");
 
