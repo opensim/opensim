@@ -207,7 +207,8 @@ namespace OpenSim.Region.Environment.LandManagement
             
             if (x > 63 || y > 63 || x < 0 || y < 0)
             {
-                throw new Exception("Error: Parcel not found at point " + x + ", " + y);
+                return null;
+                //throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
             else
             {
@@ -220,7 +221,8 @@ namespace OpenSim.Region.Environment.LandManagement
         {
             if (x > 256 || y > 256 || x < 0 || y < 0)
             {
-                throw new Exception("Error: Parcel not found at point " + x + ", " + y);
+                return null;
+                //throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
             else
             {

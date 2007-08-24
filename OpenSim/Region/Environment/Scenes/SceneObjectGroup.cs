@@ -83,11 +83,30 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_rootPart.GroupPosition; }
             set
             {
+                LLVector3 val = value;
+                if (val.X > 255.6f)
+                {
+                    val.X = 255.6f;
+                }
+                else if (val.X < 0.4f)
+                {
+                    val.X = 0.4f;
+                }
+
+                if (val.Y > 255.6f)
+                {
+                    val.Y = 255.6f;
+                }
+                else if (val.Y < 0.4f)
+                {
+                    val.Y = 0.4f;
+                }
+
                 lock (this.m_parts)
                 {
                     foreach (SceneObjectPart part in this.m_parts.Values)
                     {
-                        part.GroupPosition = value;
+                        part.GroupPosition = val;
                     }
                 }
                 if (m_rootPart.PhysActor != null)
