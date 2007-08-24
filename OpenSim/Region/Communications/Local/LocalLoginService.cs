@@ -47,6 +47,10 @@ namespace OpenSim.Region.Communications.Local
                 this.m_userManager.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
 
                 profile = this.m_userManager.getUserProfile(firstname, lastname);
+                if (profile != null)
+                {
+                    m_Parent.InvenServices.CreateNewUserInventory(profile.UUID);
+                }
 
                 return profile;
             }
