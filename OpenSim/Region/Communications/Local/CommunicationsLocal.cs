@@ -85,11 +85,11 @@ namespace OpenSim.Region.Communications.Local
                     uint regX = 1000;
                     uint regY = 1000;
 
-                    tempfirstname = MainLog.Instance.CmdPrompt("First name");
-                    templastname = MainLog.Instance.CmdPrompt("Last name");
+                    tempfirstname = MainLog.Instance.CmdPrompt("First name", "Hello");
+                    templastname = MainLog.Instance.CmdPrompt("Last name", "Everyone");
                     tempMD5Passwd = MainLog.Instance.PasswdPrompt("Password");
-                    regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X"));
-                    regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y"));
+                    regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X", "1000"));
+                    regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y" , "1000"));
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
