@@ -124,20 +124,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (Timers.Count == 0)
                 return;
 
-            // Go through all timers
-            foreach (TimerClass ts in Timers)
+            lock (ListLock)
             {
-                // Time has passed?
-                if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
+
+                // Go through all timers
+                foreach (TimerClass ts in Timers)
                 {
-                    // Add it to queue
-                    myScriptEngine.myEventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", new object[] { });
-                    // set next interval
-                    
-                    
-                    ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                    // Time has passed?
+                    if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
+                    {
+                        // Add it to queue
+                        myScriptEngine.myEventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", new object[] { });
+                        // set next interval
+
+
+                        ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                    }
                 }
-            }
+            } // lock
         }
 
     }
