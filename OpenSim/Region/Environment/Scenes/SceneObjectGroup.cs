@@ -897,13 +897,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="rot"></param>
         private void UpdateRootRotation(LLQuaternion rot)
         {
+            Axiom.Math.Quaternion axRot = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            Axiom.Math.Quaternion oldParentRot = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
+
             this.m_rootPart.UpdateRotation(rot);
             if (m_rootPart.PhysActor != null)
             {
                 m_rootPart.PhysActor.Orientation = new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z);
             }
-            Axiom.Math.Quaternion axRot = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
-            Axiom.Math.Quaternion oldParentRot = new Quaternion(this.m_rootPart.RotationOffset.W, this.m_rootPart.RotationOffset.X, this.m_rootPart.RotationOffset.Y, this.m_rootPart.RotationOffset.Z);
 
             foreach (SceneObjectPart prim in this.m_parts.Values)
             {
@@ -916,7 +917,8 @@ namespace OpenSim.Region.Environment.Scenes
                     Axiom.Math.Quaternion primsRot = new Quaternion(prim.RotationOffset.W, prim.RotationOffset.X, prim.RotationOffset.Y, prim.RotationOffset.Z);
                     Axiom.Math.Quaternion newRot = oldParentRot * primsRot;
                     newRot = axRot.Inverse() * newRot;
-                    prim.RotationOffset = new LLQuaternion(newRot.w, newRot.x, newRot.y, newRot.z);
+                    prim.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
+                    prim.ScheduleTerseUpdate();
                 }
             }
             this.m_rootPart.ScheduleTerseUpdate();

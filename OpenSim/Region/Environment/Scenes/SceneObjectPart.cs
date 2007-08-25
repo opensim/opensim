@@ -244,7 +244,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_folderID = LLUUID.Random();
             
             m_flags = 0;
-            m_flags |= LLObject.ObjectFlags.ObjectModify |
+            m_flags |= LLObject.ObjectFlags.Physics | 
+                LLObject.ObjectFlags.ObjectModify |
                 LLObject.ObjectFlags.ObjectCopy |
                 LLObject.ObjectFlags.ObjectYouOwner |
                 LLObject.ObjectFlags.Touch |

@@ -109,7 +109,7 @@ namespace OpenSim.Region.ClientStack
                     if (OnUpdatePrimSingleRotation != null)
                     {
                         LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                       // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                        //System.Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                         OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
@@ -118,7 +118,7 @@ namespace OpenSim.Region.ClientStack
                     if (OnUpdatePrimSingleRotation != null)
                     {
                         libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
-                      //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                        //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                         OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
