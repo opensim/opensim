@@ -87,6 +87,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
+            //parameters.IncludeDebugInformation = false;
             CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, Script);
 
             // Go through errors
@@ -97,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 string errtext = "";
                 foreach (CompilerError CompErr in results.Errors)
                 {
-                    errtext += "Line number " + CompErr.Line +
+                    errtext += "Line number " + (CompErr.Line - 1) +
                         ", Error Number: " + CompErr.ErrorNumber +
                         ", '" + CompErr.ErrorText + "'\r\n";
                 }

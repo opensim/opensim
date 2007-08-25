@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             in_state = true;
                             current_statename = m.Groups[1].Captures[0].Value;
                             //Console.WriteLine("Current statename: " + current_statename);
-                            cache = Regex.Replace(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{", "", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                            cache = Regex.Replace(cache, @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){", "${s1}${s2}", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
                         ret += cache;
                         cache = "";
@@ -169,7 +169,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             // void dataserver(key query_id, string data) {
                             //cache = Regex.Replace(cache, @"([^a-zA-Z_]\s*)((?!if|switch|for)[a-zA-Z_]+\s*\([^\)]*\)[^{]*{)", "$1" + "<STATE>" + "$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                             //Console.WriteLine("Replacing using statename: " + current_statename);
-                            cache = Regex.Replace(cache, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"public $1" + current_statename + "_event_$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                            cache = Regex.Replace(cache, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1public " + current_statename + "_event_$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
 
                         ret += cache;
@@ -202,7 +202,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             }
 
             // Add "void" in front of functions that needs it
-            Script = Regex.Replace(Script, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script = Regex.Replace(Script, @"^(\s*public\s+)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace <x,y,z> and <x,y,z,r>
             Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Quaternion($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
@@ -228,15 +228,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Add namespace, class name and inheritance
             Return = "" +
-            "using System;\r\n" +
-            "using System.Collections.Generic;\r\n" +
-            "using System.Text;\r\n" +
-            "using OpenSim.Region.ScriptEngine.Common;\r\n" +
-            "namespace SecondLife {\r\n";
+            "using System; " +
+            "using System.Collections.Generic; " +
+            "using System.Text; " +
+            "using OpenSim.Region.ScriptEngine.Common; " +
+            "namespace SecondLife { ";
             Return += "" + 
                 //"[Serializable] " +
-                "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass {\r\n";
-            Return += @"public Script() { }"+"\r\n";
+                "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass { ";
+            Return += @"public Script() { } ";
             Return += Script;
             Return += "} }\r\n";
 

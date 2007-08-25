@@ -123,6 +123,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (ThreadAbortException tae)
             {
+                string a = tae.ToString();
+                a = "";
                 // Expected
             }
 
