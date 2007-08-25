@@ -479,7 +479,7 @@ namespace OpenSim
                     for (int i = 0; i < m_localScenes.Count; i++)
                     {
                         Scene scene = m_localScenes[i];
-                        foreach (Entity entity in scene.Entities.Values)
+                        foreach (EntityBase entity in scene.Entities.Values)
                         {
                             if (entity is ScenePresence)
                             {
