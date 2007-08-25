@@ -110,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                     catch (Exception e)
                     {
-                        myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
+                        //myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
                     }
                 }
             }
@@ -186,7 +186,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             } // try
             catch (ThreadAbortException tae)
             {
-                myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Worker thread killed: " + tae.Message);
+                //myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Worker thread killed: " + tae.Message);
             }
         }
 
