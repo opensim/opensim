@@ -240,6 +240,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Return += Script;
             Return += "} }\r\n";
 
+            Console.WriteLine("script after conversion: " + Return);
+
             return Return;
         }
 
