@@ -93,12 +93,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // TODO: Return errors to user somehow
             if (results.Errors.Count > 0)
             {
+
+                string errtext = "";
                 foreach (CompilerError CompErr in results.Errors)
                 {
-                    Console.WriteLine("Line number " + CompErr.Line +
+                    errtext += "Line number " + CompErr.Line +
                         ", Error Number: " + CompErr.ErrorNumber +
-                        ", '" + CompErr.ErrorText + ";");
+                        ", '" + CompErr.ErrorText + "'\r\n";
                 }
+                throw new Exception(errtext);
             }
 
 

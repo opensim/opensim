@@ -131,7 +131,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                 {
                     // Add it to queue
-                    //Console.WriteLine("Enqueue timer event: " + ts.next.ToUniversalTime().ToString("HH:mm:ss") + " > " + DateTime.Now.ToUniversalTime().ToString("HH:mm:ss"));
                     myScriptEngine.myEventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", new object[] { });
                     // set next interval
                     

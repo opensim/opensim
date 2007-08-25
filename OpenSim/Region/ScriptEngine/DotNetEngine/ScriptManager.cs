@@ -245,6 +245,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // It will be up to the script itself to hook up the correct events.
             string FileName = "";
 
+            IScriptHost m_host = World.GetSceneObjectPart(localID);
+
             try
             {
 
@@ -264,7 +266,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 long before;
                 before = GC.GetTotalMemory(false);
 #endif
-                LSL_BaseClass CompiledScript = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
+                LSL_BaseClass CompiledScript;
+                    CompiledScript = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
 #if DEBUG
                 Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(false) - before);
 #endif
@@ -274,7 +277,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 // We need to give (untrusted) assembly a private instance of BuiltIns
                 //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
-                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, World.GetSceneObjectPart(localID), localID, itemID);
+
+
+                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, m_host, localID, itemID);
 
                 // Start the script - giving it BuiltIns
                 CompiledScript.Start(LSLB);
@@ -286,8 +291,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception e)
             {
-                m_scriptEngine.Log.Error("ScriptEngine", "Exception loading script \"" + FileName + "\": " + e.ToString());
+                m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
+                try
+                {
+                    // DISPLAY ERROR INWORLD
+                    string text = "Error compiling script:\r\n" + e.Message.ToString();
+                    if (text.Length > 1500)
+                        text = text.Substring(0, 1500);
+                    World.SimChat(Helpers.StringToField(text), 1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                }
+                catch (Exception e2)
+                {
+                    m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
+                }
             }
+            
 
 
         }
@@ -300,14 +318,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Stop long command on script
             m_scriptEngine.myLSLLongCmdHandler.RemoveScript(localID, itemID);
 
-            // Get AppDomain
-            AppDomain ad = GetScript(localID, itemID).Exec.GetAppDomain();
-            // Tell script not to accept new requests
-            GetScript(localID, itemID).Exec.StopScript();
-            // Remove from internal structure
-            RemoveScript(localID, itemID);
-            // Tell AppDomain that we have stopped script
-            m_scriptEngine.myAppDomainManager.StopScript(ad);
+            LSL_BaseClass LSLBC = GetScript(localID, itemID);
+            if (LSLBC == null)
+                return;
+
+            try
+            {
+                // Get AppDomain
+                AppDomain ad = LSLBC.Exec.GetAppDomain();
+                // Tell script not to accept new requests
+                GetScript(localID, itemID).Exec.StopScript();
+                // Remove from internal structure
+                RemoveScript(localID, itemID);
+                // Tell AppDomain that we have stopped script
+                m_scriptEngine.myAppDomainManager.StopScript(ad);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() + ": " + e.ToString());
+            }
         }
             private string ProcessYield(string FileName)
         {
