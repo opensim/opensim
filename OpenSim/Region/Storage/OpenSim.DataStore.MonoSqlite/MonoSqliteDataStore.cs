@@ -275,6 +275,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             createCol(prims, "SitName", typeof(System.String));
             createCol(prims, "TouchName", typeof(System.String));
             // permissions
+            createCol(prims, "ObjectFlags", typeof(System.Int32));
             createCol(prims, "CreatorID", typeof(System.String));
             createCol(prims, "OwnerID", typeof(System.String));
             createCol(prims, "GroupID", typeof(System.String));
@@ -379,6 +380,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             prim.SitName = (String)row["SitName"];
             prim.TouchName = (String)row["TouchName"];
             // permissions
+            prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
             prim.CreatorID = new LLUUID((String)row["CreatorID"]);
             prim.OwnerID = new LLUUID((String)row["OwnerID"]);
             prim.GroupID = new LLUUID((String)row["GroupID"]);
@@ -439,6 +441,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             row["SitName"] = prim.SitName;
             row["TouchName"] = prim.TouchName;
             // permissions
+            row["ObjectFlags"] = prim.ObjectFlags;
             row["CreatorID"] = prim.CreatorID;
             row["OwnerID"] = prim.OwnerID;
             row["GroupID"] = prim.GroupID;

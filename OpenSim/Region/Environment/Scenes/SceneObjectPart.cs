@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags = (LLObject.ObjectFlags)32 + 65536 + 131072 + 256 + 4 + 8 + 268435456 + 128 + (uint)LLObject.ObjectFlags.Physics;
+        protected LLObject.ObjectFlags m_flags;
         public uint ObjectFlags
         {
             get { return (uint)m_flags; }
@@ -239,18 +239,23 @@ namespace OpenSim.Region.Environment.Scenes
             this.Velocity = new LLVector3(0, 0, 0);
             this.AngularVelocity = new LLVector3(0, 0, 0);
             this.Acceleration = new LLVector3(0, 0, 0);
-
+            
             m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
             m_folderID = LLUUID.Random();
-           
-            //temporary code just so the m_flags field doesn't give a compiler warning
-            if (m_flags == LLObject.ObjectFlags.AllowInventoryDrop)
-            {
-
-            }
+            
+            m_flags = 0;
+            m_flags |= LLObject.ObjectFlags.ObjectModify |
+                LLObject.ObjectFlags.ObjectCopy |
+                LLObject.ObjectFlags.ObjectYouOwner |
+                LLObject.ObjectFlags.Touch |
+                LLObject.ObjectFlags.ObjectMove |
+                LLObject.ObjectFlags.AllowInventoryDrop |
+                LLObject.ObjectFlags.ObjectTransfer |
+                LLObject.ObjectFlags.ObjectOwnerModify;
+            
             ScheduleFullUpdate();
         }
-
+        
         /// <summary>
         /// Re/create a SceneObjectPart (prim)
         /// currently not used, and maybe won't be
