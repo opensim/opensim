@@ -664,7 +664,7 @@ namespace OpenSim.Framework.Communications.Caches
                 SendPacket();
                 counter++;
               
-                if ((request.PacketCounter > request.NumPackets) | (counter >120) |(request.NumPackets ==1))
+                if ((request.PacketCounter > request.NumPackets) | (counter > 50) |(request.NumPackets ==1))
                 {
                     return true;
                 }
