@@ -48,6 +48,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         internal EventQueueManager myEventQueueManager;         // Executes events
         internal ScriptManager myScriptManager;                 // Load, unload and execute scripts
         internal AppDomainManager myAppDomainManager;
+        internal LSLLongCmdHandler myLSLLongCmdHandler;
 
         private OpenSim.Framework.Console.LogBase m_log;
 
@@ -77,6 +78,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             myEventManager = new EventManager(this);
             myScriptManager = new ScriptManager(this);
             myAppDomainManager = new AppDomainManager();
+            myLSLLongCmdHandler = new LSLLongCmdHandler(this);
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?

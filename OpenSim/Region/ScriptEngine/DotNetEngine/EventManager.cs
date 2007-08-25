@@ -77,7 +77,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //);
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " + script.Length);
             myScriptEngine.myScriptManager.StartScript(localID, itemID, script);
-            myScriptEngine.myEventQueueManager.AddToObjectQueue(localID, "state_entry", new object[] { });
         }
         public void OnRemoveScript(uint localID, LLUUID itemID)
         {

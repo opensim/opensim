@@ -51,6 +51,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Output assembly name
             ScriptCompileCounter++;
             string OutFile = Path.Combine("ScriptEngines", "Script_" + ScriptCompileCounter + ".dll");
+            try
+            {
+                System.IO.File.Delete(OutFile);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception attempting to delete old compiled script: " + e.ToString());
+            }
             //string OutFile = Path.Combine("ScriptEngines", "SecondLife.Script.dll");
 
             // DEBUG - write source to disk

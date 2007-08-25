@@ -249,6 +249,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
 
 
+                
+
                 // Create a new instance of the compiler (currently we don't want reuse)
                 OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
                 // Compile (We assume LSL)
@@ -272,10 +274,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 // We need to give (untrusted) assembly a private instance of BuiltIns
                 //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
-                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(this, World.GetSceneObjectPart(localID));
+                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, World.GetSceneObjectPart(localID), localID, itemID);
 
                 // Start the script - giving it BuiltIns
                 CompiledScript.Start(LSLB);
+
+                // Fire the first start-event
+                m_scriptEngine.myEventQueueManager.AddToObjectQueue(localID, "state_entry", new object[] { });
+
 
             }
             catch (Exception e)
@@ -290,6 +296,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             // Stop script
             Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
+
+            // Stop long command on script
+            m_scriptEngine.myLSLLongCmdHandler.RemoveScript(localID, itemID);
 
             // Get AppDomain
             AppDomain ad = GetScript(localID, itemID).Exec.GetAppDomain();
@@ -328,12 +337,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         }
 
-        public string RegionName
-        {
-            get
-            {
-                return World.RegionInfo.RegionName;
-            }
-        }
     }
 }

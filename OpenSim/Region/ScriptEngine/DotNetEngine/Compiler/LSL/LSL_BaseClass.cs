@@ -15,7 +15,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         // Object never expires
         public override Object InitializeLifetimeService()
         {
-            Console.WriteLine("LSL_BaseClass: InitializeLifetimeService()");
+            //Console.WriteLine("LSL_BaseClass: InitializeLifetimeService()");
             //            return null;
             ILease lease = (ILease)base.InitializeLifetimeService();
 

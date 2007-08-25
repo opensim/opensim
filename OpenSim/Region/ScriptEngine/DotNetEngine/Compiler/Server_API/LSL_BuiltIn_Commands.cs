@@ -19,15 +19,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
     {
 
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-        private ScriptManager m_manager;
+        private ScriptEngine m_ScriptEngine;
         private IScriptHost m_host;
+        private uint m_localID;
+        private LLUUID m_itemID;
 
-        public LSL_BuiltIn_Commands(ScriptManager manager, IScriptHost host)
+        public LSL_BuiltIn_Commands(ScriptEngine ScriptEngine, IScriptHost host, uint localID, LLUUID itemID)
         {
-            m_manager = manager;
+            m_ScriptEngine = ScriptEngine;
             m_host = host;
+            m_localID = localID;
+            m_itemID = itemID;
+            
 
-            MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
+            //MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
         }
 
 
@@ -39,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         // Object never expires
         public override Object InitializeLifetimeService()
         {
-            Console.WriteLine("LSL_BuiltIn_Commands: InitializeLifetimeService()");
+            //Console.WriteLine("LSL_BuiltIn_Commands: InitializeLifetimeService()");
             //            return null;
             ILease lease = (ILease)base.InitializeLifetimeService();
 
@@ -55,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public Scene World
         {
-            get { return m_manager.World; }
+            get { return m_ScriptEngine.World; }
         }
 
         //These are the implementations of the various ll-functions used by the LSL scripts.
@@ -258,7 +263,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param) { }
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping) { }
         public void llStopLookAt() { }
-        public void llSetTimerEvent(double sec) { }
+        public void llSetTimerEvent(double sec) 
+        {
+            // Setting timer repeat
+            m_ScriptEngine.myLSLLongCmdHandler.SetTimerEvent(m_localID, m_itemID, sec);
+        }
         public void llSleep(double sec) { System.Threading.Thread.Sleep((int)(sec * 1000)); }
         public double llGetMass() { return 0; }
         public void llCollisionFilter(string name, string id, int accept) { }
@@ -416,7 +425,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
         public int llGetAttached() { return 0; }
         public int llGetFreeMemory() { return 0; }
-        public string llGetRegionName() { return m_manager.RegionName; }
+        public string llGetRegionName() { return World.RegionInfo.RegionName; }
         public double llGetRegionTimeDilation() { return 1.0f; }
         public double llGetRegionFPS() { return 10.0f; }
         public void llParticleSystem(List<Object> rules) { }

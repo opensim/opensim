@@ -23,7 +23,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         // Object never expires
         public override Object InitializeLifetimeService()
         {
-            Console.WriteLine("Executor: InitializeLifetimeService()");
+            //Console.WriteLine("Executor: InitializeLifetimeService()");
             //            return null;
             ILease lease = (ILease)base.InitializeLifetimeService();
 
@@ -45,54 +45,60 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
             // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-
-            if (m_Running == false)
+            try
             {
-                // Script is inactive, do not execute!
-                return;
-            }
+                if (m_Running == false)
+                {
+                    // Script is inactive, do not execute!
+                    return;
+                }
 
-            string EventName = m_Script.State() + "_event_" + FunctionName;
+                string EventName = m_Script.State() + "_event_" + FunctionName;
 
-            //type.InvokeMember(EventName, BindingFlags.InvokeMethod, null, m_Script, args);
+                //type.InvokeMember(EventName, BindingFlags.InvokeMethod, null, m_Script, args);
 
-            Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \"" + EventName + "\"");
+                Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \"" + EventName + "\"");
 
-            if (Events.ContainsKey(EventName) == false)
-            {
-                // Not found, create
-                Type type = m_Script.GetType();
+                if (Events.ContainsKey(EventName) == false)
+                {
+                    // Not found, create
+                    Type type = m_Script.GetType();
+                    try
+                    {
+                        MethodInfo mi = type.GetMethod(EventName);
+                        Events.Add(EventName, mi);
+                    }
+                    catch (Exception e)
+                    {
+                        // Event name not found, cache it as not found
+                        Events.Add(EventName, null);
+                    }
+                }
+
+                // Get event
+                MethodInfo ev = null;
+                Events.TryGetValue(EventName, out ev);
+
+                if (ev == null) // No event by that name!
+                {
+                    Console.WriteLine("ScriptEngine Can not find any event named: \"" + EventName + "\"");
+                    return;
+                }
+
+                // Found
                 try
                 {
-                    MethodInfo mi = type.GetMethod(EventName);
-                    Events.Add(EventName, mi);
+                    // Invoke it
+                    ev.Invoke(m_Script, args);
+
                 }
                 catch (Exception e)
                 {
-                    // Event name not found, cache it as not found
-                    Events.Add(EventName, null);
+                    // TODO: Send to correct place
+                    Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
                 }
             }
-
-            // Get event
-            MethodInfo ev = null;
-            Events.TryGetValue(EventName, out ev);
-
-            if (ev == null) // No event by that name!
-                return;
-
-            // Found
-            try
-            {
-                // Invoke it
-                ev.Invoke(m_Script, args);
-
-            }
-            catch (Exception e)
-            {
-                // TODO: Send to correct place
-                Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
-            }
+            catch { }
         }
 
 

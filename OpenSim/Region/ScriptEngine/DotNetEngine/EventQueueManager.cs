@@ -226,6 +226,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
+
         /// <summary>
         /// Add event to event execution queue
         /// </summary>
@@ -237,34 +238,44 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
 
-            lock (QueueLock)
+
+            // Do we have any scripts in this object at all? If not, return
+            if (myScriptEngine.myScriptManager.Scripts.ContainsKey(localID) == false)
             {
-
-                // Do we have any scripts in this object at all? If not, return
-                if (myScriptEngine.myScriptManager.Scripts.ContainsKey(localID) == false)
-                {
-                    //Console.WriteLine("Event \"" + FunctionName + "\" for localID: " + localID + ". No scripts found on this localID.");
-                    return;
-                }
-
-                foreach (LLUUID itemID in myScriptEngine.myScriptManager.GetScriptKeys(localID))
-                {
-                    // Add to each script in that object
-                    // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
-
-                    // Create a structure and add data
-                    QueueItemStruct QIS = new QueueItemStruct();
-                    QIS.localID = localID;
-                    QIS.itemID = itemID;
-                    QIS.FunctionName = FunctionName;
-                    QIS.param = param;
-
-                    // Add it to queue
-                    EventQueue.Enqueue(QIS);
-
-                }
+                //Console.WriteLine("Event \"" + FunctionName + "\" for localID: " + localID + ". No scripts found on this localID.");
+                return;
             }
 
+            foreach (LLUUID itemID in new System.Collections.ArrayList(myScriptEngine.myScriptManager.GetScriptKeys(localID)))
+            {
+                // Add to each script in that object
+                // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
+                AddToScriptQueue(localID, itemID, FunctionName, param);
+            }
+
+        }
+
+        /// <summary>
+        /// Add event to event execution queue
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="itemID"></param>
+        /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
+        /// <param name="param">Array of parameters to match event mask</param>
+        public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, object[] param)
+        {
+            lock (QueueLock)
+            {
+                // Create a structure and add data
+                QueueItemStruct QIS = new QueueItemStruct();
+                QIS.localID = localID;
+                QIS.itemID = itemID;
+                QIS.FunctionName = FunctionName;
+                QIS.param = param;
+
+                // Add it to queue
+                EventQueue.Enqueue(QIS);
+            }
         }
 
     }
