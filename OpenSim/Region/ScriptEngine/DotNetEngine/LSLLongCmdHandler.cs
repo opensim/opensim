@@ -127,7 +127,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Go through all timers
             foreach (TimerClass ts in Timers)
             {
-
                 // Time has passed?
                 if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                 {
