@@ -7,6 +7,7 @@ using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Framework.Console;
+using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 {
@@ -34,6 +35,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public string State() {
             return m_state;
         }
+
+        // Object never expires
+        public override Object InitializeLifetimeService()
+        {
+            Console.WriteLine("LSL_BuiltIn_Commands: InitializeLifetimeService()");
+            //            return null;
+            ILease lease = (ILease)base.InitializeLifetimeService();
+
+            if (lease.CurrentState == LeaseState.Initial)
+            {
+                lease.InitialLeaseTime = TimeSpan.Zero; // TimeSpan.FromMinutes(1);
+                //                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
+                //                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
+            }
+            return lease;
+        }
+
 
         public Scene World
         {

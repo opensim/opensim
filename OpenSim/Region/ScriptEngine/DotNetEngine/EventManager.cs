@@ -62,7 +62,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             // Add to queue for all scripts in ObjectID object
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
-            Console.WriteLine("touch_start localID: " + localID);
+            //Console.WriteLine("touch_start localID: " + localID);
             myScriptEngine.myEventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] { (int)1 });
         }
         public void OnRezScript(uint localID, LLUUID itemID, string script)
@@ -85,6 +85,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //    Path.Combine("ScriptEngines", "Default.lsl"), 
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
+            Console.WriteLine("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
             myScriptEngine.myScriptManager.StopScript(
                 localID,
                 itemID
@@ -96,7 +97,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         //  These needs to be hooked up to OpenSim during init of this class
         //   then queued in EventQueueManager.
         // When queued in EventQueueManager they need to be LSL compatible (name and params)
-        public void state_entry() { }
+        
+        //public void state_entry() { } // 
         public void state_exit() { }
         //public void touch_start() { }
         public void touch() { }

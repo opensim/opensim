@@ -5,14 +5,33 @@ using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 using System.Threading;
 using System.Reflection;
-
+using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, IScript
     {
+
+        // Object never expires
+        public override Object InitializeLifetimeService()
+        {
+            Console.WriteLine("LSL_BaseClass: InitializeLifetimeService()");
+            //            return null;
+            ILease lease = (ILease)base.InitializeLifetimeService();
+
+            if (lease.CurrentState == LeaseState.Initial)
+            {
+                lease.InitialLeaseTime = TimeSpan.Zero; // TimeSpan.FromMinutes(1);
+                //lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
+                //lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
+            }
+            return lease;
+        }
+
+
         private Executor m_Exec;
-        public Executor Exec {
+        public Executor Exec
+        {
             get
             {
                 if (m_Exec == null)

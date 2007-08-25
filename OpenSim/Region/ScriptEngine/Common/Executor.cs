@@ -2,34 +2,40 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
     public class Executor : MarshalByRefObject
     {
-        /* TODO:
-         * 
-         * Needs to be common for all AppDomains - share memory too?
-         * Needs to have an instance in each AppDomain, and some way of referring it.
-         * Need to know what AppDomain a script is in so we know where to find our instance.
-         * 
-         */
+        // Private instance for each script
 
         private IScript m_Script;
         private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();
         private bool m_Running = true;
-
+        //private List<IScript> Scripts = new List<IScript>();
 
         public Executor(IScript Script)
         {
             m_Script = Script;
-
         }
 
-        public void StopScript()
+        // Object never expires
+        public override Object InitializeLifetimeService()
         {
-            m_Running = false;
+            Console.WriteLine("Executor: InitializeLifetimeService()");
+            //            return null;
+            ILease lease = (ILease)base.InitializeLifetimeService();
+
+            if (lease.CurrentState == LeaseState.Initial)
+            {
+                lease.InitialLeaseTime = TimeSpan.Zero; // TimeSpan.FromMinutes(1);
+//                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
+//                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
+            }
+            return lease;
         }
+
         public AppDomain GetAppDomain()
         {
             return AppDomain.CurrentDomain;
@@ -39,14 +45,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
             // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-
-            //foreach (MemberInfo mi in this.GetType().GetMembers())
-            //{
-            //if (mi.ToString().ToLower().Contains("default"))
-            //{
-            //    Console.WriteLine("Member found: " + mi.ToString());
-            //}
-            //}
 
             if (m_Running == false)
             {
@@ -96,6 +94,13 @@ namespace OpenSim.Region.ScriptEngine.Common
                 Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
             }
         }
+
+
+        public void StopScript()
+        {
+            m_Running = false;
+        }
+
 
     }
 

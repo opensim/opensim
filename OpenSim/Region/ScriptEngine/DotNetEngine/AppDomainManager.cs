@@ -15,7 +15,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public class AppDomainManager
     {
-        private int MaxScriptsPerAppDomain = 3;
+        private int MaxScriptsPerAppDomain = 1;
         /// <summary>
         /// Internal list of all AppDomains
         /// </summary>
@@ -59,7 +59,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private AppDomainStructure GetFreeAppDomain()
         {
             Console.WriteLine("Finding free AppDomain");
-            FreeAppDomains(); // Outsite lock, has its own GetLock
             lock (GetLock)
             {
                 // Current full?
@@ -111,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <summary>
         /// Unload appdomains that are full and have only dead scripts
         /// </summary>
-        private void FreeAppDomains()
+        private void UnloadAppDomains()
         {
             lock (FreeLock)
             {
@@ -125,10 +124,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         // Is number of unloaded bigger or equal to number of loaded?
                         if (ads.ScriptsLoaded <= ads.ScriptsWaitingUnload)
                         {
+                            Console.WriteLine("Found empty AppDomain, unloading");
                             // Remove from internal list
                             AppDomains.Remove(ads);
+#if DEBUG
+
+                            long m = GC.GetTotalMemory(true);
+#endif
                             // Unload
                             AppDomain.Unload(ads.CurrentAppDomain);
+#if DEBUG
+                            Console.WriteLine("AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
+#endif
                         }
                     }
                 } // foreach
@@ -142,20 +149,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Find next available AppDomain to put it in
             AppDomainStructure FreeAppDomain = GetFreeAppDomain();
             
-            //if (FreeAppDomain == null) Console.WriteLine("FreeAppDomain == null");
-            //if (FreeAppDomain.CurrentAppDomain == null) Console.WriteLine("FreeAppDomain.CurrentAppDomain  == null");
             Console.WriteLine("Loading into AppDomain: " + FileName);
             LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
-            //Type mytype = mbrt.GetType();
-            Console.WriteLine("ScriptEngine AppDomainManager: is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
-
-            // Increase script count in tihs AppDomain
+            //Console.WriteLine("ScriptEngine AppDomainManager: is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
             FreeAppDomain.ScriptsLoaded++;
 
-            //mbrt.Start();
             return mbrt;
-            //return (LSL_BaseClass)mbrt;
-
         }
 
 
@@ -168,6 +167,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             lock (FreeLock)
             {
+                Console.WriteLine("Stopping script in AppDomain");
                 // Check if it is current AppDomain
                 if (CurrentAD.CurrentAppDomain == ad)
                 {
@@ -181,15 +181,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 {
                     if (ads.CurrentAppDomain == ad)
                     {
-                        // Found it - messy code to increase structure
-                        //AppDomainStructure ads2 = ads;
+                        // Found it
                         ads.ScriptsWaitingUnload++;
-                        //AppDomains.Remove(ads);
-                        //AppDomains.Add(ads2);
-                        return;
+                        break;
                     }
                 } // foreach
             } // lock
+
+            UnloadAppDomains(); // Outsite lock, has its own GetLock
+
+
         }
 
 
