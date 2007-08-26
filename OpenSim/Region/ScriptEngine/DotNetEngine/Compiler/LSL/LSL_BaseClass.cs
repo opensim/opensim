@@ -6,6 +6,10 @@ using OpenSim.Region.ScriptEngine.Common;
 using System.Threading;
 using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
+using integer = System.Int32;
+using key = System.String;
+using vector = OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3;
+using rotation = OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {

@@ -180,7 +180,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 catch (Exception e)
                                 {
                                     // DISPLAY ERROR INWORLD
-                                    string text = "Error executing script:\r\n";
+                                    string text = "Error executing script function \"" + QIS.FunctionName + "\":\r\n";
                                     if (e.InnerException != null)
                                     { // Send inner exception
                                         text += e.InnerException.Message.ToString();

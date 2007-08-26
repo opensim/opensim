@@ -13,12 +13,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         public LSL2CSConverter()
         {
-            
+            // Only the types we need to convert
             DataTypes.Add("void", "void");
-            DataTypes.Add("integer", "System.Int32");
-            DataTypes.Add("float", "System.Double");
+            DataTypes.Add("integer", "int");
+            DataTypes.Add("float", "double");
             DataTypes.Add("string", "string");
-            DataTypes.Add("key", "System.String");
+            DataTypes.Add("key", "string");
             DataTypes.Add("vector", "LSL_Types.Vector3");
             DataTypes.Add("rotation", "LSL_Types.Quaternion");
             DataTypes.Add("list", "list");
@@ -230,13 +230,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Add namespace, class name and inheritance
 
-            Return = "" +
-            "using System; " +
-            "using System.Collections.Generic; " +
-            "using System.Text; " +
-            "using OpenSim.Region.ScriptEngine.Common; " +
-            "using integer = System.Int32; " +
-            "using key = System.String; ";
+            Return = "";// +
+            //"using System; " +
+            //"using System.Collections.Generic; " +
+            //"using System.Text; " +
+            //"using OpenSim.Region.ScriptEngine.Common; " +
+            //"using integer = System.Int32; " +
+            //"using key = System.String; ";
 
             //// Make a Using out of DataTypes
             //// Using integer = System.Int32;
