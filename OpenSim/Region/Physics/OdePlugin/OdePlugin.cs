@@ -114,13 +114,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
 
             int count = d.Collide(g1, g2, 500, contacts, d.ContactGeom.SizeOf);
-            if (count>0)
-            {
-                if (b2 != IntPtr.Zero)
-                {
-                    Console.WriteLine("+++++ collision twixt: " + b1 + " & " + b2);
-                }
-            }
             for (int i = 0; i < count; ++i)
             {
                 contact.geom = contacts[i];
@@ -171,7 +164,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.x = rotation.x;
             rot.y = rotation.y;
             rot.z = rotation.z;
-            OdePrim newPrim = new OdePrim(this, pos, siz, rot);
+            OdePrim newPrim;
+            lock(typeof(OdeScene)) {
+                newPrim = new OdePrim(this, pos, siz, rot);
+            }
             this._prims.Add(newPrim);
             return newPrim;
         }
