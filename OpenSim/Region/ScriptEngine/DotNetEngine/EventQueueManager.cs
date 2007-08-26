@@ -184,7 +184,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             }
 
                         } // Something in queue
-                    } catch {ThreadAbortException tae) {
+                    } catch (ThreadAbortException tae) {
                         throw tae;
                     } catch (Exception e) {
                         Console.WriteLine("Exception in EventQueueThreadLoop: " + e.ToString());
