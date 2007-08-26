@@ -37,7 +37,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
 
         private string m_state = "default";
-        public string State() {
+
+        public string State() 
+        {
             return m_state;
         }
 
@@ -81,12 +83,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 return OpenSim.Framework.Utilities.Util.RandomClass.Next((int)mag);
             }
         }
+
         public int llFloor(double f) { return (int)Math.Floor(f); }
         public int llCeil(double f) { return (int)Math.Ceiling(f); }
         public int llRound(double f) { return (int)Math.Round(f, 3); }
 
         //This next group are vector operations involving squaring and square root. ckrinke
-        public double llVecMag(LSL_Types.Vector3 v) { return (v.X*v.X + v.Y*v.Y + v.Z*v.Z); }
+        public double llVecMag(LSL_Types.Vector3 v) 
+        { 
+            return (v.X*v.X + v.Y*v.Y + v.Z*v.Z); 
+        }
+
         public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v) 
         {
             double mag = v.X * v.X + v.Y * v.Y + v.Z * v.Z;
@@ -120,8 +127,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
        }
 
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v) 
-        { //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
-              float err = 0.00001f;
+        { 
+            //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
+            float err = 0.00001f;
             double ax = Math.Sin(v.X / 2); double aw = Math.Cos(v.X / 2);
             double by = Math.Sin(v.Y / 2); double bw = Math.Cos(v.Y / 2);
             double cz = Math.Sin(v.Z / 2); double cw = Math.Cos(v.Z / 2);
@@ -160,6 +168,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             World.SimChat(Helpers.StringToField(text),
                           0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
+
         public void llSay(int channelID, string text)
         {
             //type for say is 1
@@ -237,7 +246,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llGetAccel() { return new LSL_Types.Vector3(); }
         public LSL_Types.Vector3 llGetOmega() { return new LSL_Types.Vector3(); }
         public double llGetTimeOfDay() { return 0; }
-        public double llGetWallclock() { return DateTime.Now.TimeOfDay.TotalSeconds; }
+
+        public double llGetWallclock() 
+        { 
+            return DateTime.Now.TimeOfDay.TotalSeconds; 
+        }
+
         public double llGetTime() { return 0; }
         public void llResetTime() { }
         public double llGetAndResetTime() { return 0; }
@@ -263,11 +277,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param) { }
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping) { }
         public void llStopLookAt() { }
+
         public void llSetTimerEvent(double sec) 
         {
             // Setting timer repeat
             m_ScriptEngine.myLSLLongCmdHandler.SetTimerEvent(m_localID, m_itemID, sec);
         }
+
         public void llSleep(double sec) { System.Threading.Thread.Sleep((int)(sec * 1000)); }
         public double llGetMass() { return 0; }
         public void llCollisionFilter(string name, string id, int accept) { }
@@ -281,10 +297,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llInstantMessage(string user, string message) { }
         public void llEmail(string address, string subject, string message) { }
         public void llGetNextEmail(string address, string subject) { }
+
         public string llGetKey()
         {
             return m_host.UUID.ToStringHyphenated();
         }
+
         public void llSetBuoyancy(double buoyancy) { }
         public void llSetHoverHeight(double height, int water, double tau) { }
         public void llStopHover() { }
@@ -362,19 +380,59 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llGetTextureOffset(int face) { return new LSL_Types.Vector3(); }
         public LSL_Types.Vector3 llGetTextureScale(int side) { return new LSL_Types.Vector3(); }
         public double llGetTextureRot(int side) { return 0; }
+
         public int llSubStringIndex(string source, string pattern)
         {
-            return source.IndexOf(pattern); 
+            return source.IndexOf(pattern);
         }
+
         public string llGetOwnerKey(string id) { return ""; }
         public LSL_Types.Vector3 llGetCenterOfMass() { return new LSL_Types.Vector3(); }
+
         public List<string> llListSort(List<string> src, int stride, int ascending)
-        { return new List<string>(); }
-        public int llGetListLength(List<string> src) { return 0; }
-        public int llList2Integer(List<string> src, int index) { return 0; }
-        public double llList2double(List<string> src, int index) { return 0; }
-        public string llList2String(List<string> src, int index) { return ""; }
-        public string llList2Key(List<string> src, int index) { return ""; }
+        {
+            //List<string> nlist = src.Sort();
+
+            //if (ascending == 0)
+            //{
+            //nlist.Reverse();
+            //}
+
+            //return nlist;
+            return new List<string>(); ;
+        }
+
+        public int llGetListLength(List<string> src)
+        {
+            return src.Count;
+        }
+
+        public int llList2Integer(List<string> src, int index)
+        {
+            return Convert.ToInt32(src[index]);
+        }
+
+        public double llList2Double(List<string> src, int index)
+        {
+            return Convert.ToDouble(src[index]);
+        }
+
+        public float llList2Float(List<string> src, int index)
+        {
+            return Convert.ToSingle(src[index]);
+        }
+
+        public string llList2String(List<string> src, int index)
+        {
+            return src[index];
+        }
+
+        public string llList2Key(List<string> src, int index)
+        {
+            //return OpenSim.Framework.Types.ToStringHyphenated(src[index]);
+            return "";
+        }
+
         public LSL_Types.Vector3 llList2Vector(List<string> src, int index)
         { return new LSL_Types.Vector3(); }
         public LSL_Types.Quaternion llList2Rot(List<string> src, int index)
@@ -391,19 +449,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         { return new List<string>(); }
         public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
         { return new List<string>(); }
+
         public LSL_Types.Vector3 llGetRegionCorner()
-        { return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0); }
+        { 
+            return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0);
+        }
+
         public List<string> llListInsertList(List<string> dest, List<string> src, int start)
         { return new List<string>(); }
         public int llListFindList(List<string> src, List<string> test) { return 0; }
         public string llGetObjectName() { return ""; }
         public void llSetObjectName(string name) { }
+
         public string llGetDate()
         {
             DateTime date = DateTime.Now.ToUniversalTime();
             string result = date.ToString("yyyy-MM-dd");
             return result;
         }
+
         public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir) { return 0; }
         public int llGetAgentInfo(string id) { return 0; }
         public void llAdjustSoundVolume(double volume) { }
@@ -454,7 +518,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { }
         public void llVolumeDetect(int detect) { }
         public void llResetOtherScript(string name) { }
-        public int llGetScriptState(string name) { return 0; }
+
+        public int llGetScriptState(string name) 
+        { 
+            return 0;
+        }
+
         public void llRemoteLoadScript() { }
         public void llSetRemoteScriptAccessPin(int pin) { }
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { }
