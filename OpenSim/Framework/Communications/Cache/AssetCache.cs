@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications.Caches
                     UsersSent.Add(sender.request.ImageInfo.FullID, 1);
                    
                 }
-                if (TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID] < 600)
+                if (TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID] < 1000)
                 {
                     bool finished = sender.SendTexture();
                     if (finished)
@@ -336,6 +336,7 @@ namespace OpenSim.Framework.Communications.Caches
                 ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
                 notFound.ImageID.ID = assetID;
                 req.RequestUser.OutPacket(notFound);
+               //Console.WriteLine("sending image not found for " + assetID);
 
                 this.RequestedTextures.Remove(assetID);
             }
@@ -698,7 +699,7 @@ namespace OpenSim.Framework.Communications.Caches
                 SendPacket();
                 counter++;
 
-                if ((request.PacketCounter > request.NumPackets) | (counter > 90) | (request.NumPackets == 1))
+                if ((request.PacketCounter > request.NumPackets) | (counter > 100) | (request.NumPackets == 1))
                 {
                     return true;
                 }
