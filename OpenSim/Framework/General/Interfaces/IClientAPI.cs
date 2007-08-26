@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, uint localID);
     public delegate void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
-    public delegate void UDPAssetUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data);
+    public delegate void UDPAssetUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal);
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
     public delegate void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName);
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);

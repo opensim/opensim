@@ -260,7 +260,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Return += Script;
             Return += "} }\r\n";
 
-
             return Return;
         }
 

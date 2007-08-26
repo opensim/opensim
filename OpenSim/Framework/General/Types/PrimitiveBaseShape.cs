@@ -1,3 +1,4 @@
+using System.Xml.Serialization;
 using libsecondlife;
 using libsecondlife.Packets;
 
@@ -75,6 +76,7 @@ namespace OpenSim.Framework.Types
             }
         }
 
+        [XmlIgnore]
         public HollowShape HollowShape
         {
             get

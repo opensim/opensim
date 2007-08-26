@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment
             if (!permission)
                 SendPermissionError(user, reason);
 
-            return true;
+            return permission;
         }
 
         #region Object Permissions

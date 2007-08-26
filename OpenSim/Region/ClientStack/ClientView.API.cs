@@ -531,13 +531,19 @@ namespace OpenSim.Region.ClientStack
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
-            InventoryDescendentsPacket descend = new InventoryDescendentsPacket();
-            descend.AgentData.AgentID = this.AgentId;
-            descend.AgentData.OwnerID = ownerID;
-            descend.AgentData.FolderID = folderID;
-            descend.AgentData.Descendents = items.Count;
-            descend.AgentData.Version = 0;
-            descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
+            InventoryDescendentsPacket descend = this.CreateInventoryDescendentsPacket(ownerID, folderID);
+            
+            int count = 0;
+            if (items.Count < 40)
+            {
+                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
+                descend.AgentData.Descendents = items.Count;
+            }
+            else
+            {
+                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[40];
+                descend.AgentData.Descendents = 40;
+            }
             int i = 0;
             foreach (InventoryItemBase item in items)
             {
@@ -564,10 +570,45 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].CRC = Helpers.InventoryCRC(1000, 0, descend.ItemData[i].InvType, descend.ItemData[i].Type, descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, 100, descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID, descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
                 i++;
+                count++;
+                if (i == 40)
+                {
+                    this.OutPacket(descend);
+                    
+                    if ((items.Count - count) > 0)
+                    {
+                        descend = this.CreateInventoryDescendentsPacket(ownerID, folderID);
+                        if ((items.Count - count) < 40)
+                        {
+                            descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count - count];
+                            descend.AgentData.Descendents = items.Count - count;
+                        }
+                        else
+                        {
+                            descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[40];
+                            descend.AgentData.Descendents = 40;
+                        }
+                        i = 0;
+                    }
+                }
             }
 
-            this.OutPacket(descend);
+            if (i < 40)
+            {
+                this.OutPacket(descend);
+            }
 
+        }
+
+        private InventoryDescendentsPacket CreateInventoryDescendentsPacket(LLUUID ownerID, LLUUID folderID)
+        {
+            InventoryDescendentsPacket descend = new InventoryDescendentsPacket();
+            descend.AgentData.AgentID = this.AgentId;
+            descend.AgentData.OwnerID = ownerID;
+            descend.AgentData.FolderID = folderID;
+            descend.AgentData.Version = 0;
+
+            return descend;
         }
 
         public void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)

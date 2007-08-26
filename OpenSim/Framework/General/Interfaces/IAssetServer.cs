@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Interfaces
     public interface IAssetReceiver
     {
         void AssetReceived(AssetBase asset, bool IsTexture);
-        void AssetNotFound(AssetBase asset);
+        void AssetNotFound(LLUUID assetID);
     }
 
     public interface IAssetPlugin

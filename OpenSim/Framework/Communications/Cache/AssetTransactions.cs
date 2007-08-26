@@ -189,6 +189,7 @@ namespace OpenSim.Framework.Communications.Caches
             private bool m_finished = false;
             private bool m_createItem = false;
             private AgentAssetTransactions m_userTransactions;
+            private bool m_storeLocal;
 
             public AssetXferUploader(AgentAssetTransactions transactions)
             {
@@ -224,7 +225,7 @@ namespace OpenSim.Framework.Communications.Caches
                 }
             }
 
-            public void Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data)
+            public void Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal)
             {
                 this.ourClient = remoteClient;
                 this.Asset = new AssetBase();
@@ -235,6 +236,7 @@ namespace OpenSim.Framework.Communications.Caches
                 this.Asset.Name = "blank";
                 this.Asset.Description = "empty";
                 this.TransactionID = transaction;
+                this.m_storeLocal = storeLocal;
                 if (this.Asset.Data.Length > 2)
                 {
                     this.SendCompleteMessage();
@@ -271,6 +273,11 @@ namespace OpenSim.Framework.Communications.Caches
                 {
                     DoCreateItem();
                 }
+                else if (m_storeLocal)
+                {
+                    this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
+                }
+
               // Console.WriteLine("upload complete "+ this.TransactionID);
                 //SaveAssetToFile("testudpupload" + Util.RandomClass.Next(1, 1000) + ".dat", this.Asset.Data);
             }

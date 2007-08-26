@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if (rezAsset != null)
                             {
                                 string script = Util.FieldToString(rezAsset.Data);
-                               // Console.WriteLine("rez script " + script);
+                                // Console.WriteLine("rez script " + script);
                                 this.EventManager.TriggerRezScript(localID, copyID, script);
                                 rezzed = true;
                             }
@@ -270,22 +270,22 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezzed)
                         {
-                             bool hasPrim = false;
-                             foreach (EntityBase ent in Entities.Values)
-                             {
-                                 if (ent is SceneObjectGroup)
-                                 {
-                                     hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
-                                     if (hasPrim != false)
-                                     {
+                            bool hasPrim = false;
+                            foreach (EntityBase ent in Entities.Values)
+                            {
+                                if (ent is SceneObjectGroup)
+                                {
+                                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                                    if (hasPrim != false)
+                                    {
 
-                                         bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item, copyID);
-                                         ((SceneObjectGroup)ent).GetProperites(remoteClient);
-                                         
-                                     }
-                                 }
-                             }
-                            
+                                        bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item, copyID);
+                                        ((SceneObjectGroup)ent).GetProperites(remoteClient);
+
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
@@ -361,7 +361,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 this.phyScene.RemovePrim(rootPart.PhysActor);
                                 rootPart.PhysActor = null;
                             }
-                            
+
                             storageManager.DataStore.RemoveObject(((SceneObjectGroup)selectedEnt).UUID, m_regInfo.SimUUID);
                             ((SceneObjectGroup)selectedEnt).DeleteGroup();
 
@@ -415,11 +415,11 @@ namespace OpenSim.Region.Environment.Scenes
             this.AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-             rootPart.PhysActor = phyScene.AddPrim(
-                    new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
-                    new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                    new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+            rootPart.PhysActor = phyScene.AddPrim(
+                   new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
+                   new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                   new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                                              rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
         }
 
 

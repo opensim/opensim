@@ -80,15 +80,16 @@ namespace OpenSim.Framework.Communications.Caches
 
         }
 
-        public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data)
+        public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal)
         {
+           // Console.WriteLine("asset upload of " + assetID);
             AgentAssetTransactions transactions = this.GetUserTransActions(remoteClient.AgentId);
             if (transactions != null)
             {
                 AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
                 if (uploader != null)
                 {
-                    uploader.Initialise(remoteClient, assetID, transaction, type, data);
+                    uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal);
                 }
             }
         }

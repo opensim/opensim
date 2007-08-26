@@ -351,7 +351,7 @@ namespace OpenSim.Region.ClientStack
                     #region Inventory/Asset/Other related packets
                     case PacketType.RequestImage:
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
-
+                        //Console.WriteLine("image request: " + Pack.ToString());
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
                             m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet);
@@ -363,10 +363,11 @@ namespace OpenSim.Region.ClientStack
                         m_assetCache.AddAssetRequest(this, transfer);
                         break;
                     case PacketType.AssetUploadRequest:
+                        //Console.WriteLine("upload request " + Pack.ToString());
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
                         if (OnAssetUploadRequest != null)
                         {
-                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData);
+                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
                         }
                         break;
                     case PacketType.RequestXfer:

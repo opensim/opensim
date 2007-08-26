@@ -144,13 +144,15 @@ namespace OpenSim.Region.GridInterfaces.Local
                     asset.InvType = foundAsset.Type;
                     asset.Name = foundAsset.Name;
                     idata = foundAsset.Data;
+                    asset.Data = idata;
+                    _receiver.AssetReceived(asset, req.IsTexture);
                 }
                 else
                 {
-                    asset.FullID = LLUUID.Zero;
+                    //asset.FullID = ;
+                    _receiver.AssetNotFound(req.AssetID);
                 }
-                asset.Data = idata;
-                _receiver.AssetReceived(asset, req.IsTexture);
+               
             }
 
         }
