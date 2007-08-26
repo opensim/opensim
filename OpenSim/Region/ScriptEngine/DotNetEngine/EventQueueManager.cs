@@ -131,57 +131,64 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 QueueItemStruct BlankQIS = new QueueItemStruct();
                 while (true)
                 {
-                    QueueItemStruct QIS = BlankQIS;
-                    bool GotItem = false;
-
-                    if (EventQueue.Count == 0)
+                    try
                     {
-                        // Nothing to do? Sleep a bit waiting for something to do
-                        Thread.Sleep(NothingToDoSleepms);
-                    }
-                    else
-                    {
-                        // Something in queue, process
-                        //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
+                        QueueItemStruct QIS = BlankQIS;
+                        bool GotItem = false;
 
-                        // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
-                        lock (QueueLock)
+                        if (EventQueue.Count == 0)
                         {
-                            GotItem = false;
-                            for (int qc = 0; qc < EventQueue.Count; qc++)
-                            {
-                                // Get queue item
-                                QIS = EventQueue.Dequeue();
-
-                                // Check if object is being processed by someone else
-                                if (TryLock(QIS.localID) == false)
-                                {
-                                    // Object is already being processed, requeue it
-                                    EventQueue.Enqueue(QIS);
-                                }
-                                else
-                                {
-                                    // We have lock on an object and can process it
-                                    GotItem = true;
-                                    break;
-                                }
-                            } // go through queue
-                        } // lock
-
-                        if (GotItem == true)
-                        {
-                            // Execute function
-                            try
-                            {
-                                myScriptEngine.myScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.FunctionName, QIS.param);
-                            }
-                            finally
-                            {
-                                ReleaseLock(QIS.localID);
-                            }
+                            // Nothing to do? Sleep a bit waiting for something to do
+                            Thread.Sleep(NothingToDoSleepms);
                         }
+                        else
+                        {
+                            // Something in queue, process
+                            //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
 
-                    } // Something in queue
+                            // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
+                            lock (QueueLock)
+                            {
+                                GotItem = false;
+                                for (int qc = 0; qc < EventQueue.Count; qc++)
+                                {
+                                    // Get queue item
+                                    QIS = EventQueue.Dequeue();
+
+                                    // Check if object is being processed by someone else
+                                    if (TryLock(QIS.localID) == false)
+                                    {
+                                        // Object is already being processed, requeue it
+                                        EventQueue.Enqueue(QIS);
+                                    }
+                                    else
+                                    {
+                                        // We have lock on an object and can process it
+                                        GotItem = true;
+                                        break;
+                                    }
+                                } // go through queue
+                            } // lock
+
+                            if (GotItem == true)
+                            {
+                                // Execute function
+                                try
+                                {
+                                    myScriptEngine.myScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.FunctionName, QIS.param);
+                                }
+                                finally
+                                {
+                                    ReleaseLock(QIS.localID);
+                                }
+                            }
+
+                        } // Something in queue
+                    } catch {ThreadAbortException tae) {
+                        throw tae;
+                    } catch (Exception e) {
+                        Console.WriteLine("Exception in EventQueueThreadLoop: " + e.ToString());
+                    }
                 } // while
             } // try
             catch (ThreadAbortException tae)

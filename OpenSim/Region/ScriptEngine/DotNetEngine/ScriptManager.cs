@@ -362,9 +362,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Execute a function in the script
             //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
             LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(localID, itemID);
+            if (Script == null)
+                return;
 
             // Must be done in correct AppDomain, so leaving it up to the script itself
-            Script.Exec.ExecuteEvent(FunctionName, args);
+            try
+            {
+                Script.Exec.ExecuteEvent(FunctionName, args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception executing script funcion: " + e.ToString());
+            }
 
         }
 
