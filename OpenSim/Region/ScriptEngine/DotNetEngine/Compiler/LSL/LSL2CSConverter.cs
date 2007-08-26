@@ -13,15 +13,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         public LSL2CSConverter()
         {
+            
             DataTypes.Add("void", "void");
-            DataTypes.Add("integer", "int");
-            DataTypes.Add("float", "double");
+            DataTypes.Add("integer", "System.Int32");
+            DataTypes.Add("float", "System.Double");
             DataTypes.Add("string", "string");
-            DataTypes.Add("key", "string");
+            DataTypes.Add("key", "System.String");
             DataTypes.Add("vector", "LSL_Types.Vector3");
             DataTypes.Add("rotation", "LSL_Types.Quaternion");
             DataTypes.Add("list", "list");
             DataTypes.Add("null", "null");
+
         }
         
 
@@ -227,11 +229,29 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
             // Add namespace, class name and inheritance
+
             Return = "" +
             "using System; " +
             "using System.Collections.Generic; " +
             "using System.Text; " +
             "using OpenSim.Region.ScriptEngine.Common; " +
+            "using integer = System.Int32; " +
+            "using key = System.String; ";
+
+            //// Make a Using out of DataTypes
+            //// Using integer = System.Int32;
+            //string _val;
+            //foreach (string key in DataTypes.Keys)
+            //{
+            //    DataTypes.TryGetValue(key, out _val);
+            //    if (key != _val)
+            //    {
+            //        Return += "using " + key + " = " + _val + "; ";
+            //    }
+            //}
+
+
+            Return += "" +
             "namespace SecondLife { ";
             Return += "" + 
                 //"[Serializable] " +

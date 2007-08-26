@@ -39,6 +39,7 @@ using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 using OpenSim.Region.ScriptEngine.Common;
 using libsecondlife;
 
+
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     /// <summary>
@@ -49,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     public class ScriptManager
     {
-
+        #region Declares
         private Thread ScriptLoadUnloadThread;
         private int ScriptLoadUnloadThread_IdleSleepms = 100;
         private Queue<LoadStruct> LoadQueue = new Queue<LoadStruct>();
@@ -66,6 +67,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             public LLUUID itemID;
         }
 
+        // Object<string, Script<string, script>>
+        // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
+        // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
+        internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts = new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
+        public Scene World
+        {
+            get
+            {
+                return m_scriptEngine.World;
+            }
+        }
+#endregion
+        #region Object init/shutdown
         private ScriptEngine m_scriptEngine;
         public ScriptManager(ScriptEngine scriptEngine)
         {
@@ -96,6 +110,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
             }
         }
+        #endregion
+        #region Load / Unload scripts (Thread loop)
         private void ScriptLoadUnloadThreadLoop()
         {
             try
@@ -129,7 +145,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
 
         }
-
+        #endregion
+        #region Helper functions
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
 
@@ -139,19 +156,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
 
-        // Object<string, Script<string, script>>
-        // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
-        // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-        internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts = new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
-        public Scene World
-        {
-            get
-            {
-                return m_scriptEngine.World;
-            }
-        }
-
-
+        #endregion
+        #region Internal functions to keep track of script
         internal Dictionary<LLUUID, LSL_BaseClass>.KeyCollection GetScriptKeys(uint localID)
         {
             if (Scripts.ContainsKey(localID) == false)
@@ -212,6 +218,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 Obj.Remove(itemID);
 
         }
+        #endregion
+        #region Start/Stop script
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
         /// </summary>
@@ -346,9 +354,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
             return FileName;
         }
-
-
-
+        #endregion
+        #region Perform event execution in script
         /// <summary>
         /// Execute a LL-event-function in Script
         /// </summary>
@@ -366,16 +373,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 return;
 
             // Must be done in correct AppDomain, so leaving it up to the script itself
-            try
-            {
-                Script.Exec.ExecuteEvent(FunctionName, args);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception executing script funcion: " + e.ToString());
-            }
+            Script.Exec.ExecuteEvent(FunctionName, args);
 
         }
+        #endregion
 
+        #region Script serialization/deserialization
+        public void GetSerializedScript(uint localID, LLUUID itemID)
+        {
+            // Serialize the script and return it
+
+            // Should not be a problem
+        }
+        public void PutSerializedScript(uint localID, LLUUID itemID)
+        {
+            // Deserialize the script and inject it into an AppDomain
+
+            // How to inject into an AppDomain?
+        }
+        #endregion
     }
 }

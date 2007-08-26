@@ -45,8 +45,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
             // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-            try
-            {
+            //try
+            //{
                 if (m_Running == false)
                 {
                     // Script is inactive, do not execute!
@@ -68,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         MethodInfo mi = type.GetMethod(EventName);
                         Events.Add(EventName, mi);
                     }
-                    catch (Exception e)
+                    catch 
                     {
                         // Event name not found, cache it as not found
                         Events.Add(EventName, null);
@@ -86,19 +86,21 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
 
                 // Found
-                try
-                {
+                //try
+                //{
                     // Invoke it
                     ev.Invoke(m_Script, args);
 
-                }
-                catch (Exception e)
-                {
-                    // TODO: Send to correct place
-                    Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
-                }
-            }
-            catch { }
+                //}
+                //catch (Exception e)
+                //{
+                //    // TODO: Send to correct place
+                //    Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
+                //}
+
+
+            //}
+            //catch { }
         }
 
 

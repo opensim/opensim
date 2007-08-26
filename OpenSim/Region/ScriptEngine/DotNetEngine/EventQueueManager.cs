@@ -177,6 +177,35 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 {
                                     myScriptEngine.myScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.FunctionName, QIS.param);
                                 }
+                                catch (Exception e)
+                                {
+                                    // DISPLAY ERROR INWORLD
+                                    string text = "Error executing script:\r\n";
+                                    if (e.InnerException != null)
+                                    { // Send inner exception
+                                        text += e.InnerException.Message.ToString();
+                                    }
+                                    else
+                                    { // Send normal
+                                        text += e.Message.ToString();
+                                    }
+                                    try
+                                    {
+                                        if (text.Length > 1500)
+                                            text = text.Substring(0, 1500);
+                                        IScriptHost m_host = myScriptEngine.World.GetSceneObjectPart(QIS.localID);
+                                    //if (m_host != null)
+                                    //{
+                                        myScriptEngine.World.SimChat(Helpers.StringToField(text), 1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                                    } catch {
+                                    //}
+                                    //else
+                                    //{
+                                        // T oconsole
+                                        Console.WriteLine("Unable to send text in-world:\r\n" + text);
+                                    }
+
+                                }
                                 finally
                                 {
                                     ReleaseLock(QIS.localID);
