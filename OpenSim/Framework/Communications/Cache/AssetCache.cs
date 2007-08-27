@@ -534,7 +534,7 @@ namespace OpenSim.Framework.Communications.Caches
         /// <param name="imageID"></param>
         public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID, uint packetNumber)
         {
-           //Console.WriteLine("texture request for " + imageID.ToStringHyphenated());
+           //Console.WriteLine("texture request for " + imageID.ToStringHyphenated() + " packetnumber= " + packetNumber);
             //check to see if texture is in local cache, if not request from asset server
             if (!this.AvatarRecievedTextures.ContainsKey(userInfo.AgentId))
             {
@@ -570,8 +570,9 @@ namespace OpenSim.Framework.Communications.Caches
 
             if (imag.Data.LongLength > 600)
             {
+                //Console.WriteLine("{0}", imag.Data.LongLength);
                 //over 600 bytes so split up file
-                req.NumPackets = 1 + (int)(imag.Data.Length - 600) / 1000;
+                req.NumPackets = 2 + (int)(imag.Data.Length - 601) / 1000;
                 //Console.WriteLine("texture is " + imag.Data.Length + " which we will send in " +req.NumPackets +" packets");
             }
             else
@@ -698,8 +699,7 @@ namespace OpenSim.Framework.Communications.Caches
             {
                 SendPacket();
                 counter++;
-
-                if ((request.PacketCounter > request.NumPackets) | (counter > 100) | (request.NumPackets == 1))
+                if ((request.PacketCounter >= request.NumPackets) | counter > 100 | (request.NumPackets == 1))
                 {
                     return true;
                 }
@@ -709,13 +709,13 @@ namespace OpenSim.Framework.Communications.Caches
             public void SendPacket()
             {
                 AssetRequest req = request;
-                // Console.WriteLine("sending " + req.ImageInfo.FullID);
+                //Console.WriteLine("sending " + req.ImageInfo.FullID);
                 if (req.PacketCounter == 0)
                 {
                     //first time for this request so send imagedata packet
                     if (req.NumPackets == 1)
                     {
-                        //only one packet so send whole file
+                        //Console.WriteLine("only one packet so send whole file");
                         ImageDataPacket im = new ImageDataPacket();
                         im.Header.Reliable = false;
                         im.ImageID.Packets = 1;
@@ -727,7 +727,7 @@ namespace OpenSim.Framework.Communications.Caches
                         req.PacketCounter++;
                         //req.ImageInfo.l= time;
                         //System.Console.WriteLine("sent texture: " + req.ImageInfo.FullID);
-                        //  Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                        //Console.WriteLine("sending single packet for " + req.ImageInfo.FullID.ToStringHyphenated());
                     }
                     else
                     {
@@ -744,27 +744,28 @@ namespace OpenSim.Framework.Communications.Caches
 
                         req.PacketCounter++;
                         //req.ImageInfo.last_used = time;
-                        //System.Console.WriteLine("sent first packet of texture:
-                        // Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                        //System.Console.WriteLine("sent first packet of texture: "  + req.ImageInfo.FullID);
+                         //Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
                     }
                 }
                 else
                 {
-                    //Console.WriteLine("sending packet" + req.PacketCounter + "for " + req.ImageInfo.FullID.ToStringHyphenated());
+                    //Console.WriteLine("sending packet " + req.PacketCounter + " for " + req.ImageInfo.FullID.ToStringHyphenated());
                     //send imagepacket
                     //more than one packet so split file up
                     ImagePacketPacket im = new ImagePacketPacket();
                     im.Header.Reliable = false;
                     im.ImageID.Packet = (ushort)(req.PacketCounter);
                     im.ImageID.ID = req.ImageInfo.FullID;
-                    int size = req.ImageInfo.Data.Length - 600 - (1000 * (req.PacketCounter - 1));
+                    int size = req.ImageInfo.Data.Length - 600 - (1000 * (req.PacketCounter-1));
                     if (size > 1000) size = 1000;
+                    //Console.WriteLine("length= {0} counter= {1} size= {2}",req.ImageInfo.Data.Length, req.PacketCounter, size);
                     im.ImageData.Data = new byte[size];
-                    Array.Copy(req.ImageInfo.Data, 600 + (1000 * (req.PacketCounter - 1)), im.ImageData.Data, 0, size);
+                    Array.Copy(req.ImageInfo.Data, 600 + (1000 * (req.PacketCounter-1)), im.ImageData.Data, 0, size);
                     req.RequestUser.OutPacket(im);
                     req.PacketCounter++;
                     //req.ImageInfo.last_used = time;
-                    //System.Console.WriteLine("sent a packet of texture: "+req.image_info.FullID);
+                    //System.Console.WriteLine("sent a packet of texture: "+req.ImageInfo.FullID);
                 }
 
             }
