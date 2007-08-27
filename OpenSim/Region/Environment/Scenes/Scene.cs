@@ -951,7 +951,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     //Console.WriteLine("new user, so creating caps handler for it");
-                    Caps cap = new Caps(commsManager.AssetCache, httpListener, m_regInfo.ExternalHostName, m_regInfo.ExternalEndPoint.Port, agent.CapsPath, agent.AgentID);
+                    Caps cap = new Caps(commsManager.AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port, agent.CapsPath, agent.AgentID);
                     Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() + "/CAPS/" + agent.CapsPath + "0000/");
                     cap.RegisterHandlers();
                     cap.AddNewInventoryItem = this.AddInventoryItem;
@@ -1092,6 +1092,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+        public void SetTimePhase(int phase)
+        {
+            m_timePhase = phase;
+        }
 
         public void SendUrlToUser(LLUUID avatarID, string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url)
         {

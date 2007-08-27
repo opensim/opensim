@@ -455,6 +455,9 @@ namespace OpenSim
                     }
                     break;
 
+                case "set-time":
+                    break;
+
                 case "quit":
                 case "shutdown":
                     Shutdown();
