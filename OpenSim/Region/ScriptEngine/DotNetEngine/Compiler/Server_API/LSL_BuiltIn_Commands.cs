@@ -412,7 +412,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return Convert.ToInt32(src[index]);
         }
 
-        public double llList2Double(List<string> src, int index)
+        public double llList2double(List<string> src, int index)
         {
             return Convert.ToDouble(src[index]);
         }
