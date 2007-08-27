@@ -20,6 +20,9 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             get { return LLUUID.Zero; }
         }
 
+        public LLUUID ObjectOwner
+        { get { return LLUUID.Zero; } }
+
         public LLVector3 AbsolutePosition
         {
             get { return m_pos; }

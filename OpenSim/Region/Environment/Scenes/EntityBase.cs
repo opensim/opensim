@@ -5,7 +5,7 @@ using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class EntityBase : IScriptHost
+    public abstract class EntityBase 
     {
         protected List<EntityBase> m_children;
 

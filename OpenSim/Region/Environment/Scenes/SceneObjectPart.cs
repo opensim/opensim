@@ -201,6 +201,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        public LLUUID ObjectOwner
+        {
+            get { return OwnerID; }
+        }
+
         #region Constructors
         /// <summary>
         /// 

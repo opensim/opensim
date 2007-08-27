@@ -293,7 +293,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llDetachFromAvatar() { }
         public void llTakeCamera() { }
         public void llReleaseCamera() { }
-        public string llGetOwner() { return ""; }
+        public string llGetOwner() { return m_host.ObjectOwner.ToStringHyphenated(); }
         public void llInstantMessage(string user, string message) { }
         public void llEmail(string address, string subject, string message) { }
         public void llGetNextEmail(string address, string subject) { }
@@ -587,7 +587,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llLoadURL(string avatar_id, string message, string url) 
         {
             LLUUID avatarId = new LLUUID(avatar_id);
-            m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, LLUUID.Zero, false, message, url);
+            m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message, url);
         }
         public void llParcelMediaCommandList(List<string> commandList) { }
         public void llParcelMediaQuery() { }
