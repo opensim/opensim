@@ -92,6 +92,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             
             
             // MainLog.Instance.Verbose("Attempting to do database update....");
+            DataSet changed = ds.GetChanges();
+            MainLog.Instance.Verbose("DATASTORE", "Changed values:" + changed.GetXml());
             primDa.Update(ds, "prims");
             shapeDa.Update(ds, "primshapes");
             ds.AcceptChanges();
