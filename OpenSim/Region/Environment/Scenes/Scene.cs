@@ -1099,12 +1099,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        public void SendUrlToUser(LLUUID avatarID, string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url)
+        {
+            if (Avatars.ContainsKey(avatarID))
+            {
+                Avatars[avatarID].ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
+            }
+        }
+
         #region Alert Methods
 
         void SendPermissionAlert(LLUUID user, string reason)
         {
             SendAlertToUser(user, reason, false);
         }
+
 
         public void SendGeneralAlert(string message)
         {

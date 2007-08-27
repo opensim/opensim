@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications.Caches
                     UsersSent.Add(sender.request.ImageInfo.FullID, 1);
                    
                 }
-                if (TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID] < 1000)
+                if (TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID] < 1200)
                 {
                     bool finished = sender.SendTexture();
                     if (finished)
@@ -699,6 +699,7 @@ namespace OpenSim.Framework.Communications.Caches
             {
                 SendPacket();
                 counter++;
+
                 if ((request.PacketCounter >= request.NumPackets) | counter > 100 | (request.NumPackets == 1))
                 {
                     return true;

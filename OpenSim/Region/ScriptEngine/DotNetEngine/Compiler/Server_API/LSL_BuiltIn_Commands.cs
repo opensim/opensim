@@ -458,8 +458,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public List<string> llListInsertList(List<string> dest, List<string> src, int start)
         { return new List<string>(); }
         public int llListFindList(List<string> src, List<string> test) { return 0; }
-        public string llGetObjectName() { return ""; }
-        public void llSetObjectName(string name) { }
+        public string llGetObjectName() { return m_host.Name; }
+        public void llSetObjectName(string name) { m_host.Name = name; }
 
         public string llGetDate()
         {
@@ -584,7 +584,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llForceMouselook(int mouselook) { }
         public double llGetObjectMass(string id) { return 0; }
         public void llListReplaceList() { }
-        public void llLoadURL(string avatar_id, string message, string url) { }
+        public void llLoadURL(string avatar_id, string message, string url) 
+        {
+            LLUUID avatarId = new LLUUID(avatar_id);
+            m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, LLUUID.Zero, false, message, url);
+        }
         public void llParcelMediaCommandList(List<string> commandList) { }
         public void llParcelMediaQuery() { }
 

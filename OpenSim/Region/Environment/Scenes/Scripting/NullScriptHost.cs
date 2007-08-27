@@ -12,6 +12,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
         public string Name
         {
             get { return "Object"; }
+            set { }
         }
 
         public LLUUID UUID
