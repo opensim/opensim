@@ -51,7 +51,7 @@ namespace OpenSim.Region.Scripting.Examples
             }*/
         }
 
-        string processPrimitiveToString(OpenSim.Region.Environment.Scenes.Primitive prim)
+        string processPrimitiveToString(OpenSim.Region.Environment.Scenes.SceneObjectPart prim)
         {
             /*string desc = prim.Description;
             string name = prim.Name;

@@ -7,7 +7,6 @@ using OpenSim.Framework.Types;
 using System.Timers;
 using System.Diagnostics;
 using System.IO;
-using Primitive = OpenSim.Region.Environment.Scenes.Primitive;
 
 namespace SimpleApp
 {

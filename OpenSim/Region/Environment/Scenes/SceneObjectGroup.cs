@@ -14,7 +14,7 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    // public delegate void PrimCountTaintedDelegate();
+    public delegate void PrimCountTaintedDelegate();
 
     public class SceneObjectGroup : EntityBase
     {

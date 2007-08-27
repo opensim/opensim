@@ -231,7 +231,11 @@ namespace OpenSim
         protected override void Initialize()
         {
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-            m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+
+            LocalAssetServer assetServer = new LocalAssetServer();
+            assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+            m_assetCache = new AssetCache(assetServer);
+            // m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
 
         protected override LogBase CreateLog()

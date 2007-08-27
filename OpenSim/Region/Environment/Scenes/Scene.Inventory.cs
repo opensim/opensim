@@ -281,11 +281,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                                         bool added = ((SceneObjectGroup)ent).AddInventoryItem(remoteClient, localID, item, copyID);
                                         ((SceneObjectGroup)ent).GetProperites(remoteClient);
-
                                     }
                                 }
                             }
-
                         }
                     }
                 }
@@ -300,7 +298,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void DeRezObject(Packet packet, IClientAPI remoteClient)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)packet;
-
 
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
             {
@@ -421,8 +418,6 @@ namespace OpenSim.Region.Environment.Scenes
                    new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
         }
-
-
     }
 
 }

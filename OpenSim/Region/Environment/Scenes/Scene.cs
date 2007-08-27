@@ -513,13 +513,7 @@ namespace OpenSim.Region.Environment.Scenes
             MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
-        /// <summary>
-        /// Loads a specific object from storage
-        /// </summary>
-        /// <param name="prim">The object to load</param>
-        public void PrimFromStorage(PrimData prim)
-        {
-        }
+       
 
         /// <summary>
         /// Returns a new unallocated primitive ID
@@ -603,7 +597,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Called by a prim when it has been created/cloned, so that its events can be subscribed to
         /// </summary>
         /// <param name="prim"></param>
-        public void AcknowledgeNewPrim(Primitive prim)
+        public void AcknowledgeNewPrim(SceneObjectGroup prim)
         {
             prim.OnPrimCountTainted += m_LandManager.setPrimsTainted;
         }

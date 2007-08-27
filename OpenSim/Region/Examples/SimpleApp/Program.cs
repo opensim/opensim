@@ -12,7 +12,6 @@ using OpenSim.Region.Capabilities;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Framework.Communications.Caches;
-using OpenSim.Region.GridInterfaces.Local;
 using System.Timers;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data;

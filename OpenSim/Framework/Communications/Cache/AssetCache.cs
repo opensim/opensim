@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Caches
         /// </summary>
         public AssetCache(IAssetServer assetServer)
         {
-            Console.WriteLine("Creating Asset cache");
+            System.Console.WriteLine("Creating Asset cache");
             _assetServer = assetServer;
             _assetServer.SetReceiver(this);
             Assets = new Dictionary<LLUUID, AssetInfo>();
@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public AssetCache(string assetServerDLLName, string assetServerURL, string assetServerKey)
         {
-            Console.WriteLine("Creating Asset cache");
+            System.Console.WriteLine("Creating Asset cache");
             _assetServer = this.LoadAssetDll(assetServerDLLName);
             _assetServer.SetServerInfo(assetServerURL, assetServerKey);
             _assetServer.SetReceiver(this);
@@ -119,7 +119,7 @@ namespace OpenSim.Framework.Communications.Caches
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " : " + e.StackTrace);
+                    System.Console.WriteLine(e.Message + " : " + e.StackTrace);
                 }
             }
         }

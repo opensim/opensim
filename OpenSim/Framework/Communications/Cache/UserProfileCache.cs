@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Communications.Caches
                 }
                 else
                 {
-                    Console.WriteLine("CACHE", "User profile for user not found");
+                    System.Console.WriteLine("CACHE", "User profile for user not found");
                 }
             }
         }

@@ -34,7 +34,6 @@ using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.User;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Configuration;
 
@@ -48,8 +47,6 @@ namespace OpenSim.Grid.UserServer
 
         public UserManager m_userManager;
         public UserLoginService m_loginService;
-
-        public Dictionary<LLUUID, UserProfile> UserSessions = new Dictionary<LLUUID, UserProfile>();
 
         LogBase m_console;
 
