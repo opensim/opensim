@@ -201,7 +201,10 @@ namespace OpenSim.Region.Environment.Scenes
                         bool fileChange = ((SceneObjectGroup)ent).GetPartInventoryFileName(remoteClient, primLocalID);
                         if (fileChange)
                         {
-                            ((SceneObjectGroup)ent).RequestInventoryFile(primLocalID, xferManager);
+                            if (this.AddXferFile != null)
+                            {
+                                ((SceneObjectGroup)ent).RequestInventoryFile(primLocalID, AddXferFile);
+                            }
                         }
                         break;
                     }

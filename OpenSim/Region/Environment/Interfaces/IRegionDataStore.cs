@@ -36,7 +36,7 @@ using OpenSim.Region.Environment.LandManagement;
 
 using System.Collections.Generic;
 
-namespace OpenSim.Region.Interfaces
+namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IRegionDataStore
     {

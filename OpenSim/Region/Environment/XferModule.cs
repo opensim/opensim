@@ -5,17 +5,50 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment
 {
-    public class XferManager
+    public class XferModule : IRegionModule
     {
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
 
-        public XferManager()
+        private Scene m_scene;
+
+        public XferModule()
         {
 
+        }
+
+        public void Initialise(Scene scene)
+        {
+            m_scene = scene;
+            m_scene.EventManager.OnNewClient += NewClient;
+
+            m_scene.RegisterAPIMethod("API_AddXferFile", new ModuleAPIMethod<bool, string, byte[]>(this.AddNewFile));
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void CloseDown()
+        {
+
+        }
+
+        public string GetName()
+        {
+            return "XferModule";
+        }
+
+        public void NewClient(IClientAPI client)
+        {
+            client.OnRequestXfer += RequestXfer;
+            client.OnConfirmXfer += AckPacket;
         }
 
         /// <summary>
@@ -50,7 +83,7 @@ namespace OpenSim.Region.Environment
             }
         }
 
-        public void AddNewFile(string fileName, byte[] data)
+        public bool AddNewFile(string fileName, byte[] data)
         {
             lock (NewFiles)
             {
@@ -63,7 +96,9 @@ namespace OpenSim.Region.Environment
                     NewFiles.Add(fileName, data);
                 }
             }
+            return true;
         }
+
 
         public class XferDownLoad
         {

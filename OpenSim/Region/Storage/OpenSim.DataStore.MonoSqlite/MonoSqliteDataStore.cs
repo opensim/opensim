@@ -8,7 +8,7 @@ using System.IO;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment;
-using OpenSim.Region.Interfaces;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;

@@ -7,7 +7,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Interfaces;
+using OpenSim.Region.Environment.Interfaces;
 
 using System.Reflection;
 

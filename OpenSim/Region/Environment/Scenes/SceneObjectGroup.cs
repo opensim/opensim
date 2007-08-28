@@ -642,12 +642,12 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(uint localID, XferManager xferManager)
+        public string RequestInventoryFile(uint localID, ModuleAPIMethod<bool, string, byte[]> addXferFile)
         {
             SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
-                return part.RequestInventoryFile(xferManager);
+                 part.RequestInventoryFile(addXferFile);
             }
             return "";
         }
@@ -967,7 +967,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Processes backup
         /// </summary>
         /// <param name="datastore"></param>
-        public void ProcessBackup(OpenSim.Region.Interfaces.IRegionDataStore datastore)
+        public void ProcessBackup(OpenSim.Region.Environment.Interfaces.IRegionDataStore datastore)
         {
             datastore.StoreObject(this, m_scene.RegionInfo.SimUUID);
         }

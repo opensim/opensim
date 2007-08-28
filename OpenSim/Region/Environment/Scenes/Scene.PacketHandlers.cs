@@ -57,60 +57,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (!PermissionsMngr.CanTerraform(remoteUser.AgentId, new LLVector3(north, west, 0)))
                 return;
 
-            // Shiny.
-            double size = (double)(1 << brushsize);
-
-            switch (action)
-            {
-                case 0:
-                    // flatten terrain
-                    Terrain.FlattenTerrain(west, north, size, (double)seconds / 5.0);
-                    break;
-                case 1:
-                    // raise terrain
-                    Terrain.RaiseTerrain(west, north, size, (double)seconds / 5.0);
-                    break;
-                case 2:
-                    //lower terrain
-                    Terrain.LowerTerrain(west, north, size, (double)seconds / 5.0);
-                    break;
-                case 3:
-                    // smooth terrain
-                    Terrain.SmoothTerrain(west, north, size, (double)seconds / 5.0);
-                    break;
-                case 4:
-                    // noise
-                    Terrain.NoiseTerrain(west, north, size, (double)seconds / 5.0);
-                    break;
-                case 5:
-                    // revert
-                    Terrain.RevertTerrain(west, north, size, (double)seconds / 5.0);
-                    break;
-
-                // CLIENT EXTENSIONS GO HERE
-                case 128:
-                    // erode-thermal
-                    break;
-                case 129:
-                    // erode-aerobic
-                    break;
-                case 130:
-                    // erode-hydraulic
-                    break;
-            }
-
-            for (int x = 0; x < 16; x++)
-            {
-                for (int y = 0; y < 16; y++)
-                {
-                    if (Terrain.Tainted(x * 16, y * 16))
-                    {
-                        remoteUser.SendLayerData(x, y, Terrain.GetHeights1D());
-                    }
-                }
-            }
-
-            return;
+            //if it wasn't for the permission checking we could have the terrain module directly subscribe to the OnModifyTerrain event
+            Terrain.ModifyTerrain(height, seconds, brushsize, action, north, west, remoteUser);
         }
 
         /// <summary>
@@ -146,7 +94,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///  Should be removed soon as the Chat modules should take over this function
         /// </summary>
         /// <param name="message"></param>
         /// <param name="type"></param>
@@ -615,40 +563,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="avatarID"></param>
-        public void RequestAvatarProperty(IClientAPI remoteClient, LLUUID avatarID)
-        {
-            string about = "OpenSim crash test dummy";
-            string bornOn = "Before now";
-            string flAbout = "First life? What is one of those? OpenSim is my life!";
-            LLUUID partner = new LLUUID("11111111-1111-0000-0000-000100bba000");
-            remoteClient.SendAvatarProperties(avatarID, about, bornOn, "", flAbout, 0, LLUUID.Zero, LLUUID.Zero, "", partner);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="xferID"></param>
-        /// <param name="fileName"></param>
-        public void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName)
-        {
-            /*
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    ((SceneObjectGroup)ent).RequestInventoryFile(remoteClient, ((SceneObjectGroup)ent).LocalId, xferID);
-                    break;
-                }
-            }*/
-        }
-
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {

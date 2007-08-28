@@ -4,7 +4,7 @@ using System.Text;
 
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.LandManagement;
-using OpenSim.Region.Interfaces;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework.Console;
 using libsecondlife;
 

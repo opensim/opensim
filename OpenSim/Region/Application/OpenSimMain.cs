@@ -61,6 +61,8 @@ namespace OpenSim
         public bool user_accounts;
         public bool m_gridLocalAsset;
 
+        protected ModuleLoader m_moduleLoader;
+
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
         protected string m_startupCommandsFile = "";
@@ -168,6 +170,8 @@ namespace OpenSim
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
+            m_moduleLoader = new ModuleLoader();
+
             // Load all script engines found
             OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
 
@@ -225,7 +229,7 @@ namespace OpenSim
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
         {
-            return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer);
+            return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, m_moduleLoader);
         }
 
         protected override void Initialize()
@@ -491,15 +495,18 @@ namespace OpenSim
                             if (entity is ScenePresence)
                             {
                                 ScenePresence scenePrescence = entity as ScenePresence;
-                                m_log.Error(
-                                    String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                                  scenePrescence.Firstname,
-                                                  scenePrescence.Lastname,
-                                                  scenePrescence.UUID,
-                                                  scenePrescence.ControllingClient.AgentId,
-                                                  "Unknown",
-                                                  "Unknown",
-                                                  scene.RegionInfo.RegionName));
+                                if (!scenePrescence.childAgent)
+                                {
+                                    m_log.Error(
+                                        String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
+                                                      scenePrescence.Firstname,
+                                                      scenePrescence.Lastname,
+                                                      scenePrescence.UUID,
+                                                      scenePrescence.ControllingClient.AgentId,
+                                                      "Unknown",
+                                                      "Unknown",
+                                                      scene.RegionInfo.RegionName));
+                                }
                             }
                         }
                     }

@@ -14,6 +14,9 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnBackupDelegate(Interfaces.IRegionDataStore datastore);
         public event OnBackupDelegate OnBackup;
 
+        public delegate void OnNewClientDelegate(IClientAPI client);
+        public event OnNewClientDelegate OnNewClient;
+
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
         public event OnNewPresenceDelegate OnNewPresence;
 
@@ -61,6 +64,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 OnFrame();
             }
+        }
+
+        public void TriggerOnNewClient(IClientAPI client)
+        {
+            if (OnNewClient != null)
+                OnNewClient(client);
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)

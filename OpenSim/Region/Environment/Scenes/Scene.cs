@@ -42,6 +42,8 @@ using OpenSim.Framework.Utilities;
 using OpenSim.Physics.Manager;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework.Data;
@@ -73,14 +75,23 @@ namespace OpenSim.Region.Environment.Scenes
 
         private Mutex updateLock;
 
+        protected ModuleLoader m_moduleLoader;
         protected StorageManager storageManager;
         protected AgentCircuitManager authenticateHandler;
         protected RegionCommsListener regionCommsHost;
         protected CommunicationsManager commsManager;
-        protected XferManager xferManager;
+       // protected XferManager xferManager;
 
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
+
+        protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
+        protected Dictionary<string, object> APIMethods = new Dictionary<string, object>();
+
+        //API method Delegates
+
+        // this most likely shouldn't be handled as a API method like this, but doing it for testing purposes
+        public ModuleAPIMethod<bool, string, byte[]>AddXferFile = null;
 
         #region Properties
 
@@ -146,9 +157,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionHandle">Region Handle for this region</param>
         /// <param name="regionName">Region Name for this region</param>
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan,
-                     AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer)
+                     AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer, ModuleLoader moduleLoader)
         {
             updateLock = new Mutex(false);
+            
+            m_moduleLoader = moduleLoader;
             authenticateHandler = authen;
             commsManager = commsMan;
             storageManager = storeManager;
@@ -164,8 +177,10 @@ namespace OpenSim.Region.Environment.Scenes
             m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
             m_permissionManager = new PermissionManager(this);
-            xferManager = new XferManager();
 
+            MainLog.Instance.Verbose("Loading Region Modules");
+            m_moduleLoader.LoadInternalModules(this);
+            
             m_eventManager.OnParcelPrimCountAdd +=
                 m_LandManager.addPrimToLandPrimCounts;
 
@@ -182,9 +197,16 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence.LoadAnims();
 
             httpListener = httpServer;
+
+            SetMethodDelegates();
         }
 
         #endregion
+
+        private void SetMethodDelegates()
+        {
+            AddXferFile = (ModuleAPIMethod<bool, string, byte[]>)this.RequestAPIMethod("API_AddXferFile");
+        }
 
         #region Script Handling Methods
 
@@ -682,7 +704,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnModifyTerrain += ModifyTerrain;
-            client.OnChatFromViewer += SimChat;
+            //client.OnChatFromViewer += SimChat;
             client.OnInstantMessage += InstantMessage;
             client.OnRequestWearables += InformClientOfNeighbours;
             client.OnAddPrim += AddNewPrim;
@@ -725,15 +747,14 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdateInventoryItem += UDPUpdateInventoryItemAsset;
             client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
-            // client.OnRequestXfer += RequestXfer;
-            client.OnRequestXfer += xferManager.RequestXfer;
-            client.OnConfirmXfer += xferManager.AckPacket;
             client.OnRezScript += RezScript;
             client.OnRemoveTaskItem += RemoveTaskInventory;
 
-            client.OnRequestAvatarProperties += RequestAvatarProperty;
+           // client.OnRequestAvatarProperties += RequestAvatarProperty;
 
             client.OnGrabObject += ProcessObjectGrab;
+
+            EventManager.TriggerOnNewClient(client);
         }
 
         protected ScenePresence CreateAndAddScenePresence(IClientAPI client)
@@ -1092,6 +1113,31 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+        public void AddModule(string name, IRegionModule module)
+        {
+            if (!this.Modules.ContainsKey(name))
+            {
+                Modules.Add(name, module);
+            }
+        }
+
+        public void RegisterAPIMethod(string name, object method)
+        {
+            if (!this.APIMethods.ContainsKey(name))
+            {
+                this.APIMethods.Add(name, method);
+            }
+        }
+
+        public object RequestAPIMethod(string name)
+        {
+            if (this.APIMethods.ContainsKey(name))
+            {
+                return APIMethods[name];
+            }
+            return false;
+        }
 
         public void SetTimePhase(int phase)
         {

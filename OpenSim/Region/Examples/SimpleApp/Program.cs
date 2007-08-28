@@ -104,7 +104,7 @@ namespace SimpleApp
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
         {
-            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer);
+            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, new ModuleLoader());
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)

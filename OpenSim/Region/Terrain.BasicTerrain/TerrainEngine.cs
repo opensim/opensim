@@ -32,6 +32,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using libTerrain;
 using OpenJPEGNet;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.Terrain
 {
@@ -127,6 +128,76 @@ namespace OpenSim.Region.Terrain
             tainted = 0;
             heightmap.diff = new int[w / 16, h / 16];
         }
+
+        //Testing to see if moving the TerraForming packet handling code into here works well
+        /// <summary>
+        /// Modifies terrain using the specified information
+        /// </summary>
+        /// <param name="height">The height at which the user started modifying the terrain</param>
+        /// <param name="seconds">The number of seconds the modify button was pressed</param>
+        /// <param name="brushsize">The size of the brush used</param>
+        /// <param name="action">The action to be performed</param>
+        /// <param name="north">Distance from the north border where the cursor is located</param>
+        /// <param name="west">Distance from the west border where the cursor is located</param>
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, IClientAPI remoteUser)
+        {
+
+            // Shiny.
+            double size = (double)(1 << brushsize);
+
+            switch (action)
+            {
+                case 0:
+                    // flatten terrain
+                    this.FlattenTerrain(west, north, size, (double)seconds / 5.0);
+                    break;
+                case 1:
+                    // raise terrain
+                    this.RaiseTerrain(west, north, size, (double)seconds / 5.0);
+                    break;
+                case 2:
+                    //lower terrain
+                    this.LowerTerrain(west, north, size, (double)seconds / 5.0);
+                    break;
+                case 3:
+                    // smooth terrain
+                    this.SmoothTerrain(west, north, size, (double)seconds / 5.0);
+                    break;
+                case 4:
+                    // noise
+                    this.NoiseTerrain(west, north, size, (double)seconds / 5.0);
+                    break;
+                case 5:
+                    // revert
+                    this.RevertTerrain(west, north, size, (double)seconds / 5.0);
+                    break;
+
+                // CLIENT EXTENSIONS GO HERE
+                case 128:
+                    // erode-thermal
+                    break;
+                case 129:
+                    // erode-aerobic
+                    break;
+                case 130:
+                    // erode-hydraulic
+                    break;
+            }
+
+            for (int x = 0; x < 16; x++)
+            {
+                for (int y = 0; y < 16; y++)
+                {
+                    if (this.Tainted(x * 16, y * 16))
+                    {
+                        remoteUser.SendLayerData(x, y, this.GetHeights1D());
+                    }
+                }
+            }
+
+            return;
+        }
+
 
         /// <summary>
         /// Checks to make sure the terrain is within baked values +/- maxRaise/minLower
