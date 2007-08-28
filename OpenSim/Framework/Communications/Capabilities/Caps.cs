@@ -310,7 +310,7 @@ namespace OpenSim.Region.Capabilities
             else if (inventoryType == "animation")
             {
                 inType = 19;
-                assType = 19;
+                assType = 20;
             }
 
             AssetBase asset;
