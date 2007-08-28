@@ -32,6 +32,8 @@ using System.Text;
 using System.Threading;
 using System.Reflection;
 using System.Runtime.Remoting;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
@@ -267,19 +269,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
                 // Compile (We assume LSL)
                 FileName = LSLCompiler.CompileFromLSLText(Script);
-                Console.WriteLine("Compilation of " + FileName + " done");
+                //Console.WriteLine("Compilation of " + FileName + " done");
                 // * Insert yield into code
                 FileName = ProcessYield(FileName);
 
 
 #if DEBUG
                 long before;
-                before = GC.GetTotalMemory(false);
+                before = GC.GetTotalMemory(true);
 #endif
                 LSL_BaseClass CompiledScript;
                     CompiledScript = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
 #if DEBUG
-                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(false) - before);
+                    Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
 
                 // Add it to our script memstruct
@@ -295,13 +297,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CompiledScript.Start(LSLB);
 
                 // Fire the first start-event
-                m_scriptEngine.myEventQueueManager.AddToObjectQueue(localID, "state_entry", new object[] { });
+                m_scriptEngine.myEventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
 
 
             }
             catch (Exception e)
             {
-                m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
+                //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
                 try
                 {
                     // DISPLAY ERROR INWORLD
@@ -325,12 +327,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Stop script
             Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
 
+
             // Stop long command on script
             m_scriptEngine.myLSLLongCmdHandler.RemoveScript(localID, itemID);
 
             LSL_BaseClass LSLBC = GetScript(localID, itemID);
             if (LSLBC == null)
                 return;
+
+            // TEMP: First serialize it
+            //GetSerializedScript(localID, itemID);
+
 
             try
             {
@@ -382,8 +389,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void GetSerializedScript(uint localID, LLUUID itemID)
         {
             // Serialize the script and return it
-
             // Should not be a problem
+            System.IO.FileStream fs = System.IO.File.Create("SERIALIZED_SCRIPT_" + itemID);
+            BinaryFormatter b = new BinaryFormatter();
+            b.Serialize(fs, GetScript(localID,itemID));
+            fs.Close();
+
+            
         }
         public void PutSerializedScript(uint localID, LLUUID itemID)
         {

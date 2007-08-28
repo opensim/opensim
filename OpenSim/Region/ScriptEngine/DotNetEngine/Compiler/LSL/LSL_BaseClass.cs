@@ -13,6 +13,7 @@ using rotation = OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
+    //[Serializable]
     public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, IScript
     {
 

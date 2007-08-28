@@ -67,10 +67,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
-            // TODO: Add code to compile script and wire up script to object
-            // Either the script is a stand-alone entity with a reference to public  host,
-            // Or the host has a reference to the script because it was in its inventory.
-
             //myScriptEngine.myScriptManager.StartScript(
             //    Path.Combine("ScriptEngines", "Default.lsl"), 
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()

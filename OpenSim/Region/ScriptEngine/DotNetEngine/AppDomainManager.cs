@@ -128,7 +128,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             // Remove from internal list
                             AppDomains.Remove(ads);
 #if DEBUG
-
                             long m = GC.GetTotalMemory(true);
 #endif
                             // Unload
