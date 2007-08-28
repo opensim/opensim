@@ -6,7 +6,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
  
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.ClientStack;

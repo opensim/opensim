@@ -30,7 +30,7 @@ using System.Threading;
 using System.Collections.Generic;
 using Axiom.Math;
 using Ode.NET;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {

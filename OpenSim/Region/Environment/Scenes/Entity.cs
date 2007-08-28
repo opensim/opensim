@@ -27,7 +27,7 @@
 */
 using System;
 using libsecondlife;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {

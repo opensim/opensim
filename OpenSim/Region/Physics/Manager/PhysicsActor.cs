@@ -27,7 +27,7 @@
 */
 using Axiom.Math;
 
-namespace OpenSim.Physics.Manager
+namespace OpenSim.Region.Physics.Manager
 {
     public delegate void PositionUpdate(PhysicsVector position);
     public delegate void VelocityUpdate(PhysicsVector velocity);

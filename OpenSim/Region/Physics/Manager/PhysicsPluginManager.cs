@@ -31,7 +31,7 @@ using System.IO;
 using System.Reflection;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Physics.Manager
+namespace OpenSim.Region.Physics.Manager
 {
 	/// <summary>
 	/// Description of MyClass.

@@ -11,7 +11,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Framework.Utilities;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {

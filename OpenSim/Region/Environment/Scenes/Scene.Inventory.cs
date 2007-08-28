@@ -8,7 +8,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Utilities;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {

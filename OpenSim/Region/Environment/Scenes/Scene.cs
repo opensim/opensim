@@ -39,7 +39,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment;

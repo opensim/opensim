@@ -34,7 +34,7 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment;
 using libsecondlife;
 using OpenSim.Region.Environment.Scenes;

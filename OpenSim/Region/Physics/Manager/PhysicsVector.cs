@@ -25,7 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-namespace OpenSim.Physics.Manager
+namespace OpenSim.Region.Physics.Manager
 {
     public class PhysicsVector
     {

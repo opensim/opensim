@@ -28,7 +28,7 @@
 using OpenSim.Framework.Console;
 using Axiom.Math;
 
-namespace OpenSim.Physics.Manager
+namespace OpenSim.Region.Physics.Manager
 {
     public abstract class PhysicsScene
     {
