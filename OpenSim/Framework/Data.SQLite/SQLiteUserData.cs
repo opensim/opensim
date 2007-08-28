@@ -299,7 +299,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(users, "passwordHash", typeof(System.String));
             createCol(users, "passwordSalt", typeof(System.String));
 
-            createCol(users, "homeRegion", typeof(System.UInt32));
+            createCol(users, "homeRegion", typeof(System.UInt64));
             createCol(users, "homeLocationX", typeof(System.Double));
             createCol(users, "homeLocationY", typeof(System.Double));
             createCol(users, "homeLocationZ", typeof(System.Double));
@@ -367,7 +367,7 @@ namespace OpenSim.Framework.Data.SQLite
             user.passwordHash = (string)row["passwordHash"];
             user.passwordSalt = (string)row["passwordSalt"];
 
-            user.homeRegion = Convert.ToUInt32(row["homeRegion"]);
+            user.homeRegion = Convert.ToUInt64(row["homeRegion"]);
             user.homeLocation = new LLVector3(
                                               Convert.ToSingle(row["homeLocationX"]),
                                               Convert.ToSingle(row["homeLocationY"]),
@@ -635,6 +635,12 @@ namespace OpenSim.Framework.Data.SQLite
                 return DbType.String;
             } else if (type == typeof(System.Int32)) {
                 return DbType.Int32;
+            } else if (type == typeof(System.UInt32)) {
+                return DbType.UInt32;
+            } else if (type == typeof(System.Int64)) {
+                return DbType.Int64;
+            } else if (type == typeof(System.UInt64)) {
+                return DbType.UInt64;
             } else if (type == typeof(System.Double)) {
                 return DbType.Double;
             } else if (type == typeof(System.Byte[])) {
@@ -651,6 +657,12 @@ namespace OpenSim.Framework.Data.SQLite
             if (type == typeof(System.String)) {
                 return "varchar(255)";
             } else if (type == typeof(System.Int32)) {
+                return "integer";
+            } else if (type == typeof(System.UInt32)) {
+                return "integer";
+            } else if (type == typeof(System.Int64)) {
+                return "integer";
+            } else if (type == typeof(System.UInt64)) {
                 return "integer";
             } else if (type == typeof(System.Double)) {
                 return "float";
