@@ -82,7 +82,7 @@ namespace OpenSim.Framework.Data.DB4o
         {
             foreach (UserProfileData profile in manager.userProfiles.Values)
             {
-                if (profile.username == fname && profile.surname == lname)
+                if (profile.username.ToUpper() == fname.ToUpper() && profile.surname.ToUpper() == lname.ToUpper())
                     return profile;
             }
             return null;
