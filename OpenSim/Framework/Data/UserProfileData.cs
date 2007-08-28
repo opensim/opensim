@@ -63,6 +63,9 @@ namespace OpenSim.Framework.Data
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
         public ulong homeRegion;
+
+        public uint homeRegionX;
+        public uint homeRegionY;
         /// <summary>
         /// The coordinates inside the region of the home location
         /// </summary>
@@ -86,11 +89,11 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>
-        public string userInventoryURI;
+        public string userInventoryURI = String.Empty;
         /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.
         /// </summary>
-        public string userAssetURI;
+        public string userAssetURI = String.Empty;
 
         /// <summary>
         /// A uint mask containing the "I can do" fields of the users profile
@@ -104,11 +107,11 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// The about text listed in a users profile.
         /// </summary>
-        public string profileAboutText;
+        public string profileAboutText = String.Empty;
         /// <summary>
         /// The first life about text listed in a users profile
         /// </summary>
-        public string profileFirstText;
+        public string profileFirstText = String.Empty;
 
         /// <summary>
         /// The profile image for an avatar stored on the asset server

@@ -363,12 +363,12 @@ namespace OpenSim.Framework.Data.SQLite
             // back out.  Not enough time to figure it out yet.
             UserProfileData user = new UserProfileData();
             user.UUID = new LLUUID((String)row["UUID"]);
-            user.username = (string)row["username"];
-            user.surname = (string)row["surname"];
-            user.passwordHash = (string)row["passwordHash"];
-            user.passwordSalt = (string)row["passwordSalt"];
+            user.username = (String)row["username"];
+            user.surname = (String)row["surname"];
+            user.passwordHash = (String)row["passwordHash"];
+            user.passwordSalt = (String)row["passwordSalt"];
 
-            user.homeRegion = Convert.ToUInt64(row["homeRegion"]);
+            // user.homeRegion = Convert.ToUInt64(row["homeRegion"]);
             user.homeLocation = new LLVector3(
                                               Convert.ToSingle(row["homeLocationX"]),
                                               Convert.ToSingle(row["homeLocationY"]),
@@ -381,15 +381,15 @@ namespace OpenSim.Framework.Data.SQLite
                                             );
             user.created = Convert.ToInt32(row["created"]);
             user.lastLogin = Convert.ToInt32(row["lastLogin"]);
-            user.rootInventoryFolderID = new LLUUID((string)row["rootInventoryFolderID"]);
-            user.userInventoryURI = (string)row["userInventoryURI"];
-            user.userAssetURI = (string)row["userAssetURI"];
+            user.rootInventoryFolderID = new LLUUID((String)row["rootInventoryFolderID"]);
+            user.userInventoryURI = (String)row["userInventoryURI"];
+            user.userAssetURI = (String)row["userAssetURI"];
             user.profileCanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
             user.profileWantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
-            user.profileAboutText = (string)row["profileAboutText"];
-            user.profileFirstText = (string)row["profileFirstText"];
-            user.profileImage = new LLUUID((string)row["profileImage"]);
-            user.profileFirstImage = new LLUUID((string)row["profileFirstImage"]);
+            user.profileAboutText = (String)row["profileAboutText"];
+            user.profileFirstText = (String)row["profileFirstText"];
+            user.profileImage = new LLUUID((String)row["profileImage"]);
+            user.profileFirstImage = new LLUUID((String)row["profileFirstImage"]);
             return user;
         }
 
@@ -421,22 +421,29 @@ namespace OpenSim.Framework.Data.SQLite
             row["profileFirstText"] = user.profileFirstText;
             row["profileImage"] = user.profileImage;
             row["profileFirstImage"] = user.profileFirstImage;
+            
+            // ADO.NET doesn't handle NULL very well
+            foreach (DataColumn col in ds.Tables["users"].Columns) {
+                if (row[col] == null) {
+                    row[col] = "";
+                }
+            }
         }
 
         private UserAgentData buildUserAgent(DataRow row)
         {
             UserAgentData ua = new UserAgentData();
             
-            ua.UUID = new LLUUID((string)row["UUID"]);
-            ua.agentIP = (string)row["agentIP"];
+            ua.UUID = new LLUUID((String)row["UUID"]);
+            ua.agentIP = (String)row["agentIP"];
             ua.agentPort = Convert.ToUInt32(row["agentPort"]);
             ua.agentOnline = Convert.ToBoolean(row["agentOnline"]);
-            ua.sessionID = new LLUUID((string)row["sessionID"]);
-            ua.secureSessionID = new LLUUID((string)row["secureSessionID"]);
-            ua.regionID = new LLUUID((string)row["regionID"]);
+            ua.sessionID = new LLUUID((String)row["sessionID"]);
+            ua.secureSessionID = new LLUUID((String)row["secureSessionID"]);
+            ua.regionID = new LLUUID((String)row["regionID"]);
             ua.loginTime = Convert.ToInt32(row["loginTime"]);
             ua.logoutTime = Convert.ToInt32(row["logoutTime"]);
-            ua.currentRegion = new LLUUID((string)row["currentRegion"]);
+            ua.currentRegion = new LLUUID((String)row["currentRegion"]);
             ua.currentHandle = Convert.ToUInt32(row["currentHandle"]);
             ua.currentPos = new LLVector3(
                                             Convert.ToSingle(row["currentPosX"]),
