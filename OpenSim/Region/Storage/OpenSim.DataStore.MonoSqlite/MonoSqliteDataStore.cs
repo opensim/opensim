@@ -122,6 +122,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
+            Dictionary<LLUUID, SceneObjectPart> loadedParentlessParts = new Dictionary<LLUUID, SceneObjectPart>();
+
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
             DataTable prims = ds.Tables["prims"];
@@ -168,8 +170,25 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                         Console.WriteLine("No shape found for prim in storage, so setting default box shape");
                         prim.Shape = BoxShape.Default;
                     }
-                    createdObjects[new LLUUID(objID)].AddPart(prim);
+                    if (createdObjects.ContainsKey(new LLUUID(objID)))
+                    {
+                        createdObjects[new LLUUID(objID)].AddPart(prim);
+                    }
+                    else
+                    {
+                        loadedParentlessParts.Add(new LLUUID(objID), prim);
+                    }
                 }
+
+                foreach (KeyValuePair<LLUUID, SceneObjectPart> kvp in loadedParentlessParts)
+                {
+                    if (createdObjects.ContainsKey(kvp.Key))
+                    {
+                        createdObjects[kvp.Key].AddPart(kvp.Value);
+                    }
+                }
+
+                loadedParentlessParts.Clear();
             }
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
