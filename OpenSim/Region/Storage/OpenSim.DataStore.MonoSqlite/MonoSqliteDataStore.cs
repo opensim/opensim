@@ -129,53 +129,56 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             DataTable shapes = ds.Tables["primshapes"];
 
             string byRegion = "RegionUUID = '" + regionUUID.ToString()  + "'";
-            DataRow[] primsForRegion = prims.Select(byRegion);
+            string orderByParent = "ParentID ASC";
+            DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
             MainLog.Instance.Verbose("DATASTORE", "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
             
             foreach (DataRow primRow in primsForRegion)
             {
-                string uuid = (string)primRow["UUID"];
-                string objID = (string)primRow["SceneGroupID"];
-                if (uuid == objID) //is new SceneObjectGroup ?
-                {
-                    SceneObjectGroup group = new SceneObjectGroup();
-                    SceneObjectPart prim = buildPrim(primRow);
-                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                    if (shapeRow != null)
+                try {
+                    string uuid = (string)primRow["UUID"];
+                    string objID = (string)primRow["SceneGroupID"];
+                    if (uuid == objID) //is new SceneObjectGroup ?
                     {
-                        prim.Shape = buildShape(shapeRow);
+                        SceneObjectGroup group = new SceneObjectGroup();
+                        SceneObjectPart prim = buildPrim(primRow);
+                        DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                        if (shapeRow != null)
+                        {
+                            prim.Shape = buildShape(shapeRow);
+                        }
+                        else
+                        {
+                            Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                            prim.Shape = BoxShape.Default;
+                        }
+                        group.AddPart(prim);
+                        group.RootPart = prim;
+                        
+                        createdObjects.Add(group.UUID, group);
+                        retvals.Add(group);
                     }
                     else
                     {
-                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                        prim.Shape = BoxShape.Default;
-                    }
-                    group.AddPart(prim);
-                    group.RootPart = prim;
-
-                    createdObjects.Add(group.UUID, group);
-                    retvals.Add(group);
-                }
-                else
-                {
-                    SceneObjectPart prim = buildPrim(primRow);
-                    DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                    if (shapeRow != null)
-                    {
-                        prim.Shape = buildShape(shapeRow);
-                    }
-                    else
-                    {
-                        Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                        prim.Shape = BoxShape.Default;
-                    }
-
+                        SceneObjectPart prim = buildPrim(primRow);
+                        DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                        if (shapeRow != null)
+                        {
+                            prim.Shape = buildShape(shapeRow);
+                        }
+                        else
+                        {
+                            Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                            prim.Shape = BoxShape.Default;
+                        }
                         createdObjects[new LLUUID(objID)].AddPart(prim);
-
-                  
+                    }
+                } catch(Exception) {
+                    foreach (DataColumn col in prims.Columns) {
+                        MainLog.Instance.Verbose("Col: " + col.ColumnName + " => " + primRow[col]);
+                    }
                 }
             }
-
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
 
             return retvals;
