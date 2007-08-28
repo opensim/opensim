@@ -84,6 +84,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdePrim> _prims = new List<OdePrim>();
         private static d.ContactGeom[] contacts = new d.ContactGeom[30];
         private static d.Contact contact;
+        public static Object OdeLock = new Object();
         public OdeScene()
         {
             contact.surface.mode |= d.ContactFlags.Approx1 | d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP;
@@ -92,14 +93,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             contact.surface.soft_erp = 0.005f;
             contact.surface.soft_cfm = 0.00003f;
 
-            Monitor.Enter(typeof(OdeScene));
-            world = d.WorldCreate();
-            space = d.HashSpaceCreate(IntPtr.Zero);
-            contactgroup = d.JointGroupCreate(0);
-            d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);   
-            d.WorldSetAutoDisableFlag(world, false);
-            d.WorldSetContactSurfaceLayer(world, 0.001f);
-            Monitor.Exit(typeof(OdeScene));
+            lock (OdeLock)
+            {
+                world = d.WorldCreate();
+                space = d.HashSpaceCreate(IntPtr.Zero);
+                contactgroup = d.JointGroupCreate(0);
+                d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);
+                d.WorldSetAutoDisableFlag(world, false);
+                d.WorldSetContactSurfaceLayer(world, 0.001f);
+            }
 
             this._heightmap = new double[65536];
         }
@@ -128,7 +130,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
-            pos.Z = position.Z + 20;
+            pos.Z = position.Z;
             OdeCharacter newAv = new OdeCharacter(this, pos);
             this._characters.Add(newAv);
             return newAv;
@@ -136,7 +138,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-           
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -150,7 +151,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
-            //Console.WriteLine("+++++++++++++++++++++++++++++++++AddPrim pos: " + position + " size: " + size + " quat: " + rotation); 
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
@@ -165,7 +165,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.y = rotation.y;
             rot.z = rotation.z;
             OdePrim newPrim;
-            lock(typeof(OdeScene)) {
+            lock (OdeLock)
+            {
                 newPrim = new OdePrim(this, pos, siz, rot);
             }
             this._prims.Add(newPrim);
@@ -174,27 +175,27 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Simulate(float timeStep)
         {
-            Monitor.Enter(typeof(OdeScene));
-            foreach (OdePrim p in _prims)
+            lock (OdeLock)
             {
-//                Console.WriteLine("+++ prim: " + p.Position);
-            }
-            foreach (OdeCharacter actor in _characters)
-            {
-                actor.Move(timeStep);
-            }
-            d.SpaceCollide(space, IntPtr.Zero, nearCallback);
-            for (int i = 0; i < 50; i++)
-            {
-                d.WorldQuickStep(world, timeStep * 0.02f);
-            }
+                foreach (OdePrim p in _prims)
+                {
+                }
+                foreach (OdeCharacter actor in _characters)
+                {
+                    actor.Move(timeStep);
+                }
+                d.SpaceCollide(space, IntPtr.Zero, nearCallback);
+                for (int i = 0; i < 50; i++)
+                {
+                    d.WorldQuickStep(world, timeStep * 0.02f);
+                }
 
-            d.JointGroupEmpty(contactgroup);
-            foreach (OdeCharacter actor in _characters)
-            {
-                actor.UpdatePosition();
+                d.JointGroupEmpty(contactgroup);
+                foreach (OdeCharacter actor in _characters)
+                {
+                    actor.UpdatePosition();
+                }
             }
-            Monitor.Exit(typeof(OdeScene));
         }
 
         public override void GetResults()
@@ -222,26 +223,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
 
-            Monitor.Enter(typeof(OdeScene));
-            d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
-            d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
-            LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
-            d.Matrix3 R = new d.Matrix3();
-            
-            Quaternion q1 =Quaternion.FromAngleAxis(1.5707f, new Vector3(1,0,0));
-            Quaternion q2 =Quaternion.FromAngleAxis(1.5707f, new Vector3(0,1,0));
-           //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
-            
-            q1 = q1 * q2;
-            //q1 = q1 * q3;
-            Vector3 v3 = new Vector3();
-            float angle = 0;
-            q1.ToAngleAxis(ref angle, ref v3);
+            lock (OdeLock)
+            {
+                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
+                d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
+                LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
+                d.Matrix3 R = new d.Matrix3();
 
-            d.RFromAxisAndAngle(out R, v3.x, v3.y, v3.z, angle);
-            d.GeomSetRotation(LandGeom, ref R); 
-            d.GeomSetPosition(LandGeom, 128, 128, 0);
-            Monitor.Exit(typeof(OdeScene));
+                Quaternion q1 = Quaternion.FromAngleAxis(1.5707f, new Vector3(1, 0, 0));
+                Quaternion q2 = Quaternion.FromAngleAxis(1.5707f, new Vector3(0, 1, 0));
+                //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
+
+                q1 = q1 * q2;
+                //q1 = q1 * q3;
+                Vector3 v3 = new Vector3();
+                float angle = 0;
+                q1.ToAngleAxis(ref angle, ref v3);
+
+                d.RFromAxisAndAngle(out R, v3.x, v3.y, v3.z, angle);
+                d.GeomSetRotation(LandGeom, ref R);
+                d.GeomSetPosition(LandGeom, 128, 128, 0);
+            }
         }
 
         public override void DeleteTerrain()
@@ -260,20 +262,23 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr BoundingCapsule;
         IntPtr capsule_geom;
         d.Mass capsule_mass;
+        private OdeScene _parent_scene;
 
         public OdeCharacter(OdeScene parent_scene, PhysicsVector pos)
         {
             _velocity = new PhysicsVector();
             _position = pos;
             _acceleration = new PhysicsVector();
-            Monitor.Enter(typeof(OdeScene));
-            d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
-            capsule_geom = d.CreateSphere(OdeScene.space, 1.0f);        /// not a typo!  Spheres roll, capsules tumble
-            this.BoundingCapsule = d.BodyCreate(OdeScene.world);
-            d.BodySetMass(BoundingCapsule, ref capsule_mass);
-            d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
-            d.GeomSetBody(capsule_geom, BoundingCapsule);
-            Monitor.Exit(typeof(OdeScene));
+            _parent_scene = parent_scene;
+            lock (OdeScene.OdeLock)
+            {
+                d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
+                capsule_geom = d.CreateSphere(OdeScene.space, 1.0f);        /// not a typo!  Spheres roll, capsules tumble
+                this.BoundingCapsule = d.BodyCreate(OdeScene.world);
+                d.BodySetMass(BoundingCapsule, ref capsule_mass);
+                d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
+                d.GeomSetBody(capsule_geom, BoundingCapsule);
+            }
         }
 
         public override bool Flying
@@ -296,7 +301,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                _position = value;
+                lock (OdeScene.OdeLock)
+                {
+                    d.BodySetPosition(BoundingCapsule, value.X, value.Y, value.Z);
+                    _position = value;
+                }
             }
         }
 
@@ -389,6 +398,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             d.Vector3 vec = d.BodyGetPosition(BoundingCapsule);
+
+            //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
+            if (vec.X < 0.0f) vec.X = 0.0f;
+            if (vec.Y < 0.0f) vec.Y = 0.0f;
+            if (vec.X > 255.95f) vec.X = 255.95f;
+            if (vec.Y > 255.95f) vec.Y = 255.95f;
+
             this._position.X = vec.X;
             this._position.Y = vec.Y;
             this._position.Z = vec.Z;
@@ -412,15 +428,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = new PhysicsVector();
             _orientation = rotation;
             prim_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
-            Monitor.Enter(typeof(OdeScene));
-            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-            d.Quaternion myrot = new d.Quaternion();
-            myrot.W = rotation.w;
-            myrot.X = rotation.x;
-            myrot.Y = rotation.y;
-            myrot.Z = rotation.z;
-            d.GeomSetQuaternion(prim_geom, ref myrot);
-            Monitor.Exit(typeof(OdeScene));
+            lock (OdeScene.OdeLock)
+            {
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.W = rotation.w;
+                myrot.X = rotation.x;
+                myrot.Y = rotation.y;
+                myrot.Z = rotation.z;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
+            }
         }
 
         public override bool Flying
@@ -442,12 +459,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                //Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting pos: " + value);
                 _position = value;
-                Monitor.Enter(typeof(OdeScene));
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                Monitor.Exit(typeof(OdeScene));
-
+                lock (OdeScene.OdeLock)
+                {
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                }
             }
         }
 
@@ -459,11 +475,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                //Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting size: " + value);
                 _size = value;
-                Monitor.Enter(typeof(OdeScene));
-                d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-                Monitor.Exit(typeof(OdeScene));
+                lock (OdeScene.OdeLock)
+                {
+                    d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                }
             }
         }
 
@@ -498,16 +514,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                //Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++ setting Orientation");
                 _orientation = value;
-                Monitor.Enter(typeof(OdeScene));
-                d.Quaternion myrot = new d.Quaternion();
-                myrot.W = _orientation.w;
-                myrot.X = _orientation.x;
-                myrot.Y = _orientation.y;
-                myrot.Z = _orientation.z;
-                d.GeomSetQuaternion(prim_geom, ref myrot);
-                Monitor.Exit(typeof(OdeScene));
+                lock (OdeScene.OdeLock)
+                {
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+                }
             }
         }
 

@@ -47,8 +47,9 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp
             compilerParams.GenerateExecutable = false;
             compilerParams.GenerateInMemory = true;
             compilerParams.IncludeDebugInformation = false;
-            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.dll");
+            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.ClientStack.dll");
             compilerParams.ReferencedAssemblies.Add("OpenSim.Region.Environment.dll");
+            compilerParams.ReferencedAssemblies.Add("OpenSim.Region.ExtensionsScriptModule.dll");
             compilerParams.ReferencedAssemblies.Add("OpenSim.Framework.dll");
             compilerParams.ReferencedAssemblies.Add("libsecondlife.dll");
             compilerParams.ReferencedAssemblies.Add("System.dll");
