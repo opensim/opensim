@@ -199,6 +199,7 @@ namespace OpenSim.Framework.Data.SQLite
                     fillUserAgentRow(row, user.currentAgent);
                 }
             }
+            MainLog.Instance.Verbose("DATASTORE", "Adding user: " + ds.GetXml());
             // save changes off to disk
             da.Update(ds, "users");
         }
@@ -299,7 +300,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(users, "passwordHash", typeof(System.String));
             createCol(users, "passwordSalt", typeof(System.String));
 
-            createCol(users, "homeRegion", typeof(System.UInt64));
+            createCol(users, "homeRegion", typeof(System.Int64));
             createCol(users, "homeLocationX", typeof(System.Double));
             createCol(users, "homeLocationY", typeof(System.Double));
             createCol(users, "homeLocationZ", typeof(System.Double));
@@ -311,8 +312,8 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(users, "rootInventoryFolderID", typeof(System.String));
             createCol(users, "userInventoryURI", typeof(System.String));
             createCol(users, "userAssetURI", typeof(System.String));
-            createCol(users, "profileCanDoMask", typeof(System.UInt32));
-            createCol(users, "profileWantDoMask", typeof(System.UInt32));
+            createCol(users, "profileCanDoMask", typeof(System.Int32));
+            createCol(users, "profileWantDoMask", typeof(System.Int32));
             createCol(users, "profileAboutText", typeof(System.String));
             createCol(users, "profileFirstText", typeof(System.String));
             createCol(users, "profileImage", typeof(System.String));
@@ -328,7 +329,7 @@ namespace OpenSim.Framework.Data.SQLite
             // this is the UUID of the user
             createCol(ua, "UUID", typeof(System.String));
             createCol(ua, "agentIP", typeof(System.String));
-            createCol(ua, "agentPort", typeof(System.UInt32));
+            createCol(ua, "agentPort", typeof(System.Int32));
             createCol(ua, "agentOnline", typeof(System.Boolean));
             createCol(ua, "sessionID", typeof(System.String));
             createCol(ua, "secureSessionID", typeof(System.String));
@@ -336,7 +337,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(ua, "loginTime", typeof(System.Int32));
             createCol(ua, "logoutTime", typeof(System.Int32));
             createCol(ua, "currentRegion", typeof(System.String));
-            createCol(ua, "currentHandle", typeof(System.UInt32));
+            createCol(ua, "currentHandle", typeof(System.Int32));
             // vectors
             createCol(ua, "currentPosX", typeof(System.Double));
             createCol(ua, "currentPosY", typeof(System.Double));
@@ -661,9 +662,9 @@ namespace OpenSim.Framework.Data.SQLite
             } else if (type == typeof(System.UInt32)) {
                 return "integer";
             } else if (type == typeof(System.Int64)) {
-                return "integer";
+                return "varchar(255)";
             } else if (type == typeof(System.UInt64)) {
-                return "integer";
+                return "varchar(255)";
             } else if (type == typeof(System.Double)) {
                 return "float";
             } else if (type == typeof(System.Byte[])) {
