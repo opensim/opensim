@@ -52,7 +52,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim
 {
-    public delegate void ConsoleCommand(string comParams);
+    public delegate void ConsoleCommand(string[] comParams);
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
@@ -455,7 +455,7 @@ namespace OpenSim
                 case "create":
                     if (CreateAccount != null)
                     {
-                        CreateAccount(cmdparams[0]);
+                        CreateAccount(cmdparams);
                     }
                     break;
 
