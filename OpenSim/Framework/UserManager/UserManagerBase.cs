@@ -353,7 +353,8 @@ namespace OpenSim.Framework.UserManagement
             user.passwordSalt = "";
             user.created = Util.UnixTimeSinceEpoch();
             user.homeLookAt = new LLVector3(100, 100, 100);
-            user.homeRegion = Util.UIntsToLong((regX * 256), (regY * 256));
+            user.homeRegionX = regX;
+            user.homeRegionY = regY;
 
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {

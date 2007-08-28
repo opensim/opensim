@@ -62,8 +62,14 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
-        public ulong homeRegion;
-
+        public ulong homeRegion
+        {
+            get { return Helpers.UIntsToLong((homeRegionX * 256), (homeRegionY * 256)); }
+            set { 
+                System.Console.WriteLine("Don't know how to set homeRegion");
+                Helpers.UIntsToLong((homeRegionX * 256), (homeRegionY * 256));
+            }
+        }
         public uint homeRegionX;
         public uint homeRegionY;
         /// <summary>

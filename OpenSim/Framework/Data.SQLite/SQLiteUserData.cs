@@ -300,7 +300,8 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(users, "passwordHash", typeof(System.String));
             createCol(users, "passwordSalt", typeof(System.String));
 
-            createCol(users, "homeRegion", typeof(System.Int64));
+            createCol(users, "homeRegionX", typeof(System.Int32));
+            createCol(users, "homeRegionY", typeof(System.Int32));
             createCol(users, "homeLocationX", typeof(System.Double));
             createCol(users, "homeLocationY", typeof(System.Double));
             createCol(users, "homeLocationZ", typeof(System.Double));
@@ -368,7 +369,8 @@ namespace OpenSim.Framework.Data.SQLite
             user.passwordHash = (String)row["passwordHash"];
             user.passwordSalt = (String)row["passwordSalt"];
 
-            // user.homeRegion = Convert.ToUInt64(row["homeRegion"]);
+            user.homeRegionX = Convert.ToUInt32(row["homeRegionX"]);
+            user.homeRegionY = Convert.ToUInt32(row["homeRegionY"]);
             user.homeLocation = new LLVector3(
                                               Convert.ToSingle(row["homeLocationX"]),
                                               Convert.ToSingle(row["homeLocationY"]),
@@ -402,7 +404,8 @@ namespace OpenSim.Framework.Data.SQLite
             row["passwordSalt"] = user.passwordSalt;
             
             
-            row["homeRegion"] = user.homeRegion;
+            row["homeRegionX"] = user.homeRegionX;
+            row["homeRegionY"] = user.homeRegionY;
             row["homeLocationX"] = user.homeLocation.X;
             row["homeLocationY"] = user.homeLocation.Y;
             row["homeLocationZ"] = user.homeLocation.Z;
