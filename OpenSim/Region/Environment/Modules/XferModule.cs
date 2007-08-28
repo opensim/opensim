@@ -8,7 +8,7 @@ using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 
-namespace OpenSim.Region.Environment
+namespace OpenSim.Region.Environment.Modules
 {
     public class XferModule : IRegionModule
     {
