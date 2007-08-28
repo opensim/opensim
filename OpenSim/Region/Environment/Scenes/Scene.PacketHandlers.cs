@@ -155,16 +155,6 @@ namespace OpenSim.Region.Environment.Scenes
                                               });
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        public void SendAvatarsToClient(IClientAPI remoteClient)
-        {
-
-        }
-
         /// <summary>
         /// 
         /// </summary>

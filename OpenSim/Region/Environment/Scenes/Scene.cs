@@ -44,7 +44,6 @@ using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Scripting;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework.Data;
 using Caps = OpenSim.Region.Capabilities.Caps;
@@ -122,13 +121,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_estateManager; }
         }
 
-        private ScriptManager m_scriptManager;
-
-        public ScriptManager ScriptManager
-        {
-            get { return m_scriptManager; }
-        }
-
         private PermissionManager m_permissionManager;
 
         public PermissionManager PermissionsMngr
@@ -174,7 +166,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_LandManager = new LandManager(this, m_regInfo);
             m_estateManager = new EstateManager(this, m_regInfo);
-            m_scriptManager = new ScriptManager(this);
             m_eventManager = new EventManager();
             m_permissionManager = new PermissionManager(this);
 

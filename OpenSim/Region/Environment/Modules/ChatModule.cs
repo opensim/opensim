@@ -21,7 +21,7 @@ namespace OpenSim.Region.Environment.Modules
        
         private int m_port = 6668;
         private  string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
-        private string m_nick = "OpenSimBoT";
+        private string m_nick = "OpenSimBot";
         private string m_channel = "#opensim";
 
         private NetworkStream m_stream;

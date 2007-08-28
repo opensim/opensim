@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
@@ -36,6 +37,8 @@ namespace OpenSim.Region.Environment
             AvatarProfilesModule avatarProfiles = new AvatarProfilesModule();
             avatarProfiles.Initialise(scene);
             scene.AddModule(avatarProfiles.GetName(), avatarProfiles);
+
+            this.LoadModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
 
             // Post Initialise Modules
             xferManager.PostInitialise();
