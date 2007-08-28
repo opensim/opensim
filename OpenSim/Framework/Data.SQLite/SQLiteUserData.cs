@@ -78,7 +78,12 @@ namespace OpenSim.Framework.Data.SQLite
         {
             DataRow row = ds.Tables["users"].Rows.Find(uuid);
             if(row != null) {
-                return buildUserProfile(row);
+                UserProfileData user = buildUserProfile(row);
+                row = ds.Tables["useragents"].Rows.Find(uuid);
+                if(row != null) {
+                    user.currentAgent = buildUserAgent(row);
+                }
+                return user;
             } else {
                 return null;
             }
@@ -105,7 +110,12 @@ namespace OpenSim.Framework.Data.SQLite
             string select = "surname = '" + lname + "' and username = '" + fname + "'";
             DataRow[] rows = ds.Tables["users"].Select(select);
             if(rows.Length > 0) {
-                return buildUserProfile(rows[0]);
+                UserProfileData user = buildUserProfile(rows[0]);
+                DataRow row = ds.Tables["useragents"].Rows.Find(user.UUID);
+                if(row != null) {
+                    user.currentAgent = buildUserAgent(row);
+                }
+                return user;
             } else {
                 return null;
             }
@@ -174,6 +184,23 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 fillUserRow(row, user);
             }
+
+            if(user.currentAgent != null) {
+                DataTable ua = ds.Tables["useragents"];
+                row = ua.Rows.Find(user.UUID); 
+                if (row == null)
+                {
+                    row = ua.NewRow();
+                    fillUserAgentRow(row, user.currentAgent);
+                    ua.Rows.Add(row);
+                }
+                else
+                {
+                    fillUserAgentRow(row, user.currentAgent);
+                }
+            }
+            // save changes off to disk
+            da.Update(ds, "users");
         }
       
         /// <summary>
@@ -183,22 +210,13 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>True on success, false on error</returns>
         public bool updateUserProfile(UserProfileData user)
         {
-            DataTable users = ds.Tables["users"];
-            DataRow row = users.Rows.Find(user.UUID); 
-            if (row == null)
-            {
-                row = users.NewRow();
-                fillUserRow(row, user);
-                users.Rows.Add(row);
+            try {
+                addNewUserProfile(user);
+                return true;
+            } catch (Exception) {
+                return false;
             }
-            else
-            {
-                fillUserRow(row, user);
-            }
-            return true;
         }
-
-      
 
         /// <summary>
         /// Creates a new user agent
@@ -404,106 +422,47 @@ namespace OpenSim.Framework.Data.SQLite
             row["profileFirstImage"] = user.profileFirstImage;
         }
 
-//         private PrimitiveBaseShape buildShape(DataRow row)
-//         {
-//             PrimitiveBaseShape s = new PrimitiveBaseShape();
-//             s.Scale = new LLVector3(
-//                                     Convert.ToSingle(row["ScaleX"]),
-//                                     Convert.ToSingle(row["ScaleY"]),
-//                                     Convert.ToSingle(row["ScaleZ"])
-//                                     );
-//             // paths
-//             s.PCode = Convert.ToByte(row["PCode"]);
-//             s.PathBegin = Convert.ToUInt16(row["PathBegin"]);
-//             s.PathEnd = Convert.ToUInt16(row["PathEnd"]);
-//             s.PathScaleX = Convert.ToByte(row["PathScaleX"]);
-//             s.PathScaleY = Convert.ToByte(row["PathScaleY"]);
-//             s.PathShearX = Convert.ToByte(row["PathShearX"]);
-//             s.PathShearY = Convert.ToByte(row["PathShearY"]);
-//             s.PathSkew = Convert.ToSByte(row["PathSkew"]);
-//             s.PathCurve = Convert.ToByte(row["PathCurve"]);
-//             s.PathRadiusOffset = Convert.ToSByte(row["PathRadiusOffset"]);
-//             s.PathRevolutions = Convert.ToByte(row["PathRevolutions"]);
-//             s.PathTaperX = Convert.ToSByte(row["PathTaperX"]);
-//             s.PathTaperY = Convert.ToSByte(row["PathTaperY"]);
-//             s.PathTwist = Convert.ToSByte(row["PathTwist"]);
-//             s.PathTwistBegin = Convert.ToSByte(row["PathTwistBegin"]);
-//             // profile
-//             s.ProfileBegin = Convert.ToUInt16(row["ProfileBegin"]);
-//             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
-//             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
-//             s.ProfileHollow = Convert.ToByte(row["ProfileHollow"]);
-//             // text TODO: this isn't right] = but I'm not sure the right
-//             // way to specify this as a blob atm
-//             s.TextureEntry = (byte[])row["Texture"];
-//             s.ExtraParams = (byte[])row["ExtraParams"];
-//             // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-//             //             string texture = encoding.GetString((Byte[])row["Texture"]);
-//             //             if (!texture.StartsWith("<"))
-//             //             {
-//             //                 //here so that we can still work with old format database files (ie from before I added xml serialization)
-//             //                  LLObject.TextureEntry textureEntry = null;
-//             //                 textureEntry = new LLObject.TextureEntry(new LLUUID(texture));
-//             //                 s.TextureEntry = textureEntry.ToBytes();
-//             //             }
-//             //             else
-//             //             {
-//             //                 TextureBlock textureEntry = TextureBlock.FromXmlString(texture);
-//             //                 s.TextureEntry = textureEntry.TextureData;
-//             //                 s.ExtraParams = textureEntry.ExtraParams;
-//             // }
+        private UserAgentData buildUserAgent(DataRow row)
+        {
+            UserAgentData ua = new UserAgentData();
             
-//             return s;
-//         }
-        
-//         private void fillShapeRow(DataRow row, SceneObjectPart prim)
-//         {
-//             PrimitiveBaseShape s = prim.Shape;
-//             row["UUID"] = prim.UUID;
-//             // shape is an enum
-//             row["Shape"] = 0;
-//             // vectors
-//             row["ScaleX"] = s.Scale.X;
-//             row["ScaleY"] = s.Scale.Y;
-//             row["ScaleZ"] = s.Scale.Z;
-//             // paths
-//             row["PCode"] = s.PCode;
-//             row["PathBegin"] = s.PathBegin;
-//             row["PathEnd"] = s.PathEnd;
-//             row["PathScaleX"] = s.PathScaleX;
-//             row["PathScaleY"] = s.PathScaleY;
-//             row["PathShearX"] = s.PathShearX;
-//             row["PathShearY"] = s.PathShearY;
-//             row["PathSkew"] = s.PathSkew;
-//             row["PathCurve"] = s.PathCurve;
-//             row["PathRadiusOffset"] = s.PathRadiusOffset;
-//             row["PathRevolutions"] = s.PathRevolutions;
-//             row["PathTaperX"] = s.PathTaperX;
-//             row["PathTaperY"] = s.PathTaperY;
-//             row["PathTwist"] = s.PathTwist;
-//             row["PathTwistBegin"] = s.PathTwistBegin;
-//             // profile
-//             row["ProfileBegin"] = s.ProfileBegin;
-//             row["ProfileEnd"] = s.ProfileEnd;
-//             row["ProfileCurve"] = s.ProfileCurve;
-//             row["ProfileHollow"] = s.ProfileHollow;
-//             // text TODO: this isn't right] = but I'm not sure the right
-//             // way to specify this as a blob atm
+            ua.UUID = new LLUUID((string)row["UUID"]);
+            ua.agentIP = (string)row["agentIP"];
+            ua.agentPort = Convert.ToUInt32(row["agentPort"]);
+            ua.agentOnline = Convert.ToBoolean(row["agentOnline"]);
+            ua.sessionID = new LLUUID((string)row["sessionID"]);
+            ua.secureSessionID = new LLUUID((string)row["secureSessionID"]);
+            ua.regionID = new LLUUID((string)row["regionID"]);
+            ua.loginTime = Convert.ToInt32(row["loginTime"]);
+            ua.logoutTime = Convert.ToInt32(row["logoutTime"]);
+            ua.currentRegion = new LLUUID((string)row["currentRegion"]);
+            ua.currentHandle = Convert.ToUInt32(row["currentHandle"]);
+            ua.currentPos = new LLVector3(
+                                            Convert.ToSingle(row["currentPosX"]),
+                                            Convert.ToSingle(row["currentPosY"]),
+                                            Convert.ToSingle(row["currentPosZ"])
+                                            );
+            return ua;
+        }
 
-//             // And I couldn't work out how to save binary data either
-//             // seems that the texture colum is being treated as a string in the Datarow 
-//             // if you do a .getType() on it, it returns string, while the other columns return correct type
-//             // MW[10-08-07]
-//             // Added following xml hack but not really ideal , also ExtraParams isn't currently part of the database
-//             // am a bit worried about adding it now as some people will have old format databases, so for now including that data in this xml data
-//             // MW[17-08-07]
-//             row["Texture"] = s.TextureEntry;
-//             row["ExtraParams"] = s.ExtraParams;
-//             // TextureBlock textureBlock = new TextureBlock(s.TextureEntry);
-//             //             textureBlock.ExtraParams = s.ExtraParams;
-//             //             System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-//             // row["Texture"] = encoding.GetBytes(textureBlock.ToXMLString());
-//         }
+        private void fillUserAgentRow(DataRow row, UserAgentData ua)
+        {
+            row["UUID"] = ua.UUID;
+            row["agentIP"] =  ua.agentIP;
+            row["agentPort"] =  ua.agentPort;
+            row["agentOnline"] =  ua.agentOnline;
+            row["sessionID"] =  ua.sessionID;
+            row["secureSessionID"] = ua.secureSessionID;
+            row["regionID"] = ua.regionID;
+            row["loginTime"] = ua.loginTime;
+            row["logoutTime"] = ua.logoutTime;
+            row["currentRegion"] = ua.currentRegion;
+            row["currentHandle"] = ua.currentHandle;
+            // vectors
+            row["currentPosX"] = ua.currentPos.X;
+            row["currentPosY"] = ua.currentPos.Y;
+            row["currentPosZ"] = ua.currentPos.Z;
+        }
 
         /***********************************************************************
          *
