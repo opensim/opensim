@@ -363,6 +363,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleFullUpdate()
         {
+            m_parentGroup.HasChanged = true;
             m_updateFlag = 2;
         }
 
@@ -373,6 +374,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_updateFlag < 1)
             {
+                m_parentGroup.HasChanged = true;
                 m_updateFlag = 1;
             }
         }
@@ -482,7 +484,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(ModuleAPIMethod<bool, string, byte[]> addXferFile)
+        public string RequestInventoryFile(ModuleAPIMethod2<bool, string, byte[]> addXferFile)
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, this.UUID);

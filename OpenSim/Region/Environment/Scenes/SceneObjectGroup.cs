@@ -27,6 +27,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
+        public bool HasChanged = false;
+
         #region Properties
         /// <summary>
         /// 
@@ -339,6 +341,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
+            HasChanged = true;
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.ScheduleFullUpdate();
@@ -350,6 +353,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
+            HasChanged = true;
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.ScheduleTerseUpdate();
@@ -361,6 +365,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
+            HasChanged = true;
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.SendFullUpdateToAllClients();
@@ -372,6 +377,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
+            HasChanged = true;
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 part.SendTerseUpdateToAllClients();
@@ -642,7 +648,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(uint localID, ModuleAPIMethod<bool, string, byte[]> addXferFile)
+        public string RequestInventoryFile(uint localID, ModuleAPIMethod2<bool, string, byte[]> addXferFile)
         {
             SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
@@ -969,7 +975,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(OpenSim.Region.Environment.Interfaces.IRegionDataStore datastore)
         {
-            datastore.StoreObject(this, m_scene.RegionInfo.SimUUID);
+            if (HasChanged)
+            {
+                datastore.StoreObject(this, m_scene.RegionInfo.SimUUID);
+                HasChanged = false;
+            }
         }
         #endregion
 
