@@ -162,9 +162,11 @@ namespace OpenSim.Region.ClientStack
                 {
                     if (OnUpdatePrimScale != null)
                     {
-                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
                        // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
-                       // OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                       OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                       libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                       OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                 }
                 else if (multipleupdate.ObjectData[i].Type == 5)//single prim scale from object tab
