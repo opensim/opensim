@@ -72,8 +72,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
             System.Console.WriteLine("Initialising Extensions Scripting Module");
             m_scene = scene;
 
-             m_scene.RegisterAPIMethod("API_CompileExtensionScript", new ModuleAPIMethod<bool, string, int>(Compile));
-             m_scene.RegisterAPIMethod("API_AddExtensionScript", new ModuleAPIMethod<bool, IScript, int>(AddPreCompiledScript));
+             m_scene.RegisterAPIMethod("API_CompileExtensionScript", new ModuleAPIMethod1<bool, string>(Compile));
+             m_scene.RegisterAPIMethod("API_AddExtensionScript", new ModuleAPIMethod1<bool, IScript>(AddPreCompiledScript));
         }
 
         public void PostInitialise()
@@ -91,7 +91,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
             return "ExtensionsScriptingModule";
         }
 
-        public bool Compile(string filename, int dummyParam)
+        public bool Compile(string filename)
         {
             foreach (KeyValuePair<string, IScriptCompiler> compiler in compilers)
             {
@@ -110,7 +110,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
             switch (args[0])
             {
                 case "load":
-                    Compile(args[1], 0);
+                    Compile(args[1]);
                     break;
 
                 default:
@@ -119,7 +119,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
             }
         }
 
-        public bool AddPreCompiledScript(IScript script, int dummyParam)
+        public bool AddPreCompiledScript(IScript script)
         {
             MainLog.Instance.Verbose("Loading script " + script.Name); 
             ScriptInfo scriptInfo = new ScriptInfo(m_scene); // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.

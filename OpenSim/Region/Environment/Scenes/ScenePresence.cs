@@ -157,7 +157,7 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_lastname = ControllingClient.LastName;
             m_localId = m_scene.NextLocalId;
             AbsolutePosition = ControllingClient.StartPos;
-
+            
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {

@@ -197,9 +197,10 @@ namespace OpenSim.Region.ClientStack
                             {
                                 if (AgentAni.AnimationList[i].StartAnim)
                                 {
+                                    
                                     if (OnStartAnim != null)
                                     {
-                                        OnStartAnim(AgentAni.AnimationList[i].AnimID, 1);
+                                        OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
                                     }
                                 }
                             }

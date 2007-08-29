@@ -90,7 +90,7 @@ namespace OpenSim.Region.Environment.Scenes
         //API method Delegates
 
         // this most likely shouldn't be handled as a API method like this, but doing it for testing purposes
-        public ModuleAPIMethod<bool, string, byte[]>AddXferFile = null;
+        public ModuleAPIMethod2<bool, string, byte[]>AddXferFile = null;
 
         #region Properties
 
@@ -196,7 +196,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void SetMethodDelegates()
         {
-            AddXferFile = (ModuleAPIMethod<bool, string, byte[]>)this.RequestAPIMethod("API_AddXferFile");
+            AddXferFile = (ModuleAPIMethod2<bool, string, byte[]>)this.RequestAPIMethod("API_AddXferFile");
         }
 
         #region Script Handling Methods
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 //backup scene data
                 storageCount++;
-                if (storageCount > 600) //set to how often you want to backup 
+                if (storageCount > 1200) //set to how often you want to backup 
                 {
                     Backup();
                     storageCount = 0;
@@ -692,6 +692,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
+           // client.OnStartAnim += StartAnimation;
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnModifyTerrain += ModifyTerrain;

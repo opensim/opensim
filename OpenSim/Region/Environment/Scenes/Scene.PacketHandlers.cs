@@ -554,6 +554,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void StartAnimation(IClientAPI client, LLUUID animID, int seq)
+        {
+            List<ScenePresence> avatars = this.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].ControllingClient.SendAnimation(animID, seq, client.AgentId);
+            }
+        }
+
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             this.EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);

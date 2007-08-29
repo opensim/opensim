@@ -27,7 +27,7 @@ namespace OpenSim.Region.Environment.Modules
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
 
-            m_scene.RegisterAPIMethod("API_AddXferFile", new ModuleAPIMethod<bool, string, byte[]>(this.AddNewFile));
+            m_scene.RegisterAPIMethod("API_AddXferFile", new ModuleAPIMethod2<bool, string, byte[]>(this.AddNewFile));
         }
 
         public void PostInitialise()

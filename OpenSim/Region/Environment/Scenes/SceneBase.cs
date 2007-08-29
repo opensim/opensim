@@ -35,6 +35,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {

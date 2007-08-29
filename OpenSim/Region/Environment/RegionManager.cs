@@ -9,7 +9,8 @@ using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment
 {
-    public delegate TResult ModuleAPIMethod<TResult, TParam0, TParam1>(TParam0 param0, TParam1 param1);
+    public delegate TResult ModuleAPIMethod1<TResult, TParam0>(TParam0 param0);
+    public delegate TResult ModuleAPIMethod2<TResult, TParam0, TParam1>(TParam0 param0, TParam1 param1);
 
     public class RegionManager
     {

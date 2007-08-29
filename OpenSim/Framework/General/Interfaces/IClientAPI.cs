@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Interfaces
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
     public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
-    public delegate void StartAnim(LLUUID animID, int seq);
+    public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID, int seq);
     public delegate void LinkObjects(uint parent, List<uint> children);
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
     public delegate void TeleportLocationRequest(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
