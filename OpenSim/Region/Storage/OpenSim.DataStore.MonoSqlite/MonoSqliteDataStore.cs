@@ -25,7 +25,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
-        
+
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
@@ -38,7 +38,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         public void Initialise(string dbfile, string dbname)
         {
             string connectionString = "URI=file:" + dbfile + ",version=3";
-            
+
             ds = new DataSet();
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + dbfile);
@@ -89,14 +89,14 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
                 addPrim(prim, obj.UUID, regionUUID);
             }
-            
+
             // MainLog.Instance.Verbose("Attempting to do database update....");
             primDa.Update(ds, "prims");
             shapeDa.Update(ds, "primshapes");
             ds.AcceptChanges();
             // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
-        
+
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             DataTable prims = ds.Tables["prims"];
@@ -122,20 +122,21 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
-           
+
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
-            string byRegion = "RegionUUID = '" + regionUUID.ToString()  + "'";
+            string byRegion = "RegionUUID = '" + regionUUID.ToString() + "'";
             string orderByParent = "ParentID ASC";
             DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
             MainLog.Instance.Verbose("DATASTORE", "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
-            
+
             foreach (DataRow primRow in primsForRegion)
             {
-                try {
+                try
+                {
                     string uuid = (string)primRow["UUID"];
                     string objID = (string)primRow["SceneGroupID"];
                     if (uuid == objID) //is new SceneObjectGroup ?
@@ -154,7 +155,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                         }
                         group.AddPart(prim);
                         group.RootPart = prim;
-                        
+
                         createdObjects.Add(group.UUID, group);
                         retvals.Add(group);
                     }
@@ -173,14 +174,17 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                         }
                         createdObjects[new LLUUID(objID)].AddPart(prim);
                     }
-                } catch(Exception) {
-                    foreach (DataColumn col in prims.Columns) {
+                }
+                catch (Exception)
+                {
+                    foreach (DataColumn col in prims.Columns)
+                    {
                         MainLog.Instance.Verbose("Col: " + col.ColumnName + " => " + primRow[col]);
                     }
                 }
             }
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
-
+            MainLog.Instance.Verbose("DATASTORE", "Sqlite -  Number of sceneObjects" + retvals.Count);
             return retvals;
         }
 
@@ -214,42 +218,42 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // TODO: DataSet commit
         }
 
-//         public class TextureBlock
-//         {
-//             public byte[] TextureData;
-//             public byte[] ExtraParams = new byte[1];
+        //         public class TextureBlock
+        //         {
+        //             public byte[] TextureData;
+        //             public byte[] ExtraParams = new byte[1];
 
-//             public TextureBlock(byte[] data)
-//             {
-//                 TextureData = data;
-//             }
+        //             public TextureBlock(byte[] data)
+        //             {
+        //                 TextureData = data;
+        //             }
 
-//             public TextureBlock()
-//             {
+        //             public TextureBlock()
+        //             {
 
-//             }
+        //             }
 
-//             public string ToXMLString()
-//             {
-//                 StringWriter sw = new StringWriter();
-//                 XmlTextWriter writer = new XmlTextWriter(sw);
-//                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-//                 serializer.Serialize(writer, this);
-//                 return sw.ToString();
-//             }
+        //             public string ToXMLString()
+        //             {
+        //                 StringWriter sw = new StringWriter();
+        //                 XmlTextWriter writer = new XmlTextWriter(sw);
+        //                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+        //                 serializer.Serialize(writer, this);
+        //                 return sw.ToString();
+        //             }
 
-//             public static TextureBlock FromXmlString(string xmlData)
-//             {
-//                 TextureBlock textureEntry = null;
-//                 StringReader sr = new StringReader(xmlData);
-//                 XmlTextReader reader = new XmlTextReader(sr);
-//                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-//                 textureEntry = (TextureBlock)serializer.Deserialize(reader);
-//                 reader.Close();
-//                 sr.Close();
-//                 return textureEntry;
-//             }
-//         }
+        //             public static TextureBlock FromXmlString(string xmlData)
+        //             {
+        //                 TextureBlock textureEntry = null;
+        //                 StringReader sr = new StringReader(xmlData);
+        //                 XmlTextReader reader = new XmlTextReader(sr);
+        //                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
+        //                 textureEntry = (TextureBlock)serializer.Deserialize(reader);
+        //                 reader.Close();
+        //                 sr.Close();
+        //                 return textureEntry;
+        //             }
+        //         }
 
         /***********************************************************************
          *
@@ -258,7 +262,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
-        
+
         private void createCol(DataTable dt, string name, System.Type type)
         {
             DataColumn col = new DataColumn(name, type);
@@ -312,7 +316,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             createCol(prims, "RotationY", typeof(System.Double));
             createCol(prims, "RotationZ", typeof(System.Double));
             createCol(prims, "RotationW", typeof(System.Double));
-            
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
 
@@ -359,7 +363,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
             return shapes;
         }
-        
+
         /***********************************************************************
          *  
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -528,10 +532,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             //                 s.TextureEntry = textureEntry.TextureData;
             //                 s.ExtraParams = textureEntry.ExtraParams;
             // }
-            
+
             return s;
         }
-        
+
         private void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
@@ -585,7 +589,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
-            
+
             DataRow primRow = prims.Rows.Find(prim.UUID);
             if (primRow == null)
             {
@@ -610,7 +614,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 fillShapeRow(shapeRow, prim);
             }
         }
-        
+
         /***********************************************************************
          *
          *  SQL Statement Creation Functions
@@ -633,7 +637,8 @@ namespace OpenSim.DataStore.MonoSqliteStorage
              *  generate these strings instead of typing them out.
              */
             string[] cols = new string[dt.Columns.Count];
-            for (int i = 0; i < dt.Columns.Count; i++) {
+            for (int i = 0; i < dt.Columns.Count; i++)
+            {
                 DataColumn col = dt.Columns[i];
                 cols[i] = col.ColumnName;
             }
@@ -648,7 +653,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
-            foreach (DataColumn col in dt.Columns) 
+            foreach (DataColumn col in dt.Columns)
             {
                 cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
             }
@@ -674,7 +679,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             // this provides the binding for all our parameters, so
             // much less code than it used to be
 
-            foreach (DataColumn col in dt.Columns) 
+            foreach (DataColumn col in dt.Columns)
             {
                 cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
             }
@@ -693,7 +698,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                     subsql += ",\n";
                 }
                 subsql += col.ColumnName + " " + sqliteType(col.DataType);
-                if(col == dt.PrimaryKey[0])
+                if (col == dt.PrimaryKey[0])
                 {
                     subsql += " primary key";
                 }
@@ -746,7 +751,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
-        
+
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
@@ -765,13 +770,13 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
-            
+
             SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
             SqliteCommand scmd = new SqliteCommand(createShapes, conn);
             conn.Open();
             pcmd.ExecuteNonQuery();
             scmd.ExecuteNonQuery();
-            conn.Close(); 
+            conn.Close();
         }
 
         private bool TestTables(SqliteConnection conn)
@@ -782,10 +787,13 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             SqliteDataAdapter sDa = new SqliteDataAdapter(shapeSelectCmd);
 
             DataSet tmpDS = new DataSet();
-            try {
+            try
+            {
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
-            } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
+            }
+            catch (Mono.Data.SqliteClient.SqliteSyntaxException)
+            {
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
@@ -793,14 +801,18 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
 
-            foreach (DataColumn col in createPrimTable().Columns) {
-                if (! tmpDS.Tables["prims"].Columns.Contains(col.ColumnName) ) {
+            foreach (DataColumn col in createPrimTable().Columns)
+            {
+                if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
+                {
                     MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
-            foreach (DataColumn col in createShapeTable().Columns) {
-                if (! tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName) ) {
+            foreach (DataColumn col in createShapeTable().Columns)
+            {
+                if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
+                {
                     MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
                     return false;
                 }
@@ -813,35 +825,53 @@ namespace OpenSim.DataStore.MonoSqliteStorage
          *  Type conversion functions
          *
          **********************************************************************/
-        
+
         private DbType dbtypeFromType(Type type)
         {
-            if (type == typeof(System.String)) {
+            if (type == typeof(System.String))
+            {
                 return DbType.String;
-            } else if (type == typeof(System.Int32)) {
+            }
+            else if (type == typeof(System.Int32))
+            {
                 return DbType.Int32;
-            } else if (type == typeof(System.Double)) {
+            }
+            else if (type == typeof(System.Double))
+            {
                 return DbType.Double;
-            } else if (type == typeof(System.Byte[])) {
+            }
+            else if (type == typeof(System.Byte[]))
+            {
                 return DbType.Binary;
-            } else {
+            }
+            else
+            {
                 return DbType.String;
             }
         }
-        
+
         // this is something we'll need to implement for each db
         // slightly differently.
         private string sqliteType(Type type)
         {
-            if (type == typeof(System.String)) {
+            if (type == typeof(System.String))
+            {
                 return "varchar(255)";
-            } else if (type == typeof(System.Int32)) {
+            }
+            else if (type == typeof(System.Int32))
+            {
                 return "integer";
-            } else if (type == typeof(System.Double)) {
+            }
+            else if (type == typeof(System.Double))
+            {
                 return "float";
-            } else if (type == typeof(System.Byte[])) {
+            }
+            else if (type == typeof(System.Byte[]))
+            {
                 return "blob";
-            } else {
+            }
+            else
+            {
                 return "string";
             }
         }

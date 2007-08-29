@@ -363,7 +363,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleFullUpdate()
         {
-            m_parentGroup.HasChanged = true;
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.HasChanged = true;
+            }
             m_updateFlag = 2;
         }
 
@@ -374,7 +377,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_updateFlag < 1)
             {
-                m_parentGroup.HasChanged = true;
+                if (m_parentGroup != null)
+                {
+                    m_parentGroup.HasChanged = true;
+                }
                 m_updateFlag = 1;
             }
         }
