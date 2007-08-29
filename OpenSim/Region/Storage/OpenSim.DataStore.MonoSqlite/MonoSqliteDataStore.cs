@@ -184,8 +184,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 }
             }
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite -  Number of sceneObjects" + retvals.Count);
-            return retvals;
+             return retvals;
         }
 
         public void StoreTerrain(double[,] ter)
