@@ -13,15 +13,15 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class ChatModule :IRegionModule
+    public class ChatModule : IRegionModule
     {
         private Scene m_scene;
 
         private string m_server = "irc2.choopa.net";
-       
+
         private int m_port = 6668;
-        private  string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
-        private string m_nick = "OpenSimBot";
+        private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
+        private string m_nick = "OSimBot";
         private string m_channel = "#opensim";
 
         private NetworkStream m_stream;
@@ -30,12 +30,13 @@ namespace OpenSim.Region.Environment.Modules
         private StreamReader m_ircReader;
 
         private Thread pingSender;
+        private Thread listener;
 
         private bool connected = false;
 
         public ChatModule()
         {
-
+            m_nick = "OSimBot" + Util.RandomClass.Next(1, 99);
         }
 
         public void Initialise(Scene scene)
@@ -57,6 +58,9 @@ namespace OpenSim.Region.Environment.Modules
 
                 pingSender = new Thread(new ThreadStart(this.PingRun));
                 pingSender.Start();
+
+                listener = new Thread(new ThreadStart(this.ListenerRun));
+                listener.Start();
 
                 m_ircWriter.WriteLine(m_user);
                 m_ircWriter.Flush();
@@ -99,6 +103,28 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        public void ListenerRun()
+        {
+            string inputLine;
+            LLVector3 pos = new LLVector3(128, 128, 20);
+            while (true)
+            {
+                while ((inputLine = m_ircReader.ReadLine()) != null)
+                {
+                    Console.WriteLine(inputLine);
+                    if (inputLine.Contains(m_channel))
+                    {
+                        string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
+                        m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                                                 {
+                                                     presence.ControllingClient.SendChatMessage(Helpers.StringToField(mess), 255, pos, "IRC:",
+                                                                                  LLUUID.Zero);
+                                                 });
+                    }
+                }
+            }
+        }
+
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             ScenePresence avatar = null;
@@ -112,7 +138,7 @@ namespace OpenSim.Region.Environment.Modules
 
             if (connected)
             {
-                m_ircWriter.WriteLine("MSG " + m_channel +" :" + fromName + ",  " + Util.FieldToString(message));
+                m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + ">:  " + Util.FieldToString(message));
                 m_ircWriter.Flush();
             }
 
