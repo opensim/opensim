@@ -125,7 +125,10 @@ namespace OpenSim.Framework.Configuration
                 Directory.CreateDirectory(Util.configDir());
             }
  
-            doc.Save(fileName);
+            lock(this)
+            {
+                doc.Save(fileName);
+            }
         }
 
         public void Close()
