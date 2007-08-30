@@ -212,41 +212,41 @@ namespace OpenSim.Framework.Communications.Caches
             while (true)
             {
                 TextureSender sender = this.QueueTextures.Dequeue();
-                if (TimesTextureSent.ContainsKey(sender.request.RequestUser.AgentId))
-                {
-                    if (TimesTextureSent[sender.request.RequestUser.AgentId].ContainsKey(sender.request.ImageInfo.FullID))
-                    {
-                        TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID]++;
-                    }
-                    else
-                    {
-                         TimesTextureSent[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID, 1);
-                    }
-                }
-                else
-                {
-                    Dictionary<LLUUID, int> UsersSent = new Dictionary<LLUUID,int>();
-                    TimesTextureSent.Add(sender.request.RequestUser.AgentId, UsersSent );
-                    UsersSent.Add(sender.request.ImageInfo.FullID, 1);
+                /* if (TimesTextureSent.ContainsKey(sender.request.RequestUser.AgentId))
+                 {
+                     if (TimesTextureSent[sender.request.RequestUser.AgentId].ContainsKey(sender.request.ImageInfo.FullID))
+                     {
+                         TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID]++;
+                     }
+                     else
+                     {
+                          TimesTextureSent[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID, 1);
+                     }
+                 }
+                 else
+                 {
+                     Dictionary<LLUUID, int> UsersSent = new Dictionary<LLUUID,int>();
+                     TimesTextureSent.Add(sender.request.RequestUser.AgentId, UsersSent );
+                     UsersSent.Add(sender.request.ImageInfo.FullID, 1);
                    
-                }
-                if (TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID] < 1000)
-                {
-                    bool finished = sender.SendTexture();
-                    if (finished)
-                    {
-                        this.TextureSent(sender);
-                    }
-                    else
-                    {
-                        // Console.WriteLine("readding texture");
-                        this.QueueTextures.Enqueue(sender);
-                    }
-                }
-                else
+                 }
+                 if (TimesTextureSent[sender.request.RequestUser.AgentId][sender.request.ImageInfo.FullID] < 1000)
+                 {*/
+                bool finished = sender.SendTexture();
+                if (finished)
                 {
                     this.TextureSent(sender);
                 }
+                else
+                {
+                    // Console.WriteLine("readding texture");
+                    this.QueueTextures.Enqueue(sender);
+                }
+                /*  }
+                  else
+                  {
+                      this.TextureSent(sender);
+                  }*/
             }
         }
 
@@ -336,7 +336,7 @@ namespace OpenSim.Framework.Communications.Caches
                 ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
                 notFound.ImageID.ID = assetID;
                 req.RequestUser.OutPacket(notFound);
-               //Console.WriteLine("sending image not found for " + assetID);
+                //Console.WriteLine("sending image not found for " + assetID);
 
                 this.RequestedTextures.Remove(assetID);
             }
@@ -532,9 +532,9 @@ namespace OpenSim.Framework.Communications.Caches
         /// </summary>
         /// <param name="userInfo"></param>
         /// <param name="imageID"></param>
-        public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID, uint packetNumber)
+        public void AddTextureRequest(IClientAPI userInfo, LLUUID imageID, uint packetNumber, int discard)
         {
-           //Console.WriteLine("texture request for " + imageID.ToStringHyphenated() + " packetnumber= " + packetNumber);
+            //Console.WriteLine("texture request for " + imageID.ToStringHyphenated() + " packetnumber= " + packetNumber);
             //check to see if texture is in local cache, if not request from asset server
             if (!this.AvatarRecievedTextures.ContainsKey(userInfo.AgentId))
             {
@@ -554,6 +554,7 @@ namespace OpenSim.Framework.Communications.Caches
                     request.RequestUser = userInfo;
                     request.RequestAssetID = imageID;
                     request.IsTextureRequest = true;
+                    request.DiscardLevel = discard;
                     this.RequestedTextures.Add(imageID, request);
                     this._assetServer.RequestAsset(imageID, true);
                 }
@@ -567,6 +568,7 @@ namespace OpenSim.Framework.Communications.Caches
             req.RequestAssetID = imageID;
             req.IsTextureRequest = true;
             req.ImageInfo = imag;
+            req.DiscardLevel = discard;
 
             if (imag.Data.LongLength > 600)
             {
@@ -641,6 +643,7 @@ namespace OpenSim.Framework.Communications.Caches
             public byte[] Params = null;
             //public bool AssetInCache;
             //public int TimeRequested; 
+            public int DiscardLevel = -1;
 
             public AssetRequest()
             {
@@ -700,7 +703,7 @@ namespace OpenSim.Framework.Communications.Caches
                 SendPacket();
                 counter++;
 
-                if ((request.PacketCounter >= request.NumPackets) | counter > 100 | (request.NumPackets == 1))
+                if ((request.PacketCounter >= request.NumPackets) | counter > 100 | (request.NumPackets == 1) | (request.DiscardLevel == -1))
                 {
                     return true;
                 }
@@ -746,7 +749,7 @@ namespace OpenSim.Framework.Communications.Caches
                         req.PacketCounter++;
                         //req.ImageInfo.last_used = time;
                         //System.Console.WriteLine("sent first packet of texture: "  + req.ImageInfo.FullID);
-                         //Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
+                        //Console.WriteLine("sending packet 1 for " + req.ImageInfo.FullID.ToStringHyphenated());
                     }
                 }
                 else
@@ -758,11 +761,11 @@ namespace OpenSim.Framework.Communications.Caches
                     im.Header.Reliable = false;
                     im.ImageID.Packet = (ushort)(req.PacketCounter);
                     im.ImageID.ID = req.ImageInfo.FullID;
-                    int size = req.ImageInfo.Data.Length - 600 - (1000 * (req.PacketCounter-1));
+                    int size = req.ImageInfo.Data.Length - 600 - (1000 * (req.PacketCounter - 1));
                     if (size > 1000) size = 1000;
                     //Console.WriteLine("length= {0} counter= {1} size= {2}",req.ImageInfo.Data.Length, req.PacketCounter, size);
                     im.ImageData.Data = new byte[size];
-                    Array.Copy(req.ImageInfo.Data, 600 + (1000 * (req.PacketCounter-1)), im.ImageData.Data, 0, size);
+                    Array.Copy(req.ImageInfo.Data, 600 + (1000 * (req.PacketCounter - 1)), im.ImageData.Data, 0, size);
                     req.RequestUser.OutPacket(im);
                     req.PacketCounter++;
                     //req.ImageInfo.last_used = time;

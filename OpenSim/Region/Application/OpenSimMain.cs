@@ -102,6 +102,7 @@ namespace OpenSim
             }
 
             ReadConfigSettings(startupSource);
+           
         }
 
         protected void ReadConfigSettings(IConfigSource configSource)
@@ -123,6 +124,7 @@ namespace OpenSim
 
             m_networkServersInfo.loadFromConfiguration(configSource);
         }
+
 
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.

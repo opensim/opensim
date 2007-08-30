@@ -127,6 +127,7 @@ namespace OpenSim.Region.Capabilities
             LLSDCapsDetails caps = new LLSDCapsDetails();
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" + m_capsObjectPath;
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
+           // caps.RequestTextureDownload = capsBaseUrl + m_requestTexture;
             caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
             caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;

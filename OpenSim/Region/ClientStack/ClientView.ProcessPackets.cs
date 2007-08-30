@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack
                             {
                                 if (AgentAni.AnimationList[i].StartAnim)
                                 {
-                                    
+
                                     if (OnStartAnim != null)
                                     {
                                         OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
@@ -355,7 +355,9 @@ namespace OpenSim.Region.ClientStack
                         //Console.WriteLine("image request: " + Pack.ToString());
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
-                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet);
+
+                            //  Console.WriteLine("image request of "+ imageRequest.RequestImage[i].Image+ " at discard level " + imageRequest.RequestImage[i].DiscardLevel);
+                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet, imageRequest.RequestImage[i].DiscardLevel);
                         }
                         break;
                     case PacketType.TransferRequest:
