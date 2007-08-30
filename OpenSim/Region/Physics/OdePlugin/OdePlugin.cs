@@ -144,8 +144,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (prim is OdePrim)
             {
-                d.GeomDestroy(((OdePrim)prim).prim_geom);
-                this._prims.Remove((OdePrim)prim);
+                lock (OdeLock)
+                {
+                    d.GeomDestroy(((OdePrim)prim).prim_geom);
+                    this._prims.Remove((OdePrim)prim);
+                }
             }
         }
 
@@ -221,10 +224,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 int y = i >> 8;
                 this._heightmap[i] = (double)heightMap[x * 256 + y];
             }
-            IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
 
             lock (OdeLock)
             {
+                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
                 d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
@@ -427,9 +430,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             _size = size;
             _acceleration = new PhysicsVector();
             _orientation = rotation;
-            prim_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
             lock (OdeScene.OdeLock)
             {
+                prim_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.W = rotation.w;
