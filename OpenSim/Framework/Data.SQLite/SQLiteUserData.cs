@@ -199,7 +199,7 @@ namespace OpenSim.Framework.Data.SQLite
                     fillUserAgentRow(row, user.currentAgent);
                 }
             }
-            MainLog.Instance.Verbose("DATASTORE", "Adding user: " + ds.GetXml());
+            MainLog.Instance.Verbose("Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
             // save changes off to disk
             da.Update(ds, "users");
         }
