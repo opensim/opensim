@@ -57,10 +57,12 @@ namespace OpenSim
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
         public string m_physicsEngine;
+        public string m_scriptEngine;
         public bool m_sandbox;
         public bool user_accounts;
         public bool m_gridLocalAsset;
-
+        
+        
         protected ModuleLoader m_moduleLoader;
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
@@ -107,6 +109,7 @@ namespace OpenSim
 
         protected void ReadConfigSettings(IConfigSource configSource)
         {
+            
             m_networkServersInfo = new NetworkServersInfo();
             m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
             m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
@@ -116,6 +119,8 @@ namespace OpenSim
             m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
             m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
+
+            m_scriptEngine = configSource.Configs["Startup"].GetString("script_engine", "DotNetEngine");
 
             standaloneAuthenticate = configSource.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
             standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
@@ -187,8 +192,12 @@ namespace OpenSim
                 Scene scene = SetupScene(regionInfo, out udpServer);
 
 
-                OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine("DotNetEngine");
-                scene.AddScriptEngine(ScriptEngine, m_log);
+                // Check if we have a script engine to load
+                if (m_scriptEngine != null && m_scriptEngine != "")
+                {
+                    OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
+                    scene.AddScriptEngine(ScriptEngine, m_log);
+                }
                 
                 //Server side object editing permissions checking
                 if (m_permissions)
