@@ -278,9 +278,9 @@ namespace OpenSim.Grid.GridServer
                 TheSim.regionLocZ = 0;
                 TheSim.regionMapTextureID = new LLUUID((string)requestData["map-image-id"]);
 
-                TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
-                System.Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " + TheSim.serverURI);
+                TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));        
                 TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
+                System.Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " + TheSim.serverURI);
                 TheSim.httpServerURI = "http://" + TheSim.serverIP + ":" + TheSim.httpPort + "/";
 
 

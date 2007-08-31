@@ -23,7 +23,7 @@ namespace OpenSim.Region.Environment
         /// Really just a test method for loading a set of currently internal modules
         /// </summary>
         /// <param name="scene"></param>
-        public void LoadInternalModules(Scene scene)
+        public void CreateDefaultModules(Scene scene)
         {
             //Testing IRegionModule ideas 
             XferModule xferManager = new XferModule();
@@ -40,12 +40,30 @@ namespace OpenSim.Region.Environment
 
             this.LoadModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
 
-            // Post Initialise Modules
+            // Post Initialise Modules, which most likely shouldn't be here
+            // but should rather be in a separate method that is called after all modules are loaded/created/intialised
             xferManager.PostInitialise();
-           // chatModule.PostInitialise();  //for now leave this disabled as it would start up a partially working irc bot
+            // chatModule.PostInitialise();  //for now leave this disabled as it would start up a partially working irc bot
             avatarProfiles.PostInitialise();
         }
 
+        /// <summary>
+        ///  Loads/initialises a Module instance that can be used by mutliple Regions
+        /// </summary>
+        /// <param name="dllName"></param>
+        /// <param name="moduleName"></param>
+        /// <param name="scene"></param>
+        public void LoadSharedModule(string dllName, string moduleName, Scene scene)
+        {
+
+        }
+
+        /// <summary>
+        /// Loads a external Module (if not already loaded) and creates a new instance of it for the passed Scene.
+        /// </summary>
+        /// <param name="dllName"></param>
+        /// <param name="moduleName"></param>
+        /// <param name="scene"></param>
         public void LoadModule(string dllName, string moduleName, Scene scene)
         {
             Assembly pluginAssembly = null;

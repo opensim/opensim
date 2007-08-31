@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace OpenSim.Framework.Console
@@ -228,7 +229,21 @@ namespace OpenSim.Framework.Console
             WriteNewLine(ConsoleColor.Blue, format, args);
             return;
         }
+        
+        [Conditional("DEBUG")]
+        public void Debug(string format, params object[] args)
+        {
+            WriteNewLine(ConsoleColor.Gray, format, args);
+            return;
+        }
 
+        [Conditional("DEBUG")]
+        public void Debug(string sender, string format, params object[] args)
+        {
+            WritePrefixLine(DeriveColor(sender), sender);
+            WriteNewLine(ConsoleColor.Gray, format, args);
+            return;
+        }
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
         {

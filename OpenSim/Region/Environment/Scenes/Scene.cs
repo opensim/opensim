@@ -170,7 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_permissionManager = new PermissionManager(this);
 
             MainLog.Instance.Verbose("Loading Region Modules");
-            m_moduleLoader.LoadInternalModules(this);
+            m_moduleLoader.CreateDefaultModules(this);
             
             m_eventManager.OnParcelPrimCountAdd +=
                 m_LandManager.addPrimToLandPrimCounts;

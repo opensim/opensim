@@ -10,6 +10,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Modules
 {

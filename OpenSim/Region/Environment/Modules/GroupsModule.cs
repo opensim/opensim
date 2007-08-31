@@ -6,10 +6,9 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 
-
 namespace OpenSim.Region.Environment.Modules
 {
-    public class InventoryModule :IRegionModule
+    public class GroupsModule : IRegionModule
     {
         private Scene m_scene;
 
@@ -29,7 +28,8 @@ namespace OpenSim.Region.Environment.Modules
 
         public string GetName()
         {
-            return "InventoryModule";
+            return "GroupsModule";
         }
     }
 }
+
