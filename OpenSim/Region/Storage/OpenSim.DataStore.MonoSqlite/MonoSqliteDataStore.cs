@@ -175,8 +175,11 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                         createdObjects[new LLUUID(objID)].AddPart(prim);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    
+                    MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
+                    MainLog.Instance.Verbose(e.ToString());
                     foreach (DataColumn col in prims.Columns)
                     {
                         MainLog.Instance.Verbose("Col: " + col.ColumnName + " => " + primRow[col]);
@@ -184,7 +187,7 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                 }
             }
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
-             return retvals;
+            return retvals;
         }
 
         public void StoreTerrain(double[,] ter)
