@@ -61,7 +61,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             ds.Tables.Add(createPrimTable());
             setupPrimCommands(primDa, conn);
             primDa.Fill(ds.Tables["prims"]);
-            MainLog.Instance.Verbose("DATASTORE", "Populated Prim Definitions");
 
             ds.Tables.Add(createShapeTable());
             setupShapeCommands(shapeDa, conn);
@@ -78,7 +77,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             {
                 MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
             }
-            MainLog.Instance.Verbose("DATASTORE", "Populated Prim Shapes");
             return;
         }
 
@@ -186,7 +184,6 @@ namespace OpenSim.DataStore.MonoSqliteStorage
                     }
                 }
             }
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite - LoadObjects found " + prims.Rows.Count + " primitives");
             return retvals;
         }
 
