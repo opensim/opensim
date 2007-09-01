@@ -73,20 +73,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
-        static public IntPtr world;
-        static public IntPtr space;
-        static private IntPtr contactgroup;
-        static private IntPtr LandGeom;
-        //static private IntPtr Land;
+        private IntPtr contactgroup;
+        private IntPtr LandGeom;
         private double[] _heightmap;
-        static private d.NearCallback nearCallback = near;
+        private d.NearCallback nearCallback;
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
         private List<OdePrim> _prims = new List<OdePrim>();
-        private static d.ContactGeom[] contacts = new d.ContactGeom[30];
-        private static d.Contact contact;
+        private d.ContactGeom[] contacts = new d.ContactGeom[30];
+        private d.Contact contact;
+
+        public IntPtr world;
+        public IntPtr space;
         public static Object OdeLock = new Object();
+
         public OdeScene()
         {
+            nearCallback = near;
             contact.surface.mode |= d.ContactFlags.Approx1 | d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP;
             contact.surface.mu = 10.0f;
             contact.surface.bounce = 0.9f;
@@ -103,11 +105,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldSetContactSurfaceLayer(world, 0.001f);
             }
 
-            this._heightmap = new double[65536];
+            _heightmap = new double[65536];
         }
 
         // This function blatantly ripped off from BoxStack.cs
-        static private void near(IntPtr space, IntPtr g1, IntPtr g2)
+        private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
             IntPtr b1 = d.GeomGetBody(g1);
@@ -116,13 +118,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
 
             int count = d.Collide(g1, g2, 500, contacts, d.ContactGeom.SizeOf);
-            for (int i = 0; i < count; ++i)
+            for (int i = 0; i < count; i++)
             {
                 contact.geom = contacts[i];
                 IntPtr joint = d.JointCreateContact(world, contactgroup, ref contact);
                 d.JointAttach(joint, b1, b2);
             }
 
+        }
+
+        private void collision_optimized()
+        {
+            foreach (OdeCharacter chr in _characters)
+            {
+                d.SpaceCollide2(space, _characters[_characters.Count - 1].capsule_geom, IntPtr.Zero, nearCallback);
+            }
         }
 
         public override PhysicsActor AddAvatar(PhysicsVector position)
@@ -132,7 +142,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pos.Y = position.Y;
             pos.Z = position.Z;
             OdeCharacter newAv = new OdeCharacter(this, pos);
-            this._characters.Add(newAv);
+            _characters.Add(newAv);
             return newAv;
         }
 
@@ -147,13 +157,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 lock (OdeLock)
                 {
                     d.GeomDestroy(((OdePrim)prim).prim_geom);
-                    this._prims.Remove((OdePrim)prim);
+                    _prims.Remove((OdePrim)prim);
                 }
             }
         }
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
+            Console.WriteLine("++++++++++++++++++++++++++++++++++ AddPrim: " + position);
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
@@ -172,7 +183,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 newPrim = new OdePrim(this, pos, siz, rot);
             }
-            this._prims.Add(newPrim);
+            _prims.Add(newPrim);
             return newPrim;
         }
 
@@ -187,7 +198,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     actor.Move(timeStep);
                 }
-                d.SpaceCollide(space, IntPtr.Zero, nearCallback);
+                collision_optimized();
                 for (int i = 0; i < 50; i++)
                 {
                     d.WorldQuickStep(world, timeStep * 0.02f);
@@ -222,7 +233,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
                 int x = i & 0xff;
                 int y = i >> 8;
-                this._heightmap[i] = (double)heightMap[x * 256 + y];
+                _heightmap[i] = (double)heightMap[x * 256 + y];
             }
 
             lock (OdeLock)
@@ -263,9 +274,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool flying = false;
         //private float gravityAccel;
         private IntPtr BoundingCapsule;
-        IntPtr capsule_geom;
-        d.Mass capsule_mass;
         private OdeScene _parent_scene;
+        public IntPtr capsule_geom;
+        public d.Mass capsule_mass;
 
         public OdeCharacter(OdeScene parent_scene, PhysicsVector pos)
         {
@@ -276,8 +287,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeScene.OdeLock)
             {
                 d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
-                capsule_geom = d.CreateSphere(OdeScene.space, 1.0f);        /// not a typo!  Spheres roll, capsules tumble
-                this.BoundingCapsule = d.BodyCreate(OdeScene.world);
+                capsule_geom = d.CreateSphere(parent_scene.space, 1.0f);        /// not a typo!  Spheres roll, capsules tumble
+                BoundingCapsule = d.BodyCreate(parent_scene.world);
                 d.BodySetMass(BoundingCapsule, ref capsule_mass);
                 d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
                 d.GeomSetBody(capsule_geom, BoundingCapsule);
@@ -370,7 +381,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void SetAcceleration(PhysicsVector accel)
         {
-            this._acceleration = accel;
+            _acceleration = accel;
         }
 
         public override void AddForce(PhysicsVector force)
@@ -432,7 +443,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _orientation = rotation;
             lock (OdeScene.OdeLock)
             {
-                prim_geom = d.CreateBox(OdeScene.space, _size.X, _size.Y, _size.Z);
+                prim_geom = d.CreateBox(parent_scene.space, _size.X, _size.Y, _size.Z);
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.W = rotation.w;
