@@ -131,7 +131,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             foreach (OdeCharacter chr in _characters)
             {
-                d.SpaceCollide2(space, _characters[_characters.Count - 1].capsule_geom, IntPtr.Zero, nearCallback);
+                d.SpaceCollide2(space, chr.capsule_geom, IntPtr.Zero, nearCallback);
             }
         }
 
