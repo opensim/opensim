@@ -164,7 +164,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
-            Console.WriteLine("++++++++++++++++++++++++++++++++++ AddPrim: " + position);
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
