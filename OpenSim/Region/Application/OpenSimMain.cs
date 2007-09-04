@@ -371,7 +371,7 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
-            if ((m_consoleRegion == null) ||(command == "change-region"))
+            if ((m_consoleRegion == null) || (command == "change-region")  || (command == "shutdown"))
             {
                 switch (command)
                 {
