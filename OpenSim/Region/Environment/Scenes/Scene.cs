@@ -92,9 +92,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         // this most likely shouldn't be handled as a API method like this, but doing it for testing purposes
         public ModuleAPIMethod2<bool, string, byte[]> AddXferFile = null;
-        
+
         private ISimChat m_simChatModule = null;
-        
+
         #region Properties
 
         public AgentCircuitManager AuthenticateHandler
@@ -1133,7 +1133,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public void RegisterModuleInterface<M>( M mod)
+        public void RegisterModuleInterface<M>(M mod)
         {
             if (!this.ModuleInterfaces.ContainsKey(typeof(M)))
             {
@@ -1231,6 +1231,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             switch (command)
             {
+                case "show":
+                    if (cmdparams.Length > 0)
+                    {
+                        Show(cmdparams[0]);
+                    }
+                    break;
                 case "save-xml":
                     if (cmdparams.Length > 0)
                     {
@@ -1267,6 +1273,47 @@ namespace OpenSim.Region.Environment.Scenes
 
                 default:
                     MainLog.Instance.Error("Unknown command: " + command);
+                    break;
+            }
+        }
+
+        public void Show(string ShowWhat)
+        {
+            switch (ShowWhat)
+            {
+                case "users":
+                    MainLog.Instance.Error("Current Region: " + RegionInfo.RegionName);
+                    MainLog.Instance.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
+
+                    foreach (EntityBase entity in Entities.Values)
+                    {
+                        if (entity is ScenePresence)
+                        {
+                            ScenePresence scenePrescence = entity as ScenePresence;
+                            if (!scenePrescence.childAgent)
+                            {
+                                MainLog.Instance.Error(
+                                    String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
+                                                  scenePrescence.Firstname,
+                                                  scenePrescence.Lastname,
+                                                  scenePrescence.UUID,
+                                                  scenePrescence.ControllingClient.AgentId,
+                                                  "Unknown",
+                                                  "Unknown",
+                                                  RegionInfo.RegionName));
+                            }
+                        }
+                    }
+                    break;
+                case "modules":
+                    MainLog.Instance.Error("The currently loaded modules in " + this.RegionInfo.RegionName + " are:");
+                    foreach (OpenSim.Region.Environment.Interfaces.IRegionModule module in this.Modules.Values)
+                    {
+                        if (!module.IsSharedModule())
+                        {
+                            MainLog.Instance.Error("Region Module: " + module.GetName());
+                        }
+                    }
                     break;
             }
         }

@@ -585,6 +585,13 @@ namespace OpenSim
                         }
                     }
                     break;
+                case "modules":
+                    m_log.Error("The currently loaded shared modules are:");
+                    foreach (OpenSim.Region.Environment.Interfaces.IRegionModule module in m_moduleLoader.LoadedSharedModules.Values)
+                    {
+                        m_log.Error("Shared Module: " + module.GetName());
+                    }
+                    break;
             }
         }
 
