@@ -371,7 +371,7 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
-            if ((m_consoleRegion == null) || (command == "exit-region"))
+            if ((m_consoleRegion == null) || (command == "exit-region") || (command == "change-region"))
             {
                 switch (command)
                 {
@@ -500,14 +500,25 @@ namespace OpenSim
                         if (cmdparams.Length > 0)
                         {
                             string name = this.CombineParams(cmdparams, 0);
-                            Console.WriteLine("Searching for Region: '" + name +"'");
+                            Console.WriteLine("Searching for Region: '" + name + "'");
                             foreach (Scene scene in m_localScenes)
                             {
                                 if (scene.RegionInfo.RegionName.ToLower() == name.ToLower())
                                 {
                                     m_consoleRegion = scene;
-                                    MainLog.Instance.Verbose("Current Region set as: " + m_consoleRegion.RegionInfo.RegionName);
+                                    MainLog.Instance.Verbose("Setting current region: " + m_consoleRegion.RegionInfo.RegionName);
                                 }
+                            }
+                        }
+                        else
+                        {
+                            if (m_consoleRegion != null)
+                            {
+                                MainLog.Instance.Verbose("Current Region: " + m_consoleRegion.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
+                            }
+                            else
+                            {
+                                MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
                             }
                         }
                         break;
