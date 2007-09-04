@@ -1233,6 +1233,16 @@ namespace OpenSim.Region.Environment.Scenes
         {
             switch (command)
             {
+                case "help":
+                    MainLog.Instance.Error("alert - send alert to a designated user or all users.");
+                    MainLog.Instance.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
+                    MainLog.Instance.Error("  alert general [Message] - send an alert to all users.");
+                    MainLog.Instance.Error("backup - trigger a region backup");
+                    MainLog.Instance.Error("load-xml [filename] - load prims from a XML file into current region");
+                    MainLog.Instance.Error("save-xml [filename] - save prims from current region to a XML file");
+                    MainLog.Instance.Error("show users - show info about connected users in the current region.");
+                    MainLog.Instance.Error("shutdown - disconnect all clients and shutdown.");
+                    break;
                 case "show":
                     if (cmdparams.Length > 0)
                     {

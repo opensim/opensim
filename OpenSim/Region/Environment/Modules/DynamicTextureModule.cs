@@ -95,13 +95,37 @@ namespace OpenSim.Region.Environment.Modules
             return LLUUID.Zero;
         }
 
+        public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data, string extraParams, int updateTimer)
+        {
+            if (this.RenderPlugins.ContainsKey(contentType))
+            {
+                DynamicTextureUpdater updater = new DynamicTextureUpdater();
+                updater.SimUUID = simID;
+                updater.PrimID = primID;
+                updater.ContentType = contentType;
+                updater.BodyData = data;
+                updater.UpdateTimer = updateTimer;
+                updater.UpdaterID = LLUUID.Random();
+                updater.Params = extraParams;
+
+                if (!this.Updaters.ContainsKey(updater.UpdaterID))
+                {
+                    Updaters.Add(updater.UpdaterID, updater);
+                }
+
+                RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
+                return updater.UpdaterID;
+            }
+            return LLUUID.Zero;
+        }
+
         public class DynamicTextureUpdater
         {
             public LLUUID SimUUID;
             public LLUUID UpdaterID;
             public string ContentType;
             public string Url;
-            public Stream StreamData;
+            public string BodyData;
             public LLUUID PrimID;
             public int UpdateTimer;
             public LLUUID LastAssetID;
@@ -111,7 +135,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 LastAssetID = LLUUID.Zero;
                 UpdateTimer = 0;
-                StreamData = null;
+                BodyData = null;
             }
 
             public void DataReceived(byte[] data, Scene scene)
