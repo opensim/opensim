@@ -62,8 +62,8 @@ namespace OpenSim
         public bool m_sandbox;
         public bool user_accounts;
         public bool m_gridLocalAsset;
-        
-        
+
+
         protected ModuleLoader m_moduleLoader;
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
@@ -214,7 +214,7 @@ namespace OpenSim
                     OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
                     scene.AddScriptEngine(ScriptEngine, m_log);
                 }
-                
+
                 //Server side object editing permissions checking
                 if (m_permissions)
                     scene.PermissionsMngr.EnablePermissions();
@@ -497,17 +497,31 @@ namespace OpenSim
                         break;
 
                     case "change-region":
-                        foreach (Scene scene in m_localScenes)
+                        if (cmdparams.Length > 0)
                         {
-                            if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
+                            string name = this.CombineParams(cmdparams, 0);
+                            Console.WriteLine("Searching for Region: '" + name +"'");
+                            foreach (Scene scene in m_localScenes)
                             {
-                                m_consoleRegion = scene;
+                                if (scene.RegionInfo.RegionName.ToLower() == name.ToLower())
+                                {
+                                    m_consoleRegion = scene;
+                                    MainLog.Instance.Verbose("Current Region set as: " + m_consoleRegion.RegionInfo.RegionName);
+                                }
                             }
                         }
                         break;
-                        
+
                     case "exit-region":
-                        m_consoleRegion = null;
+                        if (m_consoleRegion != null)
+                        {
+                            m_consoleRegion = null;
+                            MainLog.Instance.Verbose("Exiting region, Now at Root level");
+                        }
+                        else
+                        {
+                            MainLog.Instance.Verbose("No region is set. Already at Root level");
+                        }
                         break;
 
                     default:
@@ -561,6 +575,17 @@ namespace OpenSim
                     }
                     break;
             }
+        }
+
+        private string CombineParams(string[] commandParams, int pos)
+        {
+            string result = "";
+            for (int i = pos; i < commandParams.Length; i++)
+            {
+                result += commandParams[i] +" ";
+            }
+            result = result.TrimEnd(' ');
+            return result;
         }
         #endregion
     }

@@ -1135,7 +1135,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RegisterModuleInterface<M>( M mod)
         {
-            //Console.WriteLine("registering module interface " + typeof(M));
             if (!this.ModuleInterfaces.ContainsKey(typeof(M)))
             {
                 ModuleInterfaces.Add(typeof(M), mod);
@@ -1255,6 +1254,7 @@ namespace OpenSim.Region.Environment.Scenes
                     break;
 
                 case "set-time":
+                    this.SetTimePhase(Convert.ToInt32(cmdparams[0]));
                     break;
 
                 case "backup":
