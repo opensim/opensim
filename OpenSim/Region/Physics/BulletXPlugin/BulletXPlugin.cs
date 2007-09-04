@@ -1,9 +1,11 @@
+#region Copyright
 /*
 * Copyright (c) Contributors, http://www.openmetaverse.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
 * Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
+* modification, are permitted provided that the following conditions are 
+met:
 *     * Redistributions of source code must retain the above copyright
 *       notice, this list of conditions and the following disclaimer.
 *     * Redistributions in binary form must reproduce the above copyright
@@ -11,27 +13,33 @@
 *       documentation and/or other materials provided with the distribution.
 *     * Neither the name of the OpenSim Project nor the
 *       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
+*       derived from this software without specific prior written 
+permission.
 *
 * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+AND
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 */
+#endregion
 #region References
 using System;
 using System.Collections.Generic;
 using OpenSim.Region.Physics.Manager;
 using Axiom.Math;
+using AxiomQuaternion = Axiom.Math.Quaternion;
 //Specific References for BulletXPlugin
-using MonoXnaCompactMaths;
+using MonoXnaCompactMaths; //Called as MXCM
 using XnaDevRu.BulletX;
 using XnaDevRu.BulletX.Dynamics;
 #endregion
@@ -43,37 +51,24 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     /// </summary>
     public class BulletXConversions
     {
+        //Vector3
         public static MonoXnaCompactMaths.Vector3 PhysicsVectorToXnaVector3(PhysicsVector physicsVector)
         {
             return new MonoXnaCompactMaths.Vector3(physicsVector.X, physicsVector.Y, physicsVector.Z);
-        }
-        public static void PhysicsVectorToXnaVector3(PhysicsVector physicsVector, out MonoXnaCompactMaths.Vector3 XnaVector3)
-        {
-            XnaVector3.X = physicsVector.X;
-            XnaVector3.Y = physicsVector.Y;
-            XnaVector3.Z = physicsVector.Z;
         }
         public static PhysicsVector XnaVector3ToPhysicsVector(MonoXnaCompactMaths.Vector3 xnaVector3)
         {
             return new PhysicsVector(xnaVector3.X, xnaVector3.Y, xnaVector3.Z);
         }
-        /*public static void XnaVector3ToPhysicsVector(MonoXnaCompactMaths.Vector3 xnaVector3, out PhysicsVector physicsVector)
+        //Quaternion
+        public static MonoXnaCompactMaths.Quaternion AxiomQuaternionToXnaQuaternion(AxiomQuaternion axiomQuaternion)
         {
-            xnaVector3.X = physicsVector.X;
-            xnaVector3.Y = physicsVector.Y;
-            xnaVector3.Z = physicsVector.Z;
-        }*/
-        #region Axiom and Xna
-        ///// <summary>
-        ///// BTW maybe some conversions will be a simply converion that it doesn't require this class, but i don't know
-        ///// </summary>
-        ///// <param name="AxiomVector3"></param>
-        ///// <returns></returns>
-        //public static MonoXnaCompactMaths.Vector3 Vector3AxiomToXna(Axiom.Math.Vector3 AxiomVector3)
-        //{
-        //    return new MonoXnaCompactMaths.Vector3(AxiomVector3.x, AxiomVector3.y, AxiomVector3.z);
-        //}
-        #endregion
+            return new MonoXnaCompactMaths.Quaternion(axiomQuaternion.x, axiomQuaternion.y, axiomQuaternion.z, axiomQuaternion.w);
+        }
+        public static AxiomQuaternion XnaQuaternionToAxiomQuaternion(MonoXnaCompactMaths.Quaternion xnaQuaternion)
+        {
+            return new AxiomQuaternion(xnaQuaternion.W, xnaQuaternion.X, xnaQuaternion.Y, xnaQuaternion.Z);
+        }
     }
     /// <summary>
     /// PhysicsPlugin Class for BulletX
@@ -127,6 +122,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         private float[] _heightmap;
         private List<BulletXCharacter> _characters = new List<BulletXCharacter>();
+        private List<BulletXPrim> _prims = new List<BulletXPrim>();
 
         public static float Gravity { get { return gravity; } }
         public static float HeightLevel0 { get { return heightLevel0; } }
@@ -146,7 +142,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             this._heightmap = new float[65536];
         }
-
         public override PhysicsActor AddAvatar(PhysicsVector position)
         {
             PhysicsVector pos = new PhysicsVector();
@@ -154,31 +149,26 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             pos.Y = position.Y;
             pos.Z = position.Z + 20;
             BulletXCharacter newAv = new BulletXCharacter(this, pos);
-            this._characters.Add(newAv);
+            _characters.Add(newAv);
             return newAv;
         }
-
         public override void RemoveAvatar(PhysicsActor actor)
         {
-
+            if (actor is BulletXCharacter)
+            {
+                _characters.Remove((BulletXCharacter)actor);
+            }
         }
-
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Axiom.Math.Quaternion rotation)
+        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
         {
-            PhysicsVector pos = new PhysicsVector();
-            pos.X = position.X;
-            pos.Y = position.Y;
-            pos.Z = position.Z;
-            PhysicsVector siz = new PhysicsVector();
-            siz.X = size.X;
-            siz.Y = size.Y;
-            siz.Z = size.Z;
-            return new BulletXPrim();
+            return new BulletXPrim(this, position, size, rotation);
         }
-
         public override void RemovePrim(PhysicsActor prim)
         {
-            throw new Exception("The method or operation is not implemented.");
+            if (prim is BulletXPrim)
+            {
+                _prims.Remove((BulletXPrim)prim);
+            }
         }
         public override void Simulate(float timeStep)
         {
@@ -200,12 +190,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
 
         }
-
         public override void GetResults()
         {
 
         }
-
         public override bool IsThreaded
         {
             get
@@ -213,7 +201,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 return (false); // for now we won't be multithreaded
             }
         }
-
         public override void SetTerrain(float[] heightMap)
         {
             //As the same as ODE, heightmap (x,y) must be swapped for BulletX
@@ -226,7 +213,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 this._heightmap[i] = heightMap[x * 256 + y];
             }
         }
-
         public override void DeleteTerrain()
         {
 
@@ -239,7 +225,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     {
         private PhysicsVector _position;
         private PhysicsVector _velocity;
+        private PhysicsVector _size;
         private PhysicsVector _acceleration;
+        private AxiomQuaternion _orientation;
         private bool flying;
         private RigidBody rigidBody;
         public Axiom.Math.Vector2 RigidBodyHorizontalPosition
@@ -250,10 +238,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
         }
         public BulletXCharacter(BulletXScene parent_scene, PhysicsVector pos)
+            : this(parent_scene, pos, new PhysicsVector(), new PhysicsVector(), new PhysicsVector(),
+            AxiomQuaternion.Identity)
         {
-            _velocity = new PhysicsVector();
+        }
+        public BulletXCharacter(BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
+            PhysicsVector size, PhysicsVector acceleration, AxiomQuaternion orientation)
+        {
             _position = pos;
-            _acceleration = new PhysicsVector();
+            _velocity = velocity;
+            _size = size;
+            _acceleration = acceleration;
+            _orientation = orientation;
             float _mass = 50.0f; //This depends of avatar's dimensions
             Matrix _startTransform = Matrix.Identity;
             _startTransform.Translation = BulletXConversions.PhysicsVectorToXnaVector3(pos);
@@ -275,31 +271,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             parent_scene.ddWorld.AddRigidBody(rigidBody);
         }
-
-        public override bool Flying
-        {
-            get
-            {
-                return flying;
-            }
-            set
-            {
-                flying = value;
-            }
-        }
-
-        public override PhysicsVector Size
-        {
-            get
-            {
-                throw new Exception("The method or operation is not implemented.");
-            }
-            set
-            {
-                throw new Exception("The method or operation is not implemented.");
-            }
-        }
-
         public override PhysicsVector Position
         {
             get
@@ -311,7 +282,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _position = value;
             }
         }
-
         public override PhysicsVector Velocity
         {
             get
@@ -323,7 +293,50 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _velocity = value;
             }
         }
-
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return _size;
+            }
+            set
+            {
+                _size = value;
+            }
+        }
+        public override PhysicsVector Acceleration
+        {
+            get
+            {
+                return _acceleration;
+            }
+        }
+        public override AxiomQuaternion Orientation
+        {
+            get
+            {
+                return _orientation;
+            }
+            set
+            {
+                _orientation = value;
+            }
+        }
+        public override bool Flying
+        {
+            get
+            {
+                return flying;
+            }
+            set
+            {
+                flying = value;
+            }
+        }
+        public void SetAcceleration(PhysicsVector accel)
+        {
+            _acceleration = accel;
+        }
         public override bool Kinematic
         {
             get
@@ -335,42 +348,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             }
         }
-
-        public override Axiom.Math.Quaternion Orientation
-        {
-            get
-            {
-                return Axiom.Math.Quaternion.Identity;
-            }
-            set
-            {
-
-            }
-        }
-
-        public override PhysicsVector Acceleration
-        {
-            get
-            {
-                return _acceleration;
-            }
-
-        }
-        public void SetAcceleration(PhysicsVector accel)
-        {
-            this._acceleration = accel;
-        }
-
         public override void AddForce(PhysicsVector force)
         {
 
         }
-
         public override void SetMomentum(PhysicsVector momentum)
         {
 
         }
-
         public void Move(float timeStep)
         {
             MonoXnaCompactMaths.Vector3 vec = new MonoXnaCompactMaths.Vector3();
@@ -419,12 +404,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             rigidBody.LinearVelocity = vec;
         }
-
         public void UpdatePosition()
         {
             this._position = BulletXConversions.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
         }
-
         //This validation is very basic
         internal void ValidateHeight(float heighmapPositionValue)
         {
@@ -445,56 +428,33 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     {
         private PhysicsVector _position;
         private PhysicsVector _velocity;
+        private PhysicsVector _size;
         private PhysicsVector _acceleration;
+        private AxiomQuaternion _orientation;
 
-        public BulletXPrim()
+        public BulletXPrim(BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size, AxiomQuaternion rotation)
+            : this(parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation)
         {
-            _velocity = new PhysicsVector();
-            _position = new PhysicsVector();
-            _acceleration = new PhysicsVector();
         }
-        public override bool Flying
+        public BulletXPrim(BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity, PhysicsVector size,
+            PhysicsVector aceleration, AxiomQuaternion rotation)
         {
-            get
-            {
-                return false; //no flying prims for you
-            }
-            set
-            {
-
-            }
-        }
-        public override PhysicsVector Size
-        {
-            get
-            {
-                throw new Exception("The method or operation is not implemented.");
-            }
-            set
-            {
-                throw new Exception("The method or operation is not implemented.");
-            }
+            _position = pos;
+            _velocity = velocity;
+            _size = size;
+            _acceleration = aceleration;
+            _orientation = rotation;
         }
         public override PhysicsVector Position
         {
             get
             {
-                PhysicsVector pos = new PhysicsVector();
-                //	PhysicsVector vec = this._prim.Position;
-                //pos.X = vec.X;
-                //pos.Y = vec.Y;
-                //pos.Z = vec.Z;
-                return pos;
+                return _position;
 
             }
             set
             {
-                /*PhysicsVector vec = value;
-                PhysicsVector pos = new PhysicsVector();
-                pos.X = vec.X;
-                pos.Y = vec.Y;
-                pos.Z = vec.Z;
-                this._prim.Position = pos;*/
+                _position = value;
             }
         }
         public override PhysicsVector Velocity
@@ -508,6 +468,50 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _velocity = value;
             }
         }
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return _size;
+            }
+            set
+            {
+                _size = value;
+            }
+        }
+        public override PhysicsVector Acceleration
+        {
+            get
+            {
+                return _acceleration;
+            }
+        }
+        public override AxiomQuaternion Orientation
+        {
+            get
+            {
+                return _orientation;
+            }
+            set
+            {
+                _orientation = value;
+            }
+        }
+        public override bool Flying
+        {
+            get
+            {
+                return false; //no flying prims for you
+            }
+            set
+            {
+
+            }
+        }
+        public void SetAcceleration(PhysicsVector accel)
+        {
+            _acceleration = accel;
+        }
         public override bool Kinematic
         {
             get
@@ -519,30 +523,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
                 //this._prim.Kinematic = value;
             }
-        }
-        public override Axiom.Math.Quaternion Orientation
-        {
-            get
-            {
-                Axiom.Math.Quaternion res = new Axiom.Math.Quaternion();
-                return res;
-            }
-            set
-            {
-
-            }
-        }
-        public override PhysicsVector Acceleration
-        {
-            get
-            {
-                return _acceleration;
-            }
-
-        }
-        public void SetAcceleration(PhysicsVector accel)
-        {
-            this._acceleration = accel;
         }
         public override void AddForce(PhysicsVector force)
         {
