@@ -23,12 +23,12 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 #region References
 using System;
 using System.Collections.Generic;
-using OpenSim.Physics.Manager;
+using OpenSim.Region.Physics.Manager;
 using Axiom.Math;
 //Specific References for BulletXPlugin
 using MonoXnaCompactMaths;
@@ -163,7 +163,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         }
 
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size)
+        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Axiom.Math.Quaternion rotation)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -176,6 +176,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             return new BulletXPrim();
         }
 
+        public override void RemovePrim(PhysicsActor prim)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
         public override void Simulate(float timeStep)
         {
             foreach (BulletXCharacter actor in _characters)
@@ -187,7 +191,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             foreach (BulletXCharacter actor in _characters)
             {
                 actor.ValidateHeight(this._heightmap[
-                    (int)Math.Round(actor.RigidBodyHorizontalPosition.x) * 256 
+                    (int)Math.Round(actor.RigidBodyHorizontalPosition.x) * 256
                     + (int)Math.Round(actor.RigidBodyHorizontalPosition.y)]);
             }
             foreach (BulletXCharacter actor in _characters)
@@ -257,7 +261,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             CollisionShape _collisionShape = new BoxShape(new MonoXnaCompactMaths.Vector3(0.5f, 0.5f, 1.60f));
             DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
             MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
-            _collisionShape.CalculateLocalInertia(_mass, out _localInertia); //Always when mass > 0
+            _collisionShape.CalculateLocalInertia(_mass, out _localInertia); 
+//Always when mass > 0
 
             //The next values might change
             float _linearDamping = 0.0f;
@@ -280,6 +285,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             set
             {
                 flying = value;
+            }
+        }
+
+        public override PhysicsVector Size
+        {
+            get
+            {
+                throw new Exception("The method or operation is not implemented.");
+            }
+            set
+            {
+                throw new Exception("The method or operation is not implemented.");
             }
         }
 
@@ -359,7 +376,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             MonoXnaCompactMaths.Vector3 vec = new MonoXnaCompactMaths.Vector3();
             //if (this._velocity.X == 0.0f)
             //    vec.X = this.rigidBody.LinearVelocity.X; //current velocity
-            //else 
+            //else
                 vec.X = this._velocity.X; //overrides current velocity
 
             //if (this._velocity.Y == 0.0f)
@@ -376,18 +393,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             if (flying)
             {
                 //Antigravity with movement
-                if (this._position.Z <= BulletXScene.HeightLevel0) 
+                if (this._position.Z <= BulletXScene.HeightLevel0)
                 {
                     vec.Z = nextZVelocity + BulletXScene.Gravity * timeStep;
                 }
                 //Lowgravity with movement
-                else if((this._position.Z > BulletXScene.HeightLevel0) 
-                    && (this._position.Z <= BulletXScene.HeightLevel1)) 
+                else if((this._position.Z > BulletXScene.HeightLevel0)
+                    && (this._position.Z <= BulletXScene.HeightLevel1))
                 {
                     vec.Z = nextZVelocity + BulletXScene.Gravity * timeStep * (1.0f - BulletXScene.LowGravityFactor);
                 }
                 //Lowgravity with...
-                else if (this._position.Z > BulletXScene.HeightLevel1) 
+                else if (this._position.Z > BulletXScene.HeightLevel1)
                 {
                     if(nextZVelocity > 0) //no movement
                         vec.Z = BulletXScene.Gravity * timeStep * (1.0f - BulletXScene.LowGravityFactor);
@@ -447,6 +464,17 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             }
         }
+        public override PhysicsVector Size
+        {
+            get
+            {
+                throw new Exception("The method or operation is not implemented.");
+            }
+            set
+            {
+                throw new Exception("The method or operation is not implemented.");
+            }
+        }
         public override PhysicsVector Position
         {
             get
@@ -469,7 +497,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 this._prim.Position = pos;*/
             }
         }
-
         public override PhysicsVector Velocity
         {
             get
@@ -481,7 +508,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _velocity = value;
             }
         }
-
         public override bool Kinematic
         {
             get
@@ -494,7 +520,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 //this._prim.Kinematic = value;
             }
         }
-
         public override Axiom.Math.Quaternion Orientation
         {
             get
@@ -507,7 +532,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             }
         }
-
         public override PhysicsVector Acceleration
         {
             get
@@ -520,15 +544,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
             this._acceleration = accel;
         }
-
         public override void AddForce(PhysicsVector force)
         {
 
         }
-
         public override void SetMomentum(PhysicsVector momentum)
         {
 
         }
     }
 }
+
