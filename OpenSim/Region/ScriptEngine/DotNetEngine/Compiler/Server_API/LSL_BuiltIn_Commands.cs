@@ -4,6 +4,7 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Framework.Console;
@@ -650,6 +651,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide) { return 0; }
         public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param) { return new List<string>(); }
 
+        //
+        // OpenSim functions
+        //
+        public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer)
+        {
+            if (dynamicID == "")
+            {
+                IDynamicTextureManager textureManager = this.World.RequestModuleInterface<IDynamicTextureManager>();
+                LLUUID createdTexture = textureManager.AddDynamicTextureURL(World.RegionInfo.SimUUID, this.m_host.UUID, contentType, url, extraParams, timer);
+                return createdTexture.ToStringHyphenated();
+            }
+            else
+            {
+                //TODO update existing dynamic textures
+            }
+
+            return LLUUID.Zero.ToStringHyphenated();
+        }
 
     }
 }

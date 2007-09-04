@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void AddAsset(AssetBase asset)
         {
-            // Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
+             System.Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
             if (asset.Type == 0)
             {
                 //Console.WriteLine("which is a texture");
@@ -160,6 +160,11 @@ namespace OpenSim.Framework.Communications.Caches
                     TextureImage textur = new TextureImage(asset);
                     this.Textures.Add(textur.FullID, textur);
                     this._assetServer.UploadNewAsset(asset);
+                }
+                else
+                {
+                    TextureImage textur = new TextureImage(asset);
+                    this.Textures[asset.FullID] = textur;
                 }
             }
             else

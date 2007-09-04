@@ -14,37 +14,51 @@ namespace OpenSim.Region.Environment
 
         public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
 
+        public List<IRegionModule> LoadedModules = new List<IRegionModule>();
+        public Dictionary<string, IRegionModule> LoadedSharedModules = new Dictionary<string, IRegionModule>();
+        
         public ModuleLoader()
         {
 
         }
 
         /// <summary>
-        /// Really just a test method for loading a set of currently internal modules
+        /// Should have a module factory?
         /// </summary>
         /// <param name="scene"></param>
-        public void CreateDefaultModules(Scene scene)
+        public void CreateDefaultModules(Scene scene, string exceptModules)
         {
-            //Testing IRegionModule ideas 
             XferModule xferManager = new XferModule();
             xferManager.Initialise(scene);
             scene.AddModule(xferManager.GetName(), xferManager);
+            LoadedModules.Add(xferManager);
 
             ChatModule chatModule = new ChatModule();
             chatModule.Initialise(scene);
             scene.AddModule(chatModule.GetName(), chatModule);
+            LoadedModules.Add(chatModule);
 
             AvatarProfilesModule avatarProfiles = new AvatarProfilesModule();
             avatarProfiles.Initialise(scene);
             scene.AddModule(avatarProfiles.GetName(), avatarProfiles);
+            LoadedModules.Add(avatarProfiles);
 
-            this.LoadModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
+            this.LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
+        }
 
-            // Post Initialise Modules, which most likely shouldn't be here
-            // but should rather be in a separate method that is called after all modules are loaded/created/intialised
-            xferManager.PostInitialise();
-            // chatModule.PostInitialise();  //for now leave this disabled as it would start up a partially working irc bot
-            avatarProfiles.PostInitialise();
+        public void LoadDefaultSharedModules(string exceptModules)
+        {
+            DynamicTextureModule dynamicModule = new DynamicTextureModule();
+            this.LoadedSharedModules.Add(dynamicModule.GetName(), dynamicModule);
+        }
+
+        public void InitialiseSharedModules(Scene scene)
+        {
+            foreach (IRegionModule module in this.LoadedSharedModules.Values)
+            {
+                module.Initialise(scene);
+                scene.AddModule(module.GetName(), module); //should be doing this?
+            }
         }
 
         /// <summary>
@@ -53,18 +67,33 @@ namespace OpenSim.Region.Environment
         /// <param name="dllName"></param>
         /// <param name="moduleName"></param>
         /// <param name="scene"></param>
-        public void LoadSharedModule(string dllName, string moduleName, Scene scene)
+        public void LoadSharedModule(string dllName, string moduleName)
         {
+            IRegionModule module = this.LoadModule(dllName, moduleName);
+            if (module != null)
+            {
+                this.LoadedSharedModules.Add(module.GetName(), module);
+            }
+        }
 
+        public void LoadRegionModule(string dllName, string moduleName, Scene scene)
+        {
+            IRegionModule module = this.LoadModule(dllName, moduleName);
+            if (module != null)
+            {
+                module.Initialise(scene);
+                scene.AddModule(module.GetName(), module);
+                LoadedModules.Add(module);
+            }
         }
 
         /// <summary>
-        /// Loads a external Module (if not already loaded) and creates a new instance of it for the passed Scene.
+        /// Loads a external Module (if not already loaded) and creates a new instance of it.
         /// </summary>
         /// <param name="dllName"></param>
         /// <param name="moduleName"></param>
         /// <param name="scene"></param>
-        public void LoadModule(string dllName, string moduleName, Scene scene)
+        public IRegionModule LoadModule(string dllName, string moduleName)
         {
             Assembly pluginAssembly = null;
             if (LoadedAssemblys.ContainsKey(dllName))
@@ -97,13 +126,26 @@ namespace OpenSim.Region.Environment
             }
             pluginAssembly = null;
 
-            if (module.GetName() == moduleName)
+            if ((module != null ) || (module.GetName() == moduleName))
             {
-                module.Initialise(scene);
-                scene.AddModule(moduleName, module);
-                module.PostInitialise();  //shouldn't be done here
+                return module;
             }
 
+            return null;
+
+        }
+
+        public void PostInitialise()
+        {
+            foreach (IRegionModule module in this.LoadedSharedModules.Values)
+            {
+                module.PostInitialise();
+            }
+
+            foreach (IRegionModule module in this.LoadedModules)
+            {
+                module.PostInitialise();
+            }
         }
 
         public void ClearCache()

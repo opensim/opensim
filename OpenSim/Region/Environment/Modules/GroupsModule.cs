@@ -30,6 +30,11 @@ namespace OpenSim.Region.Environment.Modules
         {
             return "GroupsModule";
         }
+
+        public bool IsSharedModule()
+        {
+            return false;
+        }
     }
 }
 

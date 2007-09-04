@@ -35,6 +35,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Utilities;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -94,7 +95,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///  Should be removed soon as the Chat modules should take over this function
+        /// 
         /// </summary>
         /// <param name="message"></param>
         /// <param name="type"></param>
@@ -103,56 +104,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            ScenePresence avatar = null;
-            if (this.Avatars.ContainsKey(fromAgentID))
+            if (m_simChatModule != null)
             {
-                avatar = this.Avatars[fromAgentID];
-                fromPos = avatar.AbsolutePosition;
-                fromName = avatar.Firstname + " " + avatar.Lastname;
-                avatar = null;
+                m_simChatModule.SimChat(message, type, fromPos, fromName, fromAgentID);
             }
-
-            this.ForEachScenePresence(delegate(ScenePresence presence)
-                                              {
-                                                  int dis = -1000;
-                                                  if (this.Avatars.ContainsKey(presence.ControllingClient.AgentId))
-                                                  {
-                                                      avatar = this.Avatars[presence.ControllingClient.AgentId];
-                                                      dis = (int)avatar.AbsolutePosition.GetDistanceTo(fromPos);
-                                                  }
-
-                                                  switch (type)
-                                                  {
-                                                      case 0: // Whisper
-                                                          if ((dis < 10) && (dis > -10))
-                                                          {
-                                                              //should change so the message is sent through the avatar rather than direct to the ClientView
-                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                     fromAgentID);
-                                                          }
-                                                          break;
-                                                      case 1: // Say
-                                                          if ((dis < 30) && (dis > -30))
-                                                          {
-                                                              //Console.WriteLine("sending chat");
-                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                     fromAgentID);
-                                                          }
-                                                          break;
-                                                      case 2: // Shout
-                                                          if ((dis < 100) && (dis > -100))
-                                                          {
-                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                     fromAgentID);
-                                                          }
-                                                          break;
-
-                                                      case 0xff: // Broadcast
-                                                          presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                 fromAgentID);
-                                                          break;
-                                                  }
-                                              });
         }
 
         /// <summary>

@@ -10,5 +10,6 @@ namespace OpenSim.Region.Environment.Interfaces
         void PostInitialise();
         void CloseDown();
         string GetName();
+        bool IsSharedModule();
     }
 }

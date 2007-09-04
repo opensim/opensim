@@ -25,10 +25,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             DataTypes.Add("null", "null");
 
         }
-        
-
-
-
+ 
         public string Convert(string Script)
         {
             string Return = "";

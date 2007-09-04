@@ -38,6 +38,11 @@ namespace OpenSim.Region.Environment.Modules
             return "AssetDownloadModule";
         }
 
+        public bool IsSharedModule()
+        {
+            return false;
+        }
+
         public void NewClient(IClientAPI client)
         {
         }

@@ -31,5 +31,10 @@ namespace OpenSim.Region.Environment.Modules
         {
             return "FriendsModule";
         }
+
+        public bool IsSharedModule()
+        {
+            return false;
+        }
     }
 }

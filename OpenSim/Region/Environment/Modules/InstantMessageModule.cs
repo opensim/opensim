@@ -31,5 +31,10 @@ namespace OpenSim.Region.Environment.Modules
         {
             return "InstantMessageModule";
         }
+
+        public bool IsSharedModule()
+        {
+            return false;
+        }
     }
 }

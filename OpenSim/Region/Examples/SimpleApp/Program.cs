@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using libsecondlife;
 using OpenSim.Framework;
@@ -22,6 +23,7 @@ namespace SimpleApp
 {
     class Program : RegionApplicationBase, conscmd_callback
     {
+        private ModuleLoader m_moduleLoader;
         protected override LogBase CreateLog()
         {
             return new LogBase(null, "SimpleApp", this, false);
@@ -59,8 +61,19 @@ namespace SimpleApp
             
             UDPServer udpServer;
 
+            m_moduleLoader = new ModuleLoader();
+            m_moduleLoader.LoadDefaultSharedModules("");
+
             Scene scene = SetupScene(regionInfo, out udpServer);
+
+            m_moduleLoader.InitialiseSharedModules(scene);
+            m_moduleLoader.CreateDefaultModules(scene, "");
+            scene.SetModuleInterfaces();
+
             scene.StartTimer();
+
+            m_moduleLoader.PostInitialise();
+            m_moduleLoader.ClearCache();
             
             udpServer.ServerListener();
             
@@ -75,10 +88,21 @@ namespace SimpleApp
                 ComplexObject complexObject = new ComplexObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + posOffset );
                 scene.AddEntity(complexObject);
             }
-            
-            MyNpcCharacter m_character = new MyNpcCharacter(scene.EventManager);
-            scene.AddNewClient(m_character, false);
+
+            /*for (int i = 0; i < 500; i++)
+            {
+                MyNpcCharacter m_character = new MyNpcCharacter(scene.EventManager);
+                scene.AddNewClient(m_character, false);
+            }
+
+            List<ScenePresence> avatars = scene.RequestAvatarList();
+            foreach (ScenePresence avatar in avatars)
+            {
+                avatar.AbsolutePosition = new LLVector3((float)OpenSim.Framework.Utilities.Util.RandomClass.Next(100,200), (float)OpenSim.Framework.Utilities.Util.RandomClass.Next(30, 200), 2);
+                
+            }*/
           
+       
             DirectoryInfo dirInfo = new DirectoryInfo( "." );
 
             float x = 0;

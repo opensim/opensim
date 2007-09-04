@@ -78,20 +78,23 @@ namespace OpenSim.Region.Environment.Scenes
         protected StorageManager storageManager;
         protected AgentCircuitManager authenticateHandler;
         protected RegionCommsListener regionCommsHost;
-        protected CommunicationsManager commsManager;
-       // protected XferManager xferManager;
+        public CommunicationsManager commsManager;
+        // protected XferManager xferManager;
 
         protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
 
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
-        protected Dictionary<string, object> APIMethods = new Dictionary<string, object>();
+        public Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
+        protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
 
-        //API method Delegates
+        //API method Delegates and interfaces
 
         // this most likely shouldn't be handled as a API method like this, but doing it for testing purposes
-        public ModuleAPIMethod2<bool, string, byte[]>AddXferFile = null;
-
+        public ModuleAPIMethod2<bool, string, byte[]> AddXferFile = null;
+        
+        private ISimChat m_simChatModule = null;
+        
         #region Properties
 
         public AgentCircuitManager AuthenticateHandler
@@ -152,7 +155,7 @@ namespace OpenSim.Region.Environment.Scenes
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer, ModuleLoader moduleLoader)
         {
             updateLock = new Mutex(false);
-            
+
             m_moduleLoader = moduleLoader;
             authenticateHandler = authen;
             commsManager = commsMan;
@@ -169,9 +172,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager = new EventManager();
             m_permissionManager = new PermissionManager(this);
 
-            MainLog.Instance.Verbose("Loading Region Modules");
-            m_moduleLoader.CreateDefaultModules(this);
-            
             m_eventManager.OnParcelPrimCountAdd +=
                 m_LandManager.addPrimToLandPrimCounts;
 
@@ -189,13 +189,15 @@ namespace OpenSim.Region.Environment.Scenes
 
             httpListener = httpServer;
 
-            SetMethodDelegates();
         }
 
         #endregion
 
-        private void SetMethodDelegates()
+        public void SetModuleInterfaces()
         {
+            m_simChatModule = this.RequestModuleInterface<ISimChat>();
+
+            //should change so it uses the module interface functions
             AddXferFile = (ModuleAPIMethod2<bool, string, byte[]>)this.RequestAPIMethod("API_AddXferFile");
         }
 
@@ -526,7 +528,7 @@ namespace OpenSim.Region.Environment.Scenes
             MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
-       
+
 
         /// <summary>
         /// Returns a new unallocated primitive ID
@@ -635,12 +637,12 @@ namespace OpenSim.Region.Environment.Scenes
                     //obj.RegenerateFullIDs(); 
                     AddEntity(obj);
 
-                   SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-                  rootPart.PhysActor = phyScene.AddPrim(
-                        new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
-                       new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                        new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                                  rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                    SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
+                    rootPart.PhysActor = phyScene.AddPrim(
+                          new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y, rootPart.AbsolutePosition.Z),
+                         new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                          new Axiom.Math.Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                                                    rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
                     primCount++;
                 }
             }
@@ -692,7 +694,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
-           // client.OnStartAnim += StartAnimation;
+            // client.OnStartAnim += StartAnimation;
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnModifyTerrain += ModifyTerrain;
@@ -742,7 +744,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRezScript += RezScript;
             client.OnRemoveTaskItem += RemoveTaskInventory;
 
-           // client.OnRequestAvatarProperties += RequestAvatarProperty;
+            // client.OnRequestAvatarProperties += RequestAvatarProperty;
 
             client.OnGrabObject += ProcessObjectGrab;
 
@@ -1071,13 +1073,12 @@ namespace OpenSim.Region.Environment.Scenes
                     AgentCircuitData agent = remoteClient.RequestClientInfo();
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
-                    //                    agent.startpos = new LLVector3(128, 128, 70);
+                    // agent.startpos = new LLVector3(128, 128, 70);
                     agent.startpos = position;
                     agent.child = true;
                     commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position, false);
 
-                    //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
                     AgentCircuitData circuitdata = remoteClient.RequestClientInfo();
                     string capsPath = Util.GetCapsURL(remoteClient.AgentId);
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4), capsPath);
@@ -1114,21 +1115,43 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        //following delegate methods will be removed, so use the interface methods (below these)
         public void RegisterAPIMethod(string name, object method)
         {
-            if (!this.APIMethods.ContainsKey(name))
+            if (!this.ModuleAPIMethods.ContainsKey(name))
             {
-                this.APIMethods.Add(name, method);
+                this.ModuleAPIMethods.Add(name, method);
             }
         }
 
         public object RequestAPIMethod(string name)
         {
-            if (this.APIMethods.ContainsKey(name))
+            if (this.ModuleAPIMethods.ContainsKey(name))
             {
-                return APIMethods[name];
+                return ModuleAPIMethods[name];
             }
             return false;
+        }
+
+        public void RegisterModuleInterface<M>( M mod)
+        {
+            //Console.WriteLine("registering module interface " + typeof(M));
+            if (!this.ModuleInterfaces.ContainsKey(typeof(M)))
+            {
+                ModuleInterfaces.Add(typeof(M), mod);
+            }
+        }
+
+        public T RequestModuleInterface<T>()
+        {
+            if (ModuleInterfaces.ContainsKey(typeof(T)))
+            {
+                return (T)ModuleInterfaces[typeof(T)];
+            }
+            else
+            {
+                return default(T);
+            }
         }
 
         public void SetTimePhase(int phase)
@@ -1205,6 +1228,49 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        public void ProcessConsoleCmd(string command, string[] cmdparams)
+        {
+            switch (command)
+            {
+                case "save-xml":
+                    if (cmdparams.Length > 0)
+                    {
+                        SavePrimsToXml(cmdparams[0]);
+                    }
+                    else
+                    {
+                        SavePrimsToXml("test.xml");
+                    }
+                    break;
+
+                case "load-xml":
+                    if (cmdparams.Length > 0)
+                    {
+                        LoadPrimsFromXml(cmdparams[0]);
+                    }
+                    else
+                    {
+                        LoadPrimsFromXml("test.xml");
+                    }
+                    break;
+
+                case "set-time":
+                    break;
+
+                case "backup":
+                    Backup();
+                    break;
+
+                case "alert":
+                    HandleAlertCommand(cmdparams);
+                    break;
+
+                default:
+                    MainLog.Instance.Error("Unknown command: " + command);
+                    break;
+            }
+        }
+
         #region Script Engine
         private List<OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface> ScriptEngines = new List<OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface>();
         public void AddScriptEngine(OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine, LogBase m_logger)
@@ -1243,6 +1309,23 @@ namespace OpenSim.Region.Environment.Scenes
                     if (hasPrim != false)
                     {
                         return ((SceneObjectGroup)ent).GetChildPart(localID);
+                    }
+                }
+            }
+            return null;
+        }
+
+        public SceneObjectPart GetSceneObjectPart(LLUUID fullID)
+        {
+            bool hasPrim = false;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(fullID);
+                    if (hasPrim != false)
+                    {
+                        return ((SceneObjectGroup)ent).GetChildPart(fullID);
                     }
                 }
             }

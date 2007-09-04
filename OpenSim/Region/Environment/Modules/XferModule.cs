@@ -45,6 +45,11 @@ namespace OpenSim.Region.Environment.Modules
             return "XferModule";
         }
 
+        public bool IsSharedModule()
+        {
+            return false;
+        }
+
         public void NewClient(IClientAPI client)
         {
             client.OnRequestXfer += RequestXfer;

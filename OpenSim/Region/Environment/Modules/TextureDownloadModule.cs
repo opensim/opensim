@@ -37,6 +37,11 @@ namespace OpenSim.Region.Environment.Modules
             return "TextureDownloadModule";
         }
 
+        public bool IsSharedModule()
+        {
+            return false;
+        }
+
         public void NewClient(IClientAPI client)
         {
         }

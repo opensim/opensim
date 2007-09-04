@@ -58,7 +58,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         {
             // Default Engines
             CSharpScriptEngine csharpCompiler = new CSharpScriptEngine();
-            compilers.Add(csharpCompiler.FileExt(),csharpCompiler);
+            compilers.Add(csharpCompiler.FileExt(), csharpCompiler);
 
             JScriptEngine jscriptCompiler = new JScriptEngine();
             compilers.Add(jscriptCompiler.FileExt(), jscriptCompiler);
@@ -72,8 +72,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
             System.Console.WriteLine("Initialising Extensions Scripting Module");
             m_scene = scene;
 
-             m_scene.RegisterAPIMethod("API_CompileExtensionScript", new ModuleAPIMethod1<bool, string>(Compile));
-             m_scene.RegisterAPIMethod("API_AddExtensionScript", new ModuleAPIMethod1<bool, IScript>(AddPreCompiledScript));
+            m_scene.RegisterAPIMethod("API_CompileExtensionScript", new ModuleAPIMethod1<bool, string>(Compile));
+            m_scene.RegisterAPIMethod("API_AddExtensionScript", new ModuleAPIMethod1<bool, IScript>(AddPreCompiledScript));
         }
 
         public void PostInitialise()
@@ -89,6 +89,11 @@ namespace OpenSim.Region.ExtensionsScriptModule
         public string GetName()
         {
             return "ExtensionsScriptingModule";
+        }
+
+        public bool IsSharedModule()
+        {
+            return false;
         }
 
         public bool Compile(string filename)
@@ -121,7 +126,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public bool AddPreCompiledScript(IScript script)
         {
-            MainLog.Instance.Verbose("Loading script " + script.Name); 
+            MainLog.Instance.Verbose("Loading script " + script.Name);
             ScriptInfo scriptInfo = new ScriptInfo(m_scene); // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
             script.Initialise(scriptInfo);
             scripts.Add(script);
@@ -132,7 +137,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
     interface IScriptCompiler
     {
-        Dictionary<string,IScript> compile(string filename);
+        Dictionary<string, IScript> compile(string filename);
         string FileExt();
     }
 }

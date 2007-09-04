@@ -14,7 +14,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class ChatModule : IRegionModule
+    public class ChatModule : IRegionModule, ISimChat
     {
         private Scene m_scene;
 
@@ -45,11 +45,12 @@ namespace OpenSim.Region.Environment.Modules
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
 
-            //should register a optional API Method, so other modules can send chat messages using this module
+            m_scene.RegisterModuleInterface<ISimChat>(this);
         }
 
         public void PostInitialise()
         {
+            /*
             try
             {
                 m_irc = new TcpClient(m_server, m_port);
@@ -75,6 +76,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 Console.WriteLine(e.ToString());
             }
+            */
         }
 
         public void CloseDown()
@@ -87,6 +89,11 @@ namespace OpenSim.Region.Environment.Modules
         public string GetName()
         {
             return "ChatModule";
+        }
+
+        public bool IsSharedModule()
+        {
+            return false;
         }
 
         public void NewClient(IClientAPI client)

@@ -98,12 +98,14 @@ namespace SimpleApp
         private LLUUID myID = LLUUID.Random();
         public MyNpcCharacter( EventManager eventManager )
         {
+           // startPos = new LLVector3(128, (float)(Util.RandomClass.NextDouble()*100), 2);
             eventManager.OnFrame += Update;
         }
 
+        private LLVector3 startPos = new LLVector3(128, 128,2);
         public virtual LLVector3 StartPos
         {
-            get { return new LLVector3(128, 100, 2); }
+            get { return startPos; }
             set { }
         }
 
@@ -122,9 +124,10 @@ namespace SimpleApp
             get { return "Annoying"; }
         }
 
+        private string lastName = "NPC" + Util.RandomClass.Next(1, 1000);
         public virtual string LastName
         {
-            get { return "NPC"; }
+            get { return lastName; }
         }
 
         public virtual void OutPacket(Packet newPack) { }
@@ -203,7 +206,7 @@ namespace SimpleApp
                 flyState = 0;
             }
 
-            if (count >= 40)
+            if (count >= 200)
             {
                 if (OnChatFromViewer != null)
                 {

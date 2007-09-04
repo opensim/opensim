@@ -45,6 +45,7 @@ using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment;
 using System.Text;
 using System.Collections.Generic;
@@ -77,11 +78,17 @@ namespace OpenSim
         private string m_logFilename = ("region-console.log");
         private bool m_permissions = false;
 
+        private bool m_DefaultModules = true;
+        private string m_exceptModules = "";
+        private bool m_DefaultSharedModules = true;
+        private string m_exceptSharedModules = "";
+
         private bool standaloneAuthenticate = false;
         private string standaloneWelcomeMessage = null;
         private string standaloneInventoryPlugin = "";
         private string standaloneUserPlugin = "";
-        
+
+        private Scene m_consoleRegion = null;
 
         public ConsoleCommand CreateAccount = null;
 
@@ -104,12 +111,10 @@ namespace OpenSim
             }
 
             ReadConfigSettings(startupSource);
-           
         }
 
         protected void ReadConfigSettings(IConfigSource configSource)
         {
-            
             m_networkServersInfo = new NetworkServersInfo();
             m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
             m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
@@ -121,6 +126,11 @@ namespace OpenSim
             m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
 
             m_scriptEngine = configSource.Configs["Startup"].GetString("script_engine", "DotNetEngine");
+
+            m_DefaultModules = configSource.Configs["Startup"].GetBoolean("default_modules", true);
+            m_DefaultSharedModules = configSource.Configs["Startup"].GetBoolean("default_shared_modules", true);
+            m_exceptModules = configSource.Configs["Startup"].GetString("except_modules", "");
+            m_exceptSharedModules = configSource.Configs["Startup"].GetString("except_shared_modules", "");
 
             standaloneAuthenticate = configSource.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
             standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
@@ -178,6 +188,8 @@ namespace OpenSim
             }
 
             m_moduleLoader = new ModuleLoader();
+            MainLog.Instance.Verbose("Loading Shared Modules");
+            m_moduleLoader.LoadDefaultSharedModules(m_exceptSharedModules);
 
             // Load all script engines found
             OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
@@ -191,6 +203,10 @@ namespace OpenSim
                 UDPServer udpServer;
                 Scene scene = SetupScene(regionInfo, out udpServer);
 
+                m_moduleLoader.InitialiseSharedModules(scene);
+                MainLog.Instance.Verbose("Loading Region's Modules");
+                m_moduleLoader.CreateDefaultModules(scene, m_exceptModules);
+                scene.SetModuleInterfaces();
 
                 // Check if we have a script engine to load
                 if (m_scriptEngine != null && m_scriptEngine != "")
@@ -210,6 +226,9 @@ namespace OpenSim
                 m_udpServers.Add(udpServer);
                 m_regionData.Add(regionInfo);
             }
+
+            m_moduleLoader.PostInitialise();
+            m_moduleLoader.ClearCache();
 
             // Start UDP servers
             for (int i = 0; i < m_udpServers.Count; i++)
@@ -352,135 +371,154 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
-            switch (command)
+            if ((m_consoleRegion == null) || (command == "exit-region"))
             {
-                case "help":
-                    m_log.Error("alert - send alert to a designated user or all users.");
-                    m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
-                    m_log.Error("  alert general [Message] - send an alert to all users.");
-                    m_log.Error("backup - trigger a simulator backup");
-                    m_log.Error("load-xml [filename] - load prims from XML");
-                    m_log.Error("save-xml [filename] - save prims to XML");
-                    m_log.Error("script - manually trigger scripts? or script commands?");
-                    m_log.Error("show uptime - show simulator startup and uptime.");
-                    m_log.Error("show users - show info about connected users.");
-                    m_log.Error("shutdown - disconnect all clients and shutdown.");
-                    m_log.Error("terrain help - show help for terrain commands.");
-                    m_log.Error("quit - equivalent to shutdown.");
-                    break;
+                switch (command)
+                {
+                    case "help":
+                        m_log.Error("alert - send alert to a designated user or all users.");
+                        m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
+                        m_log.Error("  alert general [Message] - send an alert to all users.");
+                        m_log.Error("backup - trigger a simulator backup");
+                        m_log.Error("load-xml [filename] - load prims from XML");
+                        m_log.Error("save-xml [filename] - save prims to XML");
+                        m_log.Error("script - manually trigger scripts? or script commands?");
+                        m_log.Error("show uptime - show simulator startup and uptime.");
+                        m_log.Error("show users - show info about connected users.");
+                        m_log.Error("shutdown - disconnect all clients and shutdown.");
+                        m_log.Error("terrain help - show help for terrain commands.");
+                        m_log.Error("quit - equivalent to shutdown.");
+                        break;
 
-                case "show":
-                    if (cmdparams.Length > 0)
-                    {
-                        Show(cmdparams[0]);
-                    }
-                    break;
-
-                case "save-xml":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_localScenes[0].SavePrimsToXml(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_localScenes[0].SavePrimsToXml("test.xml");
-                    }
-                    break;
-
-                case "load-xml":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_localScenes[0].LoadPrimsFromXml(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_localScenes[0].LoadPrimsFromXml("test.xml");
-                    }
-                    break;
-
-                case "terrain":
-                    string result = "";
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        if (!scene.Terrain.RunTerrainCmd(cmdparams, ref result, scene.RegionInfo.RegionName))
+                    case "show":
+                        if (cmdparams.Length > 0)
                         {
-                            m_log.Error(result);
+                            Show(cmdparams[0]);
                         }
-                    }
-                    break;
-                case "terrain-sim":
-                    string result2 = "";
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
-                        {
-                            string[] tmpCmdparams = new string[cmdparams.Length - 1];
-                            cmdparams.CopyTo(tmpCmdparams, 1);
+                        break;
 
-                            if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result2, scene.RegionInfo.RegionName))
+                    case "save-xml":
+                        if (cmdparams.Length > 0)
+                        {
+                            m_localScenes[0].SavePrimsToXml(cmdparams[0]);
+                        }
+                        else
+                        {
+                            m_localScenes[0].SavePrimsToXml("test.xml");
+                        }
+                        break;
+
+                    case "load-xml":
+                        if (cmdparams.Length > 0)
+                        {
+                            m_localScenes[0].LoadPrimsFromXml(cmdparams[0]);
+                        }
+                        else
+                        {
+                            m_localScenes[0].LoadPrimsFromXml("test.xml");
+                        }
+                        break;
+
+                    case "terrain":
+                        string result = "";
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            if (!scene.Terrain.RunTerrainCmd(cmdparams, ref result, scene.RegionInfo.RegionName))
                             {
-                                m_log.Error(result2);
+                                m_log.Error(result);
                             }
                         }
-                    }
-                    break;
-                case "script":
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        scene.SendCommandToScripts(cmdparams);
-                    }
-                    break;
+                        break;
+                    case "terrain-sim":
+                        string result2 = "";
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
+                            {
+                                string[] tmpCmdparams = new string[cmdparams.Length - 1];
+                                cmdparams.CopyTo(tmpCmdparams, 1);
 
-                case "command-script":
-                    if (cmdparams.Length > 0)
-                    {
-                        RunCommandScript(cmdparams[0]);
-                    }
-                    break;
+                                if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result2, scene.RegionInfo.RegionName))
+                                {
+                                    m_log.Error(result2);
+                                }
+                            }
+                        }
+                        break;
+                    case "script":
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            scene.SendCommandToScripts(cmdparams);
+                        }
+                        break;
 
-                case "permissions":
-                    // Treats each user as a super-admin when disabled
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        if (Convert.ToBoolean(cmdparams[0]))
-                            scene.PermissionsMngr.EnablePermissions();
-                        else
-                            scene.PermissionsMngr.DisablePermissions();
-                    }
-                    break;
+                    case "command-script":
+                        if (cmdparams.Length > 0)
+                        {
+                            RunCommandScript(cmdparams[0]);
+                        }
+                        break;
 
-                case "backup":
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        scene.Backup();
-                    }
-                    break;
+                    case "permissions":
+                        // Treats each user as a super-admin when disabled
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            if (Convert.ToBoolean(cmdparams[0]))
+                                scene.PermissionsMngr.EnablePermissions();
+                            else
+                                scene.PermissionsMngr.DisablePermissions();
+                        }
+                        break;
 
-                case "alert":
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        scene.HandleAlertCommand(cmdparams);
-                    }
-                    break;
+                    case "backup":
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            scene.Backup();
+                        }
+                        break;
 
-                case "create":
-                    if (CreateAccount != null)
-                    {
-                        CreateAccount(cmdparams);
-                    }
-                    break;
+                    case "alert":
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            scene.HandleAlertCommand(cmdparams);
+                        }
+                        break;
 
-                case "set-time":
-                    break;
+                    case "create":
+                        if (CreateAccount != null)
+                        {
+                            CreateAccount(cmdparams);
+                        }
+                        break;
 
-                case "quit":
-                case "shutdown":
-                    Shutdown();
-                    break;
+                    case "quit":
+                    case "shutdown":
+                        Shutdown();
+                        break;
 
-                default:
-                    m_log.Error("Unknown command");
-                    break;
+                    case "change-region":
+                        foreach (Scene scene in m_localScenes)
+                        {
+                            if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
+                            {
+                                m_consoleRegion = scene;
+                            }
+                        }
+                        break;
+                        
+                    case "exit-region":
+                        m_consoleRegion = null;
+                        break;
+
+                    default:
+                        m_log.Error("Unknown command");
+                        break;
+                }
+            }
+            else
+            {
+                //let the scene/region handle the command directly.
+                m_consoleRegion.ProcessConsoleCmd(command, cmdparams);
             }
         }
 

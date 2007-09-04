@@ -628,5 +628,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
         //wiki list llGetParcelDetails(vector pos, list params)
         List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param);
+
+        //OpenSim functions
+        string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
     }
 }

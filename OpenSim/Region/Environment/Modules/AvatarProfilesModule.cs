@@ -39,9 +39,19 @@ namespace OpenSim.Region.Environment.Modules
             return "AvatarProfilesModule";
         }
 
+        public bool IsSharedModule()
+        {
+            return false;
+        }
+
         public void NewClient(IClientAPI client)
         {
             client.OnRequestAvatarProperties += RequestAvatarProperty;
+        }
+
+        public void RemoveClient(IClientAPI client)
+        {
+            client.OnRequestAvatarProperties -= RequestAvatarProperty;
         }
 
         /// <summary>

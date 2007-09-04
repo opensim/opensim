@@ -31,5 +31,10 @@ namespace OpenSim.Region.Environment.Modules
         {
             return "InventoryModule";
         }
+
+        public bool IsSharedModule()
+        {
+            return false;
+        }
     }
 }

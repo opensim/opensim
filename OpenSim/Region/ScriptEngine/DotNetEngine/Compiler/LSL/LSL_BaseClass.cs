@@ -465,8 +465,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide) { return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide); }
         public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param) { return m_LSL_Functions.llGetParcelDetails(pos, param); }
 
-
-
+        //
+        // OpenSim Functions
+        //
+        public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer) { return m_LSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer); }
 
         // LSL CONSTANTS
         public const int TRUE = 1;
