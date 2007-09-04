@@ -371,7 +371,7 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
-            if ((m_consoleRegion == null) || (command == "exit-region") || (command == "change-region"))
+            if ((m_consoleRegion == null) ||(command == "change-region"))
             {
                 switch (command)
                 {
@@ -499,14 +499,29 @@ namespace OpenSim
                     case "change-region":
                         if (cmdparams.Length > 0)
                         {
-                            string name = this.CombineParams(cmdparams, 0);
-                            Console.WriteLine("Searching for Region: '" + name + "'");
-                            foreach (Scene scene in m_localScenes)
+                            if ((cmdparams[0].ToLower() == "root") || (cmdparams[0].ToLower() == ".."))
                             {
-                                if (scene.RegionInfo.RegionName.ToLower() == name.ToLower())
+                                if (m_consoleRegion != null)
                                 {
-                                    m_consoleRegion = scene;
-                                    MainLog.Instance.Verbose("Setting current region: " + m_consoleRegion.RegionInfo.RegionName);
+                                    m_consoleRegion = null;
+                                    MainLog.Instance.Verbose("Now at Root level");
+                                }
+                                else
+                                {
+                                    MainLog.Instance.Verbose("Already at Root level");
+                                }
+                            }
+                            else
+                            {
+                                string name = this.CombineParams(cmdparams, 0);
+                                Console.WriteLine("Searching for Region: '" + name + "'");
+                                foreach (Scene scene in m_localScenes)
+                                {
+                                    if (scene.RegionInfo.RegionName.ToLower() == name.ToLower())
+                                    {
+                                        m_consoleRegion = scene;
+                                        MainLog.Instance.Verbose("Setting current region: " + m_consoleRegion.RegionInfo.RegionName);
+                                    }
                                 }
                             }
                         }
@@ -520,18 +535,6 @@ namespace OpenSim
                             {
                                 MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
                             }
-                        }
-                        break;
-
-                    case "exit-region":
-                        if (m_consoleRegion != null)
-                        {
-                            m_consoleRegion = null;
-                            MainLog.Instance.Verbose("Exiting region, Now at Root level");
-                        }
-                        else
-                        {
-                            MainLog.Instance.Verbose("No region is set. Already at Root level");
                         }
                         break;
 

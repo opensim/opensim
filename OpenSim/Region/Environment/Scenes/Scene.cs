@@ -93,6 +93,7 @@ namespace OpenSim.Region.Environment.Scenes
         // this most likely shouldn't be handled as a API method like this, but doing it for testing purposes
         public ModuleAPIMethod2<bool, string, byte[]> AddXferFile = null;
 
+        private IHttpRequests m_httpRequestModule = null;
         private ISimChat m_simChatModule = null;
 
         #region Properties
@@ -196,6 +197,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetModuleInterfaces()
         {
             m_simChatModule = this.RequestModuleInterface<ISimChat>();
+            m_httpRequestModule = this.RequestModuleInterface<IHttpRequests>();
 
             //should change so it uses the module interface functions
             AddXferFile = (ModuleAPIMethod2<bool, string, byte[]>)this.RequestAPIMethod("API_AddXferFile");
@@ -1316,6 +1318,15 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     break;
             }
+        }
+
+        public LLUUID MakeHttpRequest(string url, string type, string body)
+        {
+            if (m_httpRequestModule != null)
+            {
+               return m_httpRequestModule.MakeHttpRequest(url, type, body);
+            }
+            return LLUUID.Zero;
         }
 
         #region Script Engine
