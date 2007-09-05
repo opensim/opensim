@@ -1275,6 +1275,17 @@ namespace OpenSim.Region.Environment.Scenes
                     this.SetTimePhase(Convert.ToInt32(cmdparams[0]));
                     break;
 
+                case "force-update":
+                    Console.WriteLine("Updating all clients");
+                    foreach(EntityBase ent in this.Entities.Values)
+                    {
+                        if (ent is SceneObjectGroup)
+                        {
+                            ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
+                        }
+                    }
+                    break;
+
                 case "backup":
                     Backup();
                     break;
