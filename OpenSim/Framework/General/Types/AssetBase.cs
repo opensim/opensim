@@ -37,6 +37,8 @@ namespace OpenSim.Framework.Types
         public sbyte InvType;
         public string Name;
         public string Description;
+        public bool Local;
+        public bool Temporary;
 
         public AssetBase()
         {

@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url, string extraParams, int updateTimer)
         {
-            System.Console.WriteLine("dynamic texture being created " + url + " of type " + contentType);
+            System.Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
             if (this.RenderPlugins.ContainsKey(contentType))
             {
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
