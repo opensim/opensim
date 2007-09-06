@@ -285,6 +285,17 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = this.m_regionHandle;
             dupe.CopyRootPart(this.m_rootPart);
 
+            /// may need to create a new Physics actor.
+            if (dupe.RootPart.PhysActor != null)
+            {
+                dupe.RootPart.PhysActor = m_scene.phyScene.AddPrim(
+                       new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y, dupe.RootPart.AbsolutePosition.Z),
+                       new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
+                       new Axiom.Math.Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
+                                                 dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z));
+
+            }
+
             List<SceneObjectPart> partList = new List<SceneObjectPart>(this.m_parts.Values);
             foreach (SceneObjectPart part in partList)
             {
