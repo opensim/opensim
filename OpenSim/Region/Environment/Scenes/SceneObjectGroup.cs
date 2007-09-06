@@ -347,6 +347,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void ScheduleFullUpdateToAvatar(ScenePresence presence)
+        {
+            foreach (SceneObjectPart part in this.m_parts.Values)
+            {
+                part.AddFullUpdateToAvatar(presence);
+            }
+        }
+
+        public void ScheduleTerseUpdateToAvatar(ScenePresence presence)
+        {
+            foreach (SceneObjectPart part in this.m_parts.Values)
+            {
+                part.AddTerseUpdateToAvatar(presence);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

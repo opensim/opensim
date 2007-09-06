@@ -928,13 +928,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SendAllSceneObjectsToClient(IClientAPI client)
+        public void SendAllSceneObjectsToClient(ScenePresence presence)
         {
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup)ent).SendFullUpdateToClient(client);
+                   // ((SceneObjectGroup)ent).SendFullUpdateToClient(client);
+                    ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
                 }
             }
         }
@@ -1229,6 +1230,17 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        private void forceClientUpdate()
+        {
+            foreach (EntityBase ent in this.Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
+                }
+            }
+        }
+
         public void ProcessConsoleCmd(string command, string[] cmdparams)
         {
             switch (command)
@@ -1243,12 +1255,14 @@ namespace OpenSim.Region.Environment.Scenes
                     MainLog.Instance.Error("show users - show info about connected users in the current region.");
                     MainLog.Instance.Error("shutdown - disconnect all clients and shutdown.");
                     break;
+
                 case "show":
                     if (cmdparams.Length > 0)
                     {
                         Show(cmdparams[0]);
                     }
                     break;
+
                 case "save-xml":
                     if (cmdparams.Length > 0)
                     {
@@ -1277,13 +1291,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 case "force-update":
                     Console.WriteLine("Updating all clients");
-                    foreach(EntityBase ent in this.Entities.Values)
-                    {
-                        if (ent is SceneObjectGroup)
-                        {
-                            ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
-                        }
-                    }
+                    this.forceClientUpdate();
                     break;
 
                 case "backup":

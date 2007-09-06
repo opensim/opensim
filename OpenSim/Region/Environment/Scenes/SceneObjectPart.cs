@@ -391,14 +391,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_updateFlag == 1) //some change has been made so update the clients
             {
-                SendTerseUpdateToAllClients();
+                AddTerseUpdateToAllAvatars();
                 ClearUpdateSchedule();
             }
             else
             {
                 if (m_updateFlag == 2) // is a new prim, just created/reloaded or has major changes
                 {
-                    SendFullUpdateToAllClients();
+                    AddFullUpdateToAllAvatars();
                     ClearUpdateSchedule();
                 }
             }
@@ -603,6 +603,20 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Client Update Methods
+        public void AddFullUpdateToAllAvatars()
+        {
+            List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].AddFullPart(this);
+            }
+        }
+
+        public void AddFullUpdateToAvatar(ScenePresence presence)
+        {
+            presence.AddFullPart(this);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -647,6 +661,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, this.ObjectFlags, m_uuid, OwnerID,
                                                m_text, ParentID, this.m_particleSystem, lRot);
+        }
+
+        /// Terse updates
+
+        public void AddTerseUpdateToAllAvatars()
+        {
+             List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+             for (int i = 0; i < avatars.Count; i++)
+             {
+                 avatars[i].AddTersePart(this);
+             }
+        }
+
+        public void AddTerseUpdateToAvatar(ScenePresence presence)
+        {
+            presence.AddTersePart(this);
         }
 
         /// <summary>

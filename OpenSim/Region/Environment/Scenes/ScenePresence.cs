@@ -88,6 +88,12 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SignificantClientMovement(IClientAPI remote_client);
         public event SignificantClientMovement OnSignificantClientMovement;
 
+       // private Queue<SceneObjectGroup> m_fullGroupUpdates = new Queue<SceneObjectGroup>();
+       // private Queue<SceneObjectGroup> m_terseGroupUpdates = new Queue<SceneObjectGroup>();
+
+        private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
+        private Queue<SceneObjectPart> m_teserPartUpdates = new Queue<SceneObjectPart>();
+
         #region Properties
         /// <summary>
         /// 
@@ -193,6 +199,54 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
+        public void AddTersePart(SceneObjectPart part)
+        {
+            m_teserPartUpdates.Enqueue(part);
+        }
+
+        public void AddFullPart(SceneObjectPart part)
+        {
+            m_fullPartUpdates.Enqueue(part);
+        }
+
+        public void SendPrimUpdates()
+        {
+            if (m_teserPartUpdates.Count > 0)
+            {
+                bool terse = true;
+                int terseCount = 0;
+
+                while (terse)
+                {
+                    SceneObjectPart part = m_teserPartUpdates.Dequeue();
+                    part.SendTerseUpdate(this.ControllingClient);
+                    terseCount++;
+
+                    if ((m_teserPartUpdates.Count < 1) |(terseCount > 30))
+                    {
+                        terse = false;
+                    }
+                }
+            }
+            if (m_fullPartUpdates.Count > 0)
+            {
+                bool full = true;
+                int fullCount = 0;
+
+                while (full)
+                {
+                    SceneObjectPart part = m_fullPartUpdates.Dequeue();
+                    part.SendFullUpdate(this.ControllingClient);
+                    fullCount++;
+                    if ((m_fullPartUpdates.Count < 1) | (fullCount > 40))
+                    {
+                        full = false;
+                    }
+
+                }
+            }
+        }
+
         #region Status Methods
         /// <summary>
         /// Not Used, most likely can be deleted
@@ -221,7 +275,7 @@ namespace OpenSim.Region.Environment.Scenes
             this._physActor.Flying = isFlying;
             this.newAvatar = true;
             this.childAgent = false;
-            this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
+            this.m_scene.SendAllSceneObjectsToClient(this);
         }
 
         protected void MakeChildAgent()
@@ -399,6 +453,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
+            this.SendPrimUpdates();
+
             if (this.childAgent == false)
             {
                 if (this.newForce)
@@ -500,7 +556,7 @@ namespace OpenSim.Region.Environment.Scenes
             //this.SendFullUpdateToALLClients();
             //this.SendArrearanceToAllOtherAgents();
 
-            this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
+            this.m_scene.SendAllSceneObjectsToClient(this);
             this.ControllingClient.SendViewerTime(this.m_scene.TimePhase);
 
             //Please don't remove the following code (at least not yet), just leave it commented out
