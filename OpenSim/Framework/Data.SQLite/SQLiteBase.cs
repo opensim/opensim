@@ -1,0 +1,230 @@
+/*
+* Copyright (c) Contributors, http://www.openmetaverse.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
+using System;
+using System.IO;
+using libsecondlife;
+using OpenSim.Framework.Utilities;
+using System.Data;
+using System.Data.SqlTypes;
+using Mono.Data.SqliteClient;
+using OpenSim.Framework.Console;
+
+namespace OpenSim.Framework.Data.SQLite
+{
+    /// <summary>
+    /// A base class for methods needed by all SQLite database classes
+    /// </summary>
+    public class SQLiteBase
+    {
+        /***********************************************************************
+         *
+         *  Database Definition Functions
+         * 
+         *  This should be db agnostic as we define them in ADO.NET terms
+         *
+         **********************************************************************/
+        
+        protected static void createCol(DataTable dt, string name, System.Type type)
+        {
+            DataColumn col = new DataColumn(name, type);
+            dt.Columns.Add(col);
+        }
+
+        /***********************************************************************
+         *
+         *  SQL Statement Creation Functions
+         *
+         *  These functions create SQL statements for update, insert, and create.
+         *  They can probably be factored later to have a db independant
+         *  portion and a db specific portion
+         *
+         **********************************************************************/
+
+        protected static SqliteCommand createInsertCommand(string table, DataTable dt)
+        {
+            /**
+             *  This is subtle enough to deserve some commentary.
+             *  Instead of doing *lots* and *lots of hardcoded strings
+             *  for database definitions we'll use the fact that
+             *  realistically all insert statements look like "insert
+             *  into A(b, c) values(:b, :c) on the parameterized query
+             *  front.  If we just have a list of b, c, etc... we can
+             *  generate these strings instead of typing them out.
+             */
+            string[] cols = new string[dt.Columns.Count];
+            for (int i = 0; i < dt.Columns.Count; i++) {
+                DataColumn col = dt.Columns[i];
+                cols[i] = col.ColumnName;
+            }
+
+            string sql = "insert into " + table + "(";
+            sql += String.Join(", ", cols);
+            // important, the first ':' needs to be here, the rest get added in the join
+            sql += ") values (:";
+            sql += String.Join(", :", cols);
+            sql += ")";
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+            foreach (DataColumn col in dt.Columns) 
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
+        }
+
+        protected static SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        {
+            string sql = "update " + table + " set ";
+            string subsql = "";
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ", ";
+                }
+                subsql += col.ColumnName + "= :" + col.ColumnName;
+            }
+            sql += subsql;
+            sql += " where " + pk;
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+
+            foreach (DataColumn col in dt.Columns) 
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
+        }
+
+
+        protected static string defineTable(DataTable dt)
+        {
+            string sql = "create table " + dt.TableName + "(";
+            string subsql = "";
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (subsql.Length > 0)
+                { // a map function would rock so much here
+                    subsql += ",\n";
+                }
+                subsql += col.ColumnName + " " + sqliteType(col.DataType);
+                if(col == dt.PrimaryKey[0])
+                {
+                    subsql += " primary key";
+                }
+            }
+            sql += subsql;
+            sql += ")";
+            return sql;
+        }
+
+        /***********************************************************************
+         *
+         *  Database Binding functions
+         *
+         *  These will be db specific due to typing, and minor differences
+         *  in databases.
+         *
+         **********************************************************************/
+
+        ///<summary>
+        /// This is a convenience function that collapses 5 repetitive
+        /// lines for defining SqliteParameters to 2 parameters:
+        /// column name and database type.
+        ///        
+        /// It assumes certain conventions like :param as the param
+        /// name to replace in parametrized queries, and that source
+        /// version is always current version, both of which are fine
+        /// for us.
+        ///</summary>
+        ///<returns>a built sqlite parameter</returns>
+        protected static SqliteParameter createSqliteParameter(string name, System.Type type)
+        {
+            SqliteParameter param = new SqliteParameter();
+            param.ParameterName = ":" + name;
+            param.DbType = dbtypeFromType(type);
+            param.SourceColumn = name;
+            param.SourceVersion = DataRowVersion.Current;
+            return param;
+        }
+
+        /***********************************************************************
+         *
+         *  Type conversion functions
+         *
+         **********************************************************************/
+        
+        protected static DbType dbtypeFromType(Type type)
+        {
+            if (type == typeof(System.String)) {
+                return DbType.String;
+            } else if (type == typeof(System.Int32)) {
+                return DbType.Int32;
+            } else if (type == typeof(System.UInt32)) {
+                return DbType.UInt32;
+            } else if (type == typeof(System.Int64)) {
+                return DbType.Int64;
+            } else if (type == typeof(System.UInt64)) {
+                return DbType.UInt64;
+            } else if (type == typeof(System.Double)) {
+                return DbType.Double;
+            } else if (type == typeof(System.Byte[])) {
+                return DbType.Binary;
+            } else {
+                return DbType.String;
+            }
+        }
+        
+        // this is something we'll need to implement for each db
+        // slightly differently.
+        protected static string sqliteType(Type type)
+        {
+            if (type == typeof(System.String)) {
+                return "varchar(255)";
+            } else if (type == typeof(System.Int32)) {
+                return "integer";
+            } else if (type == typeof(System.UInt32)) {
+                return "integer";
+            } else if (type == typeof(System.Int64)) {
+                return "varchar(255)";
+            } else if (type == typeof(System.UInt64)) {
+                return "varchar(255)";
+            } else if (type == typeof(System.Double)) {
+                return "float";
+            } else if (type == typeof(System.Byte[])) {
+                return "blob";
+            } else {
+                return "string";
+            }
+        }
+    }
+}

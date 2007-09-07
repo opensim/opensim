@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Data.SQLite
     /// <summary>
     /// A User storage interface for the DB4o database system
     /// </summary>
-    public class SQLiteUserData : IUserData
+    public class SQLiteUserData : SQLiteBase, IUserData
     {
         /// <summary>
         /// The database manager
@@ -284,12 +284,6 @@ namespace OpenSim.Framework.Data.SQLite
          *
          **********************************************************************/
         
-        private void createCol(DataTable dt, string name, System.Type type)
-        {
-            DataColumn col = new DataColumn(name, type);
-            dt.Columns.Add(col);
-        }
-
         private DataTable createUsersTable()
         {
             DataTable users = new DataTable("users");
@@ -477,125 +471,12 @@ namespace OpenSim.Framework.Data.SQLite
 
         /***********************************************************************
          *
-         *  SQL Statement Creation Functions
-         *
-         *  These functions create SQL statements for update, insert, and create.
-         *  They can probably be factored later to have a db independant
-         *  portion and a db specific portion
-         *
-         **********************************************************************/
-
-        private SqliteCommand createInsertCommand(string table, DataTable dt)
-        {
-            /**
-             *  This is subtle enough to deserve some commentary.
-             *  Instead of doing *lots* and *lots of hardcoded strings
-             *  for database definitions we'll use the fact that
-             *  realistically all insert statements look like "insert
-             *  into A(b, c) values(:b, :c) on the parameterized query
-             *  front.  If we just have a list of b, c, etc... we can
-             *  generate these strings instead of typing them out.
-             */
-            string[] cols = new string[dt.Columns.Count];
-            for (int i = 0; i < dt.Columns.Count; i++) {
-                DataColumn col = dt.Columns[i];
-                cols[i] = col.ColumnName;
-            }
-
-            string sql = "insert into " + table + "(";
-            sql += String.Join(", ", cols);
-            // important, the first ':' needs to be here, the rest get added in the join
-            sql += ") values (:";
-            sql += String.Join(", :", cols);
-            sql += ")";
-            SqliteCommand cmd = new SqliteCommand(sql);
-
-            // this provides the binding for all our parameters, so
-            // much less code than it used to be
-            foreach (DataColumn col in dt.Columns) 
-            {
-                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
-            }
-            return cmd;
-        }
-
-        private SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
-        {
-            string sql = "update " + table + " set ";
-            string subsql = "";
-            foreach (DataColumn col in dt.Columns)
-            {
-                if (subsql.Length > 0)
-                { // a map function would rock so much here
-                    subsql += ", ";
-                }
-                subsql += col.ColumnName + "= :" + col.ColumnName;
-            }
-            sql += subsql;
-            sql += " where " + pk;
-            SqliteCommand cmd = new SqliteCommand(sql);
-
-            // this provides the binding for all our parameters, so
-            // much less code than it used to be
-
-            foreach (DataColumn col in dt.Columns) 
-            {
-                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
-            }
-            return cmd;
-        }
-
-
-        private string defineTable(DataTable dt)
-        {
-            string sql = "create table " + dt.TableName + "(";
-            string subsql = "";
-            foreach (DataColumn col in dt.Columns)
-            {
-                if (subsql.Length > 0)
-                { // a map function would rock so much here
-                    subsql += ",\n";
-                }
-                subsql += col.ColumnName + " " + sqliteType(col.DataType);
-                if(col == dt.PrimaryKey[0])
-                {
-                    subsql += " primary key";
-                }
-            }
-            sql += subsql;
-            sql += ")";
-            return sql;
-        }
-
-        /***********************************************************************
-         *
          *  Database Binding functions
          *
          *  These will be db specific due to typing, and minor differences
          *  in databases.
          *
          **********************************************************************/
-
-        ///<summary>
-        /// This is a convenience function that collapses 5 repetitive
-        /// lines for defining SqliteParameters to 2 parameters:
-        /// column name and database type.
-        ///        
-        /// It assumes certain conventions like :param as the param
-        /// name to replace in parametrized queries, and that source
-        /// version is always current version, both of which are fine
-        /// for us.
-        ///</summary>
-        ///<returns>a built sqlite parameter</returns>
-        private SqliteParameter createSqliteParameter(string name, System.Type type)
-        {
-            SqliteParameter param = new SqliteParameter();
-            param.ParameterName = ":" + name;
-            param.DbType = dbtypeFromType(type);
-            param.SourceColumn = name;
-            param.SourceVersion = DataRowVersion.Current;
-            return param;
-        }
 
         private void setupUserCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
@@ -634,54 +515,5 @@ namespace OpenSim.Framework.Data.SQLite
             return true;
         }
 
-        /***********************************************************************
-         *
-         *  Type conversion functions
-         *
-         **********************************************************************/
-        
-        private DbType dbtypeFromType(Type type)
-        {
-            if (type == typeof(System.String)) {
-                return DbType.String;
-            } else if (type == typeof(System.Int32)) {
-                return DbType.Int32;
-            } else if (type == typeof(System.UInt32)) {
-                return DbType.UInt32;
-            } else if (type == typeof(System.Int64)) {
-                return DbType.Int64;
-            } else if (type == typeof(System.UInt64)) {
-                return DbType.UInt64;
-            } else if (type == typeof(System.Double)) {
-                return DbType.Double;
-            } else if (type == typeof(System.Byte[])) {
-                return DbType.Binary;
-            } else {
-                return DbType.String;
-            }
-        }
-        
-        // this is something we'll need to implement for each db
-        // slightly differently.
-        private string sqliteType(Type type)
-        {
-            if (type == typeof(System.String)) {
-                return "varchar(255)";
-            } else if (type == typeof(System.Int32)) {
-                return "integer";
-            } else if (type == typeof(System.UInt32)) {
-                return "integer";
-            } else if (type == typeof(System.Int64)) {
-                return "varchar(255)";
-            } else if (type == typeof(System.UInt64)) {
-                return "varchar(255)";
-            } else if (type == typeof(System.Double)) {
-                return "float";
-            } else if (type == typeof(System.Byte[])) {
-                return "blob";
-            } else {
-                return "string";
-            }
-        }
     }
 }
