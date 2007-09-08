@@ -315,6 +315,10 @@ namespace OpenSim.Region.ClientStack
 
         }
 
+        public virtual void ConnectionClosed()
+        {
+        }
+
         #region Nested Classes
 
         public class QueItem

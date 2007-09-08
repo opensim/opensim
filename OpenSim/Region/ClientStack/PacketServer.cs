@@ -74,6 +74,14 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
+        public virtual void ConnectionClosed(uint circuitCode)
+        {
+            if (this.ClientThreads.ContainsKey(circuitCode))
+            {
+                ClientThreads[circuitCode].ConnectionClosed();
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

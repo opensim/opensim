@@ -5,7 +5,6 @@ using System.Threading;
 using System.IO;
 using System.Collections.Generic;
 using libsecondlife;
-using OpenJPEGNet;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework.Interfaces;

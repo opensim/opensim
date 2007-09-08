@@ -43,6 +43,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected byte[] m_particleSystem = new byte[0];
 
+        public uint TimeStampFull = 0;
+        public uint TimeStampTerse = 0;
+
         protected SceneObjectGroup m_parentGroup;
 
         /// <summary>
@@ -366,6 +369,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parentGroup.HasChanged = true;
             }
+            this.TimeStampFull =(uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
         }
 
@@ -380,6 +384,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_parentGroup.HasChanged = true;
                 }
+                this.TimeStampTerse = (uint)Util.UnixTimeSinceEpoch();
                 m_updateFlag = 1;
             }
         }

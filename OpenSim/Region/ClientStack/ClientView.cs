@@ -128,6 +128,14 @@ namespace OpenSim.Region.ClientStack
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
         }
+
+        public override void ConnectionClosed()
+        {
+            clientPingTimer.Stop();
+            m_clientThreads.Remove(this.CircuitCode);
+            m_networkServer.RemoveClientCircuit(this.CircuitCode);
+            this.ClientThread.Abort();
+        }
         #endregion
 
         # region Packet Handling

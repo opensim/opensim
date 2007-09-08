@@ -30,8 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework.Console;
-//using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Region.Environment.Interfaces;
 using libsecondlife;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
@@ -40,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// This is the root object for ScriptEngine
     /// </summary>
     [Serializable]
-    public class ScriptEngine : OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface
+    public class ScriptEngine :IRegionModule
     {
 
         internal OpenSim.Region.Environment.Scenes.Scene World;
@@ -99,5 +100,33 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         //    Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
         //    myScriptManager.StartScript(ScriptID, ObjectID);
         //}
+
+        #region IRegionModule
+
+        public void Initialise(Scene scene)
+        {
+            this.InitializeEngine(scene, MainLog.Instance);
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void CloseDown()
+        {
+        }
+
+        public string GetName()
+        {
+            return "LSLScriptingModule";
+        }
+
+        public bool IsSharedModule()
+        {
+            return false;
+        }
+
+        #endregion
     }
 }

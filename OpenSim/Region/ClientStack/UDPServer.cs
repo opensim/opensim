@@ -101,7 +101,23 @@ namespace OpenSim.Region.ClientStack
             ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
             epSender = (EndPoint)ipeSender;
             Packet packet = null;
-            int numBytes = Server.EndReceiveFrom(result, ref epSender);
+
+            int numBytes;
+
+            try
+            {
+                numBytes = Server.EndReceiveFrom(result, ref epSender);
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                Console.WriteLine("Remote host Closed connection");
+                this._packetServer.ConnectionClosed(this.clientCircuits[epSender]);
+                ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+                epSender = (EndPoint)ipeSender;
+                Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                return;
+            }
+
             int packetEnd = numBytes - 1;
 
             packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);

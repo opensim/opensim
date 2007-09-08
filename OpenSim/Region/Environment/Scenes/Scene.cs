@@ -44,6 +44,7 @@ using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Terrain;
 using OpenSim.Framework.Data;
 using Caps = OpenSim.Region.Capabilities.Caps;
@@ -71,6 +72,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         private int m_timePhase = 24;
         private int m_timeUpdateCount;
+
+        public BasicQuadTreeNode QuadTree;
 
         private Mutex updateLock;
 
@@ -177,6 +180,10 @@ namespace OpenSim.Region.Environment.Scenes
                 m_LandManager.addPrimToLandPrimCounts;
 
             m_eventManager.OnPermissionError += SendPermissionAlert;
+
+            QuadTree = new BasicQuadTreeNode(null, 0, 0, 256, 256);
+            QuadTree.Subdivide();
+            QuadTree.Subdivide();
 
             MainLog.Instance.Verbose("Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -596,6 +603,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (!Entities.ContainsKey(sceneObject.UUID))
             {
+                QuadTree.AddObject(sceneObject);
                 Entities.Add(sceneObject.UUID, sceneObject);
             }
         }

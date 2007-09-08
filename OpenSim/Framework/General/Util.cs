@@ -152,15 +152,15 @@ namespace OpenSim.Framework.Utilities
             return capsPath;
         }
 
-        //public static int fast_distance2d(int x, int y)
-        //{
-        //    x = System.Math.Abs(x);
-        //    y = System.Math.Abs(y);
+        public static int fast_distance2d(int x, int y)
+        {
+            x = System.Math.Abs(x);
+            y = System.Math.Abs(y);
 
-        //    int min = System.Math.Min(x, y);
+            int min = System.Math.Min(x, y);
 
-        //    return (x + y - (min >> 1) - (min >> 2) + (min >> 4));
-        //}
+            return (x + y - (min >> 1) - (min >> 2) + (min >> 4));
+        }
 
         public static string FieldToString(byte[] bytes)
         {

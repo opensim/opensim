@@ -191,8 +191,8 @@ namespace OpenSim
             MainLog.Instance.Verbose("Loading Shared Modules");
             m_moduleLoader.LoadDefaultSharedModules(m_exceptSharedModules);
 
-            // Load all script engines found
-            OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
+            // Load all script engines found (scripting engine is now a IRegionModule so loaded in the module loader
+            // OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
 
             for (int i = 0; i < configFiles.Length; i++)
             {
@@ -209,11 +209,11 @@ namespace OpenSim
                 scene.SetModuleInterfaces();
 
                 // Check if we have a script engine to load
-                if (m_scriptEngine != null && m_scriptEngine != "")
-                {
-                    OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
-                    scene.AddScriptEngine(ScriptEngine, m_log);
-                }
+                //if (m_scriptEngine != null && m_scriptEngine != "")
+                //{
+                //  OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
+                // scene.AddScriptEngine(ScriptEngine, m_log);
+                //}
 
                 //Server side object editing permissions checking
                 if (m_permissions)
@@ -371,7 +371,7 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
-            if ((m_consoleRegion == null) || (command == "change-region")  || (command == "shutdown"))
+            if ((m_consoleRegion == null) || (command == "change-region") || (command == "shutdown"))
             {
                 switch (command)
                 {
@@ -603,7 +603,7 @@ namespace OpenSim
             string result = "";
             for (int i = pos; i < commandParams.Length; i++)
             {
-                result += commandParams[i] +" ";
+                result += commandParams[i] + " ";
             }
             result = result.TrimEnd(' ');
             return result;

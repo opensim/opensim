@@ -44,6 +44,9 @@ namespace OpenSim.Region.Environment
             LoadedModules.Add(avatarProfiles);
 
             this.LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
+
+            string lslPath = System.IO.Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
+            this.LoadRegionModule(lslPath, "LSLScriptingModule", scene);
         }
 
         public void LoadDefaultSharedModules(string exceptModules)

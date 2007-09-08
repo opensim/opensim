@@ -88,11 +88,13 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SignificantClientMovement(IClientAPI remote_client);
         public event SignificantClientMovement OnSignificantClientMovement;
 
+        public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
+
        // private Queue<SceneObjectGroup> m_fullGroupUpdates = new Queue<SceneObjectGroup>();
        // private Queue<SceneObjectGroup> m_terseGroupUpdates = new Queue<SceneObjectGroup>();
 
         private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
-        private Queue<SceneObjectPart> m_teserPartUpdates = new Queue<SceneObjectPart>();
+        private Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
 
         #region Properties
         /// <summary>
@@ -201,7 +203,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddTersePart(SceneObjectPart part)
         {
-            m_teserPartUpdates.Enqueue(part);
+            m_tersePartUpdates.Enqueue(part);
         }
 
         public void AddFullPart(SceneObjectPart part)
@@ -211,18 +213,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendPrimUpdates()
         {
-            if (m_teserPartUpdates.Count > 0)
+            if (m_tersePartUpdates.Count > 0)
             {
                 bool terse = true;
                 int terseCount = 0;
 
                 while (terse)
                 {
-                    SceneObjectPart part = m_teserPartUpdates.Dequeue();
+                    SceneObjectPart part = m_tersePartUpdates.Dequeue();
                     part.SendTerseUpdate(this.ControllingClient);
                     terseCount++;
 
-                    if ((m_teserPartUpdates.Count < 1) |(terseCount > 30))
+                    if ((m_tersePartUpdates.Count < 1) |(terseCount > 30))
                     {
                         terse = false;
                     }
