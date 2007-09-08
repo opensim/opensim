@@ -1310,9 +1310,37 @@ namespace OpenSim.Region.Environment.Scenes
                     HandleAlertCommand(cmdparams);
                     break;
 
+                case "edit-scale":
+                    if (cmdparams.Length == 4)
+                    {
+                        HandleEditCommand(cmdparams);
+                    }
+                    break;
+
                 default:
                     MainLog.Instance.Error("Unknown command: " + command);
                     break;
+            }
+        }
+
+        public void HandleEditCommand(string[] cmmdparams)
+        {
+            Console.WriteLine("Searching for Primitive: '" + cmmdparams[0] + "'");
+            foreach (EntityBase ent in this.Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                   SceneObjectPart part = ((SceneObjectGroup)ent).GetChildPart(((SceneObjectGroup)ent).UUID);
+                   if (part != null)
+                   {
+                       if (part.Name == cmmdparams[0])
+                       {
+                           part.Resize( new LLVector3(Convert.ToSingle(cmmdparams[1]), Convert.ToSingle(cmmdparams[2]), Convert.ToSingle(cmmdparams[3])));
+                          
+                           Console.WriteLine("Edited scale of Primitive: " + part.Name); 
+                       }
+                   }
+                }
             }
         }
 

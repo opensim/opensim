@@ -606,6 +606,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name"></param>
         public void SetPartName(string name, uint localID)
         {
+            name = name.Remove(name.Length - 1, 1);
             SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
