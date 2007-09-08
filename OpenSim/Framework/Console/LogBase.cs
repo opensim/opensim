@@ -438,7 +438,11 @@ namespace OpenSim.Framework.Console
             Array.Resize<string>(ref tempstrarray, tempstrarray.Length - 1);
             Array.Reverse(tempstrarray);
             string[] cmdparams = (string[])tempstrarray;
-            RunCmd(cmd, cmdparams);
+            try {
+                RunCmd(cmd, cmdparams);
+            } catch (Exception e) {
+                MainLog.Instance.Error("Console", "Command failed with exception " + e.ToString());
+            }
         }
 
         public string LineInfo
