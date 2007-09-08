@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SignificantClientMovement(IClientAPI remote_client);
         public event SignificantClientMovement OnSignificantClientMovement;
 
-        public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
+        //public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
 
        // private Queue<SceneObjectGroup> m_fullGroupUpdates = new Queue<SceneObjectGroup>();
        // private Queue<SceneObjectGroup> m_terseGroupUpdates = new Queue<SceneObjectGroup>();
@@ -197,6 +197,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             //temporary until we move some code into the body classes
             this.m_body = new ChildAgent();
+
+            if (newAvatar)
+            {
+                //do we need to use newAvatar? not sure so have added this to kill the compile warning
+            }
 
         }
         #endregion

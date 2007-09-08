@@ -20,24 +20,27 @@ namespace OpenSim.Region.Environment.Modules
 
         private string m_server = "irc2.choopa.net";
 
-        private int m_port = 6668;
-        private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
+       // private int m_port = 6668;
+        //private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
         private string m_nick = "OSimBot";
         private string m_channel = "#opensim";
 
-        private NetworkStream m_stream;
-        private TcpClient m_irc;
+       // private NetworkStream m_stream;
+       private TcpClient m_irc;
         private StreamWriter m_ircWriter;
-        private StreamReader m_ircReader;
+       private StreamReader m_ircReader;
 
-        private Thread pingSender;
-        private Thread listener;
+      //  private Thread pingSender;
+      //  private Thread listener;
 
         private bool connected = false;
 
         public ChatModule()
         {
             m_nick = "OSimBot" + Util.RandomClass.Next(1, 99);
+            m_irc = null;
+            m_ircWriter = null;
+            m_ircReader = null;
         }
 
         public void Initialise(Scene scene)
