@@ -372,7 +372,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 this.bodyRot = q;
                 update_rotation = true;
-            }
+	    }
             foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
             {
                 if ((flags & (uint)DCF) != 0)
@@ -495,7 +495,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 pos = this.AbsolutePosition;
             LLVector3 vel = this.Velocity;
-            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle, 64096, this.LocalId, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z));
+            LLQuaternion rot;
+            rot.X = this.bodyRot.x;
+            rot.Y = this.bodyRot.y;
+            rot.Z = this.bodyRot.z;
+            rot.W = this.bodyRot.w;
+            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle, 64096, this.LocalId, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z), rot);
         }
 
         /// <summary>

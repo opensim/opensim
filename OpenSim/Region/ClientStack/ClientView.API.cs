@@ -929,9 +929,9 @@ namespace OpenSim.Region.ClientStack
         /// <param name="localID"></param>
         /// <param name="position"></param>
         /// <param name="velocity"></param>
-        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity)
+        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation)
         {
-            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = this.CreateAvatarImprovedBlock(localID, position, velocity);
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = this.CreateAvatarImprovedBlock(localID, position, velocity, rotation);
             ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
@@ -1018,7 +1018,7 @@ namespace OpenSim.Region.ClientStack
 
         #region Helper Methods
 
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos, LLVector3 velocity)
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos, LLVector3 velocity, LLQuaternion rotation)
         {
             byte[] bytes = new byte[60];
             int i = 0;
@@ -1073,15 +1073,22 @@ namespace OpenSim.Region.ClientStack
             bytes[i++] = (byte)(ac % 256);
             bytes[i++] = (byte)((ac >> 8) % 256);
 
+            //rotation
+            ushort rw, rx, ry, rz;
+            rw = (ushort)(32768 * (rotation.W + 1));
+            rx = (ushort)(32768 * (rotation.X + 1));
+            ry = (ushort)(32768 * (rotation.Y + 1));
+            rz = (ushort)(32768 * (rotation.Z + 1));
+
             //rot
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(rx % 256);
+            bytes[i++] = (byte)((rx >> 8) % 256);
+            bytes[i++] = (byte)(ry % 256);
+            bytes[i++] = (byte)((ry >> 8) % 256);
+            bytes[i++] = (byte)(rz % 256);
+            bytes[i++] = (byte)((rz >> 8) % 256);
+            bytes[i++] = (byte)(rw % 256);
+            bytes[i++] = (byte)((rw >> 8) % 256);
 
             //rotation vel
             bytes[i++] = (byte)(ac % 256);
