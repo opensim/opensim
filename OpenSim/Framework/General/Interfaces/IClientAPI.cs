@@ -216,6 +216,7 @@ namespace OpenSim.Framework.Interfaces
 
         void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry);
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation);
+        void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations);
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation);

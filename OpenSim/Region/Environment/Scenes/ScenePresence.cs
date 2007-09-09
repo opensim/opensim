@@ -64,6 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool newForce = false;
         private bool newAvatar = false;
+         private bool newCoarseLocations = false;
 
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
@@ -462,6 +463,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             this.SendPrimUpdates();
 
+	    if (this.newCoarseLocations) {
+	        this.SendCoarseLocations();
+		this.newCoarseLocations = false;
+            }
+
             if (this.childAgent == false)
             {
                 if (this.newForce)
@@ -514,6 +520,37 @@ namespace OpenSim.Region.Environment.Scenes
                 this.SendTerseUpdateToClient(avatars[i].ControllingClient);
             }
         }
+
+
+	public void SendCoarseLocations()
+	{
+	    List<LLVector3> CoarseLocations = new List<LLVector3>();
+            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+	    	if (avatars[i] != this) {
+	            CoarseLocations.Add(avatars[i].AbsolutePosition);
+		}
+            }
+	    this.ControllingClient.SendCoarseLocationUpdate(CoarseLocations);
+	}
+
+	public void CoarseLocationChange(ScenePresence avatar)
+	{
+	    newCoarseLocations = true;
+	}
+
+	private void NotifyMyCoarseLocationChange()
+	{
+            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++) {
+	    	if (avatars[i] != this) {
+		    avatars[i].CoarseLocationChange(this);
+		}
+            }
+	        
+	}
+
 
         /// <summary>
         /// 
@@ -638,6 +675,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (OnSignificantClientMovement != null)
                 {
                     OnSignificantClientMovement(this.ControllingClient);
+                    NotifyMyCoarseLocationChange();
                 }
             }
         }

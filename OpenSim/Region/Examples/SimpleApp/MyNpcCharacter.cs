@@ -154,6 +154,7 @@ namespace SimpleApp
 
         public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry) { }
         public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation) { }
+        public virtual void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations) { }
 
         public virtual void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint) { }
 

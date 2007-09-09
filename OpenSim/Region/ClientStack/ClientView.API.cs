@@ -941,6 +941,27 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(terse);
         }
 
+	public void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
+	{
+	    CoarseLocationUpdatePacket loc = new CoarseLocationUpdatePacket();
+	    int total = CoarseLocations.Count;
+	    CoarseLocationUpdatePacket.IndexBlock ib = 
+	                   new CoarseLocationUpdatePacket.IndexBlock();
+	    loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
+	    for(int i=0; i<total; i++) {
+	        CoarseLocationUpdatePacket.LocationBlock lb = 
+		           new CoarseLocationUpdatePacket.LocationBlock();
+	        lb.X = (byte)CoarseLocations[i].X;
+	        lb.Y = (byte)CoarseLocations[i].Y;
+	        lb.Z = (byte)(CoarseLocations[i].Z/4);
+	        loc.Location[i] = lb;
+	    }
+	    ib.You = -1;
+	    ib.Prey = -1;
+	    loc.Index = ib;
+	    this.OutPacket(loc);
+	}
+
         #endregion
 
         #region Primitive Packet/data Sending Methods
