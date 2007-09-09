@@ -251,7 +251,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (phyScene.IsThreaded)
                 {
-                    phyScene.GetResults();
+                    phyScene.GetResults();    /// no engines implement this, and what does it have to do with threading? possible DEAD CODE
                 }
 
                 List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);

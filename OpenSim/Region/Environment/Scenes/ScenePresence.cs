@@ -72,6 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
         private IScenePresenceBody m_body;
 
         private Vector3[] Dir_Vectors = new Vector3[6];
+        private libsecondlife.LLVector3 lastPhysPos = new libsecondlife.LLVector3();
         private enum Dir_ControlFlags
         {
             DIR_CONTROL_FLAG_FOWARD = MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS,
@@ -463,18 +464,22 @@ namespace OpenSim.Region.Environment.Scenes
         {
             this.SendPrimUpdates();
 
-	    if (this.newCoarseLocations) {
-	        this.SendCoarseLocations();
-		this.newCoarseLocations = false;
+	        if (this.newCoarseLocations) {
+	            this.SendCoarseLocations();
+		    this.newCoarseLocations = false;
             }
 
             if (this.childAgent == false)
             {
+
+                /// check for user movement 'forces' (ie commands to move)
                 if (this.newForce)
                 {
                     this.SendTerseUpdateToALLClients();
                     _updateCount = 0;
                 }
+
+                /// check for scripted movement (?)
                 else if (movementflag != 0)
                 {
                     _updateCount++;
@@ -485,6 +490,13 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
 
+                /// check for physics-related movement
+                else if (this.lastPhysPos.GetDistanceTo(this.AbsolutePosition) > 0.02 )
+                {
+                    this.SendTerseUpdateToALLClients();
+                    _updateCount = 0;
+                    this.lastPhysPos = this.AbsolutePosition;
+                }
                 this.CheckForSignificantMovement();
                 this.CheckForBorderCrossing();
 
