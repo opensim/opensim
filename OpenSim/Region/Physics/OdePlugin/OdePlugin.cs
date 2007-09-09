@@ -132,6 +132,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             foreach (OdeCharacter chr in _characters)
             {
                 d.SpaceCollide2(space, chr.capsule_geom, IntPtr.Zero, nearCallback);
+                foreach (OdeCharacter ch2 in _characters)           /// should be a separate space -- lots of avatars will be N**2 slow
+                {
+                    d.SpaceCollide2(chr.capsule_geom, ch2.capsule_geom, IntPtr.Zero, nearCallback);
+                }
             }
         }
 
