@@ -35,6 +35,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
+using System.Xml;
 
 namespace OpenSim.Framework.Servers
 {
@@ -153,31 +154,44 @@ namespace OpenSim.Framework.Servers
             reader.Close();
             requestStream.Close();
 
-            XmlRpcRequest xmlRprcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+            string responseString = String.Empty;
+            XmlRpcRequest xmlRprcRequest = null;
 
-            string methodName = xmlRprcRequest.MethodName;
-
-            XmlRpcResponse xmlRpcResponse;
-
-            XmlRpcMethod method;
-            if (this.m_rpcHandlers.TryGetValue(methodName, out method))
+            try
             {
-                xmlRpcResponse = method(xmlRprcRequest);
+                xmlRprcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
             }
-            else
+            catch ( XmlException e )
+            {            
+                responseString = String.Format( "XmlException:\n{0}",e.Message );
+            }
+
+            if (xmlRprcRequest != null)
             {
-                xmlRpcResponse = new XmlRpcResponse();
-                Hashtable unknownMethodError = new Hashtable();
-                unknownMethodError["reason"] = "XmlRequest"; ;
-                unknownMethodError["message"] = "Unknown Rpc Request ["+methodName+"]";
-                unknownMethodError["login"] = "false";
-                xmlRpcResponse.Value = unknownMethodError;
+                string methodName = xmlRprcRequest.MethodName;
+
+                XmlRpcResponse xmlRpcResponse;
+
+                XmlRpcMethod method;
+                if (this.m_rpcHandlers.TryGetValue(methodName, out method))
+                {
+                    xmlRpcResponse = method(xmlRprcRequest);
+                }
+                else
+                {
+                    xmlRpcResponse = new XmlRpcResponse();
+                    Hashtable unknownMethodError = new Hashtable();
+                    unknownMethodError["reason"] = "XmlRequest"; ;
+                    unknownMethodError["message"] = "Unknown Rpc Request [" + methodName + "]";
+                    unknownMethodError["login"] = "false";
+                    xmlRpcResponse.Value = unknownMethodError;
+                }
+
+                responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
             }
 
             response.AddHeader("Content-type", "text/xml");
 
-            string responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
-            
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 
             response.SendChunked = false;
