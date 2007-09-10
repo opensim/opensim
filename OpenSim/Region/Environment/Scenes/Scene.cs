@@ -566,6 +566,12 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectGroup sceneOb = new SceneObjectGroup(this, this.m_regionHandle, ownerID, PrimIDAllocate(), pos, shape);
                 AddEntity(sceneOb);
                 SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
+                // if grass or tree, make phantom
+                if ((rootPart.Shape.PCode==95) || (rootPart.Shape.PCode==255))
+                {
+                    rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
+                }
+                // if not phantom, add to physics
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor = phyScene.AddPrim(new PhysicsVector(pos.X, pos.Y, pos.Z), new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
                     new Axiom.Math.Quaternion());
