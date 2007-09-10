@@ -28,26 +28,22 @@ namespace OpenSim.Region.Environment
         /// <param name="scene"></param>
         public void CreateDefaultModules(Scene scene, string exceptModules)
         {
-            XferModule xferManager = new XferModule();
-            xferManager.Initialise(scene);
-            scene.AddModule(xferManager.GetName(), xferManager);
-            LoadedModules.Add(xferManager);
+            IRegionModule module  = new XferModule();
+            InitialiseModule(module, scene);
 
-            ChatModule chatModule = new ChatModule();
-            chatModule.Initialise(scene);
-            scene.AddModule(chatModule.GetName(), chatModule);
-            LoadedModules.Add(chatModule);
-
-            AvatarProfilesModule avatarProfiles = new AvatarProfilesModule();
-            avatarProfiles.Initialise(scene);
-            scene.AddModule(avatarProfiles.GetName(), avatarProfiles);
-            LoadedModules.Add(avatarProfiles);
+            module = new ChatModule();
+            InitialiseModule(module, scene);
+            
+            module = new AvatarProfilesModule();
+            InitialiseModule(module, scene);
 
             this.LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
 
             string lslPath = System.IO.Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
             this.LoadRegionModule(lslPath, "LSLScriptingModule", scene);
+
         }
+
 
         public void LoadDefaultSharedModules(string exceptModules)
         {
@@ -62,6 +58,13 @@ namespace OpenSim.Region.Environment
                 module.Initialise(scene);
                 scene.AddModule(module.GetName(), module); //should be doing this?
             }
+        }
+
+        private void InitialiseModule(IRegionModule module, Scene scene)
+        {
+            module.Initialise(scene);
+            scene.AddModule(module.GetName(), module);
+            LoadedModules.Add(module);
         }
 
         /// <summary>
@@ -84,9 +87,7 @@ namespace OpenSim.Region.Environment
             IRegionModule module = this.LoadModule(dllName, moduleName);
             if (module != null)
             {
-                module.Initialise(scene);
-                scene.AddModule(module.GetName(), module);
-                LoadedModules.Add(module);
+                this.InitialiseModule(module, scene);
             }
         }
 

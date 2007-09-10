@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack
 
         protected bool AgentTextureCached(ClientView simclient, Packet packet)
         {
-            // Console.WriteLine(packet.ToString());
+            //System.Console.WriteLine("texture cached: " + packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
             cachedresp.AgentData.AgentID = this.AgentID;

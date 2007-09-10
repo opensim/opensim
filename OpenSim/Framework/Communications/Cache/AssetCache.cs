@@ -144,14 +144,14 @@ namespace OpenSim.Framework.Communications.Caches
             AssetBase asset = GetAsset(assetID);
             if (asset == null)
             {
-                this._assetServer.RequestAsset(assetID, isTexture);
+                this._assetServer.FetchAsset(assetID, isTexture);
             }
             return asset;
         }
 
         public void AddAsset(AssetBase asset)
         {
-             System.Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
+            // System.Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
             if (asset.Type == 0)
             {
                 //Console.WriteLine("which is a texture");
@@ -159,7 +159,7 @@ namespace OpenSim.Framework.Communications.Caches
                 { //texture
                     TextureImage textur = new TextureImage(asset);
                     this.Textures.Add(textur.FullID, textur);
-                    this._assetServer.UploadNewAsset(asset);
+                    this._assetServer.CreateAsset(asset);
                 }
                 else
                 {
@@ -173,7 +173,7 @@ namespace OpenSim.Framework.Communications.Caches
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
                     this.Assets.Add(assetInf.FullID, assetInf);
-                    this._assetServer.UploadNewAsset(asset);
+                    this._assetServer.CreateAsset(asset);
                 }
             }
         }
@@ -384,7 +384,7 @@ namespace OpenSim.Framework.Communications.Caches
                     request.AssetRequestSource = source;
                     request.Params = transferRequest.TransferInfo.Params;
                     this.RequestedAssets.Add(requestID, request);
-                    this._assetServer.RequestAsset(requestID, false);
+                    this._assetServer.FetchAsset(requestID, false);
                 }
                 return;
             }
@@ -561,7 +561,7 @@ namespace OpenSim.Framework.Communications.Caches
                     request.IsTextureRequest = true;
                     request.DiscardLevel = discard;
                     this.RequestedTextures.Add(imageID, request);
-                    this._assetServer.RequestAsset(imageID, true);
+                    this._assetServer.FetchAsset(imageID, true);
                 }
                 return;
             }

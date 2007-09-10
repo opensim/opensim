@@ -28,8 +28,7 @@
 using System;
 using System.IO;
 using System.Threading;
-using Db4objects.Db4o;
-using Db4objects.Db4o.Query;
+using System.Reflection;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework.Console;
@@ -40,32 +39,51 @@ using OpenSim.Framework.Utilities;
 namespace OpenSim.Framework.Communications.Caches
 {
 
-    public class LocalAssetServer : IAssetServer
+    public class SQLAssetServer : IAssetServer
     {
         private IAssetReceiver _receiver;
         private BlockingQueue<ARequest> _assetRequests;
-        private IObjectContainer db;
         private Thread _localAssetServerThread;
+        protected IAssetProvider m_plugin;
 
-        public LocalAssetServer()
+
+        public SQLAssetServer()
         {
-            bool yapfile;
-            this._assetRequests = new BlockingQueue<ARequest>();
-            yapfile = File.Exists(Path.Combine(Util.dataDir(), "regionassets.yap"));
-
-            MainLog.Instance.Verbose("Local Asset Server class created");
-            db = Db4oFactory.OpenFile(Path.Combine(Util.dataDir(), "regionassets.yap"));
-            MainLog.Instance.Verbose("Db4 Asset database  creation");
-
-            if (!yapfile)
-            {
-                this.SetUpAssetDatabase();
-            }
+            _assetRequests = new BlockingQueue<ARequest>();
+            AddPlugin("OpenSim.Framework.Data.SQLite.dll");
+            this.SetUpAssetDatabase();
 
             this._localAssetServerThread = new Thread(new ThreadStart(RunRequests));
             this._localAssetServerThread.IsBackground = true;
             this._localAssetServerThread.Start();
 
+        }
+
+        public void AddPlugin(string FileName)
+        {
+            //MainLog.Instance.Verbose("SQLAssetServer", "AssetStorage: Attempting to load " + FileName);
+            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (!pluginType.IsAbstract)
+                {
+                    Type typeInterface = pluginType.GetInterface("IAssetProvider", true);
+
+                    if (typeInterface != null)
+                    {
+                        IAssetProvider plug = (IAssetProvider)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        m_plugin = plug;
+                        m_plugin.Initialise("AssetStorage.db", "");
+                        
+                        //MainLog.Instance.Verbose("AssetStorage: Added IAssetProvider Interface");
+                    }
+
+                    typeInterface = null;
+                }
+            }
+
+            pluginAssembly = null;
         }
 
         public void SetReceiver(IAssetReceiver receiver)
@@ -83,17 +101,14 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void UpdateAsset(AssetBase asset)
         {
-
+            m_plugin.UpdateAsset(asset);
+            m_plugin.CommitAssets();
         }
 
         public void CreateAsset(AssetBase asset)
         {
-            AssetStorage store = new AssetStorage();
-            store.Data = asset.Data;
-            store.Name = asset.Name;
-            store.UUID = asset.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(asset);
+            m_plugin.CommitAssets();
         }
 
         public void SetServerInfo(string ServerUrl, string ServerKey)
@@ -102,42 +117,25 @@ namespace OpenSim.Framework.Communications.Caches
         }
         public void Close()
         {
-            if (db != null)
-            {
-                MainLog.Instance.Verbose("Closing local asset server database");
-                db.Close();
-            }
+            m_plugin.CommitAssets();
         }
 
         private void RunRequests()
         {
+            
             while (true)
             {
-                byte[] idata = null;
-                bool found = false;
-                AssetStorage foundAsset = null;
                 ARequest req = this._assetRequests.Dequeue();
-                IObjectSet result = db.Query(new AssetUUIDQuery(req.AssetID));
-                if (result.Count > 0)
-                {
-                    foundAsset = (AssetStorage)result.Next();
-                    found = true;
-                }
 
-                AssetBase asset = new AssetBase();
-                if (found)
+                m_plugin.FetchAsset(req.AssetID);
+
+                AssetBase asset = m_plugin.FetchAsset(req.AssetID);
+                if (asset != null)
                 {
-                    asset.FullID = foundAsset.UUID;
-                    asset.Type = foundAsset.Type;
-                    asset.InvType = foundAsset.Type;
-                    asset.Name = foundAsset.Name;
-                    idata = foundAsset.Data;
-                    asset.Data = idata;
                     _receiver.AssetReceived(asset, req.IsTexture);
                 }
                 else
                 {
-                    //asset.FullID = ;
                     _receiver.AssetNotFound(req.AssetID);
                 }
 
@@ -153,122 +151,67 @@ namespace OpenSim.Framework.Communications.Caches
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
             Image.Name = "Bricks";
             this.LoadAsset(Image, true, "bricks.jp2");
-            AssetStorage store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000002");
             Image.Name = "Plywood";
             this.LoadAsset(Image, true, "plywood.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000003");
             Image.Name = "Rocks";
             this.LoadAsset(Image, true, "rocks.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000004");
             Image.Name = "Granite";
             this.LoadAsset(Image, true, "granite.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000005");
             Image.Name = "Hardwood";
             this.LoadAsset(Image, true, "hardwood.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-5005-000000000005");
             Image.Name = "Prim Base Texture";
             this.LoadAsset(Image, true, "plywood.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000006");
             Image.Name = "Map Base Texture";
             this.LoadAsset(Image, true, "map_base.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000007");
             Image.Name = "Map Texture";
             this.LoadAsset(Image, true, "map1.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-1111-9999-000000000010");
             Image.Name = "Female Body Texture";
             this.LoadAsset(Image, true, "femalebody.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-1111-9999-000000000011");
             Image.Name = "Female Bottom Texture";
             this.LoadAsset(Image, true, "femalebottom.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-0000-1111-9999-000000000012");
             Image.Name = "Female Face Texture";
             this.LoadAsset(Image, true, "femaleface.jp2");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
@@ -276,13 +219,7 @@ namespace OpenSim.Framework.Communications.Caches
             Image.Type = 13;
             Image.InvType = 13;
             this.LoadAsset(Image, false, "base_skin.dat");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
-
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
@@ -290,12 +227,7 @@ namespace OpenSim.Framework.Communications.Caches
             Image.Type = 13;
             Image.InvType = 13;
             this.LoadAsset(Image, false, "base_shape.dat");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-38f9-1111-024e-222222111110");
@@ -303,12 +235,7 @@ namespace OpenSim.Framework.Communications.Caches
             Image.Type = 5;
             Image.InvType = 18;
             this.LoadAsset(Image, false, "newshirt.dat");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             Image = new AssetBase();
             Image.FullID = new LLUUID("00000000-38f9-1111-024e-222222111120");
@@ -316,12 +243,7 @@ namespace OpenSim.Framework.Communications.Caches
             Image.Type = 5;
             Image.InvType = 18;
             this.LoadAsset(Image, false, "newpants.dat");
-            store = new AssetStorage();
-            store.Data = Image.Data;
-            store.Name = Image.Name;
-            store.UUID = Image.FullID;
-            db.Set(store);
-            db.Commit();
+            m_plugin.CreateAsset(Image);
 
             string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
             if (File.Exists(filePath))
@@ -329,6 +251,8 @@ namespace OpenSim.Framework.Communications.Caches
                 XmlConfigSource source = new XmlConfigSource(filePath);
                 ReadAssetDetails(source);
             }
+
+            m_plugin.CommitAssets();
         }
 
         protected void ReadAssetDetails(IConfigSource source)
@@ -345,12 +269,7 @@ namespace OpenSim.Framework.Communications.Caches
                 if (fileName != "")
                 {
                     this.LoadAsset(newAsset, false, fileName);
-                    AssetStorage store = new AssetStorage();
-                    store.Data = newAsset.Data;
-                    store.Name = newAsset.Name;
-                    store.UUID = newAsset.FullID;
-                    db.Set(store);
-                    db.Commit();
+                    m_plugin.CreateAsset(newAsset);
                 }
             }
         }
@@ -374,19 +293,5 @@ namespace OpenSim.Framework.Communications.Caches
             //info.loaded=true;
         }
     }
-    public class AssetUUIDQuery : Predicate
-    {
-        private LLUUID _findID;
-
-        public AssetUUIDQuery(LLUUID find)
-        {
-            _findID = find;
-        }
-        public bool Match(AssetStorage asset)
-        {
-            return (asset.UUID == _findID);
-        }
-    }
 
 }
-

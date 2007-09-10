@@ -91,10 +91,9 @@ namespace OpenSim.Region.Environment.Scenes
         public Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
 
-        //API method Delegates and interfaces
+        //API module interfaces
 
-        // this most likely shouldn't be handled as a API method like this, but doing it for testing purposes
-        public ModuleAPIMethod2<bool, string, byte[]> AddXferFile = null;
+        public IXfer XferManager;
 
         private IHttpRequests m_httpRequestModule = null;
         private ISimChat m_simChatModule = null;
@@ -206,8 +205,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_simChatModule = this.RequestModuleInterface<ISimChat>();
             m_httpRequestModule = this.RequestModuleInterface<IHttpRequests>();
 
-            //should change so it uses the module interface functions
-            AddXferFile = (ModuleAPIMethod2<bool, string, byte[]>)this.RequestAPIMethod("API_AddXferFile");
+            XferManager = this.RequestModuleInterface<IXfer>();
         }
 
         #region Script Handling Methods
@@ -605,7 +603,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (!Entities.ContainsKey(sceneObject.UUID))
             {
-                QuadTree.AddObject(sceneObject);
+              //  QuadTree.AddObject(sceneObject);
                 Entities.Add(sceneObject.UUID, sceneObject);
             }
         }

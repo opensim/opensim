@@ -170,6 +170,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.AgentSetAppearance:
+                        //OpenSim.Framework.Console.MainLog.Instance.Verbose("set appear", Pack.ToString());
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
                         if (OnSetAppearance != null)
                         {
@@ -366,8 +367,9 @@ namespace OpenSim.Region.ClientStack
                         m_assetCache.AddAssetRequest(this, transfer);
                         break;
                     case PacketType.AssetUploadRequest:
-                        //Console.WriteLine("upload request " + Pack.ToString());
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
+                       // Console.WriteLine("upload request " + Pack.ToString());
+                       // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
                         if (OnAssetUploadRequest != null)
                         {
                             OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);

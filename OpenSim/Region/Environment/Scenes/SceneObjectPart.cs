@@ -12,6 +12,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -494,7 +495,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(ModuleAPIMethod2<bool, string, byte[]> addXferFile)
+        public string RequestInventoryFile(IXfer xferManager)
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, this.UUID);
@@ -528,7 +529,7 @@ namespace OpenSim.Region.Environment.Scenes
             fileData = Helpers.StringToField(invString.BuildString);
             if (fileData.Length > 2)
             {
-                addXferFile(m_inventoryFileName, fileData);
+                xferManager.AddNewFile(m_inventoryFileName, fileData);
             }
             return "";
         }

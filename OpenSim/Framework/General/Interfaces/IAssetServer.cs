@@ -37,9 +37,9 @@ namespace OpenSim.Framework.Interfaces
     public interface IAssetServer
     {
         void SetReceiver(IAssetReceiver receiver);
-        void RequestAsset(LLUUID assetID, bool isTexture);
+        void FetchAsset(LLUUID assetID, bool isTexture);
         void UpdateAsset(AssetBase asset);
-        void UploadNewAsset(AssetBase asset);
+        void CreateAsset(AssetBase asset);
         void SetServerInfo(string ServerUrl, string ServerKey);
         void Close();
     }

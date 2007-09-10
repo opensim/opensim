@@ -10,7 +10,7 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class XferModule : IRegionModule
+    public class XferModule : IRegionModule, IXfer
     {
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
@@ -27,7 +27,7 @@ namespace OpenSim.Region.Environment.Modules
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
 
-            m_scene.RegisterAPIMethod("API_AddXferFile", new ModuleAPIMethod2<bool, string, byte[]>(this.AddNewFile));
+            m_scene.RegisterModuleInterface<IXfer>(this);
         }
 
         public void PostInitialise()

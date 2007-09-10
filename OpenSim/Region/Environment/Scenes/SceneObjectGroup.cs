@@ -11,6 +11,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Framework.Data;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -676,12 +677,12 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public string RequestInventoryFile(uint localID, ModuleAPIMethod2<bool, string, byte[]> addXferFile)
+        public string RequestInventoryFile(uint localID, IXfer xferManager)
         {
             SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
-                 part.RequestInventoryFile(addXferFile);
+                 part.RequestInventoryFile(xferManager);
             }
             return "";
         }

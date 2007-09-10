@@ -34,13 +34,14 @@ using System.Data.SqlTypes;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Framework.Data.SQLite
 {
     /// <summary>
     /// A User storage interface for the DB4o database system
     /// </summary>
-    public class SQLiteAssetData : SQLiteBase
+    public class SQLiteAssetData : SQLiteBase, IAssetProvider
     {
         /// <summary>
         /// The database manager
@@ -64,7 +65,15 @@ namespace OpenSim.Framework.Data.SQLite
             ds.Tables.Add(createAssetsTable());
             
             setupAssetCommands(da, conn);
-            da.Fill(ds.Tables["assets"]);
+            try
+            {
+                da.Fill(ds.Tables["assets"]);
+            }
+            catch (Exception)
+            {
+                MainLog.Instance.Verbose("AssetStorage", "Caught fill error on asset table");
+            }
+
             
             return;
         }
@@ -172,7 +181,14 @@ namespace OpenSim.Framework.Data.SQLite
         {
             row["UUID"] = asset.FullID;
             row["Name"] = asset.Name;
-            row["Description"] = asset.Description;
+            if (asset.Description != null)
+            {
+                row["Description"] = asset.Description;
+            }
+            else
+            {
+                row["Description"] = " ";
+            }
             row["Type"] = asset.Type;
             row["InvType"] = asset.InvType;
             row["Local"] = asset.Local;

@@ -266,7 +266,8 @@ namespace OpenSim
         {
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
-            LocalAssetServer assetServer = new LocalAssetServer();
+           // LocalAssetServer assetServer = new LocalAssetServer();
+            SQLAssetServer assetServer = new SQLAssetServer();
             assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
             m_assetCache = new AssetCache(assetServer);
             // m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);

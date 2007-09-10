@@ -42,7 +42,8 @@ namespace OpenSim.Framework.Types
 
         public AssetBase()
         {
-
+            Name = " ";
+            Description = " ";
         }
     }
 }
