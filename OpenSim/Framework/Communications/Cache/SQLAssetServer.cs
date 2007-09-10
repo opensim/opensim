@@ -128,7 +128,7 @@ namespace OpenSim.Framework.Communications.Caches
             {
                 ARequest req = this._assetRequests.Dequeue();
 
-                m_plugin.FetchAsset(req.AssetID);
+                MainLog.Instance.Verbose("Requesting asset: " + req.AssetID);
 
                 AssetBase asset = m_plugin.FetchAsset(req.AssetID);
                 if (asset != null)
@@ -269,6 +269,7 @@ namespace OpenSim.Framework.Communications.Caches
                 string fileName = source.Configs[i].GetString("fileName", "");
                 if (fileName != "")
                 {
+                    MainLog.Instance.Verbose("Creating new asset: " + newAsset.Name);
                     this.LoadAsset(newAsset, false, fileName);
                     m_plugin.CreateAsset(newAsset);
                 }

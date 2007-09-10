@@ -197,6 +197,8 @@ namespace OpenSim.Framework.Data.SQLite
                 return DbType.UInt64;
             } else if (type == typeof(System.Double)) {
                 return DbType.Double;
+            } else if (type == typeof(System.Boolean)) {
+                return DbType.Boolean;
             } else if (type == typeof(System.Byte[])) {
                 return DbType.Binary;
             } else {
@@ -220,6 +222,8 @@ namespace OpenSim.Framework.Data.SQLite
                 return "varchar(255)";
             } else if (type == typeof(System.Double)) {
                 return "float";
+            } else if (type == typeof(System.Boolean)) {
+                return "integer";
             } else if (type == typeof(System.Byte[])) {
                 return "blob";
             } else {

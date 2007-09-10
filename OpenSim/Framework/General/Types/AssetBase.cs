@@ -35,15 +35,14 @@ namespace OpenSim.Framework.Types
         public LLUUID FullID;
         public sbyte Type;
         public sbyte InvType;
-        public string Name;
-        public string Description;
-        public bool Local;
-        public bool Temporary;
+        public string Name = "";
+        public string Description = "";
+        public bool Local = false;
+        public bool Temporary = false;
 
         public AssetBase()
         {
-            Name = " ";
-            Description = " ";
+     
         }
     }
 }
