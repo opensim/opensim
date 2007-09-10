@@ -1,6 +1,6 @@
 #region Copyright
 /*
-* Copyright (c) Contributors, http://www.openmetaverse.org/
+* Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
 * Redistribution and use in source and binary forms, with or without
