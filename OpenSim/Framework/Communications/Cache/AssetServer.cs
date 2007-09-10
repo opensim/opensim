@@ -49,6 +49,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public LocalAssetServer()
         {
+            System.Console.WriteLine("Starting Db4o asset storage system");
             bool yapfile;
             this._assetRequests = new BlockingQueue<ARequest>();
             yapfile = File.Exists(Path.Combine(Util.dataDir(), "regionassets.yap"));

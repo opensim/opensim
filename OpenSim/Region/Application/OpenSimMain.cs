@@ -88,7 +88,7 @@ namespace OpenSim
         private string standaloneInventoryPlugin = "";
         private string standaloneUserPlugin = "";
 
-        private string m_assetStorage = "sqlite";
+        private string m_assetStorage = "db4o";
 
         private Scene m_consoleRegion = null;
 
@@ -129,7 +129,7 @@ namespace OpenSim
 
             m_scriptEngine = configSource.Configs["Startup"].GetString("script_engine", "DotNetEngine");
 
-            m_assetStorage = configSource.Configs["Startup"].GetString("asset_database", "sqlite");
+            m_assetStorage = configSource.Configs["Startup"].GetString("asset_database", "db4o");
 
             m_DefaultModules = configSource.Configs["Startup"].GetBoolean("default_modules", true);
             m_DefaultSharedModules = configSource.Configs["Startup"].GetBoolean("default_shared_modules", true);

@@ -49,6 +49,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public SQLAssetServer()
         {
+            System.Console.WriteLine("Starting sqlite asset storage system");
             _assetRequests = new BlockingQueue<ARequest>();
             AddPlugin("OpenSim.Framework.Data.SQLite.dll");
             this.SetUpAssetDatabase();
