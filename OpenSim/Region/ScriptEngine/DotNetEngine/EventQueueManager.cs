@@ -33,6 +33,7 @@ using System.Threading;
 using System.Reflection;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using libsecondlife;
+using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -282,7 +283,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 return;
             }
 
-            foreach (LLUUID itemID in new System.Collections.ArrayList(myScriptEngine.myScriptManager.GetScriptKeys(localID)))
+            Dictionary<LLUUID, LSL_BaseClass>.KeyCollection scriptKeys = myScriptEngine.myScriptManager.GetScriptKeys(localID);
+
+            foreach ( LLUUID itemID in scriptKeys )
             {
                 // Add to each script in that object
                 // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
