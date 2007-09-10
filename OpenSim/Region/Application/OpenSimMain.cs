@@ -88,6 +88,8 @@ namespace OpenSim
         private string standaloneInventoryPlugin = "";
         private string standaloneUserPlugin = "";
 
+        private string m_assetStorage = "sqlite";
+
         private Scene m_consoleRegion = null;
 
         public ConsoleCommand CreateAccount = null;
@@ -126,6 +128,8 @@ namespace OpenSim
             m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
 
             m_scriptEngine = configSource.Configs["Startup"].GetString("script_engine", "DotNetEngine");
+
+            m_assetStorage = configSource.Configs["Startup"].GetString("asset_database", "sqlite");
 
             m_DefaultModules = configSource.Configs["Startup"].GetBoolean("default_modules", true);
             m_DefaultSharedModules = configSource.Configs["Startup"].GetBoolean("default_shared_modules", true);
@@ -266,8 +270,15 @@ namespace OpenSim
         {
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
-           // LocalAssetServer assetServer = new LocalAssetServer();
-            SQLAssetServer assetServer = new SQLAssetServer();
+            IAssetServer assetServer;
+            if (m_assetStorage == "db4o")
+            {
+                 assetServer = new LocalAssetServer();
+            }
+            else
+            {
+                assetServer = new SQLAssetServer();
+            }
             assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
             m_assetCache = new AssetCache(assetServer);
             // m_assetCache = new AssetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
