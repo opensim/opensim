@@ -9,6 +9,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;

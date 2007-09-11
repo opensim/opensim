@@ -8,6 +8,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Utilities;
 using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
@@ -79,9 +80,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llFrand(double mag)
         {
-            lock (OpenSim.Framework.Util.RandomClass)
+            lock (Util.RandomClass)
             {
-                return OpenSim.Framework.Util.RandomClass.Next((int)mag);
+                return Util.RandomClass.Next((int)mag);
             }
         }
 
@@ -597,7 +598,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llMD5String(string src, int nonce)
         {
-            return OpenSim.Framework.Util.Md5Hash(src + ":" + nonce.ToString());
+            return Util.Md5Hash(src + ":" + nonce.ToString());
         }
 
         public void llSetPrimitiveParams(List<string> rules) { }
@@ -731,7 +732,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         
         public int llGetUnixTime()
         {
-            return OpenSim.Framework.Util.UnixTimeSinceEpoch();
+            return Util.UnixTimeSinceEpoch();
         }
 
         public int llGetParcelFlags(LSL_Types.Vector3 pos) { return 0; }
