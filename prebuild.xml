@@ -276,6 +276,30 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.Physics.BulletXPlugin" path="OpenSim/Region/Physics/BulletXPlugin" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Reference name="Modified.XnaDevRu.BulletX.dll" localCopy="false" />
+      <Reference name="MonoXnaCompactMaths.dll" localCopy="false" />
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     
     <!-- Terrain engine -->
     <Project name="OpenSim.Region.Terrain.BasicTerrain" path="OpenSim/Region/Terrain.BasicTerrain" type="Library">
@@ -800,6 +824,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Grid.Framework.Manager"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="XMLRPC.dll"/>
