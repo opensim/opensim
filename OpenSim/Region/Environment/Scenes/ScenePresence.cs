@@ -64,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool newForce = false;
         private bool newAvatar = false;
-         private bool newCoarseLocations = false;
+        private bool newCoarseLocations = true;
 
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
@@ -540,7 +540,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-	    	if (avatars[i] != this) {
+	    	if (avatars[i] != this && (!avatars[i].childAgent) ) {
 	            CoarseLocations.Add(avatars[i].AbsolutePosition);
 		}
             }
@@ -763,6 +763,7 @@ namespace OpenSim.Region.Environment.Scenes
                     this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint, capsPath);
                     this.MakeChildAgent();
                     this.m_scene.SendKillObject(this.m_localId);
+                    this.NotifyMyCoarseLocationChange();
                 }
             }
         }
