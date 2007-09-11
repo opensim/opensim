@@ -79,9 +79,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llFrand(double mag)
         {
-            lock (OpenSim.Framework.Utilities.Util.RandomClass)
+            lock (OpenSim.Framework.Util.RandomClass)
             {
-                return OpenSim.Framework.Utilities.Util.RandomClass.Next((int)mag);
+                return OpenSim.Framework.Util.RandomClass.Next((int)mag);
             }
         }
 
@@ -217,7 +217,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llScaleTexture(double u, double v, int face) { return; }
         public void llOffsetTexture(double u, double v, int face) { return; }
         public void llRotateTexture(double rotation, int face) { return; }
-        public string llGetTexture(int face) { return ""; }
+
+        public string llGetTexture(int face) 
+        { 
+            return ""; 
+        }
+
         public void llSetPos(LSL_Types.Vector3 pos) { return; }
 
         public LSL_Types.Vector3 llGetPos()
@@ -265,11 +270,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llTriggerSound(string sound, double volume) { }
         public void llStopSound() { }
         public void llPreloadSound(string sound) { }
-        public string llGetSubString(string src, int start, int end) { return src.Substring(start, end); }
+
+        public string llGetSubString(string src, int start, int end) 
+        { 
+            return src.Substring(start, end); 
+        }
+
         public string llDeleteSubString(string src, int start, int end) {return "";}
         public string llInsertString(string dst, int position, string src) { return ""; }
-        public string llToUpper(string src) { return src.ToUpper(); }
-        public string llToLower(string src) { return src.ToLower(); }
+
+        public string llToUpper(string src) 
+        { 
+            return src.ToUpper(); 
+        }
+
+        public string llToLower(string src) 
+        { 
+            return src.ToLower(); 
+        }
+
         public int llGiveMoney(string destination, int amount) { return 0; }
         public void llMakeExplosion() { }
         public void llMakeFountain() { }
@@ -285,7 +304,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             m_ScriptEngine.myLSLLongCmdHandler.SetTimerEvent(m_localID, m_itemID, sec);
         }
 
-        public void llSleep(double sec) { System.Threading.Thread.Sleep((int)(sec * 1000)); }
+        public void llSleep(double sec) 
+        { 
+            System.Threading.Thread.Sleep((int)(sec * 1000)); 
+        }
+
         public double llGetMass() { return 0; }
         public void llCollisionFilter(string name, string id, int accept) { }
         public void llTakeControls(int controls, int accept, int pass_on) { }
@@ -294,7 +317,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llDetachFromAvatar() { }
         public void llTakeCamera() { }
         public void llReleaseCamera() { }
-        public string llGetOwner() { return m_host.ObjectOwner.ToStringHyphenated(); }
+
+        public string llGetOwner() 
+        { 
+            return m_host.ObjectOwner.ToStringHyphenated(); 
+        }
+
         public void llInstantMessage(string user, string message) { }
         public void llEmail(string address, string subject, string message) { }
         public void llGetNextEmail(string address, string subject) { }
@@ -368,12 +396,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local) { }
         public void llPassCollisions(int pass) { }
         public string llGetScriptName() { return ""; }
+
         public int llGetNumberOfSides() { return 0; }
+
         public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle) { return new LSL_Types.Quaternion(); }
         public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot) { return new LSL_Types.Vector3(); }
         public void llRot2Angle() { }
-        public double llAcos(double val) { return (double)Math.Acos(val); }
-        public double llAsin(double val) { return (double)Math.Asin(val); }
+
+        public double llAcos(double val) 
+        { 
+            return (double)Math.Acos(val); 
+        }
+
+        public double llAsin(double val) 
+        { 
+            return (double)Math.Asin(val); 
+        }
+
         public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b) { return 0; }
         public string llGetInventoryKey(string name) { return ""; }
         public void llAllowInventoryDrop(int add) { }
@@ -387,7 +426,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return source.IndexOf(pattern);
         }
 
-        public string llGetOwnerKey(string id) { return ""; }
+        public string llGetOwnerKey(string id) 
+        { 
+            return ""; 
+        }
+
         public LSL_Types.Vector3 llGetCenterOfMass() { return new LSL_Types.Vector3(); }
 
         public List<string> llListSort(List<string> src, int stride, int ascending)
@@ -459,8 +502,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public List<string> llListInsertList(List<string> dest, List<string> src, int start)
         { return new List<string>(); }
         public int llListFindList(List<string> src, List<string> test) { return 0; }
-        public string llGetObjectName() { return m_host.Name; }
-        public void llSetObjectName(string name) { m_host.Name = name; }
+        
+        public string llGetObjectName() 
+        { 
+            return m_host.Name; 
+        }
+
+        public void llSetObjectName(string name) 
+        { 
+            m_host.Name = name;
+        }
 
         public string llGetDate()
         {
@@ -478,7 +529,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { }
         public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west) { }
         public void llEjectFromLand(string pest) { }
+
         public void llParseString2List() { }
+
         public int llOverMyLand(string id) { return 0; }
         public string llGetLandOwnerAt(LSL_Types.Vector3 pos) { return ""; }
         public string llGetNotecardLine(string name, int line) { return ""; }
@@ -490,7 +543,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
         public int llGetAttached() { return 0; }
         public int llGetFreeMemory() { return 0; }
-        public string llGetRegionName() { return World.RegionInfo.RegionName; }
+
+        public string llGetRegionName() 
+        { 
+            return World.RegionInfo.RegionName; 
+        }
+
         public double llGetRegionTimeDilation() { return 1.0f; }
         public double llGetRegionFPS() { return 10.0f; }
         public void llParticleSystem(List<Object> rules) { }
@@ -505,13 +563,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot) { }
         public string llAvatarOnSitTarget() { return ""; }
         public void llAddToLandPassList(string avatar, double hours) { }
+
         public void llSetTouchText(string text)
         {
+            m_host.TouchName = text;
         }
 
         public void llSetSitText(string text)
         {
+            m_host.SitName = text;
         }
+
         public void llSetCameraEyeOffset(LSL_Types.Vector3 offset) { }
         public void llSetCameraAtOffset(LSL_Types.Vector3 offset) { }
         public void llDumpList2String() { }
@@ -532,10 +594,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public string llSendRemoteData(string channel, string dest, int idata, string sdata) { return ""; }
         public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { }
         public void llCloseRemoteDataChannel(string channel) { }
+
         public string llMD5String(string src, int nonce)
         {
-            return OpenSim.Framework.Utilities.Util.Md5Hash(src + ":" + nonce.ToString());
+            return OpenSim.Framework.Util.Md5Hash(src + ":" + nonce.ToString());
         }
+
         public void llSetPrimitiveParams(List<string> rules) { }
         public string llStringToBase64(string str) { return ""; }
         public string llBase64ToString(string str) { return ""; }
@@ -557,9 +621,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return new LSL_Types.Quaternion();
         }
 
-        public string llGetObjectDesc() { return ""; }
-        public void llSetObjectDesc(string desc) { }
-        public string llGetCreator() { return ""; }
+        public string llGetObjectDesc() 
+        { 
+            return m_host.Description; 
+        }
+
+        public void llSetObjectDesc(string desc) 
+        {
+            m_host.Description = desc;
+        }
+
+        public string llGetCreator() 
+        { 
+            return m_host.ObjectCreator.ToStringHyphenated(); 
+        }
+
         public string llGetTimestamp() { return ""; }
         public void llSetLinkAlpha(int linknumber, double alpha, int face) { }
         public int llGetNumberOfPrims() { return 0; }
@@ -569,14 +645,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llGetPrimitiveParams() { }
         public string llIntegerToBase64(int number) { return ""; }
         public int llBase64ToInteger(string str) { return 0; }
-        public double llGetGMTclock() { return DateTime.UtcNow.TimeOfDay.TotalSeconds; }
-        public string llGetSimulatorHostname() { return System.Environment.MachineName; }
+
+        public double llGetGMTclock() 
+        { 
+            return DateTime.UtcNow.TimeOfDay.TotalSeconds; 
+        }
+        
+        public string llGetSimulatorHostname() 
+        { 
+            return System.Environment.MachineName; 
+        }
+
         public void llSetLocalRot(LSL_Types.Quaternion rot) { }
         public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
         { return new List<string>(); }
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param) { }
+        
         public int llGetObjectPermMask(int mask) { return 0; }
+
         public void llSetObjectPermMask(int mask, int value) { }
+
         public void llGetInventoryPermMask(string item, int mask) { }
         public void llSetInventoryPermMask(string item, int mask, int value) { }
         public string llGetInventoryCreator(string item) { return ""; }
@@ -585,11 +673,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llForceMouselook(int mouselook) { }
         public double llGetObjectMass(string id) { return 0; }
         public void llListReplaceList() { }
+
         public void llLoadURL(string avatar_id, string message, string url) 
         {
             LLUUID avatarId = new LLUUID(avatar_id);
             m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message, url);
         }
+
         public void llParcelMediaCommandList(List<string> commandList) { }
         public void llParcelMediaQuery() { }
 
@@ -601,11 +691,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         }
 
         public int llGetInventoryType(string name) { return 0; }
+
         public void llSetPayPrice(int price, List<string> quick_pay_buttons) { }
         public LSL_Types.Vector3 llGetCameraPos() { return new LSL_Types.Vector3(); }
         public LSL_Types.Quaternion llGetCameraRot() { return new LSL_Types.Quaternion(); }
         public void llSetPrimURL() { }
         public void llRefreshPrimURL() { }
+
         public string llEscapeURL(string url)
         {
             try
@@ -617,6 +709,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 return "llEscapeURL: " + ex.ToString();
             }
         }
+
         public string llUnescapeURL(string url)
         {
             try
@@ -635,10 +728,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llSetCameraParams(List<string> rules) { }
         public void llClearCameraParams() { }
         public double llListStatistics(int operation, List<string> src) { return 0; }
+        
         public int llGetUnixTime()
         {
-            return OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
+            return OpenSim.Framework.Util.UnixTimeSinceEpoch();
         }
+
         public int llGetParcelFlags(LSL_Types.Vector3 pos) { return 0; }
         public int llGetRegionFlags() { return 0; }
         public string llXorBase64StringsCorrect(string str1, string str2) { return ""; }

@@ -15,6 +15,24 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             set { }
         }
 
+        public string SitName
+        {
+            get { return ""; }
+            set { }
+        }
+
+        public string TouchName
+        {
+            get { return ""; }
+            set { }
+        }
+
+        public string Description
+        {
+            get { return ""; }
+            set { }
+        }
+
         public LLUUID UUID
         {
             get { return LLUUID.Zero; }
@@ -22,6 +40,8 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 
         public LLUUID ObjectOwner
         { get { return LLUUID.Zero; } }
+
+        public LLUUID ObjectCreator { get { return LLUUID.Zero; } }
 
         public LLVector3 AbsolutePosition
         {

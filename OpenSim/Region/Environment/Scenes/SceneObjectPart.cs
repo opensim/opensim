@@ -10,7 +10,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes.Scripting;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -29,7 +29,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
 
-        public LLUUID CreatorID;
         public LLUUID OwnerID;
         public LLUUID GroupID;
         public LLUUID LastOwnerID;
@@ -55,6 +54,9 @@ namespace OpenSim.Region.Environment.Scenes
         private byte m_updateFlag;
 
         #region Properties
+
+        public LLUUID CreatorID;
+        public LLUUID ObjectCreator { get { return CreatorID; } }
 
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
@@ -210,6 +212,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return OwnerID; }
         }
 
+        public SceneObjectGroup ParentGroup
+        {
+            get { return m_parentGroup; } 
+        }
+
         #region Constructors
         /// <summary>
         /// 
@@ -322,6 +329,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_parentGroup = parent;
 
+        }
+
+        public LLUUID GetRootPartUUID()
+        {
+            if (m_parentGroup != null)
+            {
+                return m_parentGroup.UUID;
+            }
+            return LLUUID.Zero;
         }
 
         #region Copying
@@ -615,12 +631,14 @@ namespace OpenSim.Region.Environment.Scenes
             for (int i = 0; i < avatars.Count; i++)
             {
                 avatars[i].AddFullPart(this);
+               // avatars[i].QueuePartForUpdate(this);
             }
         }
 
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
             presence.AddFullPart(this);
+            //presence.QueuePartForUpdate(this);
         }
 
         /// <summary>
@@ -677,12 +695,14 @@ namespace OpenSim.Region.Environment.Scenes
              for (int i = 0; i < avatars.Count; i++)
              {
                  avatars[i].AddTersePart(this);
+                // avatars[i].QueuePartForUpdate(this);
              }
         }
 
         public void AddTerseUpdateToAvatar(ScenePresence presence)
         {
             presence.AddTersePart(this);
+           // presence.QueuePartForUpdate(this);
         }
 
         /// <summary>
