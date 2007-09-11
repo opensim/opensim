@@ -66,8 +66,8 @@ namespace OpenSim.Framework.Data
         {
             get { return Helpers.UIntsToLong((homeRegionX * 256), (homeRegionY * 256)); }
             set { 
-                System.Console.WriteLine("Don't know how to set homeRegion");
-                Helpers.UIntsToLong((homeRegionX * 256), (homeRegionY * 256));
+                homeRegionX = (uint)(value >> 40);
+                homeRegionY = (((uint)(value)) >> 8);
             }
         }
         public uint homeRegionX;
