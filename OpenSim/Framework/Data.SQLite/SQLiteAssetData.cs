@@ -121,11 +121,8 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 fillAssetRow(row, asset);
             }
-            if (ds.HasChanges()) {
-                DataSet changed = ds.GetChanges();
-                da.Update(changed, "assets");
-                ds.AcceptChanges();
-            }
+            da.Update(ds, "assets");
+            ds.AcceptChanges();
         }
 
         public bool ExistsAsset(LLUUID uuid)
@@ -133,15 +130,22 @@ namespace OpenSim.Framework.Data.SQLite
             DataRow row = ds.Tables["assets"].Rows.Find(uuid);
             return (row != null);
         }
+
+        public void DeleteAsset(LLUUID uuid)
+        {
+            DataRow row = ds.Tables["assets"].Rows.Find(uuid);
+            if (row != null) {
+                row.Delete();
+            }
+            da.Update(ds, "assets");
+            ds.AcceptChanges();
+        }
         
         public void CommitAssets() // force a sync to the database
         {
             MainLog.Instance.Verbose("AssetStorage", "Attempting commit");
-            if (ds.HasChanges()) {
-                DataSet changed = ds.GetChanges();
-                da.Update(changed, "assets");
-                ds.AcceptChanges();
-            }
+            // da.Update(ds, "assets");
+            // ds.AcceptChanges();
         }
         
         /***********************************************************************
