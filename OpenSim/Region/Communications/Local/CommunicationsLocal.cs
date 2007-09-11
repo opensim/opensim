@@ -34,6 +34,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.UserManagement;
+using libsecondlife;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -79,41 +80,51 @@ namespace OpenSim.Region.Communications.Local
             switch (cmmdParams[0])
             {
                 case "user":
-                    string tempfirstname;
-                    string templastname;
-                    string tempMD5Passwd;
+                    string firstName;
+                    string lastName;
+                    string password;
                     uint regX = 1000;
                     uint regY = 1000;
 
                     if (cmmdParams.Length < 2)
                     {
                        
-                        tempfirstname = MainLog.Instance.CmdPrompt("First name", "Default");
-                        templastname = MainLog.Instance.CmdPrompt("Last name", "User");
-                        tempMD5Passwd = MainLog.Instance.PasswdPrompt("Password");
+                        firstName = MainLog.Instance.CmdPrompt("First name", "Default");
+                        lastName = MainLog.Instance.CmdPrompt("Last name", "User");
+                        password = MainLog.Instance.PasswdPrompt("Password");
                         regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X", "1000"));
                         regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y", "1000"));
                     }
                     else
                     {
-                        tempfirstname = cmmdParams[1];
-                        templastname = cmmdParams[2];
-                        tempMD5Passwd = cmmdParams[3];
+                        firstName = cmmdParams[1];
+                        lastName = cmmdParams[2];
+                        password = cmmdParams[3];
                         regX = Convert.ToUInt32(cmmdParams[4]);
                         regY = Convert.ToUInt32(cmmdParams[5]);
 
                     }
 
-                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
-
-                    this.UserServices.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    UserProfileData userProf = this.UserServer.GetUserProfile(tempfirstname, templastname);
-                    if (userProf != null)
-                    {
-                        this.InvenServices.CreateNewUserInventory(userProf.UUID);
-                        Console.WriteLine("Created new inventory set for " + tempfirstname + " " + templastname);
-                    }
+                    AddUser(firstName, lastName, password, regX, regY);
                     break;
+            }
+        }
+
+        public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
+        {
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + "");
+
+            this.UserServices.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
+            UserProfileData userProf = this.UserServer.GetUserProfile(firstName, lastName);
+            if (userProf == null)
+            {
+                return LLUUID.Zero;
+            }
+            else 
+            {
+                this.InvenServices.CreateNewUserInventory(userProf.UUID);
+                Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
+                return userProf.UUID;
             }
         }
 

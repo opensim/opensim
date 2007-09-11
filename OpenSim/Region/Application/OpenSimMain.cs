@@ -27,29 +27,22 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
-using libsecondlife;
+using System.Text;
 using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Configuration;
-using OpenSim.Region.Physics.Manager;
-
+using OpenSim.Framework.Utilities;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
-using OpenSim.Framework.Communications.Caches;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment;
-using System.Text;
-using System.Collections.Generic;
-using OpenSim.Framework.Utilities;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim
 {
@@ -75,7 +68,7 @@ namespace OpenSim
         protected List<Scene> m_localScenes = new List<Scene>();
 
         private bool m_silent;
-        private string m_logFilename = ("region-console.log");
+        private readonly string m_logFilename = ("region-console.log");
         private bool m_permissions = false;
 
         private bool m_DefaultModules = true;
