@@ -45,6 +45,7 @@ namespace OpenSim.Framework.Communications.Caches
         private BlockingQueue<ARequest> _assetRequests;
         private Thread _localAssetServerThread;
         protected IAssetProvider m_plugin;
+        private object syncLock = new object();
 
 
         public SQLAssetServer()
@@ -102,14 +103,20 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void UpdateAsset(AssetBase asset)
         {
-            m_plugin.UpdateAsset(asset);
-            m_plugin.CommitAssets();
+            lock (syncLock)
+            {
+                m_plugin.UpdateAsset(asset);
+                m_plugin.CommitAssets();
+            }
         }
 
         public void CreateAsset(AssetBase asset)
         {
-            m_plugin.CreateAsset(asset);
-            m_plugin.CommitAssets();
+            lock (syncLock)
+            {
+                m_plugin.CreateAsset(asset);
+                m_plugin.CommitAssets();
+            }
         }
 
         public void SetServerInfo(string ServerUrl, string ServerKey)
@@ -130,7 +137,11 @@ namespace OpenSim.Framework.Communications.Caches
 
                 MainLog.Instance.Verbose("Requesting asset: " + req.AssetID);
 
-                AssetBase asset = m_plugin.FetchAsset(req.AssetID);
+                AssetBase asset = null;
+                lock (syncLock)
+                {
+                    asset = m_plugin.FetchAsset(req.AssetID);
+                }
                 if (asset != null)
                 {
                     _receiver.AssetReceived(asset, req.IsTexture);
