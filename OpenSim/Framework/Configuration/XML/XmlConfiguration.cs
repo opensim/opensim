@@ -60,28 +60,31 @@ namespace OpenSim.Framework.Configuration
         }
         public void LoadData()
         {
-            doc = new XmlDocument();
-            if (File.Exists(fileName))
+            lock (this)
             {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
-            }
-            else
-            {
-                createdFile = true;
-                rootNode = doc.CreateNode(XmlNodeType.Element, "Root", "");
-                doc.AppendChild(rootNode);
-                configNode = doc.CreateNode(XmlNodeType.Element, "Config", "");
-                rootNode.AppendChild(configNode);
-            }
+                doc = new XmlDocument();
+                if (File.Exists(fileName))
+                {
+                    XmlTextReader reader = new XmlTextReader(fileName);
+                    reader.WhitespaceHandling = WhitespaceHandling.None;
+                    doc.Load(reader);
+                    reader.Close();
+                }
+                else
+                {
+                    createdFile = true;
+                    rootNode = doc.CreateNode(XmlNodeType.Element, "Root", "");
+                    doc.AppendChild(rootNode);
+                    configNode = doc.CreateNode(XmlNodeType.Element, "Config", "");
+                    rootNode.AppendChild(configNode);
+                }
 
-            LoadDataToClass();            
+                LoadDataToClass();
 
-            if (createdFile)
-            {
-                this.Commit();
+                if (createdFile)
+                {
+                    this.Commit();
+                }
             }
         }
 
@@ -123,12 +126,8 @@ namespace OpenSim.Framework.Configuration
             if (!Directory.Exists(Util.configDir()))
             {
                 Directory.CreateDirectory(Util.configDir());
-            }
- 
-            lock(this)
-            {
-                doc.Save(fileName);
-            }
+            } 
+            doc.Save(fileName);
         }
 
         public void Close()
