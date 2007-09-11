@@ -200,10 +200,7 @@ namespace OpenSim.Framework.Communications.Caches
                     //Console.WriteLine("new texture to send");
                     TextureSender sender = new TextureSender(req);
                     //sender.OnComplete += this.TextureSent;
-                    lock (this.SendingTextures)
-                    {
-                        this.SendingTextures.Add(req.ImageInfo.FullID, sender);
-                    }
+                    this.SendingTextures.Add(req.ImageInfo.FullID, sender);
                     this.QueueTextures.Enqueue(sender);
                 }
 
@@ -263,11 +260,8 @@ namespace OpenSim.Framework.Communications.Caches
         {
             if (this.SendingTextures.ContainsKey(sender.request.ImageInfo.FullID))
             {
-                lock (this.SendingTextures)
-                {
-                    this.SendingTextures.Remove(sender.request.ImageInfo.FullID);
-                    // this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
-                }
+                this.SendingTextures.Remove(sender.request.ImageInfo.FullID);
+              // this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
             }
         }
 

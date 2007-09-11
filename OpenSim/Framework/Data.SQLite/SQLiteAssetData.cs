@@ -61,19 +61,20 @@ namespace OpenSim.Framework.Data.SQLite
             
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(assetSelect, conn));
- 
-            ds.Tables.Add(createAssetsTable());
-            
-            setupAssetCommands(da, conn);
-            try
-            {
-                da.Fill(ds.Tables["assets"]);
-            }
-            catch (Exception)
-            {
-                MainLog.Instance.Verbose("AssetStorage", "Caught fill error on asset table");
-            }
 
+            lock (ds) {
+                ds.Tables.Add(createAssetsTable());
+                
+                setupAssetCommands(da, conn);
+                try
+                {
+                    da.Fill(ds.Tables["assets"]);
+                }
+                catch (Exception)
+                {
+                    MainLog.Instance.Verbose("AssetStorage", "Caught fill error on asset table");
+                }
+            }
             
             return;
         }
@@ -110,19 +111,19 @@ namespace OpenSim.Framework.Data.SQLite
                                      ", Local: " + asset.Local + 
                                      ", Data Length: " + asset.Data.Length );
             DataTable assets = ds.Tables["assets"];
-            DataRow row = assets.Rows.Find(asset.FullID);
-            if (row == null) 
-            {
-                row = assets.NewRow();
-                fillAssetRow(row, asset);
-                assets.Rows.Add(row);
+            lock(ds) {
+                DataRow row = assets.Rows.Find(asset.FullID);
+                if (row == null) 
+                {
+                    row = assets.NewRow();
+                    fillAssetRow(row, asset);
+                    assets.Rows.Add(row);
+                }
+                else 
+                {
+                    fillAssetRow(row, asset);
+                }
             }
-            else 
-            {
-                fillAssetRow(row, asset);
-            }
-            da.Update(ds, "assets");
-            ds.AcceptChanges();
         }
 
         public bool ExistsAsset(LLUUID uuid)
@@ -133,19 +134,21 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void DeleteAsset(LLUUID uuid)
         {
-            DataRow row = ds.Tables["assets"].Rows.Find(uuid);
-            if (row != null) {
-                row.Delete();
+            lock (ds) {
+                DataRow row = ds.Tables["assets"].Rows.Find(uuid);
+                if (row != null) {
+                    row.Delete();
+                }
             }
-            da.Update(ds, "assets");
-            ds.AcceptChanges();
         }
         
         public void CommitAssets() // force a sync to the database
         {
             MainLog.Instance.Verbose("AssetStorage", "Attempting commit");
-            // da.Update(ds, "assets");
-            // ds.AcceptChanges();
+            lock (ds) {
+                da.Update(ds, "assets");
+                ds.AcceptChanges();
+            }
         }
         
         /***********************************************************************
