@@ -823,6 +823,7 @@ namespace OpenSim.Region.Environment.Scenes
             ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
+                    presence.CoarseLocationChange(avatar);
                     presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
                 });
 
