@@ -124,7 +124,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actor.Position.X = 255.9F;
                 }
 
-                float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.2f;
+                float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.0f;
                 if (actor.Flying)
                 {
                     if (actor.Position.Z + (actor.Velocity.Z * timeStep) < _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 2)
