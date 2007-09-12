@@ -249,6 +249,13 @@ namespace OpenSim.Framework.Utilities
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
+
+            // Is it already a valid IP? No need to look it up.
+            IPAddress ipa;
+            if (IPAddress.TryParse(dnsAddress, out ipa))
+                return ipa;
+
+            // Not an IP, lookup required
             IPAddress[] hosts = Dns.GetHostEntry(dnsAddress).AddressList;
 
             foreach (IPAddress host in hosts)
