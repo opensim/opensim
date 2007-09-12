@@ -92,6 +92,13 @@ namespace OpenSim.GUI
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+
+            //
+            // THIS PART NEEDS TO BE MOVED TO A SEPARATE THREAD OR A TIMER OF SOME SORT
+            // should not block on wait
+            // ALSO - IF SOME SERVICES ARE NOT CONFIGURED, POP UP CONFIGURATION BOX FOR THAT SERVICE!
+            //
+
             btnStart.Enabled = false;
             btnStop.Enabled = false;
 
