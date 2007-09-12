@@ -247,10 +247,13 @@ namespace OpenSim.Framework.Console
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
         {
+            string now = System.DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
+            Log.Write(now);
             Log.WriteLine(format, args);
             Log.Flush();
             if (!m_silent)
             {
+                System.Console.Write(now);
                 try
                 {
                     if (color != ConsoleColor.White) 
