@@ -50,6 +50,9 @@ namespace OpenSim.GUI
             this.gbLog = new System.Windows.Forms.GroupBox();
             this.btnStart = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
+            this.rbGridRegionMode = new System.Windows.Forms.RadioButton();
+            this.rbStandAloneMode = new System.Windows.Forms.RadioButton();
+            this.rbGridServer = new System.Windows.Forms.RadioButton();
             this.tabLogs.SuspendLayout();
             this.tabMainLog.SuspendLayout();
             this.tabRegionServer.SuspendLayout();
@@ -292,11 +295,49 @@ namespace OpenSim.GUI
             this.btnStop.UseVisualStyleBackColor = true;
             this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
             // 
+            // rbGridRegionMode
+            // 
+            this.rbGridRegionMode.AutoSize = true;
+            this.rbGridRegionMode.Location = new System.Drawing.Point(407, 18);
+            this.rbGridRegionMode.Name = "rbGridRegionMode";
+            this.rbGridRegionMode.Size = new System.Drawing.Size(76, 17);
+            this.rbGridRegionMode.TabIndex = 4;
+            this.rbGridRegionMode.Text = "Grid region";
+            this.rbGridRegionMode.UseVisualStyleBackColor = true;
+            this.rbGridRegionMode.CheckedChanged += new System.EventHandler(this.rbGridRegionMode_CheckedChanged);
+            // 
+            // rbStandAloneMode
+            // 
+            this.rbStandAloneMode.AutoSize = true;
+            this.rbStandAloneMode.Checked = true;
+            this.rbStandAloneMode.Location = new System.Drawing.Point(319, 18);
+            this.rbStandAloneMode.Name = "rbStandAloneMode";
+            this.rbStandAloneMode.Size = new System.Drawing.Size(82, 17);
+            this.rbStandAloneMode.TabIndex = 5;
+            this.rbStandAloneMode.TabStop = true;
+            this.rbStandAloneMode.Text = "Stand alone";
+            this.rbStandAloneMode.UseVisualStyleBackColor = true;
+            this.rbStandAloneMode.CheckedChanged += new System.EventHandler(this.rbStandAloneMode_CheckedChanged);
+            // 
+            // rbGridServer
+            // 
+            this.rbGridServer.AutoSize = true;
+            this.rbGridServer.Location = new System.Drawing.Point(484, 18);
+            this.rbGridServer.Name = "rbGridServer";
+            this.rbGridServer.Size = new System.Drawing.Size(76, 17);
+            this.rbGridServer.TabIndex = 6;
+            this.rbGridServer.Text = "Grid server";
+            this.rbGridServer.UseVisualStyleBackColor = true;
+            this.rbGridServer.CheckedChanged += new System.EventHandler(this.rbGridServer_CheckedChanged);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(583, 299);
+            this.Controls.Add(this.rbGridServer);
+            this.Controls.Add(this.rbStandAloneMode);
+            this.Controls.Add(this.rbGridRegionMode);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.gbLog);
@@ -316,6 +357,7 @@ namespace OpenSim.GUI
             this.tabGridServer.PerformLayout();
             this.gbLog.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -343,6 +385,9 @@ namespace OpenSim.GUI
         private InputTextBoxControl txtInputUserServer;
         private InputTextBoxControl txtInputAssetServer;
         private InputTextBoxControl txtInputGridServer;
+        private System.Windows.Forms.RadioButton rbGridRegionMode;
+        private System.Windows.Forms.RadioButton rbStandAloneMode;
+        private System.Windows.Forms.RadioButton rbGridServer;
     }
 }
 

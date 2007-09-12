@@ -29,6 +29,8 @@ namespace OpenSim.GUI
             txtInputRegionServer.KeyPress += new KeyPressEventHandler(txtInputRegionServer_KeyPress);
 
             tabLogs.Selected += new TabControlEventHandler(tabLogs_Selected);
+
+            UpdateTabVisibility();
         }
 
         void tabLogs_Selected(object sender, TabControlEventArgs e)
@@ -93,33 +95,42 @@ namespace OpenSim.GUI
             btnStart.Enabled = false;
             btnStop.Enabled = false;
 
-            // Start UserServer
-            proc_UserServer = new ProcessManager("OpenSim.Grid.UserServer.exe", "");
-            txtMainLog.AppendText("Starting: UserServer");
-            proc_UserServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_UserServer_DataReceived);
-            proc_UserServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_UserServer_DataReceived);
-            proc_UserServer.StartProcess();
-            System.Threading.Thread.Sleep(2000);
 
-            // Start GridServer
-            proc_GridServer = new ProcessManager("OpenSim.Grid.GridServer.exe", "");
-            txtMainLog.AppendText("Starting: GridServer");
-            proc_GridServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_GridServer_DataReceived);
-            proc_GridServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_GridServer_DataReceived);
-            proc_GridServer.StartProcess();
-            System.Threading.Thread.Sleep(2000);
 
-            // Start AssetServer
-            proc_AssetServer = new ProcessManager("OpenSim.Grid.AssetServer.exe", "");
-            txtMainLog.AppendText("Starting: AssetServer");
-            proc_AssetServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_AssetServer_DataReceived);
-            proc_AssetServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_AssetServer_DataReceived);
-            proc_AssetServer.StartProcess();
-            System.Threading.Thread.Sleep(2000);
+            if (rbGridServer.Checked)
+            {
+                // Start UserServer
+                proc_UserServer = new ProcessManager("OpenSim.Grid.UserServer.exe", "");
+                txtMainLog.AppendText("Starting: User server" + "\r\n");
+                proc_UserServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_UserServer_DataReceived);
+                proc_UserServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_UserServer_DataReceived);
+                proc_UserServer.StartProcess();
+                System.Threading.Thread.Sleep(2000);
+
+                // Start GridServer
+                proc_GridServer = new ProcessManager("OpenSim.Grid.GridServer.exe", "");
+                txtMainLog.AppendText("Starting: Grid server" + "\r\n");
+                proc_GridServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_GridServer_DataReceived);
+                proc_GridServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_GridServer_DataReceived);
+                proc_GridServer.StartProcess();
+                System.Threading.Thread.Sleep(2000);
+
+                // Start AssetServer
+                proc_AssetServer = new ProcessManager("OpenSim.Grid.AssetServer.exe", "");
+                txtMainLog.AppendText("Starting: Asset server" + "\r\n");
+                proc_AssetServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_AssetServer_DataReceived);
+                proc_AssetServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_AssetServer_DataReceived);
+                proc_AssetServer.StartProcess();
+                System.Threading.Thread.Sleep(2000);
+            }
 
             // Start OpenSim
-            proc_OpenSim = new ProcessManager("OpenSim.EXE", "-gridmode=true");
-            txtMainLog.AppendText("Starting: OpenSim");
+            string p = "";
+            if (rbGridServer.Checked)
+                p = "-gridmode=true";
+
+            proc_OpenSim = new ProcessManager("OpenSim.EXE", p);
+            txtMainLog.AppendText("Starting: OpenSim (Region server)" + "\r\n");
             proc_OpenSim.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_OpenSim_DataReceived);
             proc_OpenSim.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_OpenSim_DataReceived);
             proc_OpenSim.StartProcess();
@@ -157,22 +168,22 @@ namespace OpenSim.GUI
 
             if (proc_UserServer != null)
             {
-                txtMainLog.AppendText("Shutting down UserServer. CPU time used: " + proc_UserServer.TotalProcessorTime);
+                txtMainLog.AppendText("Shutting down UserServer. CPU time used: " + proc_UserServer.TotalProcessorTime.ToString() + "\r\n");
                 proc_UserServer.StopProcess();
             }
             if (proc_GridServer != null)
             {
-                txtMainLog.AppendText("Shutting down GridServer. CPU time used: " + proc_GridServer.TotalProcessorTime);
+                txtMainLog.AppendText("Shutting down GridServer. CPU time used: " + proc_GridServer.TotalProcessorTime.ToString() + "\r\n");
                 proc_GridServer.StopProcess();
             }
             if (proc_AssetServer != null)
             {
-                txtMainLog.AppendText("Shutting down AssetServer. CPU time used: " + proc_AssetServer.TotalProcessorTime);
+                txtMainLog.AppendText("Shutting down AssetServer. CPU time used: " + proc_AssetServer.TotalProcessorTime.ToString() + "\r\n");
                 proc_AssetServer.StopProcess();
             }
             if (proc_OpenSim != null)
             {
-                txtMainLog.AppendText("Shutting down OpenSim. CPU time used: " + proc_OpenSim.TotalProcessorTime);
+                txtMainLog.AppendText("Shutting down OpenSim. CPU time used: " + proc_OpenSim.TotalProcessorTime.ToString() + "\r\n");
                 proc_OpenSim.StopProcess();
             }
 
@@ -182,6 +193,43 @@ namespace OpenSim.GUI
 
         }
 
+        private void UpdateTabVisibility()
+        {
+            if (rbStandAloneMode.Checked)
+            {
+                if (tabLogs.TabPages.Contains(tabUserServer))
+                    tabLogs.TabPages.Remove(tabUserServer);
+                if (tabLogs.TabPages.Contains(tabGridServer))
+                    tabLogs.TabPages.Remove(tabGridServer);
+                if (tabLogs.TabPages.Contains(tabAssetServer))
+                    tabLogs.TabPages.Remove(tabAssetServer);
+            }
+            else
+            {
+                if (!tabLogs.TabPages.Contains(tabUserServer))
+                    tabLogs.TabPages.Add(tabUserServer);
+                if (!tabLogs.TabPages.Contains(tabGridServer))
+                    tabLogs.TabPages.Add(tabGridServer);
+                if (!tabLogs.TabPages.Contains(tabAssetServer))
+                    tabLogs.TabPages.Add(tabAssetServer);
+            }
+
+        }
+
+        private void rbStandAloneMode_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateTabVisibility();
+        }
+
+        private void rbGridRegionMode_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateTabVisibility();
+        }
+
+        private void rbGridServer_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateTabVisibility();
+        }
 
     }
 }
