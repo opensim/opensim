@@ -68,6 +68,7 @@ namespace OpenSim.Framework.Data
             set { 
                 homeRegionX = (uint)(value >> 40);
                 homeRegionY = (((uint)(value)) >> 8);
+                Console.WriteLine("HomeRegion => Incoming: " + value + ", Computed: " + homeRegion);
             }
         }
         public uint homeRegionX;
