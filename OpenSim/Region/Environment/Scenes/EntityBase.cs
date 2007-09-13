@@ -109,13 +109,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Called at a set interval to inform entities that they should back themsleves up to the DB 
-        /// </summary>
-        public virtual void BackUp()
-        {
-        }
-
-        /// <summary>
         /// Copies the entity
         /// </summary>
         /// <returns></returns>

@@ -1,25 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
-using System.IO;
-
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.LandManagement;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Interfaces;
+using System.Data;
+using libsecondlife;
+using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
-using libsecondlife;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment.Scenes;
 
-using System.Data;
-using System.Data.SqlTypes;
-
-using Mono.Data.SqliteClient;
-
-namespace OpenSim.DataStore.MonoSqliteStorage
+namespace OpenSim.DataStore.MonoSqlite
 {
     public class MonoSqliteDataStore : IRegionDataStore
     {
@@ -402,37 +392,37 @@ namespace OpenSim.DataStore.MonoSqliteStorage
             prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
             // vectors
             prim.OffsetPosition = new LLVector3(
-                                                Convert.ToSingle(row["PositionX"]),
-                                                Convert.ToSingle(row["PositionY"]),
-                                                Convert.ToSingle(row["PositionZ"])
-                                                );
+                Convert.ToSingle(row["PositionX"]),
+                Convert.ToSingle(row["PositionY"]),
+                Convert.ToSingle(row["PositionZ"])
+                );
             prim.GroupPosition = new LLVector3(
-                                               Convert.ToSingle(row["GroupPositionX"]),
-                                               Convert.ToSingle(row["GroupPositionY"]),
-                                               Convert.ToSingle(row["GroupPositionZ"])
-                                               );
+                Convert.ToSingle(row["GroupPositionX"]),
+                Convert.ToSingle(row["GroupPositionY"]),
+                Convert.ToSingle(row["GroupPositionZ"])
+                );
             prim.Velocity = new LLVector3(
-                                          Convert.ToSingle(row["VelocityX"]),
-                                          Convert.ToSingle(row["VelocityY"]),
-                                          Convert.ToSingle(row["VelocityZ"])
-                                          );
+                Convert.ToSingle(row["VelocityX"]),
+                Convert.ToSingle(row["VelocityY"]),
+                Convert.ToSingle(row["VelocityZ"])
+                );
             prim.AngularVelocity = new LLVector3(
-                                                 Convert.ToSingle(row["AngularVelocityX"]),
-                                                 Convert.ToSingle(row["AngularVelocityY"]),
-                                                 Convert.ToSingle(row["AngularVelocityZ"])
-                                                 );
+                Convert.ToSingle(row["AngularVelocityX"]),
+                Convert.ToSingle(row["AngularVelocityY"]),
+                Convert.ToSingle(row["AngularVelocityZ"])
+                );
             prim.Acceleration = new LLVector3(
-                                              Convert.ToSingle(row["AccelerationX"]),
-                                              Convert.ToSingle(row["AccelerationY"]),
-                                              Convert.ToSingle(row["AccelerationZ"])
-                                              );
+                Convert.ToSingle(row["AccelerationX"]),
+                Convert.ToSingle(row["AccelerationY"]),
+                Convert.ToSingle(row["AccelerationZ"])
+                );
             // quaternions
             prim.RotationOffset = new LLQuaternion(
-                                                   Convert.ToSingle(row["RotationX"]),
-                                                   Convert.ToSingle(row["RotationY"]),
-                                                   Convert.ToSingle(row["RotationZ"]),
-                                                   Convert.ToSingle(row["RotationW"])
-                                                   );
+                Convert.ToSingle(row["RotationX"]),
+                Convert.ToSingle(row["RotationY"]),
+                Convert.ToSingle(row["RotationZ"]),
+                Convert.ToSingle(row["RotationW"])
+                );
 
             return prim;
         }
@@ -488,10 +478,10 @@ namespace OpenSim.DataStore.MonoSqliteStorage
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
             s.Scale = new LLVector3(
-                                    Convert.ToSingle(row["ScaleX"]),
-                                    Convert.ToSingle(row["ScaleY"]),
-                                    Convert.ToSingle(row["ScaleZ"])
-                                    );
+                Convert.ToSingle(row["ScaleX"]),
+                Convert.ToSingle(row["ScaleY"]),
+                Convert.ToSingle(row["ScaleZ"])
+                );
             // paths
             s.PCode = Convert.ToByte(row["PCode"]);
             s.PathBegin = Convert.ToUInt16(row["PathBegin"]);

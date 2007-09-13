@@ -149,6 +149,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// saying what prim(s) that user has selected. 
         /// </summary>
         protected bool m_isSelected = false;
+
+        protected virtual bool InSceneBackup
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public bool IsSelected
         {
             get { return m_isSelected; }
@@ -218,8 +227,18 @@ namespace OpenSim.Region.Environment.Scenes
             this.m_rootPart.ParentID = 0;
             this.m_rootPart.RegionHandle = m_regionHandle;
             this.UpdateParentIDs();
-            m_scene.EventManager.OnBackup += this.ProcessBackup;
+
+            AttachToBackup();
+
             this.ScheduleGroupForFullUpdate();
+        }
+
+        private void AttachToBackup()
+        {
+            if (InSceneBackup)
+            {
+                m_scene.EventManager.OnBackup += this.ProcessBackup;
+            }
         }
 
         /// <summary>
@@ -243,7 +262,8 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart newPart = new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
             this.m_parts.Add(newPart.UUID, newPart);
             this.SetPartAsRoot(newPart);
-            m_scene.EventManager.OnBackup += this.ProcessBackup;
+
+            AttachToBackup();
         }
         #endregion
 
@@ -307,7 +327,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             dupe.UpdateParentIDs();
 
-            m_scene.EventManager.OnBackup += dupe.ProcessBackup;
+            dupe.AttachToBackup();
+            
             return dupe;
         }
 
@@ -523,11 +544,17 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
+            DetachFromBackup(objectGroup);
+
             m_scene.DeleteEntity(objectGroup.UUID);
-            
+
             objectGroup.DeleteParts();
             this.ScheduleGroupForFullUpdate();
+        }
+
+        private void DetachFromBackup(SceneObjectGroup objectGroup)
+        {
+            m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
         }
 
 
@@ -583,7 +610,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].FolderID = LLUUID.Zero;
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
-            proper.ObjectData[0].InventorySerial = (short) this.m_rootPart.InventorySerial;
+            proper.ObjectData[0].InventorySerial = (short)this.m_rootPart.InventorySerial;
             proper.ObjectData[0].LastOwnerID = this.m_rootPart.LastOwnerID;
             proper.ObjectData[0].ObjectID = this.UUID;
             proper.ObjectData[0].OwnerID = this.m_rootPart.OwnerID;
@@ -672,7 +699,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
-               return part.GetInventoryFileName(remoteClient, localID);
+                return part.GetInventoryFileName(remoteClient, localID);
             }
             return false;
         }
@@ -682,7 +709,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = this.GetChildPart(localID);
             if (part != null)
             {
-                 part.RequestInventoryFile(xferManager);
+                part.RequestInventoryFile(xferManager);
             }
             return "";
         }
@@ -705,7 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return true;
             }
             return false;
-            
+
         }
 
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item, LLUUID copyItemID)
@@ -730,19 +757,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-               return AddInventoryItem(remoteClient, localID, item);
+                return AddInventoryItem(remoteClient, localID, item);
             }
             return false;
         }
 
         public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
         {
-             SceneObjectPart part = this.GetChildPart(localID);
-             if (part != null)
-             {
+            SceneObjectPart part = this.GetChildPart(localID);
+            if (part != null)
+            {
                 return part.RemoveInventoryItem(remoteClient, localID, itemID);
-             }
-             return -1;
+            }
+            return -1;
         }
 
         /// <summary>
@@ -1077,7 +1104,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetScene(Scene scene)
         {
             m_scene = scene;
-            m_scene.EventManager.OnBackup += this.ProcessBackup;
+            AttachToBackup();
         }
 
         /// <summary>
@@ -1153,7 +1180,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void DeleteGroup()
         {
-            m_scene.EventManager.OnBackup -= this.ProcessBackup;
+            DetachFromBackup( this );
             foreach (SceneObjectPart part in this.m_parts.Values)
             {
                 List<ScenePresence> avatars = this.RequestSceneAvatars();
