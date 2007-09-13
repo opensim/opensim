@@ -37,7 +37,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// <returns>Filename to .dll assembly</returns>
         public string CompileFromLSLText(string Script)
         {
-            return CompileFromCSText(LSL_Converter.Convert(Script));
+            if (Script.Substring(0, 4).ToLower() == "//c#")
+            {
+                return LSL_Converter.Convert(Script);
+            }
+            else
+            {
+                return CompileFromCSText(LSL_Converter.Convert(Script));
+            }
         }
         /// <summary>
         /// Compile CS script to .Net assembly (.dll)
