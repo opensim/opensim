@@ -48,40 +48,41 @@ namespace OpenSim.DataStore.MonoSqlite
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
             TestTables(conn);
 
-            ds.Tables.Add(createPrimTable());
-            setupPrimCommands(primDa, conn);
-            primDa.Fill(ds.Tables["prims"]);
-
-            ds.Tables.Add(createShapeTable());
-            setupShapeCommands(shapeDa, conn);
-
-            // WORKAROUND: This is a work around for sqlite on
-            // windows, which gets really unhappy with blob columns
-            // that have no sample data in them.  At some point we
-            // need to actually find a proper way to handle this.
-            try
-            {
-                shapeDa.Fill(ds.Tables["primshapes"]);
+            lock(ds) {
+                ds.Tables.Add(createPrimTable());
+                setupPrimCommands(primDa, conn);
+                primDa.Fill(ds.Tables["prims"]);
+                
+                ds.Tables.Add(createShapeTable());
+                setupShapeCommands(shapeDa, conn);
+                
+                // WORKAROUND: This is a work around for sqlite on
+                // windows, which gets really unhappy with blob columns
+                // that have no sample data in them.  At some point we
+                // need to actually find a proper way to handle this.
+                try
+                {
+                    shapeDa.Fill(ds.Tables["primshapes"]);
+                }
+                catch (Exception)
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
+                }
+                return;
             }
-            catch (Exception)
-            {
-                MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
-            }
-            return;
         }
 
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            foreach (SceneObjectPart prim in obj.Children.Values)
-            {
-                MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
-                addPrim(prim, obj.UUID, regionUUID);
+            lock (ds) {
+                foreach (SceneObjectPart prim in obj.Children.Values)
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                    addPrim(prim, obj.UUID, regionUUID);
+                }
             }
 
-            // MainLog.Instance.Verbose("Attempting to do database update....");
-            primDa.Update(ds, "prims");
-            shapeDa.Update(ds, "primshapes");
-            ds.AcceptChanges();
+            Commit();
             // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
         }
 
@@ -91,20 +92,21 @@ namespace OpenSim.DataStore.MonoSqlite
             DataTable shapes = ds.Tables["primshapes"];
 
             string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
-            DataRow[] primRows = prims.Select(selectExp);
-            foreach (DataRow row in primRows)
-            {
-                LLUUID uuid = new LLUUID((string)row["UUID"]);
-                DataRow shapeRow = shapes.Rows.Find(uuid);
-                if (shapeRow != null)
+            lock (ds) {
+                DataRow[] primRows = prims.Select(selectExp);
+                foreach (DataRow row in primRows)
                 {
-                    shapeRow.Delete();
+                    LLUUID uuid = new LLUUID((string)row["UUID"]);
+                    DataRow shapeRow = shapes.Rows.Find(uuid);
+                    if (shapeRow != null)
+                    {
+                        shapeRow.Delete();
+                    }
+                    row.Delete();
                 }
-                row.Delete();
             }
-
-            primDa.Update(ds, "prims");
-            shapeDa.Update(ds, "primshapes");
+            
+            Commit();
         }
 
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
@@ -118,59 +120,61 @@ namespace OpenSim.DataStore.MonoSqlite
 
             string byRegion = "RegionUUID = '" + regionUUID.ToString() + "'";
             string orderByParent = "ParentID ASC";
-            DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-            MainLog.Instance.Verbose("DATASTORE", "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
-            foreach (DataRow primRow in primsForRegion)
-            {
-                try
+            lock (ds) {
+                DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
+                MainLog.Instance.Verbose("DATASTORE", "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+                
+                foreach (DataRow primRow in primsForRegion)
                 {
-                    string uuid = (string)primRow["UUID"];
-                    string objID = (string)primRow["SceneGroupID"];
-                    if (uuid == objID) //is new SceneObjectGroup ?
+                    try
                     {
-                        SceneObjectGroup group = new SceneObjectGroup();
-                        SceneObjectPart prim = buildPrim(primRow);
-                        DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                        if (shapeRow != null)
+                        string uuid = (string)primRow["UUID"];
+                        string objID = (string)primRow["SceneGroupID"];
+                        if (uuid == objID) //is new SceneObjectGroup ?
                         {
-                            prim.Shape = buildShape(shapeRow);
+                            SceneObjectGroup group = new SceneObjectGroup();
+                            SceneObjectPart prim = buildPrim(primRow);
+                            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                            if (shapeRow != null)
+                            {
+                                prim.Shape = buildShape(shapeRow);
+                            }
+                            else
+                            { 
+                                Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                                prim.Shape = BoxShape.Default;
+                            } 
+                            group.AddPart(prim);
+                            group.RootPart = prim;
+                            
+                            createdObjects.Add(group.UUID, group);
+                            retvals.Add(group);
                         }
                         else
                         {
-                            Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                            prim.Shape = BoxShape.Default;
+                            SceneObjectPart prim = buildPrim(primRow);
+                            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                            if (shapeRow != null)
+                            {
+                                prim.Shape = buildShape(shapeRow);
+                            }
+                            else
+                            {
+                                Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                                prim.Shape = BoxShape.Default;
+                            }
+                            createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
-                        group.AddPart(prim);
-                        group.RootPart = prim;
-
-                        createdObjects.Add(group.UUID, group);
-                        retvals.Add(group);
                     }
-                    else
+                    catch (Exception e)
                     {
-                        SceneObjectPart prim = buildPrim(primRow);
-                        DataRow shapeRow = shapes.Rows.Find(prim.UUID);
-                        if (shapeRow != null)
+                        MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
+                        MainLog.Instance.Verbose(e.ToString());
+                        foreach (DataColumn col in prims.Columns)
                         {
-                            prim.Shape = buildShape(shapeRow);
+                            MainLog.Instance.Verbose("Col: " + col.ColumnName + " => " + primRow[col]);
                         }
-                        else
-                        {
-                            Console.WriteLine("No shape found for prim in storage, so setting default box shape");
-                            prim.Shape = BoxShape.Default;
-                        }
-                        createdObjects[new LLUUID(objID)].AddPart(prim);
-                    }
-                }
-                catch (Exception e)
-                {
-                    
-                    MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
-                    MainLog.Instance.Verbose(e.ToString());
-                    foreach (DataColumn col in prims.Columns)
-                    {
-                        MainLog.Instance.Verbose("Col: " + col.ColumnName + " => " + primRow[col]);
                     }
                 }
             }
@@ -203,47 +207,19 @@ namespace OpenSim.DataStore.MonoSqlite
             return new List<Land>();
         }
 
-        public void Shutdown()
+        public void Commit()
         {
-            // TODO: DataSet commit
+            lock (ds) {
+                primDa.Update(ds, "prims");
+                shapeDa.Update(ds, "primshapes");
+                ds.AcceptChanges();
+            }
         }
 
-        //         public class TextureBlock
-        //         {
-        //             public byte[] TextureData;
-        //             public byte[] ExtraParams = new byte[1];
-
-        //             public TextureBlock(byte[] data)
-        //             {
-        //                 TextureData = data;
-        //             }
-
-        //             public TextureBlock()
-        //             {
-
-        //             }
-
-        //             public string ToXMLString()
-        //             {
-        //                 StringWriter sw = new StringWriter();
-        //                 XmlTextWriter writer = new XmlTextWriter(sw);
-        //                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-        //                 serializer.Serialize(writer, this);
-        //                 return sw.ToString();
-        //             }
-
-        //             public static TextureBlock FromXmlString(string xmlData)
-        //             {
-        //                 TextureBlock textureEntry = null;
-        //                 StringReader sr = new StringReader(xmlData);
-        //                 XmlTextReader reader = new XmlTextReader(sr);
-        //                 XmlSerializer serializer = new XmlSerializer(typeof(TextureBlock));
-        //                 textureEntry = (TextureBlock)serializer.Deserialize(reader);
-        //                 reader.Close();
-        //                 sr.Close();
-        //                 return textureEntry;
-        //             }
-        //         }
+        public void Shutdown()
+        {
+            Commit();
+        }
 
         /***********************************************************************
          *
