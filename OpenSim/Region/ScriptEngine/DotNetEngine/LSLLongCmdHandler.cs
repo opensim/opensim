@@ -11,32 +11,32 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// </summary>
     class LSLLongCmdHandler
     {
-        private Thread CmdHandlerThread;
-        private int CmdHandlerThreadCycleSleepms = 100;
+        private Thread cmdHandlerThread;
+        private int cmdHandlerThreadCycleSleepms = 100;
 
-        private ScriptEngine myScriptEngine;
+        private ScriptEngine m_ScriptEngine;
         public LSLLongCmdHandler(ScriptEngine _ScriptEngine)
         {
-            myScriptEngine = _ScriptEngine;
+            m_ScriptEngine = _ScriptEngine;
 
             // Start the thread that will be doing the work
-            CmdHandlerThread = new Thread(CmdHandlerThreadLoop);
-            CmdHandlerThread.Name = "CmdHandlerThread";
-            CmdHandlerThread.Priority = ThreadPriority.BelowNormal;
-            CmdHandlerThread.IsBackground = true;
-            CmdHandlerThread.Start();
+            cmdHandlerThread = new Thread(CmdHandlerThreadLoop);
+            cmdHandlerThread.Name = "CmdHandlerThread";
+            cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
+            cmdHandlerThread.IsBackground = true;
+            cmdHandlerThread.Start();
         }
         ~LSLLongCmdHandler()
         {
             // Shut down thread
             try
             {
-                if (CmdHandlerThread != null)
+                if (cmdHandlerThread != null)
                 {
-                    if (CmdHandlerThread.IsAlive == true)
+                    if (cmdHandlerThread.IsAlive == true)
                     {
-                        CmdHandlerThread.Abort();
-                        CmdHandlerThread.Join();
+                        cmdHandlerThread.Abort();
+                        cmdHandlerThread.Join();
                     }
                 }
             }
@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CheckTimerEvents();                    
 
                 // Sleep before next cycle
-                Thread.Sleep(CmdHandlerThreadCycleSleepms);
+                Thread.Sleep(cmdHandlerThreadCycleSleepms);
             }
         }
 
@@ -134,7 +134,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                     {
                         // Add it to queue
-                        myScriptEngine.myEventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", new object[] { });
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", new object[] { });
                         // set next interval
 
 

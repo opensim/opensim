@@ -15,11 +15,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public class AppDomainManager
     {
-        private int MaxScriptsPerAppDomain = 1;
+        private int maxScriptsPerAppDomain = 1;
         /// <summary>
         /// Internal list of all AppDomains
         /// </summary>
-        private List<AppDomainStructure> AppDomains = new List<AppDomainStructure>();
+        private List<AppDomainStructure> appDomains = new List<AppDomainStructure>();
         /// <summary>
         /// Structure to keep track of data around AppDomain
         /// </summary>
@@ -41,9 +41,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <summary>
         /// Current AppDomain
         /// </summary>
-        private AppDomainStructure CurrentAD;
-        private object GetLock = new object(); // Mutex
-        private object FreeLock = new object(); // Mutex
+        private AppDomainStructure currentAD;
+        private object getLock = new object(); // Mutex
+        private object freeLock = new object(); // Mutex
 
         //private ScriptEngine m_scriptEngine;
         //public AppDomainManager(ScriptEngine scriptEngine)
@@ -59,25 +59,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private AppDomainStructure GetFreeAppDomain()
         {
             Console.WriteLine("Finding free AppDomain");
-            lock (GetLock)
+            lock (getLock)
             {
                 // Current full?
-                if (CurrentAD != null && CurrentAD.ScriptsLoaded >= MaxScriptsPerAppDomain)
+                if (currentAD != null && currentAD.ScriptsLoaded >= maxScriptsPerAppDomain)
                 {
                     // Add it to AppDomains list and empty current
-                    AppDomains.Add(CurrentAD);
-                    CurrentAD = null;   
+                    appDomains.Add(currentAD);
+                    currentAD = null;   
                 }
                 // No current
-                if (CurrentAD == null)
+                if (currentAD == null)
                 {
                     // Create a new current AppDomain
-                    CurrentAD = new AppDomainStructure();
-                    CurrentAD.CurrentAppDomain = PrepareNewAppDomain();                    
+                    currentAD = new AppDomainStructure();
+                    currentAD.CurrentAppDomain = PrepareNewAppDomain();                    
                 }
 
-                Console.WriteLine("Scripts loaded in this Appdomain: " + CurrentAD.ScriptsLoaded);                
-                return CurrentAD;
+                Console.WriteLine("Scripts loaded in this Appdomain: " + currentAD.ScriptsLoaded);                
+                return currentAD;
             } // lock
         }
 
@@ -112,13 +112,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// </summary>
         private void UnloadAppDomains()
         {
-            lock (FreeLock)
+            lock (freeLock)
             {
                 // Go through all
-                foreach (AppDomainStructure ads in new System.Collections.ArrayList(AppDomains))
+                foreach (AppDomainStructure ads in new System.Collections.ArrayList(appDomains))
                 {
                     // Don't process current AppDomain
-                    if (ads.CurrentAppDomain != CurrentAD.CurrentAppDomain)
+                    if (ads.CurrentAppDomain != currentAD.CurrentAppDomain)
                     {
                         // Not current AppDomain
                         // Is number of unloaded bigger or equal to number of loaded?
@@ -126,7 +126,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         {
                             Console.WriteLine("Found empty AppDomain, unloading");
                             // Remove from internal list
-                            AppDomains.Remove(ads);
+                            appDomains.Remove(ads);
 #if DEBUG
                             long m = GC.GetTotalMemory(true);
 #endif
@@ -164,19 +164,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         //[Obsolete("Needs fixing, needs a real purpose in life!!!")]
         public void StopScript(AppDomain ad)
         {
-            lock (FreeLock)
+            lock (freeLock)
             {
                 Console.WriteLine("Stopping script in AppDomain");
                 // Check if it is current AppDomain
-                if (CurrentAD.CurrentAppDomain == ad)
+                if (currentAD.CurrentAppDomain == ad)
                 {
                     // Yes - increase
-                    CurrentAD.ScriptsWaitingUnload++;
+                    currentAD.ScriptsWaitingUnload++;
                     return;
                 }
 
                 // Lopp through all AppDomains
-                foreach (AppDomainStructure ads in new System.Collections.ArrayList(AppDomains))
+                foreach (AppDomainStructure ads in new System.Collections.ArrayList(appDomains))
                 {
                     if (ads.CurrentAppDomain == ad)
                     {

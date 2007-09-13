@@ -173,6 +173,7 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Authenticated?</returns>
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
+            
             MainLog.Instance.Verbose(
                 "Authenticating " + profile.username + " " + profile.surname);
 

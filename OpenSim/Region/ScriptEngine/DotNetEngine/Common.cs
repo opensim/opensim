@@ -34,7 +34,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public static class Common
     {
-        static public bool Debug = true;
+        static public bool debug = true;
         static public ScriptEngine mySE;
 
         //public delegate void SendToDebugEventDelegate(string Message);

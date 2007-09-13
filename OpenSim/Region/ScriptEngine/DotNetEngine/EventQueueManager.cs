@@ -47,20 +47,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <summary>
         /// List of threads processing event queue
         /// </summary>
-        private List<Thread> EventQueueThreads = new List<Thread>();
-        private object QueueLock = new object(); // Mutex lock object
+        private List<Thread> eventQueueThreads = new List<Thread>();
+        private object queueLock = new object(); // Mutex lock object
         /// <summary>
         /// How many ms to sleep if queue is empty
         /// </summary>
-        private int NothingToDoSleepms = 50;
+        private int nothingToDoSleepms = 50;
         /// <summary>
         /// How many threads to process queue with
         /// </summary>
-        private int NumberOfThreads = 2;
+        private int numberOfThreads = 2;
         /// <summary>
         /// Queue containing events waiting to be executed
         /// </summary>
-        private Queue<QueueItemStruct> EventQueue = new Queue<QueueItemStruct>();
+        private Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
         /// <summary>
         /// Queue item structure
         /// </summary>
@@ -68,28 +68,28 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             public uint localID;
             public LLUUID itemID;
-            public string FunctionName;
+            public string functionName;
             public object[] param;
         }
 
         /// <summary>
         /// List of localID locks for mutex processing of script events
         /// </summary>
-        private List<uint> ObjectLocks = new List<uint>();
-        private object TryLockLock = new object(); // Mutex lock object
+        private List<uint> objectLocks = new List<uint>();
+        private object tryLockLock = new object(); // Mutex lock object
 
-        private ScriptEngine myScriptEngine;
+        private ScriptEngine m_ScriptEngine;
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
-            myScriptEngine = _ScriptEngine;
+            m_ScriptEngine = _ScriptEngine;
 
             //
             // Start event queue processing threads (worker threads)
             //
-            for (int ThreadCount = 0; ThreadCount <= NumberOfThreads; ThreadCount++)
+            for (int ThreadCount = 0; ThreadCount <= numberOfThreads; ThreadCount++)
             {
                 Thread EventQueueThread = new Thread(EventQueueThreadLoop);
-                EventQueueThreads.Add(EventQueueThread);
+                eventQueueThreads.Add(EventQueueThread);
                 EventQueueThread.IsBackground = true;
                 EventQueueThread.Priority = ThreadPriority.BelowNormal;
                 EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
 
             // Kill worker threads
-            foreach (Thread EventQueueThread in new System.Collections.ArrayList(EventQueueThreads))
+            foreach (Thread EventQueueThread in new System.Collections.ArrayList(eventQueueThreads))
             {
                 if (EventQueueThread != null && EventQueueThread.IsAlive == true)
                 {
@@ -115,9 +115,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                 }
             }
-            EventQueueThreads.Clear();
+            eventQueueThreads.Clear();
             // Todo: Clean up our queues
-            EventQueue.Clear();
+            eventQueue.Clear();
 
         }
 
@@ -137,10 +137,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         QueueItemStruct QIS = BlankQIS;
                         bool GotItem = false;
 
-                        if (EventQueue.Count == 0)
+                        if (eventQueue.Count == 0)
                         {
                             // Nothing to do? Sleep a bit waiting for something to do
-                            Thread.Sleep(NothingToDoSleepms);
+                            Thread.Sleep(nothingToDoSleepms);
                         }
                         else
                         {
@@ -148,19 +148,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
 
                             // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
-                            lock (QueueLock)
+                            lock (queueLock)
                             {
                                 GotItem = false;
-                                for (int qc = 0; qc < EventQueue.Count; qc++)
+                                for (int qc = 0; qc < eventQueue.Count; qc++)
                                 {
                                     // Get queue item
-                                    QIS = EventQueue.Dequeue();
+                                    QIS = eventQueue.Dequeue();
 
                                     // Check if object is being processed by someone else
                                     if (TryLock(QIS.localID) == false)
                                     {
                                         // Object is already being processed, requeue it
-                                        EventQueue.Enqueue(QIS);
+                                        eventQueue.Enqueue(QIS);
                                     }
                                     else
                                     {
@@ -176,12 +176,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 // Execute function
                                 try
                                 {
-                                    myScriptEngine.myScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.FunctionName, QIS.param);
+                                    m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.functionName, QIS.param);
                                 }
                                 catch (Exception e)
                                 {
                                     // DISPLAY ERROR INWORLD
-                                    string text = "Error executing script function \"" + QIS.FunctionName + "\":\r\n";
+                                    string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
                                     if (e.InnerException != null)
                                     { // Send inner exception
                                         text += e.InnerException.Message.ToString();
@@ -194,10 +194,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                     {
                                         if (text.Length > 1500)
                                             text = text.Substring(0, 1500);
-                                        IScriptHost m_host = myScriptEngine.World.GetSceneObjectPart(QIS.localID);
+                                        IScriptHost m_host = m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
                                     //if (m_host != null)
                                     //{
-                                        myScriptEngine.World.SimChat(Helpers.StringToField(text), 1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                                        m_ScriptEngine.World.SimChat(Helpers.StringToField(text), 1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
                                     } catch {
                                     //}
                                     //else
@@ -234,15 +234,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <returns></returns>
         private bool TryLock(uint localID)
         {
-            lock (TryLockLock)
+            lock (tryLockLock)
             {
-                if (ObjectLocks.Contains(localID) == true)
+                if (objectLocks.Contains(localID) == true)
                 {
                     return false;
                 }
                 else
                 {
-                    ObjectLocks.Add(localID);
+                    objectLocks.Add(localID);
                     return true;
                 }
             }
@@ -254,11 +254,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="localID"></param>
         private void ReleaseLock(uint localID)
         {
-            lock (TryLockLock)
+            lock (tryLockLock)
             {
-                if (ObjectLocks.Contains(localID) == true)
+                if (objectLocks.Contains(localID) == true)
                 {
-                    ObjectLocks.Remove(localID);
+                    objectLocks.Remove(localID);
                 }
             }
         }
@@ -277,13 +277,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
 
             // Do we have any scripts in this object at all? If not, return
-            if (myScriptEngine.myScriptManager.Scripts.ContainsKey(localID) == false)
+            if (m_ScriptEngine.m_ScriptManager.Scripts.ContainsKey(localID) == false)
             {
                 //Console.WriteLine("Event \"" + FunctionName + "\" for localID: " + localID + ". No scripts found on this localID.");
                 return;
             }
 
-            Dictionary<LLUUID, LSL_BaseClass>.KeyCollection scriptKeys = myScriptEngine.myScriptManager.GetScriptKeys(localID);
+            Dictionary<LLUUID, LSL_BaseClass>.KeyCollection scriptKeys = m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 
             foreach ( LLUUID itemID in scriptKeys )
             {
@@ -303,17 +303,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="param">Array of parameters to match event mask</param>
         public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, object[] param)
         {
-            lock (QueueLock)
+            lock (queueLock)
             {
                 // Create a structure and add data
                 QueueItemStruct QIS = new QueueItemStruct();
                 QIS.localID = localID;
                 QIS.itemID = itemID;
-                QIS.FunctionName = FunctionName;
+                QIS.functionName = FunctionName;
                 QIS.param = param;
 
                 // Add it to queue
-                EventQueue.Enqueue(QIS);
+                eventQueue.Enqueue(QIS);
             }
         }
 

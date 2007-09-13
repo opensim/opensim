@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Add to queue for all scripts in ObjectID object
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
             //Console.WriteLine("touch_start localID: " + localID);
-            myScriptEngine.myEventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] { (int)1 });
         }
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " + script.Length);
-            myScriptEngine.myScriptManager.StartScript(localID, itemID, script);
+            myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script);
         }
         public void OnRemoveScript(uint localID, LLUUID itemID)
         {
@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
             Console.WriteLine("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
-            myScriptEngine.myScriptManager.StopScript(
+            myScriptEngine.m_ScriptManager.StopScript(
                 localID,
                 itemID
             );

@@ -112,7 +112,7 @@ namespace OpenSim.GUI
                 proc_UserServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_UserServer_DataReceived);
                 proc_UserServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_UserServer_DataReceived);
                 proc_UserServer.StartProcess();
-                System.Threading.Thread.Sleep(2000);
+                System.Threading.Thread.Sleep(3000);
 
                 // Start GridServer
                 proc_GridServer = new ProcessManager("OpenSim.Grid.GridServer.exe", "");
@@ -120,7 +120,7 @@ namespace OpenSim.GUI
                 proc_GridServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_GridServer_DataReceived);
                 proc_GridServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_GridServer_DataReceived);
                 proc_GridServer.StartProcess();
-                System.Threading.Thread.Sleep(2000);
+                System.Threading.Thread.Sleep(3000);
 
                 // Start AssetServer
                 proc_AssetServer = new ProcessManager("OpenSim.Grid.AssetServer.exe", "");
@@ -128,7 +128,7 @@ namespace OpenSim.GUI
                 proc_AssetServer.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_AssetServer_DataReceived);
                 proc_AssetServer.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(proc_AssetServer_DataReceived);
                 proc_AssetServer.StartProcess();
-                System.Threading.Thread.Sleep(2000);
+                System.Threading.Thread.Sleep(3000);
             }
 
             // Start OpenSim

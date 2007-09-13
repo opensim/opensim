@@ -45,11 +45,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     {
 
         internal OpenSim.Region.Environment.Scenes.Scene World;
-        internal EventManager myEventManager;                   // Handles and queues incoming events from OpenSim
-        internal EventQueueManager myEventQueueManager;         // Executes events
-        internal ScriptManager myScriptManager;                 // Load, unload and execute scripts
-        internal AppDomainManager myAppDomainManager;
-        internal LSLLongCmdHandler myLSLLongCmdHandler;
+        internal EventManager m_EventManager;                   // Handles and queues incoming events from OpenSim
+        internal EventQueueManager m_EventQueueManager;         // Executes events
+        internal ScriptManager m_ScriptManager;                 // Load, unload and execute scripts
+        internal AppDomainManager m_AppDomainManager;
+        internal LSLLongCmdHandler m_LSLLongCmdHandler;
 
         private OpenSim.Framework.Console.LogBase m_log;
 
@@ -75,11 +75,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             //m_logger.Status("ScriptEngine", "InitializeEngine");
 
             // Create all objects we'll be using
-            myEventQueueManager = new EventQueueManager(this);
-            myEventManager = new EventManager(this);
-            myScriptManager = new ScriptManager(this);
-            myAppDomainManager = new AppDomainManager();
-            myLSLLongCmdHandler = new LSLLongCmdHandler(this);
+            m_EventQueueManager = new EventQueueManager(this);
+            m_EventManager = new EventManager(this);
+            m_ScriptManager = new ScriptManager(this);
+            m_AppDomainManager = new AppDomainManager();
+            m_LSLLongCmdHandler = new LSLLongCmdHandler(this);
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?

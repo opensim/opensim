@@ -302,7 +302,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llSetTimerEvent(double sec) 
         {
             // Setting timer repeat
-            m_ScriptEngine.myLSLLongCmdHandler.SetTimerEvent(m_localID, m_itemID, sec);
+            m_ScriptEngine.m_LSLLongCmdHandler.SetTimerEvent(m_localID, m_itemID, sec);
         }
 
         public void llSleep(double sec) 

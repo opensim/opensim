@@ -53,15 +53,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     public class ScriptManager
     {
         #region Declares
-        private Thread ScriptLoadUnloadThread;
-        private int ScriptLoadUnloadThread_IdleSleepms = 100;
-        private Queue<LoadStruct> LoadQueue = new Queue<LoadStruct>();
-        private Queue<UnloadStruct> UnloadQueue = new Queue<UnloadStruct>();
+        private Thread scriptLoadUnloadThread;
+        private int scriptLoadUnloadThread_IdleSleepms = 100;
+        private Queue<LoadStruct> loadQueue = new Queue<LoadStruct>();
+        private Queue<UnloadStruct> unloadQueue = new Queue<UnloadStruct>();
         private struct LoadStruct
         {
             public uint localID;
             public LLUUID itemID;
-            public string Script;
+            public string script;
         }
         private struct UnloadStruct
         {
@@ -87,11 +87,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             m_scriptEngine = scriptEngine;
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
-            ScriptLoadUnloadThread = new Thread(ScriptLoadUnloadThreadLoop);
-            ScriptLoadUnloadThread.Name = "ScriptLoadUnloadThread";
-            ScriptLoadUnloadThread.IsBackground = true;
-            ScriptLoadUnloadThread.Priority = ThreadPriority.BelowNormal;
-            ScriptLoadUnloadThread.Start();
+            scriptLoadUnloadThread = new Thread(ScriptLoadUnloadThreadLoop);
+            scriptLoadUnloadThread.Name = "ScriptLoadUnloadThread";
+            scriptLoadUnloadThread.IsBackground = true;
+            scriptLoadUnloadThread.Priority = ThreadPriority.BelowNormal;
+            scriptLoadUnloadThread.Start();
 
         }
         ~ScriptManager ()
@@ -99,12 +99,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Abort load/unload thread
             try
             {
-                if (ScriptLoadUnloadThread != null)
+                if (scriptLoadUnloadThread != null)
                 {
-                    if (ScriptLoadUnloadThread.IsAlive == true)
+                    if (scriptLoadUnloadThread.IsAlive == true)
                     {
-                        ScriptLoadUnloadThread.Abort();
-                        ScriptLoadUnloadThread.Join();
+                        scriptLoadUnloadThread.Abort();
+                        scriptLoadUnloadThread.Join();
                     }
                 }
             }
@@ -120,18 +120,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 while (true)
                 {
-                    if (LoadQueue.Count == 0 && UnloadQueue.Count == 0)
-                        Thread.Sleep(ScriptLoadUnloadThread_IdleSleepms);
+                    if (loadQueue.Count == 0 && unloadQueue.Count == 0)
+                        Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
 
-                    if (LoadQueue.Count > 0)
+                    if (loadQueue.Count > 0)
                     {
-                        LoadStruct item = LoadQueue.Dequeue();
-                        _StartScript(item.localID, item.itemID, item.Script);
+                        LoadStruct item = loadQueue.Dequeue();
+                        _StartScript(item.localID, item.itemID, item.script);
                     }
 
-                    if (UnloadQueue.Count > 0)
+                    if (unloadQueue.Count > 0)
                     {
-                        UnloadStruct item = UnloadQueue.Dequeue();
+                        UnloadStruct item = unloadQueue.Dequeue();
                         _StopScript(item.localID, item.itemID);
                     }
                     
@@ -232,8 +232,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             LoadStruct ls = new LoadStruct();
             ls.localID = localID;
             ls.itemID = itemID;
-            ls.Script = Script;
-            LoadQueue.Enqueue(ls);
+            ls.script = Script;
+            loadQueue.Enqueue(ls);
         }
         /// <summary>
         /// Disables and unloads a script
@@ -245,7 +245,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             UnloadStruct ls = new UnloadStruct();
             ls.localID = localID;
             ls.itemID = itemID;
-            UnloadQueue.Enqueue(ls);
+            unloadQueue.Enqueue(ls);
         }
 
         private void _StartScript(uint localID, LLUUID itemID, string Script)
@@ -279,7 +279,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 before = GC.GetTotalMemory(true);
 #endif
                 LSL_BaseClass CompiledScript;
-                    CompiledScript = m_scriptEngine.myAppDomainManager.LoadScript(FileName);
+                    CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(FileName);
 #if DEBUG
                     Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
@@ -297,7 +297,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CompiledScript.Start(LSLB);
 
                 // Fire the first start-event
-                m_scriptEngine.myEventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
+                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
 
 
             }
@@ -329,7 +329,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
 
             // Stop long command on script
-            m_scriptEngine.myLSLLongCmdHandler.RemoveScript(localID, itemID);
+            m_scriptEngine.m_LSLLongCmdHandler.RemoveScript(localID, itemID);
 
             LSL_BaseClass LSLBC = GetScript(localID, itemID);
             if (LSLBC == null)
@@ -348,7 +348,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Remove from internal structure
                 RemoveScript(localID, itemID);
                 // Tell AppDomain that we have stopped script
-                m_scriptEngine.myAppDomainManager.StopScript(ad);
+                m_scriptEngine.m_AppDomainManager.StopScript(ad);
             }
             catch(Exception e)
             {
@@ -375,7 +375,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // Execute a function in the script
             //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
-            LSL_BaseClass Script = m_scriptEngine.myScriptManager.GetScript(localID, itemID);
+            LSL_BaseClass Script = m_scriptEngine.m_ScriptManager.GetScript(localID, itemID);
             if (Script == null)
                 return;
 

@@ -164,7 +164,6 @@ namespace OpenSim.Framework.Data
             ArrayList SendParams = new ArrayList();
             SendParams.Add(requestData);
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
-            Console.WriteLine("Requesting response from GridServer URL: " + gridserver_url);
             XmlRpcResponse GridResp = GridReq.Send(gridserver_url, 3000);
 
             Hashtable responseData = (Hashtable)GridResp.Value;

@@ -8,21 +8,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     public class LSL2CSConverter
     {
         //private Regex rnw = new Regex(@"[a-zA-Z0-9_\-]", RegexOptions.Compiled);
-        private Dictionary<string, string> DataTypes = new Dictionary<string, string>();
-        private Dictionary<string, string> QUOTES = new Dictionary<string, string>();
+        private Dictionary<string, string> dataTypes = new Dictionary<string, string>();
+        private Dictionary<string, string> quotes = new Dictionary<string, string>();
 
         public LSL2CSConverter()
         {
             // Only the types we need to convert
-            DataTypes.Add("void", "void");
-            DataTypes.Add("integer", "int");
-            DataTypes.Add("float", "double");
-            DataTypes.Add("string", "string");
-            DataTypes.Add("key", "string");
-            DataTypes.Add("vector", "LSL_Types.Vector3");
-            DataTypes.Add("rotation", "LSL_Types.Quaternion");
-            DataTypes.Add("list", "list");
-            DataTypes.Add("null", "null");
+            dataTypes.Add("void", "void");
+            dataTypes.Add("integer", "int");
+            dataTypes.Add("float", "double");
+            dataTypes.Add("string", "string");
+            dataTypes.Add("key", "string");
+            dataTypes.Add("vector", "LSL_Types.Vector3");
+            dataTypes.Add("rotation", "LSL_Types.Quaternion");
+            dataTypes.Add("list", "list");
+            dataTypes.Add("null", "null");
 
         }
  
@@ -74,7 +74,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 _Script += quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]);
                             }
                             // We just left a quote
-                            QUOTES.Add(quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
+                            quotes.Add(quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
                             quote = "";
                         }
                         break;
@@ -189,10 +189,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
 
-            foreach (string key in DataTypes.Keys)
+            foreach (string key in dataTypes.Keys)
             {
                 string val;
-                DataTypes.TryGetValue(key, out val);
+                dataTypes.TryGetValue(key, out val);
 
                 // Replace CAST - (integer) with (int)
                 Script = Regex.Replace(Script, @"\(" + key + @"\)", @"(" + val + ")", RegexOptions.Compiled | RegexOptions.Multiline);
@@ -217,10 +217,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
             // REPLACE BACK QUOTES
-            foreach (string key in QUOTES.Keys)
+            foreach (string key in quotes.Keys)
             {
                 string val;
-                QUOTES.TryGetValue(key, out val);
+                quotes.TryGetValue(key, out val);
                 Script = Script.Replace(key, "\"" + val + "\"");
             }
 
