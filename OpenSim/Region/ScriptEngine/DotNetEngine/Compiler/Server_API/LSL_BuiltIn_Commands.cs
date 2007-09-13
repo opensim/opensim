@@ -238,15 +238,50 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return ""; 
         }
 
-        public void llSetPos(LSL_Types.Vector3 pos) { return; }
+        public void llSetPos(LSL_Types.Vector3 pos) 
+        { 
+            LLVector3 tmp;
+            if (m_host.ParentID != 0) 
+            {
+                tmp = m_host.OffsetPosition;
+            } 
+            else
+            {
+                tmp = m_host.GroupPosition;
+            }
+            tmp.X = (float)pos.X;
+            tmp.Y = (float)pos.Y;
+            tmp.Z = (float)pos.Z;
+            if (m_host.ParentID != 0) 
+            {
+                m_host.OffsetPosition = tmp;
+            } 
+            else
+            {
+                m_host.GroupPosition = tmp;
+            }
+            return; 
+        }
 
         public LSL_Types.Vector3 llGetPos()
         {
-            throw new NotImplementedException("llGetPos");
-            // return m_host.AbsolutePosition;
+            return new LSL_Types.Vector3(m_host.AbsolutePosition.X, 
+                                         m_host.AbsolutePosition.Y, 
+                                         m_host.AbsolutePosition.Z); 
         }
 
-        public LSL_Types.Vector3 llGetLocalPos() { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetLocalPos() 
+        { 
+            if (m_host.ParentID != 0) {
+                return new LSL_Types.Vector3(m_host.OffsetPosition.X, 
+                                             m_host.OffsetPosition.Y, 
+                                             m_host.OffsetPosition.Z); 
+            } else {
+                return new LSL_Types.Vector3(m_host.AbsolutePosition.X, 
+                                             m_host.AbsolutePosition.Y, 
+                                             m_host.AbsolutePosition.Z); 
+            }
+        }
         public void llSetRot(LSL_Types.Quaternion rot) { }
         public LSL_Types.Quaternion llGetRot() { return new LSL_Types.Quaternion(); }
         public LSL_Types.Quaternion llGetLocalRot() { return new LSL_Types.Quaternion(); }
