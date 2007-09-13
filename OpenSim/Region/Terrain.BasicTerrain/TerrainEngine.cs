@@ -463,7 +463,8 @@ namespace OpenSim.Region.Terrain
                                 break;
 
                             case "img":
-                                heightmap.LoadImage(filenameL);
+                                heightmap = heightmap.LoadImage(filenameL);
+                                tainted++;
                                 break;
 
                             default:
