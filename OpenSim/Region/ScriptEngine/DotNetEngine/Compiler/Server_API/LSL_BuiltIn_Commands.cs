@@ -22,11 +22,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
         private ScriptEngine m_ScriptEngine;
-        private IScriptHost m_host;
+        private SceneObjectPart m_host;
         private uint m_localID;
         private LLUUID m_itemID;
 
-        public LSL_BuiltIn_Commands(ScriptEngine ScriptEngine, IScriptHost host, uint localID, LLUUID itemID)
+        public LSL_BuiltIn_Commands(ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
@@ -208,8 +208,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
         public void llSetStatus(int status, int value) { return; }
         public int llGetStatus(int status) { return 0; }
-        public void llSetScale(LSL_Types.Vector3 scale) { return; }
-        public LSL_Types.Vector3 llGetScale() { return new LSL_Types.Vector3(); }
+        
+        public void llSetScale(LSL_Types.Vector3 scale) 
+        { 
+            // TODO: this needs to trigger a persistance save as well
+            LLVector3 tmp = m_host.Scale;
+            tmp.X = (float)scale.X;
+            tmp.Y = (float)scale.Y;
+            tmp.Z = (float)scale.Z;
+            m_host.Scale = tmp;
+            return; 
+        }
+        public LSL_Types.Vector3 llGetScale() 
+        { 
+            return new LSL_Types.Vector3(m_host.Scale.X, m_host.Scale.Y, m_host.Scale.Z); 
+        }
+        
         public void llSetColor(LSL_Types.Vector3 color, int face) { return; }
         public double llGetAlpha(int face) { return 0; }
         public void llSetAlpha(double alpha, int face) { return; }

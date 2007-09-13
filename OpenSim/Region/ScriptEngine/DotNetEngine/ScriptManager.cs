@@ -257,7 +257,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // It will be up to the script itself to hook up the correct events.
             string FileName = "";
 
-            IScriptHost m_host = World.GetSceneObjectPart(localID);
+            SceneObjectPart m_host = World.GetSceneObjectPart(localID);
 
             try
             {
