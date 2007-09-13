@@ -272,6 +272,8 @@ namespace OpenSim.Region.Physics.OdePlugin
     public class OdeCharacter : PhysicsActor
     {
         private PhysicsVector _position;
+        private d.Vector3 _zeroPosition;
+        private bool _zeroFlag=false;
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
         private bool flying = false;
@@ -402,11 +404,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             //  no lock; for now it's only called from within Simulate()
             PhysicsVector vec = new PhysicsVector();
             d.Vector3 vel = d.BodyGetLinearVel(BoundingCapsule);
-            vec.X = (vel.X - this._velocity.X) * -75000.0f;
-            vec.Y = (vel.Y - this._velocity.Y) * -75000.0f;
-            if (flying)
+
+            //  if velocity is zero, use position control; otherwise, velocity control
+            if (_velocity.X == 0.0f & _velocity.Y == 0.0f & _velocity.Z == 0.0f & !flying)
             {
-                vec.Z = (vel.Z - this._velocity.Z) * -75000.0f;
+                //  keep track of where we stopped.  No more slippin' & slidin'
+                if (!_zeroFlag)
+                {
+                    _zeroFlag = true;
+                    _zeroPosition = d.BodyGetPosition(BoundingCapsule);
+                }
+                d.Vector3 pos = d.BodyGetPosition(BoundingCapsule);
+                vec.X = (_velocity.X - vel.X) * 75000.0f + (_zeroPosition.X - pos.X) * 120000.0f;
+                vec.Y = (_velocity.Y - vel.Y) * 75000.0f + (_zeroPosition.Y - pos.Y) * 120000.0f;
+            }
+            else
+            {
+                _zeroFlag = false;
+                vec.X = (_velocity.X - vel.X) * 75000.0f;
+                vec.Y = (_velocity.Y - vel.Y) * 75000.0f;
+                if (flying)
+                {
+                    vec.Z = (_velocity.Z - vel.Z) * 75000.0f;
+                }
             }
             d.BodyAddForce(this.BoundingCapsule, vec.X, vec.Y, vec.Z);
         }
