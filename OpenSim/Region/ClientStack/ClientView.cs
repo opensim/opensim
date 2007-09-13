@@ -70,7 +70,7 @@ namespace OpenSim.Region.ClientStack
 
         //private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
-        private bool debug = false;
+        private int debug = 0;
         protected IScene m_scene;
         private Dictionary<uint, ClientView> m_clientThreads;
         private AssetCache m_assetCache;
@@ -114,6 +114,11 @@ namespace OpenSim.Region.ClientStack
             ClientThread = new Thread(new ThreadStart(AuthUser));
             ClientThread.IsBackground = true;
             ClientThread.Start();
+        }
+
+        public void SetDebug(int newDebug) 
+        {
+            debug = newDebug;
         }
 
         # region Client Methods
@@ -192,6 +197,31 @@ namespace OpenSim.Region.ClientStack
             return result;
         }
 
+        protected void DebugPacket(string direction, Packet packet)
+        {
+            if (debug > 0) {
+                string info;
+                if (debug < 255 && packet.Type == PacketType.AgentUpdate) 
+                  return;
+                if (debug < 254 && packet.Type == PacketType.ViewerEffect) 
+                  return;
+                if (debug < 253 && (
+                      packet.Type == PacketType.CompletePingCheck ||
+                      packet.Type == PacketType.StartPingCheck 
+                      ) )
+                  return;
+                if (debug < 252 && packet.Type == PacketType.PacketAck) 
+                  return;
+
+                if (debug > 1) {
+                    info = packet.ToString();
+                } else {
+                    info = packet.Type.ToString();
+                }
+                Console.WriteLine(CircuitCode + ":" + direction + ": " + info);
+            }
+        }
+
         protected virtual void ClientLoop()
         {
             MainLog.Instance.Verbose("OpenSimClient.cs:ClientLoop() - Entered loop");
@@ -205,11 +235,13 @@ namespace OpenSim.Region.ClientStack
                     {
                         packetsReceived++;
                     }
+                    DebugPacket("IN", nextPacket.Packet);
                     ProcessInPacket(nextPacket.Packet);
                 }
                 else
                 {
                     //is a out going packet
+                    DebugPacket("OUT", nextPacket.Packet);
                     ProcessOutPacket(nextPacket.Packet);
                 }
             }

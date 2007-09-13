@@ -380,11 +380,20 @@ namespace OpenSim
             {
                 switch (command)
                 {
+                    case "debug":
+                        if (cmdparams.Length > 0)
+                        {
+                            Debug(cmdparams);
+                        }
+                        break;
+                        
                     case "help":
                         m_log.Error("alert - send alert to a designated user or all users.");
                         m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                         m_log.Error("  alert general [Message] - send an alert to all users.");
                         m_log.Error("backup - trigger a simulator backup");
+                        m_log.Error("debug - debugging commands");
+                        m_log.Error("  packet 0..255 - print incoming/outgoing packets (0=off)");
                         m_log.Error("load-xml [filename] - load prims from XML");
                         m_log.Error("save-xml [filename] - save prims to XML");
                         m_log.Error("script - manually trigger scripts? or script commands?");
@@ -553,6 +562,55 @@ namespace OpenSim
                 //let the scene/region handle the command directly.
                 m_consoleRegion.ProcessConsoleCmd(command, cmdparams);
             }
+        }
+
+        private void DebugPacket(int newDebug)
+        {
+            for (int i = 0; i < m_localScenes.Count; i++)
+            {
+                Scene scene = m_localScenes[i];
+                foreach (EntityBase entity in scene.Entities.Values)
+                {
+                    if (entity is ScenePresence)
+                    {
+                        ScenePresence scenePrescence = entity as ScenePresence;
+                        if (!scenePrescence.childAgent)
+                        {
+                            m_log.Error(String.Format("Packet debug for {0} {1} set to {2}",
+                                     scenePrescence.Firstname, scenePrescence.Lastname,
+                                     newDebug));
+                            scenePrescence.ControllingClient.SetDebug(newDebug);
+                        }
+                    }
+                }
+            }
+        }
+        public void Debug(string[] args)
+        {
+            switch(args[0]) 
+            {
+                case "packet":
+                    if (args.Length > 1) 
+                    {
+                        int newDebug;
+                        if (int.TryParse(args[1], out newDebug)) 
+                        {
+                            DebugPacket(newDebug);
+                        } 
+                        else 
+                        {
+                            m_log.Error("packet debug should be 0..2");
+                        }
+                        System.Console.WriteLine("New packet debug: " + newDebug.ToString());
+
+                    }
+                     
+                    break;
+                default:
+                    m_log.Error("Unknown debug");
+                    break;
+            }
+
         }
 
         /// <summary>

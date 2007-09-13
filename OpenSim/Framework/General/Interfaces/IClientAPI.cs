@@ -240,5 +240,6 @@ namespace OpenSim.Framework.Interfaces
 
         void SendViewerTime(int phase);
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
+        void SetDebug(int newDebug);
     }
 }
