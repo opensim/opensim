@@ -603,6 +603,13 @@ namespace OpenSim.Region.Environment.Scenes
             this.OffsetPosition = newPos;
             ScheduleTerseUpdate();
         }
+        
+        public void UpdateGroupPosition(LLVector3 pos)
+        {
+            LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
+            this.GroupPosition = newPos;
+            ScheduleTerseUpdate();
+        }
         #endregion
 
         #region rotation
