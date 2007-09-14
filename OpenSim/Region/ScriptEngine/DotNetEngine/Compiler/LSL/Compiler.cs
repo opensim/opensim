@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             if (Script.Substring(0, 4).ToLower() == "//c#")
             {
-                return LSL_Converter.Convert(Script);
+                return CompileFromCSText( Script );
             }
             else
             {
