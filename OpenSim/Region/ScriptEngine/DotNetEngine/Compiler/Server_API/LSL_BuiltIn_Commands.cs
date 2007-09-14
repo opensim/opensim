@@ -243,24 +243,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LLVector3 tmp;
             if (m_host.ParentID != 0) 
             {
-                tmp = m_host.OffsetPosition;
+                m_host.UpdateOffSet(new LLVector3((float)pos.X, (float)pos.Y, (float)pos.Z));
             } 
             else
             {
-                tmp = m_host.GroupPosition;
+                m_host.UpdateGroupPosition(new LLVector3((float)pos.X, (float)pos.Y, (float)pos.Z));
             }
-            tmp.X = (float)pos.X;
-            tmp.Y = (float)pos.Y;
-            tmp.Z = (float)pos.Z;
-            if (m_host.ParentID != 0) 
-            {
-                m_host.OffsetPosition = tmp;
-            } 
-            else
-            {
-                m_host.GroupPosition = tmp;
-            }
-            return; 
         }
 
         public LSL_Types.Vector3 llGetPos()
@@ -282,8 +270,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                                              m_host.AbsolutePosition.Z); 
             }
         }
-        public void llSetRot(LSL_Types.Quaternion rot) { }
-        public LSL_Types.Quaternion llGetRot() { return new LSL_Types.Quaternion(); }
+        public void llSetRot(LSL_Types.Quaternion rot) 
+        { 
+            m_host.UpdateRotation(new LLQuaternion((float)rot.X, (float)rot.Y, (float)rot.Z, (float)rot.R));
+        }
+        public LSL_Types.Quaternion llGetRot() 
+        { 
+            LLQuaternion q = m_host.RotationOffset;
+            return new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W); 
+        }
         public LSL_Types.Quaternion llGetLocalRot() { return new LSL_Types.Quaternion(); }
         public void llSetForce(LSL_Types.Vector3 force, int local) { }
         public LSL_Types.Vector3 llGetForce() { return new LSL_Types.Vector3(); }
