@@ -168,7 +168,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             //type for whisper is 0
             World.SimChat(Helpers.StringToField(text),
-                          0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          0, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
         public void llSay(int channelID, string text)
@@ -176,14 +176,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             //type for say is 1
 
             World.SimChat(Helpers.StringToField(text),
-                           1, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                           1, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
         public void llShout(int channelID, string text)
         {
             //type for shout is 2
             World.SimChat(Helpers.StringToField(text),
-                          2, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          2, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
         public int llListen(int channelID, string name, string ID, string msg) { return 0; }

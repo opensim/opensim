@@ -34,7 +34,7 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Interfaces
 {
-    public delegate void ChatFromViewer(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
+    public delegate void ChatFromViewer(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp, string fromAgentName, string message, byte dialog); // Cut down from full list
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
     public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);

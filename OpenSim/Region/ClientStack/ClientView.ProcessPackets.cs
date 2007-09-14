@@ -107,9 +107,12 @@ namespace OpenSim.Region.ClientStack
                         byte type = inchatpack.ChatData.Type;
                         LLVector3 fromPos = new LLVector3(); // ClientAvatar.Pos;
                         LLUUID fromAgentID = AgentID;
+
+                        int channel = inchatpack.ChatData.Channel;
+
                         if (OnChatFromViewer != null)
                         {
-                            this.OnChatFromViewer(message, type, fromPos, fromName, fromAgentID);
+                            this.OnChatFromViewer(message, type, channel, fromPos, fromName, fromAgentID);
                         }
                         break;
                     case PacketType.ImprovedInstantMessage:

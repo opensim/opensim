@@ -211,7 +211,7 @@ namespace SimpleApp
             {
                 if (OnChatFromViewer != null)
                 {
-                    this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here, isn't it! \0"), 2, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
+                    this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here, isn't it! \0"), 2, 0, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
                 }
                 count = -1;
                 

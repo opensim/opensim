@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        public void SimChat(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
+        public void SimChat(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             ScenePresence avatar = null;
             avatar = m_scene.RequestAvatar(fromAgentID);
@@ -149,54 +149,68 @@ namespace OpenSim.Region.Environment.Modules
 
             if (connected)
             {
-                m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + ">:  " + Util.FieldToString(message));
+                m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + ">:  " +
+                                      Util.FieldToString(message));
                 m_ircWriter.Flush();
             }
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                              {
-                                                  int dis = -1000;
+            if (channel == 0)
+            {
+                m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                                                 {
+                                                     int dis = -1000;
 
-                                                  //err ??? the following code seems to be request a scenePresence when it already has a ref to it
-                                                  avatar = m_scene.RequestAvatar(presence.ControllingClient.AgentId);
-                                                  if (avatar != null)
-                                                  {
-                                                      dis = (int)avatar.AbsolutePosition.GetDistanceTo(fromPos);
-                                                  }
+                                                     //err ??? the following code seems to be request a scenePresence when it already has a ref to it
+                                                     avatar = m_scene.RequestAvatar(presence.ControllingClient.AgentId);
+                                                     if (avatar != null)
+                                                     {
+                                                         dis = (int) avatar.AbsolutePosition.GetDistanceTo(fromPos);
+                                                     }
 
-                                                  switch (type)
-                                                  {
-                                                      case 0: // Whisper
-                                                          if ((dis < 10) && (dis > -10))
-                                                          {
-                                                              //should change so the message is sent through the avatar rather than direct to the ClientView
-                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                     fromAgentID);
-                                                          }
-                                                          break;
-                                                      case 1: // Say
-                                                          if ((dis < 30) && (dis > -30))
-                                                          {
-                                                              //Console.WriteLine("sending chat");
-                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                     fromAgentID);
-                                                          }
-                                                          break;
-                                                      case 2: // Shout
-                                                          if ((dis < 100) && (dis > -100))
-                                                          {
-                                                              presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                     fromAgentID);
-                                                          }
-                                                          break;
+                                                     switch (type)
+                                                     {
+                                                         case 0: // Whisper
+                                                             if ((dis < 10) && (dis > -10))
+                                                             {
+                                                                 //should change so the message is sent through the avatar rather than direct to the ClientView
+                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                                                            type,
+                                                                                                            fromPos,
+                                                                                                            fromName,
+                                                                                                            fromAgentID);
+                                                             }
+                                                             break;
+                                                         case 1: // Say
+                                                             if ((dis < 30) && (dis > -30))
+                                                             {
+                                                                 //Console.WriteLine("sending chat");
+                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                                                            type,
+                                                                                                            fromPos,
+                                                                                                            fromName,
+                                                                                                            fromAgentID);
+                                                             }
+                                                             break;
+                                                         case 2: // Shout
+                                                             if ((dis < 100) && (dis > -100))
+                                                             {
+                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                                                            type,
+                                                                                                            fromPos,
+                                                                                                            fromName,
+                                                                                                            fromAgentID);
+                                                             }
+                                                             break;
 
-                                                      case 0xff: // Broadcast
-                                                          presence.ControllingClient.SendChatMessage(message, type, fromPos, fromName,
-                                                                                 fromAgentID);
-                                                          break;
-                                                  }
-                                              });
+                                                         case 0xff: // Broadcast
+                                                             presence.ControllingClient.SendChatMessage(message, type,
+                                                                                                        fromPos,
+                                                                                                        fromName,
+                                                                                                        fromAgentID);
+                                                             break;
+                                                     }
+                                                 });
+            }
         }
-
     }
 }

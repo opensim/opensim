@@ -119,7 +119,7 @@ namespace OpenSim.Framework
        public virtual void SendKillObject(ulong regionHandle, uint localID){}
        public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId){}
        public virtual void SendRegionHandshake(RegionInfo regionInfo){}
-       public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID){}
+       public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID) { }
        public virtual void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID){}
        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent, LLUUID imSessionID, string fromName, byte dialog, uint timeStamp){}
        public virtual void SendLayerData(float[] map){}
