@@ -16,6 +16,8 @@ namespace OpenSim.Framework.Configuration
 
         public string DatabaseProvider = "";
 
+        public uint HttpPort = 8002;
+
         private ConfigurationMember configMember;
 
         public UserConfig(string description, string filename)
@@ -26,12 +28,14 @@ namespace OpenSim.Framework.Configuration
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_startup_message", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Startup Message", "Welcome to OGS",false);
+            configMember.addConfigurationOption("default_startup_message", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Startup Message", "Welcome to OGS", false);
 
             configMember.addConfigurationOption("default_grid_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Grid Server URI", "http://127.0.0.1:8001/", false);
             configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from grid server", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
+
+            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Http Listener port", "8002", false);
 
         }
 
@@ -53,6 +57,10 @@ namespace OpenSim.Framework.Configuration
                     break;
                 case "database_provider":
                     this.DatabaseProvider = (string)configuration_result;
+                    break;
+
+                case "http_port":
+                    HttpPort = (uint)configuration_result;
                     break;
             }
 

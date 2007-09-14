@@ -19,6 +19,8 @@ namespace OpenSim.Framework.Configuration
         public string SimRecvKey = "";
 
         public string DatabaseProvider = "";
+
+        public uint HttpPort = 8001;
         
         private ConfigurationMember configMember;
         public GridConfig(string description, string filename)
@@ -41,6 +43,8 @@ namespace OpenSim.Framework.Configuration
             configMember.addConfigurationOption("sim_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to a simulator", "null", false);
             configMember.addConfigurationOption("sim_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from a simulator", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
+
+            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Http Listener port", "8001" , false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -76,6 +80,10 @@ namespace OpenSim.Framework.Configuration
                     break;
                 case "database_provider":
                     this.DatabaseProvider = (string)configuration_result;
+                    break;
+
+                case "http_port":
+                    HttpPort = (uint)configuration_result;
                     break;
             }
 
