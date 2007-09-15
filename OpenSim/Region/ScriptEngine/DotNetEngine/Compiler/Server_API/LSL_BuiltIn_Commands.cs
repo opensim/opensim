@@ -32,6 +32,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         private LLUUID m_itemID;
         private bool throwErrorOnNotImplemented = true;
 
+
         public LSL_BuiltIn_Commands(ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
@@ -794,9 +795,40 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         }
 
         public void llSetPrimitiveParams(List<string> rules) { NotImplemented("llSetPrimitiveParams"); }
-        public string llStringToBase64(string str) { NotImplemented("llStringToBase64"); return ""; }
-        public string llBase64ToString(string str) { NotImplemented("llBase64ToString"); return ""; }
-        public void llXorBase64Strings() { NotImplemented("llXorBase64Strings"); }
+        public string llStringToBase64(string str) {
+
+            try
+            {
+                byte[] encData_byte = new byte[str.Length];
+                encData_byte = System.Text.Encoding.UTF8.GetBytes(str);
+                string encodedData = Convert.ToBase64String(encData_byte);
+                return encodedData;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error in base64Encode" + e.Message);
+            }
+}
+
+        public string llBase64ToString(string str) {
+            System.Text.UTF8Encoding encoder = new System.Text.UTF8Encoding();
+            System.Text.Decoder utf8Decode = encoder.GetDecoder();
+            try
+            {
+                
+                byte[] todecode_byte = Convert.FromBase64String(str);
+                int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
+                char[] decoded_char = new char[charCount];
+                utf8Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
+                string result = new String(decoded_char);
+                return result;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error in base64Decode" + e.Message);
+            }
+        }
+        public void llXorBase64Strings() { throw new Exception("Command deprecated! Use llXorBase64StringsCorrect instead."); }
         public void llRemoteDataSetRegion() { NotImplemented("llRemoteDataSetRegion"); }
         public double llLog10(double val) { return (double)Math.Log10(val); }
         public double llLog(double val) { return (double)Math.Log(val); }
@@ -822,15 +854,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return m_host.ObjectCreator.ToStringHyphenated();
         }
 
-        public string llGetTimestamp() { NotImplemented("llGetTimestamp"); return ""; }
+        public string llGetTimestamp() { return DateTime.Now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"); }
         public void llSetLinkAlpha(int linknumber, double alpha, int face) { NotImplemented("llSetLinkAlpha"); }
         public int llGetNumberOfPrims() { NotImplemented("llGetNumberOfPrims"); return 0; }
         public string llGetNumberOfNotecardLines(string name) { NotImplemented("llGetNumberOfNotecardLines"); return ""; }
         public List<string> llGetBoundingBox(string obj) { NotImplemented("llGetBoundingBox"); return new List<string>(); }
         public LSL_Types.Vector3 llGetGeometricCenter() { NotImplemented("llGetGeometricCenter"); return new LSL_Types.Vector3(); }
         public void llGetPrimitiveParams() { NotImplemented("llGetPrimitiveParams"); }
-        public string llIntegerToBase64(int number) { NotImplemented("llIntegerToBase64"); return ""; }
-        public int llBase64ToInteger(string str) { NotImplemented("llBase64ToInteger"); return 0; }
+        public string llIntegerToBase64(int number) { 
+            NotImplemented("llIntegerToBase64"); return ""; 
+        }
+        public int llBase64ToInteger(string str) { 
+            NotImplemented("llBase64ToInteger"); return 0; 
+        }
 
         public double llGetGMTclock()
         {
@@ -921,7 +957,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llGetParcelFlags(LSL_Types.Vector3 pos) { NotImplemented("llGetParcelFlags"); return 0; }
         public int llGetRegionFlags() { NotImplemented("llGetRegionFlags"); return 0; }
-        public string llXorBase64StringsCorrect(string str1, string str2) { NotImplemented("llXorBase64StringsCorrect"); return ""; }
+        public string llXorBase64StringsCorrect(string str1, string str2) {
+            string ret = "";
+            string src1 = llBase64ToString(str1);
+            string src2 = llBase64ToString(str2);
+            int c = 0;
+            for (int i = 0; i < src1.Length; i++)
+            {
+                ret += src1[i] ^ src2[c];
+
+                c++;
+                if (c > src2.Length)
+                    c = 0;
+            }
+            return llStringToBase64(ret);
+        }
         public void llHTTPRequest() { NotImplemented("llHTTPRequest"); }
         public void llResetLandBanList() { NotImplemented("llResetLandBanList"); }
         public void llResetLandPassList() { NotImplemented("llResetLandPassList"); }
