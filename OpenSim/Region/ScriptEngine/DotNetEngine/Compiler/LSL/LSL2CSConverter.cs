@@ -227,7 +227,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Add namespace, class name and inheritance
 
-            Return = "";// +
+            Return = "" +
+                "using OpenSim.Region.ScriptEngine.Common;";
             //"using System; " +
             //"using System.Collections.Generic; " +
             //"using System.Text; " +

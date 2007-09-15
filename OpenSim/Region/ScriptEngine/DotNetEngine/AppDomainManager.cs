@@ -97,10 +97,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             ads.ApplicationBase = AppDomain.CurrentDomain.BaseDirectory;
             ads.DisallowBindingRedirects = false;
             ads.DisallowCodeDownload = true;
+            ads.LoaderOptimization = LoaderOptimization.MultiDomain; // Sounds good ;)
             ads.ShadowCopyFiles = "true"; // Enabled shadowing
             ads.ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
+            Console.WriteLine("Loading: " + AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
+            AD.Load(AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll"));
 
             // Return the new AppDomain
             return AD;
