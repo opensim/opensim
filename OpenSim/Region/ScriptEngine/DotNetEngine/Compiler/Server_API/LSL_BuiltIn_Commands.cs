@@ -17,7 +17,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
-    public class LSL_BuiltIn_Commands: MarshalByRefObject, LSL_BuiltIn_Commands_Interface
+    public class LSL_BuiltIn_Commands : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
 
         private System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
@@ -25,6 +25,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         private SceneObjectPart m_host;
         private uint m_localID;
         private LLUUID m_itemID;
+        private bool throwErrorOnNotImplemented = true;
 
         public LSL_BuiltIn_Commands(ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
@@ -32,7 +33,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             m_host = host;
             m_localID = localID;
             m_itemID = itemID;
-            
+
 
             //MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
         }
@@ -40,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         private string m_state = "default";
 
-        public string State() 
+        public string State()
         {
             return m_state;
         }
@@ -91,27 +92,27 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public int llRound(double f) { return (int)Math.Round(f, 3); }
 
         //This next group are vector operations involving squaring and square root. ckrinke
-        public double llVecMag(LSL_Types.Vector3 v) 
-        { 
-            return (v.X*v.X + v.Y*v.Y + v.Z*v.Z); 
+        public double llVecMag(LSL_Types.Vector3 v)
+        {
+            return (v.X * v.X + v.Y * v.Y + v.Z * v.Z);
         }
 
-        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v) 
+        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v)
         {
             double mag = v.X * v.X + v.Y * v.Y + v.Z * v.Z;
-            LSL_Types.Vector3 nor =  new LSL_Types.Vector3();
+            LSL_Types.Vector3 nor = new LSL_Types.Vector3();
             nor.X = v.X / mag; nor.Y = v.Y / mag; nor.Z = v.Z / mag;
             return nor;
         }
 
-        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b) 
+        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {
             double dx = a.X - b.X; double dy = a.Y - b.Y; double dz = a.Z - b.Z;
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
-        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r) 
+        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
             //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
             LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.X * r.X, r.Y * r.Y, r.Z * r.Z, r.R * r.R);
@@ -120,16 +121,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             double n = 2 * (r.Y * r.R + r.X * r.Z);
             double p = m * m - n * n;
             if (p > 0)
-                return new LSL_Types.Vector3(Math.Atan2(2.0 * (r.X*r.R - r.Y*r.Z),(-t.X - t.Y + t.Z + t.R)),
-                  Math.Atan2(n,Math.Sqrt(p)), Math.Atan2(2.0 * (r.Z*r.R - r.X*r.Y),( t.X - t.Y - t.Z + t.R)));
-            else if(n>0)
-                return new LSL_Types.Vector3( 0.0, Math.PI/2, Math.Atan2((r.Z*r.R + r.X*r.Y), 0.5 - t.X - t.Z));
+                return new LSL_Types.Vector3(Math.Atan2(2.0 * (r.X * r.R - r.Y * r.Z), (-t.X - t.Y + t.Z + t.R)),
+                  Math.Atan2(n, Math.Sqrt(p)), Math.Atan2(2.0 * (r.Z * r.R - r.X * r.Y), (t.X - t.Y - t.Z + t.R)));
+            else if (n > 0)
+                return new LSL_Types.Vector3(0.0, Math.PI / 2, Math.Atan2((r.Z * r.R + r.X * r.Y), 0.5 - t.X - t.Z));
             else
-                return new LSL_Types.Vector3( 0.0, -Math.PI/2, Math.Atan2((r.Z*r.R + r.X*r.Y), 0.5 - t.X - t.Z));
-       }
+                return new LSL_Types.Vector3(0.0, -Math.PI / 2, Math.Atan2((r.Z * r.R + r.X * r.Y), 0.5 - t.X - t.Z));
+        }
 
-        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v) 
-        { 
+        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
+        {
             //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
             float err = 0.00001f;
             double ax = Math.Sin(v.X / 2); double aw = Math.Cos(v.X / 2);
@@ -139,13 +140,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
             LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
             LSL_Types.Quaternion a = new LSL_Types.Quaternion();
-//This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
+            //This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
             LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax * bw * cw + aw * by * cz,
                   aw * by * cw - ax * bw * cz, aw * bw * cz + ax * by * cw, aw * bw * cw - ax * by * cz);
-            LSL_Types.Quaternion c = new LSL_Types.Quaternion(); 
-//This addition doesnt compile yet c = a + b;
-            LSL_Types.Quaternion d = new LSL_Types.Quaternion(); 
-//This addition doesnt compile yet d = a - b;
+            LSL_Types.Quaternion c = new LSL_Types.Quaternion();
+            //This addition doesnt compile yet c = a + b;
+            LSL_Types.Quaternion d = new LSL_Types.Quaternion();
+            //This addition doesnt compile yet d = a - b;
             if ((Math.Abs(c.X) > err && Math.Abs(d.X) > err) ||
                 (Math.Abs(c.Y) > err && Math.Abs(d.Y) > err) ||
                 (Math.Abs(c.Z) > err && Math.Abs(d.Z) > err) ||
@@ -155,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 //                return b;
                 //            return a;
             }
-            return new LSL_Types.Quaternion(); 
+            return new LSL_Types.Quaternion();
         }
 
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up) { return new LSL_Types.Quaternion(); }
@@ -186,65 +187,65 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                           2, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
-        public int llListen(int channelID, string name, string ID, string msg) { return 0; }
-        public void llListenControl(int number, int active) { return; }
-        public void llListenRemove(int number) { return; }
-        public void llSensor(string name, string id, int type, double range, double arc) { return; }
-        public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate) { return; }
-        public void llSensorRemove() { return; }
-        public string llDetectedName(int number) { return ""; }
-        public string llDetectedKey(int number) { return ""; }
-        public string llDetectedOwner(int number) { return ""; }
-        public int llDetectedType(int number) { return 0; }
-        public LSL_Types.Vector3 llDetectedPos(int number) { return new LSL_Types.Vector3(); }
-        public LSL_Types.Vector3 llDetectedVel(int number) { return new LSL_Types.Vector3(); }
-        public LSL_Types.Vector3 llDetectedGrab(int number) { return new LSL_Types.Vector3(); }
-        public LSL_Types.Quaternion llDetectedRot(int number) { return new LSL_Types.Quaternion(); }
-        public int llDetectedGroup(int number) { return 0; }
-        public int llDetectedLinkNumber(int number) { return 0; }
-        public void llDie() { return; }
-        public double llGround(LSL_Types.Vector3 offset) { return 0; }
-        public double llCloud(LSL_Types.Vector3 offset) { return 0; }
-        public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
-        public void llSetStatus(int status, int value) { return; }
-        public int llGetStatus(int status) { return 0; }
-        
-        public void llSetScale(LSL_Types.Vector3 scale) 
-        { 
+        public int llListen(int channelID, string name, string ID, string msg) { NotImplemented("llListen"); return 0; }
+        public void llListenControl(int number, int active) { NotImplemented("llListenControl"); return; }
+        public void llListenRemove(int number) { NotImplemented("llListenRemove"); return; }
+        public void llSensor(string name, string id, int type, double range, double arc) { NotImplemented("llSensor"); return; }
+        public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate) { NotImplemented("llSensorRepeat"); return; }
+        public void llSensorRemove() { NotImplemented("llSensorRemove"); return; }
+        public string llDetectedName(int number) { NotImplemented("llDetectedName"); return ""; }
+        public string llDetectedKey(int number) { NotImplemented("llDetectedKey"); return ""; }
+        public string llDetectedOwner(int number) { NotImplemented("llDetectedOwner"); return ""; }
+        public int llDetectedType(int number) { NotImplemented("llDetectedType"); return 0; }
+        public LSL_Types.Vector3 llDetectedPos(int number) { NotImplemented("llDetectedPos"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llDetectedVel(int number) { NotImplemented("llDetectedVel"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llDetectedGrab(int number) { NotImplemented("llDetectedGrab"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llDetectedRot(int number) { NotImplemented("llDetectedRot"); return new LSL_Types.Quaternion(); }
+        public int llDetectedGroup(int number) { NotImplemented("llDetectedGroup"); return 0; }
+        public int llDetectedLinkNumber(int number) { NotImplemented("llDetectedLinkNumber"); return 0; }
+        public void llDie() { NotImplemented("llDie"); return; }
+        public double llGround(LSL_Types.Vector3 offset) { NotImplemented("llGround"); return 0; }
+        public double llCloud(LSL_Types.Vector3 offset) { NotImplemented("llCloud"); return 0; }
+        public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset) { NotImplemented("llWind"); return new LSL_Types.Vector3(); }
+        public void llSetStatus(int status, int value) { NotImplemented("llSetStatus"); return; }
+        public int llGetStatus(int status) { NotImplemented("llGetStatus"); return 0; }
+
+        public void llSetScale(LSL_Types.Vector3 scale)
+        {
             // TODO: this needs to trigger a persistance save as well
             LLVector3 tmp = m_host.Scale;
             tmp.X = (float)scale.X;
             tmp.Y = (float)scale.Y;
             tmp.Z = (float)scale.Z;
             m_host.Scale = tmp;
-            return; 
+            return;
         }
-        public LSL_Types.Vector3 llGetScale() 
-        { 
-            return new LSL_Types.Vector3(m_host.Scale.X, m_host.Scale.Y, m_host.Scale.Z); 
-        }
-        
-        public void llSetColor(LSL_Types.Vector3 color, int face) { return; }
-        public double llGetAlpha(int face) { return 0; }
-        public void llSetAlpha(double alpha, int face) { return; }
-        public LSL_Types.Vector3 llGetColor(int face) { return new LSL_Types.Vector3(); }
-        public void llSetTexture(string texture, int face) { return; }
-        public void llScaleTexture(double u, double v, int face) { return; }
-        public void llOffsetTexture(double u, double v, int face) { return; }
-        public void llRotateTexture(double rotation, int face) { return; }
-
-        public string llGetTexture(int face) 
-        { 
-            return ""; 
+        public LSL_Types.Vector3 llGetScale()
+        {
+            return new LSL_Types.Vector3(m_host.Scale.X, m_host.Scale.Y, m_host.Scale.Z);
         }
 
-        public void llSetPos(LSL_Types.Vector3 pos) 
-        { 
+        public void llSetColor(LSL_Types.Vector3 color, int face) { NotImplemented("llSetColor"); return; }
+        public double llGetAlpha(int face) { NotImplemented("llGetAlpha"); return 0; }
+        public void llSetAlpha(double alpha, int face) { NotImplemented("llSetAlpha"); return; }
+        public LSL_Types.Vector3 llGetColor(int face) { NotImplemented("llGetColor"); return new LSL_Types.Vector3(); }
+        public void llSetTexture(string texture, int face) { NotImplemented("llSetTexture"); return; }
+        public void llScaleTexture(double u, double v, int face) { NotImplemented("llScaleTexture"); return; }
+        public void llOffsetTexture(double u, double v, int face) { NotImplemented("llOffsetTexture"); return; }
+        public void llRotateTexture(double rotation, int face) { NotImplemented("llRotateTexture"); return; }
+
+        public string llGetTexture(int face)
+        {
+            throw new NotImplementedException(cni); return "";
+        }
+
+        public void llSetPos(LSL_Types.Vector3 pos)
+        {
             LLVector3 tmp;
-            if (m_host.ParentID != 0) 
+            if (m_host.ParentID != 0)
             {
                 m_host.UpdateOffSet(new LLVector3((float)pos.X, (float)pos.Y, (float)pos.Z));
-            } 
+            }
             else
             {
                 m_host.UpdateGroupPosition(new LLVector3((float)pos.X, (float)pos.Y, (float)pos.Z));
@@ -253,136 +254,139 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetPos()
         {
-            return new LSL_Types.Vector3(m_host.AbsolutePosition.X, 
-                                         m_host.AbsolutePosition.Y, 
-                                         m_host.AbsolutePosition.Z); 
+            return new LSL_Types.Vector3(m_host.AbsolutePosition.X,
+                                         m_host.AbsolutePosition.Y,
+                                         m_host.AbsolutePosition.Z);
         }
 
-        public LSL_Types.Vector3 llGetLocalPos() 
-        { 
-            if (m_host.ParentID != 0) {
-                return new LSL_Types.Vector3(m_host.OffsetPosition.X, 
-                                             m_host.OffsetPosition.Y, 
-                                             m_host.OffsetPosition.Z); 
-            } else {
-                return new LSL_Types.Vector3(m_host.AbsolutePosition.X, 
-                                             m_host.AbsolutePosition.Y, 
-                                             m_host.AbsolutePosition.Z); 
+        public LSL_Types.Vector3 llGetLocalPos()
+        {
+            if (m_host.ParentID != 0)
+            {
+                return new LSL_Types.Vector3(m_host.OffsetPosition.X,
+                                             m_host.OffsetPosition.Y,
+                                             m_host.OffsetPosition.Z);
+            }
+            else
+            {
+                return new LSL_Types.Vector3(m_host.AbsolutePosition.X,
+                                             m_host.AbsolutePosition.Y,
+                                             m_host.AbsolutePosition.Z);
             }
         }
-        public void llSetRot(LSL_Types.Quaternion rot) 
-        { 
+        public void llSetRot(LSL_Types.Quaternion rot)
+        {
             m_host.UpdateRotation(new LLQuaternion((float)rot.X, (float)rot.Y, (float)rot.Z, (float)rot.R));
         }
-        public LSL_Types.Quaternion llGetRot() 
-        { 
+        public LSL_Types.Quaternion llGetRot()
+        {
             LLQuaternion q = m_host.RotationOffset;
-            return new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W); 
+            return new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
         }
-        public LSL_Types.Quaternion llGetLocalRot() { return new LSL_Types.Quaternion(); }
-        public void llSetForce(LSL_Types.Vector3 force, int local) { }
-        public LSL_Types.Vector3 llGetForce() { return new LSL_Types.Vector3(); }
-        public int llTarget(LSL_Types.Vector3 position, double range) { return 0; }
-        public void llTargetRemove(int number) { }
-        public int llRotTarget(LSL_Types.Quaternion rot, double error) { return 0; }
-        public void llRotTargetRemove(int number) { }
-        public void llMoveToTarget(LSL_Types.Vector3 target, double tau) { }
-        public void llStopMoveToTarget() { }
-        public void llApplyImpulse(LSL_Types.Vector3 force, int local) { }
-        public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local) { }
-        public void llSetTorque(LSL_Types.Vector3 torque, int local) { }
-        public LSL_Types.Vector3 llGetTorque() { return new LSL_Types.Vector3(); }
-        public void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local) { }
-        public LSL_Types.Vector3 llGetVel() { return new LSL_Types.Vector3(); }
-        public LSL_Types.Vector3 llGetAccel() { return new LSL_Types.Vector3(); }
-        public LSL_Types.Vector3 llGetOmega() { return new LSL_Types.Vector3(); }
-        public double llGetTimeOfDay() { return 0; }
+        public LSL_Types.Quaternion llGetLocalRot() { NotImplemented("llGetLocalRot"); return new LSL_Types.Quaternion(); }
+        public void llSetForce(LSL_Types.Vector3 force, int local) { NotImplemented("llSetForce"); }
+        public LSL_Types.Vector3 llGetForce() { NotImplemented("llGetForce"); return new LSL_Types.Vector3(); }
+        public int llTarget(LSL_Types.Vector3 position, double range) { NotImplemented("llTarget"); return 0; }
+        public void llTargetRemove(int number) { NotImplemented("llTargetRemove"); }
+        public int llRotTarget(LSL_Types.Quaternion rot, double error) { NotImplemented("llRotTarget"); return 0; }
+        public void llRotTargetRemove(int number) { NotImplemented("llRotTargetRemove"); }
+        public void llMoveToTarget(LSL_Types.Vector3 target, double tau) { NotImplemented("llMoveToTarget"); }
+        public void llStopMoveToTarget() { NotImplemented("llStopMoveToTarget"); }
+        public void llApplyImpulse(LSL_Types.Vector3 force, int local) { NotImplemented("llApplyImpulse"); }
+        public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local) { NotImplemented("llApplyRotationalImpulse"); }
+        public void llSetTorque(LSL_Types.Vector3 torque, int local) { NotImplemented("llSetTorque"); }
+        public LSL_Types.Vector3 llGetTorque() { NotImplemented("llGetTorque"); return new LSL_Types.Vector3(); }
+        public void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local) { NotImplemented("llSetForceAndTorque"); }
+        public LSL_Types.Vector3 llGetVel() { NotImplemented("llGetVel"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetAccel() { NotImplemented("llGetAccel"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetOmega() { NotImplemented("llGetOmega"); return new LSL_Types.Vector3(); }
+        public double llGetTimeOfDay() { NotImplemented("llGetTimeOfDay"); return 0; }
 
-        public double llGetWallclock() 
-        { 
-            return DateTime.Now.TimeOfDay.TotalSeconds; 
-        }
-
-        public double llGetTime() { return 0; }
-        public void llResetTime() { }
-        public double llGetAndResetTime() { return 0; }
-        public void llSound() { }
-        public void llPlaySound(string sound, double volume) { }
-        public void llLoopSound(string sound, double volume) { }
-        public void llLoopSoundMaster(string sound, double volume) { }
-        public void llLoopSoundSlave(string sound, double volume) { }
-        public void llPlaySoundSlave(string sound, double volume) { }
-        public void llTriggerSound(string sound, double volume) { }
-        public void llStopSound() { }
-        public void llPreloadSound(string sound) { }
-
-        public string llGetSubString(string src, int start, int end) 
-        { 
-            return src.Substring(start, end); 
+        public double llGetWallclock()
+        {
+            return DateTime.Now.TimeOfDay.TotalSeconds;
         }
 
-        public string llDeleteSubString(string src, int start, int end) {return "";}
-        public string llInsertString(string dst, int position, string src) { return ""; }
+        public double llGetTime() { NotImplemented("llGetTime"); return 0; }
+        public void llResetTime() { NotImplemented("llResetTime"); }
+        public double llGetAndResetTime() { NotImplemented("llGetAndResetTime"); return 0; }
+        public void llSound() { NotImplemented("llSound"); }
+        public void llPlaySound(string sound, double volume) { NotImplemented("llPlaySound"); }
+        public void llLoopSound(string sound, double volume) { NotImplemented("llLoopSound"); }
+        public void llLoopSoundMaster(string sound, double volume) { NotImplemented("llLoopSoundMaster"); }
+        public void llLoopSoundSlave(string sound, double volume) { NotImplemented("llLoopSoundSlave"); }
+        public void llPlaySoundSlave(string sound, double volume) { NotImplemented("llPlaySoundSlave"); }
+        public void llTriggerSound(string sound, double volume) { NotImplemented("llTriggerSound"); }
+        public void llStopSound() { NotImplemented("llStopSound"); }
+        public void llPreloadSound(string sound) { NotImplemented("llPreloadSound"); }
 
-        public string llToUpper(string src) 
-        { 
-            return src.ToUpper(); 
+        public string llGetSubString(string src, int start, int end)
+        {
+            return src.Substring(start, end);
         }
 
-        public string llToLower(string src) 
-        { 
-            return src.ToLower(); 
+        public string llDeleteSubString(string src, int start, int end) { NotImplemented("llDeleteSubString"); return ""; }
+        public string llInsertString(string dst, int position, string src) { NotImplemented("llInsertString"); return ""; }
+
+        public string llToUpper(string src)
+        {
+            return src.ToUpper();
         }
 
-        public int llGiveMoney(string destination, int amount) { return 0; }
-        public void llMakeExplosion() { }
-        public void llMakeFountain() { }
-        public void llMakeSmoke() { }
-        public void llMakeFire() { }
-        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param) { }
-        public void llLookAt(LSL_Types.Vector3 target, double strength, double damping) { }
-        public void llStopLookAt() { }
+        public string llToLower(string src)
+        {
+            return src.ToLower();
+        }
 
-        public void llSetTimerEvent(double sec) 
+        public int llGiveMoney(string destination, int amount) { NotImplemented("llGiveMoney"); return 0; }
+        public void llMakeExplosion() { NotImplemented("llMakeExplosion"); }
+        public void llMakeFountain() { NotImplemented("llMakeFountain"); }
+        public void llMakeSmoke() { NotImplemented("llMakeSmoke"); }
+        public void llMakeFire() { NotImplemented("llMakeFire"); }
+        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param) { NotImplemented("llRezObject"); }
+        public void llLookAt(LSL_Types.Vector3 target, double strength, double damping) { NotImplemented("llLookAt"); }
+        public void llStopLookAt() { NotImplemented("llStopLookAt"); }
+
+        public void llSetTimerEvent(double sec)
         {
             // Setting timer repeat
             m_ScriptEngine.m_LSLLongCmdHandler.SetTimerEvent(m_localID, m_itemID, sec);
         }
 
-        public void llSleep(double sec) 
-        { 
-            System.Threading.Thread.Sleep((int)(sec * 1000)); 
+        public void llSleep(double sec)
+        {
+            System.Threading.Thread.Sleep((int)(sec * 1000));
         }
 
-        public double llGetMass() { return 0; }
-        public void llCollisionFilter(string name, string id, int accept) { }
-        public void llTakeControls(int controls, int accept, int pass_on) { }
-        public void llReleaseControls() { }
-        public void llAttachToAvatar(int attachment) { }
-        public void llDetachFromAvatar() { }
-        public void llTakeCamera() { }
-        public void llReleaseCamera() { }
+        public double llGetMass() { NotImplemented("llGetMass"); return 0; }
+        public void llCollisionFilter(string name, string id, int accept) { NotImplemented("llCollisionFilter"); }
+        public void llTakeControls(int controls, int accept, int pass_on) { NotImplemented("llTakeControls"); }
+        public void llReleaseControls() { NotImplemented("llReleaseControls"); }
+        public void llAttachToAvatar(int attachment) { NotImplemented("llAttachToAvatar"); }
+        public void llDetachFromAvatar() { NotImplemented("llDetachFromAvatar"); }
+        public void llTakeCamera() { NotImplemented("llTakeCamera"); }
+        public void llReleaseCamera() { NotImplemented("llReleaseCamera"); }
 
-        public string llGetOwner() 
-        { 
-            return m_host.ObjectOwner.ToStringHyphenated(); 
+        public string llGetOwner()
+        {
+            return m_host.ObjectOwner.ToStringHyphenated();
         }
 
-        public void llInstantMessage(string user, string message) { }
-        public void llEmail(string address, string subject, string message) { }
-        public void llGetNextEmail(string address, string subject) { }
+        public void llInstantMessage(string user, string message) { NotImplemented("llInstantMessage"); }
+        public void llEmail(string address, string subject, string message) { NotImplemented("llEmail"); }
+        public void llGetNextEmail(string address, string subject) { NotImplemented("llGetNextEmail"); }
 
         public string llGetKey()
         {
             return m_host.UUID.ToStringHyphenated();
         }
 
-        public void llSetBuoyancy(double buoyancy) { }
-        public void llSetHoverHeight(double height, int water, double tau) { }
-        public void llStopHover() { }
-        public void llMinEventDelay(double delay) { }
-        public void llSoundPreload() { }
-        public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping) { }
+        public void llSetBuoyancy(double buoyancy) { NotImplemented("llSetBuoyancy"); }
+        public void llSetHoverHeight(double height, int water, double tau) { NotImplemented("llSetHoverHeight"); }
+        public void llStopHover() { NotImplemented("llStopHover"); }
+        public void llMinEventDelay(double delay) { NotImplemented("llMinEventDelay"); }
+        public void llSoundPreload() { NotImplemented("llSoundPreload"); }
+        public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping) { NotImplemented("llRotLookAt"); }
 
         public int llStringLength(string str)
         {
@@ -396,46 +400,42 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
         }
 
-        public void llStartAnimation(string anim) { }
-        public void llStopAnimation(string anim) { }
-        public void llPointAt() { }
-        public void llStopPointAt() { }
-        public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain) { }
-        public int llGetStartParameter() { return 0; }
-        public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos) { }
-        public void llRequestPermissions(string agent, int perm) { }
-        public string llGetPermissionsKey() { return ""; }
-        public int llGetPermissions() { return 0; }
-        public int llGetLinkNumber() { return 0; }
-        public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face) { }
-        public void llCreateLink(string target, int parent) { }
-        public void llBreakLink(int linknum) { }
-        public void llBreakAllLinks() { }
-        public string llGetLinkKey(int linknum) { return ""; }
-        public void llGetLinkName(int linknum) { }
-        public int llGetInventoryNumber(int type) { return 0; }
-        public string llGetInventoryName(int type, int number) { return ""; }
-        public void llSetScriptState(string name, int run) { }
+        public void llStartAnimation(string anim) { NotImplemented("llStartAnimation"); }
+        public void llStopAnimation(string anim) { NotImplemented("llStopAnimation"); }
+        public void llPointAt() { NotImplemented("llPointAt"); }
+        public void llStopPointAt() { NotImplemented("llStopPointAt"); }
+        public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain) { NotImplemented("llTargetOmega"); }
+        public int llGetStartParameter() { NotImplemented("llGetStartParameter"); return 0; }
+        public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos) { NotImplemented("llGodLikeRezObject"); }
+        public void llRequestPermissions(string agent, int perm) { NotImplemented("llRequestPermissions"); }
+        public string llGetPermissionsKey() { NotImplemented("llGetPermissionsKey"); return ""; }
+        public int llGetPermissions() { NotImplemented("llGetPermissions"); return 0; }
+        public int llGetLinkNumber() { NotImplemented("llGetLinkNumber"); return 0; }
+        public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face) { NotImplemented("llSetLinkColor"); }
+        public void llCreateLink(string target, int parent) { NotImplemented("llCreateLink"); }
+        public void llBreakLink(int linknum) { NotImplemented("llBreakLink"); }
+        public void llBreakAllLinks() { NotImplemented("llBreakAllLinks"); }
+        public string llGetLinkKey(int linknum) { NotImplemented("llGetLinkKey"); return ""; }
+        public void llGetLinkName(int linknum) { NotImplemented("llGetLinkName"); }
+        public int llGetInventoryNumber(int type) { NotImplemented("llGetInventoryNumber"); return 0; }
+        public string llGetInventoryName(int type, int number) { NotImplemented("llGetInventoryName"); return ""; }
+        public void llSetScriptState(string name, int run) { NotImplemented("llSetScriptState"); }
         public double llGetEnergy() { return 1.0f; }
-        public void llGiveInventory(string destination, string inventory) { }
-        public void llRemoveInventory(string item) { }
+        public void llGiveInventory(string destination, string inventory) { NotImplemented("llGiveInventory"); }
+        public void llRemoveInventory(string item) { NotImplemented("llRemoveInventory"); }
 
-        public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
-        {
-            // TEMP DISABLED UNTIL WE CAN AGREE UPON VECTOR/ROTATION FORMAT
-            //m_host.SetText(text, color, alpha);
-        }
+        public void llSetText(string text, LSL_Types.Vector3 color, double alpha) { NotImplemented("llSetText"); }
 
-        public double llWater(LSL_Types.Vector3 offset) { return 0; }
-        public void llPassTouches(int pass) { }
-        public string llRequestAgentData(string id, int data) { return ""; }
-        public string llRequestInventoryData(string name) { return ""; }
-        public void llSetDamage(double damage) { }
-        public void llTeleportAgentHome(string agent) { }
+        public double llWater(LSL_Types.Vector3 offset) { NotImplemented("llWater"); return 0; }
+        public void llPassTouches(int pass) { NotImplemented("llPassTouches"); }
+        public string llRequestAgentData(string id, int data) { NotImplemented("llRequestAgentData"); return ""; }
+        public string llRequestInventoryData(string name) { NotImplemented("llRequestInventoryData"); return ""; }
+        public void llSetDamage(double damage) { NotImplemented("llSetDamage"); }
+        public void llTeleportAgentHome(string agent) { NotImplemented("llTeleportAgentHome"); }
         public void llModifyLand(int action, int brush) { }
-        public void llCollisionSound(string impact_sound, double impact_volume) { }
-        public void llCollisionSprite(string impact_sprite) { }
-        public string llGetAnimation(string id) { return ""; }
+        public void llCollisionSound(string impact_sound, double impact_volume) { NotImplemented("llCollisionSound"); }
+        public void llCollisionSprite(string impact_sprite) { NotImplemented("llCollisionSprite"); }
+        public string llGetAnimation(string id) { NotImplemented("llGetAnimation"); return ""; }
         public void llResetScript() { }
         public void llMessageLinked(int linknum, int num, string str, string id) { }
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local) { }
@@ -448,14 +448,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot) { return new LSL_Types.Vector3(); }
         public void llRot2Angle() { }
 
-        public double llAcos(double val) 
-        { 
-            return (double)Math.Acos(val); 
+        public double llAcos(double val)
+        {
+            return (double)Math.Acos(val);
         }
 
-        public double llAsin(double val) 
-        { 
-            return (double)Math.Asin(val); 
+        public double llAsin(double val)
+        {
+            return (double)Math.Asin(val);
         }
 
         public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b) { return 0; }
@@ -471,25 +471,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return source.IndexOf(pattern);
         }
 
-        public string llGetOwnerKey(string id) 
-        { 
-            return ""; 
-        }
+        public string llGetOwnerKey(string id) { NotImplemented("llGetOwnerKey"); return ""; }
 
-        public LSL_Types.Vector3 llGetCenterOfMass() { return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGetCenterOfMass() { NotImplemented("llGetCenterOfMass"); return new LSL_Types.Vector3(); }
 
-        public List<string> llListSort(List<string> src, int stride, int ascending)
-        {
-            //List<string> nlist = src.Sort();
-
-            //if (ascending == 0)
-            //{
-            //nlist.Reverse();
-            //}
-
-            //return nlist;
-            return new List<string>(); ;
-        }
+        public List<string> llListSort(List<string> src, int stride, int ascending) { NotImplemented("llListSort"); return new List<string>(); ;        }
 
         public int llGetListLength(List<string> src)
         {
@@ -522,39 +508,31 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return "";
         }
 
-        public LSL_Types.Vector3 llList2Vector(List<string> src, int index)
-        { return new LSL_Types.Vector3(); }
-        public LSL_Types.Quaternion llList2Rot(List<string> src, int index)
-        { return new LSL_Types.Quaternion(); }
-        public List<string> llList2List(List<string> src, int start, int end)
-        { return new List<string>(); }
-        public List<string> llDeleteSubList(List<string> src, int start, int end)
-        { return new List<string>(); }
-        public int llGetListEntryType(List<string> src, int index) { return 0; }
-        public string llList2CSV(List<string> src) { return ""; }
-        public List<string> llCSV2List(string src)
-        { return new List<string>(); }
-        public List<string> llListRandomize(List<string> src, int stride)
-        { return new List<string>(); }
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
-        { return new List<string>(); }
+        public LSL_Types.Vector3 llList2Vector(List<string> src, int index) { NotImplemented("llList2Vector"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llList2Rot(List<string> src, int index) { NotImplemented("llList2Rot"); return new LSL_Types.Quaternion(); }
+        public List<string> llList2List(List<string> src, int start, int end) { NotImplemented("llList2List"); return new List<string>(); }
+        public List<string> llDeleteSubList(List<string> src, int start, int end) { NotImplemented("llDeleteSubList"); return new List<string>(); }
+        public int llGetListEntryType(List<string> src, int index) { NotImplemented("llGetListEntryType"); return 0; }
+        public string llList2CSV(List<string> src) { NotImplemented("llList2CSV"); return ""; }
+        public List<string> llCSV2List(string src) { NotImplemented("llCSV2List"); return new List<string>(); }
+        public List<string> llListRandomize(List<string> src, int stride) { NotImplemented("llListRandomize"); return new List<string>(); }
+        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) { NotImplemented("llList2ListStrided"); return new List<string>(); }
 
         public LSL_Types.Vector3 llGetRegionCorner()
-        { 
+        {
             return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0);
         }
 
-        public List<string> llListInsertList(List<string> dest, List<string> src, int start)
-        { return new List<string>(); }
+        public List<string> llListInsertList(List<string> dest, List<string> src, int start) { NotImplemented("llListInsertList"); return new List<string>(); }
         public int llListFindList(List<string> src, List<string> test) { return 0; }
-        
-        public string llGetObjectName() 
-        { 
-            return m_host.Name; 
+
+        public string llGetObjectName()
+        {
+            return m_host.Name;
         }
 
-        public void llSetObjectName(string name) 
-        { 
+        public void llSetObjectName(string name)
+        {
             m_host.Name = name;
         }
 
@@ -565,49 +543,49 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return result;
         }
 
-        public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir) { return 0; }
-        public int llGetAgentInfo(string id) { return 0; }
-        public void llAdjustSoundVolume(double volume) { }
-        public void llSetSoundQueueing(int queue) { }
-        public void llSetSoundRadius(double radius) { }
-        public string llKey2Name(string id) { return ""; }
-        public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { }
-        public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west) { }
-        public void llEjectFromLand(string pest) { }
+        public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir) { NotImplemented("llEdgeOfWorld"); return 0; }
+        public int llGetAgentInfo(string id) { NotImplemented("llGetAgentInfo"); return 0; }
+        public void llAdjustSoundVolume(double volume) { NotImplemented("llAdjustSoundVolume"); }
+        public void llSetSoundQueueing(int queue) { NotImplemented("llSetSoundQueueing"); }
+        public void llSetSoundRadius(double radius) { NotImplemented("llSetSoundRadius"); }
+        public string llKey2Name(string id) { NotImplemented("llKey2Name"); return ""; }
+        public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { NotImplemented("llSetTextureAnim"); }
+        public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west) { NotImplemented("llTriggerSoundLimited"); }
+        public void llEjectFromLand(string pest) { NotImplemented("llEjectFromLand"); }
 
-        public void llParseString2List() { }
+        public void llParseString2List() { NotImplemented("llParseString2List"); }
 
-        public int llOverMyLand(string id) { return 0; }
-        public string llGetLandOwnerAt(LSL_Types.Vector3 pos) { return ""; }
-        public string llGetNotecardLine(string name, int line) { return ""; }
-        public LSL_Types.Vector3 llGetAgentSize(string id) { return new LSL_Types.Vector3(); }
-        public int llSameGroup(string agent) { return 0; }
-        public void llUnSit(string id) { }
-        public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
-        public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
-        public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset) { return new LSL_Types.Vector3(); }
-        public int llGetAttached() { return 0; }
-        public int llGetFreeMemory() { return 0; }
+        public int llOverMyLand(string id) { NotImplemented("llOverMyLand"); return 0; }
+        public string llGetLandOwnerAt(LSL_Types.Vector3 pos) { NotImplemented("llGetLandOwnerAt"); return ""; }
+        public string llGetNotecardLine(string name, int line) { NotImplemented("llGetNotecardLine"); return ""; }
+        public LSL_Types.Vector3 llGetAgentSize(string id) { NotImplemented("llGetAgentSize"); return new LSL_Types.Vector3(); }
+        public int llSameGroup(string agent) { NotImplemented("llSameGroup"); return 0; }
+        public void llUnSit(string id) { NotImplemented("llUnSit"); }
+        public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset) { NotImplemented("llGroundSlope"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset) { NotImplemented("llGroundNormal"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset) { NotImplemented("llGroundContour"); return new LSL_Types.Vector3(); }
+        public int llGetAttached() { NotImplemented("llGetAttached"); return 0; }
+        public int llGetFreeMemory() { NotImplemented("llGetFreeMemory"); return 0; }
 
-        public string llGetRegionName() 
-        { 
-            return World.RegionInfo.RegionName; 
+        public string llGetRegionName()
+        {
+            return World.RegionInfo.RegionName;
         }
 
         public double llGetRegionTimeDilation() { return 1.0f; }
         public double llGetRegionFPS() { return 10.0f; }
-        public void llParticleSystem(List<Object> rules) { }
-        public void llGroundRepel(double height, int water, double tau) { }
-        public void llGiveInventoryList() { }
-        public void llSetVehicleType(int type) { }
-        public void llSetVehicledoubleParam(int param, double value) { }
-        public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec) { }
-        public void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot) { }
-        public void llSetVehicleFlags(int flags) { }
-        public void llRemoveVehicleFlags(int flags) { }
-        public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot) { }
-        public string llAvatarOnSitTarget() { return ""; }
-        public void llAddToLandPassList(string avatar, double hours) { }
+        public void llParticleSystem(List<Object> rules) { NotImplemented("llParticleSystem"); }
+        public void llGroundRepel(double height, int water, double tau) { NotImplemented("llGroundRepel"); }
+        public void llGiveInventoryList() { NotImplemented("llGiveInventoryList"); }
+        public void llSetVehicleType(int type) { NotImplemented("llSetVehicleType"); }
+        public void llSetVehicledoubleParam(int param, double value) { NotImplemented("llSetVehicledoubleParam"); }
+        public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec) { NotImplemented("llSetVehicleVectorParam"); }
+        public void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot) { NotImplemented("llSetVehicleRotationParam"); }
+        public void llSetVehicleFlags(int flags) { NotImplemented("llSetVehicleFlags"); }
+        public void llRemoveVehicleFlags(int flags) { NotImplemented("llRemoveVehicleFlags"); }
+        public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot) { NotImplemented("llSitTarget"); }
+        public string llAvatarOnSitTarget() { NotImplemented("llAvatarOnSitTarget"); return ""; }
+        public void llAddToLandPassList(string avatar, double hours) { NotImplemented("llAddToLandPassList"); }
 
         public void llSetTouchText(string text)
         {
@@ -619,114 +597,103 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             m_host.SitName = text;
         }
 
-        public void llSetCameraEyeOffset(LSL_Types.Vector3 offset) { }
-        public void llSetCameraAtOffset(LSL_Types.Vector3 offset) { }
-        public void llDumpList2String() { }
-        public void llScriptDanger(LSL_Types.Vector3 pos) { }
-        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { }
-        public void llVolumeDetect(int detect) { }
-        public void llResetOtherScript(string name) { }
+        public void llSetCameraEyeOffset(LSL_Types.Vector3 offset) { NotImplemented("llSetCameraEyeOffset"); }
+        public void llSetCameraAtOffset(LSL_Types.Vector3 offset) { NotImplemented("llSetCameraAtOffset"); }
+        public void llDumpList2String() { NotImplemented("llDumpList2String"); }
+        public void llScriptDanger(LSL_Types.Vector3 pos) { NotImplemented("llScriptDanger"); }
+        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { NotImplemented("llDialog"); }
+        public void llVolumeDetect(int detect) { NotImplemented("llVolumeDetect"); }
+        public void llResetOtherScript(string name) { NotImplemented("llResetOtherScript"); }
 
-        public int llGetScriptState(string name) 
-        { 
-            return 0;
-        }
+        public int llGetScriptState(string name) { NotImplemented("llGetScriptState"); return 0; }
 
-        public void llRemoteLoadScript() { }
-        public void llSetRemoteScriptAccessPin(int pin) { }
-        public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { }
-        public void llOpenRemoteDataChannel() { }
-        public string llSendRemoteData(string channel, string dest, int idata, string sdata) { return ""; }
-        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { }
-        public void llCloseRemoteDataChannel(string channel) { }
+        public void llRemoteLoadScript() { NotImplemented("llRemoteLoadScript"); }
+        public void llSetRemoteScriptAccessPin(int pin) { NotImplemented("llSetRemoteScriptAccessPin"); }
+        public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { NotImplemented("llRemoteLoadScriptPin"); }
+        public void llOpenRemoteDataChannel() { NotImplemented("llOpenRemoteDataChannel"); }
+        public string llSendRemoteData(string channel, string dest, int idata, string sdata) { NotImplemented("llSendRemoteData"); return ""; }
+        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { NotImplemented("llRemoteDataReply"); }
+        public void llCloseRemoteDataChannel(string channel) { NotImplemented("llCloseRemoteDataChannel"); }
 
         public string llMD5String(string src, int nonce)
         {
             return Util.Md5Hash(src + ":" + nonce.ToString());
         }
 
-        public void llSetPrimitiveParams(List<string> rules) { }
-        public string llStringToBase64(string str) { return ""; }
-        public string llBase64ToString(string str) { return ""; }
-        public void llXorBase64Strings() { }
-        public void llRemoteDataSetRegion() { }
+        public void llSetPrimitiveParams(List<string> rules) { NotImplemented("llSetPrimitiveParams"); }
+        public string llStringToBase64(string str) { NotImplemented("llStringToBase64"); return ""; }
+        public string llBase64ToString(string str) { NotImplemented("llBase64ToString"); return ""; }
+        public void llXorBase64Strings() { NotImplemented("llXorBase64Strings"); }
+        public void llRemoteDataSetRegion() { NotImplemented("llRemoteDataSetRegion"); }
         public double llLog10(double val) { return (double)Math.Log10(val); }
         public double llLog(double val) { return (double)Math.Log(val); }
-        public List<string> llGetAnimationList(string id) { return new List<string>(); }
-        public void llSetParcelMusicURL(string url) { }
+        public List<string> llGetAnimationList(string id) { NotImplemented("llGetAnimationList"); return new List<string>(); }
+        public void llSetParcelMusicURL(string url) { NotImplemented("llSetParcelMusicURL"); }
 
-        public LSL_Types.Vector3 llGetRootPosition()
+        public LSL_Types.Vector3 llGetRootPosition() { NotImplemented("llGetRootPosition"); return new LSL_Types.Vector3(); }
+
+        public LSL_Types.Quaternion llGetRootRotation() { NotImplemented("llGetRootRotation"); return new LSL_Types.Quaternion(); }
+
+        public string llGetObjectDesc()
         {
-            throw new NotImplementedException("llGetRootPosition");
-            //return m_root.AbsolutePosition;
+            return m_host.Description;
         }
 
-        public LSL_Types.Quaternion llGetRootRotation()
-        {
-            return new LSL_Types.Quaternion();
-        }
-
-        public string llGetObjectDesc() 
-        { 
-            return m_host.Description; 
-        }
-
-        public void llSetObjectDesc(string desc) 
+        public void llSetObjectDesc(string desc)
         {
             m_host.Description = desc;
         }
 
-        public string llGetCreator() 
-        { 
-            return m_host.ObjectCreator.ToStringHyphenated(); 
+        public string llGetCreator()
+        {
+            return m_host.ObjectCreator.ToStringHyphenated();
         }
 
-        public string llGetTimestamp() { return ""; }
-        public void llSetLinkAlpha(int linknumber, double alpha, int face) { }
-        public int llGetNumberOfPrims() { return 0; }
-        public string llGetNumberOfNotecardLines(string name) { return ""; }
-        public List<string> llGetBoundingBox(string obj) { return new List<string>(); }
-        public LSL_Types.Vector3 llGetGeometricCenter() { return new LSL_Types.Vector3(); }
-        public void llGetPrimitiveParams() { }
-        public string llIntegerToBase64(int number) { return ""; }
-        public int llBase64ToInteger(string str) { return 0; }
+        public string llGetTimestamp() { NotImplemented("llGetTimestamp"); return ""; }
+        public void llSetLinkAlpha(int linknumber, double alpha, int face) { NotImplemented("llSetLinkAlpha"); }
+        public int llGetNumberOfPrims() { NotImplemented("llGetNumberOfPrims"); return 0; }
+        public string llGetNumberOfNotecardLines(string name) { NotImplemented("llGetNumberOfNotecardLines"); return ""; }
+        public List<string> llGetBoundingBox(string obj) { NotImplemented("llGetBoundingBox"); return new List<string>(); }
+        public LSL_Types.Vector3 llGetGeometricCenter() { NotImplemented("llGetGeometricCenter"); return new LSL_Types.Vector3(); }
+        public void llGetPrimitiveParams() { NotImplemented("llGetPrimitiveParams"); }
+        public string llIntegerToBase64(int number) { NotImplemented("llIntegerToBase64"); return ""; }
+        public int llBase64ToInteger(string str) { NotImplemented("llBase64ToInteger"); return 0; }
 
-        public double llGetGMTclock() 
-        { 
-            return DateTime.UtcNow.TimeOfDay.TotalSeconds; 
-        }
-        
-        public string llGetSimulatorHostname() 
-        { 
-            return System.Environment.MachineName; 
+        public double llGetGMTclock()
+        {
+            return DateTime.UtcNow.TimeOfDay.TotalSeconds;
         }
 
-        public void llSetLocalRot(LSL_Types.Quaternion rot) { }
-        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
-        { return new List<string>(); }
-        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param) { }
-        
-        public int llGetObjectPermMask(int mask) { return 0; }
+        public string llGetSimulatorHostname()
+        {
+            return System.Environment.MachineName;
+        }
 
-        public void llSetObjectPermMask(int mask, int value) { }
+        public void llSetLocalRot(LSL_Types.Quaternion rot) { NotImplemented("llSetLocalRot"); }
+        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers) { NotImplemented("llParseStringKeepNulls"); return new List<string>(); }
+        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param) { NotImplemented("llRezAtRoot"); }
 
-        public void llGetInventoryPermMask(string item, int mask) { }
-        public void llSetInventoryPermMask(string item, int mask, int value) { }
-        public string llGetInventoryCreator(string item) { return ""; }
-        public void llOwnerSay(string msg) { }
-        public void llRequestSimulatorData(string simulator, int data) { }
-        public void llForceMouselook(int mouselook) { }
-        public double llGetObjectMass(string id) { return 0; }
-        public void llListReplaceList() { }
+        public int llGetObjectPermMask(int mask) { NotImplemented("llGetObjectPermMask"); return 0; }
 
-        public void llLoadURL(string avatar_id, string message, string url) 
+        public void llSetObjectPermMask(int mask, int value) { NotImplemented("llSetObjectPermMask"); }
+
+        public void llGetInventoryPermMask(string item, int mask) { NotImplemented("llGetInventoryPermMask"); }
+        public void llSetInventoryPermMask(string item, int mask, int value) { NotImplemented("llSetInventoryPermMask"); }
+        public string llGetInventoryCreator(string item) { NotImplemented("llGetInventoryCreator"); return ""; }
+        public void llOwnerSay(string msg) { NotImplemented("llOwnerSay"); }
+        public void llRequestSimulatorData(string simulator, int data) { NotImplemented("llRequestSimulatorData"); }
+        public void llForceMouselook(int mouselook) { NotImplemented("llForceMouselook"); }
+        public double llGetObjectMass(string id) { NotImplemented("llGetObjectMass"); return 0; }
+        public void llListReplaceList() { NotImplemented("llListReplaceList"); }
+
+        public void llLoadURL(string avatar_id, string message, string url)
         {
             LLUUID avatarId = new LLUUID(avatar_id);
             m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message, url);
         }
 
-        public void llParcelMediaCommandList(List<string> commandList) { }
-        public void llParcelMediaQuery() { }
+        public void llParcelMediaCommandList(List<string> commandList) { NotImplemented("llParcelMediaCommandList"); }
+        public void llParcelMediaQuery() { NotImplemented("llParcelMediaQuery"); }
 
         public int llModPow(int a, int b, int c)
         {
@@ -735,13 +702,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return Convert.ToInt32(tmp);
         }
 
-        public int llGetInventoryType(string name) { return 0; }
+        public int llGetInventoryType(string name) { NotImplemented("llGetInventoryType"); return 0; }
 
-        public void llSetPayPrice(int price, List<string> quick_pay_buttons) { }
-        public LSL_Types.Vector3 llGetCameraPos() { return new LSL_Types.Vector3(); }
-        public LSL_Types.Quaternion llGetCameraRot() { return new LSL_Types.Quaternion(); }
-        public void llSetPrimURL() { }
-        public void llRefreshPrimURL() { }
+        public void llSetPayPrice(int price, List<string> quick_pay_buttons) { NotImplemented("llSetPayPrice"); }
+        public LSL_Types.Vector3 llGetCameraPos() { NotImplemented("llGetCameraPos"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Quaternion llGetCameraRot() { NotImplemented("llGetCameraRot"); return new LSL_Types.Quaternion(); }
+        public void llSetPrimURL() { NotImplemented("llSetPrimURL"); }
+        public void llRefreshPrimURL() { NotImplemented("llRefreshPrimURL"); }
 
         public string llEscapeURL(string url)
         {
@@ -766,30 +733,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 return "llUnescapeURL: " + ex.ToString();
             }
         }
-        public void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at) { }
-        public void llAddToLandBanList(string avatar, double hours) { }
-        public void llRemoveFromLandPassList(string avatar) { }
-        public void llRemoveFromLandBanList(string avatar) { }
-        public void llSetCameraParams(List<string> rules) { }
-        public void llClearCameraParams() { }
-        public double llListStatistics(int operation, List<string> src) { return 0; }
-        
+        public void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at) { NotImplemented("llMapDestination"); }
+        public void llAddToLandBanList(string avatar, double hours) { NotImplemented("llAddToLandBanList"); }
+        public void llRemoveFromLandPassList(string avatar) { NotImplemented("llRemoveFromLandPassList"); }
+        public void llRemoveFromLandBanList(string avatar) { NotImplemented("llRemoveFromLandBanList"); }
+        public void llSetCameraParams(List<string> rules) { NotImplemented("llSetCameraParams"); }
+        public void llClearCameraParams() { NotImplemented("llClearCameraParams"); }
+        public double llListStatistics(int operation, List<string> src) { NotImplemented("llListStatistics"); return 0; }
+
         public int llGetUnixTime()
         {
             return Util.UnixTimeSinceEpoch();
         }
 
-        public int llGetParcelFlags(LSL_Types.Vector3 pos) { return 0; }
-        public int llGetRegionFlags() { return 0; }
-        public string llXorBase64StringsCorrect(string str1, string str2) { return ""; }
-        public void llHTTPRequest() { }
-        public void llResetLandBanList() { }
-        public void llResetLandPassList() { }
-        public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide) { return 0; }
-        public List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos) { return new List<string>(); }
-        public int llGetObjectPrimCount(string object_id) { return 0; }
-        public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide) { return 0; }
-        public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param) { return new List<string>(); }
+        public int llGetParcelFlags(LSL_Types.Vector3 pos) { NotImplemented("llGetParcelFlags"); return 0; }
+        public int llGetRegionFlags() { NotImplemented("llGetRegionFlags"); return 0; }
+        public string llXorBase64StringsCorrect(string str1, string str2) { NotImplemented("llXorBase64StringsCorrect"); return ""; }
+        public void llHTTPRequest() { NotImplemented("llHTTPRequest"); }
+        public void llResetLandBanList() { NotImplemented("llResetLandBanList"); }
+        public void llResetLandPassList() { NotImplemented("llResetLandPassList"); }
+        public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide) { NotImplemented("llGetParcelPrimCount"); return 0; }
+        public List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos) { NotImplemented("llGetParcelPrimOwners"); return new List<string>(); }
+        public int llGetObjectPrimCount(string object_id) { NotImplemented("llGetObjectPrimCount"); return 0; }
+        public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide) { NotImplemented("llGetParcelMaxPrims"); return 0; }
+        public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param) { NotImplemented("llGetParcelDetails"); return new List<string>(); }
 
         //
         // OpenSim functions
@@ -808,6 +775,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
 
             return LLUUID.Zero.ToStringHyphenated();
+        }
+
+        private void NotImplemented(string Command)
+        {
+            if (throwErrorOnNotImplemented)
+                throw new NotImplementedException("Command not implemented: " + Command);
         }
 
     }
