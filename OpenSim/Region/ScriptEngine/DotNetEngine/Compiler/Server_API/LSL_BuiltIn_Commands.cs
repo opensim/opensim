@@ -234,14 +234,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llOffsetTexture(double u, double v, int face) { NotImplemented("llOffsetTexture"); return; }
         public void llRotateTexture(double rotation, int face) { NotImplemented("llRotateTexture"); return; }
 
-        public string llGetTexture(int face)
-        {
-            throw new NotImplementedException(cni); return "";
-        }
+        public string llGetTexture(int face) { NotImplemented("llGetTexture"); return ""; }
 
         public void llSetPos(LSL_Types.Vector3 pos)
         {
-            LLVector3 tmp;
             if (m_host.ParentID != 0)
             {
                 m_host.UpdateOffSet(new LLVector3((float)pos.X, (float)pos.Y, (float)pos.Z));
@@ -508,14 +504,101 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return "";
         }
 
-        public LSL_Types.Vector3 llList2Vector(List<string> src, int index) { NotImplemented("llList2Vector"); return new LSL_Types.Vector3(); }
+        public LSL_Types.Vector3 llList2Vector(List<string> src, int index)
+        {
+            return new LSL_Types.Vector3(double.Parse(src[index]), double.Parse(src[index + 1]), double.Parse(src[index + 2]));
+        }
         public LSL_Types.Quaternion llList2Rot(List<string> src, int index) { NotImplemented("llList2Rot"); return new LSL_Types.Quaternion(); }
-        public List<string> llList2List(List<string> src, int start, int end) { NotImplemented("llList2List"); return new List<string>(); }
-        public List<string> llDeleteSubList(List<string> src, int start, int end) { NotImplemented("llDeleteSubList"); return new List<string>(); }
+        public List<string> llList2List(List<string> src, int start, int end)
+        {
+            if (end > start)
+            {
+                // Simple straight forward chunk
+                return src.GetRange(start, end - start);
+            }
+            else
+            {
+                // Some of the end + some of the beginning
+                // First chunk
+                List<string> ret = new List<string>();
+                ret.AddRange(src.GetRange(start, src.Count - start));
+                ret.AddRange(src.GetRange(0, end));
+                return ret;
+            }
+
+
+
+
+        }
+        public List<string> llDeleteSubList(List<string> src, int start, int end)
+        {
+            List<string> ret = new List<string>(src);
+            ret.RemoveRange(start, end - start);
+            return ret;
+        }
         public int llGetListEntryType(List<string> src, int index) { NotImplemented("llGetListEntryType"); return 0; }
-        public string llList2CSV(List<string> src) { NotImplemented("llList2CSV"); return ""; }
-        public List<string> llCSV2List(string src) { NotImplemented("llCSV2List"); return new List<string>(); }
-        public List<string> llListRandomize(List<string> src, int stride) { NotImplemented("llListRandomize"); return new List<string>(); }
+        public string llList2CSV(List<string> src)
+        {
+            string ret = "";
+            foreach (string s in src)
+            {
+                if (s.Length > 0)
+                    ret += ",";
+                ret += s;
+            }
+            return ret;
+        }
+        public List<string> llCSV2List(string src)
+        {
+            List<string> ret = new List<string>();
+            foreach (string s in src.Split(",".ToCharArray()))
+            {
+                ret.Add(s);
+            }
+            return ret;
+        }
+        public List<string> llListRandomize(List<string> src, int stride)
+        {
+            int s = stride;
+            if (s < 1)
+                s = 1;
+
+            // This is a cowardly way of doing it ;)
+            // TODO: Instead, randomize and check if random is mod stride or if it can not be, then array.removerange
+            List<List<string>> tmp = new List<List<string>>();
+
+            // Add chunks to an array
+            int c = 0;
+            List<string> chunk = new List<string>();
+            foreach (string element in src)
+            {
+                c++;
+                if (c > s)
+                {
+                    tmp.Add(chunk);
+                    chunk = new List<string>();
+                    c = 0;
+                }
+                chunk.Add(element);
+            }
+
+            // Decreate array back into a list
+            int rnd;
+            List<string> ret = new List<string>();
+            while (tmp.Count > 0)
+            {
+                rnd = Util.RandomClass.Next(tmp.Count);
+                foreach (string str in tmp[rnd])
+                {
+                    ret.Add(str);
+                }
+                tmp.RemoveAt(rnd);
+            }
+
+            return ret;
+
+
+        }
         public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) { NotImplemented("llList2ListStrided"); return new List<string>(); }
 
         public LSL_Types.Vector3 llGetRegionCorner()
@@ -523,8 +606,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0);
         }
 
-        public List<string> llListInsertList(List<string> dest, List<string> src, int start) { NotImplemented("llListInsertList"); return new List<string>(); }
-        public int llListFindList(List<string> src, List<string> test) { return 0; }
+        public List<string> llListInsertList(List<string> dest, List<string> src, int start)
+        {
+
+            List<string> ret = new List<string>(dest);
+            //foreach (string s in src.Reverse())
+            for (int ci = src.Count - 1; ci > -1; ci--)
+            {
+                ret.Insert(start, src[ci]);
+            }
+            return ret;
+        }
+        public int llListFindList(List<string> src, List<string> test)
+        {
+            foreach (string s in test)
+            {
+                for (int ci = 0; ci < src.Count; ci++)
+                {
+
+                    if (s == src[ci])
+                        return ci;
+                }
+            }
+            return -1;
+        }
 
         public string llGetObjectName()
         {
