@@ -302,9 +302,14 @@ namespace OpenSim.Framework.Console
 
         public string ReadLine()
         {
-            string TempStr = System.Console.ReadLine();
-            Log.WriteLine(TempStr);
-            return TempStr;
+            try {
+                string TempStr = System.Console.ReadLine();
+                Log.WriteLine(TempStr);
+                return TempStr;
+            } catch (Exception e) {
+                MainLog.Instance.Error("Console", "System.Console.ReadLine exception " + e.ToString());
+                return "";
+            }
         }
 
         public int Read()
