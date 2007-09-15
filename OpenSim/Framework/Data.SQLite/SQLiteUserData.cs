@@ -59,12 +59,14 @@ namespace OpenSim.Framework.Data.SQLite
             
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
- 
-            ds.Tables.Add(createUsersTable());
-            ds.Tables.Add(createUserAgentsTable());
-            
-            setupUserCommands(da, conn);
-            da.Fill(ds.Tables["users"]);
+
+            lock (ds) {
+                ds.Tables.Add(createUsersTable());
+                ds.Tables.Add(createUserAgentsTable());
+                
+                setupUserCommands(da, conn);
+                da.Fill(ds.Tables["users"]);
+            }
             
             return;
         }
@@ -76,16 +78,18 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A user profile</returns>
         public UserProfileData getUserByUUID(LLUUID uuid)
         {
-            DataRow row = ds.Tables["users"].Rows.Find(uuid);
-            if(row != null) {
-                UserProfileData user = buildUserProfile(row);
-                row = ds.Tables["useragents"].Rows.Find(uuid);
+            lock (ds) {
+                DataRow row = ds.Tables["users"].Rows.Find(uuid);
                 if(row != null) {
-                    user.currentAgent = buildUserAgent(row);
+                    UserProfileData user = buildUserProfile(row);
+                    row = ds.Tables["useragents"].Rows.Find(uuid);
+                    if(row != null) {
+                        user.currentAgent = buildUserAgent(row);
+                    }
+                    return user;
+                } else {
+                    return null;
                 }
-                return user;
-            } else {
-                return null;
             }
         }
 
@@ -108,16 +112,18 @@ namespace OpenSim.Framework.Data.SQLite
         public UserProfileData getUserByName(string fname, string lname)
         {
             string select = "surname = '" + lname + "' and username = '" + fname + "'";
-            DataRow[] rows = ds.Tables["users"].Select(select);
-            if(rows.Length > 0) {
-                UserProfileData user = buildUserProfile(rows[0]);
-                DataRow row = ds.Tables["useragents"].Rows.Find(user.UUID);
-                if(row != null) {
-                    user.currentAgent = buildUserAgent(row);
+            lock (ds) {
+                DataRow[] rows = ds.Tables["users"].Select(select);
+                if(rows.Length > 0) {
+                    UserProfileData user = buildUserProfile(rows[0]);
+                    DataRow row = ds.Tables["useragents"].Rows.Find(user.UUID);
+                    if(row != null) {
+                        user.currentAgent = buildUserAgent(row);
+                    }
+                    return user;
+                } else {
+                    return null;
                 }
-                return user;
-            } else {
-                return null;
             }
         }
 
@@ -173,35 +179,37 @@ namespace OpenSim.Framework.Data.SQLite
         public void addNewUserProfile(UserProfileData user)
         {
             DataTable users = ds.Tables["users"];
-            DataRow row = users.Rows.Find(user.UUID); 
-            if (row == null)
-            {
-                row = users.NewRow();
-                fillUserRow(row, user);
-                users.Rows.Add(row);
-            }
-            else
-            {
-                fillUserRow(row, user);
-            }
-
-            if(user.currentAgent != null) {
-                DataTable ua = ds.Tables["useragents"];
-                row = ua.Rows.Find(user.UUID); 
+            lock (ds) {
+                DataRow row = users.Rows.Find(user.UUID); 
                 if (row == null)
                 {
-                    row = ua.NewRow();
-                    fillUserAgentRow(row, user.currentAgent);
-                    ua.Rows.Add(row);
+                    row = users.NewRow();
+                    fillUserRow(row, user);
+                    users.Rows.Add(row);
                 }
                 else
                 {
-                    fillUserAgentRow(row, user.currentAgent);
+                    fillUserRow(row, user);
                 }
+                
+                if(user.currentAgent != null) {
+                    DataTable ua = ds.Tables["useragents"];
+                    row = ua.Rows.Find(user.UUID); 
+                    if (row == null)
+                    {
+                        row = ua.NewRow();
+                        fillUserAgentRow(row, user.currentAgent);
+                        ua.Rows.Add(row);
+                    }
+                    else
+                    {
+                        fillUserAgentRow(row, user.currentAgent);
+                    }
+                }
+                MainLog.Instance.Verbose("Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
+                // save changes off to disk
+                da.Update(ds, "users");
             }
-            MainLog.Instance.Verbose("Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
-            // save changes off to disk
-            da.Update(ds, "users");
         }
       
         /// <summary>
