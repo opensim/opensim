@@ -178,6 +178,13 @@ namespace OpenSim.Framework.Communications.Caches
             }
         }
 
+        public void DeleteAsset(LLUUID assetID)
+        {
+            this._assetServer.DeleteAsset(assetID);
+
+            //Todo should delete it from memory too
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -329,6 +336,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void AssetNotFound(LLUUID assetID)
         {
+            /*
             if (this.RequestedTextures.ContainsKey(assetID))
             {
                 AssetRequest req = this.RequestedTextures[assetID];
@@ -338,7 +346,7 @@ namespace OpenSim.Framework.Communications.Caches
                 //Console.WriteLine("sending image not found for " + assetID);
 
                 this.RequestedTextures.Remove(assetID);
-            }
+            }*/
         }
 
         #region Assets
