@@ -13,6 +13,11 @@ using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 {
+    //
+    // !!!IMPORTANT!!!
+    //
+    // REMEMBER TO UPDATE http://opensimulator.org/wiki/LlFunction_implementation_status
+    //
 
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
@@ -321,9 +326,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return src.Substring(start, end);
         }
 
-        public string llDeleteSubString(string src, int start, int end) { NotImplemented("llDeleteSubString"); return ""; }
-        public string llInsertString(string dst, int position, string src) { NotImplemented("llInsertString"); return ""; }
-
+        public string llDeleteSubString(string src, int start, int end) 
+        {
+            return src.Remove(start, end - start);
+        }
+        public string llInsertString(string dst, int position, string src)
+        {
+            return dst.Insert(position, src);
+        }
         public string llToUpper(string src)
         {
             return src.ToUpper();
@@ -472,9 +482,40 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llGetCenterOfMass() { NotImplemented("llGetCenterOfMass"); return new LSL_Types.Vector3(); }
 
         public List<string> llListSort(List<string> src, int stride, int ascending) {
-            //SortedList<string, int> sorted = new SortedList<string, int>();
-            //foreach (string s in src)
-            NotImplemented("llListSort"); return new List<string>(); ;        
+            SortedList<string, List<string>> sorted = new SortedList<string, List<string>>();
+            // Add chunks to an array
+            int s = stride;
+            if (s < 1)
+                s = 1;
+            int c = 0;
+            List<string> chunk = new List<string>();
+            string chunkString = "";
+            foreach (string element in src)
+            {
+                c++;
+                if (c > s)
+                {
+                    sorted.Add(chunkString, chunk);
+                    chunkString = ""; 
+                    chunk = new List<string>();
+                    c = 0;
+                }
+                chunk.Add(element);
+                chunkString += element.ToString();
+            }
+            if (chunk.Count > 0)
+                sorted.Add(chunkString, chunk);
+
+            List<string> ret = new List<string>();
+            foreach (List<string> ls in sorted.Values)
+            {
+                ret.AddRange(ls);
+            }
+
+            if (ascending == LSL.LSL_BaseClass.TRUE)
+                return ret;
+            ret.Reverse();
+            return ret;
         }
 
         public int llGetListLength(List<string> src)
@@ -587,6 +628,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 }
                 chunk.Add(element);
             }
+            if (chunk.Count > 0)
+                tmp.Add(chunk);
 
             // Decreate array back into a list
             int rnd;
@@ -605,7 +648,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
 
         }
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) { NotImplemented("llList2ListStrided"); return new List<string>(); }
+        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) 
+        {
+            List<string> ret = new List<string>();
+            int s = stride;
+            if (s < 1)
+                s = 1;
+
+            int sc = s;
+            for (int i = start; i < src.Count; i++) {
+                sc--;
+                if (sc ==0) {
+                    sc = s;
+                    // Addthis
+                    ret.Add(src[i]);
+                }
+                if (i == end)
+                    break;
+            }
+            return ret;
+        }
 
         public LSL_Types.Vector3 llGetRegionCorner()
         {
