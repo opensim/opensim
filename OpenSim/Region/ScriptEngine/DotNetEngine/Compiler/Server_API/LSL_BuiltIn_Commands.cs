@@ -471,7 +471,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetCenterOfMass() { NotImplemented("llGetCenterOfMass"); return new LSL_Types.Vector3(); }
 
-        public List<string> llListSort(List<string> src, int stride, int ascending) { NotImplemented("llListSort"); return new List<string>(); ;        }
+        public List<string> llListSort(List<string> src, int stride, int ascending) {
+            //SortedList<string, int> sorted = new SortedList<string, int>();
+            //foreach (string s in src)
+            NotImplemented("llListSort"); return new List<string>(); ;        
+        }
 
         public int llGetListLength(List<string> src)
         {
@@ -501,14 +505,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public string llList2Key(List<string> src, int index)
         {
             //return OpenSim.Framework.Types.ToStringHyphenated(src[index]);
-            return "";
+            return src[index].ToString();
         }
 
         public LSL_Types.Vector3 llList2Vector(List<string> src, int index)
         {
             return new LSL_Types.Vector3(double.Parse(src[index]), double.Parse(src[index + 1]), double.Parse(src[index + 2]));
         }
-        public LSL_Types.Quaternion llList2Rot(List<string> src, int index) { NotImplemented("llList2Rot"); return new LSL_Types.Quaternion(); }
+        public LSL_Types.Quaternion llList2Rot(List<string> src, int index) {
+            return new LSL_Types.Quaternion(double.Parse(src[index]), double.Parse(src[index + 1]), double.Parse(src[index + 2]), double.Parse(src[index + 3]));
+        }
         public List<string> llList2List(List<string> src, int start, int end)
         {
             if (end > start)
