@@ -180,7 +180,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void DeleteAsset(LLUUID assetID)
         {
-            this._assetServer.DeleteAsset(assetID);
+          //  this._assetServer.DeleteAsset(assetID);
 
             //Todo should delete it from memory too
         }
