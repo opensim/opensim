@@ -492,7 +492,7 @@ public class NAntTarget : ITarget
 
                 // sdague - make a zip target 
                 ss.WriteLine("    <target name=\"zip\" description=\"\">");
-                ss.WriteLine("       <zip zipfile=\"{0}.zip\">", solution.Name);
+                ss.WriteLine("       <zip zipfile=\"{0}-{1}.zip\">", solution.Name, solution.Version);
                 ss.WriteLine("       <fileset basedir=\"${project::get-base-directory()}\">");
                 
                 ss.WriteLine("       <include name=\"${project::get-base-directory()}/**/*.cs\" />");

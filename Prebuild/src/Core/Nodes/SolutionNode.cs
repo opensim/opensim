@@ -53,6 +53,7 @@ namespace Prebuild.Core.Nodes
 		#region Fields
         
 		private string m_Name = "unknown";
+		private string m_Version = "1.0.0";
 		private string m_Path = "";
 		private string m_FullPath = "";
 		private string m_ActiveConfig = "Debug";
@@ -106,6 +107,18 @@ namespace Prebuild.Core.Nodes
 			get 
 			{
 				return m_Name;
+			}
+		}
+
+		/// <summary>
+		/// Gets the version.
+		/// </summary>
+		/// <value>The version.</value>
+		public string Version 
+		{
+			get 
+			{
+				return m_Version;
 			}
 		}
 
@@ -232,6 +245,7 @@ namespace Prebuild.Core.Nodes
 		public override void Parse(XmlNode node)
 		{
 			m_Name = Helper.AttributeValue(node, "name", m_Name);
+			m_Version = Helper.AttributeValue(node, "version", m_Version);
 			m_ActiveConfig = Helper.AttributeValue(node, "activeConfig", m_ActiveConfig);
 			m_Path = Helper.AttributeValue(node, "path", m_Path);
 
