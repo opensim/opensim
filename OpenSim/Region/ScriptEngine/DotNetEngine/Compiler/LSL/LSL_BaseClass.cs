@@ -46,6 +46,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         }
 
         public LSL_BuiltIn_Commands_Interface m_LSL_Functions;
+        public string SourceCode = "";
 
         public LSL_BaseClass()
         {
@@ -453,7 +454,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public int llGetParcelFlags(LSL_Types.Vector3 pos) { return m_LSL_Functions.llGetParcelFlags(pos); }
         public int llGetRegionFlags() { return m_LSL_Functions.llGetRegionFlags(); }
         public string llXorBase64StringsCorrect(string str1, string str2) { return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2); }
-        public void llHTTPRequest() { m_LSL_Functions.llHTTPRequest(); }
+        public void llHTTPRequest(string url, List<string> parameters, string body) { m_LSL_Functions.llHTTPRequest(url, parameters, body); }
         public void llResetLandBanList() { m_LSL_Functions.llResetLandBanList(); }
         public void llResetLandPassList() { m_LSL_Functions.llResetLandPassList(); }
         public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide) { return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide); }

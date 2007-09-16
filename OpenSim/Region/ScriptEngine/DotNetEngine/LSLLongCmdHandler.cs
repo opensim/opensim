@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using libsecondlife;
+using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -48,7 +49,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             while (true)
             {
                 // Check timers
-                CheckTimerEvents();                    
+                CheckTimerEvents();
+                // Check HttpRequests
+                CheckHttpRequests();
 
                 // Sleep before next cycle
                 Thread.Sleep(cmdHandlerThreadCycleSleepms);
@@ -60,14 +63,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// </summary>
         /// <param name="m_localID"></param>
         /// <param name="m_itemID"></param>
-        public void RemoveScript(uint m_localID, LLUUID m_itemID)
+        public void RemoveScript(uint localID, LLUUID itemID)
         {
             // Remove a specific script
 
             // Remove from: Timers
-            UnSetTimerEvents(m_localID, m_itemID);
+            UnSetTimerEvents(localID, itemID);
+            // Remove from: HttpRequest
+            StopHttpRequest(localID, itemID);
         }
 
+        #region TIMER
 
         //
         // TIMER
@@ -80,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             public DateTime next;
         }
         private List<TimerClass> Timers = new List<TimerClass>();
-        private object ListLock = new object();
+        private object TimerListLock = new object();
         public void SetTimerEvent(uint m_localID, LLUUID m_itemID, double sec)
         {
             Console.WriteLine("SetTimerEvent");
@@ -96,7 +102,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             ts.itemID = m_itemID;
             ts.interval = sec;
             ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
-            lock (ListLock)
+            lock (TimerListLock)
             {
                 Timers.Add(ts);
             }
@@ -104,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void UnSetTimerEvents(uint m_localID, LLUUID m_itemID)
         {
             // Remove from timer
-            lock (ListLock)
+            lock (TimerListLock)
             {
                 List<TimerClass> NewTimers = new List<TimerClass>();
                 foreach (TimerClass ts in Timers)
@@ -124,7 +130,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (Timers.Count == 0)
                 return;
 
-            lock (ListLock)
+            lock (TimerListLock)
             {
 
                 // Go through all timers
@@ -143,6 +149,114 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
             } // lock
         }
+        #endregion
+
+        #region HTTP REQUEST
+
+        //
+        // HTTP REAQUEST
+        //
+        private class HttpClass
+        {
+            public uint localID;
+            public LLUUID itemID;
+            public string url;
+            public List<string> parameters;
+            public string body;
+            public DateTime next;
+
+            public string response_request_id;
+            public int response_status;
+            public List<string> response_metadata;
+            public string response_body;
+
+            public void SendRequest()
+            {
+                // TODO: SEND REQUEST!!!
+            }
+            public void Stop()
+            {
+                // TODO: Cancel any ongoing request
+            }
+            public bool CheckResponse()
+            {
+                // TODO: Check if we got a response yet, return true if so -- false if not
+                return true;
+
+                // TODO: If we got a response, set the following then return true
+                //response_request_id
+                //response_status
+                //response_metadata
+                //response_body
+
+            }
+        }
+        private List<HttpClass> HttpRequests = new List<HttpClass>();
+        private object HttpListLock = new object();
+        public void StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body)
+        {
+            Console.WriteLine("StartHttpRequest");
+
+            HttpClass htc = new HttpClass();
+            htc.localID = localID;
+            htc.itemID = itemID;
+            htc.url = url;
+            htc.parameters = parameters;
+            htc.body = body;
+            lock (HttpListLock)
+            {
+
+                //ADD REQUEST
+                HttpRequests.Add(htc);
+            }
+        }
+        public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
+        {
+            // Remove from list
+            lock (HttpListLock)
+            {
+                List<HttpClass> NewHttpList = new List<HttpClass>();
+                foreach (HttpClass ts in HttpRequests)
+                {
+                    if (ts.localID != m_localID && ts.itemID != m_itemID)
+                    {
+                        // Keeping this one
+                        NewHttpList.Add(ts);
+                    }
+                    else
+                    {
+                        // Shutting this one down
+                        ts.Stop();
+                    }
+                }
+                HttpRequests.Clear();
+                HttpRequests = NewHttpList;
+            }
+        }
+        public void CheckHttpRequests()
+        {
+            // Nothing to do here?
+            if (HttpRequests.Count == 0)
+                return;
+
+            lock (HttpListLock)
+            {
+                foreach (HttpClass ts in HttpRequests)
+                {
+
+                    if (ts.CheckResponse() == true)
+                    {
+                        // Add it to event queue
+                        //key request_id, integer status, list metadata, string body
+                        object[] resobj = new object[] { ts.response_request_id, ts.response_status, ts.response_metadata, ts.response_body };
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "http_response", resobj);
+                        // Now stop it
+                        StopHttpRequest(ts.localID, ts.itemID);
+                    }
+                }
+            } // lock
+        }
+        #endregion
 
     }
 }

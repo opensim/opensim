@@ -327,7 +327,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return src.Substring(start, end);
         }
 
-        public string llDeleteSubString(string src, int start, int end) 
+        public string llDeleteSubString(string src, int start, int end)
         {
             return src.Remove(start, end - start);
         }
@@ -431,7 +431,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llGiveInventory(string destination, string inventory) { NotImplemented("llGiveInventory"); }
         public void llRemoveInventory(string item) { NotImplemented("llRemoveInventory"); }
 
-        public void llSetText(string text, LSL_Types.Vector3 color, double alpha) { NotImplemented("llSetText"); }
+        public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
+        {
+            Axiom.Math.Vector3 av3 = new Axiom.Math.Vector3((float)color.X, (float)color.Y, (float)color.Z);
+            m_host.SetText(text, av3, alpha);
+        }
+
 
         public double llWater(LSL_Types.Vector3 offset) { NotImplemented("llWater"); return 0; }
         public void llPassTouches(int pass) { NotImplemented("llPassTouches"); }
@@ -443,7 +448,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llCollisionSound(string impact_sound, double impact_volume) { NotImplemented("llCollisionSound"); }
         public void llCollisionSprite(string impact_sprite) { NotImplemented("llCollisionSprite"); }
         public string llGetAnimation(string id) { NotImplemented("llGetAnimation"); return ""; }
-        public void llResetScript() { }
+        public void llResetScript() 
+        {
+            m_ScriptEngine.m_ScriptManager.ResetScript(m_localID, m_itemID);
+        }
         public void llMessageLinked(int linknum, int num, string str, string id) { }
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local) { }
         public void llPassCollisions(int pass) { }
@@ -482,7 +490,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetCenterOfMass() { NotImplemented("llGetCenterOfMass"); return new LSL_Types.Vector3(); }
 
-        public List<string> llListSort(List<string> src, int stride, int ascending) {
+        public List<string> llListSort(List<string> src, int stride, int ascending)
+        {
             SortedList<string, List<string>> sorted = new SortedList<string, List<string>>();
             // Add chunks to an array
             int s = stride;
@@ -497,7 +506,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 if (c > s)
                 {
                     sorted.Add(chunkString, chunk);
-                    chunkString = ""; 
+                    chunkString = "";
                     chunk = new List<string>();
                     c = 0;
                 }
@@ -554,7 +563,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             return new LSL_Types.Vector3(double.Parse(src[index]), double.Parse(src[index + 1]), double.Parse(src[index + 2]));
         }
-        public LSL_Types.Quaternion llList2Rot(List<string> src, int index) {
+        public LSL_Types.Quaternion llList2Rot(List<string> src, int index)
+        {
             return new LSL_Types.Quaternion(double.Parse(src[index]), double.Parse(src[index + 1]), double.Parse(src[index + 2]), double.Parse(src[index + 3]));
         }
         public List<string> llList2List(List<string> src, int start, int end)
@@ -632,7 +642,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             if (chunk.Count > 0)
                 tmp.Add(chunk);
 
-            // Decreate array back into a list
+            // Decreate (<- what kind of word is that? :D ) array back into a list
             int rnd;
             List<string> ret = new List<string>();
             while (tmp.Count > 0)
@@ -649,7 +659,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
 
         }
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) 
+        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
         {
             List<string> ret = new List<string>();
             int s = stride;
@@ -657,9 +667,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 s = 1;
 
             int sc = s;
-            for (int i = start; i < src.Count; i++) {
+            for (int i = start; i < src.Count; i++)
+            {
                 sc--;
-                if (sc ==0) {
+                if (sc == 0)
+                {
                     sc = s;
                     // Addthis
                     ret.Add(src[i]);
@@ -795,7 +807,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         }
 
         public void llSetPrimitiveParams(List<string> rules) { NotImplemented("llSetPrimitiveParams"); }
-        public string llStringToBase64(string str) {
+        public string llStringToBase64(string str)
+        {
 
             try
             {
@@ -808,14 +821,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 throw new Exception("Error in base64Encode" + e.Message);
             }
-}
+        }
 
-        public string llBase64ToString(string str) {
+        public string llBase64ToString(string str)
+        {
             System.Text.UTF8Encoding encoder = new System.Text.UTF8Encoding();
             System.Text.Decoder utf8Decode = encoder.GetDecoder();
             try
             {
-                
+
                 byte[] todecode_byte = Convert.FromBase64String(str);
                 int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
                 char[] decoded_char = new char[charCount];
@@ -861,11 +875,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public List<string> llGetBoundingBox(string obj) { NotImplemented("llGetBoundingBox"); return new List<string>(); }
         public LSL_Types.Vector3 llGetGeometricCenter() { NotImplemented("llGetGeometricCenter"); return new LSL_Types.Vector3(); }
         public void llGetPrimitiveParams() { NotImplemented("llGetPrimitiveParams"); }
-        public string llIntegerToBase64(int number) { 
-            NotImplemented("llIntegerToBase64"); return ""; 
+        public string llIntegerToBase64(int number)
+        {
+            NotImplemented("llIntegerToBase64"); return "";
         }
-        public int llBase64ToInteger(string str) { 
-            NotImplemented("llBase64ToInteger"); return 0; 
+        public int llBase64ToInteger(string str)
+        {
+            NotImplemented("llBase64ToInteger"); return 0;
         }
 
         public double llGetGMTclock()
@@ -957,7 +973,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llGetParcelFlags(LSL_Types.Vector3 pos) { NotImplemented("llGetParcelFlags"); return 0; }
         public int llGetRegionFlags() { NotImplemented("llGetRegionFlags"); return 0; }
-        public string llXorBase64StringsCorrect(string str1, string str2) {
+        public string llXorBase64StringsCorrect(string str1, string str2)
+        {
             string ret = "";
             string src1 = llBase64ToString(str1);
             string src2 = llBase64ToString(str2);
@@ -972,7 +989,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
             return llStringToBase64(ret);
         }
-        public void llHTTPRequest() { NotImplemented("llHTTPRequest"); }
+        public void llHTTPRequest(string url, List<string> parameters, string body)
+        {
+            m_ScriptEngine.m_LSLLongCmdHandler.StartHttpRequest(m_localID, m_itemID, url, parameters, body);
+        }
         public void llResetLandBanList() { NotImplemented("llResetLandBanList"); }
         public void llResetLandPassList() { NotImplemented("llResetLandPassList"); }
         public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide) { NotImplemented("llGetParcelPrimCount"); return 0; }

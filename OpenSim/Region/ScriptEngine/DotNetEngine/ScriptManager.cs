@@ -221,7 +221,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         }
         #endregion
-        #region Start/Stop script
+        #region Start/Stop/Reset script
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
         /// </summary>
@@ -247,6 +247,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             ls.itemID = itemID;
             unloadQueue.Enqueue(ls);
         }
+        public void ResetScript(uint localID, LLUUID itemID)
+        {
+            string script = GetScript(localID, itemID).SourceCode;
+            StopScript(localID, itemID);
+            StartScript(localID, itemID, script);
+        }
 
         private void _StartScript(uint localID, LLUUID itemID, string Script)
         {
@@ -255,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
-            string FileName = "";
+            string ScriptSource = "";
 
             SceneObjectPart m_host = World.GetSceneObjectPart(localID);
 
@@ -268,10 +274,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Create a new instance of the compiler (currently we don't want reuse)
                 OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
                 // Compile (We assume LSL)
-                FileName = LSLCompiler.CompileFromLSLText(Script);
+                ScriptSource = LSLCompiler.CompileFromLSLText(Script);
                 //Console.WriteLine("Compilation of " + FileName + " done");
                 // * Insert yield into code
-                FileName = ProcessYield(FileName);
+                ScriptSource = ProcessYield(ScriptSource);
 
 
 #if DEBUG
@@ -279,11 +285,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 before = GC.GetTotalMemory(true);
 #endif
                 LSL_BaseClass CompiledScript;
-                    CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(FileName);
+                    CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 #if DEBUG
                     Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
 
+                    CompiledScript.SourceCode = ScriptSource;
                 // Add it to our script memstruct
                 SetScript(localID, itemID, CompiledScript);
 
