@@ -50,6 +50,8 @@ namespace OpenSim
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
+        private const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
+
         public string m_physicsEngine;
         public string m_scriptEngine;
         public bool m_sandbox;
@@ -65,7 +67,7 @@ namespace OpenSim
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
-        protected List<Scene> m_localScenes = new List<Scene>();
+        protected SceneManager m_localScenes = new SceneManager();
 
         private bool m_silent;
         private readonly string m_logFilename = ("region-console.log");
@@ -213,10 +215,7 @@ namespace OpenSim
                 //}
 
                 //Server side object editing permissions checking
-                if (m_permissions)
-                    scene.PermissionsMngr.EnablePermissions();
-                else
-                    scene.PermissionsMngr.DisablePermissions();
+                scene.PermissionsMngr.BypassPermissions = !m_permissions;
 
                 m_localScenes.Add(scene);
 
@@ -266,7 +265,7 @@ namespace OpenSim
             IAssetServer assetServer;
             if (m_assetStorage == "db4o")
             {
-                 assetServer = new LocalAssetServer();
+                assetServer = new LocalAssetServer();
             }
             else
             {
@@ -334,10 +333,9 @@ namespace OpenSim
             m_log.Verbose("Killing clients");
             // IMPLEMENT THIS
             m_log.Verbose("Closing console and terminating");
-            for (int i = 0; i < m_localScenes.Count; i++)
-            {
-                m_localScenes[i].Close();
-            }
+
+            m_localScenes.Close();
+
             m_log.Close();
             Environment.Exit(0);
         }
@@ -376,6 +374,8 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
+            string result = "";
+
             if ((m_consoleRegion == null) || (command == "change-region") || (command == "shutdown"))
             {
                 switch (command)
@@ -386,7 +386,7 @@ namespace OpenSim
                             Debug(cmdparams);
                         }
                         break;
-                        
+
                     case "help":
                         m_log.Error("alert - send alert to a designated user or all users.");
                         m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
@@ -414,56 +414,51 @@ namespace OpenSim
                     case "save-xml":
                         if (cmdparams.Length > 0)
                         {
-                            m_localScenes[0].SavePrimsToXml(cmdparams[0]);
+                            m_localScenes.SavePrimsToXml(cmdparams[0]);
                         }
                         else
                         {
-                            m_localScenes[0].SavePrimsToXml("test.xml");
+                            m_localScenes.SavePrimsToXml(DEFAULT_PRIM_BACKUP_FILENAME);
                         }
                         break;
 
                     case "load-xml":
                         if (cmdparams.Length > 0)
                         {
-                            m_localScenes[0].LoadPrimsFromXml(cmdparams[0]);
+                            m_localScenes.LoadPrimsFromXml(cmdparams[0]);
                         }
                         else
                         {
-                            m_localScenes[0].LoadPrimsFromXml("test.xml");
+                            m_localScenes.LoadPrimsFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
                         }
                         break;
 
                     case "terrain":
-                        string result = "";
-                        foreach (Scene scene in m_localScenes)
+                        if (!m_localScenes.RunTerrainCmd(cmdparams, ref result))
                         {
-                            if (!scene.Terrain.RunTerrainCmd(cmdparams, ref result, scene.RegionInfo.RegionName))
-                            {
-                                m_log.Error(result);
-                            }
+                            m_log.Error(result);
                         }
                         break;
-                    case "terrain-sim":
-                        string result2 = "";
-                        foreach (Scene scene in m_localScenes)
-                        {
-                            if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
-                            {
-                                string[] tmpCmdparams = new string[cmdparams.Length - 1];
-                                cmdparams.CopyTo(tmpCmdparams, 1);
 
-                                if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result2, scene.RegionInfo.RegionName))
-                                {
-                                    m_log.Error(result2);
-                                }
-                            }
-                        }
-                        break;
+                    // terrain-sim now obsolete: do change-region first, then terrain as usual
+                    //case "terrain-sim":
+                    //    foreach (Scene scene in m_localScenes)
+                    //    {
+                    //        if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
+                    //        {
+                    //            string[] tmpCmdparams = new string[cmdparams.Length - 1];
+                    //            cmdparams.CopyTo(tmpCmdparams, 1);
+
+                    //            if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result, scene.RegionInfo.RegionName))
+                    //            {
+                    //                m_log.Error(result);
+                    //            }
+                    //        }
+                    //    }
+                    //    break;
+
                     case "script":
-                        foreach (Scene scene in m_localScenes)
-                        {
-                            scene.SendCommandToScripts(cmdparams);
-                        }
+                        m_localScenes.SendCommandToScripts(cmdparams);
                         break;
 
                     case "command-script":
@@ -475,27 +470,18 @@ namespace OpenSim
 
                     case "permissions":
                         // Treats each user as a super-admin when disabled
-                        foreach (Scene scene in m_localScenes)
-                        {
-                            if (Convert.ToBoolean(cmdparams[0]))
-                                scene.PermissionsMngr.EnablePermissions();
-                            else
-                                scene.PermissionsMngr.DisablePermissions();
-                        }
+                        bool permissions = Convert.ToBoolean(cmdparams[0]);
+
+                        m_localScenes.BypassPermissions(!permissions);
+
                         break;
 
                     case "backup":
-                        foreach (Scene scene in m_localScenes)
-                        {
-                            scene.Backup();
-                        }
+                        m_localScenes.Backup();
                         break;
 
                     case "alert":
-                        foreach (Scene scene in m_localScenes)
-                        {
-                            scene.HandleAlertCommand(cmdparams);
-                        }
+                        m_localScenes.HandleAlertCommand(cmdparams);
                         break;
 
                     case "create":
@@ -513,43 +499,27 @@ namespace OpenSim
                     case "change-region":
                         if (cmdparams.Length > 0)
                         {
-                            if ((cmdparams[0].ToLower() == "root") || (cmdparams[0].ToLower() == ".."))
+                            string regionName = this.CombineParams(cmdparams, 0);
+
+                            if( m_localScenes.TrySetCurrentRegion( regionName ) )
                             {
-                                if (m_consoleRegion != null)
-                                {
-                                    m_consoleRegion = null;
-                                    MainLog.Instance.Verbose("Now at Root level");
-                                }
-                                else
-                                {
-                                    MainLog.Instance.Verbose("Already at Root level");
-                                }
+                                
                             }
                             else
                             {
-                                string name = this.CombineParams(cmdparams, 0);
-                                Console.WriteLine("Searching for Region: '" + name + "'");
-                                foreach (Scene scene in m_localScenes)
-                                {
-                                    if (scene.RegionInfo.RegionName.ToLower() == name.ToLower())
-                                    {
-                                        m_consoleRegion = scene;
-                                        MainLog.Instance.Verbose("Setting current region: " + m_consoleRegion.RegionInfo.RegionName);
-                                    }
-                                }
+                                MainLog.Instance.Error("Couldn't set current region to: " + regionName);
                             }
+                        }
+
+                        if (m_localScenes.CurrentScene == null)
+                        {
+                            MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
                         }
                         else
                         {
-                            if (m_consoleRegion != null)
-                            {
-                                MainLog.Instance.Verbose("Current Region: " + m_consoleRegion.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
-                            }
-                            else
-                            {
-                                MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
-                            }
+                            MainLog.Instance.Verbose("Current Region: " + m_consoleRegion.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
                         }
+
                         break;
 
                     default:
@@ -564,47 +534,26 @@ namespace OpenSim
             }
         }
 
-        private void DebugPacket(int newDebug)
-        {
-            for (int i = 0; i < m_localScenes.Count; i++)
-            {
-                Scene scene = m_localScenes[i];
-                foreach (EntityBase entity in scene.Entities.Values)
-                {
-                    if (entity is ScenePresence)
-                    {
-                        ScenePresence scenePrescence = entity as ScenePresence;
-                        if (!scenePrescence.childAgent)
-                        {
-                            m_log.Error(String.Format("Packet debug for {0} {1} set to {2}",
-                                     scenePrescence.Firstname, scenePrescence.Lastname,
-                                     newDebug));
-                            scenePrescence.ControllingClient.SetDebug(newDebug);
-                        }
-                    }
-                }
-            }
-        }
         public void Debug(string[] args)
         {
-            switch(args[0]) 
+            switch (args[0])
             {
                 case "packet":
-                    if (args.Length > 1) 
+                    if (args.Length > 1)
                     {
                         int newDebug;
-                        if (int.TryParse(args[1], out newDebug)) 
+                        if (int.TryParse(args[1], out newDebug))
                         {
-                            DebugPacket(newDebug);
-                        } 
-                        else 
+                            m_localScenes.DebugPacket(m_log, newDebug);
+                        }
+                        else
                         {
                             m_log.Error("packet debug should be 0..2");
                         }
                         System.Console.WriteLine("New packet debug: " + newDebug.ToString());
 
                     }
-                     
+
                     break;
                 default:
                     m_log.Error("Unknown debug");
@@ -627,29 +576,34 @@ namespace OpenSim
                     break;
                 case "users":
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
-                    for (int i = 0; i < m_localScenes.Count; i++)
+
+                    List<ScenePresence> avatars = m_localScenes.GetAvatars();
+
+                    foreach( ScenePresence avatar in avatars )
                     {
-                        Scene scene = m_localScenes[i];
-                        foreach (EntityBase entity in scene.Entities.Values)
+                        RegionInfo regionInfo = m_localScenes.GetRegionInfo( avatar.RegionHandle );
+                        string regionName;
+                        
+                        if( regionInfo == null  )
                         {
-                            if (entity is ScenePresence)
-                            {
-                                ScenePresence scenePrescence = entity as ScenePresence;
-                                if (!scenePrescence.childAgent)
-                                {
-                                    m_log.Error(
-                                        String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                                      scenePrescence.Firstname,
-                                                      scenePrescence.Lastname,
-                                                      scenePrescence.UUID,
-                                                      scenePrescence.ControllingClient.AgentId,
-                                                      "Unknown",
-                                                      "Unknown",
-                                                      scene.RegionInfo.RegionName));
-                                }
-                            }
+                            regionName = "Unresolvable";
                         }
+                        else
+                        {
+                            regionName = regionInfo.RegionName;
+                        }
+
+                        m_log.Error(
+                            String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
+                                          avatar.Firstname,
+                                          avatar.Lastname,
+                                          avatar.UUID,
+                                          avatar.ControllingClient.AgentId,
+                                          "Unknown",
+                                          "Unknown",
+                                          regionName ));
                     }
+
                     break;
                 case "modules":
                     m_log.Error("The currently loaded shared modules are:");

@@ -19,21 +19,17 @@ namespace OpenSim.Region.Environment
         // disable in any production environment
         // TODO: Change this to false when permissions are a desired default
         // TODO: Move to configuration option.
-        private bool bypassPermissions = true;
+        private bool m_bypassPermissions = true;
+        public bool BypassPermissions
+        {
+            get { return m_bypassPermissions; }
+            set { m_bypassPermissions = value; }
+        }
+
 
         public PermissionManager(Scene scene)
         {
             m_scene = scene;
-        }
-
-        public void DisablePermissions()
-        {
-            bypassPermissions = true;
-        }
-
-        public void EnablePermissions()
-        {
-            bypassPermissions = false;
         }
 
         protected virtual void SendPermissionError(LLUUID user, string reason)
@@ -43,16 +39,20 @@ namespace OpenSim.Region.Environment
 
         protected virtual bool IsAdministrator(LLUUID user)
         {
-            if (bypassPermissions)
-                return bypassPermissions;
+            if (m_bypassPermissions)
+            {
+                return true;
+            }
 
             return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
         }
 
         protected virtual bool IsEstateManager(LLUUID user)
         {
-            if (bypassPermissions)
-                return bypassPermissions;
+            if (m_bypassPermissions)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -74,14 +74,22 @@ namespace OpenSim.Region.Environment
             string reason = "Insufficient permission";
 
             if (IsAdministrator(user))
+            {
                 permission = true;
+            }
             else
+            {
                 reason = "Not an administrator";
+            }
 
             if (GenericParcelPermission(user, position))
+            {
                 permission = true;
+            }
             else
+            {
                 reason = "Not the parcel owner";
+            }
 
             if (!permission)
                 SendPermissionError(user, reason);
