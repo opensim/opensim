@@ -490,8 +490,45 @@ public class NAntTarget : ITarget
                 ss.WriteLine("    </target>");
                 ss.WriteLine();
 
-                // sdague - make a zip target 
-                ss.WriteLine("   <include buildfile=\".nant/local.include\" />");
+
+
+                // sdague - ok, this is an ugly hack, but what it lets
+                // us do is native include of files into the nant
+                // created files from all .nant/*include files.  This
+                // lets us keep using prebuild, but allows for
+                // extended nant targets to do build and the like.
+                
+                try {
+                    Regex re = new Regex(".include$");
+                    DirectoryInfo nantdir = new DirectoryInfo(".nant");
+                    foreach (FileSystemInfo item in nantdir.GetFileSystemInfos())
+                    {
+                        if (item is DirectoryInfo) {}
+                        else if (item is FileInfo)
+                        {
+                            if (re.Match(((FileInfo)item).FullName) != 
+                                System.Text.RegularExpressions.Match.Empty) {
+                                Console.WriteLine("Including file: " + ((FileInfo)item).FullName);
+
+                                using (FileStream fs = new FileStream(((FileInfo)item).FullName, 
+                                                                      FileMode.Open,
+                                                                      FileAccess.Read,
+                                                                      FileShare.None)) 
+                                {
+                                    using (StreamReader sr = new StreamReader(fs)) 
+                                    {
+                                        ss.WriteLine("<!-- included from {0} -->", ((FileInfo)item).FullName);
+                                        while (sr.Peek() != -1) {
+                                            ss.WriteLine(sr.ReadLine());
+                                        }
+                                        ss.WriteLine();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch {}
+                // ss.WriteLine("   <include buildfile=\".nant/local.include\" />");
 //                 ss.WriteLine("    <target name=\"zip\" description=\"\">");
 //                 ss.WriteLine("       <zip zipfile=\"{0}-{1}.zip\">", solution.Name, solution.Version);
 //                 ss.WriteLine("       <fileset basedir=\"${project::get-base-directory()}\">");
