@@ -491,16 +491,17 @@ public class NAntTarget : ITarget
                 ss.WriteLine();
 
                 // sdague - make a zip target 
-                ss.WriteLine("    <target name=\"zip\" description=\"\">");
-                ss.WriteLine("       <zip zipfile=\"{0}-{1}.zip\">", solution.Name, solution.Version);
-                ss.WriteLine("       <fileset basedir=\"${project::get-base-directory()}\">");
+                ss.WriteLine("   <include buildfile=\".nant/local.include\" />");
+//                 ss.WriteLine("    <target name=\"zip\" description=\"\">");
+//                 ss.WriteLine("       <zip zipfile=\"{0}-{1}.zip\">", solution.Name, solution.Version);
+//                 ss.WriteLine("       <fileset basedir=\"${project::get-base-directory()}\">");
                 
-                ss.WriteLine("       <include name=\"${project::get-base-directory()}/**/*.cs\" />");
-                // ss.WriteLine("       <include name=\"${project.main.dir}/**/*\" />");
-                ss.WriteLine("       </fileset>");
-                ss.WriteLine("       </zip>");
-                ss.WriteLine("        <echo message=\"Building zip target\" />");
-                ss.WriteLine("    </target>");
+//                 ss.WriteLine("       <include name=\"${project::get-base-directory()}/**/*.cs\" />");
+//                 // ss.WriteLine("       <include name=\"${project.main.dir}/**/*\" />");
+//                 ss.WriteLine("       </fileset>");
+//                 ss.WriteLine("       </zip>");
+//                 ss.WriteLine("        <echo message=\"Building zip target\" />");
+//                 ss.WriteLine("    </target>");
                 ss.WriteLine();
                                 
 				
