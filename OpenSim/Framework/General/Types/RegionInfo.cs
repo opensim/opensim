@@ -61,8 +61,16 @@ namespace OpenSim.Framework.Types
                 // Old one defaults to IPv6
                 //return new IPEndPoint( Dns.GetHostAddresses( m_externalHostName )[0], m_internalEndPoint.Port );
 
-                // New method favors IPv4
                 IPAddress ia = null;
+                // If it is already an IP, don't resolve it - just return directly
+                if (IPAddress.TryParse(m_externalHostName, out ia))
+                    return new IPEndPoint(ia, m_internalEndPoint.Port);
+
+                // Reset for next check
+                ia = null;
+
+
+                // New method favors IPv4
                 foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
                 {
                     if (ia == null)
@@ -188,7 +196,7 @@ namespace OpenSim.Framework.Types
             {
                 errorMessage = "needs an IP Address (IPAddress)";
             }
-            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port",(int) 9000);
+            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port", (int)9000);
 
             string externalHost = source.Configs[sectionName].GetString("external_host_name", "127.0.0.1");
             if (externalHost != "SYSTEMIP")
