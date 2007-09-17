@@ -6,6 +6,7 @@
        <fileset basedir=".">
           <include name="ThirdPartyLicenses/**" />
           <include name="CONTRIBUTORS.txt" />
+          <include name="README" />
           <include name="OpenSim/**/*.cs" />
           <include name="**/*.build" />
           <include name="**/*.csproj" />
