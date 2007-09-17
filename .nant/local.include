@@ -1,7 +1,30 @@
-<target name="zip">   
-<zip zipfile="opensim-0.3.svn.zip">
+<property name="projectdir" value="opensim-0.3.svn" />
+
+<target name="distdir">
+   <delete dir="${projectdir}" />
+   <copy todir="${projectdir}">
        <fileset basedir=".">
-          <include name="./**/*.cs" />
+          <include name="OpenSim/**/*.cs" />
+          <include name="OpenSim/**/*.build" />
+          <include name="OpenSim/**/*.csproj" />
+          <include name="OpenSim/**/*.sln" />
+          <include name="bin/*.dll" />
+          <include name="bin/*.so" />
+          <include name="bin/*.config" />
+          <exclude name="bin/OpenSim.*" />
        </fileset>
-   </zip>
+   </copy>
+</target>
+
+<target name="dist" depends="distdir">
+    <zip zipfile="${projectdir}.zip">
+    <fileset basedir=".">
+        <include name="${projectdir}/**" />
+    </fileset>
+    </zip>
+    <tar destfile="${projectdir}.tar.gz" compression="GZip">
+    <fileset basedir=".">
+        <include name="${projectdir}/**" />
+    </fileset>
+    </tar>
 </target>
