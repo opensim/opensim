@@ -37,7 +37,7 @@ virtual worlds server platform capable of supporting multiple clients
 and servers in a heterogeneous grid structure. OpenSim is written in
 C#, and can run under Mono or the Microsoft .NET runtimes.
 
-This is considered and alpha release.  Some stuff works, a lot
+This is considered an alpha release.  Some stuff works, a lot
 doesn't.  If it breaks, you get to keep *both* pieces.
 
 == Installation on Windows ==
