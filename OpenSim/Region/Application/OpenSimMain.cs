@@ -517,7 +517,7 @@ namespace OpenSim
                         }
                         else
                         {
-                            MainLog.Instance.Verbose("Current Region: " + m_consoleRegion.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
+                            MainLog.Instance.Verbose("Current Region: " + m_localScenes.CurrentScene.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
                         }
 
                         break;
