@@ -1,0 +1,7 @@
+<target name="zip">   
+<zip zipfile="opensim-0.3.svn.zip">
+       <fileset basedir=".">
+          <include name="./**/*.cs" />
+       </fileset>
+   </zip>
+</target>
