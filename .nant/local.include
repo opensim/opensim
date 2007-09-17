@@ -5,13 +5,19 @@
    <copy todir="${projectdir}">
        <fileset basedir=".">
           <include name="OpenSim/**/*.cs" />
-          <include name="OpenSim/**/*.build" />
-          <include name="OpenSim/**/*.csproj" />
-          <include name="OpenSim/**/*.sln" />
+          <include name="**/*.build" />
+          <include name="**/*.csproj" />
+          <include name="**/*.csproj.user" />
+          <include name="**/*.sln" />
           <include name="bin/*.dll" />
           <include name="bin/*.so" />
           <include name="bin/*.config" />
-          <exclude name="bin/OpenSim.*" />
+          <include name="bin/assets/**" />
+          <include name="ThirdPartyLicenses/**" />
+          <include name="CONTRIBUTORS.txt" />
+          <!-- order is important -->
+          <exclude name="bin/OpenSim.*dll" />
+          <include name="bin/OpenSim.ini" />
        </fileset>
    </copy>
 </target>
