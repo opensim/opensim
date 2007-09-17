@@ -376,162 +376,155 @@ namespace OpenSim
         {
             string result = "";
 
-            if ((m_consoleRegion == null) || (command == "change-region") || (command == "shutdown"))
+            switch (command)
             {
-                switch (command)
-                {
-                    case "debug":
-                        if (cmdparams.Length > 0)
+                case "set-time":
+                    m_localScenes.SetTimePhase(Convert.ToInt32(cmdparams[0]));
+                    break;
+
+                case "force-update":
+                    Console.WriteLine("Updating all clients");
+                    m_localScenes.ForceClientUpdate();
+                    break;
+
+
+                case "edit-scale":
+                    if (cmdparams.Length == 4)
+                    {
+                        m_localScenes.HandleEditCommand(cmdparams);
+                    }
+                    break;
+
+                case "debug":
+                    if (cmdparams.Length > 0)
+                    {
+                        Debug(cmdparams);
+                    }
+                    break;
+
+                case "help":
+                    m_log.Error("alert - send alert to a designated user or all users.");
+                    m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
+                    m_log.Error("  alert general [Message] - send an alert to all users.");
+                    m_log.Error("backup - trigger a simulator backup");
+                    m_log.Error("debug - debugging commands");
+                    m_log.Error("  packet 0..255 - print incoming/outgoing packets (0=off)");
+                    m_log.Error("load-xml [filename] - load prims from XML");
+                    m_log.Error("save-xml [filename] - save prims to XML");
+                    m_log.Error("script - manually trigger scripts? or script commands?");
+                    m_log.Error("show uptime - show simulator startup and uptime.");
+                    m_log.Error("show users - show info about connected users.");
+                    m_log.Error("shutdown - disconnect all clients and shutdown.");
+                    m_log.Error("terrain help - show help for terrain commands.");
+                    m_log.Error("quit - equivalent to shutdown.");
+                    break;
+
+                case "show":
+                    if (cmdparams.Length > 0)
+                    {
+                        Show(cmdparams[0]);
+                    }
+                    break;
+
+                case "save-xml":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_localScenes.SavePrimsToXml(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_localScenes.SavePrimsToXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                    }
+                    break;
+
+                case "load-xml":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_localScenes.LoadPrimsFromXml(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_localScenes.LoadPrimsFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                    }
+                    break;
+
+                case "terrain":
+                    if (!m_localScenes.RunTerrainCmd(cmdparams, ref result))
+                    {
+                        m_log.Error(result);
+                    }
+                    break;
+
+                case "script":
+                    m_localScenes.SendCommandToScripts(cmdparams);
+                    break;
+
+                case "command-script":
+                    if (cmdparams.Length > 0)
+                    {
+                        RunCommandScript(cmdparams[0]);
+                    }
+                    break;
+
+                case "permissions":
+                    // Treats each user as a super-admin when disabled
+                    bool permissions = Convert.ToBoolean(cmdparams[0]);
+
+                    m_localScenes.BypassPermissions(!permissions);
+
+                    break;
+
+                case "backup":
+                    m_localScenes.Backup();
+                    break;
+
+                case "alert":
+                    m_localScenes.HandleAlertCommand(cmdparams);
+                    break;
+
+                case "create":
+                    if (CreateAccount != null)
+                    {
+                        CreateAccount(cmdparams);
+                    }
+                    break;
+
+                case "quit":
+                case "shutdown":
+                    Shutdown();
+                    break;
+
+                case "change-region":
+                    if (cmdparams.Length > 0)
+                    {
+                        string regionName = this.CombineParams(cmdparams, 0);
+
+                        if (m_localScenes.TrySetCurrentRegion(regionName))
                         {
-                            Debug(cmdparams);
-                        }
-                        break;
 
-                    case "help":
-                        m_log.Error("alert - send alert to a designated user or all users.");
-                        m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
-                        m_log.Error("  alert general [Message] - send an alert to all users.");
-                        m_log.Error("backup - trigger a simulator backup");
-                        m_log.Error("debug - debugging commands");
-                        m_log.Error("  packet 0..255 - print incoming/outgoing packets (0=off)");
-                        m_log.Error("load-xml [filename] - load prims from XML");
-                        m_log.Error("save-xml [filename] - save prims to XML");
-                        m_log.Error("script - manually trigger scripts? or script commands?");
-                        m_log.Error("show uptime - show simulator startup and uptime.");
-                        m_log.Error("show users - show info about connected users.");
-                        m_log.Error("shutdown - disconnect all clients and shutdown.");
-                        m_log.Error("terrain help - show help for terrain commands.");
-                        m_log.Error("quit - equivalent to shutdown.");
-                        break;
-
-                    case "show":
-                        if (cmdparams.Length > 0)
-                        {
-                            Show(cmdparams[0]);
-                        }
-                        break;
-
-                    case "save-xml":
-                        if (cmdparams.Length > 0)
-                        {
-                            m_localScenes.SavePrimsToXml(cmdparams[0]);
-                        }
-                        else
-                        {
-                            m_localScenes.SavePrimsToXml(DEFAULT_PRIM_BACKUP_FILENAME);
-                        }
-                        break;
-
-                    case "load-xml":
-                        if (cmdparams.Length > 0)
-                        {
-                            m_localScenes.LoadPrimsFromXml(cmdparams[0]);
-                        }
-                        else
-                        {
-                            m_localScenes.LoadPrimsFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
-                        }
-                        break;
-
-                    case "terrain":
-                        if (!m_localScenes.RunTerrainCmd(cmdparams, ref result))
-                        {
-                            m_log.Error(result);
-                        }
-                        break;
-
-                    // terrain-sim now obsolete: do change-region first, then terrain as usual
-                    //case "terrain-sim":
-                    //    foreach (Scene scene in m_localScenes)
-                    //    {
-                    //        if (scene.RegionInfo.RegionName.ToLower() == cmdparams[0].ToLower())
-                    //        {
-                    //            string[] tmpCmdparams = new string[cmdparams.Length - 1];
-                    //            cmdparams.CopyTo(tmpCmdparams, 1);
-
-                    //            if (!scene.Terrain.RunTerrainCmd(tmpCmdparams, ref result, scene.RegionInfo.RegionName))
-                    //            {
-                    //                m_log.Error(result);
-                    //            }
-                    //        }
-                    //    }
-                    //    break;
-
-                    case "script":
-                        m_localScenes.SendCommandToScripts(cmdparams);
-                        break;
-
-                    case "command-script":
-                        if (cmdparams.Length > 0)
-                        {
-                            RunCommandScript(cmdparams[0]);
-                        }
-                        break;
-
-                    case "permissions":
-                        // Treats each user as a super-admin when disabled
-                        bool permissions = Convert.ToBoolean(cmdparams[0]);
-
-                        m_localScenes.BypassPermissions(!permissions);
-
-                        break;
-
-                    case "backup":
-                        m_localScenes.Backup();
-                        break;
-
-                    case "alert":
-                        m_localScenes.HandleAlertCommand(cmdparams);
-                        break;
-
-                    case "create":
-                        if (CreateAccount != null)
-                        {
-                            CreateAccount(cmdparams);
-                        }
-                        break;
-
-                    case "quit":
-                    case "shutdown":
-                        Shutdown();
-                        break;
-
-                    case "change-region":
-                        if (cmdparams.Length > 0)
-                        {
-                            string regionName = this.CombineParams(cmdparams, 0);
-
-                            if( m_localScenes.TrySetCurrentRegion( regionName ) )
-                            {
-                                
-                            }
-                            else
-                            {
-                                MainLog.Instance.Error("Couldn't set current region to: " + regionName);
-                            }
-                        }
-
-                        if (m_localScenes.CurrentScene == null)
-                        {
-                            MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
                         }
                         else
                         {
-                            MainLog.Instance.Verbose("Current Region: " + m_localScenes.CurrentScene.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
+                            MainLog.Instance.Error("Couldn't set current region to: " + regionName);
                         }
+                    }
 
-                        break;
+                    if (m_localScenes.CurrentScene == null)
+                    {
+                        MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
+                    }
+                    else
+                    {
+                        MainLog.Instance.Verbose("Current Region: " + m_localScenes.CurrentScene.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
+                    }
 
-                    default:
-                        m_log.Error("Unknown command");
-                        break;
-                }
+                    break;
+
+                default:
+                    m_log.Error("Unknown command");
+                    break;
             }
-            else
-            {
-                //let the scene/region handle the command directly.
-                m_consoleRegion.ProcessConsoleCmd(command, cmdparams);
-            }
+
         }
 
         public void Debug(string[] args)
@@ -579,12 +572,12 @@ namespace OpenSim
 
                     List<ScenePresence> avatars = m_localScenes.GetAvatars();
 
-                    foreach( ScenePresence avatar in avatars )
+                    foreach (ScenePresence avatar in avatars)
                     {
-                        RegionInfo regionInfo = m_localScenes.GetRegionInfo( avatar.RegionHandle );
+                        RegionInfo regionInfo = m_localScenes.GetRegionInfo(avatar.RegionHandle);
                         string regionName;
-                        
-                        if( regionInfo == null  )
+
+                        if (regionInfo == null)
                         {
                             regionName = "Unresolvable";
                         }
@@ -601,7 +594,7 @@ namespace OpenSim
                                           avatar.ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
-                                          regionName ));
+                                          regionName));
                     }
 
                     break;

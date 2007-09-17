@@ -1246,7 +1246,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
-        private void forceClientUpdate()
+        public void ForceClientUpdate()
         {
             foreach (EntityBase ent in this.Entities.Values)
             {
@@ -1256,81 +1256,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
-        public void ProcessConsoleCmd(string command, string[] cmdparams)
-        {
-            switch (command)
-            {
-                case "help":
-                    MainLog.Instance.Error("alert - send alert to a designated user or all users.");
-                    MainLog.Instance.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
-                    MainLog.Instance.Error("  alert general [Message] - send an alert to all users.");
-                    MainLog.Instance.Error("backup - trigger a region backup");
-                    MainLog.Instance.Error("load-xml [filename] - load prims from a XML file into current region");
-                    MainLog.Instance.Error("save-xml [filename] - save prims from current region to a XML file");
-                    MainLog.Instance.Error("show users - show info about connected users in the current region.");
-                    MainLog.Instance.Error("shutdown - disconnect all clients and shutdown.");
-                    break;
-
-                case "show":
-                    if (cmdparams.Length > 0)
-                    {
-                        Show(cmdparams[0]);
-                    }
-                    break;
-
-                case "save-xml":
-                    if (cmdparams.Length > 0)
-                    {
-                        SavePrimsToXml(cmdparams[0]);
-                    }
-                    else
-                    {
-                        SavePrimsToXml("test.xml");
-                    }
-                    break;
-
-                case "load-xml":
-                    if (cmdparams.Length > 0)
-                    {
-                        LoadPrimsFromXml(cmdparams[0]);
-                    }
-                    else
-                    {
-                        LoadPrimsFromXml("test.xml");
-                    }
-                    break;
-
-                case "set-time":
-                    this.SetTimePhase(Convert.ToInt32(cmdparams[0]));
-                    break;
-
-                case "force-update":
-                    Console.WriteLine("Updating all clients");
-                    this.forceClientUpdate();
-                    break;
-
-                case "backup":
-                    Backup();
-                    break;
-
-                case "alert":
-                    HandleAlertCommand(cmdparams);
-                    break;
-
-                case "edit-scale":
-                    if (cmdparams.Length == 4)
-                    {
-                        HandleEditCommand(cmdparams);
-                    }
-                    break;
-
-                default:
-                    MainLog.Instance.Error("Unknown command: " + command);
-                    break;
-            }
-        }
-
+        
         public void HandleEditCommand(string[] cmmdparams)
         {
             Console.WriteLine("Searching for Primitive: '" + cmmdparams[0] + "'");

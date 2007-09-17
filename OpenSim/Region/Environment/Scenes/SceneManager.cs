@@ -198,13 +198,40 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (Scene scene in m_localScenes)
             {
-                if( scene.RegionInfo.RegionHandle == regionHandle )
+                if (scene.RegionInfo.RegionHandle == regionHandle)
                 {
                     return scene.RegionInfo;
                 }
             }
 
             return null;
+        }
+
+        public void SetTimePhase(int timePhase)
+        {
+            ForEach(delegate(Scene scene)
+                        {
+                            scene.SetTimePhase(
+                                timePhase)
+                                ;
+                        });
+        }
+
+
+        public void ForceClientUpdate()
+        {
+            ForEach(delegate(Scene scene)
+                        {
+                            scene.ForceClientUpdate();
+                        });
+        }
+
+        public void HandleEditCommand(string[] cmdparams)
+        {
+            ForEach(delegate(Scene scene)
+                        {
+                            scene.HandleEditCommand(cmdparams);
+                        });
         }
     }
 }
