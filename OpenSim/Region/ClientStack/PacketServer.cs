@@ -40,7 +40,6 @@ namespace OpenSim.Region.ClientStack
     {
         private ClientStackNetworkHandler _networkHandler;
         private IScene _localScene;
-        public Dictionary<uint, IClientAPI> ClientThreads = new Dictionary<uint, IClientAPI>();
         private ClientManager m_clientManager = new ClientManager();
         public ClientManager ClientManager
         {
@@ -66,20 +65,14 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         /// <param name="circuitCode"></param>
         /// <param name="packet"></param>
-        public virtual void ClientInPacket(uint circuitCode, Packet packet)
+        public virtual void InPacket(uint circuitCode, Packet packet)
         {
-            if (this.ClientThreads.ContainsKey(circuitCode))
-            {
-                ClientThreads[circuitCode].InPacket(packet);
-            }
+            m_clientManager.InPacket(circuitCode, packet);
         }
 
         public virtual void ConnectionClosed(uint circuitCode)
         {
-            if (this.ClientThreads.ContainsKey(circuitCode))
-            {
-                ClientThreads[circuitCode].ConnectionClosed();
-            }
+            m_clientManager.ConnectionClosed(circuitCode);
         }
 
         /// <summary>
@@ -129,9 +122,9 @@ namespace OpenSim.Region.ClientStack
             
         }
 
-        protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, IClientAPI> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
+        protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
-            return new ClientView(remoteEP, initialcirpack, clientThreads, scene, assetCache, packServer, authenSessions );
+            return new ClientView(remoteEP, initialcirpack, clientManager, scene, assetCache, packServer, authenSessions );
         }
 
         /// <summary>
@@ -146,14 +139,17 @@ namespace OpenSim.Region.ClientStack
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, AgentCircuitManager authenticateSessionsClass)
         {
             IClientAPI newuser =
-                CreateNewClient(epSender, useCircuit, ClientThreads, _localScene, assetCache, this,
+                CreateNewClient(epSender, useCircuit, m_clientManager, _localScene, assetCache, this,
                                 authenticateSessionsClass);
-            
-            this.ClientThreads.Add(useCircuit.CircuitCode.Code, newuser);
-            this.m_clientManager.Add(useCircuit.CircuitCode.Code, (IClientAPI)newuser);
+
+            this.m_clientManager.Add(useCircuit.CircuitCode.Code, newuser);
+
+            newuser.OnViewerEffect += m_clientManager.ViewerEffectHandler;
 
             return true;
         }
+
+
 
         /// <summary>
         /// 

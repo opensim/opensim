@@ -75,19 +75,6 @@ namespace OpenSim.Region.ClientStack
 
                 switch (Pack.Type)
                 {
-                    case PacketType.ViewerEffect:
-                        ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
-                        foreach (IClientAPI client in m_clientThreads.Values)
-                        {
-                            if (client.AgentId != this.AgentId)
-                            {
-                                viewer.AgentData.AgentID = client.AgentId;
-                                viewer.AgentData.SessionID = client.SessionId;
-                                client.OutPacket(viewer);
-                            }
-                        }
-                        break;
-
                     #region  Scene/Avatar
                     case PacketType.AvatarPropertiesRequest:
                         AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;

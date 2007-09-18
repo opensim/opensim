@@ -42,6 +42,7 @@ namespace OpenSim.Region.ClientStack
 {
     partial class ClientView
     {
+        public event ViewerEffectEventHandler OnViewerEffect;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
         public event RezObject OnRezObject;

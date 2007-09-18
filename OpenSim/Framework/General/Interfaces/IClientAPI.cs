@@ -34,6 +34,7 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Interfaces
 {
+    public delegate void ViewerEffectEventHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock);
     public delegate void ChatFromViewer(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
     public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp, string fromAgentName, string message, byte dialog); // Cut down from full list
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
@@ -242,6 +243,7 @@ namespace OpenSim.Framework.Interfaces
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
-        void ConnectionClosed();
+        void Close();
+        event ViewerEffectEventHandler OnViewerEffect;
     }
 }

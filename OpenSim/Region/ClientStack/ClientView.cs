@@ -71,7 +71,7 @@ namespace OpenSim.Region.ClientStack
         private LLUUID newAssetFolder = LLUUID.Zero;
         private int debug = 0;
         protected IScene m_scene;
-        private Dictionary<uint, IClientAPI> m_clientThreads;
+        private ClientManager m_clientManager;
         private AssetCache m_assetCache;
         // private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
@@ -83,12 +83,12 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, IClientAPI> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
             m_moneyBalance = 1000;
 
             m_scene = scene;
-            m_clientThreads = clientThreads;
+            m_clientManager = clientManager;
             m_assetCache = assetCache;
 
             m_networkServer = packServer;
@@ -127,24 +127,17 @@ namespace OpenSim.Region.ClientStack
 
         # region Client Methods
 
-        public void KillClient()
+        public void Close()
         {
             clientPingTimer.Stop();
 
             m_scene.RemoveClient(this.AgentId);
 
-            m_clientThreads.Remove(this.CircuitCode);
+            m_clientManager.Remove(this.CircuitCode); // TODO: Move out and delete ref to clientmanager.
             m_networkServer.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
         }
 
-        public void ConnectionClosed()
-        {
-            clientPingTimer.Stop();
-            m_clientThreads.Remove(this.CircuitCode);
-            m_networkServer.RemoveClientCircuit(this.CircuitCode);
-            this.ClientThread.Abort();
-        }
         #endregion
 
         # region Packet Handling
@@ -259,7 +252,8 @@ namespace OpenSim.Region.ClientStack
                 probesWithNoIngressPackets++;
                 if (probesWithNoIngressPackets > 30)
                 {
-                    this.KillClient();
+                    // Refactor out this into an OnConnectionClosed so the ClientManager can clean up
+                    this.Close();
                 }
                 else
                 {

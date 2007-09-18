@@ -52,6 +52,7 @@ namespace OpenSim.Framework
        public event StatusChange OnChildAgentStatus;
        public event GenericCall2 OnStopMovement;
        public event GenericCall6 OnRemoveAvatar;
+       public event ViewerEffectEventHandler OnViewerEffect;
 
        public event CreateNewInventoryItem OnCreateNewInventoryItem;
        public event CreateInventoryFolder OnCreateNewInventoryFolder;
@@ -172,9 +173,11 @@ namespace OpenSim.Framework
        {
        }
 
-       public void ConnectionClosed()
+       public void Close()
        {
        }
+
+
    }
 }
 

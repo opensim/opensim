@@ -43,6 +43,7 @@ namespace SimpleApp
         public event UpdateVector OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event MoveObject OnGrabUpdate;
+        public event ViewerEffectEventHandler OnViewerEffect;
 
 
         public event UpdateShape OnUpdatePrimShape;
@@ -228,7 +229,7 @@ namespace SimpleApp
         {
         }
 
-        public void ConnectionClosed()
+        public void Close()
         {
         }
     }

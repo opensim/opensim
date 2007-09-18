@@ -126,7 +126,7 @@ namespace OpenSim.Region.ClientStack
             if (this.clientCircuits.ContainsKey(epSender))
             {
                 //if so then send packet to the packetserver
-                this._packetServer.ClientInPacket(this.clientCircuits[epSender], packet);
+                this._packetServer.InPacket(this.clientCircuits[epSender], packet);
             }
             else if (packet.Type == PacketType.UseCircuitCode)
             {
