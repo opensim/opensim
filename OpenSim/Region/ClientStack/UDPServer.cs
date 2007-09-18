@@ -103,20 +103,19 @@ namespace OpenSim.Region.ClientStack
             Packet packet = null;
 
             int numBytes;
-
+        
             try
             {
                 numBytes = Server.EndReceiveFrom(result, ref epSender);
             }
-            catch (System.Net.Sockets.SocketException)
+            catch (System.Net.Sockets.SocketException e)
             {
                 Console.WriteLine("Remote host Closed connection");
-                
-                this.m_packetServer.CloseCircuit(this.clientCircuits[epSender]);
 
-                ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-                epSender = (EndPoint)ipeSender;
-                Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                CloseEndPoint(epSender);
+
+                //Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+
                 return;
             }
 
@@ -125,10 +124,11 @@ namespace OpenSim.Region.ClientStack
             packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
 
             // do we already have a circuit for this endpoint
-            if (this.clientCircuits.ContainsKey(epSender))
+            uint circuit;
+            if (clientCircuits.TryGetValue(epSender, out circuit))
             {
                 //if so then send packet to the packetserver
-                this.m_packetServer.InPacket(this.clientCircuits[epSender], packet);
+                this.m_packetServer.InPacket(circuit, packet);
             }
             else if (packet.Type == PacketType.UseCircuitCode)
             {
@@ -143,12 +143,21 @@ namespace OpenSim.Region.ClientStack
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
         }
 
+        private void CloseEndPoint(EndPoint sender)
+        {
+            uint circuit;
+            if (clientCircuits.TryGetValue(sender, out circuit))
+            {
+                m_packetServer.CloseCircuit(circuit);
+            }
+        }
+
         protected virtual void AddNewClient(Packet packet)
         {
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
             this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
 
-            this.PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass); 
+            this.PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
         }
 
         public void ServerListener()
@@ -206,6 +215,6 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
-      
+
     }
 }
