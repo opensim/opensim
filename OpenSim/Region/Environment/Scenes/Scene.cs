@@ -825,6 +825,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     presence.CoarseLocationChange(avatar);
                     presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                    if (presence.PhysActor != null)
+                    {
+                        phyScene.RemoveAvatar(presence.PhysActor);
+                    }
                 });
 
             lock (Avatars)

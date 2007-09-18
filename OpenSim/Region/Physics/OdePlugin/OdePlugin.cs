@@ -152,6 +152,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
+            OdeCharacter och = (OdeCharacter)actor;
+            d.BodyDestroy(och.BoundingCapsule);
+            _characters.Remove(och);
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -278,7 +281,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _acceleration;
         private bool flying = false;
         //private float gravityAccel;
-        private IntPtr BoundingCapsule;
+        public IntPtr BoundingCapsule;
         private OdeScene _parent_scene;
         public IntPtr capsule_geom;
         public d.Mass capsule_mass;
