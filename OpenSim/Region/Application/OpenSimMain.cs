@@ -85,8 +85,6 @@ namespace OpenSim
 
         private string m_assetStorage = "db4o";
 
-        private Scene m_consoleRegion = null;
-
         public ConsoleCommand CreateAccount = null;
 
         public OpenSimMain(IConfigSource configSource)

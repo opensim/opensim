@@ -38,7 +38,7 @@ using OpenSim.Region.Environment;
 
 namespace OpenSim.Region.ClientStack
 {
-    public class ClientViewBase 
+    public abstract class ClientViewBase 
     {
         protected BlockingQueue<QueItem> PacketQueue;
         protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
@@ -56,15 +56,7 @@ namespace OpenSim.Region.ClientStack
 
         protected PacketServer m_networkServer;
 
-        public ClientViewBase()
-        {
-
-        }
-
-        protected virtual void ProcessInPacket(Packet Pack)
-        {
-
-        }
+        protected abstract void ProcessInPacket(Packet Pack);
 
         protected virtual void ProcessOutPacket(Packet Pack)
         {
@@ -308,14 +300,9 @@ namespace OpenSim.Region.ClientStack
         }
         #endregion
 
-        protected virtual void KillThread()
-        {
+        protected abstract void KillThread();
 
-        }
-
-        public virtual void ConnectionClosed()
-        {
-        }
+        public abstract void ConnectionClosed();
 
         #region Nested Classes
 
