@@ -254,5 +254,6 @@ namespace OpenSim.Framework.Interfaces
         event ViewerEffectEventHandler OnViewerEffect;
         event Action<IClientAPI> OnLogout;
         event Action<IClientAPI> OnConnectionClosed;
+        void SendLogoutPacket();
     }
 }

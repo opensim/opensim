@@ -8,6 +8,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Scenes;
+using System;
 
 namespace SimpleApp
 {
@@ -19,6 +20,9 @@ namespace SimpleApp
         private short count = 0;
 
 #pragma warning disable 67
+
+        public event Action<IClientAPI> OnLogout;
+        public event Action<IClientAPI> OnConnectionClosed;
 
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
@@ -246,8 +250,8 @@ namespace SimpleApp
             }
         }
 
-        public event System.Action<IClientAPI> OnLogout;
-
-        public event System.Action<IClientAPI> OnConnectionClosed;
+        public void SendLogoutPacket()
+        {
+        }
     }
 }

@@ -149,13 +149,7 @@ namespace OpenSim.Region.ClientStack
 
         public void LogoutHandler(IClientAPI client)
         {
-            LogoutReplyPacket logReply = new LogoutReplyPacket();
-            logReply.AgentData.AgentID = client.AgentId;
-            logReply.AgentData.SessionID = client.SessionId;
-            logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
-            logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
-            logReply.InventoryData[0].ItemID = LLUUID.Zero;
-            client.OutPacket(logReply);
+            client.SendLogoutPacket();
 
             CloseClient( client );
         }
