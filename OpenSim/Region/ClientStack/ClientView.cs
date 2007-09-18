@@ -45,7 +45,7 @@ using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack
 {
-    public delegate bool PacketMethod(ClientView simClient, Packet packet);
+    public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
 
     /// <summary>
     /// Handles new client connections
@@ -58,8 +58,7 @@ namespace OpenSim.Region.ClientStack
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>(); //local handlers for this instance 
 
-        public LLUUID AgentID;
-        public LLUUID SessionID;
+        private LLUUID m_sessionId;
         public LLUUID SecureSessionID = LLUUID.Zero;
         public string firstName;
         public string lastName;
@@ -72,7 +71,7 @@ namespace OpenSim.Region.ClientStack
         private LLUUID newAssetFolder = LLUUID.Zero;
         private int debug = 0;
         protected IScene m_scene;
-        private Dictionary<uint, ClientView> m_clientThreads;
+        private Dictionary<uint, IClientAPI> m_clientThreads;
         private AssetCache m_assetCache;
         // private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
@@ -84,7 +83,7 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, IClientAPI> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
             m_moneyBalance = 1000;
 
@@ -114,6 +113,11 @@ namespace OpenSim.Region.ClientStack
             ClientThread = new Thread(new ThreadStart(AuthUser));
             ClientThread.IsBackground = true;
             ClientThread.Start();
+        }
+
+        public LLUUID SessionId
+        {
+            get { return m_sessionId; }
         }
 
         public void SetDebug(int newDebug) 
@@ -285,7 +289,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void AuthUser()
         {
-            // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
+            // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.CircuitCode.m_sessionId, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
             AuthenticateResponse sessionInfo = this.m_authenticateSessionsHandler.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
             if (!sessionInfo.Authorised)
             {
@@ -297,8 +301,8 @@ namespace OpenSim.Region.ClientStack
             {
                 MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
                 //session is authorised
-                this.AgentID = cirpack.CircuitCode.ID;
-                this.SessionID = cirpack.CircuitCode.SessionID;
+                m_agentId = cirpack.CircuitCode.ID;
+                this.m_sessionId = cirpack.CircuitCode.SessionID;
                 this.CircuitCode = cirpack.CircuitCode.Code;
                 this.firstName = sessionInfo.LoginInfo.First;
                 this.lastName = sessionInfo.LoginInfo.Last;

@@ -124,19 +124,12 @@ namespace OpenSim.Region.ClientStack
         /// <summary>
         /// 
         /// </summary>
+        private LLUUID m_agentId;
         public LLUUID AgentId
         {
             get
             {
-                return this.AgentID;
-            }
-        }
-
-        public LLUUID SessionId
-        {
-            get
-            {
-                return this.SessionID;
+                return m_agentId;
             }
         }
 
@@ -212,8 +205,8 @@ namespace OpenSim.Region.ClientStack
         public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
-            mov.AgentData.SessionID = this.SessionID;
-            mov.AgentData.AgentID = this.AgentID;
+            mov.AgentData.SessionID = this.m_sessionId;
+            mov.AgentData.AgentID = this.AgentId;
             mov.Data.RegionHandle = regInfo.RegionHandle;
             mov.Data.Timestamp = 1172750370; // TODO - dynamicalise this
 
@@ -377,7 +370,7 @@ namespace OpenSim.Region.ClientStack
         {
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = this.AgentId;
-            agentData.SessionID = this.SessionID;
+            agentData.SessionID = this.m_sessionId;
             agentData.SecureSessionID = this.SecureSessionID;
             agentData.circuitcode = this.CircuitCode;
             agentData.child = false;
@@ -393,8 +386,8 @@ namespace OpenSim.Region.ClientStack
 
             CrossedRegionPacket newSimPack = new CrossedRegionPacket();
             newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
-            newSimPack.AgentData.AgentID = this.AgentID;
-            newSimPack.AgentData.SessionID = this.SessionID;
+            newSimPack.AgentData.AgentID = this.AgentId;
+            newSimPack.AgentData.SessionID = this.m_sessionId;
             newSimPack.Info = new CrossedRegionPacket.InfoBlock();
             newSimPack.Info.Position = pos;
             newSimPack.Info.LookAt = look; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
@@ -415,7 +408,7 @@ namespace OpenSim.Region.ClientStack
         public void SendMapBlock(List<MapBlockData> mapBlocks)
         {
             MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
-            mapReply.AgentData.AgentID = this.AgentID;
+            mapReply.AgentData.AgentID = this.AgentId;
             mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks.Count];
             mapReply.AgentData.Flags = 0;
 
@@ -437,7 +430,7 @@ namespace OpenSim.Region.ClientStack
         public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
         {
             TeleportLocalPacket tpLocal = new TeleportLocalPacket();
-            tpLocal.Info.AgentID = this.AgentID;
+            tpLocal.Info.AgentID = this.AgentId;
             tpLocal.Info.TeleportFlags = flags;
             tpLocal.Info.LocationID = 2;
             tpLocal.Info.LookAt = lookAt;
@@ -448,7 +441,7 @@ namespace OpenSim.Region.ClientStack
         public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags, string capsURL)
         {
             TeleportFinishPacket teleport = new TeleportFinishPacket();
-            teleport.Info.AgentID = this.AgentID;
+            teleport.Info.AgentID = this.AgentId;
             teleport.Info.RegionHandle = regionHandle;
             teleport.Info.SimAccess = simAccess;
 
@@ -475,8 +468,8 @@ namespace OpenSim.Region.ClientStack
         public void SendTeleportCancel()
         {
             TeleportCancelPacket tpCancel = new TeleportCancelPacket();
-            tpCancel.Info.SessionID = this.SessionID;
-            tpCancel.Info.AgentID = this.AgentID;
+            tpCancel.Info.SessionID = this.m_sessionId;
+            tpCancel.Info.AgentID = this.AgentId;
 
             OutPacket(tpCancel);
         }
@@ -494,7 +487,7 @@ namespace OpenSim.Region.ClientStack
         public void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
         {
             MoneyBalanceReplyPacket money = new MoneyBalanceReplyPacket();
-            money.MoneyData.AgentID = this.AgentID;
+            money.MoneyData.AgentID = this.AgentId;
             money.MoneyData.TransactionID = transaction;
             money.MoneyData.TransactionSuccess = success;
             money.MoneyData.Description = description;
@@ -641,7 +634,7 @@ namespace OpenSim.Region.ClientStack
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
             UpdateCreateInventoryItemPacket InventoryReply = new UpdateCreateInventoryItemPacket();
-            InventoryReply.AgentData.AgentID = this.AgentID;
+            InventoryReply.AgentData.AgentID = this.AgentId;
             InventoryReply.AgentData.SimApproved = true;
             InventoryReply.InventoryData = new UpdateCreateInventoryItemPacket.InventoryDataBlock[1];
             InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
@@ -672,8 +665,8 @@ namespace OpenSim.Region.ClientStack
         public void SendRemoveInventoryItem(LLUUID itemID)
         {
             RemoveInventoryItemPacket remove = new RemoveInventoryItemPacket();
-            remove.AgentData.AgentID = this.AgentID;
-            remove.AgentData.SessionID = this.SessionID;
+            remove.AgentData.AgentID = this.AgentId;
+            remove.AgentData.SessionID = this.m_sessionId;
             remove.InventoryData = new RemoveInventoryItemPacket.InventoryDataBlock[1];
             remove.InventoryData[0] = new RemoveInventoryItemPacket.InventoryDataBlock();
             remove.InventoryData[0].ItemID = itemID;
@@ -718,7 +711,7 @@ namespace OpenSim.Region.ClientStack
         public void SendAgentAlertMessage(string message, bool modal)
         {
             AgentAlertMessagePacket alertPack = new AgentAlertMessagePacket();
-            alertPack.AgentData.AgentID = this.AgentID;
+            alertPack.AgentData.AgentID = this.AgentId;
             alertPack.AlertData.Message = Helpers.StringToField(message);
             alertPack.AlertData.Modal = modal;
             OutPacket(alertPack);
@@ -799,7 +792,7 @@ namespace OpenSim.Region.ClientStack
         public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID)
         {
             AvatarPropertiesReplyPacket avatarReply = new AvatarPropertiesReplyPacket();
-            avatarReply.AgentData.AgentID = this.AgentID;
+            avatarReply.AgentData.AgentID = this.AgentId;
             avatarReply.AgentData.AvatarID = avatarID;
             avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
             avatarReply.PropertiesData.BornOn = Helpers.StringToField(bornOn);
@@ -823,9 +816,9 @@ namespace OpenSim.Region.ClientStack
         public void SendWearables(AvatarWearable[] wearables)
         {
             AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
-            aw.AgentData.AgentID = this.AgentID;
+            aw.AgentData.AgentID = this.AgentId;
             aw.AgentData.SerialNum = 0;
-            aw.AgentData.SessionID = this.SessionID;
+            aw.AgentData.SessionID = this.m_sessionId;
 
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
             AgentWearablesUpdatePacket.WearableDataBlock awb;
@@ -968,8 +961,8 @@ namespace OpenSim.Region.ClientStack
         public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
         {
             ObjectAttachPacket attach = new ObjectAttachPacket();
-            attach.AgentData.AgentID = this.AgentID;
-            attach.AgentData.SessionID = this.SessionID;
+            attach.AgentData.AgentID = this.AgentId;
+            attach.AgentData.SessionID = this.m_sessionId;
             attach.AgentData.AttachmentPoint = attachPoint;
             attach.ObjectData = new ObjectAttachPacket.ObjectDataBlock[1];
             attach.ObjectData[0] = new ObjectAttachPacket.ObjectDataBlock();
@@ -1284,7 +1277,7 @@ namespace OpenSim.Region.ClientStack
             objdata.ID = 8880000;
             objdata.NameValue = enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
             LLVector3 pos2 = new LLVector3(100f, 100f, 23f);
-            //objdata.FullID=user.AgentID;
+            //objdata.FullID=user.AgentId;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);
 

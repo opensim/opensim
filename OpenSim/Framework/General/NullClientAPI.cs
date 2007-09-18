@@ -167,6 +167,14 @@ namespace OpenSim.Framework
        public void SendViewerTime(int phase) { }
        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID) { }
        public void SetDebug(int newDebug) { }
+
+       public void InPacket(Packet NewPack)
+       {
+       }
+
+       public void ConnectionClosed()
+       {
+       }
    }
 }
 

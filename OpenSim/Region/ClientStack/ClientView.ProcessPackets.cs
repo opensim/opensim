@@ -33,6 +33,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -76,12 +77,12 @@ namespace OpenSim.Region.ClientStack
                 {
                     case PacketType.ViewerEffect:
                         ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
-                        foreach (ClientView client in m_clientThreads.Values)
+                        foreach (IClientAPI client in m_clientThreads.Values)
                         {
-                            if (client.AgentID != this.AgentID)
+                            if (client.AgentId != this.AgentId)
                             {
-                                viewer.AgentData.AgentID = client.AgentID;
-                                viewer.AgentData.SessionID = client.SessionID;
+                                viewer.AgentData.AgentID = client.AgentId;
+                                viewer.AgentData.SessionID = client.SessionId;
                                 client.OutPacket(viewer);
                             }
                         }
@@ -106,7 +107,7 @@ namespace OpenSim.Region.ClientStack
                         byte[] message = inchatpack.ChatData.Message;
                         byte type = inchatpack.ChatData.Type;
                         LLVector3 fromPos = new LLVector3(); // ClientAvatar.Pos;
-                        LLUUID fromAgentID = AgentID;
+                        LLUUID fromAgentID = AgentId;
 
                         int channel = inchatpack.ChatData.Channel;
 

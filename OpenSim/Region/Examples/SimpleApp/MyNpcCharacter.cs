@@ -1,16 +1,11 @@
 using System.Collections.Generic;
 using System.Net;
-using System.Timers;
-using System;
 using System.Text;
-
 using libsecondlife;
 using libsecondlife.Packets;
-
-using OpenSim.Framework;
+using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Scenes;
 
@@ -228,5 +223,13 @@ namespace SimpleApp
         public void SendViewerTime(int phase) { }
         public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID) { }
         public void SetDebug(int newDebug) { }
+
+        public void InPacket(Packet NewPack)
+        {
+        }
+
+        public void ConnectionClosed()
+        {
+        }
     }
 }

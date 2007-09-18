@@ -284,8 +284,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 long before;
                 before = GC.GetTotalMemory(true);
 #endif
+
                 LSL_BaseClass CompiledScript;
-                    CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
+                CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
+
 #if DEBUG
                     Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif

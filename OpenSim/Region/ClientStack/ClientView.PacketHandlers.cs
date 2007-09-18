@@ -28,6 +28,7 @@
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -40,13 +41,13 @@ namespace OpenSim.Region.ClientStack
             this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
         }
 
-        protected virtual bool Logout(ClientView simClient, Packet packet)
+        protected virtual bool Logout(IClientAPI simClient, Packet packet)
         {
             MainLog.Instance.Verbose( "OpenSimClient.cs:ProcessInPacket() - Got a logout request");
             //send reply to let the client logout
             LogoutReplyPacket logReply = new LogoutReplyPacket();
-            logReply.AgentData.AgentID = this.AgentID;
-            logReply.AgentData.SessionID = this.SessionID;
+            logReply.AgentData.AgentID = this.AgentId;
+            logReply.AgentData.SessionID = this.m_sessionId;
             logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
             logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
             logReply.InventoryData[0].ItemID = LLUUID.Zero;
@@ -56,13 +57,13 @@ namespace OpenSim.Region.ClientStack
             return true;
         }
 
-        protected bool AgentTextureCached(ClientView simclient, Packet packet)
+        protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //System.Console.WriteLine("texture cached: " + packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
-            cachedresp.AgentData.AgentID = this.AgentID;
-            cachedresp.AgentData.SessionID = this.SessionID;
+            cachedresp.AgentData.AgentID = this.AgentId;
+            cachedresp.AgentData.SessionID = this.m_sessionId;
             cachedresp.AgentData.SerialNum = this.cachedtextureserial;
             this.cachedtextureserial++;
             cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
@@ -77,7 +78,7 @@ namespace OpenSim.Region.ClientStack
             return true;
         }
 
-        protected bool MultipleObjUpdate(ClientView simClient, Packet packet)
+        protected bool MultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
            // System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
@@ -197,7 +198,7 @@ namespace OpenSim.Region.ClientStack
             //should be getting the map layer from the grid server
             //send a layer covering the 800,800 - 1200,1200 area (should be covering the requested area)
             MapLayerReplyPacket mapReply = new MapLayerReplyPacket();
-            mapReply.AgentData.AgentID = this.AgentID;
+            mapReply.AgentData.AgentID = this.AgentId;
             mapReply.AgentData.Flags = 0;
             mapReply.LayerData = new MapLayerReplyPacket.LayerDataBlock[1];
             mapReply.LayerData[0] = new MapLayerReplyPacket.LayerDataBlock();
@@ -214,7 +215,7 @@ namespace OpenSim.Region.ClientStack
             /*
             IList simMapProfiles = m_gridServer.RequestMapBlocks(minX, minY, maxX, maxY);
             MapBlockReplyPacket mbReply = new MapBlockReplyPacket();
-            mbReply.AgentData.AgentID = this.AgentID;
+            mbReply.AgentData.AgentId = this.AgentId;
             int len;
             if (simMapProfiles == null)
                 len = 0;

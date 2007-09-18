@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack
     {
         private ClientStackNetworkHandler _networkHandler;
         private IScene _localScene;
-        public Dictionary<uint, ClientView> ClientThreads = new Dictionary<uint, ClientView>();
+        public Dictionary<uint, IClientAPI> ClientThreads = new Dictionary<uint, IClientAPI>();
         private ClientManager m_clientManager = new ClientManager();
         public ClientManager ClientManager
         {
@@ -106,7 +106,7 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         /// <param name="packet"></param>
         /// <param name="simClient"></param>
-        public virtual void SendPacketToAllExcept(Packet packet, ClientView simClient)
+        public virtual void SendPacketToAllExcept(Packet packet, IClientAPI simClient)
         {
 
         }
@@ -129,7 +129,7 @@ namespace OpenSim.Region.ClientStack
             
         }
 
-        protected virtual ClientView CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, ClientView> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
+        protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, Dictionary<uint, IClientAPI> clientThreads, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
             return new ClientView(remoteEP, initialcirpack, clientThreads, scene, assetCache, packServer, authenSessions );
         }
@@ -145,7 +145,7 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, AgentCircuitManager authenticateSessionsClass)
         {
-            ClientView newuser =
+            IClientAPI newuser =
                 CreateNewClient(epSender, useCircuit, ClientThreads, _localScene, assetCache, this,
                                 authenticateSessionsClass);
             
