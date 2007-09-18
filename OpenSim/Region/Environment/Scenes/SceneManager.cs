@@ -135,7 +135,6 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 Console.WriteLine("Searching for Region: '" + regionName + "'");
-                Scene foundScene = null;
 
                 foreach (Scene scene in m_localScenes)
                 {

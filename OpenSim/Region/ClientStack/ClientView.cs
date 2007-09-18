@@ -51,7 +51,7 @@ namespace OpenSim.Region.ClientStack
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public partial class ClientView : ClientViewBase, IClientAPI
+    public partial class ClientView : IClientAPI
     {
         public static TerrainManager TerrainManager;
 
@@ -134,7 +134,7 @@ namespace OpenSim.Region.ClientStack
             this.ClientThread.Abort();
         }
 
-        public override void ConnectionClosed()
+        public void ConnectionClosed()
         {
             clientPingTimer.Stop();
             m_clientThreads.Remove(this.CircuitCode);
@@ -315,7 +315,7 @@ namespace OpenSim.Region.ClientStack
         # endregion
 
 
-        protected override void KillThread()
+        protected void KillThread()
         {
             this.ClientThread.Abort();
         }

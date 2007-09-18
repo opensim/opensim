@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
-        protected override void ProcessInPacket(Packet Pack)
+        protected void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
 
