@@ -703,7 +703,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SubscribeToClientEvents(client);
             m_estateManager.sendRegionHandshake(client);
-            CreateAndAddScenePresence(client);
+            CreateAndAddScenePresence(client, child );
             m_LandManager.sendParcelOverlay(client);
             commsManager.UserProfiles.AddNewUser(client.AgentId);
             commsManager.TransactionsManager.AddUser(client.AgentId);
@@ -768,19 +768,29 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.TriggerOnNewClient(client);
         }
 
-        protected ScenePresence CreateAndAddScenePresence(IClientAPI client)
+        protected ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child )
         {
             ScenePresence newAvatar = null;
 
-            MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Creating new avatar for remote viewer agent");
             newAvatar = new ScenePresence(client, this, m_regInfo);
-            MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Adding new avatar to world");
-            MainLog.Instance.Verbose("World.cs:AddViewerAgent() - Starting RegionHandshake ");
+            newAvatar.childAgent = child;
 
-            PhysicsVector pVec = new PhysicsVector(newAvatar.AbsolutePosition.X, newAvatar.AbsolutePosition.Y, newAvatar.AbsolutePosition.Z);
-            lock (m_syncRoot)
+            if (child)
             {
-                newAvatar.PhysActor = phyScene.AddAvatar(pVec);
+                MainLog.Instance.Verbose(this.RegionInfo.RegionName + ": Creating new child agent.");
+            }
+            else
+            {
+                newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
+
+                MainLog.Instance.Verbose(this.RegionInfo.RegionName + ": Creating new root agent.");
+                MainLog.Instance.Verbose(this.RegionInfo.RegionName + ": Adding Physical agent.");
+
+                PhysicsVector pVec = new PhysicsVector(newAvatar.AbsolutePosition.X, newAvatar.AbsolutePosition.Y, newAvatar.AbsolutePosition.Z);
+                lock (m_syncRoot)
+                {
+                    newAvatar.PhysActor = phyScene.AddAvatar(pVec);
+                }
             }
 
             lock (Entities)
@@ -805,7 +815,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Avatars.Add(client.AgentId, newAvatar);
                 }
             }
-            newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
+
             return newAvatar;
         }
 

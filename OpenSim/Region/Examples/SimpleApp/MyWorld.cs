@@ -66,7 +66,7 @@ namespace SimpleApp
         {
             SubscribeToClientEvents(client);
 
-            ScenePresence avatar = CreateAndAddScenePresence(client);
+            ScenePresence avatar = CreateAndAddScenePresence(client, child );
             avatar.AbsolutePosition = new LLVector3(128, 128, 26);
 
             LLVector3 pos = new LLVector3(128, 128, 128);
