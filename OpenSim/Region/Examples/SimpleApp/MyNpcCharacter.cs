@@ -232,5 +232,22 @@ namespace SimpleApp
         public void Close()
         {
         }
+     
+        private uint m_circuitCode;
+        public uint CircuitCode
+        {
+            get
+            {
+                return m_circuitCode;
+            }
+            set
+            {
+                m_circuitCode = value;
+            }
+        }
+
+        public event System.Action<IClientAPI> OnLogout;
+
+        public event System.Action<IClientAPI> OnConnectionClosed;
     }
 }

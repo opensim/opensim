@@ -49,7 +49,7 @@ namespace OpenSim.Region.ClientStack
         protected IPEndPoint ipeSender;
         protected EndPoint epSender;
         protected AsyncCallback ReceivedData;
-        protected PacketServer _packetServer;
+        protected PacketServer m_packetServer;
 
         protected int listenPort;
         protected IScene m_localScene;
@@ -61,11 +61,11 @@ namespace OpenSim.Region.ClientStack
         {
             get
             {
-                return _packetServer;
+                return m_packetServer;
             }
             set
             {
-                _packetServer = value;
+                m_packetServer = value;
             }
         }
 
@@ -74,7 +74,7 @@ namespace OpenSim.Region.ClientStack
             set
             {
                 this.m_localScene = value;
-                this._packetServer.LocalScene = this.m_localScene;
+                this.m_packetServer.LocalScene = this.m_localScene;
             }
         }
 
@@ -111,7 +111,9 @@ namespace OpenSim.Region.ClientStack
             catch (System.Net.Sockets.SocketException)
             {
                 Console.WriteLine("Remote host Closed connection");
-                this._packetServer.ConnectionClosed(this.clientCircuits[epSender]);
+                
+                this.m_packetServer.CloseCircuit(this.clientCircuits[epSender]);
+
                 ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
                 epSender = (EndPoint)ipeSender;
                 Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
@@ -126,7 +128,7 @@ namespace OpenSim.Region.ClientStack
             if (this.clientCircuits.ContainsKey(epSender))
             {
                 //if so then send packet to the packetserver
-                this._packetServer.InPacket(this.clientCircuits[epSender], packet);
+                this.m_packetServer.InPacket(this.clientCircuits[epSender], packet);
             }
             else if (packet.Type == PacketType.UseCircuitCode)
             {
@@ -170,7 +172,7 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void RegisterPacketServer(PacketServer server)
         {
-            this._packetServer = server;
+            this.m_packetServer = server;
         }
 
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)//EndPoint packetSender)

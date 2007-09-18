@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {
@@ -24,7 +25,7 @@ namespace OpenSim.Framework
             m_clients = new Dictionary<uint, IClientAPI>();
         }
 
-        public void Remove(uint id)
+        private void Remove(uint id)
         {
             m_clients.Remove(id);
         }
@@ -44,19 +45,46 @@ namespace OpenSim.Framework
             }
         }
 
-        public void ConnectionClosed(uint circuitCode)
+        public void CloseAllAgents(uint circuitCode)
         {
             IClientAPI client;
 
             if (m_clients.TryGetValue(circuitCode, out client))
             {
-                m_clients.Remove(circuitCode);
-                client.Close();
-
-                // TODO: Now remove all local childagents too
+                CloseAllCircuits(client.AgentId);
             }
         }
 
+        public void CloseAllCircuits( LLUUID agentId )
+        {
+            uint[] circuits = GetAllCircuits(agentId);
+            foreach (uint circuit in circuits )
+            {
+                IClientAPI client;
+                if (m_clients.TryGetValue(circuit, out client))
+                {
+                    Remove(circuit);
+                    client.Close();
+                }
+            }            
+        }
+
+        private uint[] GetAllCircuits(LLUUID agentId)
+        {
+            List<uint> circuits = new List<uint>();
+
+            foreach (KeyValuePair<uint, IClientAPI> pair in m_clients)
+            {
+                if( pair.Value.AgentId == agentId )
+                {
+                    circuits.Add( pair.Key );
+                }
+            }
+
+            return circuits.ToArray();
+        }
+
+      
         public void ViewerEffectHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock)
         {
             ViewerEffectPacket packet = new ViewerEffectPacket();

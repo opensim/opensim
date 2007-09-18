@@ -56,19 +56,12 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual bool Logout(IClientAPI client, Packet packet)
         {
-            // TODO: Refactor out this into an OnLogout so the ClientManager can close all clients.
-
             MainLog.Instance.Verbose("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
-            //send reply to let the client logout
-            LogoutReplyPacket logReply = new LogoutReplyPacket();
-            logReply.AgentData.AgentID = this.AgentId;
-            logReply.AgentData.SessionID = this.m_sessionId;
-            logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
-            logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
-            logReply.InventoryData[0].ItemID = LLUUID.Zero;
-            OutPacket(logReply);
-            //
-            this.Close();
+
+            if( OnLogout != null )
+            {
+                OnLogout(client);
+            }
 
             return true;
         }

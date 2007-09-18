@@ -33,14 +33,15 @@ using OpenSim.Framework;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Communications.Caches;
+using libsecondlife;
 
 namespace OpenSim.Region.ClientStack
 {
     public class PacketServer
     {
-        private ClientStackNetworkHandler _networkHandler;
+        private ClientStackNetworkHandler m_networkHandler;
         private IScene _localScene;
-        private ClientManager m_clientManager = new ClientManager();
+        private readonly ClientManager m_clientManager = new ClientManager();
         public ClientManager ClientManager
         {
             get { return m_clientManager; }
@@ -48,8 +49,8 @@ namespace OpenSim.Region.ClientStack
 
         public PacketServer(ClientStackNetworkHandler networkHandler)
         {
-            _networkHandler = networkHandler;
-            _networkHandler.RegisterPacketServer(this);
+            m_networkHandler = networkHandler;
+            m_networkHandler.RegisterPacketServer(this);
         }
 
         public IScene LocalScene
@@ -68,11 +69,6 @@ namespace OpenSim.Region.ClientStack
         public virtual void InPacket(uint circuitCode, Packet packet)
         {
             m_clientManager.InPacket(circuitCode, packet);
-        }
-
-        public virtual void ConnectionClosed(uint circuitCode)
-        {
-            m_clientManager.ConnectionClosed(circuitCode);
         }
 
         /// <summary>
@@ -145,10 +141,24 @@ namespace OpenSim.Region.ClientStack
             this.m_clientManager.Add(useCircuit.CircuitCode.Code, newuser);
 
             newuser.OnViewerEffect += m_clientManager.ViewerEffectHandler;
+            newuser.OnLogout += LogoutHandler;
+            newuser.OnConnectionClosed += CloseClient;
 
             return true;
         }
 
+        public void LogoutHandler(IClientAPI client)
+        {
+            LogoutReplyPacket logReply = new LogoutReplyPacket();
+            logReply.AgentData.AgentID = client.AgentId;
+            logReply.AgentData.SessionID = client.SessionId;
+            logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
+            logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
+            logReply.InventoryData[0].ItemID = LLUUID.Zero;
+            client.OutPacket(logReply);
+
+            CloseClient( client );
+        }
 
 
         /// <summary>
@@ -160,17 +170,22 @@ namespace OpenSim.Region.ClientStack
         /// <param name="circuitcode"></param>
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
         {
-            this._networkHandler.SendPacketTo(buffer, size, flags, circuitcode);
+            this.m_networkHandler.SendPacketTo(buffer, size, flags, circuitcode);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="circuitcode"></param>
-        public virtual void RemoveClientCircuit(uint circuitcode)
+        public virtual void CloseCircuit(uint circuitcode)
         {
-            this._networkHandler.RemoveClientCircuit(circuitcode);
-            this.m_clientManager.Remove(circuitcode);
+            m_networkHandler.RemoveClientCircuit( circuitcode );
+            m_clientManager.CloseAllAgents( circuitcode );
+        }
+
+        public virtual void CloseClient( IClientAPI client )
+        {
+            CloseCircuit( client.CircuitCode );
         }
     }
 }

@@ -51,10 +51,16 @@ namespace OpenSim.Region.ClientStack
         protected const int RESEND_TIMEOUT = 4000;
         protected const int MAX_SEQUENCE = 0xFFFFFF;
 
-        public uint CircuitCode;
+        private uint m_circuitCode;
         public EndPoint userEP;
 
         protected PacketServer m_networkServer;
+
+        public uint CircuitCode
+        {
+            get { return m_circuitCode; }
+            set { m_circuitCode = value; }
+        }
 
         protected virtual void ProcessOutPacket(Packet Pack)
         {
@@ -142,11 +148,11 @@ namespace OpenSim.Region.ClientStack
                 if (Pack.Header.Zerocoded)
                 {
                     int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, CircuitCode);//userEP);
+                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);//userEP);
                 }
                 else
                 {
-                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, CircuitCode); //userEP);
+                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode); //userEP);
                 }
             }
             catch (Exception)

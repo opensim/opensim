@@ -133,8 +133,6 @@ namespace OpenSim.Region.ClientStack
 
             m_scene.RemoveClient(this.AgentId);
 
-            m_clientManager.Remove(this.CircuitCode); // TODO: Move out and delete ref to clientmanager.
-            m_networkServer.RemoveClientCircuit(this.CircuitCode);
             this.ClientThread.Abort();
         }
 
@@ -215,7 +213,7 @@ namespace OpenSim.Region.ClientStack
                 } else {
                     info = packet.Type.ToString();
                 }
-                Console.WriteLine(CircuitCode + ":" + direction + ": " + info);
+                Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
             }
         }
 
@@ -252,8 +250,10 @@ namespace OpenSim.Region.ClientStack
                 probesWithNoIngressPackets++;
                 if (probesWithNoIngressPackets > 30)
                 {
-                    // Refactor out this into an OnConnectionClosed so the ClientManager can clean up
-                    this.Close();
+                    if( OnConnectionClosed != null )
+                    {
+                        OnConnectionClosed(this);
+                    }
                 }
                 else
                 {
@@ -283,7 +283,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void AuthUser()
         {
-            // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.CircuitCode.m_sessionId, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
+            // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.m_circuitCode.m_sessionId, cirpack.m_circuitCode.ID, cirpack.m_circuitCode.Code);
             AuthenticateResponse sessionInfo = this.m_authenticateSessionsHandler.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
             if (!sessionInfo.Authorised)
             {
@@ -297,7 +297,7 @@ namespace OpenSim.Region.ClientStack
                 //session is authorised
                 m_agentId = cirpack.CircuitCode.ID;
                 this.m_sessionId = cirpack.CircuitCode.SessionID;
-                this.CircuitCode = cirpack.CircuitCode.Code;
+                this.m_circuitCode = cirpack.CircuitCode.Code;
                 this.firstName = sessionInfo.LoginInfo.First;
                 this.lastName = sessionInfo.LoginInfo.Last;
 

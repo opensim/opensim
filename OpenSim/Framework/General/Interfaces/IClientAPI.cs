@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using System.Collections.Generic;
 using System.Net;
 using libsecondlife;
@@ -192,6 +193,12 @@ namespace OpenSim.Framework.Interfaces
             get;
         }
 
+        uint CircuitCode
+        {
+            get;
+            set;
+        }
+
         void OutPacket(Packet newPack);
         void SendWearables(AvatarWearable[] wearables);
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
@@ -245,5 +252,7 @@ namespace OpenSim.Framework.Interfaces
         void InPacket(Packet NewPack);
         void Close();
         event ViewerEffectEventHandler OnViewerEffect;
+        event Action<IClientAPI> OnLogout;
+        event Action<IClientAPI> OnConnectionClosed;
     }
 }

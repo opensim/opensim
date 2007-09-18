@@ -42,6 +42,8 @@ namespace OpenSim.Region.ClientStack
 {
     partial class ClientView
     {
+        public event Action<IClientAPI> OnLogout;
+        public event Action<IClientAPI> OnConnectionClosed;
         public event ViewerEffectEventHandler OnViewerEffect;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
@@ -373,7 +375,7 @@ namespace OpenSim.Region.ClientStack
             agentData.AgentID = this.AgentId;
             agentData.SessionID = this.m_sessionId;
             agentData.SecureSessionID = this.SecureSessionID;
-            agentData.circuitcode = this.CircuitCode;
+            agentData.circuitcode = this.m_circuitCode;
             agentData.child = false;
             agentData.firstname = this.firstName;
             agentData.lastname = this.lastName;
