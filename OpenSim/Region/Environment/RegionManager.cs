@@ -1,3 +1,0 @@
-namespace OpenSim.Region.Environment
-{
-}

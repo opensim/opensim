@@ -67,9 +67,6 @@ namespace OpenSim.Region.ExtensionsScriptModule
             compilers.Add(javaCompiler.FileExt(), javaCompiler);
         }
 
-        public delegate TResult ModuleAPIMethod1<TResult, TParam0>(TParam0 param0);
-        public delegate TResult ModuleAPIMethod2<TResult, TParam0, TParam1>(TParam0 param0, TParam1 param1);
-
         public void Initialise(Scene scene)
         {
             System.Console.WriteLine("Initialising Extensions Scripting Module");
