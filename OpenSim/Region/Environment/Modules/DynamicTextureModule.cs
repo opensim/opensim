@@ -1,23 +1,20 @@
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-using System.IO;
+using System;
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class DynamicTextureModule :IRegionModule, IDynamicTextureManager
+    public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
     {
         private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
-        private Dictionary<string, IDynamicTextureRender> RenderPlugins= new Dictionary<string, IDynamicTextureRender>();
+
+        private Dictionary<string, IDynamicTextureRender> RenderPlugins =
+            new Dictionary<string, IDynamicTextureRender>();
+
         private Dictionary<LLUUID, DynamicTextureUpdater> Updaters = new Dictionary<LLUUID, DynamicTextureUpdater>();
 
         public void Initialise(Scene scene)
@@ -31,7 +28,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PostInitialise()
         {
-           
         }
 
         public void CloseDown()
@@ -69,10 +65,11 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url, string extraParams, int updateTimer)
+        public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
+                                           string extraParams, int updateTimer)
         {
-            System.Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
-            if (this.RenderPlugins.ContainsKey(contentType))
+            Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
+            if (RenderPlugins.ContainsKey(contentType))
             {
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
                 updater.SimUUID = simID;
@@ -83,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules
                 updater.UpdaterID = LLUUID.Random();
                 updater.Params = extraParams;
 
-                if (!this.Updaters.ContainsKey(updater.UpdaterID))
+                if (!Updaters.ContainsKey(updater.UpdaterID))
                 {
                     Updaters.Add(updater.UpdaterID, updater);
                 }
@@ -94,9 +91,10 @@ namespace OpenSim.Region.Environment.Modules
             return LLUUID.Zero;
         }
 
-        public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data, string extraParams, int updateTimer)
+        public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data,
+                                            string extraParams, int updateTimer)
         {
-            if (this.RenderPlugins.ContainsKey(contentType))
+            if (RenderPlugins.ContainsKey(contentType))
             {
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
                 updater.SimUUID = simID;
@@ -107,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules
                 updater.UpdaterID = LLUUID.Random();
                 updater.Params = extraParams;
 
-                if (!this.Updaters.ContainsKey(updater.UpdaterID))
+                if (!Updaters.ContainsKey(updater.UpdaterID))
                 {
                     Updaters.Add(updater.UpdaterID, updater);
                 }
@@ -140,7 +138,7 @@ namespace OpenSim.Region.Environment.Modules
             public void DataReceived(byte[] data, Scene scene)
             {
                 //TODO delete the last asset(data), if it was a dynamic texture
- 
+
                 AssetBase asset = new AssetBase();
                 asset.FullID = LLUUID.Random();
                 asset.Data = data;
@@ -148,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules
                 asset.Type = 0;
                 scene.commsManager.AssetCache.AddAsset(asset);
 
-                this.LastAssetID = asset.FullID;
+                LastAssetID = asset.FullID;
 
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
                 part.Shape.TextureEntry = new LLObject.TextureEntry(asset.FullID).ToBytes();

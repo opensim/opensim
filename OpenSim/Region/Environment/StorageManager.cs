@@ -1,15 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Capabilities;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
-
 using System.Reflection;
+using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment
 {
@@ -19,10 +11,7 @@ namespace OpenSim.Region.Environment
 
         public IRegionDataStore DataStore
         {
-            get
-            {
-                return m_dataStore;
-            }
+            get { return m_dataStore; }
         }
 
         public StorageManager(IRegionDataStore storage)
@@ -32,7 +21,7 @@ namespace OpenSim.Region.Environment
 
         public StorageManager(string dllName, string dataStoreFile, string dataStoreDB)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("DATASTORE", "Attempting to load " + dllName);
+            MainLog.Instance.Verbose("DATASTORE", "Attempting to load " + dllName);
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -43,12 +32,13 @@ namespace OpenSim.Region.Environment
 
                     if (typeInterface != null)
                     {
-                        IRegionDataStore plug = (IRegionDataStore)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        IRegionDataStore plug =
+                            (IRegionDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise(dataStoreFile, dataStoreDB);
 
                         m_dataStore = plug;
 
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("DATASTORE", "Added IRegionDataStore Interface");
+                        MainLog.Instance.Verbose("DATASTORE", "Added IRegionDataStore Interface");
                     }
 
                     typeInterface = null;

@@ -1,13 +1,6 @@
-using System.Collections.Generic;
-using OpenSim.Framework;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Capabilities;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.LandManagement;
-
 using libsecondlife;
+using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment
 {
@@ -20,6 +13,7 @@ namespace OpenSim.Region.Environment
         // TODO: Change this to false when permissions are a desired default
         // TODO: Move to configuration option.
         private bool m_bypassPermissions = true;
+
         public bool BypassPermissions
         {
             get { return m_bypassPermissions; }
@@ -104,26 +98,27 @@ namespace OpenSim.Region.Environment
             // Default: deny
             bool permission = false;
 
-            if( !m_scene.Entities.ContainsKey( objId ))
+            if (!m_scene.Entities.ContainsKey(objId))
             {
                 return false;
             }
-            
+
             // If it's not an object, we cant edit it.
             if (!(m_scene.Entities[objId] is SceneObjectGroup))
             {
                 return false;
             }
-            
-            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objId];
-            LLUUID taskOwner = null;  
+
+            SceneObjectGroup task = (SceneObjectGroup) m_scene.Entities[objId];
+            LLUUID taskOwner = null;
 
             // Object owners should be able to edit their own content
             if (user == taskOwner)
                 permission = true;
 
             // Users should be able to edit what is over their land.
-            if (m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y).landData.ownerID == user)
+            if (m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y).landData.ownerID ==
+                user)
                 permission = true;
 
             // Estate users should be able to edit anything in the sim
@@ -270,7 +265,7 @@ namespace OpenSim.Region.Environment
                 // TODO: Need to do some extra checks here. Requires group code.
             }
 
-            if(IsEstateManager(user))
+            if (IsEstateManager(user))
                 permission = true;
 
             if (IsAdministrator(user))
@@ -300,6 +295,5 @@ namespace OpenSim.Region.Environment
         }
 
         #endregion
-
     }
 }

@@ -1,23 +1,19 @@
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using System.IO;
-using System;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Region.Environment.Scenes.Scripting;
-using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-
     public class SceneObjectPart : IScriptHost
     {
         private const uint FULL_MASK_PERMISSIONS = 2147483647;
@@ -25,8 +21,7 @@ namespace OpenSim.Region.Environment.Scenes
         private string m_inventoryFileName = "";
         private LLUUID m_folderID = LLUUID.Zero;
 
-        [XmlIgnore]
-        public PhysicsActor PhysActor = null;
+        [XmlIgnore] public PhysicsActor PhysActor = null;
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
 
@@ -57,19 +52,25 @@ namespace OpenSim.Region.Environment.Scenes
         #region Properties
 
         public LLUUID CreatorID;
-        public LLUUID ObjectCreator { get { return CreatorID; } }
+
+        public LLUUID ObjectCreator
+        {
+            get { return CreatorID; }
+        }
 
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
         /// no need for this to be part of Database backup
         /// </summary>
         protected uint m_inventorySerial = 0;
+
         public uint InventorySerial
         {
             get { return m_inventorySerial; }
         }
 
         protected LLUUID m_uuid;
+
         public LLUUID UUID
         {
             get { return m_uuid; }
@@ -77,6 +78,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected uint m_localID;
+
         public uint LocalID
         {
             get { return m_localID; }
@@ -84,6 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected string m_name;
+
         public virtual string Name
         {
             get { return m_name; }
@@ -91,20 +94,23 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLObject.ObjectFlags m_flags;
+
         public uint ObjectFlags
         {
-            get { return (uint)m_flags; }
-            set { m_flags = (LLObject.ObjectFlags)value; }
+            get { return (uint) m_flags; }
+            set { m_flags = (LLObject.ObjectFlags) value; }
         }
 
         protected LLObject.MaterialType m_material;
+
         public byte Material
         {
-            get { return (byte)m_material; }
-            set { m_material = (LLObject.MaterialType)value; }
+            get { return (byte) m_material; }
+            set { m_material = (LLObject.MaterialType) value; }
         }
 
         protected ulong m_regionHandle;
+
         public ulong RegionHandle
         {
             get { return m_regionHandle; }
@@ -113,6 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
+
         public LLVector3 GroupPosition
         {
             get { return m_groupPosition; }
@@ -120,6 +127,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_offsetPosition;
+
         public LLVector3 OffsetPosition
         {
             get { return m_offsetPosition; }
@@ -132,6 +140,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLQuaternion m_rotationOffset;
+
         public LLQuaternion RotationOffset
         {
             get { return m_rotationOffset; }
@@ -139,6 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_velocity;
+
         /// <summary></summary>
         public LLVector3 Velocity
         {
@@ -147,6 +157,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_angularVelocity;
+
         /// <summary></summary>
         public LLVector3 AngularVelocity
         {
@@ -155,6 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_acceleration;
+
         /// <summary></summary>
         public LLVector3 Acceleration
         {
@@ -163,13 +175,15 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private string m_description = "";
+
         public string Description
         {
-            get { return this.m_description; }
-            set { this.m_description = value; }
+            get { return m_description; }
+            set { m_description = value; }
         }
 
         private string m_text = "";
+
         public string Text
         {
             get { return m_text; }
@@ -181,6 +195,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private string m_sitName = "";
+
         public string SitName
         {
             get { return m_sitName; }
@@ -188,6 +203,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private string m_touchName = "";
+
         public string TouchName
         {
             get { return m_touchName; }
@@ -195,17 +211,19 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected PrimitiveBaseShape m_shape;
+
         public PrimitiveBaseShape Shape
         {
-            get { return this.m_shape; }
+            get { return m_shape; }
             set { m_shape = value; }
         }
 
         public LLVector3 Scale
         {
-            set { this.m_shape.Scale = value; }
-            get { return this.m_shape.Scale; }
+            set { m_shape.Scale = value; }
+            get { return m_shape.Scale; }
         }
+
         #endregion
 
         public LLUUID ObjectOwner
@@ -215,16 +233,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public SceneObjectGroup ParentGroup
         {
-            get { return m_parentGroup; } 
+            get { return m_parentGroup; }
         }
 
         #region Constructors
+
         /// <summary>
         /// 
         /// </summary>
         public SceneObjectPart()
         {
-
         }
 
         /// <summary>
@@ -236,43 +254,44 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID, PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
+        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
+                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
         {
-            this.m_name = "Primitive";
-            this.m_regionHandle = regionHandle;
-            this.m_parentGroup = parent;
+            m_name = "Primitive";
+            m_regionHandle = regionHandle;
+            m_parentGroup = parent;
 
-            this.CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            this.OwnerID = ownerID;
-            this.CreatorID = this.OwnerID;
-            this.LastOwnerID = LLUUID.Zero;
-            this.UUID = LLUUID.Random();
-            this.LocalID = (uint)(localID);
-            this.Shape = shape;
+            CreationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            OwnerID = ownerID;
+            CreatorID = OwnerID;
+            LastOwnerID = LLUUID.Zero;
+            UUID = LLUUID.Random();
+            LocalID = (uint) (localID);
+            Shape = shape;
 
-            this.GroupPosition = groupPosition;
-            this.OffsetPosition = offsetPosition;
-            this.RotationOffset = LLQuaternion.Identity;
-            this.Velocity = new LLVector3(0, 0, 0);
-            this.AngularVelocity = new LLVector3(0, 0, 0);
-            this.Acceleration = new LLVector3(0, 0, 0);
-            
+            GroupPosition = groupPosition;
+            OffsetPosition = offsetPosition;
+            RotationOffset = LLQuaternion.Identity;
+            Velocity = new LLVector3(0, 0, 0);
+            AngularVelocity = new LLVector3(0, 0, 0);
+            Acceleration = new LLVector3(0, 0, 0);
+
             m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
             m_folderID = LLUUID.Random();
-            
+
             m_flags = 0;
-            m_flags |=  LLObject.ObjectFlags.ObjectModify |
-                LLObject.ObjectFlags.ObjectCopy |
-                LLObject.ObjectFlags.ObjectYouOwner |
-                LLObject.ObjectFlags.Touch |
-                LLObject.ObjectFlags.ObjectMove |
-                LLObject.ObjectFlags.AllowInventoryDrop |
-                LLObject.ObjectFlags.ObjectTransfer |
-                LLObject.ObjectFlags.ObjectOwnerModify;
-            
+            m_flags |= LLObject.ObjectFlags.ObjectModify |
+                       LLObject.ObjectFlags.ObjectCopy |
+                       LLObject.ObjectFlags.ObjectYouOwner |
+                       LLObject.ObjectFlags.Touch |
+                       LLObject.ObjectFlags.ObjectMove |
+                       LLObject.ObjectFlags.AllowInventoryDrop |
+                       LLObject.ObjectFlags.ObjectTransfer |
+                       LLObject.ObjectFlags.ObjectOwnerModify;
+
             ScheduleFullUpdate();
         }
-        
+
         /// <summary>
         /// Re/create a SceneObjectPart (prim)
         /// currently not used, and maybe won't be
@@ -283,23 +302,26 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, int creationDate, LLUUID ownerID, LLUUID creatorID, LLUUID lastOwnerID, uint localID, PrimitiveBaseShape shape, LLVector3 position, LLQuaternion rotation, uint flags)
+        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, int creationDate, LLUUID ownerID,
+                               LLUUID creatorID, LLUUID lastOwnerID, uint localID, PrimitiveBaseShape shape,
+                               LLVector3 position, LLQuaternion rotation, uint flags)
         {
-            this.m_regionHandle = regionHandle;
-            this.m_parentGroup = parent;
+            m_regionHandle = regionHandle;
+            m_parentGroup = parent;
 
-            this.CreationDate = creationDate;
-            this.OwnerID = ownerID;
-            this.CreatorID = creatorID;
-            this.LastOwnerID = lastOwnerID;
-            this.UUID = LLUUID.Random();
-            this.LocalID = (uint)(localID);
-            this.Shape = shape;
+            CreationDate = creationDate;
+            OwnerID = ownerID;
+            CreatorID = creatorID;
+            LastOwnerID = lastOwnerID;
+            UUID = LLUUID.Random();
+            LocalID = (uint) (localID);
+            Shape = shape;
 
-            this.OffsetPosition = position;
-            this.RotationOffset = rotation;
-            this.ObjectFlags = flags;
+            OffsetPosition = position;
+            RotationOffset = rotation;
+            ObjectFlags = flags;
         }
+
         #endregion
 
         /// <summary>
@@ -309,8 +331,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(SceneObjectPart));
-            return (SceneObjectPart)serializer.Deserialize(xmlReader);
+            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
+            return (SceneObjectPart) serializer.Deserialize(xmlReader);
         }
 
         /// <summary>
@@ -319,7 +341,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="xmlWriter"></param>
         public void ToXml(XmlWriter xmlWriter)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(SceneObjectPart));
+            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             serializer.Serialize(xmlWriter, this);
         }
 
@@ -329,7 +351,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetParent(SceneObjectGroup parent)
         {
             m_parentGroup = parent;
-
         }
 
         public LLUUID GetRootPartUUID()
@@ -342,34 +363,38 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region Copying
+
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         public SceneObjectPart Copy(uint localID)
         {
-            SceneObjectPart dupe = (SceneObjectPart)this.MemberwiseClone();
+            SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.UUID = LLUUID.Random();
             dupe.LocalID = localID;
             dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
             dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
-            dupe.RotationOffset = new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
+            dupe.RotationOffset =
+                new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
             dupe.Velocity = new LLVector3(0, 0, 0);
             dupe.Acceleration = new LLVector3(0, 0, 0);
             dupe.AngularVelocity = new LLVector3(0, 0, 0);
-            dupe.ObjectFlags = this.ObjectFlags;
+            dupe.ObjectFlags = ObjectFlags;
 
-            byte[] extraP = new byte[this.Shape.ExtraParams.Length];
-            Array.Copy(this.Shape.ExtraParams, extraP, extraP.Length);
+            byte[] extraP = new byte[Shape.ExtraParams.Length];
+            Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
             return dupe;
         }
+
         #endregion
 
         #region Update Scheduling
+
         /// <summary>
         /// 
         /// </summary>
@@ -387,7 +412,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parentGroup.HasChanged = true;
             }
-            this.TimeStampFull =(uint) Util.UnixTimeSinceEpoch();
+            TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
         }
 
@@ -402,7 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_parentGroup.HasChanged = true;
                 }
-                this.TimeStampTerse = (uint)Util.UnixTimeSinceEpoch();
+                TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
                 m_updateFlag = 1;
             }
         }
@@ -426,56 +451,60 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
         #endregion
 
         #region Shape
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
-            this.m_shape.PathBegin = shapeBlock.PathBegin;
-            this.m_shape.PathEnd = shapeBlock.PathEnd;
-            this.m_shape.PathScaleX = shapeBlock.PathScaleX;
-            this.m_shape.PathScaleY = shapeBlock.PathScaleY;
-            this.m_shape.PathShearX = shapeBlock.PathShearX;
-            this.m_shape.PathShearY = shapeBlock.PathShearY;
-            this.m_shape.PathSkew = shapeBlock.PathSkew;
-            this.m_shape.ProfileBegin = shapeBlock.ProfileBegin;
-            this.m_shape.ProfileEnd = shapeBlock.ProfileEnd;
-            this.m_shape.PathCurve = shapeBlock.PathCurve;
-            this.m_shape.ProfileCurve = shapeBlock.ProfileCurve;
-            this.m_shape.ProfileHollow = shapeBlock.ProfileHollow;
-            this.m_shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
-            this.m_shape.PathRevolutions = shapeBlock.PathRevolutions;
-            this.m_shape.PathTaperX = shapeBlock.PathTaperX;
-            this.m_shape.PathTaperY = shapeBlock.PathTaperY;
-            this.m_shape.PathTwist = shapeBlock.PathTwist;
-            this.m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+            m_shape.PathBegin = shapeBlock.PathBegin;
+            m_shape.PathEnd = shapeBlock.PathEnd;
+            m_shape.PathScaleX = shapeBlock.PathScaleX;
+            m_shape.PathScaleY = shapeBlock.PathScaleY;
+            m_shape.PathShearX = shapeBlock.PathShearX;
+            m_shape.PathShearY = shapeBlock.PathShearY;
+            m_shape.PathSkew = shapeBlock.PathSkew;
+            m_shape.ProfileBegin = shapeBlock.ProfileBegin;
+            m_shape.ProfileEnd = shapeBlock.ProfileEnd;
+            m_shape.PathCurve = shapeBlock.PathCurve;
+            m_shape.ProfileCurve = shapeBlock.ProfileCurve;
+            m_shape.ProfileHollow = shapeBlock.ProfileHollow;
+            m_shape.PathRadiusOffset = shapeBlock.PathRadiusOffset;
+            m_shape.PathRevolutions = shapeBlock.PathRevolutions;
+            m_shape.PathTaperX = shapeBlock.PathTaperX;
+            m_shape.PathTaperY = shapeBlock.PathTaperY;
+            m_shape.PathTwist = shapeBlock.PathTwist;
+            m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
             ScheduleFullUpdate();
         }
+
         #endregion
 
         #region Inventory
+
         public void AddInventoryItem(TaskInventoryItem item)
         {
             item.parent_id = m_folderID;
             item.creation_date = 1000;
-            item.ParentPartID = this.UUID;
-            this.TaskInventory.Add(item.item_id, item);
-            this.m_inventorySerial++;
+            item.ParentPartID = UUID;
+            TaskInventory.Add(item.item_id, item);
+            m_inventorySerial++;
         }
 
         public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
         {
-            if (localID == this.LocalID)
+            if (localID == LocalID)
             {
-                if (this.TaskInventory.ContainsKey(itemID))
+                if (TaskInventory.ContainsKey(itemID))
                 {
                     string type = TaskInventory[itemID].inv_type;
-                    this.TaskInventory.Remove(itemID);
-                    this.m_inventorySerial++;
+                    TaskInventory.Remove(itemID);
+                    m_inventorySerial++;
                     if (type == "lsltext")
                     {
                         return 10;
@@ -496,16 +525,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public bool GetInventoryFileName(IClientAPI client, uint localID)
         {
-            if (localID == this.m_localID)
+            if (localID == m_localID)
             {
-                if (this.m_inventorySerial > 0)
+                if (m_inventorySerial > 0)
                 {
-                    client.SendTaskInventory(this.m_uuid, (short)m_inventorySerial, Helpers.StringToField(m_inventoryFileName));
+                    client.SendTaskInventory(m_uuid, (short) m_inventorySerial,
+                                             Helpers.StringToField(m_inventoryFileName));
                     return true;
                 }
                 else
                 {
-                    client.SendTaskInventory(this.m_uuid, 0, new byte[0]);
+                    client.SendTaskInventory(m_uuid, 0, new byte[0]);
                     return false;
                 }
             }
@@ -515,8 +545,8 @@ namespace OpenSim.Region.Environment.Scenes
         public string RequestInventoryFile(IXfer xferManager)
         {
             byte[] fileData = new byte[0];
-            InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, this.UUID);
-            foreach (TaskInventoryItem item in this.TaskInventory.Values)
+            InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
+            foreach (TaskInventoryItem item in TaskInventory.Values)
             {
                 invString.AddItemStart();
                 invString.AddNameValueLine("item_id", item.item_id.ToStringHyphenated());
@@ -550,49 +580,56 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return "";
         }
+
         #endregion
 
         #region ExtraParams
+
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
-            this.m_shape.ExtraParams = new byte[data.Length + 7];
+            m_shape.ExtraParams = new byte[data.Length + 7];
             int i = 0;
-            uint length = (uint)data.Length;
-            this.m_shape.ExtraParams[i++] = 1;
-            this.m_shape.ExtraParams[i++] = (byte)(type % 256);
-            this.m_shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
+            uint length = (uint) data.Length;
+            m_shape.ExtraParams[i++] = 1;
+            m_shape.ExtraParams[i++] = (byte) (type%256);
+            m_shape.ExtraParams[i++] = (byte) ((type >> 8)%256);
 
-            this.m_shape.ExtraParams[i++] = (byte)(length % 256);
-            this.m_shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
-            this.m_shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
-            this.m_shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
-            Array.Copy(data, 0, this.m_shape.ExtraParams, i, data.Length);
+            m_shape.ExtraParams[i++] = (byte) (length%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 8)%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 16)%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 24)%256);
+            Array.Copy(data, 0, m_shape.ExtraParams, i, data.Length);
 
-            this.ScheduleFullUpdate();
-
+            ScheduleFullUpdate();
         }
+
         #endregion
 
         #region Texture
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
-            this.m_shape.TextureEntry = textureEntry;
+            m_shape.TextureEntry = textureEntry;
             ScheduleFullUpdate();
         }
+
         #endregion
 
         #region ParticleSystem
-        public void AddNewParticleSystem(libsecondlife.Primitive.ParticleSystem pSystem)
+
+        public void AddNewParticleSystem(Primitive.ParticleSystem pSystem)
         {
-            this.m_particleSystem = pSystem.GetBytes();
+            m_particleSystem = pSystem.GetBytes();
         }
+
         #endregion
 
         #region Position
+
         /// <summary>
         /// 
         /// </summary>
@@ -600,46 +637,52 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateOffSet(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-            this.OffsetPosition = newPos;
+            OffsetPosition = newPos;
             ScheduleTerseUpdate();
         }
-        
+
         public void UpdateGroupPosition(LLVector3 pos)
         {
             LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-            this.GroupPosition = newPos;
+            GroupPosition = newPos;
             ScheduleTerseUpdate();
         }
+
         #endregion
 
         #region rotation
+
         public void UpdateRotation(LLQuaternion rot)
         {
-            this.RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
+            RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
             ScheduleTerseUpdate();
         }
+
         #endregion
 
         #region Resizing/Scale
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="scale"></param>
         public void Resize(LLVector3 scale)
         {
-            this.m_shape.Scale = scale;
+            m_shape.Scale = scale;
             ScheduleFullUpdate();
         }
+
         #endregion
 
         #region Client Update Methods
+
         public void AddFullUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
                 avatars[i].AddFullPart(this);
-               // avatars[i].QueuePartForUpdate(this);
+                // avatars[i].QueuePartForUpdate(this);
             }
         }
 
@@ -654,7 +697,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
                 m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this);
@@ -691,26 +734,26 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion lRot;
             lRot = RotationOffset;
 
-            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, this.ObjectFlags, m_uuid, OwnerID,
-                                               m_text, ParentID, this.m_particleSystem, lRot);
+            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, ObjectFlags, m_uuid,
+                                               OwnerID,
+                                               m_text, ParentID, m_particleSystem, lRot);
         }
 
         /// Terse updates
-
         public void AddTerseUpdateToAllAvatars()
         {
-             List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
-             for (int i = 0; i < avatars.Count; i++)
-             {
-                 avatars[i].AddTersePart(this);
+            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].AddTersePart(this);
                 // avatars[i].QueuePartForUpdate(this);
-             }
+            }
         }
 
         public void AddTerseUpdateToAvatar(ScenePresence presence)
         {
             presence.AddTersePart(this);
-           // presence.QueuePartForUpdate(this);
+            // presence.QueuePartForUpdate(this);
         }
 
         /// <summary>
@@ -718,7 +761,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            List<ScenePresence> avatars = this.m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
                 m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);
@@ -741,8 +784,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
             LLVector3 lPos;
-            lPos = this.OffsetPosition;
-            LLQuaternion mRot = this.RotationOffset;
+            lPos = OffsetPosition;
+            LLQuaternion mRot = RotationOffset;
             remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
         }
 
@@ -753,9 +796,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="lPos"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
-            LLQuaternion mRot = this.RotationOffset;
+            LLQuaternion mRot = RotationOffset;
             remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
         }
+
         #endregion
 
         public virtual void UpdateMovement()
@@ -778,11 +822,11 @@ namespace OpenSim.Region.Environment.Scenes
             public InventoryStringBuilder(LLUUID folderID, LLUUID parentID)
             {
                 BuildString += "\tinv_object\t0\n\t{\n";
-                this.AddNameValueLine("obj_id", folderID.ToStringHyphenated());
-                this.AddNameValueLine("parent_id", parentID.ToStringHyphenated());
-                this.AddNameValueLine("type", "category");
-                this.AddNameValueLine("name", "Contents");
-                this.AddSectionEnd();
+                AddNameValueLine("obj_id", folderID.ToStringHyphenated());
+                AddNameValueLine("parent_id", parentID.ToStringHyphenated());
+                AddNameValueLine("type", "category");
+                AddNameValueLine("name", "Contents");
+                AddSectionEnd();
             }
 
             public void AddItemStart()
@@ -831,7 +875,7 @@ namespace OpenSim.Region.Environment.Scenes
                     "",
                     "",
                     "",
-                    "", 
+                    "",
                     "",
                     "lsltext",
                     ""
@@ -866,4 +910,3 @@ namespace OpenSim.Region.Environment.Scenes
         }
     }
 }
-

@@ -37,7 +37,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             public Avatar()
             {
-
             }
 
             public void processMovement(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
@@ -61,7 +60,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             public ChildAgent()
             {
-
             }
 
             public void processMovement(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
@@ -81,5 +79,4 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
     }
-
 }

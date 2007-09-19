@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.Environment.Interfaces
@@ -10,7 +7,10 @@ namespace OpenSim.Region.Environment.Interfaces
         bool Tainted();
         bool Tainted(int x, int y);
         void ResetTaint();
-        void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, IClientAPI remoteUser);
+
+        void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
+                           IClientAPI remoteUser);
+
         void CheckHeightValues();
         float[] GetHeights1D();
         float[,] GetHeights2D();

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Types
@@ -36,9 +34,9 @@ namespace OpenSim.Region.Environment.Types
             }
             else
             {
-                if (obj.AbsolutePosition.X < (m_leftX + (m_width / 2)))
+                if (obj.AbsolutePosition.X < (m_leftX + (m_width/2)))
                 {
-                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height / 2)))
+                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height/2)))
                     {
                         m_childNodes[0].AddObject(obj);
                     }
@@ -49,7 +47,7 @@ namespace OpenSim.Region.Environment.Types
                 }
                 else
                 {
-                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height / 2)))
+                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height/2)))
                     {
                         m_childNodes[1].AddObject(obj);
                     }
@@ -66,10 +64,17 @@ namespace OpenSim.Region.Environment.Types
             if (m_childNodes == null)
             {
                 m_childNodes = new BasicQuadTreeNode[4];
-                m_childNodes[0] = new BasicQuadTreeNode(this, m_leftX, m_leftY,(short) (m_width / 2), (short)( m_height / 2));
-                m_childNodes[1] = new BasicQuadTreeNode(this,(short)( m_leftX + (m_width / 2)), m_leftY,(short)( m_width / 2),(short) (m_height / 2));
-                m_childNodes[2] = new BasicQuadTreeNode(this, m_leftX, (short)( m_leftY + (m_height / 2)), (short)(m_width / 2),(short)( m_height / 2));
-                m_childNodes[3] = new BasicQuadTreeNode(this, (short)( m_leftX + (m_width / 2)),(short)( m_height + (m_height / 2)),(short)( m_width / 2), (short)(m_height / 2));
+                m_childNodes[0] =
+                    new BasicQuadTreeNode(this, m_leftX, m_leftY, (short) (m_width/2), (short) (m_height/2));
+                m_childNodes[1] =
+                    new BasicQuadTreeNode(this, (short) (m_leftX + (m_width/2)), m_leftY, (short) (m_width/2),
+                                          (short) (m_height/2));
+                m_childNodes[2] =
+                    new BasicQuadTreeNode(this, m_leftX, (short) (m_leftY + (m_height/2)), (short) (m_width/2),
+                                          (short) (m_height/2));
+                m_childNodes[3] =
+                    new BasicQuadTreeNode(this, (short) (m_leftX + (m_width/2)), (short) (m_height + (m_height/2)),
+                                          (short) (m_width/2), (short) (m_height/2));
             }
             else
             {
@@ -88,9 +93,9 @@ namespace OpenSim.Region.Environment.Types
             }
             else
             {
-                if (x < (m_leftX + (m_width / 2)))
+                if (x < (m_leftX + (m_width/2)))
                 {
-                    if (y < (m_leftY + (m_height / 2)))
+                    if (y < (m_leftY + (m_height/2)))
                     {
                         return m_childNodes[0].GetObjectsFrom(x, y);
                     }
@@ -101,7 +106,7 @@ namespace OpenSim.Region.Environment.Types
                 }
                 else
                 {
-                    if (y < (m_leftY + (m_height / 2)))
+                    if (y < (m_leftY + (m_height/2)))
                     {
                         return m_childNodes[1].GetObjectsFrom(x, y);
                     }
@@ -127,7 +132,8 @@ namespace OpenSim.Region.Environment.Types
                 List<SceneObjectGroup> outBounds = new List<SceneObjectGroup>();
                 foreach (SceneObjectGroup group in m_objects)
                 {
-                    if (((group.AbsolutePosition.X > m_leftX) && (group.AbsolutePosition.X < (m_leftX + m_width))) && ((group.AbsolutePosition.Y > m_leftY) && (group.AbsolutePosition.Y < (m_leftY + m_height))))
+                    if (((group.AbsolutePosition.X > m_leftX) && (group.AbsolutePosition.X < (m_leftX + m_width))) &&
+                        ((group.AbsolutePosition.Y > m_leftY) && (group.AbsolutePosition.Y < (m_leftY + m_height))))
                     {
                         //still in bounds
                     }
@@ -151,9 +157,10 @@ namespace OpenSim.Region.Environment.Types
 
         public void PassUp(SceneObjectGroup group)
         {
-            if (((group.AbsolutePosition.X > m_leftX) && (group.AbsolutePosition.X < (m_leftX + m_width))) && ((group.AbsolutePosition.Y > m_leftY) && (group.AbsolutePosition.Y < (m_leftY + m_height))))
+            if (((group.AbsolutePosition.X > m_leftX) && (group.AbsolutePosition.X < (m_leftX + m_width))) &&
+                ((group.AbsolutePosition.Y > m_leftY) && (group.AbsolutePosition.Y < (m_leftY + m_height))))
             {
-                this.AddObject(group);
+                AddObject(group);
             }
             else
             {

@@ -35,7 +35,6 @@ namespace OpenSim.Region.Environment.Scenes
     {
         public class AvatarAnimations
         {
-
             public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
             public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
 
@@ -52,12 +51,10 @@ namespace OpenSim.Region.Environment.Scenes
                 doc.Load(reader);
                 foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
                 {
-
                     if (nod.Attributes["name"] != null)
                     {
                         AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
                     }
-
                 }
 
                 reader.Close();

@@ -27,15 +27,12 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using libsecondlife;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Communications.Caches;
 using OpenSim.Region.Terrain;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -67,6 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected AssetCache assetCache;
 
         #region Update Methods
+
         /// <summary>
         /// Normally called once every frame/tick to let the world preform anything required (like running the physics simulation)
         /// </summary>
@@ -104,6 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Add/Remove Agent/Avatar
+
         /// <summary>
         /// 
         /// </summary>
@@ -126,7 +125,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public virtual RegionInfo RegionInfo
         {
-            get { return this.m_regInfo; }
+            get { return m_regInfo; }
         }
 
         public object SyncRoot
@@ -140,6 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region Shutdown
+
         /// <summary>
         /// Tidy before shutdown
         /// </summary>
@@ -147,7 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                this.EventManager.TriggerShutdown();
+                EventManager.TriggerShutdown();
             }
             catch (Exception e)
             {
@@ -156,7 +156,5 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
-
-
     }
 }

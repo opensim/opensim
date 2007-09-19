@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -19,7 +16,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public XferModule()
         {
-
         }
 
         public void Initialise(Scene scene)
@@ -32,12 +28,10 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PostInitialise()
         {
-
         }
 
         public void CloseDown()
         {
-
         }
 
         public string GetName()
@@ -67,7 +61,7 @@ namespace OpenSim.Region.Environment.Modules
             lock (NewFiles)
             {
                 if (NewFiles.ContainsKey(fileName))
-                {       
+                {
                     if (!Transfers.ContainsKey(xferID))
                     {
                         byte[] fileData = NewFiles[fileName];
@@ -82,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void AckPacket(IClientAPI remoteClient, ulong xferID, uint packet)
         {
-            if (this.Transfers.ContainsKey(xferID))
+            if (Transfers.ContainsKey(xferID))
             {
                 Transfers[xferID].AckPacket(packet);
             }
@@ -126,7 +120,6 @@ namespace OpenSim.Region.Environment.Modules
 
             public XferDownLoad()
             {
-
             }
 
             public void StartSend()
@@ -142,10 +135,10 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 else
                 {
-                    byte[] transferData = new byte[1000 +4];
+                    byte[] transferData = new byte[1000 + 4];
                     Array.Copy(Helpers.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, 1000);
-                    Client.SendXferPacket(XferID, 0 , transferData);
+                    Client.SendXferPacket(XferID, 0, transferData);
                     Packet++;
                     DataPointer = 1000;
                 }
@@ -167,7 +160,7 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         byte[] transferData = new byte[Data.Length - DataPointer];
                         Array.Copy(Data, DataPointer, transferData, 0, Data.Length - DataPointer);
-                        uint endPacket = Packet |= (uint)0x80000000;
+                        uint endPacket = Packet |= (uint) 0x80000000;
                         Client.SendXferPacket(XferID, endPacket, transferData);
                         Packet++;
                         DataPointer += (Data.Length - DataPointer);

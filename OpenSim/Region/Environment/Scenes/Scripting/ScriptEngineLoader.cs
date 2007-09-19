@@ -27,17 +27,17 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Reflection;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class ScriptEngineLoader
     {
-        private OpenSim.Framework.Console.LogBase m_log;
-        public ScriptEngineLoader(OpenSim.Framework.Console.LogBase logger)
+        private LogBase m_log;
+
+        public ScriptEngineLoader(LogBase logger)
         {
             m_log = logger;
         }
@@ -47,12 +47,16 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             ScriptEngineInterface ret = null;
             try
             {
-                ret = LoadAndInitAssembly(Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine." + EngineName + ".dll"),
-                            "OpenSim.Region.ScriptEngine." + EngineName + ".ScriptEngine");
+                ret =
+                    LoadAndInitAssembly(
+                        Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine." + EngineName + ".dll"),
+                        "OpenSim.Region.ScriptEngine." + EngineName + ".ScriptEngine");
             }
             catch (Exception e)
             {
-                m_log.Error("ScriptEngine", "Error loading assembly \"" + EngineName + "\": " + e.Message + ", " + e.StackTrace.ToString());
+                m_log.Error("ScriptEngine",
+                            "Error loading assembly \"" + EngineName + "\": " + e.Message + ", " +
+                            e.StackTrace.ToString());
             }
             return ret;
         }
@@ -107,7 +111,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             ScriptEngineInterface ret;
             //try
             //{
-            ret = (ScriptEngineInterface)Activator.CreateInstance(t);
+            ret = (ScriptEngineInterface) Activator.CreateInstance(t);
             //}
             //catch (Exception e)
             //{
@@ -115,10 +119,6 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
 
             return ret;
-
-
         }
-
-
     }
 }

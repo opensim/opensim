@@ -1,30 +1,25 @@
 using System.Collections.Generic;
 using Axiom.Math;
 using libsecondlife;
-using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class EntityBase 
+    public abstract class EntityBase
     {
         protected List<EntityBase> m_children;
 
         protected Scene m_scene;
 
         public LLUUID m_uuid;
+
         public virtual LLUUID UUID
         {
-            get
-            {
-                return m_uuid;
-            }
-            set
-            {
-                m_uuid = value;
-            }
+            get { return m_uuid; }
+            set { m_uuid = value; }
         }
 
         protected string m_name;
+
         /// <summary>
         /// 
         /// </summary>
@@ -35,6 +30,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_pos;
+
         /// <summary>
         /// 
         /// </summary>
@@ -45,6 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public LLVector3 m_velocity;
+
         /// <summary>
         /// 
         /// </summary>
@@ -55,6 +52,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected Quaternion m_rotation = new Quaternion(0, 0, 1, 0);
+
         public virtual Quaternion Rotation
         {
             get { return m_rotation; }
@@ -62,6 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected uint m_localId;
+
         public virtual uint LocalId
         {
             get { return m_localId; }
@@ -125,5 +124,5 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public abstract void SetText(string text, Vector3 color, double alpha);
-   }
+    }
 }

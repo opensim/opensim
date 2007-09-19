@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
 
@@ -9,12 +9,10 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private readonly List<Scene> m_localScenes;
         private Scene m_currentScene = null;
+
         public Scene CurrentScene
         {
-            get
-            {
-                return m_currentScene;
-            }
+            get { return m_currentScene; }
         }
 
         private Scene CurrentOrFirstScene
@@ -83,18 +81,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendCommandToScripts(string[] cmdparams)
         {
-            ForEach(delegate(Scene scene)
-             {
-                 scene.SendCommandToScripts(cmdparams);
-             });
+            ForEach(delegate(Scene scene) { scene.SendCommandToScripts(cmdparams); });
         }
 
         public void BypassPermissions(bool bypassPermissions)
         {
-            ForEach(delegate(Scene scene)
-                         {
-                             scene.PermissionsMngr.BypassPermissions = bypassPermissions;
-                         });
+            ForEach(delegate(Scene scene) { scene.PermissionsMngr.BypassPermissions = bypassPermissions; });
         }
 
         private void ForEach(Action<Scene> func)
@@ -111,18 +103,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void Backup()
         {
-            ForEach(delegate(Scene scene)
-                        {
-                            scene.Backup();
-                        });
+            ForEach(delegate(Scene scene) { scene.Backup(); });
         }
 
         public void HandleAlertCommand(string[] cmdparams)
         {
-            ForEach(delegate(Scene scene)
-                        {
-                            scene.HandleAlertCommand(cmdparams);
-                        });
+            ForEach(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });
         }
 
         public bool TrySetCurrentRegion(string regionName)
@@ -161,8 +147,8 @@ namespace OpenSim.Region.Environment.Scenes
                                     if (!scenePrescence.childAgent)
                                     {
                                         log.Error(String.Format("Packet debug for {0} {1} set to {2}",
-                                                                  scenePrescence.Firstname, scenePrescence.Lastname,
-                                                                  newDebug));
+                                                                scenePrescence.Firstname, scenePrescence.Lastname,
+                                                                newDebug));
 
                                         scenePrescence.ControllingClient.SetDebug(newDebug);
                                     }
@@ -219,18 +205,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ForceClientUpdate()
         {
-            ForEach(delegate(Scene scene)
-                        {
-                            scene.ForceClientUpdate();
-                        });
+            ForEach(delegate(Scene scene) { scene.ForceClientUpdate(); });
         }
 
         public void HandleEditCommand(string[] cmdparams)
         {
-            ForEach(delegate(Scene scene)
-                        {
-                            scene.HandleEditCommand(cmdparams);
-                        });
+            ForEach(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
         }
     }
 }

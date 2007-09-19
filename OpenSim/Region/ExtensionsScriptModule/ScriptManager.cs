@@ -27,20 +27,19 @@
 */
 using System.Collections.Generic;
 using OpenSim.Framework.Console;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ExtensionsScriptModule.CSharp;
 using OpenSim.Region.ExtensionsScriptModule.JScript;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine;
 
 namespace OpenSim.Region.ExtensionsScriptModule
 {
-    public class ScriptManager : IRegionModule
+    public class ScriptManager : IRegionModule, IExtensionScriptModule
     {
-        List<IScript> scripts = new List<IScript>();
+        readonly List<IScript> scripts = new List<IScript>();
         Scene m_scene;
-        Dictionary<string, IScriptCompiler> compilers = new Dictionary<string, IScriptCompiler>();
+        readonly Dictionary<string, IScriptCompiler> compilers = new Dictionary<string, IScriptCompiler>();
 
         private void LoadFromCompiler(Dictionary<string, IScript> compiledscripts)
         {
@@ -67,13 +66,15 @@ namespace OpenSim.Region.ExtensionsScriptModule
             compilers.Add(javaCompiler.FileExt(), javaCompiler);
         }
 
+        public delegate TResult ModuleAPIMethod1<TResult, TParam0>(TParam0 param0);
+        public delegate TResult ModuleAPIMethod2<TResult, TParam0, TParam1>(TParam0 param0, TParam1 param1);
+
         public void Initialise(Scene scene)
         {
             System.Console.WriteLine("Initialising Extensions Scripting Module");
             m_scene = scene;
 
-            m_scene.RegisterAPIMethod("API_CompileExtensionScript", new ModuleAPIMethod1<bool, string>(Compile));
-            m_scene.RegisterAPIMethod("API_AddExtensionScript", new ModuleAPIMethod1<bool, IScript>(AddPreCompiledScript));
+            m_scene.RegisterModuleInterface<IExtensionScriptModule>(this);
         }
 
         public void PostInitialise()
@@ -133,6 +134,12 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
             return true;
         }
+    }
+
+    public interface IExtensionScriptModule
+    {
+        bool Compile(string filename);
+        bool AddPreCompiledScript(IScript script);
     }
 
     interface IScriptCompiler

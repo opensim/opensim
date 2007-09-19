@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using libsecondlife;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
-
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class InventoryModule :IRegionModule
+    public class InventoryModule : IRegionModule
     {
         private Scene m_scene;
 
@@ -20,7 +14,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PostInitialise()
         {
-
         }
 
         public void CloseDown()

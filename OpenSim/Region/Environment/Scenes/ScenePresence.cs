@@ -27,7 +27,6 @@
 */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -72,7 +71,8 @@ namespace OpenSim.Region.Environment.Scenes
         private IScenePresenceBody m_body;
 
         private Vector3[] Dir_Vectors = new Vector3[6];
-        private libsecondlife.LLVector3 lastPhysPos = new libsecondlife.LLVector3();
+        private LLVector3 lastPhysPos = new LLVector3();
+
         private enum Dir_ControlFlags
         {
             DIR_CONTROL_FLAG_FOWARD = MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS,
@@ -82,48 +82,39 @@ namespace OpenSim.Region.Environment.Scenes
             DIR_CONTROL_FLAG_UP = MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS,
             DIR_CONTROL_FLAG_DOWN = MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG
         }
+
         /// <summary>
         /// Position at which a significant movement was made
         /// </summary>
         private LLVector3 posLastSignificantMove = new LLVector3();
 
         public delegate void SignificantClientMovement(IClientAPI remote_client);
+
         public event SignificantClientMovement OnSignificantClientMovement;
 
         //public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
 
-       // private Queue<SceneObjectGroup> m_fullGroupUpdates = new Queue<SceneObjectGroup>();
-       // private Queue<SceneObjectGroup> m_terseGroupUpdates = new Queue<SceneObjectGroup>();
+        // private Queue<SceneObjectGroup> m_fullGroupUpdates = new Queue<SceneObjectGroup>();
+        // private Queue<SceneObjectGroup> m_terseGroupUpdates = new Queue<SceneObjectGroup>();
 
         private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
         private Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
 
         #region Properties
+
         /// <summary>
         /// 
         /// </summary>
         public PhysicsActor PhysActor
         {
-            set
-            {
-                this._physActor = value;
-            }
-            get
-            {
-                return _physActor;
-            }
+            set { _physActor = value; }
+            get { return _physActor; }
         }
 
         public bool Updated
         {
-            set
-            {
-                this.updateflag = value;
-            }
-            get
-            {
-                return this.updateflag;
-            }
+            set { updateflag = value; }
+            get { return updateflag; }
         }
 
         public ulong RegionHandle
@@ -132,12 +123,14 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private string m_firstname;
+
         public string Firstname
         {
             get { return m_firstname; }
         }
 
         private string m_lastname;
+
         public string Lastname
         {
             get { return m_lastname; }
@@ -146,6 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Constructor(s)
+
         /// <summary>
         /// 
         /// </summary>
@@ -155,19 +149,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionDat"></param>
         public ScenePresence(IClientAPI theClient, Scene world, RegionInfo reginfo)
         {
-
             m_scene = world;
-            this.m_uuid = theClient.AgentId;
+            m_uuid = theClient.AgentId;
 
             m_regionInfo = reginfo;
             m_regionHandle = reginfo.RegionHandle;
             MainLog.Instance.Verbose("Avatar.cs ");
             ControllingClient = theClient;
-            this.m_firstname = ControllingClient.FirstName;
-            this.m_lastname = ControllingClient.LastName;
+            m_firstname = ControllingClient.FirstName;
+            m_lastname = ControllingClient.LastName;
             m_localId = m_scene.NextLocalId;
             AbsolutePosition = ControllingClient.StartPos;
-            
+
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
@@ -175,37 +168,37 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             Wearables = AvatarWearable.DefaultWearables;
-            Animations = new ScenePresence.AvatarAnimations();
+            Animations = new AvatarAnimations();
             Animations.LoadAnims();
 
             //register for events
-            ControllingClient.OnRequestWearables += this.SendOurAppearance;
-            ControllingClient.OnSetAppearance += new SetAppearance(this.SetAppearance);
-            ControllingClient.OnCompleteMovementToRegion += this.CompleteMovement;
-            ControllingClient.OnCompleteMovementToRegion += this.SendInitialData;
-            ControllingClient.OnAgentUpdate += this.HandleAgentUpdate;
+            ControllingClient.OnRequestWearables += SendOurAppearance;
+            ControllingClient.OnSetAppearance += new SetAppearance(SetAppearance);
+            ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
+            ControllingClient.OnCompleteMovementToRegion += SendInitialData;
+            ControllingClient.OnAgentUpdate += HandleAgentUpdate;
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
 
-            Dir_Vectors[0] = new Vector3(1, 0, 0);  //FOWARD
+            Dir_Vectors[0] = new Vector3(1, 0, 0); //FOWARD
             Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
-            Dir_Vectors[2] = new Vector3(0, 1, 0);  //LEFT
+            Dir_Vectors[2] = new Vector3(0, 1, 0); //LEFT
             Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
-            Dir_Vectors[4] = new Vector3(0, 0, 1);  //UP
+            Dir_Vectors[4] = new Vector3(0, 0, 1); //UP
             Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
 
-            this.m_textureEntry = new LLObject.TextureEntry(DefaultTexture, 0, DefaultTexture.Length);
+            m_textureEntry = new LLObject.TextureEntry(DefaultTexture, 0, DefaultTexture.Length);
 
             //temporary until we move some code into the body classes
-            this.m_body = new ChildAgent();
+            m_body = new ChildAgent();
 
             if (newAvatar)
             {
                 //do we need to use newAvatar? not sure so have added this to kill the compile warning
             }
-
         }
+
         #endregion
 
         public void AddTersePart(SceneObjectPart part)
@@ -228,10 +221,10 @@ namespace OpenSim.Region.Environment.Scenes
                 while (terse)
                 {
                     SceneObjectPart part = m_tersePartUpdates.Dequeue();
-                    part.SendTerseUpdate(this.ControllingClient);
+                    part.SendTerseUpdate(ControllingClient);
                     terseCount++;
 
-                    if ((m_tersePartUpdates.Count < 1) |(terseCount > 30))
+                    if ((m_tersePartUpdates.Count < 1) | (terseCount > 30))
                     {
                         terse = false;
                     }
@@ -245,31 +238,30 @@ namespace OpenSim.Region.Environment.Scenes
                 while (full)
                 {
                     SceneObjectPart part = m_fullPartUpdates.Dequeue();
-                    part.SendFullUpdate(this.ControllingClient);
+                    part.SendFullUpdate(ControllingClient);
                     fullCount++;
                     if ((m_fullPartUpdates.Count < 1) | (fullCount > 40))
                     {
                         full = false;
                     }
-
                 }
             }
         }
 
         #region Status Methods
+
         /// <summary>
         /// Not Used, most likely can be deleted
         /// </summary>
         /// <param name="status"></param>
         public void ChildStatusChange(bool status)
         {
-            this.childAgent = status;
+            childAgent = status;
 
-            if (this.childAgent == true)
+            if (childAgent == true)
             {
-                this.Velocity = new LLVector3(0, 0, 0);
-                this.AbsolutePosition = new LLVector3(128, 128, 70);
-
+                Velocity = new LLVector3(0, 0, 0);
+                AbsolutePosition = new LLVector3(128, 128, 70);
             }
         }
 
@@ -280,17 +272,17 @@ namespace OpenSim.Region.Environment.Scenes
         public void MakeAvatar(LLVector3 pos, bool isFlying)
         {
             //this.childAvatar = false;
-            this.AbsolutePosition = pos;
-            this._physActor.Flying = isFlying;
-            this.newAvatar = true;
-            this.childAgent = false;
-            this.m_scene.SendAllSceneObjectsToClient(this);
+            AbsolutePosition = pos;
+            _physActor.Flying = isFlying;
+            newAvatar = true;
+            childAgent = false;
+            m_scene.SendAllSceneObjectsToClient(this);
         }
 
         protected void MakeChildAgent()
         {
-            this.Velocity = new LLVector3(0, 0, 0);
-            this.childAgent = true;
+            Velocity = new LLVector3(0, 0, 0);
+            childAgent = true;
             //this.Pos = new LLVector3(128, 128, 70);  
         }
 
@@ -300,8 +292,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void Teleport(LLVector3 pos)
         {
-            this.AbsolutePosition = pos;
-            this.SendTerseUpdateToALLClients();
+            AbsolutePosition = pos;
+            SendTerseUpdateToALLClients();
         }
 
         /// <summary>
@@ -309,11 +301,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StopMovement()
         {
-
         }
+
         #endregion
 
         #region Event Handlers
+
         /// <summary>
         /// 
         /// </summary>
@@ -322,14 +315,14 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
         {
             LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
-            this.m_textureEntry = textureEnt;
+            m_textureEntry = textureEnt;
 
             for (int i = 0; i < visualParam.Length; i++)
             {
-                this.visualParams[i] = visualParam[i].ParamValue;
+                visualParams[i] = visualParam[i].ParamValue;
             }
 
-            this.SendArrearanceToAllOtherAgents();
+            SendArrearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -337,16 +330,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void CompleteMovement()
         {
-            LLVector3 look = this.Velocity;
+            LLVector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
                 look = new LLVector3(0.99f, 0.042f, 0);
             }
-            this.ControllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
-            if (this.childAgent)
+            ControllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
+            if (childAgent)
             {
-                this.childAgent = false;
-                
+                childAgent = false;
+
                 //this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
             }
         }
@@ -363,47 +356,45 @@ namespace OpenSim.Region.Environment.Scenes
             bool DCFlagKeyPressed = false;
             Vector3 agent_control_v3 = new Vector3(0, 0, 0);
             Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
-            bool oldflying = this.PhysActor.Flying;
-            this.PhysActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            if (this.PhysActor.Flying != oldflying)
+            bool oldflying = PhysActor.Flying;
+            PhysActor.Flying = ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            if (PhysActor.Flying != oldflying)
             {
                 update_movementflag = true;
             }
 
-            if (q != this.bodyRot)
+            if (q != bodyRot)
             {
-                this.bodyRot = q;
+                bodyRot = q;
                 update_rotation = true;
-	    }
-            foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
+            }
+            foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
             {
-                if ((flags & (uint)DCF) != 0)
+                if ((flags & (uint) DCF) != 0)
                 {
                     DCFlagKeyPressed = true;
                     agent_control_v3 += Dir_Vectors[i];
-                    if ((movementflag & (uint)DCF) == 0)
+                    if ((movementflag & (uint) DCF) == 0)
                     {
-                        movementflag += (byte)(uint)DCF;
+                        movementflag += (byte) (uint) DCF;
                         update_movementflag = true;
                     }
                 }
                 else
                 {
-                    if ((movementflag & (uint)DCF) != 0)
+                    if ((movementflag & (uint) DCF) != 0)
                     {
-                        movementflag -= (byte)(uint)DCF;
+                        movementflag -= (byte) (uint) DCF;
                         update_movementflag = true;
-
                     }
                 }
                 i++;
             }
             if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
             {
-                this.AddNewMovement(agent_control_v3, q);
+                AddNewMovement(agent_control_v3, q);
             }
             UpdateMovementAnimations(update_movementflag);
-
         }
 
         protected void UpdateMovementAnimations(bool update_movementflag)
@@ -412,49 +403,48 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (movementflag != 0)
                 {
-                    if (this._physActor.Flying)
+                    if (_physActor.Flying)
                     {
-                        this.SendAnimPack(Animations.AnimsLLUUID["FLY"], 1);
+                        SendAnimPack(Animations.AnimsLLUUID["FLY"], 1);
                     }
                     else
                     {
-                        this.SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                        SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
                     }
                 }
                 else
                 {
-                    this.SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
+                    SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
                 }
             }
-
         }
 
 
         protected void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
             NewForce newVelocity = new NewForce();
-            Vector3 direc = rotation * vec;
+            Vector3 direc = rotation*vec;
             direc.Normalize();
 
-            direc = direc * ((0.03f) * 128f);
-            if (this._physActor.Flying)
+            direc = direc*((0.03f)*128f);
+            if (_physActor.Flying)
                 direc *= 4;
 
             newVelocity.X = direc.x;
             newVelocity.Y = direc.y;
             newVelocity.Z = direc.z;
-            this.forcesList.Add(newVelocity);
+            forcesList.Add(newVelocity);
         }
 
         #endregion
 
         #region Overridden Methods
+
         /// <summary>
         /// 
         /// </summary>
         public override void LandRenegerated()
         {
-
         }
 
         /// <summary>
@@ -462,63 +452,65 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
-            this.SendPrimUpdates();
+            SendPrimUpdates();
 
-	        if (this.newCoarseLocations) {
-	            this.SendCoarseLocations();
-		    this.newCoarseLocations = false;
+            if (newCoarseLocations)
+            {
+                SendCoarseLocations();
+                newCoarseLocations = false;
             }
 
-            if (this.childAgent == false)
+            if (childAgent == false)
             {
-
                 /// check for user movement 'forces' (ie commands to move)
-                if (this.newForce)
+                if (newForce)
                 {
-                    this.SendTerseUpdateToALLClients();
+                    SendTerseUpdateToALLClients();
                     _updateCount = 0;
                 }
 
-                /// check for scripted movement (?)
+                    /// check for scripted movement (?)
                 else if (movementflag != 0)
                 {
                     _updateCount++;
                     if (_updateCount > 3)
                     {
-                        this.SendTerseUpdateToALLClients();
+                        SendTerseUpdateToALLClients();
                         _updateCount = 0;
                     }
                 }
 
-                /// check for physics-related movement
-                else if (this.lastPhysPos.GetDistanceTo(this.AbsolutePosition) > 0.02 )
+                    /// check for physics-related movement
+                else if (lastPhysPos.GetDistanceTo(AbsolutePosition) > 0.02)
                 {
-                    this.SendTerseUpdateToALLClients();
+                    SendTerseUpdateToALLClients();
                     _updateCount = 0;
-                    this.lastPhysPos = this.AbsolutePosition;
+                    lastPhysPos = AbsolutePosition;
                 }
-                this.CheckForSignificantMovement();
-                this.CheckForBorderCrossing();
-
+                CheckForSignificantMovement();
+                CheckForBorderCrossing();
             }
         }
+
         #endregion
 
         #region Update Client(s)
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="RemoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
-            LLVector3 pos = this.AbsolutePosition;
-            LLVector3 vel = this.Velocity;
+            LLVector3 pos = AbsolutePosition;
+            LLVector3 vel = Velocity;
             LLQuaternion rot;
-            rot.X = this.bodyRot.x;
-            rot.Y = this.bodyRot.y;
-            rot.Z = this.bodyRot.z;
-            rot.W = this.bodyRot.w;
-            RemoteClient.SendAvatarTerseUpdate(this.m_regionHandle, 64096, this.LocalId, new LLVector3(pos.X, pos.Y, pos.Z), new LLVector3(vel.X, vel.Y, vel.Z), rot);
+            rot.X = bodyRot.x;
+            rot.Y = bodyRot.y;
+            rot.Z = bodyRot.z;
+            rot.W = bodyRot.w;
+            RemoteClient.SendAvatarTerseUpdate(m_regionHandle, 64096, LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
+                                               new LLVector3(vel.X, vel.Y, vel.Z), rot);
         }
 
         /// <summary>
@@ -526,42 +518,44 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToALLClients()
         {
-            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-                this.SendTerseUpdateToClient(avatars[i].ControllingClient);
+                SendTerseUpdateToClient(avatars[i].ControllingClient);
             }
         }
 
 
-	public void SendCoarseLocations()
-	{
-	    List<LLVector3> CoarseLocations = new List<LLVector3>();
-            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+        public void SendCoarseLocations()
+        {
+            List<LLVector3> CoarseLocations = new List<LLVector3>();
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-	    	if (avatars[i] != this && (!avatars[i].childAgent) ) {
-	            CoarseLocations.Add(avatars[i].AbsolutePosition);
-		}
+                if (avatars[i] != this && (!avatars[i].childAgent))
+                {
+                    CoarseLocations.Add(avatars[i].AbsolutePosition);
+                }
             }
-	    this.ControllingClient.SendCoarseLocationUpdate(CoarseLocations);
-	}
+            ControllingClient.SendCoarseLocationUpdate(CoarseLocations);
+        }
 
-	public void CoarseLocationChange(ScenePresence avatar)
-	{
-	    newCoarseLocations = true;
-	}
+        public void CoarseLocationChange(ScenePresence avatar)
+        {
+            newCoarseLocations = true;
+        }
 
-	private void NotifyMyCoarseLocationChange()
-	{
-            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++) {
-	    	if (avatars[i] != this) {
-		    avatars[i].CoarseLocationChange(this);
-		}
+        private void NotifyMyCoarseLocationChange()
+        {
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                if (avatars[i] != this)
+                {
+                    avatars[i].CoarseLocationChange(this);
+                }
             }
-	        
-	}
+        }
 
 
         /// <summary>
@@ -570,16 +564,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
-            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.AbsolutePosition, this.m_textureEntry.ToBytes());
+            remoteAvatar.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
+                                                          LocalId, AbsolutePosition, m_textureEntry.ToBytes());
         }
 
         public void SendFullUpdateToALLClients()
         {
-            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
-            foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
+            foreach (ScenePresence avatar in m_scene.RequestAvatarList())
             {
-                this.SendFullUpdateToOtherClient(avatar);
-                if (avatar.LocalId != this.LocalId)
+                SendFullUpdateToOtherClient(avatar);
+                if (avatar.LocalId != LocalId)
                 {
                     if (!avatar.childAgent)
                     {
@@ -595,15 +590,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            this.ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, this.m_firstname, this.m_lastname, this.m_uuid, this.LocalId, this.AbsolutePosition, this.m_textureEntry.ToBytes());
-            if (!this.childAgent)
+            ControllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
+                                             AbsolutePosition, m_textureEntry.ToBytes());
+            if (!childAgent)
             {
-                this.m_scene.InformClientOfNeighbours(this.ControllingClient);
-                this.newAvatar = false;
+                m_scene.InformClientOfNeighbours(ControllingClient);
+                newAvatar = false;
             }
 
-             this.SendFullUpdateToALLClients();
-             this.SendArrearanceToAllOtherAgents();
+            SendFullUpdateToALLClients();
+            SendArrearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -612,13 +608,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="OurClient"></param>
         public void SendOurAppearance(IClientAPI OurClient)
         {
-            this.ControllingClient.SendWearables(this.Wearables);
+            ControllingClient.SendWearables(Wearables);
 
             //this.SendFullUpdateToALLClients();
             //this.SendArrearanceToAllOtherAgents();
 
-            this.m_scene.SendAllSceneObjectsToClient(this);
-            this.ControllingClient.SendViewerTime(this.m_scene.TimePhase);
+            m_scene.SendAllSceneObjectsToClient(this);
+            ControllingClient.SendViewerTime(m_scene.TimePhase);
 
             //Please don't remove the following code (at least not yet), just leave it commented out
             //gives the user god powers, should help with debuging things in the future
@@ -636,10 +632,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendArrearanceToAllOtherAgents()
         {
-            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
-            foreach (ScenePresence avatar in this.m_scene.RequestAvatarList())
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
+            foreach (ScenePresence avatar in m_scene.RequestAvatarList())
             {
-                this.SendAppearanceToOtherAgent(avatar);
+                SendAppearanceToOtherAgent(avatar);
             }
         }
 
@@ -649,7 +645,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="avatarInfo"></param>
         public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
         {
-            avatarInfo.ControllingClient.SendAppearance(this.ControllingClient.AgentId, this.visualParams, this.m_textureEntry.ToBytes());
+            avatarInfo.ControllingClient.SendAppearance(ControllingClient.AgentId, visualParams,
+                                                        m_textureEntry.ToBytes());
         }
 
         /// <summary>
@@ -659,12 +656,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seq"></param>
         public void SendAnimPack(LLUUID animID, int seq)
         {
-            this.current_anim = animID;
-            this.anim_seq = seq;
-            List<ScenePresence> avatars = this.m_scene.RequestAvatarList();
+            current_anim = animID;
+            anim_seq = seq;
+            List<ScenePresence> avatars = m_scene.RequestAvatarList();
             for (int i = 0; i < avatars.Count; i++)
             {
-                avatars[i].ControllingClient.SendAnimation(animID, seq, this.ControllingClient.AgentId);
+                avatars[i].ControllingClient.SendAnimation(animID, seq, ControllingClient.AgentId);
             }
         }
 
@@ -673,48 +670,51 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAnimPack()
         {
-            this.SendAnimPack(this.current_anim, this.anim_seq);
+            SendAnimPack(current_anim, anim_seq);
         }
+
         #endregion
 
         #region Significant Movement Method
 
         protected void CheckForSignificantMovement()
         {
-            if (libsecondlife.Helpers.VecDist(this.AbsolutePosition, this.posLastSignificantMove) > 2.0)
+            if (Helpers.VecDist(AbsolutePosition, posLastSignificantMove) > 2.0)
             {
-                this.posLastSignificantMove = this.AbsolutePosition;
+                posLastSignificantMove = AbsolutePosition;
                 if (OnSignificantClientMovement != null)
                 {
-                    OnSignificantClientMovement(this.ControllingClient);
+                    OnSignificantClientMovement(ControllingClient);
                     NotifyMyCoarseLocationChange();
                 }
             }
         }
+
         #endregion
 
         #region Border Crossing Methods
+
         /// <summary>
         /// 
         /// </summary>
         protected void CheckForBorderCrossing()
         {
-            LLVector3 pos2 = this.AbsolutePosition;
-            LLVector3 vel = this.Velocity;
+            LLVector3 pos2 = AbsolutePosition;
+            LLVector3 vel = Velocity;
 
             float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X * timeStep);
-            pos2.Y = pos2.Y + (vel.Y * timeStep);
-            pos2.Z = pos2.Z + (vel.Z * timeStep);
+            pos2.X = pos2.X + (vel.X*timeStep);
+            pos2.Y = pos2.Y + (vel.Y*timeStep);
+            pos2.Z = pos2.Z + (vel.Z*timeStep);
 
             if ((pos2.X < 0) || (pos2.X > 256))
             {
-                this.CrossToNewRegion();
+                CrossToNewRegion();
             }
 
             if ((pos2.Y < 0) || (pos2.Y > 256))
             {
-                this.CrossToNewRegion();
+                CrossToNewRegion();
             }
         }
 
@@ -723,10 +723,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void CrossToNewRegion()
         {
-            LLVector3 pos = this.AbsolutePosition;
+            LLVector3 pos = AbsolutePosition;
             LLVector3 newpos = new LLVector3(pos.X, pos.Y, pos.Z);
-            uint neighbourx = this.m_regionInfo.RegionLocX;
-            uint neighboury = this.m_regionInfo.RegionLocY;
+            uint neighbourx = m_regionInfo.RegionLocX;
+            uint neighboury = m_regionInfo.RegionLocY;
 
             if (pos.X < 1.7F)
             {
@@ -749,24 +749,28 @@ namespace OpenSim.Region.Environment.Scenes
                 newpos.Y = 0.1F;
             }
 
-            LLVector3 vel = this.m_velocity;
-            ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * 256), (uint)(neighboury * 256));
-            RegionInfo neighbourRegion = this.m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
+            LLVector3 vel = m_velocity;
+            ulong neighbourHandle = Helpers.UIntsToLong((uint) (neighbourx*256), (uint) (neighboury*256));
+            RegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
-                bool res = this.m_scene.InformNeighbourOfCrossing(neighbourHandle, this.ControllingClient.AgentId, newpos, this._physActor.Flying);
+                bool res =
+                    m_scene.InformNeighbourOfCrossing(neighbourHandle, ControllingClient.AgentId, newpos,
+                                                      _physActor.Flying);
                 if (res)
                 {
                     //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
-                    AgentCircuitData circuitdata = this.ControllingClient.RequestClientInfo();
-                    string capsPath = Util.GetCapsURL(this.ControllingClient.AgentId);
-                    this.ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint, capsPath);
-                    this.MakeChildAgent();
-                    this.m_scene.SendKillObject(this.m_localId);
-                    this.NotifyMyCoarseLocationChange();
+                    AgentCircuitData circuitdata = ControllingClient.RequestClientInfo();
+                    string capsPath = Util.GetCapsURL(ControllingClient.AgentId);
+                    ControllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
+                                                  capsPath);
+                    MakeChildAgent();
+                    m_scene.SendKillObject(m_localId);
+                    NotifyMyCoarseLocationChange();
                 }
             }
         }
+
         #endregion
 
         /// <summary>
@@ -774,7 +778,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public static void LoadAnims()
         {
-
         }
 
         /// <summary>
@@ -783,21 +786,21 @@ namespace OpenSim.Region.Environment.Scenes
         public override void UpdateMovement()
         {
             newForce = false;
-            lock (this.forcesList)
+            lock (forcesList)
             {
-                if (this.forcesList.Count > 0)
+                if (forcesList.Count > 0)
                 {
-                    for (int i = 0; i < this.forcesList.Count; i++)
+                    for (int i = 0; i < forcesList.Count; i++)
                     {
-                        NewForce force = this.forcesList[i];
+                        NewForce force = forcesList[i];
 
-                        this.updateflag = true;
-                        this.Velocity = new LLVector3(force.X, force.Y, force.Z);
-                        this.newForce = true;
+                        updateflag = true;
+                        Velocity = new LLVector3(force.X, force.Y, force.Z);
+                        newForce = true;
                     }
-                    for (int i = 0; i < this.forcesList.Count; i++)
+                    for (int i = 0; i < forcesList.Count; i++)
                     {
-                        this.forcesList.RemoveAt(0);
+                        forcesList.RemoveAt(0);
                     }
                 }
             }
@@ -824,7 +827,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             public NewForce()
             {
-
             }
         }
 
@@ -833,5 +835,4 @@ namespace OpenSim.Region.Environment.Scenes
             throw new Exception("The method or operation is not implemented.");
         }
     }
-
 }

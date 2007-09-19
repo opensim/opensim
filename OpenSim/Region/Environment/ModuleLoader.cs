@@ -1,25 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
-using System.Text;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment
 {
     public class ModuleLoader
     {
-
         public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
 
         public List<IRegionModule> LoadedModules = new List<IRegionModule>();
         public Dictionary<string, IRegionModule> LoadedSharedModules = new Dictionary<string, IRegionModule>();
-        
+
         public ModuleLoader()
         {
-
         }
 
         /// <summary>
@@ -28,32 +25,31 @@ namespace OpenSim.Region.Environment
         /// <param name="scene"></param>
         public void CreateDefaultModules(Scene scene, string exceptModules)
         {
-            IRegionModule module  = new XferModule();
+            IRegionModule module = new XferModule();
             InitialiseModule(module, scene);
 
             module = new ChatModule();
             InitialiseModule(module, scene);
-            
+
             module = new AvatarProfilesModule();
             InitialiseModule(module, scene);
 
-            this.LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
+            LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
 
-            string lslPath = System.IO.Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
-            this.LoadRegionModule(lslPath, "LSLScriptingModule", scene);
-
+            string lslPath = Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
+            LoadRegionModule(lslPath, "LSLScriptingModule", scene);
         }
 
 
         public void LoadDefaultSharedModules(string exceptModules)
         {
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
-            this.LoadedSharedModules.Add(dynamicModule.GetName(), dynamicModule);
+            LoadedSharedModules.Add(dynamicModule.GetName(), dynamicModule);
         }
 
         public void InitialiseSharedModules(Scene scene)
         {
-            foreach (IRegionModule module in this.LoadedSharedModules.Values)
+            foreach (IRegionModule module in LoadedSharedModules.Values)
             {
                 module.Initialise(scene);
                 scene.AddModule(module.GetName(), module); //should be doing this?
@@ -75,19 +71,19 @@ namespace OpenSim.Region.Environment
         /// <param name="scene"></param>
         public void LoadSharedModule(string dllName, string moduleName)
         {
-            IRegionModule module = this.LoadModule(dllName, moduleName);
+            IRegionModule module = LoadModule(dllName, moduleName);
             if (module != null)
             {
-                this.LoadedSharedModules.Add(module.GetName(), module);
+                LoadedSharedModules.Add(module.GetName(), module);
             }
         }
 
         public void LoadRegionModule(string dllName, string moduleName, Scene scene)
         {
-            IRegionModule module = this.LoadModule(dllName, moduleName);
+            IRegionModule module = LoadModule(dllName, moduleName);
             if (module != null)
             {
-                this.InitialiseModule(module, scene);
+                InitialiseModule(module, scene);
             }
         }
 
@@ -107,7 +103,7 @@ namespace OpenSim.Region.Environment
             else
             {
                 pluginAssembly = Assembly.LoadFrom(dllName);
-                this.LoadedAssemblys.Add(dllName, pluginAssembly);
+                LoadedAssemblys.Add(dllName, pluginAssembly);
             }
 
             IRegionModule module = null;
@@ -121,7 +117,8 @@ namespace OpenSim.Region.Environment
 
                         if (typeInterface != null)
                         {
-                            module = (IRegionModule)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            module =
+                                (IRegionModule) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             break;
                         }
                         typeInterface = null;
@@ -130,23 +127,22 @@ namespace OpenSim.Region.Environment
             }
             pluginAssembly = null;
 
-            if ((module != null ) || (module.GetName() == moduleName))
+            if ((module != null) || (module.GetName() == moduleName))
             {
                 return module;
             }
 
             return null;
-
         }
 
         public void PostInitialise()
         {
-            foreach (IRegionModule module in this.LoadedSharedModules.Values)
+            foreach (IRegionModule module in LoadedSharedModules.Values)
             {
                 module.PostInitialise();
             }
 
-            foreach (IRegionModule module in this.LoadedModules)
+            foreach (IRegionModule module in LoadedModules)
             {
                 module.PostInitialise();
             }
@@ -154,7 +150,7 @@ namespace OpenSim.Region.Environment
 
         public void ClearCache()
         {
-            this.LoadedAssemblys.Clear();
+            LoadedAssemblys.Clear();
         }
     }
 }

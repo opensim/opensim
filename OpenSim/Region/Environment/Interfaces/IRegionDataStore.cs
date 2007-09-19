@@ -26,15 +26,10 @@
 * 
 */
 
-using libsecondlife;
-
-using OpenSim.Framework.Types;
-using OpenSim.Region;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.LandManagement;
-
 using System.Collections.Generic;
+using libsecondlife;
+using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Interfaces
 {

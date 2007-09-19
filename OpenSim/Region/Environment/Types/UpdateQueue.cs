@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Scenes;
 using libsecondlife;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Types
 {
@@ -49,6 +47,5 @@ namespace OpenSim.Region.Environment.Types
 
             return part;
         }
-    
     }
 }

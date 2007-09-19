@@ -26,17 +26,15 @@
 * 
 */
 /* Original code: Tedd Hansen */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Scenes.Scripting;
+using OpenSim.Framework.Console;
 
 //TODO: WHERE TO PLACE THIS?
+
 namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public interface ScriptEngineInterface
     {
-        void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger);
+        void InitializeEngine(Scene Sceneworld, LogBase logger);
         void Shutdown();
 //        void StartScript(string ScriptID, IScriptHost ObjectID);
     }

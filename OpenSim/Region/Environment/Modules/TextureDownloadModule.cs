@@ -1,20 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class TextureDownloadModule :IRegionModule
+    public class TextureDownloadModule : IRegionModule
     {
         private Scene m_scene;
 
         public TextureDownloadModule()
         {
-
         }
 
         public void Initialise(Scene scene)
@@ -25,7 +21,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PostInitialise()
         {
-
         }
 
         public void CloseDown()
@@ -48,7 +43,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public void TextureAssetCallback(LLUUID texture, byte[] data)
         {
-
         }
     }
 }

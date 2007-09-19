@@ -1,16 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using System.IO;
 using libsecondlife;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -20,18 +16,18 @@ namespace OpenSim.Region.Environment.Modules
 
         private string m_server = "irc2.choopa.net";
 
-       // private int m_port = 6668;
+        // private int m_port = 6668;
         //private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
         private string m_nick = "OSimBot";
         private string m_channel = "#opensim";
 
-       // private NetworkStream m_stream;
-       private TcpClient m_irc;
+        // private NetworkStream m_stream;
+        private TcpClient m_irc;
         private StreamWriter m_ircWriter;
-       private StreamReader m_ircReader;
+        private StreamReader m_ircReader;
 
-      //  private Thread pingSender;
-      //  private Thread listener;
+        //  private Thread pingSender;
+        //  private Thread listener;
 
         private bool connected = false;
 
@@ -127,16 +123,18 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
                         m_scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                                 {
-                                                     presence.ControllingClient.SendChatMessage(Helpers.StringToField(mess), 255, pos, "IRC:",
-                                                                                  LLUUID.Zero);
-                                                 });
+                                                         {
+                                                             presence.ControllingClient.SendChatMessage(
+                                                                 Helpers.StringToField(mess), 255, pos, "IRC:",
+                                                                 LLUUID.Zero);
+                                                         });
                     }
                 }
             }
         }
 
-        public void SimChat(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
+        public void SimChat(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName,
+                            LLUUID fromAgentID)
         {
             ScenePresence avatar = null;
             avatar = m_scene.RequestAvatar(fromAgentID);
