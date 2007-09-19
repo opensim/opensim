@@ -50,7 +50,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
                 script.Value.Initialise(scriptInfo);
                 scripts.Add(script.Value);
             }
-            MainLog.Instance.Verbose("Finished loading " + compiledscripts.Count.ToString() + " script(s)");
+
+            MainLog.Instance.Verbose(string.Format("Finished loading {0} script(s)", compiledscripts.Count));
         }
 
         public ScriptManager()
