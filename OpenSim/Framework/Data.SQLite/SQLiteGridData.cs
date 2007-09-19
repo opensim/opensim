@@ -192,6 +192,4 @@ namespace OpenSim.Framework.Data.SQLite
             return null;
         }
     }
-
-
 }

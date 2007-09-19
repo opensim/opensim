@@ -30,10 +30,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using libsecondlife;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.SQLite
 {
-    class SQLiteManager
+    class SQLiteManager : SQLiteBase
     {
         IDbConnection dbcon;
 
@@ -87,6 +88,73 @@ namespace OpenSim.Framework.Data.SQLite
 
             return (IDbCommand)dbcommand;
         }
+
+        private bool TestTables(SQLiteConnection conn)
+        {
+            SQLiteCommand cmd = new SQLiteCommand("SELECT * FROM regions", conn);
+            SQLiteDataAdapter pDa = new SQLiteDataAdapter(cmd);
+            DataSet tmpDS = new DataSet();
+            try
+            {
+                pDa.Fill(tmpDS, "regions");
+            }
+            catch (Mono.Data.SqliteClient.SqliteSyntaxException)
+            {
+                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                InitDB(conn);
+            }
+            return true;
+        }
+
+        private DataTable createRegionsTable()
+        {
+            DataTable regions = new DataTable("regions");
+
+            createCol(regions, "regionHandle", typeof(ulong));
+            createCol(regions, "regionName", typeof(System.String));
+            createCol(regions, "uuid", typeof(System.String));
+
+            createCol(regions, "regionRecvKey", typeof(System.String));
+            createCol(regions, "regionSecret", typeof(System.String));
+            createCol(regions, "regionSendKey", typeof(System.String));
+            
+            createCol(regions, "regionDataURI", typeof(System.String));
+            createCol(regions, "serverIP", typeof(System.String));
+            createCol(regions, "serverPort", typeof(System.String));
+            createCol(regions, "serverURI", typeof(System.String));
+
+            
+            createCol(regions, "locX", typeof( uint));
+            createCol(regions, "locY", typeof( uint));
+            createCol(regions, "locZ", typeof( uint));
+
+            createCol(regions, "eastOverrideHandle", typeof( ulong ));
+            createCol(regions, "westOverrideHandle", typeof( ulong ));
+            createCol(regions, "southOverrideHandle", typeof( ulong ));
+            createCol(regions, "northOverrideHandle", typeof( ulong ));
+
+            createCol(regions, "regionAssetURI", typeof(System.String));
+            createCol(regions, "regionAssetRecvKey", typeof(System.String));
+            createCol(regions, "regionAssetSendKey", typeof(System.String));
+
+            createCol(regions, "regionUserURI", typeof(System.String));
+            createCol(regions, "regionUserRecvKey", typeof(System.String));
+            createCol(regions, "regionUserSendKey", typeof(System.String));
+
+            // Add in contraints
+            regions.PrimaryKey = new DataColumn[] { regions.Columns["UUID"] };
+            return regions;
+        }
+
+        private void InitDB(SQLiteConnection conn)
+        {
+            string createUsers = defineTable(createRegionsTable());
+            SQLiteCommand pcmd = new SQLiteCommand(createUsers, conn);
+            conn.Open();
+            pcmd.ExecuteNonQuery();
+            conn.Close();
+        }
+
 
         /// <summary>
         /// Reads a region row from a database reader
