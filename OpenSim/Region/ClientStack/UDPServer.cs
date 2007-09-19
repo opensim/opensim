@@ -133,7 +133,7 @@ namespace OpenSim.Region.ClientStack
             else if (packet.Type == PacketType.UseCircuitCode)
             {
                 // new client
-                this.AddNewClient(packet);
+                AddNewClient(packet);
             }
             else
             { // invalid client

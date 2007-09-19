@@ -71,53 +71,6 @@ namespace OpenSim.Region.ClientStack
             m_clientManager.InPacket(circuitCode, packet);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="circuitCode"></param>
-        /// <returns></returns>
-        public virtual bool AddNewCircuitCodeClient(uint circuitCode)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="packet"></param>
-        public virtual void SendPacketToAllClients(Packet packet)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="simClient"></param>
-        public virtual void SendPacketToAllExcept(Packet packet, IClientAPI simClient)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="packetType"></param>
-        /// <param name="handler"></param>
-        public virtual void AddClientPacketHandler(PacketType packetType, PacketMethod handler)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual void RegisterClientPacketHandlers()
-        {
-            
-        }
-
         protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
         {
             return new ClientView(remoteEP, initialcirpack, clientManager, scene, assetCache, packServer, authenSessions );

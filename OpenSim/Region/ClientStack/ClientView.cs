@@ -62,7 +62,6 @@ namespace OpenSim.Region.ClientStack
         public LLUUID SecureSessionID = LLUUID.Zero;
         public string firstName;
         public string lastName;
-        public bool m_child = false;
         private UseCircuitCodePacket cirpack;
         public Thread ClientThread;
         public LLVector3 startpos;

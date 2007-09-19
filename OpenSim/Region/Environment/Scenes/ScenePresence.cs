@@ -265,17 +265,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pos"></param>
         public void MakeAvatar(LLVector3 pos, bool isFlying)
         {
-            //this.childAvatar = false;
-            AbsolutePosition = pos;
-            _physActor.Flying = isFlying;
             newAvatar = true;
             childAgent = false;
+
+            AbsolutePosition = pos;
+
+            AddToPhysicalScene( );
+            _physActor.Flying = isFlying;
+
+
             m_scene.SendAllSceneObjectsToClient(this);
         }
 
@@ -283,7 +283,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             Velocity = new LLVector3(0, 0, 0);
             childAgent = true;
+
+            RemoveFromPhysicalScene();
+
             //this.Pos = new LLVector3(128, 128, 70);  
+        }
+
+        private void RemoveFromPhysicalScene()
+        {
+            m_scene.phyScene.RemoveAvatar( this.PhysActor );
         }
 
         /// <summary>
@@ -832,7 +840,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override void SetText(string text, Vector3 color, double alpha)
         {
-            throw new Exception("The method or operation is not implemented.");
+            throw new Exception("Can't set Text on avatar.");
+        }
+
+        public void AddToPhysicalScene( )
+        {
+            PhysicsScene scene = m_scene.phyScene;
+
+            PhysicsVector pVec =
+                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                  AbsolutePosition.Z);
+
+            _physActor = scene.AddAvatar(pVec);           
         }
     }
 }

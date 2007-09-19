@@ -175,18 +175,15 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.AgentAnimation:
-                        if (!m_child)
+                        AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+                        for (int i = 0; i < AgentAni.AnimationList.Length; i++)
                         {
-                            AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
-                            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+                            if (AgentAni.AnimationList[i].StartAnim)
                             {
-                                if (AgentAni.AnimationList[i].StartAnim)
-                                {
 
-                                    if (OnStartAnim != null)
-                                    {
-                                        OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
-                                    }
+                                if (OnStartAnim != null)
+                                {
+                                    OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
                                 }
                             }
                         }
@@ -352,8 +349,8 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                       // Console.WriteLine("upload request " + Pack.ToString());
-                       // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
+                        // Console.WriteLine("upload request " + Pack.ToString());
+                        // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
                         if (OnAssetUploadRequest != null)
                         {
                             OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
