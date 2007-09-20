@@ -191,7 +191,7 @@ namespace OpenSim.Region.ClientStack
 
                     #endregion
 
-                    #region Objects/Prims
+                    #region Objects/m_sceneObjects
                     case PacketType.ObjectLink:
                         // OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket)Pack;

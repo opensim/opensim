@@ -52,23 +52,20 @@ using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public delegate bool FilterAvatarList(ScenePresence avatar);
-
-    public delegate void ForEachScenePresenceDelegate(ScenePresence presence);
-
     public partial class Scene : SceneBase
     {
+        public delegate bool FilterAvatarList(ScenePresence avatar);
+
         protected Timer m_heartbeatTimer = new Timer();
-        protected Dictionary<LLUUID, ScenePresence> Avatars;
-        protected Dictionary<LLUUID, SceneObjectGroup> Prims;
-        public PhysicsScene phyScene;
+        protected Dictionary<LLUUID, ScenePresence> m_scenePresences;
+        protected Dictionary<LLUUID, SceneObjectGroup> m_sceneObjects;
 
         /// publicized so it can be accessed from SceneObjectGroup.
         protected float timeStep = 0.1f;
 
         private Random Rand = new Random();
         private uint _primCount = 702000;
-        private Mutex _primAllocateMutex = new Mutex(false);
+        private readonly Mutex _primAllocateMutex = new Mutex(false);
         private int storageCount;
         private int terrainCheckCount;
         private int landPrimCheckCount;
@@ -78,7 +75,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public BasicQuadTreeNode QuadTree;
 
-        private Mutex updateLock;
+        private readonly Mutex updateLock;
 
         protected ModuleLoader m_moduleLoader;
         protected StorageManager storageManager;
@@ -108,30 +105,28 @@ namespace OpenSim.Region.Environment.Scenes
             get { return authenticateHandler; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public PhysicsScene PhysScene
-        {
-            set { phyScene = value; }
-            get { return (phyScene); }
-        }
-
-        private LandManager m_LandManager;
+        private readonly LandManager m_LandManager;
 
         public LandManager LandManager
         {
             get { return m_LandManager; }
         }
 
-        private EstateManager m_estateManager;
+        private readonly EstateManager m_estateManager;
+
+        private PhysicsScene phyScene;
+        public PhysicsScene PhysScene
+        {
+            set { phyScene = value; }
+            get { return (phyScene); }
+        }
 
         public EstateManager EstateManager
         {
             get { return m_estateManager; }
         }
 
-        private PermissionManager m_permissionManager;
+        private readonly PermissionManager m_permissionManager;
 
         public PermissionManager PermissionsMngr
         {
@@ -140,7 +135,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public Dictionary<LLUUID, SceneObjectGroup> Objects
         {
-            get { return Prims; }
+            get { return m_sceneObjects; }
         }
 
         public int TimePhase
@@ -191,8 +186,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             MainLog.Instance.Verbose("Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
-            Avatars = new Dictionary<LLUUID, ScenePresence>();
-            Prims = new Dictionary<LLUUID, SceneObjectGroup>();
+            m_scenePresences = new Dictionary<LLUUID, ScenePresence>();
+            m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
 
             MainLog.Instance.Verbose("Creating LandMap");
             Terrain = new TerrainEngine((int)RegionInfo.RegionLocX, (int)RegionInfo.RegionLocY);
@@ -804,15 +799,15 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities[client.AgentId] = newAvatar;
                 }
             }
-            lock (Avatars)
+            lock (m_scenePresences)
             {
-                if (Avatars.ContainsKey(client.AgentId))
+                if (m_scenePresences.ContainsKey(client.AgentId))
                 {
-                    Avatars[client.AgentId] = newAvatar;
+                    m_scenePresences[client.AgentId] = newAvatar;
                 }
                 else
                 {
-                    Avatars.Add(client.AgentId, newAvatar);
+                    m_scenePresences.Add(client.AgentId, newAvatar);
                 }
             }
 
@@ -841,11 +836,11 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 });
 
-            lock (Avatars)
+            lock (m_scenePresences)
             {
-                if (Avatars.ContainsKey(agentID))
+                if (m_scenePresences.ContainsKey(agentID))
                 {
-                    Avatars.Remove(agentID);
+                    m_scenePresences.Remove(agentID);
                 }
             }
             lock (Entities)
@@ -865,18 +860,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region Request Avatars List Methods
+        #region Request m_scenePresences List Methods
 
         //The idea is to have a group of method that return a list of avatars meeting some requirement
-        // ie it could be all Avatars within a certain range of the calling prim/avatar. 
+        // ie it could be all m_scenePresences within a certain range of the calling prim/avatar. 
 
         /// <summary>
-        /// Request a List of all Avatars in this World
+        /// Request a List of all m_scenePresences in this World
         /// </summary>
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences()
         {
-            List<ScenePresence> result = new List<ScenePresence>(Avatars.Values);
+            List<ScenePresence> result = new List<ScenePresence>(m_scenePresences.Values);
 
             return result;
         }
@@ -892,14 +887,14 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a filtered list of Avatars in this World
+        /// Request a filtered list of m_scenePresences in this World
         /// </summary>
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
             List<ScenePresence> result = new List<ScenePresence>();
 
-            foreach (ScenePresence avatar in Avatars.Values)
+            foreach (ScenePresence avatar in m_scenePresences.Values)
             {
                 if (filter(avatar))
                 {
@@ -917,9 +912,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public ScenePresence GetScenePresence(LLUUID avatarID)
         {
-            if (Avatars.ContainsKey(avatarID))
+            if (m_scenePresences.ContainsKey(avatarID))
             {
-                return Avatars[avatarID];
+                return m_scenePresences[avatarID];
             }
             return null;
         }
@@ -928,9 +923,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="whatToDo"></param>
-        public void ForEachScenePresence(ForEachScenePresenceDelegate whatToDo)
+        public void ForEachScenePresence(Action<ScenePresence> whatToDo)
         {
-            foreach (ScenePresence presence in Avatars.Values)
+            foreach (ScenePresence presence in m_scenePresences.Values)
             {
                 whatToDo(presence);
             }
@@ -1031,9 +1026,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
-                if (Avatars.ContainsKey(agentID))
+                if (m_scenePresences.ContainsKey(agentID))
                 {
-                    Avatars[agentID].MakeAvatar(position, isFlying);
+                    m_scenePresences[agentID].MakeAvatar(position, isFlying);
                 }
             }
         }
@@ -1098,11 +1093,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regionHandle)
             {
-                if (Avatars.ContainsKey(remoteClient.AgentId))
+                if (m_scenePresences.ContainsKey(remoteClient.AgentId))
                 {
                     remoteClient.SendTeleportLocationStart();
                     remoteClient.SendLocalTeleport(position, lookAt, flags);
-                    Avatars[remoteClient.AgentId].Teleport(position);
+                    m_scenePresences[remoteClient.AgentId].Teleport(position);
                 }
             }
             else
@@ -1184,9 +1179,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendUrlToUser(LLUUID avatarID, string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned,
                                   string message, string url)
         {
-            if (Avatars.ContainsKey(avatarID))
+            if (m_scenePresences.ContainsKey(avatarID))
             {
-                Avatars[avatarID].ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
+                m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
             }
         }
 
@@ -1200,7 +1195,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendGeneralAlert(string message)
         {
-            foreach (ScenePresence presence in Avatars.Values)
+            foreach (ScenePresence presence in m_scenePresences.Values)
             {
                 presence.ControllingClient.SendAlertMessage(message);
             }
@@ -1208,15 +1203,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendAlertToUser(LLUUID agentID, string message, bool modal)
         {
-            if (Avatars.ContainsKey(agentID))
+            if (m_scenePresences.ContainsKey(agentID))
             {
-                Avatars[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
+                m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
             }
         }
 
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
-            foreach (ScenePresence presence in Avatars.Values)
+            foreach (ScenePresence presence in m_scenePresences.Values)
             {
                 if ((presence.Firstname == firstName) && (presence.Lastname == lastName))
                 {
@@ -1405,7 +1400,7 @@ namespace OpenSim.Region.Environment.Scenes
         internal bool TryGetAvatar(LLUUID avatarId, out ScenePresence avatar)
         {
             ScenePresence presence;
-            if (Avatars.TryGetValue(avatarId, out presence))
+            if (m_scenePresences.TryGetValue(avatarId, out presence))
             {
                 if (!presence.childAgent)
                 {

@@ -314,7 +314,7 @@ namespace OpenSim.Region.Environment.Scenes
             /// may need to create a new Physics actor.
             if (dupe.RootPart.PhysActor != null)
             {
-                dupe.RootPart.PhysActor = m_scene.phyScene.AddPrim(
+                dupe.RootPart.PhysActor = m_scene.PhysScene.AddPrim(
                     new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y,
                                       dupe.RootPart.AbsolutePosition.Z),
                     new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),

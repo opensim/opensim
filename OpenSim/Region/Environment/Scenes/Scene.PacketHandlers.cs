@@ -69,13 +69,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void InstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID,
                                    uint timestamp, string fromAgentName, string message, byte dialog)
         {
-            if (Avatars.ContainsKey(toAgentID))
+            if (m_scenePresences.ContainsKey(toAgentID))
             {
-                if (Avatars.ContainsKey(fromAgentID))
+                if (m_scenePresences.ContainsKey(fromAgentID))
                 {
                     // Local sim message
-                    ScenePresence fromAvatar = Avatars[fromAgentID];
-                    ScenePresence toAvatar = Avatars[toAgentID];
+                    ScenePresence fromAvatar = m_scenePresences[fromAgentID];
+                    ScenePresence toAvatar = m_scenePresences[toAgentID];
                     string fromName = fromAvatar.Firstname + " " + fromAvatar.Lastname;
                     toAvatar.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message, toAgentID,
                                                                   imSessionID, fromName, dialog, timestamp);

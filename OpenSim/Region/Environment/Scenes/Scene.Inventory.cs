@@ -15,11 +15,13 @@ namespace OpenSim.Region.Environment.Scenes
         //split these method into this partial as a lot of these (hopefully) are only temporary and won't be needed once Caps is more complete
         // or at least some of they can be moved somewhere else
 
-        public void AddInventoryItem(LLUUID userID, InventoryItemBase item)
+        public void AddInventoryItem(LLUUID avatarId, InventoryItemBase item)
         {
-            if (Avatars.ContainsKey(userID))
+            ScenePresence avatar;
+
+            if ( TryGetAvatar( avatarId, out avatar ))
             {
-                AddInventoryItem(Avatars[userID].ControllingClient, item);
+                AddInventoryItem(avatar.ControllingClient, item);
             }
         }
 
@@ -33,12 +35,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public LLUUID CapsUpdateInventoryItemAsset(LLUUID userID, LLUUID itemID, byte[] data)
+        public LLUUID CapsUpdateInventoryItemAsset(LLUUID avatarId, LLUUID itemID, byte[] data)
         {
-            if (Avatars.ContainsKey(userID))
+            ScenePresence avatar;
+
+            if (TryGetAvatar(avatarId, out avatar))
             {
-                return CapsUpdateInventoryItemAsset(Avatars[userID].ControllingClient, itemID, data);
+                return CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data);
             }
+
             return LLUUID.Zero;
         }
 

@@ -291,7 +291,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void RemoveFromPhysicalScene()
         {
-            m_scene.phyScene.RemoveAvatar( this.PhysActor );
+            m_scene.PhysScene.RemoveAvatar( this.PhysActor );
         }
 
         /// <summary>
@@ -844,7 +844,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddToPhysicalScene( )
         {
-            PhysicsScene scene = m_scene.phyScene;
+            PhysicsScene scene = m_scene.PhysScene;
 
             PhysicsVector pVec =
                 new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
