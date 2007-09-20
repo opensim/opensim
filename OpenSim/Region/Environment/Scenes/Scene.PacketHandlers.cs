@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Scenes
                 Entities.Add(copy.UUID, copy);
 
                 copy.ScheduleGroupForFullUpdate();
-                /* List<ScenePresence> avatars = this.RequestAvatarList();
+                /* List<ScenePresence> avatars = this.GetScenePresences();
                  for (int i = 0; i < avatars.Count; i++)
                  {
                     // copy.SendAllChildPrimsToClient(avatars[i].ControllingClient);
@@ -506,11 +506,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void StartAnimation(IClientAPI client, LLUUID animID, int seq)
         {
-            List<ScenePresence> avatars = RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                avatars[i].ControllingClient.SendAnimation(animID, seq, client.AgentId);
-            }
+            ForEachScenePresence(delegate(ScenePresence presence)
+                                     {
+                                         presence.ControllingClient.SendAnimation(animID, seq, client.AgentId);
+                                     });
         }
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)

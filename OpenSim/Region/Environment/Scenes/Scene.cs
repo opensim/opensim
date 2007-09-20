@@ -346,15 +346,12 @@ namespace OpenSim.Region.Environment.Scenes
                 m_timeUpdateCount++;
                 if (m_timeUpdateCount > 600)
                 {
-                    List<ScenePresence> Avatars = RequestAvatarList();
-                    foreach (ScenePresence avatar in Avatars)
+                    List<ScenePresence> avatars = GetAvatars();
+                    foreach (ScenePresence avatar in avatars)
                     {
-                        if (!avatar.childAgent)
-                        {
-                            //Console.WriteLine("sending time update " + timePhase + " from region " + m_regionHandle + " to avatar " + avatar.Firstname);
-                            avatar.ControllingClient.SendViewerTime(m_timePhase);
-                        }
+                        avatar.ControllingClient.SendViewerTime(m_timePhase);
                     }
+
                     m_timeUpdateCount = 0;
                     m_timePhase++;
                     if (m_timePhase > 94)
@@ -831,7 +828,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_eventManager.TriggerOnRemovePresence(agentID);
 
-            ScenePresence avatar = RequestAvatar(agentID);
+            ScenePresence avatar = GetScenePresence(agentID);
 
             ForEachScenePresence(
                 delegate(ScenePresence presence)
@@ -877,14 +874,19 @@ namespace OpenSim.Region.Environment.Scenes
         /// Request a List of all Avatars in this World
         /// </summary>
         /// <returns></returns>
-        public List<ScenePresence> RequestAvatarList()
+        public List<ScenePresence> GetScenePresences()
         {
-            List<ScenePresence> result = new List<ScenePresence>();
+            List<ScenePresence> result = new List<ScenePresence>(Avatars.Values);
 
-            foreach (ScenePresence avatar in Avatars.Values)
-            {
-                result.Add(avatar);
-            }
+            return result;
+        }
+
+        public List<ScenePresence> GetAvatars()
+        {
+            List<ScenePresence> result = GetScenePresences(delegate(ScenePresence scenePresence)
+                                                                {
+                                                                    return !scenePresence.childAgent;
+                                                                });
 
             return result;
         }
@@ -893,7 +895,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Request a filtered list of Avatars in this World
         /// </summary>
         /// <returns></returns>
-        public List<ScenePresence> RequestAvatarList(FilterAvatarList filter)
+        public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
             List<ScenePresence> result = new List<ScenePresence>();
 
@@ -913,7 +915,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns></returns>
-        public ScenePresence RequestAvatar(LLUUID avatarID)
+        public ScenePresence GetScenePresence(LLUUID avatarID)
         {
             if (Avatars.ContainsKey(avatarID))
             {
@@ -954,11 +956,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendKillObject(uint localID)
         {
-            List<ScenePresence> avatars = RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                avatars[i].ControllingClient.SendKillObject(m_regionHandle, localID);
-            }
+            ForEachScenePresence(delegate(ScenePresence presence)
+                                     {
+                                         presence.ControllingClient.SendKillObject(m_regionHandle, localID);
+                                     });
         }
 
         public void SendAllSceneObjectsToClient(ScenePresence presence)
@@ -1419,7 +1420,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override void Close()
         {
-           m_heartbeatTimer.Close();
+            m_heartbeatTimer.Close();
 
             base.Close();
         }

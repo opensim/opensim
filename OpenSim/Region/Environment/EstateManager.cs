@@ -34,7 +34,6 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Scenes;
-using Avatar = OpenSim.Region.Environment.Scenes.ScenePresence;
 
 
 namespace OpenSim.Region.Environment
@@ -332,7 +331,7 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionInfoPacketToAll()
         {
-            List<Avatar> avatars = m_scene.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.GetAvatars();
 
             for (int i = 0; i < avatars.Count; i++)
             {
@@ -342,12 +341,10 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionHandshakeToAll()
         {
-            List<Avatar> avatars = m_scene.RequestAvatarList();
-
-            for (int i = 0; i < avatars.Count; i++)
+            m_scene.ForEachScenePresence( delegate( ScenePresence scenePresence )
             {
-                sendRegionHandshake(avatars[i].ControllingClient);
-            }
+                sendRegionHandshake(scenePresence.ControllingClient);
+            });
         }
 
         public void sendRegionInfoPacket(IClientAPI remote_client)

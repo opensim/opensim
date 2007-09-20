@@ -678,7 +678,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddFullUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 avatars[i].AddFullPart(this);
@@ -697,7 +697,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this);
@@ -742,7 +742,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Terse updates
         public void AddTerseUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 avatars[i].AddTersePart(this);
@@ -761,7 +761,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_parentGroup.RequestSceneAvatars();
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);

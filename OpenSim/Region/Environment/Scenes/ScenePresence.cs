@@ -301,7 +301,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void Teleport(LLVector3 pos)
         {
             AbsolutePosition = pos;
-            SendTerseUpdateToALLClients();
+            SendTerseUpdateToAllClients();
         }
 
         /// <summary>
@@ -473,7 +473,7 @@ namespace OpenSim.Region.Environment.Scenes
                 /// check for user movement 'forces' (ie commands to move)
                 if (newForce)
                 {
-                    SendTerseUpdateToALLClients();
+                    SendTerseUpdateToAllClients();
                     _updateCount = 0;
                 }
 
@@ -483,7 +483,7 @@ namespace OpenSim.Region.Environment.Scenes
                     _updateCount++;
                     if (_updateCount > 3)
                     {
-                        SendTerseUpdateToALLClients();
+                        SendTerseUpdateToAllClients();
                         _updateCount = 0;
                     }
                 }
@@ -491,7 +491,7 @@ namespace OpenSim.Region.Environment.Scenes
                     /// check for physics-related movement
                 else if (lastPhysPos.GetDistanceTo(AbsolutePosition) > 0.02)
                 {
-                    SendTerseUpdateToALLClients();
+                    SendTerseUpdateToAllClients();
                     _updateCount = 0;
                     lastPhysPos = AbsolutePosition;
                 }
@@ -524,27 +524,27 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void SendTerseUpdateToALLClients()
+        public void SendTerseUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                SendTerseUpdateToClient(avatars[i].ControllingClient);
-            }
+            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                                             {
+                                                 SendTerseUpdateToClient(presence.ControllingClient);
+                                             });
         }
 
 
         public void SendCoarseLocations()
         {
             List<LLVector3> CoarseLocations = new List<LLVector3>();
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.GetAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
-                if (avatars[i] != this && (!avatars[i].childAgent))
+                if (avatars[i] != this )
                 {
                     CoarseLocations.Add(avatars[i].AbsolutePosition);
                 }
             }
+
             ControllingClient.SendCoarseLocationUpdate(CoarseLocations);
         }
 
@@ -555,14 +555,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void NotifyMyCoarseLocationChange()
         {
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                if (avatars[i] != this)
-                {
-                    avatars[i].CoarseLocationChange(this);
-                }
-            }
+            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                                             {
+                                                 if (presence != this)
+                                                 {
+                                                     presence.CoarseLocationChange(this);
+                                                 }
+                                             });
         }
 
 
@@ -576,10 +575,10 @@ namespace OpenSim.Region.Environment.Scenes
                                                           LocalId, AbsolutePosition, m_textureEntry.ToBytes());
         }
 
-        public void SendFullUpdateToALLClients()
+        public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
-            foreach (ScenePresence avatar in m_scene.RequestAvatarList())
+            List<ScenePresence> avatars = m_scene.GetScenePresences();
+            foreach (ScenePresence avatar in avatars)
             {
                 SendFullUpdateToOtherClient(avatar);
                 if (avatar.LocalId != LocalId)
@@ -606,7 +605,7 @@ namespace OpenSim.Region.Environment.Scenes
                 newAvatar = false;
             }
 
-            SendFullUpdateToALLClients();
+            SendFullUpdateToAllClients();
             SendArrearanceToAllOtherAgents();
         }
 
@@ -618,7 +617,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ControllingClient.SendWearables(Wearables);
 
-            //this.SendFullUpdateToALLClients();
+            //this.SendFullUpdateToAllClients();
             //this.SendArrearanceToAllOtherAgents();
 
             m_scene.SendAllSceneObjectsToClient(this);
@@ -640,11 +639,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendArrearanceToAllOtherAgents()
         {
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
-            foreach (ScenePresence avatar in m_scene.RequestAvatarList())
-            {
-                SendAppearanceToOtherAgent(avatar);
-            }
+            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                             {
+                                                 SendAppearanceToOtherAgent(scenePresence);
+                                             });
         }
 
         /// <summary>
@@ -666,11 +664,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             current_anim = animID;
             anim_seq = seq;
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                avatars[i].ControllingClient.SendAnimation(animID, seq, ControllingClient.AgentId);
-            }
+
+            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                             {
+                                                 scenePresence.ControllingClient.SendAnimation(animID, seq,
+                                                                                               ControllingClient.AgentId);
+                                             });
         }
 
         /// <summary>

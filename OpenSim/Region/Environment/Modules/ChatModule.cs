@@ -137,7 +137,7 @@ namespace OpenSim.Region.Environment.Modules
                             LLUUID fromAgentID)
         {
             ScenePresence avatar = null;
-            avatar = m_scene.RequestAvatar(fromAgentID);
+            avatar = m_scene.GetScenePresence(fromAgentID);
             if (avatar != null)
             {
                 fromPos = avatar.AbsolutePosition;
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Modules
                                                      int dis = -1000;
 
                                                      //err ??? the following code seems to be request a scenePresence when it already has a ref to it
-                                                     avatar = m_scene.RequestAvatar(presence.ControllingClient.AgentId);
+                                                     avatar = m_scene.GetScenePresence(presence.ControllingClient.AgentId);
                                                      if (avatar != null)
                                                      {
                                                          dis = (int) avatar.AbsolutePosition.GetDistanceTo(fromPos);

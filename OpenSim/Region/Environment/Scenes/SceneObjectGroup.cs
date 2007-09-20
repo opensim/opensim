@@ -1055,9 +1055,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public List<ScenePresence> RequestSceneAvatars()
+        public List<ScenePresence> GetScenePresences()
         {
-            return m_scene.RequestAvatarList();
+            return m_scene.GetScenePresences();
         }
 
         #region Events
@@ -1233,7 +1233,7 @@ namespace OpenSim.Region.Environment.Scenes
             DetachFromBackup(this);
             foreach (SceneObjectPart part in m_parts.Values)
             {
-                List<ScenePresence> avatars = RequestSceneAvatars();
+                List<ScenePresence> avatars = GetScenePresences();
                 for (int i = 0; i < avatars.Count; i++)
                 {
                     avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalID);

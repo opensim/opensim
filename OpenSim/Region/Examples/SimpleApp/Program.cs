@@ -97,11 +97,10 @@ namespace SimpleApp
                 scene.AddNewClient(m_character, false);
             }
 
-            List<ScenePresence> avatars = scene.RequestAvatarList();
+            List<ScenePresence> avatars = scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {
-                avatar.AbsolutePosition = new LLVector3((float)OpenSim.Framework.Utilities.Util.RandomClass.Next(100,200), (float)OpenSim.Framework.Utilities.Util.RandomClass.Next(30, 200), 2);
-                
+                avatar.AbsolutePosition = new LLVector3((float)OpenSim.Framework.Utilities.Util.RandomClass.Next(100,200), (float)OpenSim.Framework.Utilities.Util.RandomClass.Next(30, 200), 2);                
             }
 
           

@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void sendLandUpdateToAvatarsOverMe()
         {
-            List<ScenePresence> avatars = m_scene.RequestAvatarList();
+            List<ScenePresence> avatars = m_scene.GetAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
                 Land over =

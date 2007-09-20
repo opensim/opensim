@@ -537,7 +537,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void handleSignificantClientMovement(IClientAPI remote_client)
         {
-            ScenePresence clientAvatar = m_scene.RequestAvatar(remote_client.AgentId);
+            ScenePresence clientAvatar = m_scene.GetScenePresence(remote_client.AgentId);
             if (clientAvatar != null)
             {
                 Land over = getLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
