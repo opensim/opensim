@@ -1416,5 +1416,12 @@ namespace OpenSim.Region.Environment.Scenes
             avatar = null;
             return false;
         }
+
+        public override void Close()
+        {
+           m_heartbeatTimer.Close();
+
+            base.Close();
+        }
     }
 }

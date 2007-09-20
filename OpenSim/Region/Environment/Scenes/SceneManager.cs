@@ -227,5 +227,11 @@ namespace OpenSim.Region.Environment.Scenes
             avatar = null;
             return false;
         }
+
+        public void CloseScene(Scene scene)
+        {
+            m_localScenes.Remove(scene);
+            scene.Close();
+        }
     }
 }

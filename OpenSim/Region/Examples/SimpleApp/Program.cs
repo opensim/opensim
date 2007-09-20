@@ -72,6 +72,8 @@ namespace SimpleApp
 
             scene.StartTimer();
 
+            m_sceneManager.Add(scene);
+
             m_moduleLoader.PostInitialise();
             m_moduleLoader.ClearCache();
             
@@ -89,7 +91,7 @@ namespace SimpleApp
                 scene.AddEntity(complexObject);
             }
 
-            /*for (int i = 0; i < 500; i++)
+            for (int i = 0; i < 2; i++)
             {
                 MyNpcCharacter m_character = new MyNpcCharacter(scene.EventManager);
                 scene.AddNewClient(m_character, false);
@@ -100,7 +102,8 @@ namespace SimpleApp
             {
                 avatar.AbsolutePosition = new LLVector3((float)OpenSim.Framework.Utilities.Util.RandomClass.Next(100,200), (float)OpenSim.Framework.Utilities.Util.RandomClass.Next(30, 200), 2);
                 
-            }*/
+            }
+
           
        
             DirectoryInfo dirInfo = new DirectoryInfo( "." );

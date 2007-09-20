@@ -67,7 +67,6 @@ namespace OpenSim
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
-        protected SceneManager m_localScenes = new SceneManager();
 
         private bool m_silent;
         private readonly string m_logFilename = ("region-console.log");
@@ -215,7 +214,7 @@ namespace OpenSim
                 //Server side object editing permissions checking
                 scene.PermissionsMngr.BypassPermissions = !m_permissions;
 
-                m_localScenes.Add(scene);
+                m_sceneManager.Add(scene);
 
                 m_udpServers.Add(udpServer);
                 m_regionData.Add(regionInfo);
@@ -332,7 +331,7 @@ namespace OpenSim
             // IMPLEMENT THIS
             m_log.Verbose("Closing console and terminating");
 
-            m_localScenes.Close();
+            m_sceneManager.Close();
 
             m_log.Close();
             Environment.Exit(0);
@@ -377,19 +376,19 @@ namespace OpenSim
             switch (command)
             {
                 case "set-time":
-                    m_localScenes.SetCurrentSceneTimePhase(Convert.ToInt32(cmdparams[0]));
+                    m_sceneManager.SetCurrentSceneTimePhase(Convert.ToInt32(cmdparams[0]));
                     break;
 
                 case "force-update":
                     Console.WriteLine("Updating all clients");
-                    m_localScenes.ForceCurrentSceneClientUpdate();
+                    m_sceneManager.ForceCurrentSceneClientUpdate();
                     break;
 
 
                 case "edit-scale":
                     if (cmdparams.Length == 4)
                     {
-                        m_localScenes.HandleEditCommandOnCurrentScene(cmdparams);
+                        m_sceneManager.HandleEditCommandOnCurrentScene(cmdparams);
                     }
                     break;
 
@@ -427,34 +426,34 @@ namespace OpenSim
                 case "save-xml":
                     if (cmdparams.Length > 0)
                     {
-                        m_localScenes.SaveCurrentSceneToXml(cmdparams[0]);
+                        m_sceneManager.SaveCurrentSceneToXml(cmdparams[0]);
                     }
                     else
                     {
-                        m_localScenes.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                        m_sceneManager.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
 
                 case "load-xml":
                     if (cmdparams.Length > 0)
                     {
-                        m_localScenes.LoadCurrentSceneFromXml(cmdparams[0]);
+                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0]);
                     }
                     else
                     {
-                        m_localScenes.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
 
                 case "terrain":
-                    if (!m_localScenes.RunTerrainCmdOnCurrentScene(cmdparams, ref result))
+                    if (!m_sceneManager.RunTerrainCmdOnCurrentScene(cmdparams, ref result))
                     {
                         m_log.Error(result);
                     }
                     break;
 
                 case "script":
-                    m_localScenes.SendCommandToCurrentSceneScripts(cmdparams);
+                    m_sceneManager.SendCommandToCurrentSceneScripts(cmdparams);
                     break;
 
                 case "command-script":
@@ -468,16 +467,16 @@ namespace OpenSim
                     // Treats each user as a super-admin when disabled
                     bool permissions = Convert.ToBoolean(cmdparams[0]);
 
-                    m_localScenes.SetBypassPermissionsOnCurrentScene(!permissions);
+                    m_sceneManager.SetBypassPermissionsOnCurrentScene(!permissions);
 
                     break;
 
                 case "backup":
-                    m_localScenes.BackupCurrentScene();
+                    m_sceneManager.BackupCurrentScene();
                     break;
 
                 case "alert":
-                    m_localScenes.HandleAlertCommandOnCurrentScene(cmdparams);
+                    m_sceneManager.HandleAlertCommandOnCurrentScene(cmdparams);
                     break;
 
                 case "create":
@@ -497,7 +496,7 @@ namespace OpenSim
                     {
                         string regionName = this.CombineParams(cmdparams, 0);
 
-                        if (m_localScenes.TrySetCurrentScene(regionName))
+                        if (m_sceneManager.TrySetCurrentScene(regionName))
                         {
 
                         }
@@ -507,13 +506,13 @@ namespace OpenSim
                         }
                     }
 
-                    if (m_localScenes.CurrentScene == null)
+                    if (m_sceneManager.CurrentScene == null)
                     {
                         MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
                     }
                     else
                     {
-                        MainLog.Instance.Verbose("Current Region: " + m_localScenes.CurrentScene.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
+                        MainLog.Instance.Verbose("Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
                     }
 
                     break;
@@ -535,7 +534,7 @@ namespace OpenSim
                         int newDebug;
                         if (int.TryParse(args[1], out newDebug))
                         {
-                            m_localScenes.SetDebugPacketOnCurrentScene(m_log, newDebug);
+                            m_sceneManager.SetDebugPacketOnCurrentScene(m_log, newDebug);
                         }
                         else
                         {
@@ -568,11 +567,11 @@ namespace OpenSim
                 case "users":
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
 
-                    List<ScenePresence> avatars = m_localScenes.GetCurrentSceneAvatars();
+                    List<ScenePresence> avatars = m_sceneManager.GetCurrentSceneAvatars();
 
                     foreach (ScenePresence avatar in avatars)
                     {
-                        RegionInfo regionInfo = m_localScenes.GetRegionInfo(avatar.RegionHandle);
+                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(avatar.RegionHandle);
                         string regionName;
 
                         if (regionInfo == null)

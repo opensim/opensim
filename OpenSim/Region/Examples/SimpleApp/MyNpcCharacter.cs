@@ -179,8 +179,15 @@ namespace SimpleApp
 
         public virtual void SendRegionHandshake(RegionInfo regionInfo)
         {
-            this.OnRegionHandShakeReply(this);
-            this.OnCompleteMovementToRegion();
+            if (OnRegionHandShakeReply != null)
+            {
+                this.OnRegionHandShakeReply(this);
+            }
+
+            if (OnCompleteMovementToRegion != null)
+            {
+                this.OnCompleteMovementToRegion();
+            }
         }
 
         private void Update( )

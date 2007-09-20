@@ -56,6 +56,8 @@ namespace OpenSim.Region.ClientStack
         protected LogBase m_log;
         protected CommunicationsManager m_commsManager;
 
+        protected SceneManager m_sceneManager = new SceneManager();
+
         public RegionApplicationBase()
         {
             m_startuptime = DateTime.Now;
