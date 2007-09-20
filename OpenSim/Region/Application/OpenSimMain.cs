@@ -377,19 +377,19 @@ namespace OpenSim
             switch (command)
             {
                 case "set-time":
-                    m_localScenes.SetTimePhase(Convert.ToInt32(cmdparams[0]));
+                    m_localScenes.SetCurrentSceneTimePhase(Convert.ToInt32(cmdparams[0]));
                     break;
 
                 case "force-update":
                     Console.WriteLine("Updating all clients");
-                    m_localScenes.ForceClientUpdate();
+                    m_localScenes.ForceCurrentSceneClientUpdate();
                     break;
 
 
                 case "edit-scale":
                     if (cmdparams.Length == 4)
                     {
-                        m_localScenes.HandleEditCommand(cmdparams);
+                        m_localScenes.HandleEditCommandOnCurrentScene(cmdparams);
                     }
                     break;
 
@@ -427,34 +427,34 @@ namespace OpenSim
                 case "save-xml":
                     if (cmdparams.Length > 0)
                     {
-                        m_localScenes.SavePrimsToXml(cmdparams[0]);
+                        m_localScenes.SaveCurrentSceneToXml(cmdparams[0]);
                     }
                     else
                     {
-                        m_localScenes.SavePrimsToXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                        m_localScenes.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
 
                 case "load-xml":
                     if (cmdparams.Length > 0)
                     {
-                        m_localScenes.LoadPrimsFromXml(cmdparams[0]);
+                        m_localScenes.LoadCurrentSceneFromXml(cmdparams[0]);
                     }
                     else
                     {
-                        m_localScenes.LoadPrimsFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                        m_localScenes.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
 
                 case "terrain":
-                    if (!m_localScenes.RunTerrainCmd(cmdparams, ref result))
+                    if (!m_localScenes.RunTerrainCmdOnCurrentScene(cmdparams, ref result))
                     {
                         m_log.Error(result);
                     }
                     break;
 
                 case "script":
-                    m_localScenes.SendCommandToScripts(cmdparams);
+                    m_localScenes.SendCommandToCurrentSceneScripts(cmdparams);
                     break;
 
                 case "command-script":
@@ -468,16 +468,16 @@ namespace OpenSim
                     // Treats each user as a super-admin when disabled
                     bool permissions = Convert.ToBoolean(cmdparams[0]);
 
-                    m_localScenes.BypassPermissions(!permissions);
+                    m_localScenes.SetBypassPermissionsOnCurrentScene(!permissions);
 
                     break;
 
                 case "backup":
-                    m_localScenes.Backup();
+                    m_localScenes.BackupCurrentScene();
                     break;
 
                 case "alert":
-                    m_localScenes.HandleAlertCommand(cmdparams);
+                    m_localScenes.HandleAlertCommandOnCurrentScene(cmdparams);
                     break;
 
                 case "create":
@@ -497,7 +497,7 @@ namespace OpenSim
                     {
                         string regionName = this.CombineParams(cmdparams, 0);
 
-                        if (m_localScenes.TrySetCurrentRegion(regionName))
+                        if (m_localScenes.TrySetCurrentScene(regionName))
                         {
 
                         }
@@ -535,7 +535,7 @@ namespace OpenSim
                         int newDebug;
                         if (int.TryParse(args[1], out newDebug))
                         {
-                            m_localScenes.DebugPacket(m_log, newDebug);
+                            m_localScenes.SetDebugPacketOnCurrentScene(m_log, newDebug);
                         }
                         else
                         {
@@ -568,7 +568,7 @@ namespace OpenSim
                 case "users":
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
 
-                    List<ScenePresence> avatars = m_localScenes.GetAvatars();
+                    List<ScenePresence> avatars = m_localScenes.GetCurrentSceneAvatars();
 
                     foreach (ScenePresence avatar in avatars)
                     {

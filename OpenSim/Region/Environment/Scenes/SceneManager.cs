@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
+using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -15,7 +16,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_currentScene; }
         }
 
-        private Scene CurrentOrFirstScene
+        public Scene CurrentOrFirstScene
         {
             get
             {
@@ -48,17 +49,17 @@ namespace OpenSim.Region.Environment.Scenes
             m_localScenes.Add(scene);
         }
 
-        public void SavePrimsToXml(string filename)
+        public void SaveCurrentSceneToXml(string filename)
         {
             CurrentOrFirstScene.SavePrimsToXml(filename);
         }
 
-        public void LoadPrimsFromXml(string filename)
+        public void LoadCurrentSceneFromXml(string filename)
         {
             CurrentOrFirstScene.LoadPrimsFromXml(filename);
         }
 
-        public bool RunTerrainCmd(string[] cmdparams, ref string result)
+        public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
             if (m_currentScene == null)
             {
@@ -79,17 +80,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SendCommandToScripts(string[] cmdparams)
+        public void SendCommandToCurrentSceneScripts(string[] cmdparams)
         {
-            ForEach(delegate(Scene scene) { scene.SendCommandToScripts(cmdparams); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.SendCommandToScripts(cmdparams); });
         }
 
-        public void BypassPermissions(bool bypassPermissions)
+        public void SetBypassPermissionsOnCurrentScene(bool bypassPermissions)
         {
-            ForEach(delegate(Scene scene) { scene.PermissionsMngr.BypassPermissions = bypassPermissions; });
+            ForEachCurrentScene(delegate(Scene scene) { scene.PermissionsMngr.BypassPermissions = bypassPermissions; });
         }
 
-        private void ForEach(Action<Scene> func)
+        private void ForEachCurrentScene(Action<Scene> func)
         {
             if (m_currentScene == null)
             {
@@ -101,17 +102,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void Backup()
+        public void BackupCurrentScene()
         {
-            ForEach(delegate(Scene scene) { scene.Backup(); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.Backup(); });
         }
 
-        public void HandleAlertCommand(string[] cmdparams)
+        public void HandleAlertCommandOnCurrentScene(string[] cmdparams)
         {
-            ForEach(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });
         }
 
-        public bool TrySetCurrentRegion(string regionName)
+        public bool TrySetCurrentScene(string regionName)
         {
             if ((String.Compare(regionName, "root") == 0) || (String.Compare(regionName, "..") == 0))
             {
@@ -135,9 +136,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void DebugPacket(LogBase log, int newDebug)
+        public void SetDebugPacketOnCurrentScene(LogBase log, int newDebug)
         {
-            ForEach(delegate(Scene scene)
+            ForEachCurrentScene(delegate(Scene scene)
                         {
                             foreach (EntityBase entity in scene.Entities.Values)
                             {
@@ -157,11 +158,11 @@ namespace OpenSim.Region.Environment.Scenes
                         });
         }
 
-        public List<ScenePresence> GetAvatars()
+        public List<ScenePresence> GetCurrentSceneAvatars()
         {
             List<ScenePresence> avatars = new List<ScenePresence>();
 
-            ForEach(delegate(Scene scene)
+            ForEachCurrentScene(delegate(Scene scene)
                         {
                             foreach (EntityBase entity in scene.Entities.Values)
                             {
@@ -192,9 +193,9 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
-        public void SetTimePhase(int timePhase)
+        public void SetCurrentSceneTimePhase(int timePhase)
         {
-            ForEach(delegate(Scene scene)
+            ForEachCurrentScene(delegate(Scene scene)
                         {
                             scene.SetTimePhase(
                                 timePhase)
@@ -203,14 +204,28 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
-        public void ForceClientUpdate()
+        public void ForceCurrentSceneClientUpdate()
         {
-            ForEach(delegate(Scene scene) { scene.ForceClientUpdate(); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.ForceClientUpdate(); });
         }
 
-        public void HandleEditCommand(string[] cmdparams)
+        public void HandleEditCommandOnCurrentScene(string[] cmdparams)
         {
-            ForEach(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
+        }
+
+        public bool TryGetAvatar( LLUUID avatarId, out ScenePresence avatar )
+        {
+            foreach (Scene scene in m_localScenes)
+            {
+                if( scene.TryGetAvatar( avatarId, out avatar ))
+                {
+                    return true;
+                }
+            }
+
+            avatar = null;
+            return false;
         }
     }
 }
