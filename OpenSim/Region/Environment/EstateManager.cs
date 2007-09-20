@@ -335,7 +335,7 @@ namespace OpenSim.Region.Environment
 
             for (int i = 0; i < avatars.Count; i++)
             {
-                sendRegionInfoPacket(avatars[i].ControllingClient);
+                sendRegionInfoPacket(avatars[i]._ControllingClient);
             }
         }
 
@@ -343,7 +343,7 @@ namespace OpenSim.Region.Environment
         {
             m_scene.ForEachScenePresence( delegate( ScenePresence scenePresence )
             {
-                sendRegionHandshake(scenePresence.ControllingClient);
+                sendRegionHandshake(scenePresence._ControllingClient);
             });
         }
 

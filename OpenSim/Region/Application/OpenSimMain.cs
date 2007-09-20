@@ -588,7 +588,7 @@ namespace OpenSim
                                           avatar.Firstname,
                                           avatar.Lastname,
                                           avatar.UUID,
-                                          avatar.ControllingClient.AgentId,
+                                          avatar._ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
                                           regionName));

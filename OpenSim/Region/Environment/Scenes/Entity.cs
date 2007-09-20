@@ -33,7 +33,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class Entity : EntityBase //this class (Entity) will be phased out 
     {
-        protected PhysicsActor _physActor;
+        protected PhysicsActor m_physicsActor;
 
         /// <summary>
         /// 
@@ -42,24 +42,24 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                if (_physActor != null)
+                if (m_physicsActor != null)
                 {
-                    m_pos.X = _physActor.Position.X;
-                    m_pos.Y = _physActor.Position.Y;
-                    m_pos.Z = _physActor.Position.Z;
+                    m_pos.X = m_physicsActor.Position.X;
+                    m_pos.Y = m_physicsActor.Position.Y;
+                    m_pos.Z = m_physicsActor.Position.Z;
                 }
 
                 return m_pos;
             }
             set
             {
-                if (_physActor != null)
+                if (m_physicsActor != null)
                 {
                     try
                     {
                         lock (m_scene.SyncRoot)
                         {
-                            _physActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                            m_physicsActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
                         }
                     }
                     catch (Exception e)
@@ -80,24 +80,24 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                if (_physActor != null)
+                if (m_physicsActor != null)
                 {
-                    m_velocity.X = _physActor.Velocity.X;
-                    m_velocity.Y = _physActor.Velocity.Y;
-                    m_velocity.Z = _physActor.Velocity.Z;
+                    m_velocity.X = m_physicsActor.Velocity.X;
+                    m_velocity.Y = m_physicsActor.Velocity.Y;
+                    m_velocity.Z = m_physicsActor.Velocity.Z;
                 }
 
                 return m_velocity;
             }
             set
             {
-                if (_physActor != null)
+                if (m_physicsActor != null)
                 {
                     try
                     {
                         lock (m_scene.SyncRoot)
                         {
-                            _physActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                            m_physicsActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
                         }
                     }
                     catch (Exception e)

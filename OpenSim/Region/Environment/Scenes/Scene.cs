@@ -310,7 +310,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                              {
                                                                  if (Terrain.Tainted(x * 16, y * 16))
                                                                  {
-                                                                     SendLayerData(x, y, presence.ControllingClient,
+                                                                     SendLayerData(x, y, presence._ControllingClient,
                                                                                    terData);
                                                                  }
                                                              }
@@ -344,7 +344,7 @@ namespace OpenSim.Region.Environment.Scenes
                     List<ScenePresence> avatars = GetAvatars();
                     foreach (ScenePresence avatar in avatars)
                     {
-                        avatar.ControllingClient.SendViewerTime(m_timePhase);
+                        avatar._ControllingClient.SendViewerTime(m_timePhase);
                     }
 
                     m_timeUpdateCount = 0;
@@ -396,7 +396,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
-                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
+                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence._ControllingClient); });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -424,7 +424,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
-                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
+                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence._ControllingClient); });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -829,10 +829,10 @@ namespace OpenSim.Region.Environment.Scenes
                 delegate(ScenePresence presence)
                 {
                     presence.CoarseLocationChange(avatar);
-                    presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                    if (presence.PhysActor != null)
+                    presence._ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                    if (presence.PhysicsActor != null)
                     {
-                        phyScene.RemoveAvatar(presence.PhysActor);
+                        phyScene.RemoveAvatar(presence.PhysicsActor);
                     }
                 });
 
@@ -953,7 +953,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachScenePresence(delegate(ScenePresence presence)
                                      {
-                                         presence.ControllingClient.SendKillObject(m_regionHandle, localID);
+                                         presence._ControllingClient.SendKillObject(m_regionHandle, localID);
                                      });
         }
 
@@ -1181,7 +1181,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scenePresences.ContainsKey(avatarID))
             {
-                m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
+                m_scenePresences[avatarID]._ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
             }
         }
 
@@ -1197,7 +1197,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (ScenePresence presence in m_scenePresences.Values)
             {
-                presence.ControllingClient.SendAlertMessage(message);
+                presence._ControllingClient.SendAlertMessage(message);
             }
         }
 
@@ -1205,7 +1205,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scenePresences.ContainsKey(agentID))
             {
-                m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
+                m_scenePresences[agentID]._ControllingClient.SendAgentAlertMessage(message, modal);
             }
         }
 
@@ -1215,7 +1215,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if ((presence.Firstname == firstName) && (presence.Lastname == lastName))
                 {
-                    presence.ControllingClient.SendAgentAlertMessage(message, modal);
+                    presence._ControllingClient.SendAgentAlertMessage(message, modal);
                     break;
                 }
             }
@@ -1303,7 +1303,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                   scenePrescence.Firstname,
                                                   scenePrescence.Lastname,
                                                   scenePrescence.UUID,
-                                                  scenePrescence.ControllingClient.AgentId,
+                                                  scenePrescence._ControllingClient.AgentId,
                                                   "Unknown",
                                                   "Unknown",
                                                   RegionInfo.RegionName));

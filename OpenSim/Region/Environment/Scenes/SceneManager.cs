@@ -151,7 +151,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                                 scenePrescence.Firstname, scenePrescence.Lastname,
                                                                 newDebug));
 
-                                        scenePrescence.ControllingClient.SetDebug(newDebug);
+                                        scenePrescence._ControllingClient.SetDebug(newDebug);
                                     }
                                 }
                             }

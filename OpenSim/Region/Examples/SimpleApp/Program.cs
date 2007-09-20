@@ -52,8 +52,6 @@ namespace SimpleApp
 
             m_log.Notice(m_log.LineInfo);
             
-            ScenePresence.PhysicsEngineFlying = true;
-
             IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
            
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");

@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules
                         string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
                         m_scene.ForEachScenePresence(delegate(ScenePresence presence)
                                                          {
-                                                             presence.ControllingClient.SendChatMessage(
+                                                             presence._ControllingClient.SendChatMessage(
                                                                  Helpers.StringToField(mess), 255, pos, "IRC:",
                                                                  LLUUID.Zero);
                                                          });
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Modules
                                                      int dis = -1000;
 
                                                      //err ??? the following code seems to be request a scenePresence when it already has a ref to it
-                                                     avatar = m_scene.GetScenePresence(presence.ControllingClient.AgentId);
+                                                     avatar = m_scene.GetScenePresence(presence._ControllingClient.AgentId);
                                                      if (avatar != null)
                                                      {
                                                          dis = (int) avatar.AbsolutePosition.GetDistanceTo(fromPos);
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Modules
                                                              if ((dis < 10) && (dis > -10))
                                                              {
                                                                  //should change so the message is sent through the avatar rather than direct to the ClientView
-                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                 presence._ControllingClient.SendChatMessage(message,
                                                                                                             type,
                                                                                                             fromPos,
                                                                                                             fromName,
@@ -182,7 +182,7 @@ namespace OpenSim.Region.Environment.Modules
                                                              if ((dis < 30) && (dis > -30))
                                                              {
                                                                  //Console.WriteLine("sending chat");
-                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                 presence._ControllingClient.SendChatMessage(message,
                                                                                                             type,
                                                                                                             fromPos,
                                                                                                             fromName,
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules
                                                          case 2: // Shout
                                                              if ((dis < 100) && (dis > -100))
                                                              {
-                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                 presence._ControllingClient.SendChatMessage(message,
                                                                                                             type,
                                                                                                             fromPos,
                                                                                                             fromName,
@@ -201,7 +201,7 @@ namespace OpenSim.Region.Environment.Modules
                                                              break;
 
                                                          case 0xff: // Broadcast
-                                                             presence.ControllingClient.SendChatMessage(message, type,
+                                                             presence._ControllingClient.SendChatMessage(message, type,
                                                                                                         fromPos,
                                                                                                         fromName,
                                                                                                         fromAgentID);

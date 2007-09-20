@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.Environment.Scenes
                 List<ScenePresence> avatars = GetScenePresences();
                 for (int i = 0; i < avatars.Count; i++)
                 {
-                    avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalID);
+                    avatars[i]._ControllingClient.SendKillObject(m_regionHandle, part.LocalID);
                 }
             }
         }
