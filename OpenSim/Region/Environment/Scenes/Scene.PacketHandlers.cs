@@ -516,6 +516,20 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);
+
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup obj = ent as SceneObjectGroup;
+                    
+                    if( obj.HasChildPrim( localID ) )
+                    {
+                        obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
+                        return;
+                    }                    
+                }
+            }
         }
     }
 }

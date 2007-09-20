@@ -41,27 +41,6 @@ namespace SimpleApp
             this.CreateTerrainTexture();
         }
 
-        public override void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
-        {
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-                    
-                    if( obj.HasChildPrim( localID ) )
-                    {
-                        obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
-                        return;
-                    }                    
-                }
-            }
-            
-            base.ProcessObjectGrab(localID, offsetPos, remoteClient);
-        }
-
-        #region IWorld Members
-
         override public void AddNewClient(IClientAPI client, bool child)
         {
             SubscribeToClientEvents(client);
@@ -79,7 +58,5 @@ namespace SimpleApp
 
             client.SendRegionHandshake(m_regInfo);
         }
-
-        #endregion
     }
 }

@@ -133,7 +133,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void TriggerObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             if (OnObjectGrab != null)
+            {
                 OnObjectGrab(localID, offsetPos, remoteClient);
+            }
         }
 
         public void TriggerRezScript(uint localID, LLUUID itemID, string script)

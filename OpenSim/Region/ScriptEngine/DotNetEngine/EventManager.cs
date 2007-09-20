@@ -52,9 +52,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // Hook up a test event to our test form
             myScriptEngine.Log.Verbose("ScriptEngine", "Hooking up to server events");
-            myScriptEngine.World.EventManager.OnObjectGrab += new OpenSim.Region.Environment.Scenes.EventManager.ObjectGrabDelegate(touch_start);
-            myScriptEngine.World.EventManager.OnRezScript += new OpenSim.Region.Environment.Scenes.EventManager.NewRezScript(OnRezScript);
-            myScriptEngine.World.EventManager.OnRemoveScript += new OpenSim.Region.Environment.Scenes.EventManager.RemoveScript(OnRemoveScript);
+            myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
+            myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
+            myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
 
         }
 
