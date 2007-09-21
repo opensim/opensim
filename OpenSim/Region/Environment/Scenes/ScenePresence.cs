@@ -336,7 +336,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void MakeAvatar(LLVector3 pos, bool isFlying)
+        public void MakeAvatarPhysical(LLVector3 pos, bool isFlying)
         {
             newAvatar = true;
             childAgent = false;
@@ -363,6 +363,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void RemoveFromPhysicalScene()
         {
             m_scene.PhysScene.RemoveAvatar( this.PhysicsActor );
+            this.PhysicsActor = null;
         }
 
         /// <summary>
@@ -429,6 +430,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pack"></param>
         public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
         {
+            if (childAgent)
+            {
+                Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
+                return;
+            }
+            if(PhysicsActor==null) {
+                Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
+                return;
+            }
             int i = 0;
             bool update_movementflag = false;
             bool update_rotation = false;
@@ -501,6 +511,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
+            if (childAgent)
+            {
+                Console.WriteLine("DEBUG: AddNewMovement: child agent");
+                return;
+            }
             NewForce newVelocity = new NewForce();
             Vector3 direc = rotation*vec;
             direc.Normalize();

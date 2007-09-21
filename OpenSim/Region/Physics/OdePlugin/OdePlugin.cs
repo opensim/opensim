@@ -152,9 +152,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-            OdeCharacter och = (OdeCharacter)actor;
-            d.BodyDestroy(och.BoundingCapsule);
-            _characters.Remove(och);
+            ((OdeCharacter)actor).Destroy();
+            _characters.Remove((OdeCharacter)actor);
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -448,6 +447,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             this._position.X = vec.X;
             this._position.Y = vec.Y;
             this._position.Z = vec.Z;
+        }
+
+        public void Destroy()
+        {
+            lock (OdeScene.OdeLock)
+            {
+                d.GeomDestroy(this.capsule_geom);
+                d.BodyDestroy(this.BoundingCapsule);
+            }
         }
     }
 

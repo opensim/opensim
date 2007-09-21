@@ -833,6 +833,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (presence.PhysicsActor != null)
                     {
                         phyScene.RemoveAvatar(presence.PhysicsActor);
+                        presence.PhysicsActor = null;
                     }
                 });
 
@@ -1028,7 +1029,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scenePresences.ContainsKey(agentID))
                 {
-                    m_scenePresences[agentID].MakeAvatar(position, isFlying);
+                    m_scenePresences[agentID].MakeAvatarPhysical(position, isFlying);
                 }
             }
         }
