@@ -40,5 +40,10 @@ namespace OpenSim.Region.Environment.Regions
                 whatToDo(subscription.Client);                
             }
         }
+
+        internal void Remove(LLUUID agentID)
+        {
+            // TODO : Well, remove it!
+        }
     }
 }

@@ -307,7 +307,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             float[] terData = Terrain.GetHeights1D();
 
-                            Broadcast( delegate( IClientAPI client )
+                            Broadcast(delegate(IClientAPI client)
                                                      {
                                                          for (int x = 0; x < 16; x++)
                                                          {
@@ -321,7 +321,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                          }
                                                      });
 
-                    
+
 
                             Terrain.ResetTaint();
                         }
@@ -369,7 +369,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal void Broadcast(Action<IClientAPI> whatToDo)
         {
-            m_region.Broadcast( whatToDo );
+            m_region.Broadcast(whatToDo);
         }
         /// <summary>
         /// 
@@ -641,6 +641,7 @@ namespace OpenSim.Region.Environment.Scenes
         public override void AddNewClient(IClientAPI client, bool child)
         {
             SubscribeToClientEvents(client);
+
             m_estateManager.sendRegionHandshake(client);
 
             CreateAndAddScenePresence(client, child);
@@ -769,33 +770,34 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScenePresence avatar = GetScenePresence(agentID);
 
+            Broadcast(delegate(IClientAPI client)
+                           {
+                               client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                           });
+
+
             ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
-                    presence.CoarseLocationChange(avatar);
-                    presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                    if (presence.PhysicsActor != null)
-                    {
-                        phyScene.RemoveAvatar(presence.PhysicsActor);
-                        presence.PhysicsActor = null;
-                    }
+                    presence.CoarseLocationChange();
                 });
 
             lock (m_scenePresences)
             {
-                if (m_scenePresences.ContainsKey(agentID))
-                {
-                    m_scenePresences.Remove(agentID);
-                }
+                m_scenePresences.Remove(agentID);
             }
+
+            lock (m_region)
+            {
+                m_region.Remove(agentID);
+            }
+
             lock (Entities)
             {
-                if (Entities.ContainsKey(agentID))
-                {
-                    Entities.Remove(agentID);
-                }
+                Entities.Remove(agentID);
             }
-            // TODO: Add the removal from physics ?
+
+            avatar.Close();
 
             // Remove client agent from profile, so new logins will work
             commsManager.UserServer.clearUserAgent(agentID);

@@ -627,7 +627,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.SendCoarseLocationUpdate(CoarseLocations);
         }
 
-        public void CoarseLocationChange(ScenePresence avatar)
+        public void CoarseLocationChange()
         {
             newCoarseLocations = true;
         }
@@ -638,7 +638,7 @@ namespace OpenSim.Region.Environment.Scenes
                                              {
                                                  if (presence != this)
                                                  {
-                                                     presence.CoarseLocationChange(this);
+                                                     presence.CoarseLocationChange();
                                                  }
                                              });
         }

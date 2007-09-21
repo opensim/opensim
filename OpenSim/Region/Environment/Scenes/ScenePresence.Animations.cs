@@ -45,19 +45,18 @@ namespace OpenSim.Region.Environment.Scenes
             public void LoadAnims()
             {
                 //OpenSim.Framework.Console.MainLog.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
-                XmlTextReader reader = new XmlTextReader("data/avataranimations.xml");
-
-                XmlDocument doc = new XmlDocument();
-                doc.Load(reader);
-                foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
+                using( XmlTextReader reader = new XmlTextReader("data/avataranimations.xml") )
                 {
-                    if (nod.Attributes["name"] != null)
+                    XmlDocument doc = new XmlDocument();
+                    doc.Load(reader);
+                    foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
                     {
-                        AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
+                        if (nod.Attributes["name"] != null)
+                        {
+                            AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
+                        }
                     }
                 }
-
-                reader.Close();
 
                 // OpenSim.Framework.Console.MainLog.Instance.Verbose("Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
@@ -65,6 +64,15 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     AnimsNames.Add(kp.Value, kp.Key);
                 }
+            }
+        }
+
+        internal void Close()
+        {
+            if (m_physicsActor != null)
+            {
+                m_scene.PhysScene.RemoveAvatar( PhysicsActor );
+                m_physicsActor = null;
             }
         }
     }
