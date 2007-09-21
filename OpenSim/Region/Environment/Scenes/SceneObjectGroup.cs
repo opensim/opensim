@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public override LLVector3 AbsolutePosition
+        public LLVector3 AbsolutePosition
         {
             get { return m_rootPart.GroupPosition; }
             set
@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.Environment.Scenes
                 List<ScenePresence> avatars = GetScenePresences();
                 for (int i = 0; i < avatars.Count; i++)
                 {
-                    avatars[i]._ControllingClient.SendKillObject(m_regionHandle, part.LocalID);
+                    avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalID);
                 }
             }
         }

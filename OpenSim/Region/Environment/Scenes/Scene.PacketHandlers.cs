@@ -77,7 +77,7 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence fromAvatar = m_scenePresences[fromAgentID];
                     ScenePresence toAvatar = m_scenePresences[toAgentID];
                     string fromName = fromAvatar.Firstname + " " + fromAvatar.Lastname;
-                    toAvatar._ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message, toAgentID,
+                    toAvatar.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message, toAgentID,
                                                                   imSessionID, fromName, dialog, timestamp);
                 }
                 else
@@ -508,7 +508,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachScenePresence(delegate(ScenePresence presence)
                                      {
-                                         presence._ControllingClient.SendAnimation(animID, seq, client.AgentId);
+                                         presence.ControllingClient.SendAnimation(animID, seq, client.AgentId);
                                      });
         }
 

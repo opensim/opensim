@@ -310,7 +310,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                              {
                                                                  if (Terrain.Tainted(x * 16, y * 16))
                                                                  {
-                                                                     SendLayerData(x, y, presence._ControllingClient,
+                                                                     SendLayerData(x, y, presence.ControllingClient,
                                                                                    terData);
                                                                  }
                                                              }
@@ -344,7 +344,7 @@ namespace OpenSim.Region.Environment.Scenes
                     List<ScenePresence> avatars = GetAvatars();
                     foreach (ScenePresence avatar in avatars)
                     {
-                        avatar._ControllingClient.SendViewerTime(m_timePhase);
+                        avatar.ControllingClient.SendViewerTime(m_timePhase);
                     }
 
                     m_timeUpdateCount = 0;
@@ -396,7 +396,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
-                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence._ControllingClient); });
+                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -424,7 +424,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
-                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence._ControllingClient); });
+                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {
@@ -772,7 +772,7 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence newAvatar = null;
 
             newAvatar = new ScenePresence(client, this, m_regInfo);
-            newAvatar.childAgent = child;
+            newAvatar.IsChildAgent = child;
 
             if (child)
             {
@@ -829,7 +829,7 @@ namespace OpenSim.Region.Environment.Scenes
                 delegate(ScenePresence presence)
                 {
                     presence.CoarseLocationChange(avatar);
-                    presence._ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                    presence.ControllingClient.SendKillObject(avatar.RegionHandle, avatar.LocalId);
                     if (presence.PhysicsActor != null)
                     {
                         phyScene.RemoveAvatar(presence.PhysicsActor);
@@ -881,7 +881,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             List<ScenePresence> result = GetScenePresences(delegate(ScenePresence scenePresence)
                                                                 {
-                                                                    return !scenePresence.childAgent;
+                                                                    return !scenePresence.IsChildAgent;
                                                                 });
 
             return result;
@@ -954,7 +954,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachScenePresence(delegate(ScenePresence presence)
                                      {
-                                         presence._ControllingClient.SendKillObject(m_regionHandle, localID);
+                                         presence.ControllingClient.SendKillObject(m_regionHandle, localID);
                                      });
         }
 
@@ -1182,7 +1182,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scenePresences.ContainsKey(avatarID))
             {
-                m_scenePresences[avatarID]._ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
+                m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned, message, url);
             }
         }
 
@@ -1198,7 +1198,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (ScenePresence presence in m_scenePresences.Values)
             {
-                presence._ControllingClient.SendAlertMessage(message);
+                presence.ControllingClient.SendAlertMessage(message);
             }
         }
 
@@ -1206,7 +1206,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scenePresences.ContainsKey(agentID))
             {
-                m_scenePresences[agentID]._ControllingClient.SendAgentAlertMessage(message, modal);
+                m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
             }
         }
 
@@ -1216,7 +1216,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if ((presence.Firstname == firstName) && (presence.Lastname == lastName))
                 {
-                    presence._ControllingClient.SendAgentAlertMessage(message, modal);
+                    presence.ControllingClient.SendAgentAlertMessage(message, modal);
                     break;
                 }
             }
@@ -1292,24 +1292,17 @@ namespace OpenSim.Region.Environment.Scenes
                         String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Session ID", "Circuit", "IP", "World"));
 
-                    foreach (EntityBase entity in Entities.Values)
+                    foreach (ScenePresence scenePrescence in GetAvatars())
                     {
-                        if (entity is ScenePresence)
-                        {
-                            ScenePresence scenePrescence = entity as ScenePresence;
-                            if (!scenePrescence.childAgent)
-                            {
-                                MainLog.Instance.Error(
+                        MainLog.Instance.Error(
                                     String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
                                                   scenePrescence.Firstname,
                                                   scenePrescence.Lastname,
                                                   scenePrescence.UUID,
-                                                  scenePrescence._ControllingClient.AgentId,
+                                                  scenePrescence.ControllingClient.AgentId,
                                                   "Unknown",
                                                   "Unknown",
                                                   RegionInfo.RegionName));
-                            }
-                        }
                     }
                     break;
                 case "modules":
@@ -1403,7 +1396,7 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence presence;
             if (m_scenePresences.TryGetValue(avatarId, out presence))
             {
-                if (!presence.childAgent)
+                if (!presence.IsChildAgent)
                 {
                     avatar = presence;
                     return true;

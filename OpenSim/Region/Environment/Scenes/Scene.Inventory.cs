@@ -21,7 +21,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if ( TryGetAvatar( avatarId, out avatar ))
             {
-                AddInventoryItem(avatar._ControllingClient, item);
+                AddInventoryItem(avatar.ControllingClient, item);
             }
         }
 
@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (TryGetAvatar(avatarId, out avatar))
             {
-                return CapsUpdateInventoryItemAsset(avatar._ControllingClient, itemID, data);
+                return CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data);
             }
 
             return LLUUID.Zero;

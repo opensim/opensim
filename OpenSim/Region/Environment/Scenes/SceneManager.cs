@@ -145,13 +145,13 @@ namespace OpenSim.Region.Environment.Scenes
                                 if (entity is ScenePresence)
                                 {
                                     ScenePresence scenePrescence = entity as ScenePresence;
-                                    if (!scenePrescence.childAgent)
+                                    if (!scenePrescence.IsChildAgent)
                                     {
                                         log.Error(String.Format("Packet debug for {0} {1} set to {2}",
                                                                 scenePrescence.Firstname, scenePrescence.Lastname,
                                                                 newDebug));
 
-                                        scenePrescence._ControllingClient.SetDebug(newDebug);
+                                        scenePrescence.ControllingClient.SetDebug(newDebug);
                                     }
                                 }
                             }
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 if (entity is ScenePresence)
                                 {
                                     ScenePresence scenePrescence = entity as ScenePresence;
-                                    if (!scenePrescence.childAgent)
+                                    if (!scenePrescence.IsChildAgent)
                                     {
                                         avatars.Add(scenePrescence);
                                     }

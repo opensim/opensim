@@ -567,11 +567,9 @@ namespace OpenSim
                 case "users":
                     m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
 
-                    List<ScenePresence> avatars = m_sceneManager.GetCurrentSceneAvatars();
-
-                    foreach (ScenePresence avatar in avatars)
+                    foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars())
                     {
-                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(avatar.RegionHandle);
+                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
                         string regionName;
 
                         if (regionInfo == null)
@@ -585,10 +583,10 @@ namespace OpenSim
 
                         m_log.Error(
                             String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                          avatar.Firstname,
-                                          avatar.Lastname,
-                                          avatar.UUID,
-                                          avatar._ControllingClient.AgentId,
+                                          presence.Firstname,
+                                          presence.Lastname,
+                                          presence.UUID,
+                                          presence.ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
                                           regionName));

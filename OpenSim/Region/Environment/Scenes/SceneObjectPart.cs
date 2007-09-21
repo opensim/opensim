@@ -700,7 +700,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                m_parentGroup.SendPartFullUpdate(avatars[i]._ControllingClient, this);
+                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this);
             }
         }
 
@@ -764,7 +764,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                m_parentGroup.SendPartTerseUpdate(avatars[i]._ControllingClient, this);
+                m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);
             }
         }
 

@@ -203,7 +203,7 @@ namespace OpenSim.Region.Environment.LandManagement
                                                       (int) Math.Round(avatars[i].AbsolutePosition.Y));
                 if (over.landData.localID == landData.localID)
                 {
-                    sendLandProperties(0, false, 0, avatars[i]._ControllingClient);
+                    sendLandProperties(0, false, 0, avatars[i].ControllingClient);
                 }
             }
         }
