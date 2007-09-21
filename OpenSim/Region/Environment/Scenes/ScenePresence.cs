@@ -38,7 +38,7 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public partial class ScenePresence : Entity
+    public partial class ScenePresence : EntityBase
     {
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
@@ -132,9 +132,79 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private readonly IClientAPI m_controllingClient;
+        protected PhysicsActor m_physicsActor;
+
         public IClientAPI _ControllingClient
         {
             get { return m_controllingClient; }
+        }
+
+        public LLVector3 AbsolutePosition
+        {
+            get
+            {
+                if (m_physicsActor != null)
+                {
+                    m_pos.X = m_physicsActor.Position.X;
+                    m_pos.Y = m_physicsActor.Position.Y;
+                    m_pos.Z = m_physicsActor.Position.Z;
+                }
+
+                return m_pos;
+            }
+            set
+            {
+                if (m_physicsActor != null)
+                {
+                    try
+                    {
+                        lock (m_scene.SyncRoot)
+                        {
+                            m_physicsActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+
+                m_pos = value;
+            }
+        }        
+      
+        public LLVector3 Velocity
+        {
+            get
+            {
+                if (m_physicsActor != null)
+                {
+                    m_velocity.X = m_physicsActor.Velocity.X;
+                    m_velocity.Y = m_physicsActor.Velocity.Y;
+                    m_velocity.Z = m_physicsActor.Velocity.Z;
+                }
+
+                return m_velocity;
+            }
+            set
+            {
+                if (m_physicsActor != null)
+                {
+                    try
+                    {
+                        lock (m_scene.SyncRoot)
+                        {
+                            m_physicsActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+
+                m_velocity = value;
+            }
         }
 
         #endregion
