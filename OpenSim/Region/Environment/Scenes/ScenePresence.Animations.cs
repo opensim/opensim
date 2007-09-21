@@ -66,14 +66,5 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
-        internal void Close()
-        {
-            if (m_physicsActor != null)
-            {
-                m_scene.PhysScene.RemoveAvatar( PhysicsActor );
-                m_physicsActor = null;
-            }
-        }
     }
 }

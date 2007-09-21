@@ -931,5 +931,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_physicsActor = scene.AddAvatar(pVec);           
         }
+
+        internal void Close()
+        {
+            RemoveFromPhysicalScene();
+        }
     }
 }
