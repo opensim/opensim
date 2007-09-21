@@ -69,8 +69,6 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
         private LLVector3 lastPhysPos = new LLVector3();
 
-        private RegionPresence m_regionPresence;
-
         private enum Dir_ControlFlags
         {
             DIR_CONTROL_FLAG_FOWARD = MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS,
@@ -216,6 +214,13 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_isChildAgent = value; }
         }
 
+        private RegionSubscription m_regionSubscription;
+
+        public RegionSubscription RegionSubscription
+        {
+            get { return m_regionSubscription; }
+        }
+
         #endregion
 
         #region Constructor(s)
@@ -229,7 +234,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionDat"></param>
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
         {
-            m_regionPresence = new RegionPresence( client );
+            m_regionSubscription = new RegionSubscription( client );
 
             m_scene = world;
             m_uuid = client.AgentId;
@@ -331,21 +336,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Status Methods
 
-        /// <summary>
-        /// Not Used, most likely can be deleted
-        /// </summary>
-        /// <param name="status"></param>
-        public void ChildStatusChange(bool status)
-        {
-            m_isChildAgent = status;
-
-            if (m_isChildAgent == true)
-            {
-                Velocity = new LLVector3(0, 0, 0);
-                AbsolutePosition = new LLVector3(128, 128, 70);
-            }
-        }
-
         public void MakeAvatarPhysical(LLVector3 pos, bool isFlying)
         {
             newAvatar = true;
@@ -425,7 +415,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 look = new LLVector3(0.99f, 0.042f, 0);
             }
+
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
+
             if (m_isChildAgent)
             {
                 m_isChildAgent = false;
@@ -434,10 +426,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pack"></param>
         public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
         {
             if (m_isChildAgent)
@@ -445,6 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
                 Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
                 return;
             }
+
             if(PhysicsActor==null) {
                 Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
                 return;
@@ -526,6 +515,7 @@ namespace OpenSim.Region.Environment.Scenes
                 Console.WriteLine("DEBUG: AddNewMovement: child agent");
                 return;
             }
+
             NewForce newVelocity = new NewForce();
             Vector3 direc = rotation*vec;
             direc.Normalize();

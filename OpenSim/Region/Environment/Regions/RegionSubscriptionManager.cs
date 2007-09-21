@@ -4,11 +4,11 @@ using System.Text;
 
 namespace OpenSim.Region.Environment.Regions
 {
-    public class RegionManager
+    public class RegionSubscriptionManager
     {
         private Dictionary<uint, Region> m_regions;
 
-        public RegionManager( )
+        public RegionSubscriptionManager( )
         {
             m_regions = new Dictionary<uint, Region>( );
         }

@@ -777,10 +777,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_parentGroup.SendPartTerseUpdate(remoteClient, this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="RemoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
             LLVector3 lPos;
@@ -789,11 +785,6 @@ namespace OpenSim.Region.Environment.Scenes
             remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="lPos"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion mRot = RotationOffset;

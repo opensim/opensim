@@ -49,6 +49,7 @@ using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Terrain;
 using Timer = System.Timers.Timer;
+using OpenSim.Region.Environment.Regions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -62,6 +63,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// publicized so it can be accessed from SceneObjectGroup.
         protected float timeStep = 0.1f;
+
+        private Regions.Region m_region;
 
         private Random Rand = new Random();
         private uint _primCount = 702000;
@@ -158,6 +161,8 @@ namespace OpenSim.Region.Environment.Scenes
                      ModuleLoader moduleLoader)
         {
             updateLock = new Mutex(false);
+
+            m_region = new Regions.Region(this);
 
             m_moduleLoader = moduleLoader;
             authenticateHandler = authen;
@@ -302,7 +307,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             float[] terData = Terrain.GetHeights1D();
 
-                            ForEachScenePresence(delegate(ScenePresence presence)
+                            Broadcast( delegate( IClientAPI client )
                                                      {
                                                          for (int x = 0; x < 16; x++)
                                                          {
@@ -310,8 +315,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                              {
                                                                  if (Terrain.Tainted(x * 16, y * 16))
                                                                  {
-                                                                     SendLayerData(x, y, presence.ControllingClient,
-                                                                                   terData);
+                                                                     client.SendLayerData(x, y, terData);
                                                                  }
                                                              }
                                                          }
@@ -366,6 +370,10 @@ namespace OpenSim.Region.Environment.Scenes
             updateLock.ReleaseMutex();
         }
 
+        internal void Broadcast(Action<IClientAPI> whatToDo)
+        {
+            m_region.Broadcast( whatToDo );
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -396,7 +404,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
 
-                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
+                Broadcast(delegate(IClientAPI client ) { SendLayerData( client ); });
 
                 foreach (LLUUID UUID in Entities.Keys)
                 {

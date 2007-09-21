@@ -88,17 +88,6 @@ namespace OpenSim.Region.Environment.Scenes
             RemoteClient.SendLayerData(Terrain.GetHeights1D());
         }
 
-        /// <summary>
-        /// Sends a specified patch to a client
-        /// </summary>
-        /// <param name="px">Patch coordinate (x) 0..16</param>
-        /// <param name="py">Patch coordinate (y) 0..16</param>
-        /// <param name="RemoteClient">The client to send to</param>
-        public virtual void SendLayerData(int px, int py, IClientAPI RemoteClient, float[] terrain)
-        {
-            RemoteClient.SendLayerData(px, py, terrain);
-        }
-
         #endregion
 
         #region Add/Remove Agent/Avatar
