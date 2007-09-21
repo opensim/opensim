@@ -321,10 +321,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                          }
                                                      });
 
-                            foreach (LLUUID UUID in Entities.Keys)
-                            {
-                                Entities[UUID].LandRenegerated();
-                            }
+                    
 
                             Terrain.ResetTaint();
                         }
@@ -406,10 +403,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 Broadcast(delegate(IClientAPI client ) { SendLayerData( client ); });
 
-                foreach (LLUUID UUID in Entities.Keys)
-                {
-                    Entities[UUID].LandRenegerated();
-                }
+ 
             }
             catch (Exception e)
             {
@@ -434,10 +428,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
 
-                foreach (LLUUID UUID in Entities.Keys)
-                {
-                    Entities[UUID].LandRenegerated();
-                }
             }
             catch (Exception e)
             {

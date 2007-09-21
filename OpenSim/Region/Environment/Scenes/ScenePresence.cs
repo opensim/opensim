@@ -537,13 +537,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public override void LandRenegerated()
-        {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public override void Update()
         {
             SendPrimUpdates();

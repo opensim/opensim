@@ -116,13 +116,6 @@ namespace OpenSim.Region.Environment.Scenes
             return (EntityBase) MemberwiseClone();
         }
 
-        /// <summary>
-        /// Infoms the entity that the land (heightmap) has changed
-        /// </summary>
-        public virtual void LandRenegerated()
-        {
-        }
-
         public abstract void SetText(string text, Vector3 color, double alpha);
     }
 }
