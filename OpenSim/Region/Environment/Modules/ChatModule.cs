@@ -122,9 +122,9 @@ namespace OpenSim.Region.Environment.Modules
                     if (inputLine.Contains(m_channel))
                     {
                         string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
-                        m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                        m_scene.Broadcast(delegate(IClientAPI client)
                                                          {
-                                                             presence.ControllingClient.SendChatMessage(
+                                                             client.SendChatMessage(
                                                                  Helpers.StringToField(mess), 255, pos, "IRC:",
                                                                  LLUUID.Zero);
                                                          });
