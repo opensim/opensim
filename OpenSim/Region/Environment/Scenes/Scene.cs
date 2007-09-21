@@ -383,60 +383,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region Regenerate Terrain
-
-        /// <summary>
-        /// Rebuilds the terrain using a procedural algorithm
-        /// </summary>
-        public void RegenerateTerrain()
-        {
-            try
-            {
-                Terrain.HillsGenerator();
-
-                lock (m_syncRoot)
-                {
-                    phyScene.SetTerrain(Terrain.GetHeights1D());
-                }
-
-                storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
-
-                Broadcast(delegate(IClientAPI client ) { SendLayerData( client ); });
-
- 
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Error("terrain", "Failed with exception " + e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Rebuilds the terrain using a 2D float array
-        /// </summary>
-        /// <param name="newMap">256,256 float array containing heights</param>
-        public void RegenerateTerrain(float[,] newMap)
-        {
-            try
-            {
-                Terrain.SetHeights2D(newMap);
-                lock (m_syncRoot)
-                {
-                    phyScene.SetTerrain(Terrain.GetHeights1D());
-                }
-                storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
-
-                ForEachScenePresence(delegate(ScenePresence presence) { SendLayerData(presence.ControllingClient); });
-
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Warn("terrain", "World.cs: RegenerateTerrain() - Failed with exception " + e.ToString());
-            }
-        }
-
-        #endregion
-
         #region Load Terrain
 
         /// <summary>
