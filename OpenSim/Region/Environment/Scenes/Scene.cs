@@ -367,6 +367,10 @@ namespace OpenSim.Region.Environment.Scenes
             updateLock.ReleaseMutex();
         }
 
+        /// <summary>
+        /// Perform delegate action on all clients subscribing to updates from this region.
+        /// </summary>
+        /// <returns></returns>
         internal void Broadcast(Action<IClientAPI> whatToDo)
         {
             m_region.Broadcast(whatToDo);
@@ -775,7 +779,6 @@ namespace OpenSim.Region.Environment.Scenes
                                client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
                            });
 
-
             ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
@@ -898,10 +901,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendKillObject(uint localID)
         {
-            ForEachScenePresence(delegate(ScenePresence presence)
+            Broadcast(delegate(IClientAPI client)
                                      {
-                                         presence.ControllingClient.SendKillObject(m_regionHandle, localID);
+                                         client.SendKillObject(m_regionHandle, localID);
                                      });
+        }
+
+        public void NotifyMyCoarseLocationChange()
+        {
+            ForEachScenePresence(delegate(ScenePresence presence)
+                                             {
+                                                 presence.CoarseLocationChange();
+                                             });
         }
 
         public void SendAllSceneObjectsToClient(ScenePresence presence)

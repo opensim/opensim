@@ -504,12 +504,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void StartAnimation(IClientAPI client, LLUUID animID, int seq)
+        public void StartAnimation(LLUUID animID, int seq, LLUUID agentId)
         {
-            ForEachScenePresence(delegate(ScenePresence presence)
-                                     {
-                                         presence.ControllingClient.SendAnimation(animID, seq, client.AgentId);
-                                     });
+            Broadcast(delegate(IClientAPI client)
+                          {
+                              client.SendAnimation(animID, seq, agentId);
+                          });
         }
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)

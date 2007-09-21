@@ -60,8 +60,8 @@ namespace OpenSim.Region.Environment.Scenes
         public bool IsRestrictedToRegion = false;
 
         private bool m_newForce = false;
-        private bool newAvatar = false;
-        private bool newCoarseLocations = true;
+        private bool m_newAvatar = false;
+        private bool m_newCoarseLocations = true;
 
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             //temporary until we move some code into the body classes
 
-            if (newAvatar)
+            if (m_newAvatar)
             {
                 //do we need to use newAvatar? not sure so have added this to kill the compile warning
             }
@@ -338,7 +338,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MakeAvatarPhysical(LLVector3 pos, bool isFlying)
         {
-            newAvatar = true;
+            m_newAvatar = true;
             m_isChildAgent = false;
 
             AbsolutePosition = pos;
@@ -402,7 +402,7 @@ namespace OpenSim.Region.Environment.Scenes
                 visualParams[i] = visualParam[i].ParamValue;
             }
 
-            SendArrearanceToAllOtherAgents();
+            SendAppearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -541,10 +541,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SendPrimUpdates();
 
-            if (newCoarseLocations)
+            if (m_newCoarseLocations)
             {
                 SendCoarseLocations();
-                newCoarseLocations = false;
+                m_newCoarseLocations = false;
             }
 
             if (m_isChildAgent == false)
@@ -605,12 +605,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                             {
-                                                 SendTerseUpdateToClient(presence.m_controllingClient);
-                                             });
+            m_scene.Broadcast( SendTerseUpdateToClient );
         }
-
 
         public void SendCoarseLocations()
         {
@@ -629,19 +625,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void CoarseLocationChange()
         {
-            newCoarseLocations = true;
+            m_newCoarseLocations = true;
         }
 
-        private void NotifyMyCoarseLocationChange()
-        {
-            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                             {
-                                                 if (presence != this)
-                                                 {
-                                                     presence.CoarseLocationChange();
-                                                 }
-                                             });
-        }
+      
 
 
         /// <summary>
@@ -681,11 +668,11 @@ namespace OpenSim.Region.Environment.Scenes
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(m_controllingClient);
-                newAvatar = false;
+                m_newAvatar = false;
             }
 
             SendFullUpdateToAllClients();
-            SendArrearanceToAllOtherAgents();
+            SendAppearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -697,7 +684,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.SendWearables(Wearables);
 
             //this.SendFullUpdateToAllClients();
-            //this.SendArrearanceToAllOtherAgents();
+            //this.SendAppearanceToAllOtherAgents();
 
             m_scene.SendAllSceneObjectsToClient(this);
             m_controllingClient.SendViewerTime(m_scene.TimePhase);
@@ -716,11 +703,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void SendArrearanceToAllOtherAgents()
+        public void SendAppearanceToAllOtherAgents()
         {
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                                              {
-                                                 SendAppearanceToOtherAgent(scenePresence);
+                                                 if (scenePresence != this)
+                                                 {
+                                                     SendAppearanceToOtherAgent(scenePresence);
+                                                 }
                                              });
         }
 
@@ -743,12 +733,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             CurrentAnimation = animID;
             AnimationSeq = seq;
+            LLUUID sourceAgentId = m_controllingClient.AgentId;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
-                                             {
-                                                 scenePresence.m_controllingClient.SendAnimation(animID, seq,
-                                                                                               m_controllingClient.AgentId);
-                                             });
+            m_scene.Broadcast(delegate(IClientAPI client)
+                                  {
+                                      client.SendAnimation(animID, seq, sourceAgentId);
+                                  });
         }
 
         /// <summary>
@@ -771,7 +761,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (OnSignificantClientMovement != null)
                 {
                     OnSignificantClientMovement(m_controllingClient);
-                    NotifyMyCoarseLocationChange();
+                    m_scene.NotifyMyCoarseLocationChange();
                 }
             }
         }
@@ -845,14 +835,13 @@ namespace OpenSim.Region.Environment.Scenes
                                                       m_physicsActor.Flying);
                 if (res)
                 {
-                    //TODO: following line is hard coded to port 9000, really need to change this as soon as possible
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
                     string capsPath = Util.GetCapsURL(m_controllingClient.AgentId);
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                   capsPath);
                     MakeChildAgent();
                     m_scene.SendKillObject(m_localId);
-                    NotifyMyCoarseLocationChange();
+                    m_scene.NotifyMyCoarseLocationChange();
                 }
             }
         }
