@@ -25,13 +25,12 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-/* Original code: Tedd Hansen */
 using System;
 using System.IO;
 using System.Reflection;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Region.Environment.Scenes.Scripting
+namespace OpenSim.Grid.ScriptServer
 {
     public class ScriptEngineLoader
     {
@@ -122,3 +121,4 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
         }
     }
 }
+

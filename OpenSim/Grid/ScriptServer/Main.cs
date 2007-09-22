@@ -25,16 +25,22 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using OpenSim.Framework.Console;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-//TODO: WHERE TO PLACE THIS?
-
-namespace OpenSim.Region.Environment.Scenes.Scripting
+namespace OpenSim.Grid.ScriptServer
 {
-    public interface ScriptEngineInterface
+    class OpenScript_Main
     {
-        void InitializeEngine(Scene Sceneworld, LogBase logger);
-        void Shutdown();
-//        void StartScript(string ScriptID, IScriptHost ObjectID);
+     
+        public static ScriptServer SE;
+   
+        static void Main(string[] args)
+        {
+            // Application is starting
+            SE = new ScriptServer();
+        }
+
     }
 }

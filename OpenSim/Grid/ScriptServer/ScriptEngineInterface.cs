@@ -27,13 +27,11 @@
 */
 using OpenSim.Framework.Console;
 
-//TODO: WHERE TO PLACE THIS?
-
-namespace OpenSim.Region.Environment.Scenes.Scripting
+namespace OpenSim.Grid.ScriptServer
 {
     public interface ScriptEngineInterface
     {
-        void InitializeEngine(Scene Sceneworld, LogBase logger);
+        //void InitializeEngine(Scene Sceneworld, LogBase logger);
         void Shutdown();
 //        void StartScript(string ScriptID, IScriptHost ObjectID);
     }
