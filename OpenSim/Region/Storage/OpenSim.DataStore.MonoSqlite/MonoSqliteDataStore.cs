@@ -478,7 +478,7 @@ namespace OpenSim.DataStore.MonoSqlite
             s.ProfileBegin = Convert.ToUInt16(row["ProfileBegin"]);
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
-            s.ProfileHollow = Convert.ToByte(row["ProfileHollow"]);
+            s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
             s.TextureEntry = (byte[])row["Texture"];
