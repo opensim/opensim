@@ -35,7 +35,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Environment.Regions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -214,13 +213,6 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_isChildAgent = value; }
         }
 
-        private RegionSubscription m_regionSubscription;
-
-        public RegionSubscription RegionSubscription
-        {
-            get { return m_regionSubscription; }
-        }
-
         #endregion
 
         #region Constructor(s)
@@ -234,8 +226,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionDat"></param>
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
         {
-            m_regionSubscription = new RegionSubscription( client );
-
             m_scene = world;
             m_uuid = client.AgentId;
 
@@ -881,7 +871,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public static void CreateDefaultTextureEntry()
+        static ScenePresence()
         {
             LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
             textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");

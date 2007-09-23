@@ -147,7 +147,7 @@ namespace OpenSim
                 Directory.CreateDirectory(Util.logDir());
             }
 
-            m_log = new LogBase(Path.Combine(Util.logDir(), m_logFilename), "Region", this, m_silent);
+            m_log = CreateLog();
             MainLog.Instance = m_log;
 
             base.StartUp();

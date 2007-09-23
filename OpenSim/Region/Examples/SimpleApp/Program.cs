@@ -1,23 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using libsecondlife;
-using OpenSim.Framework;
+using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Region.Physics.Manager;
- 
-using OpenSim.Region.Capabilities;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
-using OpenSim.Framework.Communications.Caches;
-using System.Timers;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Data;
 using OpenSim.Region.Environment;
-using System.IO;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Physics.Manager;
 
 namespace SimpleApp
 {

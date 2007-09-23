@@ -70,8 +70,6 @@ namespace OpenSim.Region.ClientStack
 
             Initialize();
 
-            ScenePresence.CreateDefaultTextureEntry();
-
             m_httpServer = new BaseHttpServer(m_httpServerPort);
 
             m_log.Verbose("Starting HTTP server");
@@ -112,7 +110,6 @@ namespace OpenSim.Region.ClientStack
 
             scene.PhysScene = GetPhysicsScene();
             scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
-            scene.LoadPrimsFromStorage();
 
             //Master Avatar Setup
             UserProfileData masterAvatar = m_commsManager.UserServer.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);
@@ -128,7 +125,9 @@ namespace OpenSim.Region.ClientStack
                 scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
                 //TODO: Load parcels from storageManager
             }
+
             scene.LandManager.resetSimLandObjects();
+            scene.LoadPrimsFromStorage();
 
             scene.performParcelPrimCountUpdate();
             scene.StartTimer();

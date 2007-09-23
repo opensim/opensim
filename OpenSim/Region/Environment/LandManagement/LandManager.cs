@@ -87,8 +87,8 @@ namespace OpenSim.Region.Environment.LandManagement
         /// </summary>
         public bool landPrimCountTainted = false;
 
-        private Scene m_scene;
-        private RegionInfo m_regInfo;
+        private readonly Scene m_scene;
+        private readonly RegionInfo m_regInfo;
 
         #endregion
 

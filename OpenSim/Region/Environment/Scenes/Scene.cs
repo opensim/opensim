@@ -49,7 +49,6 @@ using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Terrain;
 using Timer = System.Timers.Timer;
-using OpenSim.Region.Environment.Regions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -63,8 +62,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// publicized so it can be accessed from SceneObjectGroup.
         protected float timeStep = 0.1f;
-
-        private Regions.Region m_region;
 
         private Random Rand = new Random();
         private uint _primCount = 702000;
@@ -161,8 +158,6 @@ namespace OpenSim.Region.Environment.Scenes
                      ModuleLoader moduleLoader)
         {
             updateLock = new Mutex(false);
-
-            m_region = new Regions.Region(this);
 
             m_moduleLoader = moduleLoader;
             authenticateHandler = authen;
@@ -373,7 +368,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         internal void Broadcast(Action<IClientAPI> whatToDo)
         {
-            m_region.Broadcast(whatToDo);
+            ForEachScenePresence( delegate( ScenePresence presence )
+                                      {
+                                          whatToDo(presence.ControllingClient);
+                                      });
         }
         /// <summary>
         /// 
@@ -458,7 +456,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Loads the World's objects
         /// </summary>
-        public void LoadPrimsFromStorage()
+        public virtual void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("Loading objects from datastore");
             List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects(m_regInfo.SimUUID);
@@ -788,11 +786,6 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_scenePresences)
             {
                 m_scenePresences.Remove(agentID);
-            }
-
-            lock (m_region)
-            {
-                m_region.Remove(agentID);
             }
 
             lock (Entities)
@@ -1135,7 +1128,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public void SendUrlToUser(LLUUID avatarID, string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned,
-                                  string message, string url)
+                                  string message, string url)        
         {
             if (m_scenePresences.ContainsKey(avatarID))
             {
