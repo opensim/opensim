@@ -1128,6 +1128,10 @@ namespace OpenSim.Region.Terrain
                 heightmap.HillsSpheres(200, 20, 40, true, true, false);
                 heightmap.Normalise();
                 heightmap *= 60.0; // Raise to 60m
+                heightmap.Clip(0.0, 25.0);
+                heightmap.Pertubation(2.5);
+                heightmap.Smooth(35.0);
+                heightmap.Normalise(0.0, 21.0);
             }
 
             tainted++;

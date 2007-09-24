@@ -328,4 +328,11 @@
         <Key Name="inventoryType" Value="0" />
         <Key Name="fileName" Value="wood1.jp2" />
     </Section>
+    <Section Name="LOLCAT">
+        <Key Name="assetID" Value="13371337-1337-1337-1337-133713371337" />
+        <Key Name="name" Value="lolcat in ur assets" />
+        <Key Name="assetType" Value="0" />
+        <Key Name="inventoryType" Value="0" />
+        <Key Name="fileName" Value="peaches.jp2" />
+    </Section>
 </Nini>

@@ -100,6 +100,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected float m_timespan = 0.1f;
         protected DateTime m_lastupdate = DateTime.Now;
 
+        protected float m_timedilation = 1.0f;
+
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
         private int m_update_entities = 1;
@@ -307,6 +309,8 @@ namespace OpenSim.Region.Environment.Scenes
             finally
             {
                 updateLock.ReleaseMutex();
+
+                m_timedilation = m_timespan / (float)SinceLastFrame.TotalSeconds;
                 m_lastupdate = DateTime.Now;
             }
         }
