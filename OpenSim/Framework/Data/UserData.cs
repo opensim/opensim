@@ -39,14 +39,14 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <param name="user">The accounts UUID</param>
         /// <returns>The user data profile</returns>
-        UserProfileData getUserByUUID(LLUUID user);
+        UserProfileData GetUserByUUID(LLUUID user);
 
         /// <summary>
         /// Returns a users profile by searching their username
         /// </summary>
         /// <param name="name">The users username</param>
         /// <returns>The user data profile</returns>
-        UserProfileData getUserByName(string name);
+        UserProfileData GetUserByName(string name);
 
         /// <summary>
         /// Returns a users profile by searching their username parts
@@ -54,21 +54,21 @@ namespace OpenSim.Framework.Data
         /// <param name="fname">Account firstname</param>
         /// <param name="lname">Account lastname</param>
         /// <returns>The user data profile</returns>
-        UserProfileData getUserByName(string fname, string lname);
+        UserProfileData GetUserByName(string fname, string lname);
 
         /// <summary>
         /// Returns the current agent for a user searching by it's UUID
         /// </summary>
         /// <param name="user">The users UUID</param>
         /// <returns>The current agent session</returns>
-        UserAgentData getAgentByUUID(LLUUID user);
+        UserAgentData GetAgentByUUID(LLUUID user);
 
         /// <summary>
         /// Returns the current session agent for a user searching by username
         /// </summary>
         /// <param name="name">The users account name</param>
         /// <returns>The current agent session</returns>
-        UserAgentData getAgentByName(string name);
+        UserAgentData GetAgentByName(string name);
 
         /// <summary>
         /// Returns the current session agent for a user searching by username parts
@@ -76,25 +76,25 @@ namespace OpenSim.Framework.Data
         /// <param name="fname">The users first account name</param>
         /// <param name="lname">The users account surname</param>
         /// <returns>The current agent session</returns>
-        UserAgentData getAgentByName(string fname, string lname);
+        UserAgentData GetAgentByName(string fname, string lname);
 
         /// <summary>
         /// Adds a new User profile to the database 
         /// </summary>
         /// <param name="user">UserProfile to add</param>
-        void addNewUserProfile(UserProfileData user);
+        void AddNewUserProfile(UserProfileData user);
 
         /// <summary>
         ///  Updates an existing user profile
         /// </summary>
         /// <param name="user">UserProfile to update</param>
-        bool updateUserProfile(UserProfileData user);
+        bool UpdateUserProfile(UserProfileData user);
 
         /// <summary>
         /// Adds a new agent to the database
         /// </summary>
         /// <param name="agent">The agent to add</param>
-        void addNewUserAgent(UserAgentData agent);
+        void AddNewUserAgent(UserAgentData agent);
 
         /// <summary>
         /// Attempts to move currency units between accounts (NOT RELIABLE / TRUSTWORTHY. DONT TRY RUN YOUR OWN CURRENCY EXCHANGE WITH REAL VALUES)
@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Data
         /// <param name="to">The account to transfer to</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>Successful?</returns>
-        bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount);
+        bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount);
 
         /// <summary>
         /// Attempts to move inventory between accounts, if inventory is copyable it will be copied into the target account.
@@ -112,13 +112,13 @@ namespace OpenSim.Framework.Data
         /// <param name="to">User to transfer to</param>
         /// <param name="inventory">Specified inventory item</param>
         /// <returns>Successful?</returns>
-        bool inventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
+        bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
 
         /// <summary>
         /// Returns the plugin version
         /// </summary>
         /// <returns>Plugin version in MAJOR.MINOR.REVISION.BUILD format</returns>
-        string getVersion();
+        string GetVersion();
 
         /// <summary>
         /// Returns the plugin name

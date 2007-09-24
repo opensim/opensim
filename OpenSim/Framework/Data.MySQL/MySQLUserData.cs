@@ -65,9 +65,9 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="name">The account name of the user</param>
         /// <returns>A user profile</returns>
-        public UserProfileData getUserByName(string name)
+        public UserProfileData GetUserByName(string name)
         {
-            return getUserByName(name.Split(' ')[0], name.Split(' ')[1]);
+            return GetUserByName(name.Split(' ')[0], name.Split(' ')[1]);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">The first part of the account name</param>
         /// <param name="last">The second part of the account name</param>
         /// <returns>A user profile</returns>
-        public UserProfileData getUserByName(string user, string last)
+        public UserProfileData GetUserByName(string user, string last)
         {
             try
             {
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The account ID</param>
         /// <returns>The users profile</returns>
-        public UserProfileData getUserByUUID(LLUUID uuid)
+        public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             try
             {
@@ -143,9 +143,9 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="name">The account name</param>
         /// <returns>The users session</returns>
-        public UserAgentData getAgentByName(string name)
+        public UserAgentData GetAgentByName(string name)
         {
-            return getAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
+            return GetAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
         }
 
         /// <summary>
@@ -154,10 +154,10 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">First part of the users account name</param>
         /// <param name="last">Second part of the users account name</param>
         /// <returns>The users session</returns>
-        public UserAgentData getAgentByName(string user, string last)
+        public UserAgentData GetAgentByName(string user, string last)
         {
-            UserProfileData profile = getUserByName(user, last);
-            return getAgentByUUID(profile.UUID);
+            UserProfileData profile = GetUserByName(user, last);
+            return GetAgentByUUID(profile.UUID);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The accounts UUID</param>
         /// <returns>The users session</returns>
-        public UserAgentData getAgentByUUID(LLUUID uuid)
+        public UserAgentData GetAgentByUUID(LLUUID uuid)
         {
             try
             {
@@ -197,7 +197,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Creates a new users profile
         /// </summary>
         /// <param name="user">The user profile to create</param>
-        public void addNewUserProfile(UserProfileData user)
+        public void AddNewUserProfile(UserProfileData user)
         {
                         try
                {
@@ -220,13 +220,13 @@ namespace OpenSim.Framework.Data.MySQL
         /// Creates a new agent
         /// </summary>
         /// <param name="agent">The agent to create</param>
-        public void addNewUserAgent(UserAgentData agent)
+        public void AddNewUserAgent(UserAgentData agent)
         {
             // Do nothing.
         }
         
         
-        public bool updateUserProfile(UserProfileData user)
+        public bool UpdateUserProfile(UserProfileData user)
         {
             return true;
             // TODO: implement
@@ -239,7 +239,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="to">The recievers account ID</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>Success?</returns>
-        public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)
+        public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return false;
         }
@@ -252,7 +252,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="to">The recievers account ID</param>
         /// <param name="item">The item to transfer</param>
         /// <returns>Success?</returns>
-        public bool inventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
+        public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
         {
             return false;
         }
@@ -270,7 +270,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Database provider version
         /// </summary>
         /// <returns>provider version</returns>
-        public string getVersion()
+        public string GetVersion()
         {
             return "0.1";
         }

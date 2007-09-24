@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="uuid">The users UUID</param>
         /// <returns>A user profile</returns>
-        public UserProfileData getUserByUUID(LLUUID uuid)
+        public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             if(manager.userProfiles.ContainsKey(uuid))
                 return manager.userProfiles[uuid];
@@ -67,9 +67,9 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="name">The users account name</param>
         /// <returns>A matching users profile</returns>
-        public UserProfileData getUserByName(string name)
+        public UserProfileData GetUserByName(string name)
         {
-            return getUserByName(name.Split(' ')[0], name.Split(' ')[1]);
+            return GetUserByName(name.Split(' ')[0], name.Split(' ')[1]);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="fname">The first part of the users account name</param>
         /// <param name="lname">The second part of the users account name</param>
         /// <returns>A matching users profile</returns>
-        public UserProfileData getUserByName(string fname, string lname)
+        public UserProfileData GetUserByName(string fname, string lname)
         {
             foreach (UserProfileData profile in manager.userProfiles.Values)
             {
@@ -93,11 +93,11 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="uuid">The users account ID</param>
         /// <returns>A matching users profile</returns>
-        public UserAgentData getAgentByUUID(LLUUID uuid)
+        public UserAgentData GetAgentByUUID(LLUUID uuid)
         {   
             try
             {
-                return getUserByUUID(uuid).currentAgent;
+                return GetUserByUUID(uuid).currentAgent;
             }
             catch (Exception)
             {
@@ -110,9 +110,9 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="name">The account name</param>
         /// <returns>The users session agent</returns>
-        public UserAgentData getAgentByName(string name)
+        public UserAgentData GetAgentByName(string name)
         {
-            return getAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
+            return GetAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
         }
 
         /// <summary>
@@ -121,11 +121,11 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="fname">The first part of the users account name</param>
         /// <param name="lname">The second part of the users account name</param>
         /// <returns>A user agent</returns>
-        public UserAgentData getAgentByName(string fname, string lname)
+        public UserAgentData GetAgentByName(string fname, string lname)
         {
             try
             {
-                return getUserByName(fname,lname).currentAgent;
+                return GetUserByName(fname,lname).currentAgent;
             }
             catch (Exception)
             {
@@ -137,7 +137,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// Creates a new user profile
         /// </summary>
         /// <param name="user">The profile to add to the database</param>
-        public void addNewUserProfile(UserProfileData user)
+        public void AddNewUserProfile(UserProfileData user)
         {
             try
             {
@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="user">The profile to add to the database</param>
         /// <returns>True on success, false on error</returns>
-        public bool updateUserProfile(UserProfileData user)
+        public bool UpdateUserProfile(UserProfileData user)
         {
             try {
                 return manager.UpdateRecord(user);
@@ -170,7 +170,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// Creates a new user agent
         /// </summary>
         /// <param name="agent">The agent to add to the database</param>
-        public void addNewUserAgent(UserAgentData agent)
+        public void AddNewUserAgent(UserAgentData agent)
         {
             // Do nothing. yet.
         }
@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="to">End account</param>
         /// <param name="amount">The amount to move</param>
         /// <returns>Success?</returns>
-        public bool moneyTransferRequest(LLUUID from, LLUUID to, uint amount)
+        public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return true;
         }
@@ -195,7 +195,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="to">Recievers account</param>
         /// <param name="item">Inventory item</param>
         /// <returns>Success?</returns>
-        public bool inventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
+        public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
         {
             return true;
         }
@@ -213,7 +213,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// Returns the version of the storage provider
         /// </summary>
         /// <returns>Storage provider version</returns>
-        public string getVersion()
+        public string GetVersion()
         {
             return "0.1";
         }

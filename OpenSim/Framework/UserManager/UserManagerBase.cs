@@ -68,8 +68,7 @@ namespace OpenSim.Framework.UserManagement
                     {
                         IUserData plug = (IUserData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
-                        this._plugins.Add(plug.getName(), plug);
-                        MainLog.Instance.Verbose( "Userstorage: Added IUserData Interface");
+                        AddPlugin(plug);
                     }
 
                     typeInterface = null;
@@ -77,6 +76,12 @@ namespace OpenSim.Framework.UserManagement
             }
 
             pluginAssembly = null;
+        }
+
+        private void AddPlugin(IUserData plug)
+        {
+            this._plugins.Add(plug.getName(), plug);
+            MainLog.Instance.Verbose( "Userstorage: Added IUserData Interface");
         }
 
         #region Get UserProfile 
@@ -91,7 +96,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    UserProfileData profile = plugin.Value.getUserByUUID(uuid);
+                    UserProfileData profile = plugin.Value.GetUserByUUID(uuid);
                     profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
                 }
@@ -116,7 +121,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    UserProfileData profile = plugin.Value.getUserByName(name);
+                    UserProfileData profile = plugin.Value.GetUserByName(name);
                     profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
                 }
@@ -142,7 +147,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    UserProfileData profile = plugin.Value.getUserByName(fname,lname);
+                    UserProfileData profile = plugin.Value.GetUserByName(fname,lname);
 
                     profile.currentAgent = getUserAgent(profile.UUID);
 
@@ -168,7 +173,7 @@ namespace OpenSim.Framework.UserManagement
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
                 try {
-                    plugin.Value.updateUserProfile(data);
+                    plugin.Value.UpdateUserProfile(data);
                     return true;
                 } catch (Exception e) {
                     MainLog.Instance.Verbose( "Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
@@ -192,7 +197,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    return plugin.Value.getAgentByUUID(uuid);
+                    return plugin.Value.GetAgentByUUID(uuid);
                 }
                 catch (Exception e)
                 {
@@ -214,7 +219,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    return plugin.Value.getAgentByName(name);
+                    return plugin.Value.GetAgentByName(name);
                 }
                 catch (Exception e)
                 {
@@ -246,7 +251,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    return plugin.Value.getAgentByName(fname,lname);
+                    return plugin.Value.GetAgentByName(fname,lname);
                 }
                 catch (Exception e)
                 {
@@ -360,7 +365,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    plugin.Value.addNewUserProfile(user);
+                    plugin.Value.AddNewUserProfile(user);
 
                 }
                 catch (Exception e)
