@@ -1063,9 +1063,9 @@ namespace OpenSim.Region.Environment.Scenes
                     // agent.startpos = new LLVector3(128, 128, 70);
                     agent.startpos = position;
                     agent.child = true;
+                    m_scenePresences[remoteClient.AgentId].Close();
                     commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                     commsManager.InterRegion.ExpectAvatarCrossing(regionHandle, remoteClient.AgentId, position, false);
-
                     AgentCircuitData circuitdata = remoteClient.RequestClientInfo();
                     string capsPath = Util.GetCapsURL(remoteClient.AgentId);
                     remoteClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4), capsPath);

@@ -413,6 +413,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_isChildAgent = false;
 
                 //this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
+                this.MakeAvatarPhysical(this.AbsolutePosition, false);
             }
         }
 

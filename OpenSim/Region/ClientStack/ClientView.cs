@@ -277,7 +277,7 @@ namespace OpenSim.Region.ClientStack
             clientPingTimer.Enabled = true;
 
             MainLog.Instance.Verbose("OpenSimClient.cs:InitNewClient() - Adding viewer agent to scene");
-            this.m_scene.AddNewClient(this, false);
+            this.m_scene.AddNewClient(this, true);
         }
 
         protected virtual void AuthUser()
