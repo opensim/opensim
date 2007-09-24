@@ -37,18 +37,18 @@ namespace OpenSim.Framework.Communications
 {
     public class CommunicationsManager
     {
-        private AssetCache m_assetCache;
-        private IGridServices m_gridServer;
-        private IInterRegionCommunications m_interRegion;
-        private IInventoryServices m_inventoryServer;
-        private AssetTransactionManager m_transactionsManager;
-        private UserProfileCache m_userProfiles;
-        private IUserServices m_userServer;
-        private NetworkServersInfo m_networkServersInfo;
+        protected AssetCache m_assetCache;
+        protected IGridServices m_gridServer;
+        protected IInterRegionCommunications m_interRegion;
+        protected IInventoryServices m_inventoryServer;
+        protected AssetTransactionManager m_transactionsManager;
+        protected UserProfileCache m_userProfiles;
+        protected IUserServices m_userServer;
+        protected NetworkServersInfo m_networkServersInfo;
 
         public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
         {
-            this.m_networkServersInfo = serversInfo;
+            m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
             m_userProfiles = new UserProfileCache(this);
             m_transactionsManager = new AssetTransactionManager(this);
@@ -63,7 +63,6 @@ namespace OpenSim.Framework.Communications
         public IGridServices GridServer
         {
             get { return m_gridServer; }
-            set { m_gridServer = value; }
         }
 
         public IInventoryServices InventoryServer

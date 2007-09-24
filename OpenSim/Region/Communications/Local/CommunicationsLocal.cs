@@ -60,15 +60,15 @@ namespace OpenSim.Region.Communications.Local
 
             InvenServices = new LocalInventoryService();
             InvenServices.AddPlugin(m_settings.InventoryPlugin);
-            InventoryServer = InvenServices;
+            m_inventoryServer = InvenServices;
 
             UserServices = new LocalUserServices(this, serversInfo);
             UserServices.AddPlugin(m_settings.UserDatabasePlugin);
-            UserServer = UserServices;
+            m_userServer = UserServices;
 
             InstanceServices = new LocalBackEndServices();
-            GridServer = InstanceServices;
-            InterRegion = InstanceServices;
+            m_gridServer = InstanceServices;
+            m_interRegion = InstanceServices;
 
             //CapsServices = new CAPSService(httpServer);
 
