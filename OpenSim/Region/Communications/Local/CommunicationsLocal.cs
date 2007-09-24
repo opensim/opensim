@@ -44,13 +44,13 @@ namespace OpenSim.Region.Communications.Local
         public LocalUserServices UserServices;
         public LocalLoginService LoginServices;
         public LocalInventoryService InvenServices;
-        
+
         protected LocalSettings m_settings;
 
-        protected CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache )
+        protected CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
             : base(serversInfo, httpServer, assetCache)
         {
-            
+
         }
 
         public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings)
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Communications.Local
 
                     if (cmmdParams.Length < 2)
                     {
-                       
+
                         firstName = MainLog.Instance.CmdPrompt("First name", "Default");
                         lastName = MainLog.Instance.CmdPrompt("Last name", "User");
                         password = MainLog.Instance.PasswdPrompt("Password");
@@ -126,7 +126,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 return LLUUID.Zero;
             }
-            else 
+            else
             {
                 this.InvenServices.CreateNewUserInventory(userProf.UUID);
                 Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
@@ -136,23 +136,17 @@ namespace OpenSim.Region.Communications.Local
 
         public class LocalSettings
         {
-            public string WelcomeMessage = "";
+            public string WelcomeMessage;
             public bool AccountAuthentication = false;
-            public string InventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
-            public string UserDatabasePlugin = "OpenSim.Framework.Data.DB4o.dll";
+            public string InventoryPlugin;
+            public string UserDatabasePlugin;
 
             public LocalSettings(string welcomeMessage, bool accountsAuthenticate, string inventoryPlugin, string userPlugin)
             {
                 WelcomeMessage = welcomeMessage;
                 AccountAuthentication = accountsAuthenticate;
-                if (inventoryPlugin != "")
-                {
-                    InventoryPlugin = inventoryPlugin;
-                }
-                if (userPlugin != "")
-                {
-                    UserDatabasePlugin = userPlugin;
-                }
+                InventoryPlugin = inventoryPlugin;
+                UserDatabasePlugin = userPlugin;
             }
         }
 

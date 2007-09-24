@@ -23,28 +23,28 @@ namespace OpenSim.Framework.InventoryServiceBase
         /// <param name="FileName">The filename to the user server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose("Inventory", "Inventorystorage: Attempting to load " + FileName);
-            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            if (!String.IsNullOrEmpty(FileName))
             {
-                if (!pluginType.IsAbstract)
+                MainLog.Instance.Verbose("Inventory", "Inventorystorage: Attempting to load " + FileName);
+                Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+
+                foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
-                    Type typeInterface = pluginType.GetInterface("IInventoryData", true);
-
-                    if (typeInterface != null)
+                    if (!pluginType.IsAbstract)
                     {
-                        IInventoryData plug = (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise();
-                        this.m_plugins.Add(plug.getName(), plug);
-                        MainLog.Instance.Verbose("Inventorystorage: Added IInventoryData Interface");
-                    }
+                        Type typeInterface = pluginType.GetInterface("IInventoryData", true);
 
-                    typeInterface = null;
+                        if (typeInterface != null)
+                        {
+                            IInventoryData plug =
+                                (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            plug.Initialise();
+                            this.m_plugins.Add(plug.getName(), plug);
+                            MainLog.Instance.Verbose("Inventorystorage: Added IInventoryData Interface");
+                        }
+                    }
                 }
             }
-
-            pluginAssembly = null;
         }
 
         /// <summary>

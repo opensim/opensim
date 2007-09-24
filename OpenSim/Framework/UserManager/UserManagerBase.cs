@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,14 +33,10 @@ using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
+using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-
-using OpenSim.Framework.Configuration;
-using InventoryFolder = OpenSim.Framework.Inventory.InventoryFolder;
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -54,32 +51,32 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="FileName">The filename to the user server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose( "Userstorage: Attempting to load " + FileName);
-            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
-
-            MainLog.Instance.Verbose( "Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            if (!String.IsNullOrEmpty(FileName))
             {
-                if (!pluginType.IsAbstract)
+                MainLog.Instance.Verbose("Userstorage: Attempting to load " + FileName);
+                Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+
+                MainLog.Instance.Verbose("Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+                foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
-                    Type typeInterface = pluginType.GetInterface("IUserData", true);
-
-                    if (typeInterface != null)
+                    if (!pluginType.IsAbstract)
                     {
-                        IUserData plug = (IUserData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise();
-                        AddPlugin(plug);
-                    }
+                        Type typeInterface = pluginType.GetInterface("IUserData", true);
 
-                    typeInterface = null;
+                        if (typeInterface != null)
+                        {
+                            IUserData plug =
+                                (IUserData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            AddPlugin(plug);
+                        }
+                    }
                 }
             }
-
-            pluginAssembly = null;
         }
 
-        private void AddPlugin(IUserData plug)
+        public void AddPlugin(IUserData plug)
         {
+            plug.Initialise();
             this._plugins.Add(plug.getName(), plug);
             MainLog.Instance.Verbose( "Userstorage: Added IUserData Interface");
         }

@@ -79,8 +79,8 @@ namespace OpenSim
 
         private bool standaloneAuthenticate = false;
         private string standaloneWelcomeMessage = null;
-        private string standaloneInventoryPlugin = "";
-        private string standaloneUserPlugin = "";
+        private string standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
+        private string standaloneUserPlugin = "OpenSim.Framework.Data.DB4o.dll";
 
         private string m_assetStorage = "db4o";
 
