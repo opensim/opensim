@@ -72,8 +72,23 @@ namespace OpenSim.Grid.UserServer
 
             System.Console.WriteLine("Informing region --> " + SimInfo.httpServerURI);
             // Send
-            XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 3000);
+            try
+            {
+                XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
+                XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
+            }
+            catch( WebException e )
+            {
+                switch( e.Status )
+                {
+                    case WebExceptionStatus.Timeout:
+                        //TODO: Send him to nearby or default region instead
+                        break;
+                       
+                    default:
+                        throw;
+                }
+            }
         }
     }
 }
