@@ -421,12 +421,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_isChildAgent)
             {
-                Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
+                // Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
                 return;
             }
 
             if(PhysicsActor==null) {
-                Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
+                // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
                 return;
             }
             int i = 0;
