@@ -58,12 +58,10 @@ namespace OpenSim.Region.Communications.Local
 
             LocalInventoryService inventoryService = new LocalInventoryService();
             inventoryService.AddPlugin(m_settings.InventoryPlugin);
-
             m_inventoryService = inventoryService;
 
             LocalUserServices userService = new LocalUserServices(this, serversInfo);
             userService.AddPlugin(m_settings.UserDatabasePlugin);
-
             m_userService = userService;
 
             InstanceServices = new LocalBackEndServices();
