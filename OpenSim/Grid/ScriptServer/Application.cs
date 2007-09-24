@@ -34,12 +34,12 @@ namespace OpenSim.Grid.ScriptServer
     class OpenScript_Main
     {
      
-        public static ScriptServer SE;
+        public static ScriptServerMain SE;
    
         static void Main(string[] args)
         {
             // Application is starting
-            SE = new ScriptServer();
+            SE = new ScriptServerMain();
         }
 
     }

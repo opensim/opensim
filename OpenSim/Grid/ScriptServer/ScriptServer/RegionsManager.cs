@@ -9,8 +9,8 @@ namespace OpenSim.Grid.ScriptServer
     {
         private List<RegionConnectionManager> Regions = new List<RegionConnectionManager>();
 
-                public ScriptServer m_ScriptServer;
-        public RegionsManager(ScriptServer scriptServer)
+                public ScriptServerMain m_ScriptServer;
+        public RegionsManager(ScriptServerMain scriptServer)
         {
             m_ScriptServer = scriptServer;
         }

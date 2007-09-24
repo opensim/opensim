@@ -37,8 +37,8 @@ namespace OpenSim.Grid.ScriptServer
     {
         private Thread listenThread;
 
-        public ScriptServer m_ScriptServer;
-        public RegionScriptDaemon(ScriptServer scriptServer)
+        public ScriptServerMain m_ScriptServer;
+        public RegionScriptDaemon(ScriptServerMain scriptServer)
         {
             m_ScriptServer = scriptServer;
         }
