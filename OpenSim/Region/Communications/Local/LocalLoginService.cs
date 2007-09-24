@@ -33,7 +33,7 @@ namespace OpenSim.Region.Communications.Local
 
         public override UserProfileData GetTheUser(string firstname, string lastname)
         {
-            UserProfileData profile = this.m_userManager.getUserProfile(firstname, lastname);
+            UserProfileData profile = this.m_userManager.GetUserProfile(firstname, lastname);
             if (profile != null)
             {
 
@@ -46,7 +46,7 @@ namespace OpenSim.Region.Communications.Local
                 Console.WriteLine("No User account found so creating a new one ");
                 this.m_userManager.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
 
-                profile = this.m_userManager.getUserProfile(firstname, lastname);
+                profile = this.m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
                     m_Parent.InvenServices.CreateNewUserInventory(profile.UUID);

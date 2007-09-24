@@ -202,7 +202,7 @@ namespace OpenSim.Framework.UserManagement
         /// <returns></returns>
         public virtual UserProfileData GetTheUser(string firstname, string lastname)
         {
-            return this.m_userManager.getUserProfile(firstname, lastname);
+            return this.m_userManager.GetUserProfile(firstname, lastname);
         }
 
         /// <summary>

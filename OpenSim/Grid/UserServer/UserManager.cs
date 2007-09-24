@@ -122,7 +122,7 @@ namespace OpenSim.Grid.UserServer
             UserProfileData userProfile;
             if (requestData.Contains("avatar_name"))
             {
-                userProfile = getUserProfile((string)requestData["avatar_name"]);
+                userProfile = GetUserProfile((string)requestData["avatar_name"]);
                 if (userProfile == null)
                 {
                     return CreateUnknownUserErrorResponse();
@@ -144,7 +144,7 @@ namespace OpenSim.Grid.UserServer
             System.Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
-                userProfile = getUserProfile((LLUUID)(string)requestData["avatar_uuid"]);
+                userProfile = GetUserProfile((LLUUID)(string)requestData["avatar_uuid"]);
                 if (userProfile == null)
                 {
                     return CreateUnknownUserErrorResponse();

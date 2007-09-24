@@ -45,7 +45,7 @@ namespace OpenSim.Region.Communications.Local
         public LocalLoginService LoginServices;
         public LocalInventoryService InvenServices;
         // public CAPSService CapsServices;
-        private LocalSettings m_settings;
+        private readonly LocalSettings m_settings;
 
         public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings)
             : base(serversInfo, httpServer, assetCache)

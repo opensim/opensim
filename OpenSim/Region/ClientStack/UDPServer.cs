@@ -103,18 +103,24 @@ namespace OpenSim.Region.ClientStack
             Packet packet = null;
 
             int numBytes;
-        
+
             try
             {
                 numBytes = Server.EndReceiveFrom(result, ref epSender);
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                Console.WriteLine("Remote host Closed connection");
-
-                CloseEndPoint(epSender);
-
-                //Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                // TODO : Actually only handle those states that we have control over, re-throw everything else,
+                // TODO: implement cases as we encounter them.
+                switch (e.SocketErrorCode)
+                {
+                    case SocketError.AlreadyInProgress:
+                    case SocketError.NetworkReset:
+                    default:
+                        Console.WriteLine("Remote host Closed connection");
+                        CloseEndPoint(epSender);
+                        break;
+                }
 
                 return;
             }

@@ -85,7 +85,7 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="uuid">The target UUID</param>
         /// <returns>A user profile</returns>
-        public UserProfileData getUserProfile(LLUUID uuid)
+        public UserProfileData GetUserProfile(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="name">The target name</param>
         /// <returns>A user profile</returns>
-        public UserProfileData getUserProfile(string name)
+        public UserProfileData GetUserProfile(string name)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -136,7 +136,7 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="fname">First name</param>
         /// <param name="lname">Last name</param>
         /// <returns>A user profile</returns>
-        public UserProfileData getUserProfile(string fname, string lname)
+        public UserProfileData GetUserProfile(string fname, string lname)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -228,7 +228,7 @@ namespace OpenSim.Framework.UserManagement
         // TODO: document
         public void clearUserAgent(LLUUID agentID)
         {
-            UserProfileData profile = getUserProfile(agentID);
+            UserProfileData profile = GetUserProfile(agentID);
             profile.currentAgent = null;
             setUserProfile(profile);
         }
