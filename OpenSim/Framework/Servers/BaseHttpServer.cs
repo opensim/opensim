@@ -197,9 +197,18 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
-
-            response.OutputStream.Write(buffer, 0, buffer.Length);
-            response.OutputStream.Close();
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+            }
+            finally
+            {
+                response.OutputStream.Close();
+            }
         }
 
         public void Start()
