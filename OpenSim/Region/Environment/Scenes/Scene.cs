@@ -220,9 +220,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Script Handling Methods
 
-        public void SendCommandToScripts(string[] args)
+        public void SendCommandToPlugins(string[] args)
         {
-            m_eventManager.TriggerOnScriptConsole(args);
+            m_eventManager.TriggerOnPluginConsole(args);
         }
 
         #endregion
@@ -275,7 +275,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (m_frame % m_update_physics == 0)
                     UpdatePhysics(
-                        Math.Min(SinceLastFrame.TotalSeconds, 0.001)
+                        Math.Min(SinceLastFrame.TotalSeconds, m_timespan)
                         );
 
                 if (m_frame % m_update_entities == 0)

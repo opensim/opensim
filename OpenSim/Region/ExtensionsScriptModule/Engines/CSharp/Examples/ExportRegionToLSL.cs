@@ -21,7 +21,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
         {
             script = scriptInfo;
             
-            script.events.OnScriptConsole += new EventManager.OnScriptConsoleDelegate(ProcessConsoleMsg);
+            script.events.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(ProcessConsoleMsg);
         }
 
         void ProcessConsoleMsg(string[] args)

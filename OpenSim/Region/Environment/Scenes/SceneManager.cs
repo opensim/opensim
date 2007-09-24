@@ -82,7 +82,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendCommandToCurrentSceneScripts(string[] cmdparams)
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.SendCommandToScripts(cmdparams); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.SendCommandToPlugins(cmdparams); });
         }
 
         public void SetBypassPermissionsOnCurrentScene(bool bypassPermissions)

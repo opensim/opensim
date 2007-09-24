@@ -37,9 +37,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
 
-        public delegate void OnScriptConsoleDelegate(string[] args);
+        public delegate void OnPluginConsoleDelegate(string[] args);
 
-        public event OnScriptConsoleDelegate OnScriptConsole;
+        public event OnPluginConsoleDelegate OnPluginConsole;
 
         public delegate void OnShutdownDelegate();
 
@@ -66,10 +66,10 @@ namespace OpenSim.Region.Environment.Scenes
                 OnPermissionError(user, reason);
         }
 
-        public void TriggerOnScriptConsole(string[] args)
+        public void TriggerOnPluginConsole(string[] args)
         {
-            if (OnScriptConsole != null)
-                OnScriptConsole(args);
+            if (OnPluginConsole != null)
+                OnPluginConsole(args);
         }
 
         public void TriggerOnFrame()
