@@ -233,5 +233,19 @@ namespace OpenSim.Region.Environment.Scenes
             m_localScenes.Remove(scene);
             scene.Close();
         }
+
+        public bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
+        {
+            foreach (Scene scene in m_localScenes)
+            {
+                if (scene.TryGetAvatarByName(avatarName, out avatar))
+                {
+                    return true;
+                }
+            }
+
+            avatar = null;
+            return false;
+        }
     }
 }

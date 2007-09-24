@@ -1363,5 +1363,25 @@ namespace OpenSim.Region.Environment.Scenes
 
             base.Close();
         }
+
+        internal bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
+        {
+            foreach( ScenePresence presence in m_scenePresences.Values )
+            {
+                if( !presence.IsChildAgent )
+                {
+                    string name = presence.ControllingClient.FirstName + " " + presence.ControllingClient.LastName;
+
+                    if( String.Compare( avatarName, name, true ) == 0 )
+                    {
+                        avatar = presence;
+                        return true;                        
+                    }
+                }
+            }
+
+            avatar = null;
+            return false;           
+        }
     }
 }

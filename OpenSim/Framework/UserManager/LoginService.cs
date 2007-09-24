@@ -44,18 +44,15 @@ namespace OpenSim.Framework.UserManagement
 
             bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") && requestData.Contains("passwd"));
             bool GoodLogin = false;
-            string firstname = "";
-            string lastname = "";
-            string passwd = "";
 
             UserProfileData userProfile;
             LoginResponse logResponse = new LoginResponse();
 
             if (GoodXML)
             {
-                firstname = (string)requestData["first"];
-                lastname = (string)requestData["last"];
-                passwd = (string)requestData["passwd"];
+                string firstname = (string)requestData["first"];
+                string lastname = (string)requestData["last"];
+                string passwd = (string)requestData["passwd"];
 
                 userProfile = GetTheUser(firstname, lastname);
                 if (userProfile == null)
