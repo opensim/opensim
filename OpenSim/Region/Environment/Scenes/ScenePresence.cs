@@ -429,6 +429,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
                 return;
             }
+
             int i = 0;
             bool update_movementflag = false;
             bool update_rotation = false;

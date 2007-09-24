@@ -162,13 +162,11 @@ namespace OpenSim.Grid.GridServer
         {
             Dictionary<ulong, SimProfileData> regions = new Dictionary<ulong, SimProfileData>();
 
-            SimProfileData[] neighbours;
-
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
                 try
                 {
-                    neighbours = kvp.Value.GetProfilesInRange(xmin, ymin, xmax, ymax);
+                    SimProfileData[] neighbours = kvp.Value.GetProfilesInRange(xmin, ymin, xmax, ymax);
                     foreach (SimProfileData neighbour in neighbours)
                     {
                         regions[neighbour.regionHandle] = neighbour;
