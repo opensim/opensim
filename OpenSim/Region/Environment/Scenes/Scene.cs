@@ -60,15 +60,9 @@ namespace OpenSim.Region.Environment.Scenes
         protected Dictionary<LLUUID, ScenePresence> m_scenePresences;
         protected Dictionary<LLUUID, SceneObjectGroup> m_sceneObjects;
 
-        /// publicized so it can be accessed from SceneObjectGroup.
-        protected float timeStep = 0.1f;
-
         private Random Rand = new Random();
         private uint _primCount = 702000;
         private readonly Mutex _primAllocateMutex = new Mutex(false);
-        private int storageCount;
-        private int terrainCheckCount;
-        private int landPrimCheckCount;
 
         private int m_timePhase = 24;
         private int m_timeUpdateCount;
@@ -97,6 +91,23 @@ namespace OpenSim.Region.Environment.Scenes
 
         private IHttpRequests m_httpRequestModule = null;
         private ISimChat m_simChatModule = null;
+
+
+        // Central Update Loop
+
+        protected int m_fps = 10;
+        protected int m_frame = 0;
+        protected float m_timespan = 0.1f;
+        protected DateTime m_lastupdate = DateTime.Now;
+
+        private int m_update_physics = 1;
+        private int m_update_entitymovement = 1;
+        private int m_update_entities = 1;
+        private int m_update_events = 1;
+        private int m_update_backup = 200;
+        private int m_update_terrain = 50;
+        private int m_update_land = 1;
+        private int m_update_avatars = 1;
 
         #region Properties
 
@@ -222,7 +233,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void StartTimer()
         {
             m_heartbeatTimer.Enabled = true;
-            m_heartbeatTimer.Interval = 100;
+            m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
         }
 
@@ -243,113 +254,47 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
+            TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
+            // Aquire a lock so only one update call happens at once
             updateLock.WaitOne();
+
             try
             {
-                if (phyScene.IsThreaded)
-                {
-                    phyScene.GetResults();
-                    /// no engines implement this, and what does it have to do with threading? possible DEAD CODE
-                }
+                // Increment the frame counter
+                m_frame++;
 
-                List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);
+                // Loop it
+                if (m_frame == Int32.MaxValue)
+                    m_frame = 0;
 
-                foreach (EntityBase entity in moveEntities)
-                {
-                    entity.UpdateMovement();
-                }
+                if (m_frame % m_update_physics == 0)
+                    UpdatePreparePhysics();
 
-                lock (m_syncRoot)
-                {
-                    phyScene.Simulate(timeStep);
-                }
+                if (m_frame % m_update_entitymovement == 0)
+                    UpdateEntityMovement();
 
-                List<EntityBase> updateEntities = new List<EntityBase>(Entities.Values);
+                if (m_frame % m_update_physics == 0)
+                    UpdatePhysics(
+                        Math.Min(SinceLastFrame.TotalSeconds, 0.001)
+                        );
 
-                foreach (EntityBase entity in updateEntities)
-                {
-                    entity.Update();
-                }
+                if (m_frame % m_update_entities == 0)
+                    UpdateEntities();
 
-                // General purpose event manager
-                m_eventManager.TriggerOnFrame();
+                if (m_frame % m_update_events == 0)
+                    UpdateEvents();
 
-                //backup scene data
-                storageCount++;
-                if (storageCount > 1200) //set to how often you want to backup 
-                {
-                    Backup();
-                    storageCount = 0;
-                }
+                if (m_frame % m_update_backup == 0)
+                    UpdateStorageBackup();
 
-                terrainCheckCount++;
-                if (terrainCheckCount >= 50)
-                {
-                    terrainCheckCount = 0;
+                if (m_frame % m_update_terrain == 0)
+                    UpdateTerrain();
 
-                    if (Terrain.Tainted())
-                    {
-                        CreateTerrainTexture();
+                if (m_frame % m_update_land == 0)
+                    UpdateLand();
 
-                        lock (Terrain.heightmap)
-                        {
-                            lock (m_syncRoot)
-                            {
-                                phyScene.SetTerrain(Terrain.GetHeights1D());
-                            }
-
-                            storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
-
-                            float[] terData = Terrain.GetHeights1D();
-
-                            Broadcast(delegate(IClientAPI client)
-                                                     {
-                                                         for (int x = 0; x < 16; x++)
-                                                         {
-                                                             for (int y = 0; y < 16; y++)
-                                                             {
-                                                                 if (Terrain.Tainted(x * 16, y * 16))
-                                                                 {
-                                                                     client.SendLayerData(x, y, terData);
-                                                                 }
-                                                             }
-                                                         }
-                                                     });
-
-
-
-                            Terrain.ResetTaint();
-                        }
-                    }
-                }
-
-                landPrimCheckCount++;
-                if (landPrimCheckCount > 50) //check every 5 seconds for tainted prims
-                {
-                    if (m_LandManager.landPrimCountTainted)
-                    {
-                        //Perform land update of prim count
-                        performParcelPrimCountUpdate();
-                        landPrimCheckCount = 0;
-                    }
-                }
-
-                m_timeUpdateCount++;
-                if (m_timeUpdateCount > 600)
-                {
-                    List<ScenePresence> avatars = GetAvatars();
-                    foreach (ScenePresence avatar in avatars)
-                    {
-                        avatar.ControllingClient.SendViewerTime(m_timePhase);
-                    }
-
-                    m_timeUpdateCount = 0;
-                    m_timePhase++;
-                    if (m_timePhase > 94)
-                    {
-                        m_timePhase = 0;
-                    }
-                }
+                if (m_frame % m_update_avatars == 0)
+                    UpdateAvatars();
             }
             catch (NotImplementedException)
             {
@@ -359,7 +304,130 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 MainLog.Instance.Error("Scene", "Failed with exception " + e.ToString());
             }
-            updateLock.ReleaseMutex();
+            finally
+            {
+                updateLock.ReleaseMutex();
+                m_lastupdate = DateTime.Now;
+            }
+        }
+
+        private void UpdatePreparePhysics()
+        {
+            // If we are using a threaded physics engine
+            // grab the latest scene from the engine before
+            // trying to process it.
+
+            // PhysX does this (runs in the background).
+
+            if (phyScene.IsThreaded)
+            {
+                phyScene.GetResults();
+            }
+        }
+
+        private void UpdateAvatars()
+        {
+            m_timeUpdateCount++;
+            if (m_timeUpdateCount > 600)
+            {
+                List<ScenePresence> avatars = GetAvatars();
+                foreach (ScenePresence avatar in avatars)
+                {
+                    avatar.ControllingClient.SendViewerTime(m_timePhase);
+                }
+
+                m_timeUpdateCount = 0;
+                m_timePhase++;
+                if (m_timePhase > 94)
+                {
+                    m_timePhase = 0;
+                }
+            }
+        }
+
+        private void UpdateLand()
+        {
+            if (m_LandManager.landPrimCountTainted)
+            {
+                //Perform land update of prim count
+                performParcelPrimCountUpdate();
+            }
+        }
+
+        private void UpdateTerrain()
+        {
+            if (Terrain.Tainted())
+            {
+                CreateTerrainTexture();
+
+                lock (Terrain.heightmap)
+                {
+                    lock (m_syncRoot)
+                    {
+                        phyScene.SetTerrain(Terrain.GetHeights1D());
+                    }
+
+                    storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
+
+                    float[] terData = Terrain.GetHeights1D();
+
+                    Broadcast(delegate(IClientAPI client)
+                                             {
+                                                 for (int x = 0; x < 16; x++)
+                                                 {
+                                                     for (int y = 0; y < 16; y++)
+                                                     {
+                                                         if (Terrain.Tainted(x * 16, y * 16))
+                                                         {
+                                                             client.SendLayerData(x, y, terData);
+                                                         }
+                                                     }
+                                                 }
+                                             });
+
+
+
+                    Terrain.ResetTaint();
+                }
+            }
+        }
+
+        private void UpdateStorageBackup()
+        {
+            Backup();
+        }
+
+        private void UpdateEvents()
+        {
+            m_eventManager.TriggerOnFrame();
+        }
+
+        private void UpdateEntities()
+        {
+            List<EntityBase> updateEntities = new List<EntityBase>(Entities.Values);
+
+            foreach (EntityBase entity in updateEntities)
+            {
+                entity.Update();
+            }
+        }
+
+        private void UpdatePhysics(double elapsed)
+        {
+            lock (m_syncRoot)
+            {
+                phyScene.Simulate((float)elapsed);
+            }
+        }
+
+        private void UpdateEntityMovement()
+        {
+            List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);
+
+            foreach (EntityBase entity in moveEntities)
+            {
+                entity.UpdateMovement();
+            }
         }
 
         /// <summary>
