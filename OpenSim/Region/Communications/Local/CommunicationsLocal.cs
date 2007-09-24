@@ -40,7 +40,7 @@ namespace OpenSim.Region.Communications.Local
     public class CommunicationsLocal : CommunicationsManager
     {
         public LocalBackEndServices InstanceServices;
-        public IUserServices UserServices;
+        
         public LocalLoginService LoginServices;
  
         protected LocalSettings m_settings;
@@ -63,8 +63,8 @@ namespace OpenSim.Region.Communications.Local
 
             LocalUserServices userService = new LocalUserServices(this, serversInfo);
             userService.AddPlugin(m_settings.UserDatabasePlugin);
-            UserServices = userService;
-            m_userService = UserServices;
+
+            m_userService = userService;
 
             InstanceServices = new LocalBackEndServices();
             m_gridService = InstanceServices;
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Communications.Local
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + "");
 
-            this.UserServices.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
+            m_userService.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
             UserProfileData userProf = this.UserService.GetUserProfile(firstName, lastName);
             if (userProf == null)
             {
