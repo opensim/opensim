@@ -10,20 +10,20 @@ namespace OpenSim.Region.Communications.Local
 {
     public class LocalUserServices : UserManagerBase, IUserServices
     {
-        private readonly CommunicationsLocal m_Parent;
+        private readonly CommunicationsLocal m_parent;
 
-        private readonly NetworkServersInfo serversInfo;
-        private readonly uint defaultHomeX ;
-        private readonly uint defaultHomeY;
+        private readonly NetworkServersInfo m_serversInfo;
+        private readonly uint m_defaultHomeX ;
+        private readonly uint m_defaultHomeY;
 
 
         public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo)
         {
-            m_Parent = parent;
-            this.serversInfo = serversInfo;
+            m_parent = parent;
+            m_serversInfo = serversInfo;
 
-            defaultHomeX = this.serversInfo.DefaultHomeLocX;
-            defaultHomeY = this.serversInfo.DefaultHomeLocY;
+            m_defaultHomeX = this.m_serversInfo.DefaultHomeLocX;
+            m_defaultHomeY = this.m_serversInfo.DefaultHomeLocY;
         }
 
         public UserProfileData SetupMasterUser(string firstName, string lastName)
@@ -41,7 +41,7 @@ namespace OpenSim.Region.Communications.Local
             }
 
             Console.WriteLine("Unknown Master User. Sandbox Mode: Creating Account");
-            this.AddUserProfile(firstName, lastName, password, defaultHomeX, defaultHomeY);
+            this.AddUserProfile(firstName, lastName, password, m_defaultHomeX, m_defaultHomeY);
 
             profile = base.GetUserProfile(firstName, lastName);
 
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                 m_Parent.InvenServices.CreateNewUserInventory(profile.UUID);
+                 m_parent.InvenServices.CreateNewUserInventory(profile.UUID);
             }
 
             return profile;
