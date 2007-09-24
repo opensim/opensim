@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_pos = value; }
         }
 
-        public LLVector3 m_velocity;
+        protected LLVector3 m_velocity;
 
         /// <summary>
         /// 

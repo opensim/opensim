@@ -419,16 +419,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
         {
-            if (m_isChildAgent)
-            {
-                // Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
-                return;
-            }
+            //if (m_isChildAgent)
+            //{
+            //    // Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
+            //    return;
+            //}
 
-            if(PhysicsActor==null) {
-                // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
-                return;
-            }
+            //if(PhysicsActor==null) {
+            //    // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
+            //    return;
+            //}
 
             int i = 0;
             bool update_movementflag = false;
