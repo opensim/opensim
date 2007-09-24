@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework.Communications.Caches;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;

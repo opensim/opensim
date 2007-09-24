@@ -35,7 +35,7 @@ using Axiom.Math;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Caches;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;

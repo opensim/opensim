@@ -30,9 +30,9 @@ using System.Net;
 using System.Net.Sockets;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Communications.Caches;
 using libsecondlife;
 
 namespace OpenSim.Region.ClientStack

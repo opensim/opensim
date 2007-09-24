@@ -320,7 +320,7 @@ namespace OpenSim.Region.Communications.OGS1
             return new XmlRpcResponse();
         }
 
-        #region InterRegion Comms
+        #region m_interRegion Comms
         /// <summary>
         /// 
         /// </summary>

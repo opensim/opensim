@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
@@ -39,7 +40,6 @@ using OpenSim.Region.Environment;
 using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Caches;
 
 namespace OpenSim.Region.ClientStack
 {

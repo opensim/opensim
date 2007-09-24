@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public LLVector3 AbsolutePosition
+        public override LLVector3 AbsolutePosition
         {
             get { return m_rootPart.GroupPosition; }
             set

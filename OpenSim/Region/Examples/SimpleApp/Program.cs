@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using libsecondlife;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;

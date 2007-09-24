@@ -28,6 +28,7 @@
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
@@ -40,33 +41,80 @@ namespace OpenSim.Framework.Communications
  
     public class CommunicationsManager
     {
-        public IUserServices UserServer;
-        public IGridServices GridServer;
-        public IInventoryServices InventoryServer;
-        public IInterRegionCommunications InterRegion;
-        public UserProfileCache UserProfiles;
-        public AssetTransactionManager TransactionsManager;
-        public AssetCache AssetCache;
-
-        public NetworkServersInfo ServersInfo;
         public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
         {
-            ServersInfo = serversInfo;
-            this.AssetCache = assetCache;
-            UserProfiles = new UserProfileCache(this);
-            TransactionsManager = new AssetTransactionManager(this);
+            this.serversInfo = serversInfo;
+            this.m_assetCache = assetCache;
+            m_userProfiles = new UserProfileCache(this);
+            m_transactionsManager = new AssetTransactionManager(this);
+        }
+
+        private IUserServices m_userServer;
+        public IUserServices UserServer
+        {
+            get { return m_userServer; }
+            set { m_userServer = value; }
+        }
+
+        private IGridServices m_gridServer;
+        public IGridServices GridServer
+        {
+            get { return m_gridServer; }
+            set { m_gridServer = value; }
+        }
+
+        private IInventoryServices m_inventoryServer;
+        public IInventoryServices InventoryServer
+        {
+            get { return m_inventoryServer; }
+            set { m_inventoryServer = value; }
+        }
+
+        private IInterRegionCommunications m_interRegion;
+        public IInterRegionCommunications InterRegion
+        {
+            get { return m_interRegion; }
+            set { m_interRegion = value; }
+        }
+
+        private UserProfileCache m_userProfiles;
+        public UserProfileCache UserProfiles
+        {
+            get { return m_userProfiles; }
+            set { m_userProfiles = value; }
+        }
+
+        private AssetTransactionManager m_transactionsManager;
+        public AssetTransactionManager TransactionsManager
+        {
+            get { return m_transactionsManager; }
+            set { m_transactionsManager = value; }
+        }
+
+        private AssetCache m_assetCache;
+        public AssetCache AssetCache
+        {
+            get { return m_assetCache; }
+            set { m_assetCache = value; }
+        }
+
+        private NetworkServersInfo serversInfo;
+        public NetworkServersInfo ServersInfo
+        {
+            get { return serversInfo; }
+            set { serversInfo = value; }
         }
 
         #region Packet Handlers
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
-            if (uuid == UserProfiles.libraryRoot.agentID)
+            if (uuid == m_userProfiles.libraryRoot.agentID)
             {
                 remote_client.SendNameReply(uuid , "Mr" , "OpenSim");
             }
             else
             {
-                UserProfileData profileData = this.UserServer.GetUserProfile(uuid);
+                UserProfileData profileData = this.m_userServer.GetUserProfile(uuid);
                 if (profileData != null)
                 {
                     LLUUID profileId = profileData.UUID;

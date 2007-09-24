@@ -31,10 +31,10 @@ using System.Net;
 using System.Net.Sockets;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Communications.Caches;
 
 namespace OpenSim.Region.ClientStack
 {

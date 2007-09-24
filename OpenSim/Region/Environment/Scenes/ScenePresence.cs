@@ -138,7 +138,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_controllingClient; }
         }
 
-        public LLVector3 AbsolutePosition
+        public override LLVector3 AbsolutePosition
         {
             get
             {
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }        
       
-        public LLVector3 Velocity
+        public override LLVector3 Velocity
         {
             get
             {

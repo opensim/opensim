@@ -37,7 +37,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.Framework.Communications.Caches
+namespace OpenSim.Framework.Communications.Cache
 {
     public delegate void DownloadComplete(AssetCache.TextureSender sender);
 
@@ -180,7 +180,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void DeleteAsset(LLUUID assetID)
         {
-          //  this._assetServer.DeleteAsset(assetID);
+            //  this._assetServer.DeleteAsset(assetID);
 
             //Todo should delete it from memory too
         }
@@ -268,7 +268,7 @@ namespace OpenSim.Framework.Communications.Caches
             if (this.SendingTextures.ContainsKey(sender.request.ImageInfo.FullID))
             {
                 this.SendingTextures.Remove(sender.request.ImageInfo.FullID);
-              // this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
+                // this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
             }
         }
 
@@ -792,4 +792,3 @@ namespace OpenSim.Framework.Communications.Caches
         }
     }
 }
-

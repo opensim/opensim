@@ -27,9 +27,9 @@
 */
 using System;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
