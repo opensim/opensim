@@ -32,9 +32,10 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    public class ScriptEngineLoader
+    internal class ScriptEngineLoader
     {
         private LogBase m_log;
+
 
         public ScriptEngineLoader(LogBase logger)
         {

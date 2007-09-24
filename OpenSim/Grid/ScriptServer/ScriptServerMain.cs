@@ -7,21 +7,20 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    class ScriptServerMain : conscmd_callback
+    public class ScriptServerMain : conscmd_callback
     {
         private readonly string m_logFilename = ("region-console.log");
-        public RegionScriptDaemon RegionScriptDaemon;           // Listen for incoming from region
-        public RegionsManager RegionManager;                    // Handle regions
-        public ScriptEngineLoader ScriptEngineLoader;           // Loads scriptengines
+        internal RegionCommManager RegionScriptDaemon;           // Listen for incoming from region
+        internal ScriptEngines ScriptEngines;           // Loads scriptengines
         private LogBase m_log;
 
         public ScriptServerMain()
         {
             m_log = CreateLog();
 
-            RegionScriptDaemon = new RegionScriptDaemon(this);
-            RegionManager = new RegionsManager(this);
-            ScriptEngineLoader = new ScriptEngineLoader(m_log);
+            RegionScriptDaemon = new RegionCommManager(this, m_log);
+            ScriptEngines = new ScriptEngines(this, m_log);
+            
         }
 
         ~ScriptServerMain()

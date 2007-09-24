@@ -5,7 +5,7 @@ using System.Text;
 namespace OpenSim.Grid.ScriptServer
 {
     // Maintains connection and communication to a region
-    class RegionConnectionManager
+    internal class RegionConnectionManager
     {
 
         public RegionConnectionManager()

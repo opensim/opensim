@@ -29,20 +29,25 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.ScriptServer
 {
     // Waiting for incoming script requests from region
-    internal class RegionScriptDaemon
+    internal class RegionCommManager
     {
         private Thread listenThread;
 
-        public ScriptServerMain m_ScriptServer;
-        public RegionScriptDaemon(ScriptServerMain scriptServer)
+        private List<RegionConnectionManager> Regions = new List<RegionConnectionManager>();
+
+        private LogBase m_log;
+        private ScriptServerMain m_ScriptServerMain;
+        public RegionCommManager(ScriptServerMain scm, LogBase logger)
         {
-            m_ScriptServer = scriptServer;
+            m_ScriptServerMain = scm;
+            m_log = logger;
         }
-        ~RegionScriptDaemon()
+        ~RegionCommManager()
         {
             Stop();
         }
