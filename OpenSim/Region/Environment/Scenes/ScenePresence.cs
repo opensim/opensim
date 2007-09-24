@@ -425,10 +425,11 @@ namespace OpenSim.Region.Environment.Scenes
             //    return;
             //}
 
-            //if(PhysicsActor==null) {
-            //    // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
-            //    return;
-            //}
+            if (PhysicsActor == null)
+            {
+                // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
+                return;
+            }
 
             int i = 0;
             bool update_movementflag = false;
