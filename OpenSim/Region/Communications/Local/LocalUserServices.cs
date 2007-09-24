@@ -6,7 +6,7 @@ using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Region.Communications.Local
 {
-    public class LocalUserServices : UserManagerBase, IUserServices
+    public class LocalUserServices : UserManagerBase
     {
         private readonly CommunicationsLocal m_parent;
 
@@ -24,12 +24,12 @@ namespace OpenSim.Region.Communications.Local
             m_defaultHomeY = m_serversInfo.DefaultHomeLocY;
         }
 
-        public UserProfileData SetupMasterUser(string firstName, string lastName)
+        public override UserProfileData SetupMasterUser(string firstName, string lastName)
         {
             return SetupMasterUser(firstName, lastName, "");
         }
 
-        public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+        public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             UserProfileData profile = GetUserProfile(firstName, lastName);
             if (profile != null)
@@ -48,7 +48,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_parent.InvenServices.CreateNewUserInventory(profile.UUID);
+                m_parent.InventoryService.CreateNewUserInventory(profile.UUID);
             }
 
             return profile;

@@ -49,7 +49,7 @@ namespace OpenSim.Region.Communications.Local
                 profile = this.m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
-                    m_Parent.InvenServices.CreateNewUserInventory(profile.UUID);
+                    m_Parent.InventoryService.CreateNewUserInventory(profile.UUID);
                 }
 
                 return profile;
@@ -80,7 +80,7 @@ namespace OpenSim.Region.Communications.Local
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
         {
             ulong currentRegion = theUser.currentAgent.currentHandle;
-            RegionInfo reg = m_Parent.GridServer.RequestNeighbourInfo(currentRegion);
+            RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
 
             if (reg != null)
             {
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Communications.Local
 
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
-            List<InventoryFolderBase> folders = this.m_Parent.InvenServices.RequestFirstLevelFolders(userID);
+            List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);
             if (folders.Count > 0)
             {
                 LLUUID rootID = LLUUID.Zero;

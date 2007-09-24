@@ -40,5 +40,10 @@ namespace OpenSim.Framework.Communications
         UserProfileData SetupMasterUser(string firstName, string lastName);
         UserProfileData SetupMasterUser(string firstName, string lastName, string password);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user"></param>
+        void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
     }
 }

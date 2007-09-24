@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Communications.Caches
             if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
             {
                 this.ItemReceive(userID, itemInfo);
-                this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
+                this.m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
         }
 
@@ -109,7 +109,7 @@ namespace OpenSim.Framework.Communications.Caches
         {
             if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
             {
-                this.m_parentCommsManager.InventoryServer.AddNewInventoryItem(userID, itemInfo);
+                this.m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
         }
 
@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Communications.Caches
                 result = RootFolder.DeleteItem(item.inventoryID);
                 if (result)
                 {
-                    this.m_parentCommsManager.InventoryServer.DeleteInventoryItem(userID, item);
+                    this.m_parentCommsManager.InventoryService.DeleteInventoryItem(userID, item);
                 }
             }
             return result;

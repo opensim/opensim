@@ -26,25 +26,23 @@
 * 
 */
 using System;
+using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
-using OpenSim.Framework.UserManagement;
-using libsecondlife;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
         public LocalBackEndServices InstanceServices;
-        public LocalUserServices UserServices;
+        public IUserServices UserServices;
         public LocalLoginService LoginServices;
-        public LocalInventoryService InvenServices;
-
+ 
         protected LocalSettings m_settings;
 
         protected CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
@@ -58,21 +56,21 @@ namespace OpenSim.Region.Communications.Local
         {
             m_settings = settings;
 
-            InvenServices = new LocalInventoryService();
-            InvenServices.AddPlugin(m_settings.InventoryPlugin);
-            m_inventoryServer = InvenServices;
+            LocalInventoryService inventoryService = new LocalInventoryService();
+            inventoryService.AddPlugin(m_settings.InventoryPlugin);
 
-            UserServices = new LocalUserServices(this, serversInfo);
-            UserServices.AddPlugin(m_settings.UserDatabasePlugin);
-            m_userServer = UserServices;
+            m_inventoryService = inventoryService;
+
+            LocalUserServices userService = new LocalUserServices(this, serversInfo);
+            userService.AddPlugin(m_settings.UserDatabasePlugin);
+            UserServices = userService;
+            m_userService = UserServices;
 
             InstanceServices = new LocalBackEndServices();
-            m_gridServer = InstanceServices;
+            m_gridService = InstanceServices;
             m_interRegion = InstanceServices;
 
-            //CapsServices = new CAPSService(httpServer);
-
-            LoginServices = new LocalLoginService(UserServices, m_settings.WelcomeMessage, this, serversInfo, m_settings.AccountAuthentication);
+            LoginServices = new LocalLoginService(userService, m_settings.WelcomeMessage, this, serversInfo, m_settings.AccountAuthentication);
             httpServer.AddXmlRPCHandler("login_to_simulator", LoginServices.XmlRpcLoginMethod);
         }
 
@@ -121,14 +119,14 @@ namespace OpenSim.Region.Communications.Local
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + "");
 
             this.UserServices.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
-            UserProfileData userProf = this.UserServer.GetUserProfile(firstName, lastName);
+            UserProfileData userProf = this.UserService.GetUserProfile(firstName, lastName);
             if (userProf == null)
             {
                 return LLUUID.Zero;
             }
             else
             {
-                this.InvenServices.CreateNewUserInventory(userProf.UUID);
+                this.m_inventoryService.CreateNewUserInventory(userProf.UUID);
                 Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
                 return userProf.UUID;
             }

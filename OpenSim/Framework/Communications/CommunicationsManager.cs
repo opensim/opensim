@@ -37,81 +37,74 @@ namespace OpenSim.Framework.Communications
 {
     public class CommunicationsManager
     {
-        protected AssetCache m_assetCache;
-        protected IGridServices m_gridServer;
+        protected IUserServices m_userService;
+        public IUserServices UserService
+        {
+            get { return m_userService; }
+        }
+
+        protected IGridServices m_gridService;
+        public IGridServices GridService
+        {
+            get { return m_gridService; }
+        }
+
+        protected IInventoryServices m_inventoryService;
+        public IInventoryServices InventoryService
+        {
+            get { return m_inventoryService; }
+        }
+
         protected IInterRegionCommunications m_interRegion;
-        protected IInventoryServices m_inventoryServer;
+        public IInterRegionCommunications InterRegion
+        {
+            get { return m_interRegion; }
+        }
+
+        protected UserProfileCache m_userProfileCache;
+        public UserProfileCache UserProfileCache
+        {
+            get { return m_userProfileCache; }
+        }
+
         protected AssetTransactionManager m_transactionsManager;
-        protected UserProfileCache m_userProfiles;
-        protected IUserServices m_userServer;
+        public AssetTransactionManager TransactionsManager
+        {
+            get { return m_transactionsManager; }
+        }
+
+        protected AssetCache m_assetCache;
+        public AssetCache AssetCache
+        {
+            get { return m_assetCache; }
+        }
+
         protected NetworkServersInfo m_networkServersInfo;
+        public NetworkServersInfo NetworkServersInfo
+        {
+            get { return m_networkServersInfo; }
+        }
 
         public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
         {
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
-            m_userProfiles = new UserProfileCache(this);
+            m_userProfileCache = new UserProfileCache(this);
             m_transactionsManager = new AssetTransactionManager(this);
         }
 
-        public IUserServices UserServer
-        {
-            get { return m_userServer; }
-            set { m_userServer = value; }
-        }
-
-        public IGridServices GridServer
-        {
-            get { return m_gridServer; }
-        }
-
-        public IInventoryServices InventoryServer
-        {
-            get { return m_inventoryServer; }
-            set { m_inventoryServer = value; }
-        }
-
-        public IInterRegionCommunications InterRegion
-        {
-            get { return m_interRegion; }
-            set { m_interRegion = value; }
-        }
-
-        public UserProfileCache UserProfiles
-        {
-            get { return m_userProfiles; }
-            set { m_userProfiles = value; }
-        }
-
-        public AssetTransactionManager TransactionsManager
-        {
-            get { return m_transactionsManager; }
-            set { m_transactionsManager = value; }
-        }
-
-        public AssetCache AssetCache
-        {
-            get { return m_assetCache; }
-            set { m_assetCache = value; }
-        }
-
-        public NetworkServersInfo NetworkServersInfo
-        {
-            get { return m_networkServersInfo; }
-            set { m_networkServersInfo = value; }
-        }
 
         #region Packet Handlers
 
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
-            if (uuid == m_userProfiles.libraryRoot.agentID)
+            if (uuid == m_userProfileCache.libraryRoot.agentID)
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
             }
             else
             {
-                UserProfileData profileData = m_userServer.GetUserProfile(uuid);
+                UserProfileData profileData = m_userService.GetUserProfile(uuid);
                 if (profileData != null)
                 {
                     LLUUID profileId = profileData.UUID;

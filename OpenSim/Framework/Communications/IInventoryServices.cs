@@ -17,5 +17,13 @@ namespace OpenSim.Framework.Communications
         void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder);
         void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
+        void CreateNewUserInventory(LLUUID user);
+
+        /// <summary>
+        /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID);
     }
 }

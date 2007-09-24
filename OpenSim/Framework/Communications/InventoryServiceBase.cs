@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
+using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
-namespace OpenSim.Framework.InventoryServiceBase
+namespace OpenSim.Framework.Communications
 {
-    public class InventoryServiceBase
+    public abstract class InventoryServiceBase : IInventoryServices
     {
         protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
         //protected IAssetServer m_assetServer;
@@ -200,5 +202,10 @@ namespace OpenSim.Framework.InventoryServiceBase
                 Folders.Add(folder.folderID, folder);
             }
         }
+
+        public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
+        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder);
+        public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
+        public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
     }
 }

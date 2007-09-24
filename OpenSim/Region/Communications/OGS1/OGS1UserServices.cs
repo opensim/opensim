@@ -101,5 +101,10 @@ namespace OpenSim.Region.Communications.OGS1
             UserProfileData profile = GetUserProfile(firstName, lastName);
             return profile;
         }
+
+        public void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }

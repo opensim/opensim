@@ -649,7 +649,7 @@ namespace OpenSim.Region.Environment.Scenes
             CreateAndAddScenePresence(client, child);
 
             m_LandManager.sendParcelOverlay(client);
-            commsManager.UserProfiles.AddNewUser(client.AgentId);
+            commsManager.UserProfileCache.AddNewUser(client.AgentId);
             commsManager.TransactionsManager.AddUser(client.AgentId);
         }
 
@@ -697,10 +697,10 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
-            client.OnCreateNewInventoryFolder += commsManager.UserProfiles.HandleCreateInventoryFolder;
-            client.OnFetchInventoryDescendents += commsManager.UserProfiles.HandleFecthInventoryDescendents;
+            client.OnCreateNewInventoryFolder += commsManager.UserProfileCache.HandleCreateInventoryFolder;
+            client.OnFetchInventoryDescendents += commsManager.UserProfileCache.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
-            client.OnFetchInventory += commsManager.UserProfiles.HandleFetchInventory;
+            client.OnFetchInventory += commsManager.UserProfileCache.HandleFetchInventory;
             client.OnUpdateInventoryItem += UDPUpdateInventoryItemAsset;
             client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
@@ -796,7 +796,7 @@ namespace OpenSim.Region.Environment.Scenes
             avatar.Close();
 
             // Remove client agent from profile, so new logins will work
-            commsManager.UserServer.clearUserAgent(agentID);
+            commsManager.UserService.clearUserAgent(agentID);
 
             return;
         }
@@ -927,7 +927,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            regionCommsHost = commsManager.GridServer.RegisterRegion(m_regInfo);
+            regionCommsHost = commsManager.GridService.RegisterRegion(m_regInfo);
             if (regionCommsHost != null)
             {
                 regionCommsHost.OnExpectUser += NewUserConnection;
@@ -989,7 +989,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void InformClientOfNeighbours(IClientAPI remoteClient)
         {
-            List<RegionInfo> neighbours = commsManager.GridServer.RequestNeighbours(m_regInfo);
+            List<RegionInfo> neighbours = commsManager.GridService.RequestNeighbours(m_regInfo);
 
             if (neighbours != null)
             {
@@ -1014,7 +1014,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
         {
-            return commsManager.GridServer.RequestNeighbourInfo(regionHandle);
+            return commsManager.GridService.RequestNeighbourInfo(regionHandle);
         }
 
         /// <summary>
@@ -1027,7 +1027,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks;
-            mapBlocks = commsManager.GridServer.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
+            mapBlocks = commsManager.GridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
             remoteClient.SendMapBlock(mapBlocks);
         }
 

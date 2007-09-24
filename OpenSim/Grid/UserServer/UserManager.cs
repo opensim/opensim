@@ -159,5 +159,15 @@ namespace OpenSim.Grid.UserServer
             return ProfileToXmlRPCResponse(userProfile);
         }
         #endregion
+
+        public override UserProfileData SetupMasterUser(string firstName, string lastName)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }

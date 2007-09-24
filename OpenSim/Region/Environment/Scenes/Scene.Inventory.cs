@@ -27,7 +27,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 userInfo.AddItem(remoteClient.AgentId, item);
@@ -49,7 +49,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
         {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)
@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UDPUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID,
                                                 LLUUID itemID)
         {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)
@@ -154,7 +154,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (transActionID == LLUUID.Zero)
             {
-                CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+                CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
                 if (userInfo != null)
                 {
                     AssetBase asset = new AssetBase();
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             LLUUID copyID = LLUUID.Random();
             if (userInfo != null)
             {
@@ -335,7 +335,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId, ((SceneObjectGroup) selectedEnt).UUID))
                         {
                             string sceneObjectXml = ((SceneObjectGroup) selectedEnt).ToXmlString();
-                            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+                            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
                             if (userInfo != null)
                             {
                                 AssetBase asset = new AssetBase();
@@ -391,7 +391,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
         {
-            CachedUserInfo userInfo = commsManager.UserProfiles.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)

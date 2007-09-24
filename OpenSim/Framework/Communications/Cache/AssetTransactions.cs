@@ -316,7 +316,7 @@ namespace OpenSim.Framework.Communications.Caches
             {
                 //really need to fix this call, if lbsa71 saw this he would die. 
                 this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
-                CachedUserInfo userInfo = m_userTransactions.Manager.CommsManager.UserProfiles.GetUserDetails(ourClient.AgentId);
+                CachedUserInfo userInfo = m_userTransactions.Manager.CommsManager.UserProfileCache.GetUserDetails(ourClient.AgentId);
                 if (userInfo != null)
                 {
                     InventoryItemBase item = new InventoryItemBase();

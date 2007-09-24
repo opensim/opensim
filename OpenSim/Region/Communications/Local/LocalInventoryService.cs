@@ -1,17 +1,12 @@
-using System;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Data;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.UserManagement;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.InventoryServiceBase;
-using InventoryFolder = OpenSim.Framework.Communications.Caches.InventoryFolder;
+using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
 namespace OpenSim.Region.Communications.Local
 {
-    public class LocalInventoryService : InventoryServiceBase , IInventoryServices
+    public class LocalInventoryService : InventoryServiceBase
     {
 
         public LocalInventoryService()
@@ -19,7 +14,7 @@ namespace OpenSim.Region.Communications.Local
 
         }
 
-        public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack)
+        public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack)
         {
             List<InventoryFolderBase> folders = this.RequestFirstLevelFolders(userID);
             InventoryFolder rootFolder = null;
@@ -54,17 +49,17 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
+        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
         {
             this.AddFolder(folder);
         }
 
-        public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
+        public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             this.AddItem(item);
         }
 
-        public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
+        public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             this.deleteItem(item);
         }

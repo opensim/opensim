@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
@@ -40,7 +41,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.UserManagement
 {
-    public abstract class UserManagerBase
+    public abstract class UserManagerBase : IUserServices
     {
         public UserConfig _config;
         Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
@@ -372,6 +373,7 @@ namespace OpenSim.Framework.UserManagement
             }
         }
 
-        // Rest and XML-RPC methods. (have moved them to a sub class in the user server)
+        public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
+        public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);
     }
 }
