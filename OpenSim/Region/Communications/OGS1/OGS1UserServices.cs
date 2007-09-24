@@ -54,7 +54,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_name", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.ServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
                 Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_uuid", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.ServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
                 Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
