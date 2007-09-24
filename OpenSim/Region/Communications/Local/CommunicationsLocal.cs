@@ -38,43 +38,26 @@ using OpenSim.Framework.Utilities;
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
-    {
-        public LocalBackEndServices InstanceServices;
-        
-        public LocalLoginService LoginServices;
- 
-        protected LocalSettings m_settings;
-
-        protected CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
-            : base(serversInfo, httpServer, assetCache)
-        {
-
-        }
-
+    {      
         public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings)
             : base(serversInfo, httpServer, assetCache)
         {
-            m_settings = settings;
-
             LocalInventoryService inventoryService = new LocalInventoryService();
-            inventoryService.AddPlugin(m_settings.InventoryPlugin);
+            inventoryService.AddPlugin(settings.InventoryPlugin);
             m_inventoryService = inventoryService;
 
             LocalUserServices userService = new LocalUserServices(this, serversInfo);
-            userService.AddPlugin(m_settings.UserDatabasePlugin);
+            userService.AddPlugin(settings.UserDatabasePlugin);
             m_userService = userService;
 
-            InstanceServices = new LocalBackEndServices();
-            m_gridService = InstanceServices;
-            m_interRegion = InstanceServices;
+            LocalBackEndServices backendService = new LocalBackEndServices();
+            m_gridService = backendService;
+            m_interRegion = backendService;
 
-            LoginServices = new LocalLoginService(userService, m_settings.WelcomeMessage, this, serversInfo, m_settings.AccountAuthentication);
-            httpServer.AddXmlRPCHandler("login_to_simulator", LoginServices.XmlRpcLoginMethod);
-        }
+            LocalLoginService loginService = new LocalLoginService(userService, settings.WelcomeMessage, this, serversInfo, settings.AccountAuthentication);
+            loginService.OnLoginToRegion += backendService.AddNewSession;
 
-        internal void InformRegionOfLogin(ulong regionHandle, Login login)
-        {
-            this.InstanceServices.AddNewSession(regionHandle, login);
+            httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
         }
 
         public void doCreate(string[] cmmdParams)

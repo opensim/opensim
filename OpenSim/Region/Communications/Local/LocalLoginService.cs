@@ -11,6 +11,8 @@ using OpenSim.Framework.Inventory;
 
 namespace OpenSim.Region.Communications.Local
 {
+    public delegate void LoginToRegionEvent(ulong regionHandle, Login login);
+
     public class LocalLoginService : LoginService
     {
         private CommunicationsLocal m_Parent;
@@ -19,6 +21,8 @@ namespace OpenSim.Region.Communications.Local
         private uint defaultHomeX;
         private uint defaultHomeY;
         private bool authUsers = false;
+
+        public event LoginToRegionEvent OnLoginToRegion;
 
         public LocalLoginService(UserManagerBase userManager, string welcomeMess, CommunicationsLocal parent, NetworkServersInfo serversInfo, bool authenticate)
             : base(userManager, welcomeMess)
@@ -108,7 +112,10 @@ namespace OpenSim.Region.Communications.Local
                 _login.CircuitCode = (uint)response.CircuitCode;
                 _login.CapsPath = capsPath;
 
-                m_Parent.InformRegionOfLogin(currentRegion, _login);
+                if( OnLoginToRegion != null )
+                {
+                    OnLoginToRegion(currentRegion, _login);
+                }
             }
             else
             {

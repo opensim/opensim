@@ -70,7 +70,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             // Send Request
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
+            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 10000);
             Hashtable GridRespData = (Hashtable)GridResp.Value;
 
             Hashtable griddatahash = GridRespData;
@@ -109,18 +109,20 @@ namespace OpenSim.Region.Communications.OGS1
 
             List<RegionInfo> neighbours = new List<RegionInfo>();
 
-            foreach (ArrayList a in respData.Values)
+            foreach (ArrayList neighboursList in respData.Values)
             {
-                foreach (Hashtable n in a)
+                foreach (Hashtable neighbourData in neighboursList)
                 {
-                    uint regX = Convert.ToUInt32(n["x"]);
-                    uint regY = Convert.ToUInt32(n["y"]);
+                    uint regX = Convert.ToUInt32(neighbourData["x"]);
+                    uint regY = Convert.ToUInt32(neighbourData["y"]);
                     if ((regionInfo.RegionLocX != regX) || (regionInfo.RegionLocY != regY))
                     {
-                        string externalIpStr = OpenSim.Framework.Utilities.Util.GetHostFromDNS((string)n["sim_ip"]).ToString();
-                        uint port = Convert.ToUInt32(n["sim_port"]);
-                        string externalUri = (string)n["sim_uri"];
+                        string simIp = (string)neighbourData["sim_ip"];
 
+                        uint port = Convert.ToUInt32(neighbourData["sim_port"]);
+                        string externalUri = (string)neighbourData["sim_uri"];
+
+                        string externalIpStr = OpenSim.Framework.Utilities.Util.GetHostFromDNS(simIp).ToString();
                         IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(externalIpStr), (int)port);
                         string neighbourExternalUri = externalUri;
                         RegionInfo neighbour = new RegionInfo(regX, regY, neighbourInternalEndPoint, externalIpStr);
@@ -128,10 +130,10 @@ namespace OpenSim.Region.Communications.OGS1
                         //OGS1
                         //neighbour.RegionHandle = (ulong)n["regionhandle"]; is now calculated locally
 
-                        neighbour.RegionName = (string)n["name"];
+                        neighbour.RegionName = (string)neighbourData["name"];
 
                         //OGS1+
-                        neighbour.SimUUID = (string)n["uuid"];
+                        neighbour.SimUUID = new LLUUID((string) neighbourData["uuid"]);
 
                         neighbours.Add(neighbour);
                     }

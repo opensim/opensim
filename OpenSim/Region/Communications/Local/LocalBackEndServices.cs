@@ -187,7 +187,7 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="regionHandle"></param>
         /// <param name="loginData"></param>
         /// <returns></returns>
-        public bool AddNewSession(ulong regionHandle, Login loginData)
+        public void AddNewSession(ulong regionHandle, Login loginData)
         {
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = loginData.Agent;
@@ -204,11 +204,7 @@ namespace OpenSim.Region.Communications.Local
             if (this.regionHosts.ContainsKey(regionHandle))
             {
                 this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agent);
-                return true;
             }
-
-            // region not found
-            return false;
         }
     }
 }

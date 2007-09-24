@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Data;
 using InventoryFolder = OpenSim.Framework.Communications.Caches.InventoryFolder;
+
 
 namespace OpenSim.Region.Communications.OGS1
 {
