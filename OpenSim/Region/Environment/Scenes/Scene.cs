@@ -275,7 +275,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (m_frame % m_update_physics == 0)
                     UpdatePhysics(
-                        Math.Min(SinceLastFrame.TotalSeconds, m_timespan)
+                        Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
 
                 if (m_frame % m_update_entities == 0)
