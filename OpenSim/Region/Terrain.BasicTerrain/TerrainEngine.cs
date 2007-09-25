@@ -33,6 +33,8 @@ using System.IO;
 using libTerrain;
 using OpenJPEGNet;
 using OpenSim.Framework.Interfaces;
+using System.Globalization;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Terrain
 {
@@ -603,8 +605,8 @@ namespace OpenSim.Region.Terrain
             if (args.GetLength(0) > 2)
             {
                 int.TryParse(args[2].ToString(), out count);
-                double.TryParse(args[3].ToString(), out sizeMin);
-                double.TryParse(args[4].ToString(), out sizeRange);
+                double.TryParse(args[3].ToString(), NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo, out sizeMin);
+                double.TryParse(args[4].ToString(), NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo, out sizeRange);
                 bool.TryParse(args[5].ToString(), out island);
                 bool.TryParse(args[6].ToString(), out additive);
                 bool.TryParse(args[7].ToString(), out noisy);

@@ -29,6 +29,8 @@ using System;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 using Nini.Config;
+using System.Threading;
+using OpenSim.Framework;
 
 namespace OpenSim
 {
@@ -55,9 +57,7 @@ namespace OpenSim
             
             Console.WriteLine("Starting...\n");
 
-            // Set current culture
-            
-            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo(""); // en
+           Culture.SetCurrentCulture();
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);
 

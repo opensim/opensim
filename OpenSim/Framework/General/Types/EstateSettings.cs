@@ -29,6 +29,7 @@ using System.IO;
 using libsecondlife;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Utilities;
+using System.Globalization;
 
 namespace OpenSim.Framework.Types
 {
@@ -719,7 +720,8 @@ namespace OpenSim.Framework.Types
                     this.m_terrainMultiplier = System.Convert.ToDouble(configuration_result);
                     break;
                 case "water_height":
-                    float.TryParse(((double)configuration_result).ToString(),out this.m_waterHeight);
+                    double tmpVal = (double) configuration_result;
+                    this.m_waterHeight = (float) tmpVal;
                     break;
                 case "terrain_image_id":
                     this.m_terrainImageID = (LLUUID)configuration_result;

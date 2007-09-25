@@ -44,6 +44,8 @@ using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
+using System.Globalization;
+using RegionInfo=OpenSim.Framework.Types.RegionInfo;
 
 namespace OpenSim
 {

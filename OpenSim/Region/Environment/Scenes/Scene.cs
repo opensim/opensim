@@ -54,6 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene : SceneBase
     {
+
         public delegate bool FilterAvatarList(ScenePresence avatar);
 
         protected Timer m_heartbeatTimer = new Timer();
@@ -160,12 +161,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Constructors
 
-        /// <summary>
-        /// Creates a new Scene class, and a region to go with it.
-        /// </summary>
-        /// <param name="clientThreads">Dictionary to contain client threads</param>
-        /// <param name="regionHandle">Region Handle for this region</param>
-        /// <param name="regionName">Region Name for this region</param>
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
                      ModuleLoader moduleLoader)

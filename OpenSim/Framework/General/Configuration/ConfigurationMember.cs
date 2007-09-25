@@ -9,6 +9,7 @@ using libsecondlife;
 
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Configuration.Interfaces;
+using System.Globalization;
 
 namespace OpenSim.Framework.Configuration
 {
@@ -295,7 +296,7 @@ namespace OpenSim.Framework.Configuration
                             break;
                         case ConfigurationOption.ConfigurationTypes.TYPE_FLOAT:
                             float floatResult;
-                            if (float.TryParse(console_result, out floatResult))
+                            if (float.TryParse(console_result, NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo, out floatResult))
                             {
                                 convertSuccess = true;
                                 return_result = floatResult;
@@ -304,7 +305,7 @@ namespace OpenSim.Framework.Configuration
                             break;
                         case ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE:
                             double doubleResult;
-                            if (Double.TryParse(console_result, out doubleResult))
+                            if (Double.TryParse(console_result, NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo, out doubleResult))
                             {
                                 convertSuccess = true;
                                 return_result = doubleResult;
@@ -332,12 +333,12 @@ namespace OpenSim.Framework.Configuration
                     {
                         if (configOption.configurationUseDefaultNoPrompt)
                         {
-                            MainLog.Instance.Error("Default given for '" + configOption.configurationKey + "' is not valid; the configuration result must be " + errorMessage + ". Will skip this option...");
+                            MainLog.Instance.Error("CONFIG", string.Format("[{3}]:[{1}] is not valid default for parameter [{0}].\nThe configuration result must be parsable to {2}.\n", configOption.configurationKey, console_result, errorMessage, configurationFilename));
                             convertSuccess = true;
                         }
                         else
                         {
-                            MainLog.Instance.Warn("configuration","Incorrect result given, the configuration option must be " + errorMessage + ". Prompting for same option...");
+                            MainLog.Instance.Warn("CONFIG", string.Format("[{3}]:[{1}] is not a valid value [{0}].\nThe configuration result must be parsable to {2}.\n", configOption.configurationKey, console_result, errorMessage, configurationFilename));
                             ignoreNextFromConfig = true;
                         }
                     }
