@@ -12,13 +12,13 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
+using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1GridServices : IGridServices, IInterRegionCommunications
     {
-        public Dictionary<ulong, RegionCommsListener> listeners = new Dictionary<ulong, RegionCommsListener>();
-        protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong, RegionInfo>();
+        private LocalBackEndServices m_localBackend = new LocalBackEndServices();
 
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
@@ -35,6 +35,7 @@ namespace OpenSim.Region.Communications.OGS1
             httpServer = httpServe;
             httpServer.AddXmlRPCHandler("expect_user", this.ExpectUser);
             httpServer.AddXmlRPCHandler("check", this.PingCheckReply);
+
             this.StartRemoting();
         }
 
@@ -45,11 +46,6 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
-            if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
-            {
-                this.regions.Add(regionInfo.RegionHandle, regionInfo);
-            }
-
             Hashtable GridParams = new Hashtable();
             // Login / Authentication
 
@@ -83,18 +79,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return null;
             }
 
-            // Initialise the background listeners
-            RegionCommsListener regListener = new RegionCommsListener();
-            if (!this.listeners.ContainsKey(regionInfo.RegionHandle))
-            {
-                this.listeners.Add(regionInfo.RegionHandle, regListener);
-            }
-            else
-            {
-                listeners[regionInfo.RegionHandle] = regListener;
-            }
-
-            return regListener;
+            return m_localBackend.RegisterRegion(regionInfo);
         }
 
         /// <summary>
@@ -133,7 +118,7 @@ namespace OpenSim.Region.Communications.OGS1
                         neighbour.RegionName = (string)neighbourData["name"];
 
                         //OGS1+
-                        neighbour.SimUUID = new LLUUID((string) neighbourData["uuid"]);
+                        neighbour.SimUUID = new LLUUID((string)neighbourData["uuid"]);
 
                         neighbours.Add(neighbour);
                     }
@@ -150,9 +135,11 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
-            if (this.regions.ContainsKey(regionHandle))
+            RegionInfo regionInfo = m_localBackend.RequestNeighbourInfo(regionHandle);
+
+            if (regionInfo != null)
             {
-                return this.regions[regionHandle];
+                return regionInfo;
             }
 
             Hashtable requestData = new Hashtable();
@@ -179,7 +166,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int)port);
             string neighbourExternalUri = externalUri;
-            RegionInfo regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+            regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
 
             regionInfo.RemotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
             regionInfo.RemotingAddress = internalIpStr;
@@ -245,7 +232,7 @@ namespace OpenSim.Region.Communications.OGS1
             IList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
-            XmlRpcResponse resp = req.Send(serversInfo.GridURL, 3000);
+            XmlRpcResponse resp = req.Send(serversInfo.GridURL, 10000);
             Hashtable respData = (Hashtable)resp.Value;
             return respData;
         }
@@ -262,15 +249,7 @@ namespace OpenSim.Region.Communications.OGS1
             Hashtable respData = new Hashtable();
             respData["online"] = "true";
 
-            foreach (ulong region in this.listeners.Keys)
-            {
-                Hashtable regData = new Hashtable();
-                RegionInfo reg = regions[region];
-                regData["status"] = "active";
-                regData["handle"] = region.ToString();
-
-                respData[reg.SimUUID.ToStringHyphenated()] = regData;
-            }
+            m_localBackend.PingCheckReply(respData);
 
             response.Value = respData;
 
@@ -308,14 +287,9 @@ namespace OpenSim.Region.Communications.OGS1
 
             }
 
-            if (listeners.ContainsKey(Convert.ToUInt64((string)requestData["regionhandle"])))
-            {
-                this.listeners[Convert.ToUInt64((string)requestData["regionhandle"])].TriggerExpectUser(Convert.ToUInt64((string)requestData["regionhandle"]), agentData);
-            }
-            else
-            {
-                MainLog.Instance.Error("ExpectUser() - Unknown region " + (Convert.ToUInt64(requestData["regionhandle"])).ToString());
-            }
+            ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
+
+            m_localBackend.TriggerExpectUser(regionHandle, agentData);
 
             MainLog.Instance.Verbose("ExpectUser() - Welcoming new user...");
 
@@ -333,7 +307,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry(typeof(OGS1InterRegionRemoting), "InterRegions", WellKnownObjectMode.Singleton);
             RemotingConfiguration.RegisterWellKnownServiceType(wellType);
-            InterRegionSingleton.Instance.OnArrival += this.IncomingArrival;
+            InterRegionSingleton.Instance.OnArrival += this.TriggerExpectAvatarCrossing;
             InterRegionSingleton.Instance.OnChildAgent += this.IncomingChildAgent;
         }
 
@@ -348,11 +322,11 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                if (this.listeners.ContainsKey(regionHandle))
+                if (m_localBackend.InformRegionOfChildAgent(regionHandle, agentData))
                 {
-                    this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
                     return true;
                 }
+
                 RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
@@ -401,11 +375,11 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                if (this.listeners.ContainsKey(regionHandle))
+                if (m_localBackend.TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying))
                 {
-                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
                     return true;
                 }
+
                 RegionInfo regInfo = this.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
@@ -440,14 +414,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
+        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
         {
-            if (this.listeners.ContainsKey(regionHandle))
-            {
-                return true;
-            }
-            return false;
+            return m_localBackend.AcknowledgeAgentCrossed(regionHandle, agentId);
         }
+
         #endregion
 
         #region Methods triggered by calls from external instances
@@ -461,17 +432,13 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                if (this.listeners.ContainsKey(regionHandle))
-                {
-                    this.listeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
-                    return true;
-                }
+                return m_localBackend.IncomingChildAgent(regionHandle, agentData);
             }
             catch (System.Runtime.Remoting.RemotingException e)
             {
                 MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
             }
-            return false;
         }
 
         /// <summary>
@@ -481,21 +448,18 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool IncomingArrival(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
+
             try
             {
-                if (this.listeners.ContainsKey(regionHandle))
-                {
-                    this.listeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
-                    return true;
-                }
+                return m_localBackend.TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
             }
             catch (System.Runtime.Remoting.RemotingException e)
             {
                 MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
             }
-            return false;
         }
         #endregion
         #endregion

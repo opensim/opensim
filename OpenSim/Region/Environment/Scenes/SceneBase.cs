@@ -33,11 +33,18 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Terrain;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase : IScene
     {
+        private readonly ClientManager m_clientManager = new ClientManager();
+        public ClientManager ClientManager
+        {
+            get { return m_clientManager; }
+        }
+
         public Dictionary<LLUUID, EntityBase> Entities;
         protected ulong m_regionHandle;
         protected string m_regionName;

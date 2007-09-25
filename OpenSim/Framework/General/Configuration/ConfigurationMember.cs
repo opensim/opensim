@@ -116,7 +116,6 @@ namespace OpenSim.Framework.Configuration
                 configurationPlugin.LoadData();
                 useFile = true;
             }
-
             else
             {
                 MainLog.Instance.Notice("XML Configuration Filename is not valid; will not save to the file.");

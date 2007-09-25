@@ -30,14 +30,15 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Types;
+using System.Collections;
 
 namespace OpenSim.Region.Communications.Local
 {
 
     public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
-        protected Dictionary<ulong, RegionInfo> regions = new Dictionary<ulong, RegionInfo>();
-        protected Dictionary<ulong, RegionCommsListener> regionHosts = new Dictionary<ulong, RegionCommsListener>();
+        protected Dictionary<ulong, RegionInfo> m_regions = new Dictionary<ulong, RegionInfo>();
+        protected Dictionary<ulong, RegionCommsListener> m_regionListeners = new Dictionary<ulong, RegionCommsListener>();
 
         public LocalBackEndServices()
         {
@@ -52,12 +53,13 @@ namespace OpenSim.Region.Communications.Local
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
-            if (!this.regions.ContainsKey((uint)regionInfo.RegionHandle))
+            if (!this.m_regions.ContainsKey((uint)regionInfo.RegionHandle))
             {
                 //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
-                this.regions.Add(regionInfo.RegionHandle, regionInfo);
+                this.m_regions.Add(regionInfo.RegionHandle, regionInfo);
+
                 RegionCommsListener regionHost = new RegionCommsListener();
-                this.regionHosts.Add(regionInfo.RegionHandle, regionHost);
+                this.m_regionListeners.Add(regionInfo.RegionHandle, regionHost);
 
                 return regionHost;
             }
@@ -75,7 +77,7 @@ namespace OpenSim.Region.Communications.Local
             // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
             List<RegionInfo> neighbours = new List<RegionInfo>();
 
-            foreach (RegionInfo reg in this.regions.Values)
+            foreach (RegionInfo reg in this.m_regions.Values)
             {
                 // Console.WriteLine("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
                 if (reg.RegionHandle != regionInfo.RegionHandle)
@@ -100,9 +102,9 @@ namespace OpenSim.Region.Communications.Local
         /// <returns></returns>
         public RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
-            if (this.regions.ContainsKey(regionHandle))
+            if (this.m_regions.ContainsKey(regionHandle))
             {
-                return this.regions[regionHandle];
+                return this.m_regions[regionHandle];
             }
             return null;
         }
@@ -118,7 +120,7 @@ namespace OpenSim.Region.Communications.Local
         public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
-            foreach(RegionInfo regInfo in this.regions.Values)
+            foreach(RegionInfo regInfo in this.m_regions.Values)
             {
                 if (((regInfo.RegionLocX >= minX) && (regInfo.RegionLocX <= maxX)) && ((regInfo.RegionLocY >= minY) && (regInfo.RegionLocY <= maxY)))
                 {
@@ -145,10 +147,10 @@ namespace OpenSim.Region.Communications.Local
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData) //should change from agentCircuitData
         {
             //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
-            if (this.regionHosts.ContainsKey(regionHandle))
+            if (this.m_regionListeners.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect child agent");
-                this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                this.m_regionListeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
                 return true;
             }
             return false;
@@ -163,18 +165,18 @@ namespace OpenSim.Region.Communications.Local
         /// <returns></returns>
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            if (this.regionHosts.ContainsKey(regionHandle))
+            if (this.m_regionListeners.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect avatar crossing");
-                this.regionHosts[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+                this.m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
                 return true;
             }
             return false;
         }
 
-        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
+        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
         {
-            if (this.regionHosts.ContainsKey(regionHandle))
+            if (this.m_regionListeners.ContainsKey(regionHandle))
             {
                 return true;
             }
@@ -201,11 +203,54 @@ namespace OpenSim.Region.Communications.Local
             agent.startpos = new LLVector3(128, 128, 70);
             agent.CapsPath = loginData.CapsPath;
 
-            if (this.regionHosts.ContainsKey(regionHandle))
+            TriggerExpectUser(regionHandle, agent);
+        }
+
+        public void TriggerExpectUser(ulong regionHandle, AgentCircuitData agent)
+        {
+            if (this.m_regionListeners.ContainsKey(regionHandle))
             {
-                this.regionHosts[regionHandle].TriggerExpectUser(regionHandle, agent);
+                this.m_regionListeners[regionHandle].TriggerExpectUser(regionHandle, agent);
             }
         }
+
+        public void PingCheckReply(Hashtable respData)
+        {
+            foreach (ulong region in this.m_regions.Keys )
+            {
+                Hashtable regData = new Hashtable();
+                RegionInfo reg = m_regions[region];
+                regData["status"] = "active";
+                regData["handle"] = region.ToString();
+
+                respData[reg.SimUUID.ToStringHyphenated()] = regData;
+            }
+        }
+
+        public bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        {
+            if ( m_regionListeners.ContainsKey(regionHandle))
+            {
+                return m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position,
+                                                                                 isFlying);
+            }
+
+            return false;
+        }
+
+        public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                TriggerExpectUser(regionHandle, agentData);
+                return true;
+            }
+
+            return false;
+        }
+
+
+      
     }
 }
 

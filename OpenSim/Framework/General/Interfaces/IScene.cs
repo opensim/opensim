@@ -38,5 +38,10 @@ namespace OpenSim.Framework.Interfaces
         RegionInfo RegionInfo { get; }
         object SyncRoot { get; }
         uint NextLocalId { get; }
+
+        ClientManager ClientManager
+        {
+            get;
+        }
     }
 }

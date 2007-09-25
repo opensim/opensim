@@ -100,5 +100,10 @@ namespace OpenSim.Framework
                 }
             }
         }
+
+        public bool TryGetClient(uint circuitId, out IClientAPI user)
+        {
+            return m_clients.TryGetValue(circuitId, out user);
+        }
     }
 }

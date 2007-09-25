@@ -54,7 +54,6 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene : SceneBase
     {
-
         public delegate bool FilterAvatarList(ScenePresence avatar);
 
         protected Timer m_heartbeatTimer = new Timer();
