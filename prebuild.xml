@@ -383,6 +383,35 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.Communications.Local" path="OpenSim/Region/Communications/Local" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Data" />
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.InventoryServiceBase"/>
+      <Reference name="XMLRPC.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.Communications.OGS1" path="OpenSim/Region/Communications/OGS1" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -407,35 +436,6 @@
       <Reference name="OpenSim.Region.Communications.Local" />
       <Reference name="OpenSim.Framework.Data" />
       <Reference name="libsecondlife.dll"/>
-      <Reference name="XMLRPC.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Region.Communications.Local" path="OpenSim/Region/Communications/Local" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Data" />
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.InventoryServiceBase"/>
       <Reference name="XMLRPC.dll"/>
 
       <Files>
