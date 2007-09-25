@@ -5,7 +5,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    internal class ScriptEngines
+    internal class ScriptEngineManager
     {
         private LogBase m_log;
         private ScriptEngineLoader ScriptEngineLoader;
@@ -13,7 +13,7 @@ namespace OpenSim.Grid.ScriptServer
         private ScriptServerMain m_ScriptServerMain;
 
         // Initialize
-        public ScriptEngines(ScriptServerMain scm, LogBase logger)
+        public ScriptEngineManager(ScriptServerMain scm, LogBase logger)
         {
             m_ScriptServerMain = scm;
             m_log = logger;
@@ -22,7 +22,7 @@ namespace OpenSim.Grid.ScriptServer
             // Temp - we should not load during initialize... Loading should be done later.
             LoadEngine("DotNetScriptEngine");
         }
-        ~ScriptEngines()
+        ~ScriptEngineManager()
         {
         }
 

@@ -11,7 +11,7 @@ namespace OpenSim.Grid.ScriptServer
     {
         private readonly string m_logFilename = ("region-console.log");
         internal RegionCommManager RegionScriptDaemon;           // Listen for incoming from region
-        internal ScriptEngines ScriptEngines;           // Loads scriptengines
+        internal ScriptEngineManager ScriptEngines;           // Loads scriptengines
         private LogBase m_log;
 
         public ScriptServerMain()
@@ -19,7 +19,7 @@ namespace OpenSim.Grid.ScriptServer
             m_log = CreateLog();
 
             RegionScriptDaemon = new RegionCommManager(this, m_log);
-            ScriptEngines = new ScriptEngines(this, m_log);
+            ScriptEngines = new ScriptEngineManager(this, m_log);
             
         }
 
