@@ -404,6 +404,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Communications" />
+      <Reference name="OpenSim.Region.Communications.Local" />
       <Reference name="OpenSim.Framework.Data" />
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC.dll"/>
