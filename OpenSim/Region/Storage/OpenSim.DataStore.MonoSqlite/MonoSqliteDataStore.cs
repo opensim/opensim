@@ -141,8 +141,8 @@ namespace OpenSim.DataStore.MonoSqlite
                                 prim.Shape = buildShape(shapeRow);
                             }
                             else
-                            { 
-                                Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                            {
+                                MainLog.Instance.Notice("No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = BoxShape.Default;
                             } 
                             group.AddPart(prim);
@@ -161,7 +161,7 @@ namespace OpenSim.DataStore.MonoSqlite
                             }
                             else
                             {
-                                Console.WriteLine("No shape found for prim in storage, so setting default box shape");
+                                MainLog.Instance.Notice("No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = BoxShape.Default;
                             }
                             createdObjects[new LLUUID(objID)].AddPart(prim);

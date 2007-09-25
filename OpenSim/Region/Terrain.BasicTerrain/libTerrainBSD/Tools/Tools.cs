@@ -37,17 +37,19 @@ namespace libTerrain
 {
     class Tools
     {
-        public static double linearInterpolate(double a, double b, double amount)
+        public static double LinearInterpolate(double a, double b, double amount)
         {
             return a + ((b - a) * amount);
         }
-        public static double exponentialInterpolate(double a, double b, double amount)
+
+        public static double ExponentialInterpolate(double a, double b, double amount)
         {
             a = Math.Pow(a, amount);
             b = Math.Pow(b - a, 1.0 - amount);
             return a+b;
         }
-	    public static int powerOf2Log2(int n) {
+
+	    public static int PowerOf2Log2(int n) {
 		    for (int i = 0; i < 31; i++) {
 			    if ((n & 1) == 1) {
 				    return i;

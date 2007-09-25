@@ -115,7 +115,7 @@ namespace libTerrain
                     if (z < 0)
                         z = 0;
 
-                    Set(x, y, Tools.linearInterpolate(map[x, y], height, z));
+                    Set(x, y, Tools.LinearInterpolate(map[x, y], height, z));
                 }
             }
         }

@@ -81,6 +81,11 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         public double minLower = 500.0;
 
+        /// <summary>
+        /// The last time the terrain was edited
+        /// </summary>
+        public DateTime lastEdit = DateTime.Now;
+
 
         /// <summary>
         /// Whether or not the terrain has been modified since it was last saved and sent to the Physics engine.
@@ -118,6 +123,16 @@ namespace OpenSim.Region.Terrain
         public bool Tainted()
         {
             return (tainted != 0);
+        }
+
+        public bool StillEditing()
+        {
+            TimeSpan gap = DateTime.Now - lastEdit;
+
+            if (gap.TotalSeconds <= 2.0)
+                return true;
+
+            return false;
         }
 
         public bool Tainted(int x, int y)
@@ -196,6 +211,8 @@ namespace OpenSim.Region.Terrain
                     }
                 }
             }
+
+            lastEdit = DateTime.Now;
 
             return;
         }
@@ -1172,28 +1189,7 @@ namespace OpenSim.Region.Terrain
         {
             try
             {
-                Bitmap gradientmapLd = new Bitmap(gradientmap);
-
-                int pallete = gradientmapLd.Height;
-
-                Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
-                Color[] colours = new Color[pallete];
-
-                for (int i = 0; i < pallete; i++)
-                {
-                    colours[i] = gradientmapLd.GetPixel(0, i);
-                }
-
-                Channel copy = heightmap.Copy();
-                for (int y = 0; y < copy.h; y++)
-                {
-                    for (int x = 0; x < copy.w; x++)
-                    {
-                        // 512 is the largest possible height before colours clamp
-                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(x, y) / 512.0), 0.0) * (pallete - 1));
-                        bmp.SetPixel(x, y, colours[colorindex]);
-                    }
-                }
+                Bitmap bmp = TerrainToBitmap(gradientmap);
 
                 bmp.Save(filename, ImageFormat.Png);
             }
@@ -1212,30 +1208,8 @@ namespace OpenSim.Region.Terrain
             byte[] imageData = null;
             try
             {
-                Bitmap gradientmapLd = new Bitmap(gradientmap);
+                Bitmap bmp = TerrainToBitmap(gradientmap);
 
-                int pallete = gradientmapLd.Height;
-
-                Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
-                Color[] colours = new Color[pallete];
-
-                for (int i = 0; i < pallete; i++)
-                {
-                    colours[i] = gradientmapLd.GetPixel(0, i);
-                }
-
-                Channel copy = heightmap.Copy();
-                for (int y = 0; y < copy.h; y++)
-                {
-                    for (int x = 0; x < copy.w; x++)
-                    {
-                        // 512 is the largest possible height before colours clamp
-                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(x, copy.h - y) / 512.0), 0.0) * (pallete - 1));
-                        bmp.SetPixel(x, y, colours[colorindex]);
-                    }
-                }
-
-                //bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
                 imageData = OpenJPEG.EncodeFromImage(bmp, true );
                 
             }
@@ -1246,5 +1220,33 @@ namespace OpenSim.Region.Terrain
 
             return imageData;
         }
+
+        private Bitmap TerrainToBitmap(string gradientmap)
+        {
+            Bitmap gradientmapLd = new Bitmap(gradientmap);
+
+            int pallete = gradientmapLd.Height;
+
+            Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
+            Color[] colours = new Color[pallete];
+
+            for (int i = 0; i < pallete; i++)
+            {
+                colours[i] = gradientmapLd.GetPixel(0, i);
+            }
+
+            Channel copy = heightmap.Copy();
+            for (int y = 0; y < copy.h; y++)
+            {
+                for (int x = 0; x < copy.w; x++)
+                {
+                    // 512 is the largest possible height before colours clamp
+                    int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(x, y) / 512.0), 0.0) * (pallete - 1));
+                    bmp.SetPixel(x, y, colours[colorindex]);
+                }
+            }
+            return bmp;
+        }
+
     }
 }

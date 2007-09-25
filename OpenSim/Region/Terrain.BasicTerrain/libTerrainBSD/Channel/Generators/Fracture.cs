@@ -100,7 +100,7 @@ namespace libTerrain
                 {
                     for (int y = 0; y < h; y++)
                     {
-                        double miny = Tools.linearInterpolate(a[1], b[1], (double)x / (double)w);
+                        double miny = Tools.LinearInterpolate(a[1], b[1], (double)x / (double)w);
 
                         if (v >= 0.5)
                         {
@@ -108,14 +108,14 @@ namespace libTerrain
                             {
                                 if (y > miny)
                                 {
-                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                    map[x, y] += Tools.LinearInterpolate(scalemin, scalemax, z);
                                 }
                             }
                             else
                             {
                                 if (y < miny)
                                 {
-                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                    map[x, y] += Tools.LinearInterpolate(scalemin, scalemax, z);
                                 }
                             }
                         }
@@ -125,14 +125,14 @@ namespace libTerrain
                             {
                                 if (x > miny)
                                 {
-                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                    map[x, y] += Tools.LinearInterpolate(scalemin, scalemax, z);
                                 }
                             }
                             else
                             {
                                 if (x < miny)
                                 {
-                                    map[x, y] += Tools.linearInterpolate(scalemin, scalemax, z);
+                                    map[x, y] += Tools.LinearInterpolate(scalemin, scalemax, z);
                                 }
                             }
                         }

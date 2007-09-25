@@ -354,7 +354,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void UpdateTerrain()
         {
-            if (Terrain.Tainted())
+            if (Terrain.Tainted() && !Terrain.StillEditing())
             {
                 CreateTerrainTexture();
 
@@ -466,7 +466,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (string.IsNullOrEmpty(m_regInfo.estateSettings.terrainFile))
                     {
-                        Console.WriteLine("No default terrain, procedurally generating...");
+                        MainLog.Instance.Verbose("TERRAIN", "No default terrain. Generating a new terrain.");
                         Terrain.HillsGenerator();
 
                         storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
@@ -480,7 +480,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         catch
                         {
-                            Console.WriteLine("Unable to load default terrain, procedurally generating instead...");
+                            MainLog.Instance.Verbose("TERRAIN","No terrain found in database or default. Generating a new terrain.");
                             Terrain.HillsGenerator();
                         }
                         storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());

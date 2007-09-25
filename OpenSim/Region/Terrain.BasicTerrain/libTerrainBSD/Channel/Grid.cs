@@ -341,7 +341,7 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    Set(x, y, Tools.linearInterpolate(map[x, y], other.map[x, y], amount));
+                    Set(x, y, Tools.LinearInterpolate(map[x, y], other.map[x, y], amount));
                 }
             }
             return this;
@@ -354,7 +354,7 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    Set(x, y, Tools.linearInterpolate(map[x, y], other.map[x, y], amount.map[x, y]));
+                    Set(x, y, Tools.LinearInterpolate(map[x, y], other.map[x, y], amount.map[x, y]));
                 }
             }
             return this;
