@@ -352,8 +352,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void RemoveFromPhysicalScene()
         {
-            m_scene.PhysScene.RemoveAvatar( this.PhysicsActor );
-            this.PhysicsActor = null;
+            if (this.PhysicsActor)
+            {
+                m_scene.PhysScene.RemoveAvatar(this.PhysicsActor);
+                this.PhysicsActor = null;
+            }
         }
 
         /// <summary>
