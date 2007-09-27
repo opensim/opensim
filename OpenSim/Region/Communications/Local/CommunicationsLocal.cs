@@ -107,7 +107,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                this.m_inventoryService.CreateNewUserInventory(LLUUID.Zero, userProf.UUID);
+                this.m_inventoryService.CreateNewUserInventory(userProf.UUID);
                 Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
                 return userProf.UUID;
             }

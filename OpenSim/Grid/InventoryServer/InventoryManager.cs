@@ -26,34 +26,37 @@
 * 
 */
 using System;
-using System.Text;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using OpenGrid.Framework.Data;
 using libsecondlife;
+using System.Reflection;
 
 using System.Xml;
-using OpenSim.Framework.Console;
+using Nwc.XmlRpc;
+using OpenSim.Framework.Sims;
+using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Data;
-using InventoryCategory = OpenSim.Framework.Data.InventoryCategory;
 
-namespace OpenSim.Grid.InventoryServer
+using System.Security.Cryptography;
+
+namespace OpenGridServices.InventoryServer
 {
-    class InventoryManager : IInventoryData 
+    class InventoryManager
     {
-        IInventoryData _databasePlugin;
+        Dictionary<string, IInventoryData> _plugins = new Dictionary<string, IInventoryData>();
 
         /// <summary>
         /// Adds a new inventory server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
         /// <param name="FileName">The filename to the inventory server plugin DLL</param>
-        public void AddDatabasePlugin(string FileName)
+        public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose(OpenInventory_Main.MainLogName, "Invenstorage: Attempting to load " + FileName);
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Invenstorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            MainLog.Instance.Verbose(OpenInventory_Main.MainLogName, "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -64,9 +67,8 @@ namespace OpenSim.Grid.InventoryServer
                     {
                         IInventoryData plug = (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
-                        _databasePlugin = plug;
-                        MainLog.Instance.Verbose(OpenInventory_Main.MainLogName, "Invenstorage: Added IInventoryData Interface");
-                        break;
+                        this._plugins.Add(plug.getName(), plug);
+                        OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Invenstorage: Added IUserData Interface");
                     }
 
                     typeInterface = null;
@@ -78,87 +80,46 @@ namespace OpenSim.Grid.InventoryServer
 
         public List<InventoryFolderBase> getRootFolders(LLUUID user)
         {
+            foreach (KeyValuePair<string, IInventoryData> kvp in _plugins)
+            {
+                try
+                {
+                    return kvp.Value.getUserRootFolders(user);
+                }
+                catch (Exception e)
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.Notice("Unable to get root folders via " + kvp.Key + " (" + e.ToString() + ")");
+                }
+            }
             return null;
         }
 
-        #region IInventoryData Members
-
-
-        public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
+        public XmlRpcResponse XmlRpcInventoryRequest(XmlRpcRequest request)
         {
-            return _databasePlugin.getInventoryInFolder(folderID);
-        }
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
 
-        public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
-        {
-            return _databasePlugin.getUserRootFolders(user);
-        }
+            Hashtable responseData = new Hashtable();
 
-        public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
-        {
-            return _databasePlugin.getInventoryFolders(parentID);
-        }
+            // Stuff happens here
 
-        public InventoryItemBase getInventoryItem(LLUUID item)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
+            if (requestData.ContainsKey("Access-type"))
+            {
+                if (requestData["access-type"] == "rootfolders")
+                {
+//                    responseData["rootfolders"] =
+                }
+            }
+            else
+            {
+                responseData["error"] = "No access-type specified.";
+            }
 
-        public InventoryFolderBase getInventoryFolder(LLUUID folder)
-        {
-            return _databasePlugin.getInventoryFolder(folder);
-        }
 
-        public void addInventoryItem(InventoryItemBase item)
-        {
-            _databasePlugin.addInventoryItem(item);
-        }
+            // Stuff stops happening here
 
-        public void updateInventoryItem(InventoryItemBase item)
-        {
-            throw new Exception("The method or operation is not implemented.");
+            response.Value = responseData;
+            return response;
         }
-
-        public void deleteInventoryItem(InventoryItemBase item)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void addInventoryFolder(InventoryFolderBase folder)
-        {
-            _databasePlugin.addInventoryFolder(folder);
-        }
-
-        public void updateInventoryFolder(InventoryFolderBase folder)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void Initialise()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void Close()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public string getName()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public string getVersion()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void deleteInventoryCategory(InventoryCategory inventoryCategory)
-        {
-            _databasePlugin.deleteInventoryCategory(inventoryCategory);
-        }
-
-        #endregion
     }
 }

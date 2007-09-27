@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
+using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Interfaces;
@@ -352,7 +353,7 @@ namespace OpenSim.Region.ClientStack
                         // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
                         if (OnAssetUploadRequest != null)
                         {
-                            OnAssetUploadRequest(this, LLUUID.Combine(request.AssetBlock.TransactionID, this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
+                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
                         }
                         break;
                     case PacketType.RequestXfer:
@@ -417,7 +418,7 @@ namespace OpenSim.Region.ClientStack
                             {
                                 if (update.InventoryData[i].TransactionID != LLUUID.Zero)
                                 {
-                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID, LLUUID.Combine(update.InventoryData[i].TransactionID, this.SecureSessionID), update.InventoryData[i].ItemID);
+                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID, update.InventoryData[i].TransactionID.Combine(this.SecureSessionID), update.InventoryData[i].ItemID);
                                 }
                             }
                         }

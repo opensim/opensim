@@ -26,10 +26,9 @@ namespace OpenSim.Framework.UserManagement
         private ArrayList classifiedCategories;
         private ArrayList inventoryRoot;
         private ArrayList initialOutfit;
-        private ArrayList inventorySkeleton;
+        private ArrayList agentInventory;
         private ArrayList inventoryLibraryOwner;
-        private ArrayList inventoryLibraryRoot;
-        private ArrayList inventoryLibrarySkeleton;
+        private ArrayList inventoryLibrary;
 
         private UserInfo userProfile;
 
@@ -87,13 +86,11 @@ namespace OpenSim.Framework.UserManagement
 
             this.defaultXmlRpcResponse = new XmlRpcResponse();
             this.userProfile = new UserInfo();
-
-            this.initialOutfit = new ArrayList();
             this.inventoryRoot = new ArrayList();
-            this.inventorySkeleton = new ArrayList();
-            this.inventoryLibrarySkeleton = new ArrayList();
+            this.initialOutfit = new ArrayList();
+            this.agentInventory = new ArrayList();
+            this.inventoryLibrary = new ArrayList();
             this.inventoryLibraryOwner = new ArrayList();
-            this.inventoryLibraryRoot = new ArrayList();
 
             this.xmlRpcResponse = new XmlRpcResponse();
             this.defaultXmlRpcResponse = new XmlRpcResponse();
@@ -240,15 +237,12 @@ namespace OpenSim.Framework.UserManagement
                 responseData["classified_categories"] = this.classifiedCategories;
                 responseData["ui-config"] = this.uiConfig;
 
-                responseData["inventory-skeleton"] = this.inventorySkeleton;
-                responseData["inventory-skel-lib"] = this.inventoryLibrarySkeleton;
+                responseData["inventory-skeleton"] = this.agentInventory;
+                responseData["inventory-skel-lib"] = this.inventoryLibrary;
                 responseData["inventory-root"] = this.inventoryRoot;
-                responseData["inventory-lib-owner"] = this.inventoryLibraryOwner;
-                responseData["inventory-lib-root"] = this.inventoryLibraryRoot;
-
                 responseData["gestures"] = new ArrayList(); // todo
+                responseData["inventory-lib-owner"] = this.inventoryLibraryOwner;
                 responseData["initial-outfit"] = this.initialOutfit;
-
                 responseData["start_location"] = this.startLocation;
                 responseData["seed_capability"] = this.seedCapability;
                 responseData["home"] = this.home;
@@ -602,23 +596,23 @@ namespace OpenSim.Framework.UserManagement
         {
             get
             {
-                return this.inventorySkeleton;
+                return this.agentInventory;
             }
             set
             {
-                this.inventorySkeleton = value;
+                this.agentInventory = value;
             }
         }
 
-        public ArrayList InventoryLibrarySkeleton
+        public ArrayList InventoryLibrary
         {
             get
             {
-                return this.inventoryLibrarySkeleton;
+                return this.inventoryLibrary;
             }
             set
             {
-                this.inventoryLibrarySkeleton = value;
+                this.inventoryLibrary = value;
             }
         }
 
@@ -631,18 +625,6 @@ namespace OpenSim.Framework.UserManagement
             set
             {
                 this.inventoryLibraryOwner = value;
-            }
-        }
-
-        public ArrayList InventoryLibraryRoot
-        {
-            get
-            {
-                return this.inventoryLibraryRoot;
-            }
-            set
-            {
-                this.inventoryLibraryRoot = value;
             }
         }
 
@@ -682,8 +664,4 @@ namespace OpenSim.Framework.UserManagement
         }
     }
 }
-
-
-
-
 

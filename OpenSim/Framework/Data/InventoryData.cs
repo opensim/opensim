@@ -25,19 +25,15 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Xml.Serialization;
 using System.Collections.Generic;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data
 {
-
-    public enum InventoryCategory : byte { Library, Default, User };
     /// <summary>
     /// Inventory Item - contains all the properties associated with an individual inventory piece.
     /// </summary>
-    public class InventoryItemBase : MarshalByRefObject
+    public class InventoryItemBase
     {
         /// <summary>
         /// A UUID containing the ID for the inventory item itself
@@ -70,12 +66,10 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// The name of the inventory item (must be less than 64 characters)
         /// </summary>
-        [XmlElement(ElementName="name")]
         public string inventoryName;
         /// <summary>
         /// The description of the inventory item (must be less than 64 characters)
         /// </summary>
-        [XmlElement(ElementName = "description")]
         public string inventoryDescription;
         /// <summary>
         /// A mask containing the permissions for the next owner (cannot be enforced)
@@ -98,7 +92,7 @@ namespace OpenSim.Framework.Data
     /// <summary>
     /// A Class for folders which contain users inventory
     /// </summary>
-    public class InventoryFolderBase : MarshalByRefObject
+    public class InventoryFolderBase
     {
         /// <summary>
         /// The name of the folder (64 characters or less)
@@ -124,10 +118,6 @@ namespace OpenSim.Framework.Data
         /// 
         /// </summary>
         public ushort version;
-        /// <summary>
-        /// Inventory category, Library, Default, System
-        /// </summary>
-        public InventoryCategory category;
     }
 
     /// <summary>
@@ -170,6 +160,13 @@ namespace OpenSim.Framework.Data
         /// <param name="user">The user whos inventory is to be searched</param>
         /// <returns>A list of folder objects</returns>
         List<InventoryFolderBase> getUserRootFolders(LLUUID user);
+
+        /// <summary>
+        /// Returns the users inventory root folder.
+        /// </summary>
+        /// <param name="user">The UUID of the user who is having inventory being returned</param>
+        /// <returns>Root inventory folder</returns>
+        InventoryFolderBase getUserRootFolder(LLUUID user);
 
         /// <summary>
         /// Returns a list of inventory folders contained in the folder 'parentID'
@@ -221,17 +218,5 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <param name="folder">The inventory folder</param>
         void updateInventoryFolder(InventoryFolderBase folder);
-
-        /// <summary>
-        /// Delete a complete inventory category
-        /// </summary>
-        /// <param name="inventoryCategory">What folder category shout be deleted</param>
-        void deleteInventoryCategory(InventoryCategory inventoryCategory);
-
-        /// <summary>
-        /// Setup the initial folderset of a user
-        /// </summary>
-        /// <param name="user"></param>
-        //void CreateNewUserInventory(LLUUID user);
     }
 }

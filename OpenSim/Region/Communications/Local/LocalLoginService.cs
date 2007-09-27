@@ -7,6 +7,7 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Inventory;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -24,7 +25,7 @@ namespace OpenSim.Region.Communications.Local
         public event LoginToRegionEvent OnLoginToRegion;
 
         public LocalLoginService(UserManagerBase userManager, string welcomeMess, CommunicationsLocal parent, NetworkServersInfo serversInfo, bool authenticate)
-            : base(userManager, parent.InventoryService, welcomeMess)
+            : base(userManager, welcomeMess)
         {
             m_Parent = parent;
             this.serversInfo = serversInfo;
@@ -52,7 +53,7 @@ namespace OpenSim.Region.Communications.Local
                 profile = this.m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
-                    m_Parent.InventoryService.CreateNewUserInventory(LLUUID.Zero, profile.UUID);
+                    m_Parent.InventoryService.CreateNewUserInventory(profile.UUID);
                 }
 
                 return profile;
@@ -121,6 +122,52 @@ namespace OpenSim.Region.Communications.Local
                 Console.WriteLine("not found region " + currentRegion);
             }
 
+        }
+
+        protected override InventoryData CreateInventoryData(LLUUID userID)
+        {
+            List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);
+            if (folders.Count > 0)
+            {
+                LLUUID rootID = LLUUID.Zero;
+                ArrayList AgentInventoryArray = new ArrayList();
+                Hashtable TempHash;
+                foreach (InventoryFolderBase InvFolder in folders)
+                {
+                    if (InvFolder.parentID == LLUUID.Zero)
+                    {
+                        rootID = InvFolder.folderID;
+                    }
+                    TempHash = new Hashtable();
+                    TempHash["name"] = InvFolder.name;
+                    TempHash["parent_id"] = InvFolder.parentID.ToStringHyphenated();
+                    TempHash["version"] = (Int32)InvFolder.version;
+                    TempHash["type_default"] = (Int32)InvFolder.type;
+                    TempHash["folder_id"] = InvFolder.folderID.ToStringHyphenated();
+                    AgentInventoryArray.Add(TempHash);
+                }
+                return new InventoryData(AgentInventoryArray, rootID);
+            }
+            else
+            {
+                AgentInventory userInventory = new AgentInventory();
+                userInventory.CreateRootFolder(userID, false);
+
+                ArrayList AgentInventoryArray = new ArrayList();
+                Hashtable TempHash;
+                foreach (OpenSim.Framework.Inventory.InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
+                {
+                    TempHash = new Hashtable();
+                    TempHash["name"] = InvFolder.FolderName;
+                    TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
+                    TempHash["version"] = (Int32)InvFolder.Version;
+                    TempHash["type_default"] = (Int32)InvFolder.DefaultType;
+                    TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
+                    AgentInventoryArray.Add(TempHash);
+                }
+
+                return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
+            }
         }
     }
 }

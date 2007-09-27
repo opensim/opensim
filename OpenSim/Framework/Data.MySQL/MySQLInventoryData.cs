@@ -132,7 +132,7 @@ namespace OpenSim.Framework.Data.MySQL
                     param["?uuid"] = user.ToStringHyphenated();
                     param["?zero"] = LLUUID.Zero.ToStringHyphenated();
 
-                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND (agentID = ?uuid OR category = 0)", param);
+                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", param);
                     IDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = database.readInventoryFolders(reader);
@@ -141,6 +141,40 @@ namespace OpenSim.Framework.Data.MySQL
                     result.Dispose();
 
                     return items;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                Console.WriteLine(e.ToString());
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns the users inventory root folder.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        {
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = user.ToStringHyphenated();
+                    param["?zero"] = LLUUID.Zero.ToStringHyphenated();
+
+                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", param);
+                    IDataReader reader = result.ExecuteReader();
+
+                    List<InventoryFolderBase> items = database.readInventoryFolders(reader);
+                    InventoryFolderBase rootFolder = items[0]; //should only be one folder with parent set to zero (the root one).
+                    reader.Close();
+                    result.Dispose();
+
+                    return rootFolder;
                 }
             }
             catch (Exception e)
@@ -314,27 +348,5 @@ namespace OpenSim.Framework.Data.MySQL
         {
             addInventoryFolder(folder);
         }
-
-        public void deleteInventoryCategory(InventoryCategory inventoryCategory)
-        {
-            try
-            {
-                lock (database) {
-                    IDbCommand cmd = database.Query(string.Format("DELETE FROM inventoryitems WHERE parentFolderID IN (SELECT folderId FROM inventoryfolders WHERE category={0})", (byte)inventoryCategory), null);
-                    cmd.ExecuteNonQuery();
-
-
-                    cmd = database.Query(string.Format("DELETE FROM inventoryfolders WHERE category={0}", (byte)inventoryCategory), null);
-                    cmd.ExecuteNonQuery();
-                }
-
-            }
-            catch (Exception e)
-            {
-                database.Reconnect();
-                Console.WriteLine(e.ToString());
-            }
-        }
-
     }
 }

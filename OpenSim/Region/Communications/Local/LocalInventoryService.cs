@@ -3,7 +3,6 @@ using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Data;
 using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
-using InventoryCategory = OpenSim.Framework.Data.InventoryCategory;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -50,7 +49,7 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
         {
             this.AddFolder(folder);
         }

@@ -35,9 +35,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Console;
-
-using InventoryCategory = OpenSim.Framework.Data.InventoryCategory;
 
 namespace OpenSim.Framework.Communications.Caches
 {
@@ -63,7 +60,7 @@ namespace OpenSim.Framework.Communications.Caches
         }
 
         // Methods
-        public InventoryFolder CreateNewSubFolder(LLUUID folderID, string folderName, ushort type, InventoryCategory category)
+        public InventoryFolder CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
         {
             InventoryFolder subFold = new InventoryFolder();
             subFold.name = folderName;
@@ -71,12 +68,7 @@ namespace OpenSim.Framework.Communications.Caches
             subFold.type = (short) type;
             subFold.parentID = this.folderID;
             subFold.agentID = this.agentID;
-            subFold.category = category;
-            if (!SubFolders.ContainsKey(subFold.folderID))
-                this.SubFolders.Add(subFold.folderID, subFold);
-            else
-                MainLog.Instance.Warn("INVENTORYCACHE", "Attempt to create a duplicate folder {0} {1}", folderName, folderID);
-
+            this.SubFolders.Add(subFold.folderID, subFold);
             return subFold;
         }
 

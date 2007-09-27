@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules
                                                      avatar = m_scene.GetScenePresence(presence.ControllingClient.AgentId);
                                                      if (avatar != null)
                                                      {
-                                                         dis = (int)LLVector3.Mag(avatar.AbsolutePosition-fromPos);
+                                                         dis = (int) avatar.AbsolutePosition.GetDistanceTo(fromPos);
                                                      }
 
                                                      switch (type)

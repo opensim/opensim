@@ -561,7 +561,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                     /// check for physics-related movement
-                else if (LLVector3.Dist(lastPhysPos,AbsolutePosition) > 0.02)
+                else if (lastPhysPos.GetDistanceTo(AbsolutePosition) > 0.02)
                 {
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
@@ -748,7 +748,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void CheckForSignificantMovement()
         {
-            if (LLVector3.Dist(AbsolutePosition, posLastSignificantMove) > 2.0)
+            if (Helpers.VecDist(AbsolutePosition, posLastSignificantMove) > 2.0)
             {
                 posLastSignificantMove = AbsolutePosition;
                 if (OnSignificantClientMovement != null)

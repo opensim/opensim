@@ -36,8 +36,6 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Configuration;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.Communications.OGS1;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -49,8 +47,6 @@ namespace OpenSim.Grid.UserServer
 
         public UserManager m_userManager;
         public UserLoginService m_loginService;
-
-        public IInventoryServices m_inventoryService;
 
         LogBase m_console;
 
@@ -94,11 +90,7 @@ namespace OpenSim.Grid.UserServer
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider);
 
-            // prepare connection to the inventory server
-            m_inventoryService = new OGS1InventoryService(Cfg.InventoryServerName, Cfg.InventoryServerPort, null);
-
-            
-            m_loginService = new UserLoginService(m_userManager, m_inventoryService, Cfg, Cfg.DefaultStartupMsg);
+            m_loginService = new UserLoginService(m_userManager, Cfg, Cfg.DefaultStartupMsg);
 
             MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer((int)Cfg.HttpPort);
@@ -111,7 +103,6 @@ namespace OpenSim.Grid.UserServer
             httpServer.AddStreamHandler( new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod ));
             
             httpServer.Start();
-
             m_console.Status("SERVER", "Userserver 0.3 - Startup complete");
         }
 

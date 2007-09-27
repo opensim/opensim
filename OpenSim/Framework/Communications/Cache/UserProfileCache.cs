@@ -35,11 +35,10 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
-using InventoryCategory = OpenSim.Framework.Data.InventoryCategory;
 
 namespace OpenSim.Framework.Communications.Caches
 {
-    public class UserProfileCache : MarshalByRefObject
+    public class UserProfileCache
     {
         // Fields
         private CommunicationsManager m_parent;
@@ -104,7 +103,7 @@ namespace OpenSim.Framework.Communications.Caches
                     CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
                     if (info.RootFolder.folderID == parentID)
                     {
-                       InventoryFolder createdFolder = info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType, InventoryCategory.User);
+                       InventoryFolder createdFolder = info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
                        if (createdFolder != null)
                        {
                            this.m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
@@ -115,7 +114,7 @@ namespace OpenSim.Framework.Communications.Caches
                         InventoryFolder folder = info.RootFolder.HasSubFolder(parentID);
                         if (folder != null)
                         {
-                            folder.CreateNewSubFolder(folderID, folderName, folderType, InventoryCategory.User);
+                            folder.CreateNewSubFolder(folderID, folderName, folderType);
                         }
                     }
                 }
@@ -125,21 +124,16 @@ namespace OpenSim.Framework.Communications.Caches
         public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
         {
             InventoryFolder fold  = null;
-
             if (folderID == libraryRoot.folderID )
             {
-                // we are looking for the root of the shared inventory
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID, libraryRoot.RequestListOfItems());
             }
             else if (( fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
-                // we are looking for a sub folder of the shared inventory
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems());
             }
             else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                //if we get here, we are looking the inventory of an agent in this sim
-                //now we need to see if we already have the inventory cached
                 if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
                     CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
@@ -159,22 +153,8 @@ namespace OpenSim.Framework.Communications.Caches
                         }
                     }
                 }
-                else
-                {
-                    //nope, inventory wasn't cached, so go to the inventory server and ask for the inventory
-                    m_parent.InventoryService.RequestInventoryForUser(remoteClient.AgentId, ReceiveFolderInfo, ReceiveItemInfo);
-                }
             }
         }
-
-        public void ReceiveFolderInfo(LLUUID userID, InventoryFolderBase folderInfo)
-        {
-        }
-
-        public void ReceiveItemInfo(LLUUID userID, InventoryItemBase itemInfo)
-        {
-        }
-
 
         public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
         {
@@ -201,7 +181,7 @@ namespace OpenSim.Framework.Communications.Caches
         /// <param name="userID"></param>
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
-            this.m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+             this.m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
         }
 
         /// <summary>
@@ -240,8 +220,4 @@ namespace OpenSim.Framework.Communications.Caches
         }
     }
 }
-
-
-
-
 
