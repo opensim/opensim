@@ -252,8 +252,8 @@ namespace OpenSim.Framework.UserManagement
                 TempHash["folder_id"] = tempFolderID.ToStringHyphenated();
                 TempHash["name"] = ifb.name;
                 TempHash["parent_id"] = tempParentID.ToStringHyphenated();
-                TempHash["type_default"] = ifb.type;
-                TempHash["version"] = ifb.version+1;
+                TempHash["type_default"] = (Int32)ifb.type;
+                TempHash["version"] = (Int32)ifb.version+1;
                 temp.Add(TempHash);
             }
 
