@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Data.SQLite
             return;
         }
 
-        public InventoryItemBase BuildItem(DataRow row)
+        public InventoryItemBase buildItem(DataRow row)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.inventoryID = new LLUUID((string)row["UUID"]);
@@ -183,7 +183,7 @@ namespace OpenSim.Framework.Data.SQLite
             DataRow[] rows = inventoryItemTable.Select(selectExp);
             foreach (DataRow row in rows)
             {
-                retval.Add(BuildItem(row));
+                retval.Add(buildItem(row));
             }
 
             return retval;
@@ -234,7 +234,11 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing item information</returns>
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
-            return null;
+            DataRows[] rows = ds.Tables["inventoryitems"].Find(item);
+            if (rows.Length == 1)
+                return this.buildItem(rows[0]);
+            else
+                return null;
         }
 
         /// <summary>
