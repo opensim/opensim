@@ -49,6 +49,8 @@ namespace OpenSim.Framework.Types
         public int HttpListenerPort = 9000;
         public int RemotingListenerPort = 8895;
 
+        public int InventoryServerPort;
+        public string InventoryServerName = "";
 
         public NetworkServersInfo()
         {
@@ -86,7 +88,8 @@ namespace OpenSim.Framework.Types
             UserSendKey = config.Configs["Network"].GetString("user_send_key", "null");
             UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
             AssetURL = config.Configs["Network"].GetString("asset_server_url", "http://127.0.0.1:8003");
-
+            InventoryServerPort = config.Configs["Network"].GetInt("inventory_server_port", 8004);
+            InventoryServerName = config.Configs["Network"].GetString("inventory_server_name", "127.0.0.1");
         }
     }
 }

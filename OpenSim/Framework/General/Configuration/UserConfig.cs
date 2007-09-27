@@ -18,6 +18,9 @@ namespace OpenSim.Framework.Configuration
 
         public uint HttpPort = 8002;
 
+        public int    InventoryServerPort;
+        public string InventoryServerName;
+
         private ConfigurationMember configMember;
 
         public UserConfig(string description, string filename)
@@ -37,6 +40,8 @@ namespace OpenSim.Framework.Configuration
 
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Http Listener port", "8002", false);
 
+            configMember.addConfigurationOption("inventory_server_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Portnumber inventory is listening on", "8004", false);
+            configMember.addConfigurationOption("inventory_server_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "DNS name of the inventory server", "127.0.0.1", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -59,6 +64,12 @@ namespace OpenSim.Framework.Configuration
                     this.DatabaseProvider = (string)configuration_result;
                     break;
 
+                case "inventory_server_port":
+                    this.InventoryServerPort = (int)configuration_result;
+                    break;
+                case "inventory_server_name":
+                    this.InventoryServerName = (string)configuration_result;
+                    break;
                 case "http_port":
                     HttpPort = (uint)configuration_result;
                     break;

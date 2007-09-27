@@ -6,6 +6,7 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Configuration;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -13,8 +14,8 @@ namespace OpenSim.Grid.UserServer
     {
         public UserConfig m_config;
 
-        public UserLoginService(UserManagerBase userManager, UserConfig config, string welcomeMess)
-            : base(userManager, welcomeMess)
+        public UserLoginService(UserManagerBase userManager, IInventoryServices inventoryServer, UserConfig config, string welcomeMess)
+            : base(userManager, inventoryServer, welcomeMess)
         {
             m_config = config;
         }
@@ -92,4 +93,8 @@ namespace OpenSim.Grid.UserServer
         }
     }
 }
+
+
+
+
 

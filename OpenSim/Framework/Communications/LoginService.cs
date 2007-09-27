@@ -8,11 +8,10 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
-
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Configuration;
-using InventoryFolder = OpenSim.Framework.Inventory.InventoryFolder;
+
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -20,10 +19,12 @@ namespace OpenSim.Framework.UserManagement
     {
         protected string m_welcomeMessage = "Welcome to OpenSim";
         protected UserManagerBase m_userManager = null;
+        protected IInventoryServices m_inventoryServer = null;
 
-        public LoginService(UserManagerBase userManager, string welcomeMess)
+        public LoginService(UserManagerBase userManager, IInventoryServices inventoryServer, string welcomeMess)
         {
             m_userManager = userManager;
+            m_inventoryServer = inventoryServer;
             if (welcomeMess != "")
             {
                 m_welcomeMessage = welcomeMess;
@@ -37,7 +38,6 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>The response to send</returns>
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
-
             System.Console.WriteLine("Attempting login now...");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -85,15 +85,41 @@ namespace OpenSim.Framework.UserManagement
                 {
                     LLUUID agentID = userProfile.UUID;
 
-                    // Inventory Library Section
-                    InventoryData inventData = this.CreateInventoryData(agentID);
-                    ArrayList AgentInventoryArray = inventData.InventoryArray;
+                    LLUUID libraryFolderID;
+                    LLUUID personalFolderID;
 
-                    Hashtable InventoryRootHash = new Hashtable();
-                    InventoryRootHash["folder_id"] = inventData.RootFolderID.ToStringHyphenated();
-                    ArrayList InventoryRoot = new ArrayList();
-                    InventoryRoot.Add(InventoryRootHash);
-                    userProfile.rootInventoryFolderID = inventData.RootFolderID;
+                    m_inventoryServer.GetRootFoldersForUser(agentID, out libraryFolderID, out personalFolderID);
+                    if (personalFolderID == LLUUID.Zero)
+                    {
+                        m_inventoryServer.CreateNewUserInventory(libraryFolderID, agentID);
+                        m_inventoryServer.GetRootFoldersForUser(agentID, out libraryFolderID, out personalFolderID);
+                    }
+
+                    // The option "inventory-lib-owner" requires that we return the id of the 
+                    // owner of the library inventory.
+                    Hashtable dynamicStruct = new Hashtable();
+                    dynamicStruct["agent_id"] = libraryFolderID.ToStringHyphenated();
+                    logResponse.InventoryLibraryOwner.Add(dynamicStruct);
+
+                    // The option "inventory-lib-root" requires that we return the id of the 
+                    // root folder of the library inventory.
+                    dynamicStruct = new Hashtable();
+                    dynamicStruct["folder_id"] = libraryFolderID.ToStringHyphenated();
+                    logResponse.InventoryLibraryRoot.Add(dynamicStruct);
+
+                    // The option "inventory-root" requires that we return the id of the 
+                    // root folder of the users inventory.
+                    dynamicStruct = new Hashtable();
+                    dynamicStruct["folder_id"] = personalFolderID.ToStringHyphenated();
+                    logResponse.InventoryRoot.Add(dynamicStruct);
+
+                    // The option "inventory-skeleton" requires that we return the structure of the
+                    // users folder hierachy
+                    logResponse.InventorySkeleton = GetInventorySkeleton(personalFolderID);
+
+                    // The option "inventory-skel-lib" requires that we return the structure of the
+                    // library folder hierachy
+                    logResponse.InventoryLibrarySkeleton = GetInventorySkeleton(libraryFolderID);
 
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());
@@ -103,10 +129,6 @@ namespace OpenSim.Framework.UserManagement
                     logResponse.AgentID = agentID.ToStringHyphenated();
                     logResponse.SessionID = userProfile.currentAgent.sessionID.ToStringHyphenated();
                     logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
-                    logResponse.InventoryRoot = InventoryRoot;
-                    logResponse.InventorySkeleton = AgentInventoryArray;
-                    logResponse.InventoryLibrary = this.GetInventoryLibrary();
-                    logResponse.InventoryLibraryOwner = this.GetLibraryOwner();
                     logResponse.CircuitCode = (Int32)circode;
                     //logResponse.RegionX = 0; //overwritten
                     //logResponse.RegionY = 0; //overwritten
@@ -212,76 +234,30 @@ namespace OpenSim.Framework.UserManagement
         }
 
         /// <summary>
-        /// 
+        /// Create a structure of the generic inventory structure of a specified folder
         /// </summary>
         /// <returns></returns>
-        protected virtual ArrayList GetInventoryLibrary()
+        protected virtual ArrayList GetInventorySkeleton(LLUUID folderID)
         {
-            //return new ArrayList();
-            Hashtable TempHash = new Hashtable();
-            TempHash["name"] = "OpenSim Library";
-            TempHash["parent_id"] = LLUUID.Zero.ToStringHyphenated();
-            TempHash["version"] = 1;
-            TempHash["type_default"] = -1;
-            TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+
+            List<InventoryFolderBase> folders = m_inventoryServer.RequestFirstLevelFolders(folderID);
+
             ArrayList temp = new ArrayList();
-            temp.Add(TempHash);
+            foreach (InventoryFolderBase ifb in folders)
+            {
+                LLUUID tempFolderID = ifb.folderID;
+                LLUUID tempParentID = ifb.parentID;
 
-            TempHash = new Hashtable();
-            TempHash["name"] = "Texture Library";
-            TempHash["parent_id"] = "00000112-000f-0000-0000-000100bba000";
-            TempHash["version"] = 1;
-            TempHash["type_default"] = -1;
-            TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba001";
-            temp.Add(TempHash);
+                Hashtable TempHash = new Hashtable();
+                TempHash["folder_id"] = tempFolderID.ToStringHyphenated();
+                TempHash["name"] = ifb.name;
+                TempHash["parent_id"] = tempParentID.ToStringHyphenated();
+                TempHash["type_default"] = ifb.type;
+                TempHash["version"] = ifb.version+1;
+                temp.Add(TempHash);
+            }
+
             return temp;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected virtual ArrayList GetLibraryOwner()
-        {
-            //for now create random inventory library owner
-            Hashtable TempHash = new Hashtable();
-            TempHash["agent_id"] = "11111111-1111-0000-0000-000100bba000";
-            ArrayList inventoryLibOwner = new ArrayList();
-            inventoryLibOwner.Add(TempHash);
-            return inventoryLibOwner;
-        }
-
-        protected virtual InventoryData CreateInventoryData(LLUUID userID)
-        {
-            AgentInventory userInventory = new AgentInventory();
-            userInventory.CreateRootFolder(userID, false);
-
-            ArrayList AgentInventoryArray = new ArrayList();
-            Hashtable TempHash;
-            foreach (InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
-            {
-                TempHash = new Hashtable();
-                TempHash["name"] = InvFolder.FolderName;
-                TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
-                TempHash["version"] = (Int32)InvFolder.Version;
-                TempHash["type_default"] = (Int32)InvFolder.DefaultType;
-                TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
-                AgentInventoryArray.Add(TempHash);
-            }
-
-            return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
-        }
-
-        public class InventoryData
-        {
-            public ArrayList InventoryArray = null;
-            public LLUUID RootFolderID = LLUUID.Zero;
-
-            public InventoryData(ArrayList invList, LLUUID rootID)
-            {
-                InventoryArray = invList;
-                RootFolderID = rootID;
-            }
         }
     }
 }

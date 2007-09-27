@@ -1,4 +1,5 @@
 using System;
+using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Types;
@@ -48,7 +49,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_parent.InventoryService.CreateNewUserInventory(profile.UUID);
+                m_parent.InventoryService.CreateNewUserInventory(LLUUID.Zero, profile.UUID);
             }
 
             return profile;

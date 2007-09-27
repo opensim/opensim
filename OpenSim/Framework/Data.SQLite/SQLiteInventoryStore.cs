@@ -61,6 +61,7 @@ namespace OpenSim.Framework.Data.SQLite
             MainLog.Instance.Verbose("DATASTORE", "Populated Intentory Items Definitions");
 
             ds.AcceptChanges();
+
             return;
         }
 
@@ -195,43 +196,16 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
         {
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the users inventory root folder.
-        /// </summary>
-        /// <param name="user">The UUID of the user who is having inventory being returned</param>
-        /// <returns>Root inventory folder</returns>
-        public InventoryFolderBase getUserRootFolder(LLUUID user)
-        {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
-            string selectExp = "agentID = '" + user.ToString() + "' AND parentID = '" + LLUUID.Zero.ToString() + "'";
+
+            string selectExp = "parentID = '" + LLUUID.Zero.ToString() + "' AND (agentID = '" + user.ToString() + "' OR category = 0)";
             DataRow[] rows = inventoryFolderTable.Select(selectExp);
             foreach (DataRow row in rows)
             {
                 folders.Add(this.buildFolder(row));
             }
-
-            if (folders.Count == 1)
-            {
-                //we found the root
-                //System.Console.WriteLine("found root inventory folder");
-                return folders[0];
-            }
-            else if (folders.Count > 1)
-            {
-                //err shouldn't be more than one root
-                //System.Console.WriteLine("found more than one root inventory folder");
-            }
-            else if (folders.Count == 0)
-            {
-                // no root?
-                //System.Console.WriteLine("couldn't find root inventory folder");
-            }
-
-            return null;
+            return folders;
         }
 
         /// <summary>
@@ -270,7 +244,14 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing folder information</returns>
         public InventoryFolderBase getInventoryFolder(LLUUID folder)
         {
-            return null;
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+            string selectExp = "UUID = '" + folder.ToString() + "'";
+            DataRow[] rows = inventoryFolderTable.Select(selectExp);
+
+            if (rows.Length == 1)
+                return this.buildFolder(rows[0]);
+            else
+                return null;
         }
 
         /// <summary>
@@ -308,6 +289,11 @@ namespace OpenSim.Framework.Data.SQLite
              this.invItemsDa.Update(ds, "inventoryitems");
         }
 
+        //TODO! Implement SQLite deleteInventoryCategory
+        public void deleteInventoryCategory(InventoryCategory inventoryCategory)
+        {
+        }
+
         /// <summary>
         /// Adds a new folder specified by folder
         /// </summary>
@@ -326,6 +312,11 @@ namespace OpenSim.Framework.Data.SQLite
             this.addFolder(folder);
         }
 
+        //TODO! implement CreateNewUserInventory
+        public void CreateNewUserInventory(LLUUID user)
+        {
+            throw new Exception("Function not implemented");
+        }
 
         /***********************************************************************
          *
@@ -350,6 +341,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(inv, "parentFolderID", typeof(System.String));
             createCol(inv, "avatarID", typeof(System.String));
             createCol(inv, "creatorsID", typeof(System.String));
+            createCol(inv, "category", typeof(System.Byte));
 
             createCol(inv, "inventoryName", typeof(System.String));
             createCol(inv, "inventoryDescription", typeof(System.String));
@@ -373,6 +365,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(fol, "parentID", typeof(System.String));
             createCol(fol, "type", typeof(System.Int32));
             createCol(fol, "version", typeof(System.Int32));
+            createCol(fol, "category", typeof(System.Byte));
             
             fol.PrimaryKey = new DataColumn[] { fol.Columns["UUID"] };
             return fol;
@@ -415,6 +408,7 @@ namespace OpenSim.Framework.Data.SQLite
             folder.parentID = new LLUUID((string)row["parentID"]);
             folder.type = Convert.ToInt16(row["type"]);
             folder.version = Convert.ToUInt16(row["version"]);
+            folder.category = (InventoryCategory)Convert.ToByte(row["category"]);
             return folder;
         }
 
@@ -426,6 +420,7 @@ namespace OpenSim.Framework.Data.SQLite
             row["parentID"] = folder.parentID;
             row["type"] = folder.type;
             row["version"] = folder.version;
+            row["category"] = folder.category;
         }
 
 
@@ -643,4 +638,8 @@ namespace OpenSim.Framework.Data.SQLite
         }
     }
 }
+
+
+
+
 

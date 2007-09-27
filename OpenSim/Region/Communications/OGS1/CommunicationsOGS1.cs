@@ -14,8 +14,8 @@ namespace OpenSim.Region.Communications.OGS1
             m_gridService = gridInterComms;
             m_interRegion = gridInterComms;
 
-            m_inventoryService = new OGS1InventoryService();
             m_userService = new OGS1UserServices(this);
+            m_inventoryService = new OGS1InventoryService(serversInfo, m_userService);
         }
     }
 }

@@ -8,7 +8,6 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Servers;
 

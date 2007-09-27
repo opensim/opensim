@@ -5,6 +5,7 @@ using System.Net;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -302,8 +303,23 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         private void StartRemoting()
         {
-            TcpChannel ch = new TcpChannel(this.serversInfo.RemotingListenerPort);
-            ChannelServices.RegisterChannel(ch, true);
+            // we only need to register the tcp channel once, and we don't know which other modules use remoting
+            if (ChannelServices.GetChannel("tcp") == null)
+            {
+                // Creating a custom formatter for a TcpChannel sink chain.
+                BinaryServerFormatterSinkProvider serverProvider = new BinaryServerFormatterSinkProvider();
+                serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
+
+                BinaryClientFormatterSinkProvider clientProvider = new BinaryClientFormatterSinkProvider();
+
+                IDictionary props = new Hashtable();
+                props["port"] = this.serversInfo.RemotingListenerPort;
+                props["typeFilterLevel"] = TypeFilterLevel.Full;
+
+                TcpChannel ch = new TcpChannel(props, clientProvider, serverProvider);
+
+                ChannelServices.RegisterChannel(ch, true);
+            }
 
             WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry(typeof(OGS1InterRegionRemoting), "InterRegions", WellKnownObjectMode.Singleton);
             RemotingConfiguration.RegisterWellKnownServiceType(wellType);

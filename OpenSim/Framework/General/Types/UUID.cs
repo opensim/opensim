@@ -91,12 +91,12 @@ namespace OpenSim.Framework.Types
 
         public void Combine(UUID other)
         {
-            llUUID.Combine(other.GetLLUUID());
+            LLUUID.Combine(llUUID, other.GetLLUUID());
         }
 
         public void Combine(LLUUID other)
         {
-            llUUID.Combine(other);
+            LLUUID.Combine(llUUID, other);
         }
 
         public override bool Equals(Object other)

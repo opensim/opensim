@@ -38,7 +38,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Communications.Caches
 {
-    public class CachedUserInfo
+    public class CachedUserInfo : MarshalByRefObject
     {
         private CommunicationsManager m_parentCommsManager;
         // Fields
@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Communications.Caches
         }
 
         // Methods
-        public void FolderReceive(LLUUID userID, InventoryFolder folderInfo)
+        public void FolderReceive(LLUUID userID, InventoryFolderBase folderInfo)
         {
             if (userID == this.UserProfile.UUID)
             {
@@ -59,19 +59,19 @@ namespace OpenSim.Framework.Communications.Caches
                 {
                     if (folderInfo.parentID == LLUUID.Zero)
                     {
-                        this.RootFolder = folderInfo;
+                        this.RootFolder = new InventoryFolder(folderInfo);
                     }
                 }
                 else if (this.RootFolder.folderID == folderInfo.parentID)
                 {
-                    this.RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                    this.RootFolder.SubFolders.Add(folderInfo.folderID, new InventoryFolder(folderInfo));
                 }
                 else
                 {
                     InventoryFolder folder = this.RootFolder.HasSubFolder(folderInfo.parentID);
                     if (folder != null)
                     {
-                        folder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                        folder.SubFolders.Add(folderInfo.folderID, new InventoryFolder(folderInfo));
                     }
                 }
             }
@@ -130,4 +130,8 @@ namespace OpenSim.Framework.Communications.Caches
 
 
 }
+
+
+
+
 

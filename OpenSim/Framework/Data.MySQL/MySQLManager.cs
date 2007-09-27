@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <summary>
         /// The database connection object
         /// </summary>
-        IDbConnection dbcon;
+        MySqlConnection dbcon;
         /// <summary>
         /// Connection string for ADO.net
         /// </summary>
@@ -115,10 +115,11 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
                 dbcommand.CommandText = sql;
-                foreach (KeyValuePair<string, string> param in parameters)
-                {
-                    dbcommand.Parameters.Add(param.Key, param.Value);
-                }
+                if(parameters != null)
+                    foreach (KeyValuePair<string, string> param in parameters)
+                    {
+                        dbcommand.Parameters.Add(param.Key, param.Value);
+                    }
 
                 return (IDbCommand)dbcommand;
             }
@@ -149,10 +150,11 @@ namespace OpenSim.Framework.Data.MySQL
                     {
                         MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
                         dbcommand.CommandText = sql;
-                        foreach (KeyValuePair<string, string> param in parameters)
-                        {
-                            dbcommand.Parameters.Add(param.Key, param.Value);
-                        }
+                        if(parameters != null) 
+                            foreach (KeyValuePair<string, string> param in parameters)
+                            {
+                                dbcommand.Parameters.Add(param.Key, param.Value);
+                            }
 
                         return (IDbCommand)dbcommand;
                     }
@@ -370,6 +372,8 @@ namespace OpenSim.Framework.Data.MySQL
                     folder.parentID = new LLUUID((string)reader["parentFolderID"]);
                     folder.folderID = new LLUUID((string)reader["folderID"]);
                     folder.name = (string)reader["folderName"];
+                    folder.category = (InventoryCategory)((Int16)reader["category"]);
+                    folder.type = (Int16)reader["folderType"];
 
                     rows.Add(folder);
                 }
@@ -509,24 +513,32 @@ namespace OpenSim.Framework.Data.MySQL
         /// <returns>Success?</returns>
         public bool insertFolder(InventoryFolderBase folder)
         {
-            string sql = "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName) VALUES ";
-            sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName)";
+            string sql = "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName, category, folderType) VALUES ";
+            sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?category, ?folderType)";
 
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters["?folderID"] = folder.folderID.ToStringHyphenated();
-            parameters["?agentID"] = folder.agentID.ToStringHyphenated();
-            parameters["?parentFolderID"] = folder.parentID.ToStringHyphenated();
-            parameters["?folderName"] = folder.name;
+            MySqlCommand dbcmd = dbcon.CreateCommand();
+            dbcmd.CommandText = sql;
 
+            LLUUID tmpID = folder.folderID;
+            dbcmd.Parameters.Add(new MySqlParameter("?folderID", tmpID.ToStringHyphenated()));
+            dbcmd.Parameters.Add(new MySqlParameter("?folderID", tmpID.ToStringHyphenated()));
+            tmpID = folder.agentID;
+            dbcmd.Parameters.Add(new MySqlParameter("?agentID", tmpID.ToStringHyphenated()));
+            tmpID = folder.parentID;
+            dbcmd.Parameters.Add(new MySqlParameter("?parentFolderID", tmpID.ToStringHyphenated()));
+            dbcmd.Parameters.Add(new MySqlParameter("?folderName", folder.name));
+            MySqlParameter p = dbcmd.Parameters.Add(new MySqlParameter("?category", MySqlDbType.Byte));
+            p.Value = (byte)folder.category;
+
+            p = dbcmd.Parameters.Add(new MySqlParameter("?folderType", MySqlDbType.Byte));
+            p.Value = (byte)folder.type;
+
+            
             bool returnval = false;
             try
             {
-                IDbCommand result = Query(sql, parameters);
-
-                if (result.ExecuteNonQuery() == 1)
+                if (dbcmd.ExecuteNonQuery() == 1)
                     returnval = true;
-
-                result.Dispose();
             }
             catch (Exception e)
             {
