@@ -234,9 +234,9 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing item information</returns>
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
-            DataRows[] rows = ds.Tables["inventoryitems"].Find(item);
-            if (rows.Length == 1)
-                return this.buildItem(rows[0]);
+            DataRow row = ds.Tables["inventoryitems"].Rows.Find(item);
+            if (row != null)
+                return this.buildItem(row);
             else
                 return null;
         }
