@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Data.SQLite
             return;
         }
 
-        public InventoryItemBase BuildItem(DataRow row)
+        public InventoryItemBase buildItem(DataRow row)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.inventoryID = new LLUUID((string)row["UUID"]);
@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Data.SQLite
             DataRow[] rows = inventoryItemTable.Select(selectExp);
             foreach (DataRow row in rows)
             {
-                retval.Add(BuildItem(row));
+                retval.Add(buildItem(row));
             }
 
             return retval;
@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Data.SQLite
             DataRow[] rows = inventoryFolderTable.Select(selectExp);
             foreach (DataRow row in rows)
             {
-                folders.Add(this.buildFolder(row));
+                folders.Add(buildFolder(row));
             }
 
             if (folders.Count == 1)
@@ -260,7 +260,12 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing item information</returns>
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
-            return null;
+            DataRow row = ds.Tables["inventoryitems"].Rows.Find(item);
+            if (row != null) {
+                return buildItem(row);
+            } else {
+                return null;
+            }
         }
 
         /// <summary>
@@ -270,7 +275,12 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing folder information</returns>
         public InventoryFolderBase getInventoryFolder(LLUUID folder)
         {
-            return null;
+            DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
+            if (row != null) {
+                return buildFolder(row);
+            } else {
+                return null;
+            }
         }
 
         /// <summary>
