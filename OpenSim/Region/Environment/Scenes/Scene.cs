@@ -531,7 +531,9 @@ namespace OpenSim.Region.Environment.Scenes
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
-                    rootPart.PhysActor = phyScene.AddPrim(
+                    rootPart.PhysActor = phyScene.AddPrimShape(
+                        rootPart.Name,
+                        rootPart.Shape,
                         new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
                                           rootPart.AbsolutePosition.Z),
                         new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
@@ -579,7 +581,10 @@ namespace OpenSim.Region.Environment.Scenes
                 // if not phantom, add to physics
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor =
-                        phyScene.AddPrim(new PhysicsVector(pos.X, pos.Y, pos.Z),
+                        phyScene.AddPrimShape(
+                                         rootPart.Name,
+                                         rootPart.Shape,
+                                         new PhysicsVector(pos.X, pos.Y, pos.Z),
                                          new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
                                          new Quaternion());
             }
@@ -662,7 +667,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
                     if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
-                        rootPart.PhysActor = phyScene.AddPrim(
+                        rootPart.PhysActor = phyScene.AddPrimShape(
+                            rootPart.Name,
+                            rootPart.Shape,
                             new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
                                               rootPart.AbsolutePosition.Z),
                             new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),

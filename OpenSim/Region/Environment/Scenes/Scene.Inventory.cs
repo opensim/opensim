@@ -429,12 +429,17 @@ namespace OpenSim.Region.Environment.Scenes
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
             if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-                rootPart.PhysActor = phyScene.AddPrim(
+            {
+                PrimitiveBaseShape pbs = rootPart.Shape;
+                rootPart.PhysActor = phyScene.AddPrimShape(
+                    rootPart.Name,
+                    pbs,
                     new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
                                       rootPart.AbsolutePosition.Z),
                     new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                    rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+            }
         }
     }
 }

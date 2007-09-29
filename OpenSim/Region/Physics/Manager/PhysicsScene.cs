@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 using Axiom.Math;
 
@@ -40,13 +41,13 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
-        public abstract PhysicsActor AddAvatar(PhysicsVector position);
+        public abstract PhysicsActor AddAvatar(string avName, PhysicsVector position);
 
         public abstract void RemoveAvatar(PhysicsActor actor);
 
         public abstract void RemovePrim(PhysicsActor prim);
 
-        public abstract PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation);
+        public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation);
 
         public abstract void Simulate(float timeStep);
 
@@ -65,7 +66,7 @@ namespace OpenSim.Region.Physics.Manager
         {
             private static int m_workIndicator;
 
-            public override PhysicsActor AddAvatar(PhysicsVector position)
+            public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
             {
                 MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
                 return PhysicsActor.Null;
@@ -81,7 +82,14 @@ namespace OpenSim.Region.Physics.Manager
 
             }
 
+/*
             public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
+            {
+                MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
+                return PhysicsActor.Null;
+            }
+*/
+            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
             {
                 MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;

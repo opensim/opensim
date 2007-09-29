@@ -28,9 +28,16 @@
 using System;
 using System.Threading;
 using System.Collections.Generic;
+
+using libsecondlife;
+using libsecondlife.Utilities;
+
 using Axiom.Math;
 using Ode.NET;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
+
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -77,8 +84,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr LandGeom;
         private double[] _heightmap;
         private d.NearCallback nearCallback;
+        public d.TriCallback triCallback;
+        public d.TriArrayCallback triArrayCallback;
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
         private List<OdePrim> _prims = new List<OdePrim>();
+        public Dictionary<IntPtr, String> geom_name_map=new Dictionary<IntPtr, String>();
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
 
@@ -89,6 +99,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public OdeScene()
         {
             nearCallback = near;
+            triCallback = TriCallback;
+            triArrayCallback = TriArrayCallback;
             contact.surface.mode |= d.ContactFlags.Approx1 | d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP;
             contact.surface.mu = 10.0f;
             contact.surface.bounce = 0.9f;
@@ -112,12 +124,33 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
+            if (g1 == g2)
+                return; // Can't collide with yourself
+
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
+
             if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                 return;
 
-            int count = d.Collide(g1, g2, 500, contacts, d.ContactGeom.SizeOf);
+            d.GeomClassID id = d.GeomGetClass(g1);
+            if (id==d.GeomClassID.TriMeshClass)
+            {
+                String name1 = null;
+                String name2 = null;
+                if (!geom_name_map.TryGetValue(g1, out name1))
+                {
+                    name1 = "null";
+                }
+                if (!geom_name_map.TryGetValue(g2, out name2))
+                {
+                    name2 = "null";
+                }
+
+//                MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
+            }
+
+            int count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
             for (int i = 0; i < count; i++)
             {
                 contact.geom = contacts[i];
@@ -139,21 +172,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override PhysicsActor AddAvatar(PhysicsVector position)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(this, pos);
+            OdeCharacter newAv = new OdeCharacter(avName, this, pos);
             _characters.Add(newAv);
             return newAv;
         }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-            ((OdeCharacter)actor).Destroy();
-            _characters.Remove((OdeCharacter)actor);
+            lock (OdeLock)
+            {
+                ((OdeCharacter)actor).Destroy();
+                _characters.Remove((OdeCharacter)actor);
+            }
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -168,7 +204,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -186,11 +222,90 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(this, pos, siz, rot);
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs);
             }
             _prims.Add(newPrim);
             return newPrim;
         }
+
+
+        public int TriArrayCallback(System.IntPtr trimesh, System.IntPtr refObject, int[] triangleIndex, int triCount)
+        {
+/*            String name1 = null;
+            String name2 = null;
+
+            if (!geom_name_map.TryGetValue(trimesh, out name1))
+            {
+                name1 = "null";
+            }
+            if (!geom_name_map.TryGetValue(refObject, out name2))
+            {
+                name2 = "null";
+            }
+
+            MainLog.Instance.Verbose("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
+*/
+            return 1;
+        }
+
+        public int TriCallback(System.IntPtr trimesh, System.IntPtr refObject, int triangleIndex)
+        {
+
+            String name1 = null;
+            String name2 = null;
+
+            if (!geom_name_map.TryGetValue(trimesh, out name1))
+            {
+                Console.WriteLine("+++ nulling " + name1);
+                name1 = "null";     
+            }
+            if (!geom_name_map.TryGetValue(refObject, out name2))
+            {
+                Console.WriteLine("+++ nulling " + name2);
+                name2 = "null";
+            }
+
+//            MainLog.Instance.Verbose("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
+
+            d.Vector3 v0 = new d.Vector3();
+            d.Vector3 v1 = new d.Vector3();
+            d.Vector3 v2 = new d.Vector3();
+
+            d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
+            MainLog.Instance.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
+
+            return 1;
+        }
+
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        {
+            PhysicsActor result;
+
+            switch(pbs.ProfileShape)
+            {
+                case ProfileShape.Square:
+                    /// support simple box & hollow box now; later, more shapes
+                    if (pbs.ProfileHollow == 0)
+                    {
+                        result = AddPrim(primName, position, size, rotation, null, null);
+                    }
+                    else
+                    {
+                        Mesh mesh = Meshmerizer.CreateMesh(pbs, size);
+                        result = AddPrim(primName, position, size, rotation, mesh, pbs);
+                    }
+                    break;
+
+                default:
+                    result = AddPrim(primName, position, size, rotation, null, null);
+                    break;
+            }
+
+            return result;
+        }
+
+
 
         public override void Simulate(float timeStep)
         {
@@ -247,6 +362,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
+                this.geom_name_map[LandGeom]="Terrain";
+
                 d.Matrix3 R = new d.Matrix3();
 
                 Quaternion q1 = Quaternion.FromAngleAxis(1.5707f, new Vector3(1, 0, 0));
@@ -285,7 +402,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr capsule_geom;
         public d.Mass capsule_mass;
 
-        public OdeCharacter(OdeScene parent_scene, PhysicsVector pos)
+        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos)
         {
             _velocity = new PhysicsVector();
             _position = pos;
@@ -300,6 +417,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
                 d.GeomSetBody(capsule_geom, BoundingCapsule);
             }
+            parent_scene.geom_name_map[capsule_geom]=avName;
+
         }
 
         public override bool Flying
@@ -454,6 +573,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeScene.OdeLock)
             {
                 d.GeomDestroy(this.capsule_geom);
+                Console.WriteLine("+++ removing geom");
+                this._parent_scene.geom_name_map.Remove(this.capsule_geom);
                 d.BodyDestroy(this.BoundingCapsule);
             }
         }
@@ -466,18 +587,35 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
         private Quaternion _orientation;
+        private Mesh _mesh;
+        private PrimitiveBaseShape _pbs;
+        private OdeScene _parent_scene;
         public IntPtr prim_geom;
+        public IntPtr _triMeshData;
 
-        public OdePrim(OdeScene parent_scene, PhysicsVector pos, PhysicsVector size, Quaternion rotation)
+        public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size, 
+                       Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
         {
             _velocity = new PhysicsVector();
             _position = pos;
             _size = size;
             _acceleration = new PhysicsVector();
             _orientation = rotation;
+            _mesh = mesh;
+            _pbs = pbs;
+            _parent_scene = parent_scene;
+
             lock (OdeScene.OdeLock)
             {
-                prim_geom = d.CreateBox(parent_scene.space, _size.X, _size.Y, _size.Z);
+                if (mesh!=null)
+                {
+                    setMesh(parent_scene, mesh);
+                }
+                else
+                {
+                    prim_geom = d.CreateBox(parent_scene.space, _size.X, _size.Y, _size.Z);
+                }
+
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.W = rotation.w;
@@ -485,7 +623,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Y = rotation.y;
                 myrot.Z = rotation.z;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
+                parent_scene.geom_name_map[prim_geom] = primName;       //  don't do .add() here; old geoms get recycled with the same hash
             }
+        }
+
+        public void setMesh(OdeScene parent_scene, Mesh mesh) 
+        {
+            float[] vertexList = mesh.getVertexListAsFloat(); // Note, that vertextList is pinned in memory
+            int[] indexList = mesh.getIndexListAsInt(); // Also pinned, needs release after usage
+            int VertexCount = vertexList.GetLength(0) / 3;
+            int IndexCount = indexList.GetLength(0);
+
+            _triMeshData = d.GeomTriMeshDataCreate();
+
+            d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3 * sizeof(float), VertexCount, indexList, IndexCount, 3 * sizeof(int));
+            d.GeomTriMeshDataPreprocess(_triMeshData);
+
+            prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, parent_scene.triArrayCallback, null);
         }
 
         public override bool Flying
@@ -526,7 +680,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _size = value;
                 lock (OdeScene.OdeLock)
                 {
-                    d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                    if (_mesh != null) // We deal with a mesh here
+                    {
+                        string oldname = _parent_scene.geom_name_map[prim_geom];
+                        d.GeomDestroy(prim_geom);
+                        Mesh mesh = Meshmerizer.CreateMesh(_pbs, _size);
+                        setMesh(_parent_scene, mesh);
+                        _parent_scene.geom_name_map[prim_geom] = oldname;
+                    }
+                    else
+                    {
+                        d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                    }
                 }
             }
         }

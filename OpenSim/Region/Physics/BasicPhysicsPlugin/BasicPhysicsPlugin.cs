@@ -27,6 +27,7 @@
 */
 using System.Collections.Generic;
 using Axiom.Math;
+using OpenSim.Framework.Types;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BasicPhysicsPlugin
@@ -72,7 +73,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         }
 
-        public override PhysicsActor AddAvatar(PhysicsVector position)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             BasicActor act = new BasicActor();
             act.Position = position;
@@ -95,10 +96,17 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         }
 
+/*
         public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
         {
             return null;
         }
+*/
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        {
+            return null;
+        }
+
 
         public override void Simulate(float timeStep)
         {

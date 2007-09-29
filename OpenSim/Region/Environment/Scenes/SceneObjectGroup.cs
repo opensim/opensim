@@ -314,12 +314,16 @@ namespace OpenSim.Region.Environment.Scenes
             /// may need to create a new Physics actor.
             if (dupe.RootPart.PhysActor != null)
             {
-                dupe.RootPart.PhysActor = m_scene.PhysScene.AddPrim(
-                    new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y,
-                                      dupe.RootPart.AbsolutePosition.Z),
-                    new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
-                    new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
-                                   dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z));
+                PrimitiveBaseShape pbs = dupe.RootPart.Shape;
+
+                dupe.RootPart.PhysActor = m_scene.PhysScene.AddPrimShape(
+                        dupe.RootPart.Name,
+                        pbs,
+                       new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y, dupe.RootPart.AbsolutePosition.Z),
+                       new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
+                       new Axiom.Math.Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
+                                                 dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z));
+
             }
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
@@ -837,6 +841,17 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.UpdateShape(shapeBlock);
+            }
+            if (m_rootPart.PhysActor != null)
+            {
+                this.m_scene.PhysScene.RemovePrim(m_rootPart.PhysActor);
+                m_rootPart.PhysActor = m_scene.PhysScene.AddPrimShape(
+                        m_rootPart.Name,
+                        m_rootPart.Shape,
+                       new PhysicsVector(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y, m_rootPart.AbsolutePosition.Z),
+                       new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z),
+                       new Axiom.Math.Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
+                                                 m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z));
             }
         }
 

@@ -914,7 +914,7 @@ namespace OpenSim.Region.Environment.Scenes
                 new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
                                   AbsolutePosition.Z);
 
-            m_physicsActor = scene.AddAvatar(pVec);           
+            m_physicsActor = scene.AddAvatar(this.Firstname+"."+this.Lastname, pVec);           
         }
 
         internal void Close()

@@ -27,6 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
+using OpenSim.Framework.Types;
 using OpenSim.Region.Physics.Manager;
 using PhysXWrapper;
 using Quaternion=Axiom.Math.Quaternion;
@@ -86,14 +87,14 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 		
 		}
 		
-		public override PhysicsActor AddAvatar(PhysicsVector position)
+		public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
 		{
 			Vec3 pos = new Vec3();
 			pos.X = position.X;
 			pos.Y = position.Y;
 			pos.Z = position.Z;
 			PhysXCharacter act = new PhysXCharacter( scene.AddCharacter(pos));
-			act.Position = position;
+            act.Position = position;
 			_characters.Add(act);
 			return act;
 		}
@@ -108,7 +109,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 		
-		public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
+		PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
 		{
 			Vec3 pos = new Vec3();
 			pos.X = position.X;
@@ -122,6 +123,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 			_prims.Add(act);
 			return act;
 		}
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        {
+            return AddPrim(position, size, rotation);
+        }
+
 		public override void Simulate(float timeStep)
 		{
             try

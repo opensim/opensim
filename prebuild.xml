@@ -199,6 +199,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false" />
+      <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="OpenSim.Framework" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
@@ -224,6 +225,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -244,8 +246,10 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="PhysX_Wrapper_Dotnet.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -267,6 +271,9 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Reference name="Ode.NET.dll" localCopy="false" />
 
@@ -289,7 +296,9 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Reference name="Modified.XnaDevRu.BulletX.dll" localCopy="false" />
       <Reference name="MonoXnaCompactMaths.dll" localCopy="false" />

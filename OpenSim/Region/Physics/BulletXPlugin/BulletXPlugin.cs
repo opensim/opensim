@@ -30,6 +30,7 @@
 #region References
 using System;
 using System.Collections.Generic;
+using OpenSim.Framework.Types;
 using OpenSim.Region.Physics.Manager;
 using Axiom.Math;
 using AxiomQuaternion = Axiom.Math.Quaternion;
@@ -252,7 +253,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             this._heightmap = new float[65536];
         }
-        public override PhysicsActor AddAvatar(PhysicsVector position)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -276,7 +277,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
+        PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
         {
             BulletXPrim newPrim = null;
             lock (BulletXLock)
@@ -286,6 +287,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             return newPrim;
         }
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
+        {
+            return AddPrim(position, size, rotation);
+        }
+
         public override void RemovePrim(PhysicsActor prim)
         {
             if (prim is BulletXPrim)
@@ -709,7 +715,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
                 _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(pos);
                 //For now all prims are boxes
-                CollisionShape _collisionShape = new BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_size) / 2.0f);
+                CollisionShape _collisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_size) / 2.0f);
                 DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
                 MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
                 _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
@@ -912,7 +918,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             MonoXnaCompactMaths.Vector3 _newsize;
             _newsize = BulletXMaths.PhysicsVectorToXnaVector3(_newSize);
             //For now all prims are Boxes
-            rigidBody.CollisionShape = new BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_newSize) / 2.0f);
+            rigidBody.CollisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_newSize) / 2.0f);
         }
         private void ReOrient()
         {
