@@ -761,7 +761,137 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGetRegionTimeDilation() { return 1.0f; }
         public double llGetRegionFPS() { return 10.0f; }
-        public void llParticleSystem(List<Object> rules) { NotImplemented("llParticleSystem"); }
+
+        /* particle system rules should be coming into this routine as doubles, that is
+        rule[0] should be an integer from this list and rule[1] should be the arg
+        for the same integer. wiki.secondlife.com has most of this mapping, but some
+        came from http://www.caligari-designs.com/p4u2
+
+        We iterate through the list for 'Count' elements, incrementing by two for each
+        iteration and set the members of Primitive.ParticleSystem, one at a time.
+        */
+        public enum PrimitiveRule : int
+        {
+            PSYS_PART_FLAGS = 0,
+            PSYS_PART_START_COLOR = 1,
+            PSYS_PART_START_ALPHA = 2,
+            PSYS_PART_END_COLOR = 3,
+            PSYS_PART_END_ALPHA = 4,
+            PSYS_PART_START_SCALE = 5,
+            PSYS_PART_END_SCALE = 6,
+            PSYS_PART_MAX_AGE = 7,
+            PSYS_SRC_ACCEL = 8,
+            PSYS_SRC_PATTERN = 9,
+            PSYS_SRC_TEXTURE = 12,
+            PSYS_SRC_BURST_RATE = 13,
+            PSYS_SRC_BURST_PART_COUNT = 15,
+            PSYS_SRC_BURST_RADIUS = 16,
+            PSYS_SRC_BURST_SPEED_MIN = 17,
+            PSYS_SRC_BURST_SPEED_MAX = 18,
+            PSYS_SRC_MAX_AGE = 19,
+            PSYS_SRC_TARGET_KEY = 20,
+            PSYS_SRC_OMEGA = 21,
+            PSYS_SRC_ANGLE_BEGIN = 22,
+            PSYS_SRC_ANGLE_END = 23
+        }
+
+        public void llParticleSystem(List<Object> rules)
+        {
+            Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
+            for (int i = 0; i < rules.Count; i += 2)
+            {
+                switch ((int)rules[i])
+                {
+                    case (int)PrimitiveRule.PSYS_PART_FLAGS:
+                        prules.PartFlags = (uint)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_START_COLOR:
+                        prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_START_ALPHA:
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_END_COLOR:
+                        prules.PartEndColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_END_ALPHA:
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_START_SCALE:
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_END_SCALE:
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_PART_MAX_AGE:
+                        prules.MaxAge = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_ACCEL:
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_PATTERN:
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_TEXTURE:
+                        prules.Texture = (LLUUID)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_BURST_RATE:
+                        prules.BurstRate = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_BURST_PART_COUNT:
+                        prules.BurstPartCount = (byte)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_BURST_RADIUS:
+                        prules.BurstRadius = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_BURST_SPEED_MIN:
+                        prules.BurstSpeedMin = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_BURST_SPEED_MAX:
+                        prules.BurstSpeedMax = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_MAX_AGE:
+                        prules.MaxAge = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_TARGET_KEY:
+                        prules.Target = (LLUUID)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_OMEGA:
+                        //cast??                    prules.MaxAge = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_ANGLE_BEGIN:
+                        prules.InnerAngle = (float)rules[i + 1];
+                        break;
+
+                    case (int)PrimitiveRule.PSYS_SRC_ANGLE_END:
+                        prules.OuterAngle = (float)rules[i + 1];
+                        break;
+
+                }
+            }
+
+            m_host.AddNewParticleSystem(prules);
+        }
+
         public void llGroundRepel(double height, int water, double tau) { NotImplemented("llGroundRepel"); }
         public void llGiveInventoryList() { NotImplemented("llGiveInventoryList"); }
         public void llSetVehicleType(int type) { NotImplemented("llSetVehicleType"); }
