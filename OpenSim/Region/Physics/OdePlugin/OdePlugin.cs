@@ -69,7 +69,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public string GetName()
         {
-            d.bug();
             return ("OpenDynamicsEngine");
         }
 
