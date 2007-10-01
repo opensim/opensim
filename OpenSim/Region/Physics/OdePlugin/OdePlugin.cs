@@ -69,6 +69,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public string GetName()
         {
+            d.bug();
             return ("OpenDynamicsEngine");
         }
 
@@ -639,7 +640,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3 * sizeof(float), VertexCount, indexList, IndexCount, 3 * sizeof(int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
-            prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, parent_scene.triArrayCallback, null);
+            prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, null, null);
         }
 
         public override bool Flying
