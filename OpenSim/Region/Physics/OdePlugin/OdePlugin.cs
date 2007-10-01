@@ -256,12 +256,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (!geom_name_map.TryGetValue(trimesh, out name1))
             {
-                Console.WriteLine("+++ nulling " + name1);
                 name1 = "null";     
             }
             if (!geom_name_map.TryGetValue(refObject, out name2))
             {
-                Console.WriteLine("+++ nulling " + name2);
                 name2 = "null";
             }
 
@@ -272,7 +270,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.Vector3 v2 = new d.Vector3();
 
             d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
-            MainLog.Instance.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
+//            MainLog.Instance.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
 
             return 1;
         }
