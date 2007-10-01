@@ -275,12 +275,19 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing folder information</returns>
         public InventoryFolderBase getInventoryFolder(LLUUID folder)
         {
-            DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
-            if (row != null) {
-                return buildFolder(row);
-            } else {
-                return null;
-            }
+          
+          // TODO: Deep voodoo here.  If you enable this code then
+          // multi region breaks.  No idea why, but I figured it was
+          // better to leave multi region at this point.  It does mean
+          // that you don't get to see system textures why creating
+          // clothes and the like. :(
+          
+          //             DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
+          //             if (row != null) {
+          //                 return buildFolder(row);
+          //             } else {
+          return null;
+          //             }
         }
 
         /// <summary>
