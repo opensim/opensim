@@ -8,20 +8,20 @@ namespace OpenSim.Region.Communications.Local
 {
     public class LocalUserServices : UserManagerBase
     {
-        private readonly CommunicationsLocal m_parent;
-
         private readonly NetworkServersInfo m_serversInfo;
         private readonly uint m_defaultHomeX;
         private readonly uint m_defaultHomeY;
+        private IInventoryServices m_inventoryService;
 
 
-        public LocalUserServices(CommunicationsLocal parent, NetworkServersInfo serversInfo)
+        public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY, IInventoryServices inventoryService)
         {
-            m_parent = parent;
             m_serversInfo = serversInfo;
 
-            m_defaultHomeX = m_serversInfo.DefaultHomeLocX;
-            m_defaultHomeY = m_serversInfo.DefaultHomeLocY;
+            m_defaultHomeX = defaultHomeLocX;
+            m_defaultHomeY = defaultHomeLocY;
+
+            m_inventoryService = inventoryService;
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)
@@ -48,7 +48,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_parent.InventoryService.CreateNewUserInventory(profile.UUID);
+                m_inventoryService.CreateNewUserInventory(profile.UUID);
             }
 
             return profile;

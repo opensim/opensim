@@ -157,8 +157,13 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings(standaloneWelcomeMessage, standaloneAuthenticate, standaloneInventoryPlugin, standaloneUserPlugin);
-                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings);
+                CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings(standaloneWelcomeMessage, standaloneAuthenticate, standaloneInventoryPlugin);
+
+                LocalInventoryService inventoryService = new LocalInventoryService();
+                LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService );
+                userService.AddPlugin( standaloneUserPlugin );
+
+                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings, userService);
                 m_commsManager = localComms;
                 if (standaloneAuthenticate)
                 {

@@ -350,13 +350,7 @@ namespace OpenSim.Framework.Data.SQLite
          *
          **********************************************************************/
         
-        private void createCol(DataTable dt, string name, System.Type type)
-        {
-            DataColumn col = new DataColumn(name, type);
-            dt.Columns.Add(col);
-        }
-
-        private DataTable createInventoryItemsTable()
+        private static DataTable createInventoryItemsTable()
         {
             DataTable inv = new DataTable("inventoryitems");
             

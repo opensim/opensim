@@ -41,8 +41,12 @@ namespace SimpleApp
         {
             base.StartUp();
 
-            CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings("", false, "", "");
-            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings);
+            CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings("", false, "");
+
+            LocalInventoryService inventoryService = new LocalInventoryService();
+            LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
+
+            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings, userService );
 
             m_log.Notice(m_log.LineInfo);
             

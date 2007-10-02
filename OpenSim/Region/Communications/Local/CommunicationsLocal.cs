@@ -39,15 +39,13 @@ namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {      
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings)
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings, LocalUserServices userService)
             : base(serversInfo, httpServer, assetCache)
         {
             LocalInventoryService inventoryService = new LocalInventoryService();
             inventoryService.AddPlugin(settings.InventoryPlugin);
             m_inventoryService = inventoryService;
 
-            LocalUserServices userService = new LocalUserServices(this, serversInfo);
-            userService.AddPlugin(settings.UserDatabasePlugin);
             m_userService = userService;
 
             LocalBackEndServices backendService = new LocalBackEndServices();
@@ -118,14 +116,12 @@ namespace OpenSim.Region.Communications.Local
             public string WelcomeMessage;
             public bool AccountAuthentication = false;
             public string InventoryPlugin;
-            public string UserDatabasePlugin;
 
-            public LocalSettings(string welcomeMessage, bool accountsAuthenticate, string inventoryPlugin, string userPlugin)
+            public LocalSettings(string welcomeMessage, bool accountsAuthenticate, string inventoryPlugin)
             {
                 WelcomeMessage = welcomeMessage;
                 AccountAuthentication = accountsAuthenticate;
                 InventoryPlugin = inventoryPlugin;
-                UserDatabasePlugin = userPlugin;
             }
         }
 
