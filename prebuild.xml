@@ -413,7 +413,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.InventoryServiceBase"/>
       <Reference name="XMLRPC.dll"/>
 
       <Files>
