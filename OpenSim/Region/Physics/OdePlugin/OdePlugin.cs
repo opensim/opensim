@@ -80,6 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
+        private static float ODE_STEPSIZE = 0.004f;
         private IntPtr contactgroup;
         private IntPtr LandGeom;
         private double[] _heightmap;
@@ -91,7 +92,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public Dictionary<IntPtr, String> geom_name_map=new Dictionary<IntPtr, String>();
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
-
+        private float step_time=0.0f;
         public IntPtr world;
         public IntPtr space;
         public static Object OdeLock = new Object();
@@ -101,12 +102,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
+            /*
             contact.surface.mode |= d.ContactFlags.Approx1 | d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP;
             contact.surface.mu = 10.0f;
             contact.surface.bounce = 0.9f;
             contact.surface.soft_erp = 0.005f;
             contact.surface.soft_cfm = 0.00003f;
-
+            */
+            contact.surface.mu = 250.0f;
+            contact.surface.bounce = 0.2f;
             lock (OdeLock)
             {
                 world = d.WorldCreate();
@@ -115,6 +119,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);
                 d.WorldSetAutoDisableFlag(world, false);
                 d.WorldSetContactSurfaceLayer(world, 0.001f);
+                d.WorldSetQuickStepNumIterations(world, 10);
+                d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
             }
 
             _heightmap = new double[65536];
@@ -164,10 +170,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             foreach (OdeCharacter chr in _characters)
             {
-                d.SpaceCollide2(space, chr.capsule_geom, IntPtr.Zero, nearCallback);
+                d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
                 foreach (OdeCharacter ch2 in _characters)           /// should be a separate space -- lots of avatars will be N**2 slow
                 {
-                    d.SpaceCollide2(chr.capsule_geom, ch2.capsule_geom, IntPtr.Zero, nearCallback);
+                    d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
                 }
             }
         }
@@ -307,25 +313,29 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Simulate(float timeStep)
         {
+            step_time += timeStep;
             lock (OdeLock)
             {
                 foreach (OdePrim p in _prims)
                 {
                 }
-                foreach (OdeCharacter actor in _characters)
+                int i = 0;
+                while (step_time > 0.0f)
                 {
-                    actor.Move(timeStep);
-                }
-                collision_optimized();
-                for (int i = 0; i < 50; i++)
-                {
-                    d.WorldQuickStep(world, timeStep * 0.02f);
+                    foreach (OdeCharacter actor in _characters)
+                    {
+                        actor.Move(timeStep);
+                    }
+                    collision_optimized();
+                    d.WorldQuickStep(world, ODE_STEPSIZE);
+                    d.JointGroupEmpty(contactgroup);
+                    step_time -= ODE_STEPSIZE;
+                    i++;
                 }
 
-                d.JointGroupEmpty(contactgroup);
                 foreach (OdeCharacter actor in _characters)
                 {
-                    actor.UpdatePosition();
+                    actor.UpdatePositionAndVelocity();
                 }
             }
         }
@@ -392,30 +402,35 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.Vector3 _zeroPosition;
         private bool _zeroFlag=false;
         private PhysicsVector _velocity;
+        private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
+        private static float PID_D=4000.0f;
+        private static float PID_P=7000.0f;
+        private static float POSTURE_SERVO = 10000.0f;
         private bool flying = false;
         //private float gravityAccel;
-        public IntPtr BoundingCapsule;
+        public IntPtr Body;
         private OdeScene _parent_scene;
-        public IntPtr capsule_geom;
-        public d.Mass capsule_mass;
+        public IntPtr Shell;
+        public d.Mass ShellMass;
 
         public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos)
         {
             _velocity = new PhysicsVector();
+            _target_velocity = new PhysicsVector();
             _position = pos;
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
             lock (OdeScene.OdeLock)
             {
-                d.MassSetCapsule(out capsule_mass, 50.0f, 3, 0.5f, 2f);
-                capsule_geom = d.CreateSphere(parent_scene.space, 1.0f);        /// not a typo!  Spheres roll, capsules tumble
-                BoundingCapsule = d.BodyCreate(parent_scene.world);
-                d.BodySetMass(BoundingCapsule, ref capsule_mass);
-                d.BodySetPosition(BoundingCapsule, pos.X, pos.Y, pos.Z);
-                d.GeomSetBody(capsule_geom, BoundingCapsule);
+                Shell = d.CreateCapsule(parent_scene.space, 0.4f, 1.0f);
+                d.MassSetCapsule(out ShellMass, 50.0f, 3, 0.4f, 1.0f);
+                Body = d.BodyCreate(parent_scene.world);
+                d.BodySetMass(Body, ref ShellMass);
+                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                d.GeomSetBody(Shell, Body);
             }
-            parent_scene.geom_name_map[capsule_geom]=avName;
+            parent_scene.geom_name_map[Shell]=avName;
 
         }
 
@@ -441,7 +456,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 lock (OdeScene.OdeLock)
                 {
-                    d.BodySetPosition(BoundingCapsule, value.X, value.Y, value.Z);
+                    d.BodySetPosition(Body, value.X, value.Y, value.Z);
                     _position = value;
                 }
             }
@@ -467,7 +482,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                _velocity = value;
+                _target_velocity = value;
             }
         }
 
@@ -522,38 +537,58 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             //  no lock; for now it's only called from within Simulate()
             PhysicsVector vec = new PhysicsVector();
-            d.Vector3 vel = d.BodyGetLinearVel(BoundingCapsule);
+            d.Vector3 vel = d.BodyGetLinearVel(Body);
 
             //  if velocity is zero, use position control; otherwise, velocity control
-            if (_velocity.X == 0.0f & _velocity.Y == 0.0f & _velocity.Z == 0.0f & !flying)
+            if (_target_velocity.X == 0.0f & _target_velocity.Y == 0.0f & _target_velocity.Z == 0.0f)
             {
                 //  keep track of where we stopped.  No more slippin' & slidin'
                 if (!_zeroFlag)
                 {
                     _zeroFlag = true;
-                    _zeroPosition = d.BodyGetPosition(BoundingCapsule);
+                    _zeroPosition = d.BodyGetPosition(Body);
                 }
-                d.Vector3 pos = d.BodyGetPosition(BoundingCapsule);
-                vec.X = (_velocity.X - vel.X) * 75000.0f + (_zeroPosition.X - pos.X) * 120000.0f;
-                vec.Y = (_velocity.Y - vel.Y) * 75000.0f + (_zeroPosition.Y - pos.Y) * 120000.0f;
+                d.Vector3 pos = d.BodyGetPosition(Body);
+                vec.X = (_target_velocity.X - vel.X) * PID_D + (_zeroPosition.X - pos.X) * PID_P;
+                vec.Y = (_target_velocity.Y - vel.Y) * PID_D + (_zeroPosition.Y - pos.Y) * PID_P;
+                if (flying)
+                {
+                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                }
             }
             else
             {
                 _zeroFlag = false;
-                vec.X = (_velocity.X - vel.X) * 75000.0f;
-                vec.Y = (_velocity.Y - vel.Y) * 75000.0f;
+                vec.X = (_target_velocity.X - vel.X) * PID_D;
+                vec.Y = (_target_velocity.Y - vel.Y) * PID_D;
                 if (flying)
                 {
-                    vec.Z = (_velocity.Z - vel.Z) * 75000.0f;
+                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D;
                 }
             }
-            d.BodyAddForce(this.BoundingCapsule, vec.X, vec.Y, vec.Z);
+            if (flying)
+            {
+                vec.Z += 10.0f;
+            }
+            d.BodyAddForce(this.Body, vec.X, vec.Y, vec.Z);
+
+            //  ok -- let's stand up straight!
+            d.Vector3 feet;
+            d.Vector3 head;
+            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+            float posture = head.Z - feet.Z;
+
+            // restoring force proportional to lack of posture:
+            float servo = (2.5f-posture) * POSTURE_SERVO;
+            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
         }
 
-        public void UpdatePosition()
+        public void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            d.Vector3 vec = d.BodyGetPosition(BoundingCapsule);
+            d.Vector3 vec = d.BodyGetPosition(Body);
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
             if (vec.X < 0.0f) vec.X = 0.0f;
@@ -564,16 +599,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             this._position.X = vec.X;
             this._position.Y = vec.Y;
             this._position.Z = vec.Z;
+
+            if (_zeroFlag)
+            {
+                _velocity.X = 0.0f;
+                _velocity.Y = 0.0f;
+                _velocity.Z = 0.0f;
+            }
+            else
+            {
+                vec = d.BodyGetLinearVel(Body);
+                _velocity.X = vec.X;
+                _velocity.Y = vec.Y;
+                _velocity.Z = vec.Z;
+            }
         }
 
         public void Destroy()
         {
             lock (OdeScene.OdeLock)
             {
-                d.GeomDestroy(this.capsule_geom);
-                Console.WriteLine("+++ removing geom");
-                this._parent_scene.geom_name_map.Remove(this.capsule_geom);
-                d.BodyDestroy(this.BoundingCapsule);
+                d.GeomDestroy(this.Shell);
+                this._parent_scene.geom_name_map.Remove(this.Shell);
+                d.BodyDestroy(this.Body);
             }
         }
     }
