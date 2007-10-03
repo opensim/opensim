@@ -98,11 +98,11 @@ namespace OpenSim.Region.ClientStack
 
         protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer)
         {
-            AgentCircuitManager authen = new AgentCircuitManager();
-            udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_log, authen);
+            AgentCircuitManager circuitManager = new AgentCircuitManager();
+            udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_log, circuitManager);
 
             StorageManager storageManager = CreateStorageManager(regionInfo);
-            Scene scene = CreateScene(regionInfo, storageManager, authen);
+            Scene scene = CreateScene(regionInfo, storageManager, circuitManager);
 
             udpServer.LocalScene = scene;
 
