@@ -39,34 +39,14 @@ namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings, LocalUserServices userService, LocalInventoryService inventoryService)
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalUserServices userService, LocalInventoryService inventoryService, IInterRegionCommunications interRegionService, IGridServices gridService)
             : base(serversInfo, httpServer, assetCache)
         {
             m_inventoryService = inventoryService;
             m_userService = userService;
+            m_gridService = gridService;
+            m_interRegion = interRegionService;
 
-            LocalBackEndServices backendService = new LocalBackEndServices();
-            m_gridService = backendService;
-            m_interRegion = backendService;
-
-            LocalLoginService loginService = new LocalLoginService(userService, settings.WelcomeMessage, this, serversInfo, settings.AccountAuthentication);
-            loginService.OnLoginToRegion += backendService.AddNewSession;
-
-            httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
-        }
-
-       
-
-        public class LocalSettings
-        {
-            public string WelcomeMessage;
-            public bool AccountAuthentication = false;
-
-            public LocalSettings(string welcomeMessage, bool accountsAuthenticate)
-            {
-                WelcomeMessage = welcomeMessage;
-                AccountAuthentication = accountsAuthenticate;
-            }
         }
 
     }

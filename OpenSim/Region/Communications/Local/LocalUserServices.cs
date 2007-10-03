@@ -22,6 +22,7 @@ namespace OpenSim.Region.Communications.Local
             m_defaultHomeY = defaultHomeLocY;
 
             m_inventoryService = inventoryService;
+            
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)

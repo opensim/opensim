@@ -40,13 +40,18 @@ namespace SimpleApp
         public void Run()
         {
             base.StartUp();
-
-            CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings("", false);
-
+           
             LocalInventoryService inventoryService = new LocalInventoryService();
             LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
+            LocalBackEndServices backendService = new LocalBackEndServices();
 
-            m_commsManager = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings, userService, inventoryService );
+            CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService);
+            m_commsManager = localComms;
+
+            LocalLoginService loginService = new LocalLoginService(userService, "", localComms, m_networkServersInfo, false);
+            loginService.OnLoginToRegion += backendService.AddNewSession;
+
+            m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
 
             m_log.Notice(m_log.LineInfo);
             

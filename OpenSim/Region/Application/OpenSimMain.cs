@@ -159,16 +159,23 @@ namespace OpenSim
 
             if (m_sandbox)
             {
-                CommunicationsLocal.LocalSettings settings = new CommunicationsLocal.LocalSettings(standaloneWelcomeMessage, standaloneAuthenticate);
-
                 LocalInventoryService inventoryService = new LocalInventoryService();
                 inventoryService.AddPlugin(standaloneInventoryPlugin);
-
+               
                 LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService );
                 userService.AddPlugin( standaloneUserPlugin );
 
-                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, settings, userService, inventoryService);
+                LocalBackEndServices backendService = new LocalBackEndServices();
+
+                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService);
                 m_commsManager = localComms;
+
+
+                LocalLoginService loginService = new LocalLoginService(userService, standaloneWelcomeMessage, localComms, m_networkServersInfo, standaloneAuthenticate);
+                loginService.OnLoginToRegion += backendService.AddNewSession;
+
+                m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
+
 
                 if (standaloneAuthenticate)
                 {
