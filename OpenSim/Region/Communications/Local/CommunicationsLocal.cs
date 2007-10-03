@@ -38,14 +38,11 @@ using OpenSim.Framework.Utilities;
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
-    {      
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings, LocalUserServices userService)
+    {
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalSettings settings, LocalUserServices userService, LocalInventoryService inventoryService)
             : base(serversInfo, httpServer, assetCache)
         {
-            LocalInventoryService inventoryService = new LocalInventoryService();
-            inventoryService.AddPlugin(settings.InventoryPlugin);
             m_inventoryService = inventoryService;
-
             m_userService = userService;
 
             LocalBackEndServices backendService = new LocalBackEndServices();
@@ -58,70 +55,17 @@ namespace OpenSim.Region.Communications.Local
             httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
         }
 
-        public void doCreate(string[] cmmdParams)
-        {
-            switch (cmmdParams[0])
-            {
-                case "user":
-                    string firstName;
-                    string lastName;
-                    string password;
-                    uint regX = 1000;
-                    uint regY = 1000;
-
-                    if (cmmdParams.Length < 2)
-                    {
-
-                        firstName = MainLog.Instance.CmdPrompt("First name", "Default");
-                        lastName = MainLog.Instance.CmdPrompt("Last name", "User");
-                        password = MainLog.Instance.PasswdPrompt("Password");
-                        regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X", "1000"));
-                        regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y", "1000"));
-                    }
-                    else
-                    {
-                        firstName = cmmdParams[1];
-                        lastName = cmmdParams[2];
-                        password = cmmdParams[3];
-                        regX = Convert.ToUInt32(cmmdParams[4]);
-                        regY = Convert.ToUInt32(cmmdParams[5]);
-
-                    }
-
-                    AddUser(firstName, lastName, password, regX, regY);
-                    break;
-            }
-        }
-
-        public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
-        {
-            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + "");
-
-            m_userService.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
-            UserProfileData userProf = this.UserService.GetUserProfile(firstName, lastName);
-            if (userProf == null)
-            {
-                return LLUUID.Zero;
-            }
-            else
-            {
-                this.m_inventoryService.CreateNewUserInventory(userProf.UUID);
-                Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
-                return userProf.UUID;
-            }
-        }
+       
 
         public class LocalSettings
         {
             public string WelcomeMessage;
             public bool AccountAuthentication = false;
-            public string InventoryPlugin;
 
-            public LocalSettings(string welcomeMessage, bool accountsAuthenticate, string inventoryPlugin)
+            public LocalSettings(string welcomeMessage, bool accountsAuthenticate)
             {
                 WelcomeMessage = welcomeMessage;
                 AccountAuthentication = accountsAuthenticate;
-                InventoryPlugin = inventoryPlugin;
             }
         }
 

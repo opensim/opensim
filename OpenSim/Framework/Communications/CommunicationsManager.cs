@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Caches;
@@ -32,6 +33,8 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Communications
 {
@@ -93,6 +96,58 @@ namespace OpenSim.Framework.Communications
             m_transactionsManager = new AssetTransactionManager(this);
         }
 
+        public void doCreate(string[] cmmdParams)
+        {
+            switch (cmmdParams[0])
+            {
+                case "user":
+                    string firstName;
+                    string lastName;
+                    string password;
+                    uint regX = 1000;
+                    uint regY = 1000;
+
+                    if (cmmdParams.Length < 2)
+                    {
+
+                        firstName = MainLog.Instance.CmdPrompt("First name", "Default");
+                        lastName = MainLog.Instance.CmdPrompt("Last name", "User");
+                        password = MainLog.Instance.PasswdPrompt("Password");
+                        regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X", "1000"));
+                        regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y", "1000"));
+                    }
+                    else
+                    {
+                        firstName = cmmdParams[1];
+                        lastName = cmmdParams[2];
+                        password = cmmdParams[3];
+                        regX = Convert.ToUInt32(cmmdParams[4]);
+                        regY = Convert.ToUInt32(cmmdParams[5]);
+
+                    }
+
+                    AddUser(firstName, lastName, password, regX, regY);
+                    break;
+            }
+        }
+
+        public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
+        {
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + "");
+
+            m_userService.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
+            UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);
+            if (userProf == null)
+            {
+                return LLUUID.Zero;
+            }
+            else
+            {
+                this.m_inventoryService.CreateNewUserInventory(userProf.UUID);
+                System.Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
+                return userProf.UUID;
+            }
+        }
 
         #region Packet Handlers
 
