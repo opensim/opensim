@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Data.DB4o
         {
             foreach (UserProfileData profile in manager.userProfiles.Values)
             {
-                if (profile.Firstname == fname && profile.Lastname == lname)
+                if (profile.username == fname && profile.surname == lname)
                     return profile;
             }
             return null;
@@ -98,7 +98,7 @@ namespace OpenSim.Framework.Data.DB4o
         {   
             try
             {
-                return GetUserByUUID(uuid).CurrentAgent;
+                return GetUserByUUID(uuid).currentAgent;
             }
             catch (Exception)
             {
@@ -126,7 +126,7 @@ namespace OpenSim.Framework.Data.DB4o
         {
             try
             {
-                return GetUserByName(fname,lname).CurrentAgent;
+                return GetUserByName(fname,lname).currentAgent;
             }
             catch (Exception)
             {

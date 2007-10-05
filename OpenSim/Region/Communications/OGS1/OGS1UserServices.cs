@@ -24,26 +24,26 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             UserProfileData userData = new UserProfileData();
-            userData.Firstname = (string)data["firstname"];
-            userData.Lastname = (string)data["lastname"];
+            userData.username = (string)data["firstname"];
+            userData.surname = (string)data["lastname"];
             userData.UUID = new LLUUID((string)data["uuid"]);
-            userData.UserInventoryUri = (string)data["server_inventory"];
-            userData.UserAssetUri = (string)data["server_asset"];
-            userData.ProfileFirstText = (string)data["profile_firstlife_about"];
-            userData.ProfileFirstImage = new LLUUID((string)data["profile_firstlife_image"]);
-            userData.ProfileCanDoMask = Convert.ToUInt32((string)data["profile_can_do"]);
-            userData.ProfileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
-            userData.ProfileImage = new LLUUID((string)data["profile_image"]);
-            userData.LastLogin = Convert.ToInt32((string)data["profile_lastlogin"]);
-            userData.HomeRegion = Convert.ToUInt64((string)data["home_region"]);
-            userData.HomeLocation = new LLVector3((float)Convert.ToDecimal((string)data["home_coordinates_x"]), (float)Convert.ToDecimal((string)data["home_coordinates_y"]), (float)Convert.ToDecimal((string)data["home_coordinates_z"]));
-            userData.HomeLookAt = new LLVector3((float)Convert.ToDecimal((string)data["home_look_x"]), (float)Convert.ToDecimal((string)data["home_look_y"]), (float)Convert.ToDecimal((string)data["home_look_z"]));
+            userData.userInventoryURI = (string)data["server_inventory"];
+            userData.userAssetURI = (string)data["server_asset"];
+            userData.profileFirstText = (string)data["profile_firstlife_about"];
+            userData.profileFirstImage = new LLUUID((string)data["profile_firstlife_image"]);
+            userData.profileCanDoMask = Convert.ToUInt32((string)data["profile_can_do"]);
+            userData.profileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
+            userData.profileImage = new LLUUID((string)data["profile_image"]);
+            userData.lastLogin = Convert.ToInt32((string)data["profile_lastlogin"]);
+            userData.homeRegion = Convert.ToUInt64((string)data["home_region"]);
+            userData.homeLocation = new LLVector3((float)Convert.ToDecimal((string)data["home_coordinates_x"]), (float)Convert.ToDecimal((string)data["home_coordinates_y"]), (float)Convert.ToDecimal((string)data["home_coordinates_z"]));
+            userData.homeLookAt = new LLVector3((float)Convert.ToDecimal((string)data["home_look_x"]), (float)Convert.ToDecimal((string)data["home_look_y"]), (float)Convert.ToDecimal((string)data["home_look_z"]));
 
             return userData;
         }
         public UserProfileData GetUserProfile(string firstName, string lastName)
         {
-            return GetUserProfile(firstName, lastName);
+            return GetUserProfile(firstName + " " + lastName);
         }
         public UserProfileData GetUserProfile(string name)
         {

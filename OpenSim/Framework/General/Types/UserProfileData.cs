@@ -43,94 +43,94 @@ namespace OpenSim.Framework.Types
         /// <summary>
         /// The first component of a users account name
         /// </summary>
-        public string Firstname;
+        public string username;
         /// <summary>
         /// The second component of a users account name
         /// </summary>
-        public string Lastname;
+        public string surname;
 
         /// <summary>
         /// A salted hash containing the users password, in the format md5(md5(password) + ":" + salt)
         /// </summary>
         /// <remarks>This is double MD5'd because the client sends an unsalted MD5 to the loginserver</remarks>
-        public string PasswordHash;
+        public string passwordHash;
         /// <summary>
         /// The salt used for the users hash, should be 32 bytes or longer
         /// </summary>
-        public string PasswordSalt;
+        public string passwordSalt;
 
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
-        public ulong HomeRegion
+        public ulong homeRegion
         {
-            get { return Helpers.UIntsToLong((HomeRegionX * 256), (HomeRegionY * 256)); }
+            get { return Helpers.UIntsToLong((homeRegionX * 256), (homeRegionY * 256)); }
             set { 
-                HomeRegionX = (uint)(value >> 40);
-                HomeRegionY = (((uint)(value)) >> 8);
+                homeRegionX = (uint)(value >> 40);
+                homeRegionY = (((uint)(value)) >> 8);
             }
         }
-        public uint HomeRegionX;
-        public uint HomeRegionY;
+        public uint homeRegionX;
+        public uint homeRegionY;
         /// <summary>
         /// The coordinates inside the region of the home location
         /// </summary>
-        public LLVector3 HomeLocation;
+        public LLVector3 homeLocation;
         /// <summary>
         /// Where the user will be looking when they rez.
         /// </summary>
-        public LLVector3 HomeLookAt;
+        public LLVector3 homeLookAt;
 
         /// <summary>
         /// A UNIX Timestamp (seconds since epoch) for the users creation
         /// </summary>
-        public int Created;
+        public int created;
         /// <summary>
         /// A UNIX Timestamp for the users last login date / time
         /// </summary>
-        public int LastLogin;
+        public int lastLogin;
 
-        public LLUUID RootInventoryFolderId;
+        public LLUUID rootInventoryFolderID;
 
         /// <summary>
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>
-        public string UserInventoryUri = String.Empty;
+        public string userInventoryURI = String.Empty;
         /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.
         /// </summary>
-        public string UserAssetUri = String.Empty;
+        public string userAssetURI = String.Empty;
 
         /// <summary>
         /// A uint mask containing the "I can do" fields of the users profile
         /// </summary>
-        public uint ProfileCanDoMask;
+        public uint profileCanDoMask;
         /// <summary>
         /// A uint mask containing the "I want to do" part of the users profile
         /// </summary>
-        public uint ProfileWantDoMask; // Profile window "I want to" mask
+        public uint profileWantDoMask; // Profile window "I want to" mask
 
         /// <summary>
         /// The about text listed in a users profile.
         /// </summary>
-        public string ProfileAboutText = String.Empty;
+        public string profileAboutText = String.Empty;
         /// <summary>
         /// The first life about text listed in a users profile
         /// </summary>
-        public string ProfileFirstText = String.Empty;
+        public string profileFirstText = String.Empty;
 
         /// <summary>
         /// The profile image for an avatar stored on the asset server
         /// </summary>
-        public LLUUID ProfileImage;
+        public LLUUID profileImage;
         /// <summary>
         /// The profile image for the users first life tab
         /// </summary>
-        public LLUUID ProfileFirstImage;
+        public LLUUID profileFirstImage;
         /// <summary>
         /// The users last registered agent (filled in on the user server)
         /// </summary>
-        public UserAgentData CurrentAgent;
+        public UserAgentData currentAgent;
     }
 
     /// <summary>

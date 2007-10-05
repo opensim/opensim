@@ -70,26 +70,26 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                Console.WriteLine("Authenticating " + profile.Firstname + " " + profile.Lastname);
+                Console.WriteLine("Authenticating " + profile.username + " " + profile.surname);
 
                 password = password.Remove(0, 3); //remove $1$
 
-                string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
+                string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
 
-                return profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
             }
         }
 
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
         {
-            ulong currentRegion = theUser.CurrentAgent.currentHandle;
+            ulong currentRegion = theUser.currentAgent.currentHandle;
             RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
 
             if (reg != null)
             {
                 response.Home = "{'region_handle':[r" + (reg.RegionLocX * 256).ToString() + ",r" + (reg.RegionLocY * 256).ToString() + "], " +
-                 "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" + theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
-                 "'look_at':[r" + theUser.HomeLocation.X.ToString() + ",r" + theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "]}";
+                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
+                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
                 string capsPath = Util.GetRandomCapsPath();
                 response.SimAddress = reg.ExternalEndPoint.Address.ToString();
                 response.SimPort = (Int32)reg.ExternalEndPoint.Port;
@@ -99,8 +99,8 @@ namespace OpenSim.Region.Communications.Local
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
                // response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CapsSeed/" + capsPath + "0000/";
-                theUser.CurrentAgent.currentRegion = reg.SimUUID;
-                theUser.CurrentAgent.currentHandle = reg.RegionHandle;
+                theUser.currentAgent.currentRegion = reg.SimUUID;
+                theUser.currentAgent.currentHandle = reg.RegionHandle;
 
                 Login _login = new Login();
                 //copy data to login object

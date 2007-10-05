@@ -83,31 +83,31 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData = new Hashtable();
 
             // Account information
-            responseData["firstname"] = profile.Firstname;
-            responseData["lastname"] = profile.Lastname;
+            responseData["firstname"] = profile.username;
+            responseData["lastname"] = profile.surname;
             responseData["uuid"] = profile.UUID.ToStringHyphenated();
             // Server Information
-            responseData["server_inventory"] = profile.UserInventoryUri;
-            responseData["server_asset"] = profile.UserAssetUri;
+            responseData["server_inventory"] = profile.userInventoryURI;
+            responseData["server_asset"] = profile.userAssetURI;
             // Profile Information
-            responseData["profile_about"] = profile.ProfileAboutText;
-            responseData["profile_firstlife_about"] = profile.ProfileFirstText;
-            responseData["profile_firstlife_image"] = profile.ProfileFirstImage.ToStringHyphenated();
-            responseData["profile_can_do"] = profile.ProfileCanDoMask.ToString();
-            responseData["profile_want_do"] = profile.ProfileWantDoMask.ToString();
-            responseData["profile_image"] = profile.ProfileImage.ToStringHyphenated();
-            responseData["profile_created"] = profile.Created.ToString();
-            responseData["profile_lastlogin"] = profile.LastLogin.ToString();
+            responseData["profile_about"] = profile.profileAboutText;
+            responseData["profile_firstlife_about"] = profile.profileFirstText;
+            responseData["profile_firstlife_image"] = profile.profileFirstImage.ToStringHyphenated();
+            responseData["profile_can_do"] = profile.profileCanDoMask.ToString();
+            responseData["profile_want_do"] = profile.profileWantDoMask.ToString();
+            responseData["profile_image"] = profile.profileImage.ToStringHyphenated();
+            responseData["profile_created"] = profile.created.ToString();
+            responseData["profile_lastlogin"] = profile.lastLogin.ToString();
             // Home region information
-            responseData["home_coordinates_x"] = profile.HomeLocation.X.ToString();
-            responseData["home_coordinates_y"] = profile.HomeLocation.Y.ToString();
-            responseData["home_coordinates_z"] = profile.HomeLocation.Z.ToString();
+            responseData["home_coordinates_x"] = profile.homeLocation.X.ToString();
+            responseData["home_coordinates_y"] = profile.homeLocation.Y.ToString();
+            responseData["home_coordinates_z"] = profile.homeLocation.Z.ToString();
 
-            responseData["home_region"] = profile.HomeRegion.ToString();
+            responseData["home_region"] = profile.homeRegion.ToString();
 
-            responseData["home_look_x"] = profile.HomeLookAt.X.ToString();
-            responseData["home_look_y"] = profile.HomeLookAt.Y.ToString();
-            responseData["home_look_z"] = profile.HomeLookAt.Z.ToString();
+            responseData["home_look_x"] = profile.homeLookAt.X.ToString();
+            responseData["home_look_y"] = profile.homeLookAt.Y.ToString();
+            responseData["home_look_z"] = profile.homeLookAt.Z.ToString();
             response.Value = responseData;
 
             return response;

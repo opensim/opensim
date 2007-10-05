@@ -96,7 +96,7 @@ namespace OpenSim.Framework.UserManagement
                 try
                 {
                     UserProfileData profile = plugin.Value.GetUserByUUID(uuid);
-                    profile.CurrentAgent = getUserAgent(profile.UUID);
+                    profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
                 }
                 catch (Exception e)
@@ -121,7 +121,7 @@ namespace OpenSim.Framework.UserManagement
                 try
                 {
                     UserProfileData profile = plugin.Value.GetUserByName(name);
-                    profile.CurrentAgent = getUserAgent(profile.UUID);
+                    profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
                 }
                 catch (Exception e)
@@ -148,7 +148,7 @@ namespace OpenSim.Framework.UserManagement
                 {
                     UserProfileData profile = plugin.Value.GetUserByName(fname,lname);
 
-                    profile.CurrentAgent = getUserAgent(profile.UUID);
+                    profile.currentAgent = getUserAgent(profile.UUID);
 
                     return profile;
                 }
@@ -233,7 +233,7 @@ namespace OpenSim.Framework.UserManagement
         public void clearUserAgent(LLUUID agentID)
         {
             UserProfileData profile = GetUserProfile(agentID);
-            profile.CurrentAgent = null;
+            profile.currentAgent = null;
             setUserProfile(profile);
         }
 
@@ -292,8 +292,8 @@ namespace OpenSim.Framework.UserManagement
             agent.UUID = profile.UUID;
 
             // Current position (from Home)
-            agent.currentHandle = profile.HomeRegion;
-            agent.currentPos = profile.HomeLocation;
+            agent.currentHandle = profile.homeRegion;
+            agent.currentPos = profile.homeLocation;
 
             // If user specified additional start, use that
             if (requestData.ContainsKey("start"))
@@ -326,7 +326,7 @@ namespace OpenSim.Framework.UserManagement
             agent.regionID = new LLUUID(); // Fill in later
             agent.currentRegion = new LLUUID();      // Fill in later
 
-            profile.CurrentAgent = agent;
+            profile.currentAgent = agent;
         }
 
         /// <summary>
@@ -349,16 +349,16 @@ namespace OpenSim.Framework.UserManagement
         public void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             UserProfileData user = new UserProfileData();
-            user.HomeLocation = new LLVector3(128, 128, 100);
+            user.homeLocation = new LLVector3(128, 128, 100);
             user.UUID = LLUUID.Random();
-            user.Firstname = firstName;
-            user.Lastname = lastName;
-            user.PasswordHash = pass;
-            user.PasswordSalt = "";
-            user.Created = Util.UnixTimeSinceEpoch();
-            user.HomeLookAt = new LLVector3(100, 100, 100);
-            user.HomeRegionX = regX;
-            user.HomeRegionY = regY;
+            user.username = firstName;
+            user.surname = lastName;
+            user.passwordHash = pass;
+            user.passwordSalt = "";
+            user.created = Util.UnixTimeSinceEpoch();
+            user.homeLookAt = new LLVector3(100, 100, 100);
+            user.homeRegionX = regX;
+            user.homeRegionY = regY;
 
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
