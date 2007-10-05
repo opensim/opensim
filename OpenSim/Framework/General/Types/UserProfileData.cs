@@ -28,7 +28,7 @@
 using System;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Framework.Types
 {
     /// <summary>
     /// Information about a particular user known to the userserver
@@ -68,7 +68,6 @@ namespace OpenSim.Framework.Data
             set { 
                 homeRegionX = (uint)(value >> 40);
                 homeRegionY = (((uint)(value)) >> 8);
-                Console.WriteLine("HomeRegion => Incoming: " + value + ", Computed: " + homeRegion);
             }
         }
         public uint homeRegionX;

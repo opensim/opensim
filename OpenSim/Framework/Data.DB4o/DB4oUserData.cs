@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using libsecondlife;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Data.DB4o

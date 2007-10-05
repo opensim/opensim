@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using libsecondlife;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using System.Data;
 using System.Data.SqlTypes;

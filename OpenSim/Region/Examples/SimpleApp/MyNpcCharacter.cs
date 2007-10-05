@@ -3,7 +3,6 @@ using System.Net;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;

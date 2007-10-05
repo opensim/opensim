@@ -4,7 +4,7 @@ using System.Reflection;
 using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
+using OpenSim.Framework.Types;
 using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
 namespace OpenSim.Framework.Communications

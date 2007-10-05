@@ -31,7 +31,6 @@ using System.Net;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Interfaces
 {

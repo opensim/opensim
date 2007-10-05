@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Net;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Data;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;
 using libsecondlife;

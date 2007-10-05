@@ -6,7 +6,6 @@ using System.Xml;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Region.Environment.Interfaces;

@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Framework.Types
 {
     /// <summary>
     /// Inventory Item - contains all the properties associated with an individual inventory piece.

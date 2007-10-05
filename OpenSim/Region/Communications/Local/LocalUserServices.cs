@@ -1,6 +1,5 @@
 using System;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.UserManagement;
 

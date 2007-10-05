@@ -25,22 +25,15 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Data;
-using OpenSim.Framework.Utilities;
+using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
-namespace OpenSim.Framework.Communications.Caches
+namespace OpenSim.Framework.Communications.Cache
 {
     public class CachedUserInfo
     {
-        private CommunicationsManager m_parentCommsManager;
+        private readonly CommunicationsManager m_parentCommsManager;
         // Fields
         public InventoryFolder RootFolder = null;
         public UserProfileData UserProfile = null;
@@ -127,7 +120,4 @@ namespace OpenSim.Framework.Communications.Caches
             return result;
         }
     }
-
-
 }
-

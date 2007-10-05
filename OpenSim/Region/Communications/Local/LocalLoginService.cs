@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;

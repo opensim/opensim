@@ -32,10 +32,10 @@ using System.Text;
 using System.IO;
 using libsecondlife;
 using libsecondlife.Packets;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Data;
 using OpenSim.Region.Capabilities;
 using OpenSim.Framework.Servers;
 

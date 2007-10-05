@@ -29,7 +29,6 @@ using System;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Caches;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;

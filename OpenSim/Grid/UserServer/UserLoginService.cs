@@ -6,6 +6,7 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Configuration;
+using OpenSim.Framework.Types;
 
 namespace OpenSim.Grid.UserServer
 {

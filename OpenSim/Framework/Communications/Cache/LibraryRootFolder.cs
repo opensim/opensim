@@ -3,8 +3,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Data;
 using Nini.Config;
 
 namespace OpenSim.Framework.Communications.Caches

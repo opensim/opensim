@@ -35,7 +35,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Capabilities
 {
