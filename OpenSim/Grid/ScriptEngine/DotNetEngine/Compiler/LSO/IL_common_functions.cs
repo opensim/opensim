@@ -25,14 +25,32 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using OpenSim.Framework.Console;
+/* Original code: Tedd Hansen */
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Reflection;
+using System.Reflection.Emit;
 
-namespace OpenSim.Grid.ScriptServer
+namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 {
-    public interface ScriptEngineInterface
+    partial class LSO_Parser
     {
-        void InitializeEngine(RegionConnectionManager Region, LogBase logger);
-        void Shutdown();
-//        void StartScript(string ScriptID, IScriptHost ObjectID);
+        private static TypeBuilder CreateType(ModuleBuilder modBuilder, string typeName)
+        {
+            TypeBuilder typeBuilder = modBuilder.DefineType(typeName,
+                        TypeAttributes.Public |
+                        TypeAttributes.Class |
+                        TypeAttributes.AutoClass |
+                        TypeAttributes.AnsiClass |
+                        TypeAttributes.BeforeFieldInit |
+                        TypeAttributes.AutoLayout,
+                        typeof(object),
+                        new Type[] { typeof(object) });
+            return typeBuilder;
+
+        }
+
+
     }
 }

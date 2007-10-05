@@ -93,6 +93,9 @@ namespace OpenSim.Grid.ScriptServer
             //   ~ ask scriptengines if they will accept script?
             //  - Add script to shared communication channel towards that region
 
+
+            // TODO: FAKING A CONNECTION
+            Regions.Add(new RegionConnectionManager(m_ScriptServerMain, m_log, null));
         }
 
     }
