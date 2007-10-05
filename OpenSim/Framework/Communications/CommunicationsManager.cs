@@ -40,8 +40,8 @@ namespace OpenSim.Framework.Communications
 {
     public class CommunicationsManager
     {
-        protected IUserServices m_userService;
-        public IUserServices UserService
+        protected IUserService m_userService;
+        public IUserService UserService
         {
             get { return m_userService; }
         }

@@ -7,7 +7,7 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Region.Communications.OGS1
 {
-    public class OGS1UserServices :IUserServices
+    public class OGS1UserServices :IUserService
     {
         CommunicationsOGS1 m_parent;
         public OGS1UserServices(CommunicationsOGS1 parent)

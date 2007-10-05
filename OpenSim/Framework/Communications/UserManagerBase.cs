@@ -41,7 +41,7 @@ using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.UserManagement
 {
-    public abstract class UserManagerBase : IUserServices
+    public abstract class UserManagerBase : IUserService
     {
         public UserConfig _config;
         Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();

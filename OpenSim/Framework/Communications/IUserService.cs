@@ -30,7 +30,7 @@ using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Communications
 {
-    public interface IUserServices
+    public interface IUserService
     {
         UserProfileData GetUserProfile(string firstName, string lastName);
         UserProfileData GetUserProfile(string name);
