@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using libsecondlife;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.Communications.OGS1
 {

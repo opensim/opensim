@@ -28,7 +28,7 @@
 using libsecondlife;
 using OpenSim.Framework.Data;
 
-namespace OpenSim.Framework.Communications
+namespace OpenSim.Framework.Interfaces
 {
     public interface IUserService
     {

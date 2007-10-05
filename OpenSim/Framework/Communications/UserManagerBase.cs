@@ -33,10 +33,10 @@ using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.UserManagement
