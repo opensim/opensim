@@ -7,7 +7,7 @@ using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Interfaces;
 
-namespace OpenSim.Region.ScriptEngine.DotNetEngine
+namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
     /// <summary>
     /// Handles LSL commands that takes long time and returns an event, for example timers, HTTP requests, etc.
