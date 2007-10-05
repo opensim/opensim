@@ -95,6 +95,7 @@ namespace OpenSim.Region.Communications.Local
                 response.SimPort = (Int32)reg.ExternalEndPoint.Port;
                 response.RegionX = reg.RegionLocX;
                 response.RegionY = reg.RegionLocY;
+                
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
                // response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CapsSeed/" + capsPath + "0000/";

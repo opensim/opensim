@@ -63,6 +63,7 @@ namespace OpenSim
 
 
         protected ModuleLoader m_moduleLoader;
+        protected LocalLoginService m_loginService;
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
@@ -170,12 +171,10 @@ namespace OpenSim
                 CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService);
                 m_commsManager = localComms;
 
+                m_loginService = new LocalLoginService(userService, standaloneWelcomeMessage, localComms, m_networkServersInfo, standaloneAuthenticate);
+                m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
-                LocalLoginService loginService = new LocalLoginService(userService, standaloneWelcomeMessage, localComms, m_networkServersInfo, standaloneAuthenticate);
-                loginService.OnLoginToRegion += backendService.AddNewSession;
-
-                m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
-
+                m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
                 if (standaloneAuthenticate)
                 {

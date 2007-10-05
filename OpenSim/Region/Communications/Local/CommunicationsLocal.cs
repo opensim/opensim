@@ -34,12 +34,13 @@ using OpenSim.Framework.Data;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, LocalUserServices userService, LocalInventoryService inventoryService, IInterRegionCommunications interRegionService, IGridServices gridService)
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, IUserService  userService, LocalInventoryService inventoryService, IInterRegionCommunications interRegionService, IGridServices gridService)
             : base(serversInfo, httpServer, assetCache)
         {
             m_inventoryService = inventoryService;
