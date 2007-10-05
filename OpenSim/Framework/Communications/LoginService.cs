@@ -72,7 +72,7 @@ namespace OpenSim.Framework.UserManagement
             else
             {
                 // If we already have a session...
-                if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
+                if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.agentOnline)
                 {
                     // Reject the login
                     return logResponse.CreateAlreadyLoggedInResponse();
@@ -93,16 +93,16 @@ namespace OpenSim.Framework.UserManagement
                     InventoryRootHash["folder_id"] = inventData.RootFolderID.ToStringHyphenated();
                     ArrayList InventoryRoot = new ArrayList();
                     InventoryRoot.Add(InventoryRootHash);
-                    userProfile.rootInventoryFolderID = inventData.RootFolderID;
+                    userProfile.RootInventoryFolderId = inventData.RootFolderID;
 
                     // Circuit Code
                     uint circode = (uint)(Util.RandomClass.Next());
 
-                    logResponse.Lastname = userProfile.surname;
-                    logResponse.Firstname = userProfile.username;
+                    logResponse.Lastname = userProfile.Lastname;
+                    logResponse.Firstname = userProfile.Firstname;
                     logResponse.AgentID = agentID.ToStringHyphenated();
-                    logResponse.SessionID = userProfile.currentAgent.sessionID.ToStringHyphenated();
-                    logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
+                    logResponse.SessionID = userProfile.CurrentAgent.sessionID.ToStringHyphenated();
+                    logResponse.SecureSessionID = userProfile.CurrentAgent.secureSessionID.ToStringHyphenated();
                     logResponse.InventoryRoot = InventoryRoot;
                     logResponse.InventorySkeleton = AgentInventoryArray;
                     logResponse.InventoryLibrary = this.GetInventoryLibrary();
@@ -172,13 +172,13 @@ namespace OpenSim.Framework.UserManagement
         {
             
             MainLog.Instance.Verbose(
-                "Authenticating " + profile.username + " " + profile.surname);
+                "Authenticating " + profile.Firstname + " " + profile.Lastname);
 
             password = password.Remove(0, 3); //remove $1$
 
-            string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
+            string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
 
-            return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            return profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
 
         /// <summary>

@@ -162,8 +162,8 @@ namespace OpenSim.Framework.Communications
                 if (profileData != null)
                 {
                     LLUUID profileId = profileData.UUID;
-                    string firstname = profileData.username;
-                    string lastname = profileData.surname;
+                    string firstname = profileData.Firstname;
+                    string lastname = profileData.Lastname;
 
                     remote_client.SendNameReply(profileId, firstname, lastname);
                 }

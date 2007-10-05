@@ -204,9 +204,9 @@ namespace OpenSim.Framework.Data.MySQL
                {
                    lock (database)
                    {
-                       database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt, user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z,
-                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI, user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask,
-                           user.profileAboutText, user.profileFirstText, user.profileImage, user.profileFirstImage);
+                       database.insertUserRow(user.UUID, user.Firstname, user.Lastname, user.PasswordHash, user.PasswordSalt, user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z,
+                           user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin, user.UserInventoryUri, user.UserAssetUri, user.ProfileCanDoMask, user.ProfileWantDoMask,
+                           user.ProfileAboutText, user.ProfileFirstText, user.ProfileImage, user.ProfileFirstImage);
                    }
                }
                catch (Exception e)
