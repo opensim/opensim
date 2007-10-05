@@ -91,6 +91,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         private IHttpRequests m_httpRequestModule = null;
         private ISimChat m_simChatModule = null;
+        private IXMLRPC m_xmlrpcModule = null;
+        private IWorldComm m_worldCommModule = null;
 
 
         // Central Update Loop
@@ -210,6 +212,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_simChatModule = RequestModuleInterface<ISimChat>();
             m_httpRequestModule = RequestModuleInterface<IHttpRequests>();
+            m_xmlrpcModule = RequestModuleInterface<IXMLRPC>();
+            m_worldCommModule = RequestModuleInterface<IWorldComm>();
 
             XferManager = RequestModuleInterface<IXfer>();
         }

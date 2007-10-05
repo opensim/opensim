@@ -177,14 +177,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             //type for whisper is 0
             World.SimChat(Helpers.StringToField(text),
                           0, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(m_host.UUID.ToString(), 0, channelID, m_host.Name, text);
         }
 
         public void llSay(int channelID, string text)
         {
             //type for say is 1
-
             World.SimChat(Helpers.StringToField(text),
                            1, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(m_host.UUID.ToString(), 1, channelID, m_host.Name, text);
         }
 
         public void llShout(int channelID, string text)
@@ -192,11 +197,32 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             //type for shout is 2
             World.SimChat(Helpers.StringToField(text),
                           2, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(m_host.UUID.ToString(), 2, channelID, m_host.Name, text);
         }
 
-        public int llListen(int channelID, string name, string ID, string msg) { NotImplemented("llListen"); return 0; }
-        public void llListenControl(int number, int active) { NotImplemented("llListenControl"); return; }
-        public void llListenRemove(int number) { NotImplemented("llListenRemove"); return; }
+        public int llListen(int channelID, string name, string ID, string msg) {
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, ID, msg);
+        
+        }
+
+        public void llListenControl(int number, int active) {
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.ListenControl(number, active);
+                    
+        }
+
+        public void llListenRemove(int number) {
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.ListenRemove(number);
+        
+        }
+
         public void llSensor(string name, string id, int type, double range, double arc) { NotImplemented("llSensor"); return; }
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate) { NotImplemented("llSensorRepeat"); return; }
         public void llSensorRemove() { NotImplemented("llSensorRemove"); return; }
@@ -927,10 +953,37 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llRemoteLoadScript() { NotImplemented("llRemoteLoadScript"); }
         public void llSetRemoteScriptAccessPin(int pin) { NotImplemented("llSetRemoteScriptAccessPin"); }
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { NotImplemented("llRemoteLoadScriptPin"); }
-        public void llOpenRemoteDataChannel() { NotImplemented("llOpenRemoteDataChannel"); }
+
+        //  remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
+        // Not sure where these constants should live:
+        // REMOTE_DATA_CHANNEL = 1
+        // REMOTE_DATA_REQUEST = 2
+        // REMOTE_DATA_REPLY = 3
+        public void llOpenRemoteDataChannel() {
+
+            IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID);
+            object[] resobj = new object[] { 1, channelID.ToString(), LLUUID.Zero.ToString(), "", 0, "" };
+            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", resobj);
+
+        }
+
         public string llSendRemoteData(string channel, string dest, int idata, string sdata) { NotImplemented("llSendRemoteData"); return ""; }
-        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { NotImplemented("llRemoteDataReply"); }
-        public void llCloseRemoteDataChannel(string channel) { NotImplemented("llCloseRemoteDataChannel"); }
+
+        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)
+        {
+
+            IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
+
+        }
+            
+        public void llCloseRemoteDataChannel(string channel) {
+
+            IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            xmlrpcMod.CloseXMLRPCChannel(channel);
+    
+        }
 
         public string llMD5String(string src, int nonce)
         {

@@ -34,6 +34,12 @@ namespace OpenSim.Region.Environment
             module = new AvatarProfilesModule();
             InitialiseModule(module, scene);
 
+            module = new XMLRPCModule();
+            InitialiseModule(module, scene);
+
+            module = new WorldCommModule();
+            InitialiseModule(module, scene);
+
             LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
 
             string lslPath = Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");

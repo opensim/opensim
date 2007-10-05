@@ -4,6 +4,8 @@ using System.Text;
 using System.Threading;
 using libsecondlife;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -26,6 +28,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
             cmdHandlerThread.IsBackground = true;
             cmdHandlerThread.Start();
+
         }
         ~LSLLongCmdHandler()
         {
@@ -50,11 +53,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 // Check timers
                 CheckTimerEvents();
+                Thread.Sleep(25);
                 // Check HttpRequests
                 CheckHttpRequests();
+                Thread.Sleep(25);
+                // Check XMLRPCRequests
+                CheckXMLRPCRequests();
+                Thread.Sleep(25);
+                // Check Listeners
+                CheckListeners();
+                Thread.Sleep(25);
 
                 // Sleep before next cycle
-                Thread.Sleep(cmdHandlerThreadCycleSleepms);
+                //Thread.Sleep(cmdHandlerThreadCycleSleepms);
             }
         }
 
@@ -257,6 +268,54 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             } // lock
         }
         #endregion
+
+        public void CheckXMLRPCRequests()
+        {
+
+            IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+
+            while (xmlrpc.hasRequests())
+            {
+                RPCRequestInfo rInfo = xmlrpc.GetNextRequest();
+                System.Console.WriteLine("PICKED REQUEST");
+
+                //Deliver data to prim's remote_data handler
+                object[] resobj = new object[] { 
+                    2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "", rInfo.GetIntValue(), rInfo.GetStrVal() 
+                };
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                    rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", resobj
+                );
+
+            }
+
+        }
+
+        public void CheckListeners()
+        {
+
+            IWorldComm comms = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+
+            while (comms.HasMessages())
+            {
+                ListenerInfo lInfo = comms.GetNextMessage();
+                System.Console.WriteLine("PICKED LISTENER");
+
+                //Deliver data to prim's listen handler
+                object[] resobj = new object[] {
+                    lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage() 
+                };
+
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                    lInfo.GetLocalID(), lInfo.GetItemID(), "listen", resobj
+                );
+
+            }
+
+        }
+
+
+
 
     }
 }
