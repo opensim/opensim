@@ -25,22 +25,17 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using libsecondlife;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, IUserService  userService, LocalInventoryService inventoryService, IInterRegionCommunications interRegionService, IGridServices gridService)
+        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, IUserService userService, LocalInventoryService inventoryService, IInterRegionCommunications interRegionService, IGridServices gridService)
             : base(serversInfo, httpServer, assetCache)
         {
             m_inventoryService = inventoryService;
