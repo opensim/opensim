@@ -218,5 +218,12 @@ namespace OpenSim.Framework.Types
         /// </summary>
         /// <param name="folder">The inventory folder</param>
         void updateInventoryFolder(InventoryFolderBase folder);
+
+        /// <summary>
+        /// Deletes a folder based on its ID with folder
+        /// </summary>
+        /// <param name="folder">The id of the folder</param>
+        void deleteInventoryFolder(LLUUID folder);
+
     }
 }

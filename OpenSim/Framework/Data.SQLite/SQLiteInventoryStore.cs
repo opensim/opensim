@@ -195,7 +195,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
         {
-            return null;
+            return new List<InventoryFolderBase>();
         }
 
         /// <summary>
@@ -235,6 +235,22 @@ namespace OpenSim.Framework.Data.SQLite
         }
 
         /// <summary>
+        /// Append a list of all the child folders of a parent folder 
+        /// </summary>
+        /// <param name="folders">list where folders will be appended</param>
+        /// <param name="parentID">ID of parent</param>
+        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
+        {
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+            string selectExp = "parentID = '" + parentID.ToString() + "'";
+            DataRow[] rows = inventoryFolderTable.Select(selectExp);
+            foreach (DataRow row in rows)
+            {
+                folders.Add(buildFolder(row));
+            }
+        }
+
+        /// <summary>
         /// Returns a list of inventory folders contained in the folder 'parentID'
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
@@ -242,14 +258,23 @@ namespace OpenSim.Framework.Data.SQLite
         public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
-            string selectExp = "parentID = '" + parentID.ToString() + "'";
-            DataRow[] rows = inventoryFolderTable.Select(selectExp);
-            foreach (DataRow row in rows)
-            {
-                folders.Add(this.buildFolder(row));
-            }
-            // System.Console.WriteLine("found " + folders.Count + " inventory folders");
+            getInventoryFolders(ref folders, parentID);
+            return folders;
+        }
+
+        /// <summary>
+        /// Returns all child folders in the hierarchy from the parent folder and down
+        /// </summary>
+        /// <param name="parentID">The folder to get subfolders for</param>
+        /// <returns>A list of inventory folders</returns>
+        protected List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
+        {
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            getInventoryFolders(ref folders, parentID);
+
+            for(int i=0; i<folders.Count; i++)
+                getInventoryFolders(ref folders, folders[i].folderID);
+
             return folders;
         }
 
@@ -282,12 +307,12 @@ namespace OpenSim.Framework.Data.SQLite
           // that you don't get to see system textures why creating
           // clothes and the like. :(
           
-          //             DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
-          //             if (row != null) {
-          //                 return buildFolder(row);
-          //             } else {
-          return null;
-          //             }
+          DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
+          if (row != null) {
+                return buildFolder(row);
+          } else {
+                return null;
+          }
         }
 
         /// <summary>
@@ -343,6 +368,40 @@ namespace OpenSim.Framework.Data.SQLite
             this.addFolder(folder);
         }
 
+
+        /// <summary>
+        /// Delete a folder
+        /// </summary>
+        /// <remarks>
+        /// This will clean-up any child folders and child items as well
+        /// </remarks>
+        /// <param name="item"></param>
+        public void deleteInventoryFolder(LLUUID folderID)
+        {
+            List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
+    
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+            DataRow inventoryRow;
+
+            //Delete all sub-folders
+            foreach (InventoryFolderBase f in subFolders)
+            {
+                inventoryRow = inventoryFolderTable.Rows.Find(f.folderID);
+                if (inventoryRow != null)
+                {
+                    inventoryRow.Delete();
+                }
+            }
+
+            //Delete the actual row
+            inventoryRow = inventoryFolderTable.Rows.Find(folderID);
+            if (inventoryRow != null)
+            {
+                inventoryRow.Delete();
+            }
+
+            this.invFoldersDa.Update(ds, "inventoryfolders");
+        }
 
         /***********************************************************************
          *
@@ -493,4 +552,5 @@ namespace OpenSim.Framework.Data.SQLite
         }
     }
 }
+
 
