@@ -573,7 +573,11 @@ namespace MonoXnaCompactMaths
 
         public static Matrix operator /(Matrix matrix1, float divider)
         {
-            throw new NotImplementedException();
+            return new Matrix(
+                matrix1.M11 / divider, matrix1.M12 / divider, matrix1.M13 / divider, matrix1.M14 / divider,
+                matrix1.M21 / divider, matrix1.M22 / divider, matrix1.M23 / divider, matrix1.M24 / divider,
+                matrix1.M31 / divider, matrix1.M32 / divider, matrix1.M33 / divider, matrix1.M34 / divider,
+                matrix1.M41 / divider, matrix1.M42 / divider, matrix1.M43 / divider, matrix1.M44 / divider);
         }
 
 
@@ -658,7 +662,10 @@ namespace MonoXnaCompactMaths
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            return "[(" + this.M11 + ", " + this.M12 + ", " + this.M13 + ", " + this.M14 + ")\n ("
+                        + this.M21 + ", " + this.M22 + ", " + this.M23 + ", " + this.M24 + ")\n ("
+                        + this.M31 + ", " + this.M32 + ", " + this.M33 + ", " + this.M34 + ")\n ("
+                        + this.M41 + ", " + this.M42 + ", " + this.M43 + ", " + this.M44 + ")]";
         }
 
 

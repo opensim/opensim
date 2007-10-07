@@ -104,6 +104,19 @@ namespace OpenSim.Region.Physics.Manager
 			
 			pluginAssembly = null; 
 		}
+        //---
+        public static void PhysicsPluginMessage(string message, bool isWarning)
+        {
+            if (isWarning)
+            {
+                MainLog.Instance.Warn("PHYSICS", message);
+            }
+            else
+            {
+                MainLog.Instance.Verbose("PHYSICS", message);
+            }
+        }
+        //---
 	}
 
 	public interface IPhysicsPlugin

@@ -78,6 +78,7 @@
     <Compile Include="Collision\CollisionShapes\CylinderShapeZ.cs" />
     <Compile Include="Collision\CollisionShapes\EmptyShape.cs" />
     <Compile Include="Collision\CollisionShapes\FilteredCallback.cs" />
+    <Compile Include="Collision\CollisionShapes\HeightfieldTerrainShape.cs" />
     <Compile Include="Collision\CollisionShapes\InternalTriangleIndexCallback.cs" />
     <Compile Include="Collision\CollisionShapes\LocalSupportVertexCallback.cs" />
     <Compile Include="Collision\CollisionShapes\MinkowskiSumShape.cs" />
