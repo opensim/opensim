@@ -654,7 +654,7 @@ namespace OpenSim.Region.Environment.Scenes
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
             int primCount = 0;
-            if (File.Exists(fileName))
+            if ((fileName.StartsWith("http:")) | (File.Exists(fileName)))
             {
                 XmlTextReader reader = new XmlTextReader(fileName);
                 reader.WhitespaceHandling = WhitespaceHandling.None;
