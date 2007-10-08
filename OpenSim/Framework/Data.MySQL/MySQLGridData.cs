@@ -32,6 +32,8 @@ using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
 
+using OpenSim.Framework.Console;
+
 namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
@@ -127,7 +129,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }
@@ -159,7 +161,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }
@@ -191,7 +193,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }
@@ -277,7 +279,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }

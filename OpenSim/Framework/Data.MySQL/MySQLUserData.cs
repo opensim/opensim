@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using libsecondlife;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL
 {
@@ -101,7 +102,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }
@@ -134,7 +135,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }
@@ -189,7 +190,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return null;
             }
         }
@@ -212,7 +213,7 @@ namespace OpenSim.Framework.Data.MySQL
                catch (Exception e)
                {
                    database.Reconnect();
-                   Console.WriteLine(e.ToString());
+                   MainLog.Instance.Error(e.ToString());
                }
 
         }

@@ -205,7 +205,7 @@ namespace OpenSim.Framework.Types
         /// 
         /// </summary>
         /// <param name="item"></param>
-        void deleteInventoryItem(InventoryItemBase item);
+        void deleteInventoryItem(LLUUID item);
 
         /// <summary>
         /// Adds a new folder specified by folder
@@ -224,6 +224,5 @@ namespace OpenSim.Framework.Types
         /// </summary>
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(LLUUID folder);
-
     }
 }

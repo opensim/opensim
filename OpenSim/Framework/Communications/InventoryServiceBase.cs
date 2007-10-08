@@ -128,7 +128,7 @@ namespace OpenSim.Framework.Communications
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
-                plugin.Value.deleteInventoryItem(item);
+                plugin.Value.deleteInventoryItem(item.inventoryID);
             }
         }
 

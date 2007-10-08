@@ -31,6 +31,7 @@ using System.Data;
 using libsecondlife;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL
 {
@@ -42,7 +43,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <summary>
         /// The database connection object
         /// </summary>
-        IDbConnection dbcon;
+        MySqlConnection dbcon;
         /// <summary>
         /// Connection string for ADO.net
         /// </summary>
@@ -65,12 +66,20 @@ namespace OpenSim.Framework.Data.MySQL
 
                 dbcon.Open();
 
-                Console.WriteLine("MySQL connection established");
+                MainLog.Instance.Verbose("MySQL connection established");
             }
             catch (Exception e)
             {
                 throw new Exception("Error initialising MySql Database: " + e.ToString());
             }
+        }
+
+        /// <summary>
+        /// Get the connection being used
+        /// </summary>
+        public MySqlConnection Connection
+        {
+            get { return dbcon; }
         }
 
         /// <summary>
@@ -99,7 +108,7 @@ namespace OpenSim.Framework.Data.MySQL
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Unable to reconnect to database " + e.ToString());
+                    MainLog.Instance.Error("Unable to reconnect to database " + e.ToString());
                 }
             }
         }
@@ -142,7 +151,7 @@ namespace OpenSim.Framework.Data.MySQL
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Unable to reconnect to database " + e.ToString());
+                        MainLog.Instance.Error("Unable to reconnect to database " + e.ToString());
                     }
 
                     // Run the query again
@@ -160,7 +169,7 @@ namespace OpenSim.Framework.Data.MySQL
                     catch (Exception e)
                     {
                         // Return null if it fails.
-                        Console.WriteLine("Failed during Query generation: " + e.ToString());
+                        MainLog.Instance.Error("Failed during Query generation: " + e.ToString());
                         return null;
                     }
                 }
@@ -352,72 +361,7 @@ namespace OpenSim.Framework.Data.MySQL
             return retval;
         }
 
-        /// <summary>
-        /// Reads a list of inventory folders returned by a query.
-        /// </summary>
-        /// <param name="reader">A MySQL Data Reader</param>
-        /// <returns>A List containing inventory folders</returns>
-        public List<InventoryFolderBase> readInventoryFolders(IDataReader reader)
-        {
-            List<InventoryFolderBase> rows = new List<InventoryFolderBase>();
 
-            while(reader.Read())
-            {
-                try
-                {
-                    InventoryFolderBase folder = new InventoryFolderBase();
-
-                    folder.agentID = new LLUUID((string)reader["agentID"]);
-                    folder.parentID = new LLUUID((string)reader["parentFolderID"]);
-                    folder.folderID = new LLUUID((string)reader["folderID"]);
-                    folder.name = (string)reader["folderName"];
-
-                    rows.Add(folder);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-            }
-
-            return rows;
-        }
-
-        /// <summary>
-        /// Reads a collection of items from an SQL result
-        /// </summary>
-        /// <param name="reader">The SQL Result</param>
-        /// <returns>A List containing Inventory Items</returns>
-        public List<InventoryItemBase> readInventoryItems(IDataReader reader)
-        {
-            List<InventoryItemBase> rows = new List<InventoryItemBase>();
-
-            while (reader.Read())
-            {
-                try
-                {
-                    InventoryItemBase item = new InventoryItemBase();
-
-                    item.assetID = new LLUUID((string)reader["assetID"]);
-                    item.avatarID = new LLUUID((string)reader["avatarID"]);
-                    item.inventoryCurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"].ToString());
-                    item.inventoryDescription = (string)reader["inventoryDescription"];
-                    item.inventoryID = new LLUUID((string)reader["inventoryID"]);
-                    item.inventoryName = (string)reader["inventoryName"];
-                    item.inventoryNextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"].ToString());
-                    item.parentFolderID = new LLUUID((string)reader["parentFolderID"]);
-                    item.assetType = Convert.ToInt32(reader["type"].ToString());
-
-                    rows.Add(item);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-            }
-
-            return rows;
-        }
 
         /// <summary>
         /// Inserts a new row into the log database
@@ -455,87 +399,13 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return false;
             }
 
             return returnval;
         }
 
-        /// <summary>
-        /// Inserts a new item into the database
-        /// </summary>
-        /// <param name="item">The item</param>
-        /// <returns>Success?</returns>
-        public bool insertItem(InventoryItemBase item)
-        {
-            string sql = "REPLACE INTO inventoryitems (inventoryID, assetID, type, parentFolderID, avatarID, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions) VALUES ";
-            sql += "(?inventoryID, ?assetID, ?type, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription, ?inventoryNextPermissions, ?inventoryCurrentPermissions)";
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters["?inventoryID"] = item.inventoryID.ToStringHyphenated();
-            parameters["?assetID"] = item.assetID.ToStringHyphenated();
-            parameters["?type"] = item.assetType.ToString();
-            parameters["?parentFolderID"] = item.parentFolderID.ToStringHyphenated();
-            parameters["?avatarID"] = item.avatarID.ToStringHyphenated();
-            parameters["?inventoryName"] = item.inventoryName;
-            parameters["?inventoryDescription"] = item.inventoryDescription;
-            parameters["?inventoryNextPermissions"] = item.inventoryNextPermissions.ToString();
-            parameters["?inventoryCurrentPermissions"] = item.inventoryCurrentPermissions.ToString();
-
-            bool returnval = false;
-
-            try
-            {
-                IDbCommand result = Query(sql, parameters);
-
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
-
-                result.Dispose();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-                return false;
-            }
-
-            return returnval;
-        }
-
-        /// <summary>
-        /// Inserts a new folder into the database
-        /// </summary>
-        /// <param name="folder">The folder</param>
-        /// <returns>Success?</returns>
-        public bool insertFolder(InventoryFolderBase folder)
-        {
-            string sql = "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName) VALUES ";
-            sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName)";
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters["?folderID"] = folder.folderID.ToStringHyphenated();
-            parameters["?agentID"] = folder.agentID.ToStringHyphenated();
-            parameters["?parentFolderID"] = folder.parentID.ToStringHyphenated();
-            parameters["?folderName"] = folder.name;
-
-            bool returnval = false;
-            try
-            {
-                IDbCommand result = Query(sql, parameters);
-
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
-
-                result.Dispose();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-                return false;
-            }
-            return returnval;
-        }
 
            /// <summary>
            /// Creates a new user and inserts it into the database
@@ -614,7 +484,7 @@ namespace OpenSim.Framework.Data.MySQL
                }
                catch (Exception e)
                {
-                   Console.WriteLine(e.ToString());
+                   MainLog.Instance.Error(e.ToString());
                    return false;
                }
    
@@ -683,7 +553,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                MainLog.Instance.Error(e.ToString());
                 return false;
             }
 

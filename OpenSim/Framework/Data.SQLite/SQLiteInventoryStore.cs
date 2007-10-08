@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
@@ -166,7 +167,12 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A string containing the plugin version</returns>
         public string getVersion()
         {
-            return "0.1";
+            System.Reflection.Module module = this.GetType().Module;
+            string dllName = module.Assembly.ManifestModule.Name;
+            Version dllVersion = module.Assembly.GetName().Version;
+
+
+            return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
         }
 
         /// <summary>
@@ -337,17 +343,31 @@ namespace OpenSim.Framework.Data.SQLite
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public void deleteInventoryItem(InventoryItemBase item)
+        public void deleteInventoryItem(LLUUID itemID)
         {
             DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
-             DataRow inventoryRow = inventoryItemTable.Rows.Find(item.inventoryID);
+            DataRow inventoryRow = inventoryItemTable.Rows.Find(itemID);
              if (inventoryRow != null)
              {
                  inventoryRow.Delete();
              }
 
              this.invItemsDa.Update(ds, "inventoryitems");
+        }
+
+
+        /// <summary>
+        /// Delete all items in the specified folder
+        /// </summary>
+        /// <param name="folderId">id of the folder, whose item content should be deleted</param>
+        //!TODO, this is horribly inefficient, but I don't want to ruin the overall structure of this implementatio
+        private void deleteItemsInFolder(LLUUID folderId)
+        {
+            List<InventoryItemBase> items = getInventoryInFolder(folderId);
+
+            foreach(InventoryItemBase i in items)
+                deleteInventoryItem(i.inventoryID);
         }
 
         /// <summary>
@@ -389,6 +409,7 @@ namespace OpenSim.Framework.Data.SQLite
                 inventoryRow = inventoryFolderTable.Rows.Find(f.folderID);
                 if (inventoryRow != null)
                 {
+                    deleteItemsInFolder(f.folderID);
                     inventoryRow.Delete();
                 }
             }
@@ -397,6 +418,7 @@ namespace OpenSim.Framework.Data.SQLite
             inventoryRow = inventoryFolderTable.Rows.Find(folderID);
             if (inventoryRow != null)
             {
+                deleteItemsInFolder(folderID);
                 inventoryRow.Delete();
             }
 
@@ -552,5 +574,6 @@ namespace OpenSim.Framework.Data.SQLite
         }
     }
 }
+
 
 
