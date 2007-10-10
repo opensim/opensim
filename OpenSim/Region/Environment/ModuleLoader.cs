@@ -22,37 +22,8 @@ namespace OpenSim.Region.Environment
             m_log = log;
         }
 
-        /// <summary>
-        /// Should have a module factory?
-        /// </summary>
-        /// <param name="scene"></param>
-        //public void CreateDefaultModules(Scene scene, string exceptModules)
-        //{
-        //    IRegionModule module = new XferModule();
-        //    InitializeModule(module, scene);
-
-        //    module = new ChatModule();
-        //    InitializeModule(module, scene);
-
-        //    module = new AvatarProfilesModule();
-        //    InitializeModule(module, scene);
-
-        //    module = new XMLRPCModule();
-        //    InitializeModule(module, scene);
-
-        //    module = new WorldCommModule();
-        //    InitializeModule(module, scene);
-
-        //    LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
-
-        //    string lslPath = Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
-        //    LoadRegionModule(lslPath, "LSLScriptingModule", scene);
-        //}
-
-        public void PickupModules(Scene scene)
+        public void PickupModules(Scene scene, string moduleDir)
         {
-            string moduleDir = ".";
-
             DirectoryInfo dir = new DirectoryInfo(moduleDir);
 
             foreach (FileInfo fileInfo in dir.GetFiles("*.dll"))
@@ -61,7 +32,7 @@ namespace OpenSim.Region.Environment
             }
         }
 
-        public void LoadDefaultSharedModules(string exceptModules)
+        public void LoadDefaultSharedModules()
         {
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
             LoadedSharedModules.Add(dynamicModule.Name, dynamicModule);

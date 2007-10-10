@@ -76,11 +76,6 @@ namespace OpenSim
         private readonly string m_logFilename = ("region-console.log");
         private bool m_permissions = false;
 
-        private bool m_DefaultModules = true;
-        private string m_exceptModules = "";
-        private bool m_DefaultSharedModules = true;
-        private string m_exceptSharedModules = "";
-
         private bool standaloneAuthenticate = false;
         private string standaloneWelcomeMessage = null;
         private string standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
@@ -128,10 +123,10 @@ namespace OpenSim
 
             m_assetStorage = configSource.Configs["Startup"].GetString("asset_database", "db4o");
 
-            m_DefaultModules = configSource.Configs["Startup"].GetBoolean("default_modules", true);
-            m_DefaultSharedModules = configSource.Configs["Startup"].GetBoolean("default_shared_modules", true);
-            m_exceptModules = configSource.Configs["Startup"].GetString("except_modules", "");
-            m_exceptSharedModules = configSource.Configs["Startup"].GetString("except_shared_modules", "");
+            configSource.Configs["Startup"].GetBoolean("default_modules", true);
+            configSource.Configs["Startup"].GetBoolean("default_shared_modules", true);
+            configSource.Configs["Startup"].GetString("except_modules", "");
+            configSource.Configs["Startup"].GetString("except_shared_modules", "");
 
             standaloneAuthenticate = configSource.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
             standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
@@ -204,7 +199,7 @@ namespace OpenSim
 
             m_moduleLoader = new ModuleLoader( m_log );
             MainLog.Instance.Verbose("Loading Shared Modules");
-            m_moduleLoader.LoadDefaultSharedModules(m_exceptSharedModules);
+            m_moduleLoader.LoadDefaultSharedModules();
 
             // Load all script engines found (scripting engine is now a IRegionModule so loaded in the module loader
             // OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
@@ -221,8 +216,9 @@ namespace OpenSim
                 m_moduleLoader.InitialiseSharedModules(scene);
                 MainLog.Instance.Verbose("Loading Region's Modules");
 
-                //m_moduleLoader.CreateDefaultModules(scene, m_exceptModules);
-                m_moduleLoader.PickupModules( scene );
+                m_moduleLoader.PickupModules(scene, ".");
+                m_moduleLoader.PickupModules(scene, "ScriptEngines");
+
                 scene.SetModuleInterfaces();
 
                 // Check if we have a script engine to load

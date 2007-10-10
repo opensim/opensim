@@ -63,13 +63,11 @@ namespace SimpleApp
             UDPServer udpServer;
 
             m_moduleLoader = new ModuleLoader( m_log );
-            m_moduleLoader.LoadDefaultSharedModules("");
+            m_moduleLoader.LoadDefaultSharedModules();
 
             Scene scene = SetupScene(regionInfo, out udpServer);
 
             m_moduleLoader.InitialiseSharedModules(scene);
-            
-            // m_moduleLoader.CreateDefaultModules(scene, "");
             
             scene.SetModuleInterfaces();
 
