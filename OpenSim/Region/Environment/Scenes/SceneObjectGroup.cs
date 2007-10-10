@@ -234,6 +234,45 @@ namespace OpenSim.Region.Environment.Scenes
             ScheduleGroupForFullUpdate();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public SceneObjectGroup(string xmlData)
+        {
+            StringReader sr = new StringReader(xmlData);
+            XmlTextReader reader = new XmlTextReader(sr);
+            reader.Read();
+            reader.ReadStartElement("SceneObjectGroup");
+            reader.ReadStartElement("RootPart");
+            m_rootPart = SceneObjectPart.FromXml(reader);
+            reader.ReadEndElement();
+
+            while (reader.Read())
+            {
+                switch (reader.NodeType)
+                {
+                    case XmlNodeType.Element:
+                        if (reader.Name == "Part")
+                        {
+                            reader.Read();
+                            SceneObjectPart Part = SceneObjectPart.FromXml(reader);
+                            AddPart(Part);
+                        }
+                        break;
+                    case XmlNodeType.EndElement:
+                        break;
+                }
+            }
+            reader.Close();
+            sr.Close();
+            m_rootPart.SetParent(this);
+            m_parts.Add(m_rootPart.UUID, m_rootPart);
+            m_rootPart.ParentID = 0;
+            UpdateParentIDs();
+
+            ScheduleGroupForFullUpdate();
+        }
+
         private void AttachToBackup()
         {
             if (InSceneBackup)
