@@ -1337,9 +1337,9 @@ namespace OpenSim.Region.Environment.Scenes
                     MainLog.Instance.Error("The currently loaded modules in " + RegionInfo.RegionName + " are:");
                     foreach (IRegionModule module in Modules.Values)
                     {
-                        if (!module.IsSharedModule())
+                        if (!module.IsSharedModule)
                         {
-                            MainLog.Instance.Error("Region Module: " + module.GetName());
+                            MainLog.Instance.Error("Region Module: " + module.Name);
                         }
                     }
                     break;

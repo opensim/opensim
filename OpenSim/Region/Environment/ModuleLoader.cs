@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes;
@@ -14,43 +15,56 @@ namespace OpenSim.Region.Environment
 
         public List<IRegionModule> LoadedModules = new List<IRegionModule>();
         public Dictionary<string, IRegionModule> LoadedSharedModules = new Dictionary<string, IRegionModule>();
+        private readonly LogBase m_log;
 
-        public ModuleLoader()
+        public ModuleLoader(LogBase log)
         {
+            m_log = log;
         }
 
         /// <summary>
         /// Should have a module factory?
         /// </summary>
         /// <param name="scene"></param>
-        public void CreateDefaultModules(Scene scene, string exceptModules)
+        //public void CreateDefaultModules(Scene scene, string exceptModules)
+        //{
+        //    IRegionModule module = new XferModule();
+        //    InitializeModule(module, scene);
+
+        //    module = new ChatModule();
+        //    InitializeModule(module, scene);
+
+        //    module = new AvatarProfilesModule();
+        //    InitializeModule(module, scene);
+
+        //    module = new XMLRPCModule();
+        //    InitializeModule(module, scene);
+
+        //    module = new WorldCommModule();
+        //    InitializeModule(module, scene);
+
+        //    LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
+
+        //    string lslPath = Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
+        //    LoadRegionModule(lslPath, "LSLScriptingModule", scene);
+        //}
+
+        public void PickupModules(Scene scene)
         {
-            IRegionModule module = new XferModule();
-            InitialiseModule(module, scene);
+            string moduleDir = ".";
 
-            module = new ChatModule();
-            InitialiseModule(module, scene);
+            DirectoryInfo dir = new DirectoryInfo(moduleDir);
 
-            module = new AvatarProfilesModule();
-            InitialiseModule(module, scene);
-
-            module = new XMLRPCModule();
-            InitialiseModule(module, scene);
-
-            module = new WorldCommModule();
-            InitialiseModule(module, scene);
-
-            LoadRegionModule("OpenSim.Region.ExtensionsScriptModule.dll", "ExtensionsScriptingModule", scene);
-
-            string lslPath = Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
-            LoadRegionModule(lslPath, "LSLScriptingModule", scene);
+            foreach (FileInfo fileInfo in dir.GetFiles("*.dll"))
+            {
+                LoadRegionModules(fileInfo.FullName, scene);
+            }
         }
-
 
         public void LoadDefaultSharedModules(string exceptModules)
         {
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
-            LoadedSharedModules.Add(dynamicModule.GetName(), dynamicModule);
+            LoadedSharedModules.Add(dynamicModule.Name, dynamicModule);
         }
 
         public void InitialiseSharedModules(Scene scene)
@@ -58,14 +72,14 @@ namespace OpenSim.Region.Environment
             foreach (IRegionModule module in LoadedSharedModules.Values)
             {
                 module.Initialise(scene);
-                scene.AddModule(module.GetName(), module); //should be doing this?
+                scene.AddModule(module.Name, module); //should be doing this?
             }
         }
 
-        private void InitialiseModule(IRegionModule module, Scene scene)
+        private void InitializeModule(IRegionModule module, Scene scene)
         {
             module.Initialise(scene);
-            scene.AddModule(module.GetName(), module);
+            scene.AddModule(module.Name, module);
             LoadedModules.Add(module);
         }
 
@@ -80,7 +94,22 @@ namespace OpenSim.Region.Environment
             IRegionModule module = LoadModule(dllName, moduleName);
             if (module != null)
             {
-                LoadedSharedModules.Add(module.GetName(), module);
+                LoadedSharedModules.Add(module.Name, module);
+            }
+        }
+
+        public void LoadRegionModules(string dllName, Scene scene)
+        {
+            IRegionModule[] modules = LoadModules(dllName);
+
+            if (modules.Length > 0)
+            {
+                m_log.Verbose("MODULES", "Found Module Library [{0}]", dllName );
+                foreach (IRegionModule module in modules)
+                {
+                    m_log.Verbose("MODULES", "   [{0}]: Initializing.", module.Name);
+                    InitializeModule(module, scene);
+                }
             }
         }
 
@@ -89,7 +118,7 @@ namespace OpenSim.Region.Environment
             IRegionModule module = LoadModule(dllName, moduleName);
             if (module != null)
             {
-                InitialiseModule(module, scene);
+                InitializeModule(module, scene);
             }
         }
 
@@ -101,44 +130,62 @@ namespace OpenSim.Region.Environment
         /// <param name="scene"></param>
         public IRegionModule LoadModule(string dllName, string moduleName)
         {
-            Assembly pluginAssembly = null;
-            if (LoadedAssemblys.ContainsKey(dllName))
-            {
-                pluginAssembly = LoadedAssemblys[dllName];
-            }
-            else
-            {
-                pluginAssembly = Assembly.LoadFrom(dllName);
-                LoadedAssemblys.Add(dllName, pluginAssembly);
-            }
+            IRegionModule[] modules = LoadModules(dllName);
 
-            IRegionModule module = null;
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            foreach (IRegionModule module in modules)
             {
-                if (pluginType.IsPublic)
+                if ((module != null) && (module.Name == moduleName))
                 {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IRegionModule", true);
-
-                        if (typeInterface != null)
-                        {
-                            module =
-                                (IRegionModule) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            break;
-                        }
-                        typeInterface = null;
-                    }
+                    return module;
                 }
-            }
-            pluginAssembly = null;
-
-            if ((module != null) || (module.GetName() == moduleName))
-            {
-                return module;
             }
 
             return null;
+        }
+
+        public IRegionModule[] LoadModules(string dllName)
+        {
+            List<IRegionModule> modules = new List<IRegionModule>();
+
+            Assembly pluginAssembly;
+            if (!LoadedAssemblys.TryGetValue(dllName, out pluginAssembly ))
+            {
+                try
+                {
+                    pluginAssembly = Assembly.LoadFrom(dllName);
+                    LoadedAssemblys.Add(dllName, pluginAssembly);
+                }
+                catch( BadImageFormatException e )
+                {
+                    m_log.Error( "MODULES", "The file [{0}] is not a valid assembly.", e.FileName );
+                }
+            }
+
+
+            if (pluginAssembly != null)
+            {
+                foreach (Type pluginType in pluginAssembly.GetTypes())
+                {
+                    if (pluginType.IsPublic)
+                    {
+                        if (!pluginType.IsAbstract)
+                        {
+                            //if (dllName.Contains("OpenSim.Region.Environment"))
+                            //{
+                            //    int i = 1;
+                            //    i++;
+                            //}
+
+                            if( pluginType.GetInterface("IRegionModule") != null )
+                            {
+                                modules.Add((IRegionModule) Activator.CreateInstance(pluginType));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return modules.ToArray();
         }
 
         public void PostInitialise()

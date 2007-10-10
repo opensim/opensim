@@ -23,18 +23,18 @@ namespace OpenSim.Region.Environment.Modules
         {
         }
 
-        public void CloseDown()
+        public void Close()
         {
         }
 
-        public string GetName()
+        public string Name
         {
-            return "AvatarProfilesModule";
+            get { return "AvatarProfilesModule"; }
         }
 
-        public bool IsSharedModule()
+        public bool IsSharedModule
         {
-            return false;
+            get { return false; }
         }
 
         public void NewClient(IClientAPI client)

@@ -46,6 +46,8 @@ namespace OpenSim.Framework.Console
 
     public class LogBase
     {
+        private object m_syncRoot = new object();
+
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
@@ -64,7 +66,7 @@ namespace OpenSim.Framework.Console
             }
 
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
-           
+
             Log = File.AppendText(LogFile);
             Log.WriteLine("========================================================================");
             Log.WriteLine(componentname + " Started at " + DateTime.Now.ToString());
@@ -74,27 +76,6 @@ namespace OpenSim.Framework.Console
         {
             Log.WriteLine("Shutdown at " + DateTime.Now.ToString());
             Log.Close();
-        }
-
-        [Obsolete("Log.WriteLine is obsolete, use Warn / Error / Verbose instead.")]
-        public void Write(string format, params object[] args)
-        {
-            // HOUSEKEEPING : Will remove once use is removed.
-            Notice(format, args);
-            return;
-        }
-
-        [Obsolete("Log.WriteLine is obsolete, use Warn / Error / Verbose instead.")]
-        public void WriteLine(LogPriority importance, string format, params object[] args)
-        {
-            // HOUSEKEEPING : Will remove once use is removed.
-            Log.WriteLine(format, args);
-            Log.Flush();
-            if (!m_silent)
-            {
-                System.Console.WriteLine(format, args);
-            }
-            return;
         }
 
         /// <summary>
@@ -178,7 +159,7 @@ namespace OpenSim.Framework.Console
         public void Error(string sender, string format, params object[] args)
         {
             WritePrefixLine(DeriveColor(sender), sender);
-            Error( format, args);
+            Error(format, args);
             return;
         }
 
@@ -229,7 +210,7 @@ namespace OpenSim.Framework.Console
             WriteNewLine(ConsoleColor.Blue, format, args);
             return;
         }
-        
+
         [Conditional("DEBUG")]
         public void Debug(string format, params object[] args)
         {
@@ -247,66 +228,75 @@ namespace OpenSim.Framework.Console
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
         {
-            string now = System.DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
-            Log.Write(now);
-            Log.WriteLine(format, args);
-            Log.Flush();
-            if (!m_silent)
+            lock (m_syncRoot)
             {
-                System.Console.Write(now);
-                try
+                string now = System.DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
+                Log.Write(now);
+                Log.WriteLine(format, args);
+                Log.Flush();
+                if (!m_silent)
                 {
-                    if (color != ConsoleColor.White) 
-                        System.Console.ForegroundColor = color;
+                    System.Console.Write(now);
+                    try
+                    {
+                        if (color != ConsoleColor.White)
+                            System.Console.ForegroundColor = color;
 
-                    System.Console.WriteLine(format, args);
-                    System.Console.ResetColor();
+                        System.Console.WriteLine(format, args);
+                        System.Console.ResetColor();
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        // Some older systems dont support coloured text.
+                        System.Console.WriteLine(format, args);
+                    }
                 }
-                catch (ArgumentNullException)
-                {
-                    // Some older systems dont support coloured text.
-                    System.Console.WriteLine(format, args);
-                }
+                return;
             }
-            return;
         }
 
         private void WritePrefixLine(ConsoleColor color, string sender)
         {
-            sender = sender.ToUpper();
-            Log.WriteLine("[" + sender + "] ");
-            Log.Flush();
-
-            System.Console.Write("[");
-
-            if (!m_silent)
+            lock (m_syncRoot)
             {
-                try
+                sender = sender.ToUpper();
+                Log.WriteLine("[" + sender + "] ");
+                Log.Flush();
+
+                System.Console.Write("[");
+
+                if (!m_silent)
                 {
-                    System.Console.ForegroundColor = color;
-                    System.Console.Write(sender);
-                    System.Console.ResetColor();
+                    try
+                    {
+                        System.Console.ForegroundColor = color;
+                        System.Console.Write(sender);
+                        System.Console.ResetColor();
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        // Some older systems dont support coloured text.
+                        System.Console.WriteLine(sender);
+                    }
                 }
-                catch (ArgumentNullException)
-                {
-                    // Some older systems dont support coloured text.
-                    System.Console.WriteLine(sender);
-                }
+
+                System.Console.Write("] \t");
+
+                return;
             }
-
-            System.Console.Write("] \t");
-
-            return;
         }
 
 
         public string ReadLine()
         {
-            try {
+            try
+            {
                 string TempStr = System.Console.ReadLine();
                 Log.WriteLine(TempStr);
                 return TempStr;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 MainLog.Instance.Error("Console", "System.Console.ReadLine exception " + e.ToString());
                 return "";
             }
@@ -446,9 +436,12 @@ namespace OpenSim.Framework.Console
             Array.Resize<string>(ref tempstrarray, tempstrarray.Length - 1);
             Array.Reverse(tempstrarray);
             string[] cmdparams = (string[])tempstrarray;
-            try {
+            try
+            {
                 RunCmd(cmd, cmdparams);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 MainLog.Instance.Error("Console", "Command failed with exception " + e.ToString());
             }
         }
@@ -458,7 +451,7 @@ namespace OpenSim.Framework.Console
             get
             {
                 string result = String.Empty;
-                
+
                 string stacktrace = Environment.StackTrace;
                 List<string> lines = new List<string>(stacktrace.Split(new string[] { "at " }, StringSplitOptions.None));
 

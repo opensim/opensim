@@ -85,18 +85,18 @@ namespace OpenSim.Region.Environment.Modules
         {
         }
 
-        public void CloseDown()
+        public void Close()
         {
         }
 
-        public string GetName()
+        public string Name
         {
-            return m_name;
+            get { return m_name; }
         }
 
-        public bool IsSharedModule()
+        public bool IsSharedModule
         {
-            return false;
+            get { return false; }
         }
 
         /**********************************************

@@ -30,18 +30,18 @@ namespace OpenSim.Region.Environment.Modules
         {
         }
 
-        public void CloseDown()
+        public void Close()
         {
         }
 
-        public string GetName()
+        public string Name
         {
-            return "DynamicTextureModule";
+            get { return "DynamicTextureModule"; }
         }
 
-        public bool IsSharedModule()
+        public bool IsSharedModule
         {
-            return true;
+            get { return true; }
         }
 
         public void RegisterRender(string handleType, IDynamicTextureRender render)

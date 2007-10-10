@@ -6,8 +6,8 @@ namespace OpenSim.Region.Environment.Interfaces
     {
         void Initialise(Scene scene);
         void PostInitialise();
-        void CloseDown();
-        string GetName();
-        bool IsSharedModule();
+        void Close();
+        string Name { get; }
+        bool IsSharedModule { get; }
     }
 }

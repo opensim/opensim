@@ -202,7 +202,7 @@ namespace OpenSim
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
-            m_moduleLoader = new ModuleLoader();
+            m_moduleLoader = new ModuleLoader( m_log );
             MainLog.Instance.Verbose("Loading Shared Modules");
             m_moduleLoader.LoadDefaultSharedModules(m_exceptSharedModules);
 
@@ -220,7 +220,9 @@ namespace OpenSim
 
                 m_moduleLoader.InitialiseSharedModules(scene);
                 MainLog.Instance.Verbose("Loading Region's Modules");
-                m_moduleLoader.CreateDefaultModules(scene, m_exceptModules);
+
+                //m_moduleLoader.CreateDefaultModules(scene, m_exceptModules);
+                m_moduleLoader.PickupModules( scene );
                 scene.SetModuleInterfaces();
 
                 // Check if we have a script engine to load
@@ -616,7 +618,7 @@ namespace OpenSim
                     m_log.Error("The currently loaded shared modules are:");
                     foreach (OpenSim.Region.Environment.Interfaces.IRegionModule module in m_moduleLoader.LoadedSharedModules.Values)
                     {
-                        m_log.Error("Shared Module: " + module.GetName());
+                        m_log.Error("Shared Module: " + module.Name);
                     }
                     break;
             }

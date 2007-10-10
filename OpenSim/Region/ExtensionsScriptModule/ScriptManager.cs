@@ -80,19 +80,19 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         }
 
-        public void CloseDown()
+        public void Close()
         {
 
         }
 
-        public string GetName()
+        public string Name
         {
-            return "ExtensionsScriptingModule";
+            get { return "ExtensionsScriptingModule"; }
         }
 
-        public bool IsSharedModule()
-        {
-            return false;
+        public bool IsSharedModule
+{
+        get { return false; }
         }
 
         public bool Compile(string filename)

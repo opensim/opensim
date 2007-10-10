@@ -62,13 +62,15 @@ namespace SimpleApp
             
             UDPServer udpServer;
 
-            m_moduleLoader = new ModuleLoader();
+            m_moduleLoader = new ModuleLoader( m_log );
             m_moduleLoader.LoadDefaultSharedModules("");
 
             Scene scene = SetupScene(regionInfo, out udpServer);
 
             m_moduleLoader.InitialiseSharedModules(scene);
-            m_moduleLoader.CreateDefaultModules(scene, "");
+            
+            // m_moduleLoader.CreateDefaultModules(scene, "");
+            
             scene.SetModuleInterfaces();
 
             scene.StartTimer();
@@ -131,7 +133,7 @@ namespace SimpleApp
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
         {
-            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, new ModuleLoader());
+            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, new ModuleLoader( m_log ));
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)

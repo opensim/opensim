@@ -113,18 +113,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         }
 
-        public void CloseDown()
+        public void Close()
         {
         }
 
-        public string GetName()
+        public string Name
         {
-            return "LSLScriptingModule";
+            get { return "LSLScriptingModule"; }
         }
 
-        public bool IsSharedModule()
+        public bool IsSharedModule
         {
-            return false;
+            get { return false; }
         }
 
         #endregion

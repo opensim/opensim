@@ -78,21 +78,21 @@ namespace OpenSim.Region.Environment.Modules
             */
         }
 
-        public void CloseDown()
+        public void Close()
         {
             m_ircWriter.Close();
             m_ircReader.Close();
             m_irc.Close();
         }
 
-        public string GetName()
+        public string Name
         {
-            return "ChatModule";
+            get { return "ChatModule"; }
         }
 
-        public bool IsSharedModule()
+        public bool IsSharedModule
         {
-            return false;
+            get { return false; }
         }
 
         public void NewClient(IClientAPI client)
