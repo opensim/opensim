@@ -128,7 +128,7 @@ namespace OpenSim.Region.Environment
                 }
                 catch( BadImageFormatException e )
                 {
-                    m_log.Error( "MODULES", "The file [{0}] is not a valid assembly.", e.FileName );
+                    m_log.Warn( "MODULES", "The file [{0}] is not a valid assembly.", e.FileName );
                 }
             }
 
