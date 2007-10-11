@@ -18,6 +18,14 @@ namespace OpenSim.Framework
             }
         }
 
+        public static IFormatProvider FormatProvider
+        {
+            get
+            {
+                return m_cultureInfo;
+            }
+        }
+
         public static void SetCurrentCulture()
         {
             Thread.CurrentThread.CurrentCulture = m_cultureInfo;
