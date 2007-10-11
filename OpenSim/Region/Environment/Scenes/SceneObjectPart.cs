@@ -11,6 +11,7 @@ using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Environment.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -681,15 +682,13 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                avatars[i].AddFullPart(this);
-                // avatars[i].QueuePartForUpdate(this);
+                 avatars[i].QueuePartForUpdate(this);
             }
         }
 
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
-            presence.AddFullPart(this);
-            //presence.QueuePartForUpdate(this);
+            presence.QueuePartForUpdate(this);
         }
 
         /// <summary>
@@ -745,15 +744,13 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                avatars[i].AddTersePart(this);
-                // avatars[i].QueuePartForUpdate(this);
+                 avatars[i].QueuePartForUpdate(this);
             }
         }
 
         public void AddTerseUpdateToAvatar(ScenePresence presence)
         {
-            presence.AddTersePart(this);
-            // presence.QueuePartForUpdate(this);
+             presence.QueuePartForUpdate(this);
         }
 
         /// <summary>

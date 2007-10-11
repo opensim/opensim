@@ -189,7 +189,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_eventManager.OnPermissionError += SendPermissionAlert;
 
-            QuadTree = new BasicQuadTreeNode(null, 0, 0, 256, 256);
+            QuadTree = new BasicQuadTreeNode(null, "/0/", 0, 0, 256, 256);
             QuadTree.Subdivide();
             QuadTree.Subdivide();
 

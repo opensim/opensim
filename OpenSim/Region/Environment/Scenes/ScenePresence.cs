@@ -35,6 +35,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Environment.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -89,11 +90,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         //public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
 
-        // private Queue<SceneObjectGroup> m_fullGroupUpdates = new Queue<SceneObjectGroup>();
-        // private Queue<SceneObjectGroup> m_terseGroupUpdates = new Queue<SceneObjectGroup>();
+       // private string m_currentQuadNode = " ";
 
-        private readonly Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
-        private readonly Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
+       // private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
+       //private Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
+
+        private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
+        private Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
 
         #region Properties
 
@@ -277,52 +280,68 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        public void AddTersePart(SceneObjectPart part)
+        public void QueuePartForUpdate(SceneObjectPart part)
         {
-            m_tersePartUpdates.Enqueue(part);
-        }
-
-        public void AddFullPart(SceneObjectPart part)
-        {
-            m_fullPartUpdates.Enqueue(part);
+            //if (InterestList.Contains(part.ParentGroup))
+            //{
+            lock (m_partsUpdateQueue)
+            {
+                m_partsUpdateQueue.Enqueue(part);
+            }
+            // }
         }
 
         public void SendPrimUpdates()
         {
-            if (m_tersePartUpdates.Count > 0)
+            // if (m_scene.QuadTree.GetNodeID(this.AbsolutePosition.X, this.AbsolutePosition.Y) != m_currentQuadNode)
+            //{
+            //  this.UpdateQuadTreeNode();
+            //this.RefreshQuadObject();
+            //}
+
+            if (m_partsUpdateQueue.Count > 0)
             {
-                bool terse = true;
-                int terseCount = 0;
-
-                while (terse)
+                bool runUpdate = true;
+                int updateCount = 0;
+                while (runUpdate)
                 {
-                    SceneObjectPart part = m_tersePartUpdates.Dequeue();
-                    part.SendTerseUpdate(m_controllingClient);
-                    terseCount++;
-
-                    if ((m_tersePartUpdates.Count < 1) | (terseCount > 30))
+                    SceneObjectPart part = m_partsUpdateQueue.Dequeue();
+                    if (m_updateTimes.ContainsKey(part.UUID))
                     {
-                        terse = false;
+                        ScenePartUpdate update = m_updateTimes[part.UUID];
+                        if (update.LastFullUpdateTime < part.TimeStampFull)
+                        {
+                            //need to do a full update
+                            part.SendFullUpdate(this.ControllingClient);
+                            update.LastFullUpdateTime = (uint)Util.UnixTimeSinceEpoch();
+                            updateCount++;
+                        }
+                        else if (update.LastTerseUpdateTime < part.TimeStampTerse)
+                        {
+                            part.SendTerseUpdate(this.ControllingClient);
+                            update.LastTerseUpdateTime = (uint)Util.UnixTimeSinceEpoch();
+                            updateCount++;
+                        }
                     }
-                }
-            }
-            if (m_fullPartUpdates.Count > 0)
-            {
-                bool full = true;
-                int fullCount = 0;
-
-                while (full)
-                {
-                    SceneObjectPart part = m_fullPartUpdates.Dequeue();
-                    part.SendFullUpdate(m_controllingClient);
-                    fullCount++;
-                    if ((m_fullPartUpdates.Count < 1) | (fullCount > 40))
+                    else
                     {
-                        full = false;
+                        //never been sent to client before so do full update
+                        part.SendFullUpdate(this.ControllingClient);
+                        ScenePartUpdate update = new ScenePartUpdate();
+                        update.FullID = part.UUID;
+                        update.LastFullUpdateTime = (uint)Util.UnixTimeSinceEpoch();
+                        m_updateTimes.Add(part.UUID, update);
+                        updateCount++;
+                    }
+
+                    if (m_partsUpdateQueue.Count < 1 | updateCount > 60)
+                    {
+                        runUpdate = false;
                     }
                 }
             }
         }
+
 
         #region Status Methods
 
@@ -900,6 +919,22 @@ namespace OpenSim.Region.Environment.Scenes
             {
             }
         }
+
+        public class ScenePartUpdate
+        {
+            public LLUUID FullID;
+            public uint LastFullUpdateTime;
+            public uint LastTerseUpdateTime;
+
+            public ScenePartUpdate()
+            {
+                FullID = LLUUID.Zero;
+                LastFullUpdateTime = 0;
+                LastTerseUpdateTime = 0;
+            }
+
+        }
+
 
         public override void SetText(string text, Vector3 color, double alpha)
         {
