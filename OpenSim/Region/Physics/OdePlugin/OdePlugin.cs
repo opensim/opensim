@@ -81,8 +81,9 @@ namespace OpenSim.Region.Physics.OdePlugin
     public class OdeScene : PhysicsScene
     {
         private static float ODE_STEPSIZE = 0.004f;
+        private static bool RENDER_FLAG = false;
         private IntPtr contactgroup;
-        private IntPtr LandGeom;
+        private IntPtr LandGeom=(IntPtr)0;
         private double[] _heightmap;
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
@@ -316,8 +317,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             step_time += timeStep;
             lock (OdeLock)
             {
+                if (_characters.Count > 0 & RENDER_FLAG)
+                {
+                    Console.WriteLine("RENDER: frame");
+                }
                 foreach (OdePrim p in _prims)
                 {
+                    if (_characters.Count > 0 & RENDER_FLAG)
+                    {
+                        Vector3 rx, ry, rz;
+                        p.Orientation.ToAxes(out rx, out ry, out rz);
+                        Console.WriteLine("RENDER: block; " + p.Size.X + ", " + p.Size.Y + ", " + p.Size.Z + "; " +
+                            "  0, 0, 1;  " + //shape, size, color
+                        (p.Position.X - 128.0f) + ", " + (p.Position.Y - 128.0f) + ", " + (p.Position.Z - 33.0f) + ";  " + // position
+                        rx.x + "," + ry.x + "," + rz.x + ", " + // rotation
+                        rx.y + "," + ry.y + "," + rz.y + ", " +
+                        rx.z + "," + ry.z + "," + rz.z);
+                    }
                 }
                 int i = 0;
                 while (step_time > 0.0f)
@@ -336,6 +352,29 @@ namespace OpenSim.Region.Physics.OdePlugin
                 foreach (OdeCharacter actor in _characters)
                 {
                     actor.UpdatePositionAndVelocity();
+                    if (RENDER_FLAG)
+                    {
+                        /// debugging code
+                        float Zoff = -33.0f;
+                        d.Matrix3 temp = d.BodyGetRotation(actor.Body);
+                        Console.WriteLine("RENDER: cylinder; " + // shape
+                            OdeCharacter.CAPSULE_RADIUS + ", " + OdeCharacter.CAPSULE_LENGTH + //size
+                            "; 0, 1, 0;  " + // color
+                            (actor.Position.X - 128.0f) + ", " + (actor.Position.Y - 128.0f) + ", " + (actor.Position.Z + Zoff) + ";  " + // position
+                            temp.M00 + "," + temp.M10 + "," + temp.M20 + ", " + // rotation
+                            temp.M01 + "," + temp.M11 + "," + temp.M21 + ", " +
+                            temp.M02 + "," + temp.M12 + "," + temp.M22);
+                        d.Vector3 caphead; d.BodyGetRelPointPos(actor.Body, 0, 0, OdeCharacter.CAPSULE_LENGTH * .5f, out caphead);
+                        d.Vector3 capfoot; d.BodyGetRelPointPos(actor.Body, 0, 0, -OdeCharacter.CAPSULE_LENGTH * .5f, out capfoot);
+                        Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
+                            "; 1, 0, 1;  " +  //color
+                            (caphead.X - 128.0f) + ", " + (caphead.Y - 128.0f) + ", " + (caphead.Z + Zoff) + ";  " + // position
+                            "1,0,0, 0,1,0, 0,0,1"); // rotation
+                        Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
+                            "; 1, 0, 0;  " +  //color
+                            (capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) + ";  " + // position
+                            "1,0,0, 0,1,0, 0,0,1"); // rotation
+                    }
                 }
             }
         }
@@ -366,6 +405,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeLock)
             {
+                if (!(LandGeom == (IntPtr)0))
+                {
+                    d.SpaceRemove(space, LandGeom);
+                }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
                 d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
@@ -407,6 +450,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static float PID_D=4000.0f;
         private static float PID_P=7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
+        public static float CAPSULE_RADIUS = 0.5f;
+        public static float CAPSULE_LENGTH = 0.9f;
         private bool flying = false;
         //private float gravityAccel;
         public IntPtr Body;
@@ -423,7 +468,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene = parent_scene;
             lock (OdeScene.OdeLock)
             {
-                Shell = d.CreateCapsule(parent_scene.space, 0.4f, 1.0f);
+                Shell = d.CreateCapsule(parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
                 d.MassSetCapsule(out ShellMass, 50.0f, 3, 0.4f, 1.0f);
                 Body = d.BodyCreate(parent_scene.world);
                 d.BodySetMass(Body, ref ShellMass);
@@ -628,11 +673,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdePrim : PhysicsActor
     {
-        private PhysicsVector _position;
+        public PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
-        private Quaternion _orientation;
+        public Quaternion _orientation;
         private Mesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
