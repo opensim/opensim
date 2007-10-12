@@ -311,8 +311,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public string ToXmlString()
         {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    ToXml(writer);
+                }
+
+                return sw.ToString();
+            }
+        }
+
+        public void ToXml(XmlTextWriter writer)
+        {
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
             m_rootPart.ToXml(writer);
@@ -329,8 +340,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             writer.WriteEndElement();
             writer.WriteEndElement();
-            writer.Close();
-            return sw.ToString();
         }
 
         #region Copying

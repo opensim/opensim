@@ -22,7 +22,8 @@ namespace OpenSim.Region.Environment.Scenes
         private string m_inventoryFileName = "";
         private LLUUID m_folderID = LLUUID.Zero;
 
-        [XmlIgnore] public PhysicsActor PhysActor = null;
+        [XmlIgnore] 
+        public PhysicsActor PhysActor = null;
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
 
