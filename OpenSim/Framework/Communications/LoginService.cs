@@ -38,7 +38,7 @@ namespace OpenSim.Framework.UserManagement
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
 
-            System.Console.WriteLine("Attempting login now...");
+            MainLog.Instance.Verbose("Attempting login now...");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.UserManagement
                     }
                     catch (Exception e)
                     {
-                        System.Console.WriteLine(e.ToString());
+                        MainLog.Instance.Verbose(e.ToString());
                         return logResponse.CreateDeadRegionResponse();
                         //return logResponse.ToXmlRpcResponse();
                     }
@@ -133,7 +133,7 @@ namespace OpenSim.Framework.UserManagement
 
                 catch (Exception E)
                 {
-                    System.Console.WriteLine(E.ToString());
+                    MainLog.Instance.Verbose(E.ToString());
                 }
                 //}
             }
