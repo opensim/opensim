@@ -931,6 +931,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             AbsolutePosition = pos;
             ScheduleGroupForTerseUpdate();
+
+            m_scene.EventManager.TriggerGroupMove(this.UUID, pos);
         }
 
         /// <summary>
@@ -1279,6 +1281,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
         {
+            m_scene.EventManager.TriggerGroupGrab(this.UUID, offsetPos);
         }
 
         public void DeleteGroup()
