@@ -28,14 +28,21 @@
 
 using System;
 using System.IO;
-using System.Text;
-using Db4objects.Db4o;
+
 using libsecondlife;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Types;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Configuration;
+using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-
+using OpenSim.Framework.Communications.Caches;
+/*
+using System.Text;
+using Db4objects.Db4o;
+using OpenSim.Framework.Types;
+using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Communications.Caches;
+*/
 namespace OpenSim.Grid.AssetServer
 {
     /// <summary>
@@ -43,11 +50,11 @@ namespace OpenSim.Grid.AssetServer
     /// </summary>
     public class OpenAsset_Main : conscmd_callback
     {
-        private IObjectContainer db;
-
         public static OpenAsset_Main assetserver;
 
         private LogBase m_console;
+        private AssetConfig m_config;
+        private IAssetServer m_assetServer;
 
         [STAThread]
         public static void Main(string[] args)
@@ -82,8 +89,10 @@ namespace OpenSim.Grid.AssetServer
 
         public void Startup()
         {
+            m_config = new AssetConfig("ASSET SERVER", (Path.Combine(Util.configDir(), "AssetServer_Config.xml")));
+
             m_console.Verbose("ASSET", "Setting up asset DB");
-            setupDB();
+            setupDB(m_config);
 
             m_console.Verbose("ASSET", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(8003);
@@ -97,180 +106,22 @@ namespace OpenSim.Grid.AssetServer
 
         public byte[] GetAssetData(LLUUID assetID, bool isTexture)
         {
-            bool found = false;
-            AssetStorage foundAsset = null;
-
-            IObjectSet result = db.Get(new AssetStorage(assetID));
-            if (result.Count > 0)
-            {
-                foundAsset = (AssetStorage)result.Next();
-                found = true;
-            }
-
-            if (found)
-            {
-                return foundAsset.Data;
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
-        public void setupDB()
-        {
-            string yappath=(Path.Combine(Util.dataDir(),"gridassets.yap"));
-            bool yapfile = File.Exists(yappath);
-            try
-            {
-                db = Db4oFactory.OpenFile(yappath);
-                MainLog.Instance.Verbose("storage", "Main.cs:setupDB() - creation");
-            }
-            catch (Exception e)
-            {
-                db.Close();
-                MainLog.Instance.Warn("storage", "Main.cs:setupDB() - Exception occured");
-                MainLog.Instance.Warn("storage", e.ToString());
-            }
-            if (!yapfile)
-            {
-                this.LoadDB();
-            }
-        }
-
-        public void LoadDB()
+        public void setupDB(AssetConfig config)
         {
             try
             {
-
-                Console.WriteLine("setting up Asset database");
-
-                AssetBase Image = new AssetBase();
-                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000001");
-                Image.Name = "Bricks";
-                this.LoadAsset(Image, true, "bricks.jp2");
-                AssetStorage store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000002");
-                Image.Name = "Plywood";
-                this.LoadAsset(Image, true, "plywood.jp2");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000003");
-                Image.Name = "Rocks";
-                this.LoadAsset(Image, true, "rocks.jp2");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000004");
-                Image.Name = "Granite";
-                this.LoadAsset(Image, true, "granite.jp2");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("00000000-0000-0000-9999-000000000005");
-                Image.Name = "Hardwood";
-                this.LoadAsset(Image, true, "hardwood.jp2");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("00000000-0000-0000-5005-000000000005");
-                Image.Name = "Prim Base Texture";
-                this.LoadAsset(Image, true, "plywood.jp2");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("13371337-1337-1337-1337-133713371337");
-                Image.Name = "Peaches";
-                this.LoadAsset(Image, true, "peaches.jp2");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
-
-                Image = new AssetBase();
-                Image.FullID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-                Image.Name = "Shape";
-                this.LoadAsset(Image, false, "base_shape.dat");
-                store = new AssetStorage();
-                store.Data = Image.Data;
-                store.Name = Image.Name;
-                store.UUID = Image.FullID;
-                db.Set(store);
-                db.Commit();
+                m_assetServer = new SQLAssetServer(config.DatabaseProvider);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                MainLog.Instance.Warn("ASSET", "setupDB() - Exception occured");
+                MainLog.Instance.Warn("ASSET", e.ToString());
             }
         }
 
-        private void LoadAsset(AssetBase info, bool image, string filename)
-        {
-
-
-            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
-            string fileName = Path.Combine(dataPath, filename);
-            FileInfo fInfo = new FileInfo(fileName);
-            long numBytes = fInfo.Length;
-            FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-            byte[] idata = new byte[numBytes];
-            BinaryReader br = new BinaryReader(fStream);
-            idata = br.ReadBytes((int)numBytes);
-            br.Close();
-            fStream.Close();
-            info.Data = idata;
-            //info.loaded=true;
-        }
-
-        public void CreateAsset(LLUUID assetId, byte[] assetData)
-        {
-            AssetBase asset = new AssetBase();
-            asset.Name = "";
-            asset.FullID = assetId;
-            asset.Data = assetData;
-                    
-            AssetStorage store = new AssetStorage();
-            store.Data = asset.Data;
-            store.Name = asset.Name;
-            store.UUID = asset.FullID;
-            db.Set(store);
-            db.Commit();
-        }
         
         public void RunCmd(string cmd, string[] cmdparams)
         {
@@ -339,7 +190,7 @@ namespace OpenSim.Grid.AssetServer
 
                     byte[] assetData = memoryStream.ToArray();
 
-                    m_assetManager.CreateAsset(assetId, assetData);
+//                    m_assetManager.CreateAsset(assetId, assetData);
                 }
             }
             

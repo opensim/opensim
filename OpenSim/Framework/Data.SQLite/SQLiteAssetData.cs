@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Data.SQLite
         private const string assetSelect = "select * from assets";
         private DataSet ds;
         private SqliteDataAdapter da;
-        
+
         public void Initialise(string dbfile, string dbname)
         {
             SqliteConnection conn = new SqliteConnection("URI=file:" + dbfile + ",version=3");
@@ -275,5 +275,26 @@ namespace OpenSim.Framework.Data.SQLite
             return true;
         }
 
+        #region IPlugin interface
+        public string Version {
+            get
+            {
+                System.Reflection.Module module = this.GetType().Module;
+                string dllName = module.Assembly.ManifestModule.Name;
+                Version dllVersion = module.Assembly.GetName().Version;
+
+                return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+            }
+        }
+
+        public void Initialise()
+        {
+            Initialise("AssetStorage.db", "");
+        }
+
+        public string Name {
+            get { return "SQLite Asset storage engine"; }
+        }
+        #endregion
     }
 }

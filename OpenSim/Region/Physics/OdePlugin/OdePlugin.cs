@@ -30,7 +30,6 @@ using System.Threading;
 using System.Collections.Generic;
 
 using libsecondlife;
-using libsecondlife.Utilities;
 
 using Axiom.Math;
 using Ode.NET;

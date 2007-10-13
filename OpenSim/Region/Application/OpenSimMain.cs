@@ -283,7 +283,7 @@ namespace OpenSim
             }
             else
             {
-                assetServer = new SQLAssetServer();
+                assetServer = new SQLAssetServer("OpenSim.Framework.Data.SQLite.dll");
             }
             assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
             m_assetCache = new AssetCache(assetServer);

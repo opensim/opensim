@@ -6,9 +6,8 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Interfaces
 {
-    public interface IAssetProvider
+    public interface IAssetProvider :  IPlugin
     {
-        void Initialise(string dbfile, string dbname);
         AssetBase FetchAsset(LLUUID uuid);
         void CreateAsset(AssetBase asset);
         void UpdateAsset(AssetBase asset);

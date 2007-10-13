@@ -26,10 +26,14 @@
 * 
 */
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Data;
+using System.Reflection;
+using System.Collections.Generic;
 using libsecondlife;
+
 using MySql.Data.MySqlClient;
+
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Console;
 
@@ -114,6 +118,88 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         /// <summary>
+        /// Returns the version of this DB provider
+        /// </summary>
+        /// <returns>A string containing the DB provider</returns>
+        public string getVersion()
+        {
+            System.Reflection.Module module = this.GetType().Module;
+            string dllName = module.Assembly.ManifestModule.Name;
+            Version dllVersion = module.Assembly.GetName().Version;
+
+
+            return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+        }
+
+        
+        /// <summary>
+        /// Extract a named string resource from the embedded resources
+        /// </summary>
+        /// <param name="name">name of embedded resource</param>
+        /// <returns>string contained within the embedded resource</returns>
+        private string getResourceString(string name)
+        {
+            Assembly assem = this.GetType().Assembly;
+            string[] names = assem.GetManifestResourceNames();
+
+            foreach (string s in names)
+                if (s.EndsWith(name))
+                    using (Stream resource = assem.GetManifestResourceStream(s))
+                    {
+                        using (StreamReader resourceReader = new StreamReader(resource))
+                        {
+                            string resourceString = resourceReader.ReadToEnd();
+                            return resourceString;
+                        }
+                    }
+            throw new Exception(string.Format("Resource '{0}' was not found", name));
+        }
+
+        /// <summary>
+        /// Execute a SQL statement stored in a resource, as a string
+        /// </summary>
+        /// <param name="name"></param>
+        public void ExecuteResourceSql(string name)
+        {
+            MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
+            cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Given a list of tables, return the version of the tables, as seen in the database
+        /// </summary>
+        /// <param name="tableList"></param>
+        public void GetTableVersion(Dictionary<string, string> tableList)
+        {
+            lock (dbcon)
+            {
+                MySqlCommand tablesCmd = new MySqlCommand("SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname", dbcon);
+                tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
+                using (MySqlDataReader tables = tablesCmd.ExecuteReader())
+                {
+                    while (tables.Read())
+                    {
+                        try
+                        {
+                            string tableName = (string)tables["TABLE_NAME"];
+                            string comment = (string)tables["TABLE_COMMENT"];
+                            if(tableList.ContainsKey(tableName))
+                                tableList[tableName] = comment;
+                        }
+                        catch (Exception e)
+                        {
+                            MainLog.Instance.Error(e.ToString());
+                        }
+                    }
+                    tables.Close();
+                }
+            }
+        }
+
+
+        // at some time this code should be cleaned up
+        
+        /// <summary>
         /// Runs a query with protection against SQL Injection by using parameterised input.
         /// </summary>
         /// <param name="sql">The SQL string - replace any variables such as WHERE x = "y" with WHERE x = @y</param>
@@ -127,7 +213,7 @@ namespace OpenSim.Framework.Data.MySQL
                 dbcommand.CommandText = sql;
                 foreach (KeyValuePair<string, string> param in parameters)
                 {
-                    dbcommand.Parameters.Add(param.Key, param.Value);
+                    dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                 }
 
                 return (IDbCommand)dbcommand;
@@ -161,7 +247,7 @@ namespace OpenSim.Framework.Data.MySQL
                         dbcommand.CommandText = sql;
                         foreach (KeyValuePair<string, string> param in parameters)
                         {
-                            dbcommand.Parameters.Add(param.Key, param.Value);
+                            dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                         }
 
                         return (IDbCommand)dbcommand;

@@ -28,7 +28,6 @@
 using System;
 using System.IO;
 using System.Data;
-using System.Reflection;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Types;
@@ -65,41 +64,13 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         #region Test and initialization code
-        /// <summary>
-        /// Extract a named string resource from the embedded resources
-        /// </summary>
-        /// <param name="name">name of embedded resource</param>
-        /// <returns>string contained within the embedded resource</returns>
-        private string getResourceString(string name)
-        {
-            Assembly assem = this.GetType().Assembly;
-            string[] names = assem.GetManifestResourceNames();
 
-            foreach(string s in names)
-                if(s.EndsWith(name))
-                    using (Stream resource = assem.GetManifestResourceStream(s))
-                    {
-                        using (StreamReader resourceReader = new StreamReader(resource))
-                        {
-                            string resourceString = resourceReader.ReadToEnd();
-                            return resourceString;
-                        }
-                    }
-            throw new Exception(string.Format("Resource '{0}' was not found", name));
-        }
-
-        private void ExecuteResourceSql(MySqlConnection conn, string name)
-        {
-            MySqlCommand cmd = new MySqlCommand(getResourceString(name), conn);
-            cmd.ExecuteNonQuery();
-        }
-
-        private void UpgradeFoldersTable(MySqlConnection conn, string oldVersion)
+        private void UpgradeFoldersTable(string oldVersion)
         {
             // null as the version, indicates that the table didn't exist
             if (oldVersion == null)
             {
-                ExecuteResourceSql(conn, "CreateFoldersTable.sql");
+                database.ExecuteResourceSql("CreateFoldersTable.sql");
                 return;
             }
 
@@ -107,15 +78,15 @@ namespace OpenSim.Framework.Data.MySQL
             if (oldVersion == "Rev. 2")
                 return;
 
-            ExecuteResourceSql(conn, "UpgradeFoldersTableToVersion2.sql");
+            database.ExecuteResourceSql("UpgradeFoldersTableToVersion2.sql");
         }
 
-        private void UpgradeItemsTable(MySqlConnection conn, string oldVersion)
+        private void UpgradeItemsTable(string oldVersion)
         {
             // null as the version, indicates that the table didn't exist
             if (oldVersion == null)
             {
-                ExecuteResourceSql(conn, "CreateItemsTable.sql");
+                database.ExecuteResourceSql("CreateItemsTable.sql");
                 return;
             }
 
@@ -123,7 +94,7 @@ namespace OpenSim.Framework.Data.MySQL
             if (oldVersion == "Rev. 2")
                 return;
 
-            ExecuteResourceSql(conn, "UpgradeItemsTableToVersion2.sql");
+            database.ExecuteResourceSql("UpgradeItemsTableToVersion2.sql");
         }
 
         private void TestTables(MySqlConnection conn)
@@ -134,25 +105,10 @@ namespace OpenSim.Framework.Data.MySQL
             tableList["inventoryfolders"] = null;
             tableList["inventoryitems"] = null;
 
-            MySqlCommand tablesCmd = new MySqlCommand("SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='opensim'", conn);
-            MySqlDataReader tables = tablesCmd.ExecuteReader();
-            while (tables.Read())
-            {
-                try
-                {
-                    string tableName = (string)tables["TABLE_NAME"];
-                    string comment = (string)tables["TABLE_COMMENT"];
-                    tableList[tableName] = comment;
-                }
-                catch (Exception e)
-                {
-                    MainLog.Instance.Error(e.ToString());
-                }
-            }
-            tables.Close();
+            database.GetTableVersion(tableList);
 
-            UpgradeFoldersTable(conn, tableList["inventoryfolders"]);
-            UpgradeItemsTable(conn, tableList["inventoryitems"]);
+            UpgradeFoldersTable(tableList["inventoryfolders"]);
+            UpgradeItemsTable(tableList["inventoryitems"]);
         }
         #endregion
 
@@ -179,12 +135,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <returns>A string containing the DB provider</returns>
         public string getVersion()
         {
-            System.Reflection.Module module = this.GetType().Module;
-            string dllName = module.Assembly.ManifestModule.Name;
-            Version dllVersion = module.Assembly.GetName().Version;
-
-
-            return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+            return database.getVersion();
         }
 
         /// <summary>
@@ -201,7 +152,7 @@ namespace OpenSim.Framework.Data.MySQL
                     List<InventoryItemBase> items = new List<InventoryItemBase>();
 
                     MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryitems WHERE parentFolderID = ?uuid", database.Connection);
-                    result.Parameters.Add("?uuid", folderID.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?uuid", folderID.ToStringHyphenated());
                     MySqlDataReader reader = result.ExecuteReader();
 
                     while(reader.Read())
@@ -233,8 +184,8 @@ namespace OpenSim.Framework.Data.MySQL
                 lock (database)
                 {
                     MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", database.Connection);
-                    result.Parameters.Add("?uuid", user.ToStringHyphenated());
-                    result.Parameters.Add("?zero", LLUUID.Zero.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?uuid", user.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?zero", LLUUID.Zero.ToStringHyphenated());
                     MySqlDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
@@ -267,13 +218,9 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 lock (database)
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["?uuid"] = user.ToStringHyphenated();
-                    param["?zero"] = LLUUID.Zero.ToStringHyphenated();
-
                     MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid", database.Connection);
-                    result.Parameters.Add("?uuid", user.ToStringHyphenated());
-                    result.Parameters.Add("?zero", LLUUID.Zero.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?uuid", user.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?zero", LLUUID.Zero.ToStringHyphenated());
 
                     MySqlDataReader reader = result.ExecuteReader();
 
@@ -308,7 +255,7 @@ namespace OpenSim.Framework.Data.MySQL
                 lock (database)
                 {
                     MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE parentFolderID = ?uuid", database.Connection);
-                    result.Parameters.Add("?uuid", parentID.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?uuid", parentID.ToStringHyphenated());
                     MySqlDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
@@ -378,7 +325,7 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
 
                     MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryitems WHERE inventoryID = ?uuid", database.Connection);
-                    result.Parameters.Add("?uuid", itemID.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?uuid", itemID.ToStringHyphenated());
                     MySqlDataReader reader = result.ExecuteReader();
 
                     InventoryItemBase item = null;
@@ -438,7 +385,7 @@ namespace OpenSim.Framework.Data.MySQL
                 lock (database)
                 {
                     MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE folderID = ?uuid", database.Connection);
-                    result.Parameters.Add("?uuid", folderID.ToStringHyphenated());
+                    result.Parameters.AddWithValue("?uuid", folderID.ToStringHyphenated());
                     MySqlDataReader reader = result.ExecuteReader();
 
                     reader.Read();
@@ -469,19 +416,19 @@ namespace OpenSim.Framework.Data.MySQL
             try
             {
                 MySqlCommand result = new MySqlCommand(sql, database.Connection);
-                result.Parameters.Add("?inventoryID", item.inventoryID.ToStringHyphenated());
-                result.Parameters.Add("?assetID", item.assetID.ToStringHyphenated());
-                result.Parameters.Add("?assetType", item.assetType.ToString());
-                result.Parameters.Add("?parentFolderID", item.parentFolderID.ToStringHyphenated());
-                result.Parameters.Add("?avatarID", item.avatarID.ToStringHyphenated());
-                result.Parameters.Add("?inventoryName", item.inventoryName);
-                result.Parameters.Add("?inventoryDescription", item.inventoryDescription);
-                result.Parameters.Add("?inventoryNextPermissions", item.inventoryNextPermissions.ToString());
-                result.Parameters.Add("?inventoryCurrentPermissions", item.inventoryCurrentPermissions.ToString());
-                result.Parameters.Add("?invType", item.invType);
-                result.Parameters.Add("?creatorID", item.creatorsID.ToStringHyphenated());
-                result.Parameters.Add("?inventoryBasePermissions", item.inventoryBasePermissions);
-                result.Parameters.Add("?inventoryEveryOnePermissions", item.inventoryEveryOnePermissions);
+                result.Parameters.AddWithValue("?inventoryID", item.inventoryID.ToStringHyphenated());
+                result.Parameters.AddWithValue("?assetID", item.assetID.ToStringHyphenated());
+                result.Parameters.AddWithValue("?assetType", item.assetType.ToString());
+                result.Parameters.AddWithValue("?parentFolderID", item.parentFolderID.ToStringHyphenated());
+                result.Parameters.AddWithValue("?avatarID", item.avatarID.ToStringHyphenated());
+                result.Parameters.AddWithValue("?inventoryName", item.inventoryName);
+                result.Parameters.AddWithValue("?inventoryDescription", item.inventoryDescription);
+                result.Parameters.AddWithValue("?inventoryNextPermissions", item.inventoryNextPermissions.ToString());
+                result.Parameters.AddWithValue("?inventoryCurrentPermissions", item.inventoryCurrentPermissions.ToString());
+                result.Parameters.AddWithValue("?invType", item.invType);
+                result.Parameters.AddWithValue("?creatorID", item.creatorsID.ToStringHyphenated());
+                result.Parameters.AddWithValue("?inventoryBasePermissions", item.inventoryBasePermissions);
+                result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.inventoryEveryOnePermissions);
                 result.ExecuteNonQuery();
                 result.Dispose();
             }
@@ -509,7 +456,7 @@ namespace OpenSim.Framework.Data.MySQL
             try
             {
                 MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryitems WHERE inventoryID=?uuid", database.Connection);
-                cmd.Parameters.Add("?uuid", itemID.ToStringHyphenated());
+                cmd.Parameters.AddWithValue("?uuid", itemID.ToStringHyphenated());
                 cmd.ExecuteNonQuery();
             }
             catch (MySqlException e)
@@ -529,12 +476,12 @@ namespace OpenSim.Framework.Data.MySQL
             sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?type, ?version)";
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
-            cmd.Parameters.Add("?folderID", folder.folderID.ToStringHyphenated());
-            cmd.Parameters.Add("?agentID", folder.agentID.ToStringHyphenated());
-            cmd.Parameters.Add("?parentFolderID", folder.parentID.ToStringHyphenated());
-            cmd.Parameters.Add("?folderName", folder.name);
-            cmd.Parameters.Add("?type", (short)folder.type);
-            cmd.Parameters.Add("?version", folder.version);
+            cmd.Parameters.AddWithValue("?folderID", folder.folderID.ToStringHyphenated());
+            cmd.Parameters.AddWithValue("?agentID", folder.agentID.ToStringHyphenated());
+            cmd.Parameters.AddWithValue("?parentFolderID", folder.parentID.ToStringHyphenated());
+            cmd.Parameters.AddWithValue("?folderName", folder.name);
+            cmd.Parameters.AddWithValue("?type", (short)folder.type);
+            cmd.Parameters.AddWithValue("?version", folder.version);
             
             try
             {
@@ -590,7 +537,7 @@ namespace OpenSim.Framework.Data.MySQL
             try
             {
                 MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryfolders WHERE folderID=?uuid", database.Connection);
-                cmd.Parameters.Add("?uuid", folderID.ToStringHyphenated());
+                cmd.Parameters.AddWithValue("?uuid", folderID.ToStringHyphenated());
                 cmd.ExecuteNonQuery();
             }
             catch (MySqlException e)
@@ -605,7 +552,7 @@ namespace OpenSim.Framework.Data.MySQL
             try
             {
                 MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryitems WHERE parentFolderID=?uuid", database.Connection);
-                cmd.Parameters.Add("?uuid", folderID.ToStringHyphenated());
+                cmd.Parameters.AddWithValue("?uuid", folderID.ToStringHyphenated());
                 cmd.ExecuteNonQuery();
             }
             catch (MySqlException e)
