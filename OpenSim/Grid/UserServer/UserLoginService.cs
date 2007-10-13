@@ -7,6 +7,7 @@ using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Types;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -38,7 +39,7 @@ namespace OpenSim.Grid.UserServer
                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
             // Destination
-            Console.WriteLine("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " + SimInfo.regionLocY);
+            MainLog.Instance.Verbose("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " + SimInfo.regionLocY);
             response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
             response.SimPort = (Int32)SimInfo.serverPort;
             response.RegionX = SimInfo.regionLocX;
@@ -49,7 +50,7 @@ namespace OpenSim.Grid.UserServer
             response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
 
             // Notify the target of an incoming user
-            Console.WriteLine("Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
+            MainLog.Instance.Verbose("Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
 
             // Prepare notification
             Hashtable SimParams = new Hashtable();
@@ -71,7 +72,7 @@ namespace OpenSim.Grid.UserServer
             theUser.currentAgent.currentRegion = SimInfo.UUID;
             theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-            System.Console.WriteLine("Informing region --> " + SimInfo.httpServerURI);
+            MainLog.Instance.Verbose("Informing region --> " + SimInfo.httpServerURI);
             // Send
             try
             {
@@ -84,6 +85,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     case WebExceptionStatus.Timeout:
                         //TODO: Send him to nearby or default region instead
+			MainLog.Instance.Verbose("Unable to connect to " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
                         break;
                        
                     default:
