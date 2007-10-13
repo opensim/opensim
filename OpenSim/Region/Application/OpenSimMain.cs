@@ -79,6 +79,7 @@ namespace OpenSim
         private bool standaloneAuthenticate = false;
         private string standaloneWelcomeMessage = null;
         private string standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
+        private string standaloneAssetPlugin = "OpenSim.Framework.Data.SQLite.dll";
         private string standaloneUserPlugin = "OpenSim.Framework.Data.DB4o.dll";
 
         private string m_assetStorage = "db4o";
@@ -132,7 +133,7 @@ namespace OpenSim
             standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
             standaloneInventoryPlugin = configSource.Configs["StandAlone"].GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
             standaloneUserPlugin = configSource.Configs["StandAlone"].GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
-
+            standaloneAssetPlugin = configSource.Configs["StandAlone"].GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
             m_networkServersInfo.loadFromConfiguration(configSource);
         }
 
@@ -283,7 +284,7 @@ namespace OpenSim
             }
             else
             {
-                assetServer = new SQLAssetServer("OpenSim.Framework.Data.SQLite.dll");
+                assetServer = new SQLAssetServer(standaloneAssetPlugin);
             }
             assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
             m_assetCache = new AssetCache(assetServer);

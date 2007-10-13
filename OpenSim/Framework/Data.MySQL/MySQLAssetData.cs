@@ -40,9 +40,28 @@ namespace OpenSim.Framework.Data.MySQL
 
         }
 
-        public AssetBase FetchAsset(LLUUID uuid)
+        public AssetBase FetchAsset(LLUUID assetID)
         {
-            throw new Exception("The method or operation is not implemented.");
+            AssetBase asset = null;
+
+            MySqlCommand cmd = new MySqlCommand("SELECT name, description, assetType, invType, local, temporary, data FROM assets WHERE id=?id", _dbConnection.Connection);
+            MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
+            p.Value = assetID.GetBytes();
+            using (MySqlDataReader dbReader = cmd.ExecuteReader(System.Data.CommandBehavior.SingleRow))
+            {
+                if (dbReader.Read())
+                {
+                    asset = new AssetBase();
+                    asset.Data = (byte[])dbReader["data"];
+                    asset.Description = (string)dbReader["description"];
+                    asset.FullID = assetID;
+                    asset.InvType = (sbyte)dbReader["invType"];
+                    asset.Local = ((sbyte)dbReader["local"]) != 0 ? true : false;
+                    asset.Name = (string)dbReader["name"];
+                    asset.Type = (sbyte)dbReader["assetType"];
+                }
+            }
+            return asset;
         }
 
         public void CreateAsset(AssetBase asset)
