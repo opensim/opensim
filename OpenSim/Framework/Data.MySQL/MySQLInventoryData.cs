@@ -225,10 +225,13 @@ namespace OpenSim.Framework.Data.MySQL
                     MySqlDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
-                    while(reader.Read())
+                    while (reader.Read())
                         items.Add(readInventoryFolder(reader));
 
-                    InventoryFolderBase rootFolder = items[0]; //should only be one folder with parent set to zero (the root one).
+                    InventoryFolderBase rootFolder = null;
+                    if (items.Count > 0)
+                        rootFolder = items[0]; //should only be one folder with parent set to zero (the root one).
+
                     reader.Close();
                     result.Dispose();
 
