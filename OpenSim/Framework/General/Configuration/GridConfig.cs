@@ -48,7 +48,8 @@ namespace OpenSim.Framework.Configuration
 
         public string DatabaseProvider = "";
 
-        public uint HttpPort = 8001;
+        public static uint DefaultHttpPort = 8001;
+        public uint HttpPort = DefaultHttpPort;
         
         private ConfigurationMember configMember;
         public GridConfig(string description, string filename)
@@ -60,11 +61,11 @@ namespace OpenSim.Framework.Configuration
         public void loadConfigurationOptions()
         {
             configMember.addConfigurationOption("grid_owner", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "OGS Grid Owner", "OGS development team", false);
-            configMember.addConfigurationOption("default_asset_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Asset Server URI", "http://127.0.0.1:8003/", false);
+            configMember.addConfigurationOption("default_asset_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default Asset Server URI", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/", false);
             configMember.addConfigurationOption("asset_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to asset server", "null", false);
             configMember.addConfigurationOption("asset_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from asset server", "null", false);
 
-            configMember.addConfigurationOption("default_user_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default User Server URI", "http://127.0.0.1:8002/", false);
+            configMember.addConfigurationOption("default_user_server", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Default User Server URI", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString() + "/", false);
             configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to send to user server", "null", false);
             configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from user server", "null", false);
 
@@ -72,7 +73,7 @@ namespace OpenSim.Framework.Configuration
             configMember.addConfigurationOption("sim_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "Key to expect from a simulator", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
 
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Http Listener port", "8001" , false);
+            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Http Listener port", DefaultHttpPort.ToString(), false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -109,7 +110,6 @@ namespace OpenSim.Framework.Configuration
                 case "database_provider":
                     this.DatabaseProvider = (string)configuration_result;
                     break;
-
                 case "http_port":
                     HttpPort = (uint)configuration_result;
                     break;

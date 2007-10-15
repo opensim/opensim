@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Types
             {
                 errorMessage = "needs an IP Address (IPAddress)";
             }
-            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port", (int)9000);
+            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port", NetworkServersInfo.DefaultHttpListenerPort);
 
             string externalHost = source.Configs[sectionName].GetString("external_host_name", "127.0.0.1");
             if (externalHost != "SYSTEMIP")
@@ -226,12 +226,11 @@ namespace OpenSim.Framework.Types
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);
             configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address", ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS, "Internal IP Address for incoming UDP client connections", "0.0.0.0", false);
-            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Internal IP Port for incoming UDP client connections", "9000", false);
+            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Internal IP Port for incoming UDP client connections", NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
             configMember.addConfigurationOption("external_host_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "External Host Name", "127.0.0.1", false);
             configMember.addConfigurationOption("master_avatar_first", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "First Name of Master Avatar", "Test", false);
             configMember.addConfigurationOption("master_avatar_last", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Last Name of Master Avatar", "User", false);
             configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "(Sandbox Mode Only)Password for Master Avatar account", "test", false);
-
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)

@@ -35,7 +35,7 @@ namespace OpenSim.Framework.Types
 {
     public class NetworkServersInfo
     {
-        public string AssetURL = "http://127.0.0.1:8003/";
+        public string AssetURL = "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/";
         public string AssetSendKey = "";
 
         public string GridURL = "";
@@ -46,7 +46,9 @@ namespace OpenSim.Framework.Types
         public string UserRecvKey = "";
         public bool isSandbox;
 
-        public int HttpListenerPort = 9000;
+        public static int DefaultHttpListenerPort = 9000;
+        public int HttpListenerPort = DefaultHttpListenerPort;
+
         public int RemotingListenerPort = 8895;
 
 
@@ -77,15 +79,15 @@ namespace OpenSim.Framework.Types
             m_defaultHomeLocX = (uint)config.Configs["StandAlone"].GetInt("default_location_x", 1000);
             m_defaultHomeLocY = (uint)config.Configs["StandAlone"].GetInt("default_location_y", 1000);
 
-            HttpListenerPort = config.Configs["Network"].GetInt("http_listener_port", 9000);
-            RemotingListenerPort = config.Configs["Network"].GetInt("remoting_listener_port", 8895);
-            GridURL = config.Configs["Network"].GetString("grid_server_url", "http://127.0.0.1:8001");
+            HttpListenerPort = config.Configs["Network"].GetInt("http_listener_port", DefaultHttpListenerPort);
+            RemotingListenerPort = config.Configs["Network"].GetInt("remoting_listener_port", RemotingListenerPort);
+            GridURL = config.Configs["Network"].GetString("grid_server_url", "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString());
             GridSendKey = config.Configs["Network"].GetString("grid_send_key", "null");
             GridRecvKey = config.Configs["Network"].GetString("grid_recv_key", "null");
-            UserURL = config.Configs["Network"].GetString("user_server_url", "http://127.0.0.1:8002");
+            UserURL = config.Configs["Network"].GetString("user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString());
             UserSendKey = config.Configs["Network"].GetString("user_send_key", "null");
             UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
-            AssetURL = config.Configs["Network"].GetString("asset_server_url", "http://127.0.0.1:8003");
+            AssetURL = config.Configs["Network"].GetString("asset_server_url", AssetURL);
 
         }
     }

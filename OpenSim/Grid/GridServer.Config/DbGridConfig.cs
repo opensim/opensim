@@ -27,6 +27,7 @@
 */
 using System;
 using Db4objects.Db4o;
+using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 
@@ -68,12 +69,12 @@ namespace OpenGrid.Config.GridConfigDb4o
 			this.GridOwner = MainLog.Instance.CmdPrompt("Grid owner", "OGS development team");
 
             // Asset Options
-			this.DefaultAssetServer = MainLog.Instance.CmdPrompt("Default asset server","http://127.0.0.1:8003/");
+			this.DefaultAssetServer = MainLog.Instance.CmdPrompt("Default asset server","http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/");
             this.AssetSendKey = MainLog.Instance.CmdPrompt("Key to send to asset server","null");
             this.AssetRecvKey = MainLog.Instance.CmdPrompt("Key to expect from asset server","null");
 
             // User Server Options
-	        this.DefaultUserServer = MainLog.Instance.CmdPrompt("Default user server","http://127.0.0.1:8002/");
+	        this.DefaultUserServer = MainLog.Instance.CmdPrompt("Default user server","http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString() + "/");
         	this.UserSendKey = MainLog.Instance.CmdPrompt("Key to send to user server","null");
         	this.UserRecvKey = MainLog.Instance.CmdPrompt("Key to expect from user server","null");
 

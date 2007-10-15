@@ -27,6 +27,7 @@
 */
 using System;
 using Db4objects.Db4o;
+using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 
@@ -50,7 +51,7 @@ namespace OpenUser.Config.UserConfigDb4o
 			
 			this.DefaultStartupMsg = MainLog.Instance.CmdPrompt("Default startup message", "Welcome to OGS");
 
-			this.GridServerURL = MainLog.Instance.CmdPrompt("Grid server URL","http://127.0.0.1:8001/");
+			this.GridServerURL = MainLog.Instance.CmdPrompt("Grid server URL","http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString() + "/");
             		this.GridSendKey = MainLog.Instance.CmdPrompt("Key to send to grid server","null");
             		this.GridRecvKey = MainLog.Instance.CmdPrompt("Key to expect from grid server","null");
 		}

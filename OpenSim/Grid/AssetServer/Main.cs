@@ -30,6 +30,7 @@ using System;
 using System.IO;
 
 using libsecondlife;
+using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Configuration;
@@ -50,6 +51,8 @@ namespace OpenSim.Grid.AssetServer
     /// </summary>
     public class OpenAsset_Main : conscmd_callback
     {
+        public AssetConfig Cfg;
+
         public static OpenAsset_Main assetserver;
 
         private LogBase m_console;
@@ -95,7 +98,7 @@ namespace OpenSim.Grid.AssetServer
             setupDB(m_config);
 
             m_console.Verbose("ASSET", "Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(8003);
+            BaseHttpServer httpServer = new BaseHttpServer((int)Cfg.HttpPort);
 
             httpServer.AddStreamHandler( new GetAssetStreamHandler(this));
             httpServer.AddStreamHandler(new PostAssetStreamHandler( this ));

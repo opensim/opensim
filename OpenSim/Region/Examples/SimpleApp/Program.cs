@@ -53,14 +53,12 @@ namespace SimpleApp
 
         protected override void Initialize()
         {
-            m_httpServerPort = 9000;
-
             StartLog();
 
             m_networkServersInfo = new NetworkServersInfo( 1000, 1000 );
 
             LocalAssetServer assetServer = new LocalAssetServer();
-            assetServer.SetServerInfo("http://localhost:8003/", "");
+            assetServer.SetServerInfo(m_networkServersInfo.AssetURL, "");
 
             m_assetCache = new AssetCache(assetServer);
         }
@@ -83,8 +81,8 @@ namespace SimpleApp
 
             m_log.Notice(m_log.LineInfo);
             
-            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
-           
+            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), m_networkServersInfo.HttpListenerPort);
+
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
             regionInfo.DataStore = "simpleapp_datastore.yap";
             
