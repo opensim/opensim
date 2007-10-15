@@ -75,7 +75,7 @@ namespace OpenSim.Region.Environment
             }
         }
 
-        private void InitializeModule(IRegionModule module, Scene scene)
+        public void InitializeModule(IRegionModule module, Scene scene)
         {
             module.Initialise(scene);
             scene.AddModule(module.Name, module);

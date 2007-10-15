@@ -96,9 +96,10 @@ namespace OpenSim.Region.Environment.Modules
         public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
                                            string extraParams, int updateTimer)
         {
-            Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
             if (RenderPlugins.ContainsKey(contentType))
             {
+                //Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
+            
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
                 updater.SimUUID = simID;
                 updater.PrimID = primID;
@@ -166,12 +167,16 @@ namespace OpenSim.Region.Environment.Modules
             public void DataReceived(byte[] data, Scene scene)
             {
                 //TODO delete the last asset(data), if it was a dynamic texture
-
+                byte[] assetData = new byte[data.Length];
+                Array.Copy(data, assetData, data.Length);
                 AssetBase asset = new AssetBase();
                 asset.FullID = LLUUID.Random();
-                asset.Data = data;
+                asset.Data = assetData;
                 asset.Name = "DynamicImage" + Util.RandomClass.Next(1, 10000);
                 asset.Type = 0;
+                asset.Description = "dynamic image";
+                asset.Local = false;
+                asset.Temporary = false;
                 scene.commsManager.AssetCache.AddAsset(asset);
 
                 LastAssetID = asset.FullID;
