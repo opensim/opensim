@@ -31,6 +31,6 @@ namespace OpenSim
     /// </summary>
     public class VersionInfo
     {
-        public static string Version = "0.3, SVN build ";
+        public static string Version = "0.4, SVN build ";
     }
 }
