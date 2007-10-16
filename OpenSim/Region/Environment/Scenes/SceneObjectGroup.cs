@@ -1318,7 +1318,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            m_scene.EventManager.TriggerGroupGrab(this.UUID, offsetPos);
+            m_scene.EventManager.TriggerGroupGrab(this.UUID, offsetPos, remoteClient.AgentId);
         }
 
         public void DeleteGroup()

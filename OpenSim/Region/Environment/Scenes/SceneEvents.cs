@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event SceneGroupMoved OnSceneGroupMove;
 
-        public delegate void SceneGroupGrabed(LLUUID groupID, LLVector3 offset);
+        public delegate void SceneGroupGrabed(LLUUID groupID, LLVector3 offset, LLUUID userID);
 
         public event SceneGroupGrabed OnSceneGroupGrab;
 
@@ -198,11 +198,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerGroupGrab(LLUUID groupID, LLVector3 offset)
+        public void TriggerGroupGrab(LLUUID groupID, LLVector3 offset, LLUUID userID)
         {
             if (OnSceneGroupGrab != null)
             {
-                OnSceneGroupGrab(groupID, offset);
+                OnSceneGroupGrab(groupID, offset, userID);
             }
         }
     }
