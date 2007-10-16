@@ -69,7 +69,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected byte[] m_particleSystem = new byte[0];
 
+        [XmlIgnore] 
         public uint TimeStampFull = 0;
+        [XmlIgnore] 
         public uint TimeStampTerse = 0;
 
         protected SceneObjectGroup m_parentGroup;
