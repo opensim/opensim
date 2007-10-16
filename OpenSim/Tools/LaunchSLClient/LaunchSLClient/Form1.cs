@@ -71,7 +71,11 @@ namespace LaunchSLClient
             regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Linden Research, Inc.\SecondLife");
             if (regKey == null)
             {
-                throw new LauncherException("Can't find Second Life. Are you sure it is installed?", "LauncherException.Form1");
+                regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Linden Research, Inc.\SecondLife");
+                if (regKey == null)
+                {
+                    throw new LauncherException("Can't find Second Life. Are you sure it is installed?", "LauncherException.Form1");
+                }
             }
             Object exe = regKey.GetValue("Exe");
             exeFlags = regKey.GetValue("Flags");
