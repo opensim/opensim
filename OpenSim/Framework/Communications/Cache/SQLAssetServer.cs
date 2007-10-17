@@ -61,6 +61,11 @@ namespace OpenSim.Framework.Communications.Caches
 
         }
 
+        public SQLAssetServer( IAssetProvider assetProvider )
+        {
+            m_assetProviderPlugin = assetProvider;
+        }
+
         public void AddPlugin(string FileName)
         {
             MainLog.Instance.Verbose("SQLAssetServer", "AssetStorage: Attempting to load " + FileName);

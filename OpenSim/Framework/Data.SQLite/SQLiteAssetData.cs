@@ -101,15 +101,8 @@ namespace OpenSim.Framework.Data.SQLite
         
         public void UpdateAsset(AssetBase asset) 
         {
-            MainLog.Instance.Verbose("AssetStorage", 
-                                     "Asset: " + asset.FullID + 
-                                     ", Name: " + asset.Name +
-                                     ", Description: " + asset.Description +
-                                     ", Type: " + asset.Type +
-                                     ", InvType: " + asset.InvType +
-                                     ", Temporary: " + asset.Temporary +
-                                     ", Local: " + asset.Local + 
-                                     ", Data Length: " + asset.Data.Length );
+            LogAssetLoad(asset);
+
             DataTable assets = ds.Tables["assets"];
             lock(ds) {
                 DataRow row = assets.Rows.Find(asset.FullID);
@@ -124,6 +117,16 @@ namespace OpenSim.Framework.Data.SQLite
                     fillAssetRow(row, asset);
                 }
             }
+        }
+
+        private void LogAssetLoad(AssetBase asset)
+        {
+            string temporary = asset.Temporary ? "Temporary" : "Stored";
+            string local = asset.Local ? "Local" : "Remote";
+
+            MainLog.Instance.Verbose("ASSETSTORAGE", 
+                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)", 
+                                                   asset.FullID, asset.Name, asset.Description, asset.Type, asset.InvType, temporary, local, asset.Data.Length) );
         }
 
         public bool ExistsAsset(LLUUID uuid)
