@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <summary>
         /// A list of the current regions connected (in-memory cache)
         /// </summary>
-        public Dictionary<LLUUID, SimProfileData> simProfiles = new Dictionary<LLUUID, SimProfileData>();
+        public Dictionary<LLUUID, RegionProfileData> simProfiles = new Dictionary<LLUUID, RegionProfileData>();
         /// <summary>
         /// Database File Name
         /// </summary>
@@ -56,9 +56,10 @@ namespace OpenSim.Framework.Data.DB4o
             dbfl = db4odb;
             IObjectContainer database;
             database = Db4oFactory.OpenFile(dbfl);
-            IObjectSet result = database.Get(typeof(SimProfileData));
+            IObjectSet result = database.Get(typeof(RegionProfileData));
             // Loads the file into the in-memory cache
-            foreach(SimProfileData row in result) {
+            foreach (RegionProfileData row in result)
+            {
                 simProfiles.Add(row.UUID, row);
             }
             database.Close();
@@ -69,7 +70,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="row">The profile to add</param>
         /// <returns>Successful?</returns>
-        public bool AddRow(SimProfileData row)
+        public bool AddRow(RegionProfileData row)
         {
             if (simProfiles.ContainsKey(row.UUID))
             {

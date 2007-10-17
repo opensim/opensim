@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Data
     /// <summary>
     /// A class which contains information known to the grid server about a region
     /// </summary>
-    public class SimProfileData
+    public class RegionProfileData
     {
         /// <summary>
         /// The name of the region
@@ -124,7 +124,7 @@ namespace OpenSim.Framework.Data
         /// <param name="gridserver_url"></param>
         /// <param name="?"></param>
         /// <returns></returns>
-        public SimProfileData RequestSimProfileData(LLUUID region_uuid, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
+        public RegionProfileData RequestSimProfileData(LLUUID region_uuid, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();
             requestData["region_uuid"] = region_uuid.UUID.ToString();
@@ -141,7 +141,7 @@ namespace OpenSim.Framework.Data
                 return null;
             }
 
-            SimProfileData simData = new SimProfileData();
+            RegionProfileData simData = new RegionProfileData();
             simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
             simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
             simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Data
 
             return simData;            
         }
-        public SimProfileData RequestSimProfileData(ulong region_handle, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
+        public RegionProfileData RequestSimProfileData(ulong region_handle, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();
             requestData["region_handle"] = region_handle.ToString();
@@ -173,7 +173,7 @@ namespace OpenSim.Framework.Data
                 return null;
             }
 
-            SimProfileData simData = new SimProfileData();
+            RegionProfileData simData = new RegionProfileData();
             simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
             simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
             simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));

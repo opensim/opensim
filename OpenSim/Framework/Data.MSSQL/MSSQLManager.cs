@@ -98,9 +98,9 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="reader">An active database reader</param>
         /// <returns>A region row</returns>
-        public SimProfileData getRow(IDataReader reader)
+        public RegionProfileData getRow(IDataReader reader)
         {
-            SimProfileData regionprofile = new SimProfileData();
+            RegionProfileData regionprofile = new RegionProfileData();
 
             if (reader.Read())
             {
@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="profile">The region profile to insert</param>
         /// <returns>Successful?</returns>
-        public bool insertRow(SimProfileData profile)
+        public bool insertRow(RegionProfileData profile)
         {
             string sql = "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";

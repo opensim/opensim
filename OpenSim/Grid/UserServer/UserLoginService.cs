@@ -57,7 +57,7 @@ namespace OpenSim.Grid.UserServer
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
         {
             // Load information from the gridserver
-            SimProfileData SimInfo = new SimProfileData();
+            RegionProfileData SimInfo = new RegionProfileData();
             SimInfo = SimInfo.RequestSimProfileData(theUser.currentAgent.currentHandle, m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
 
             // Customise the response

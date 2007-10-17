@@ -47,14 +47,14 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <param name="regionHandle">A 64bit Region Handle</param>
         /// <returns>A simprofile</returns>
-        SimProfileData GetProfileByHandle(ulong regionHandle);
+        RegionProfileData GetProfileByHandle(ulong regionHandle);
 
         /// <summary>
         /// Returns a sim profile from a UUID
         /// </summary>
         /// <param name="UUID">A 128bit UUID</param>
         /// <returns>A sim profile</returns>
-        SimProfileData GetProfileByLLUUID(LLUUID UUID);
+        RegionProfileData GetProfileByLLUUID(LLUUID UUID);
 
         /// <summary>
         /// Returns all profiles within the specified range
@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Data
         /// <param name="Xmax">Maximum sim coordinate (X)</param>
         /// <param name="Ymin">Maximum sim coordinate (Y)</param>
         /// <returns>An array containing all the sim profiles in the specified range</returns>
-        SimProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
+        RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
 
         /// <summary>
         /// Authenticates a sim by use of it's recv key. 
@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>RESPONSE_OK if successful, error if not.</returns>
-        DataResponse AddProfile(SimProfileData profile);
+        DataResponse AddProfile(RegionProfileData profile);
 
         ReservationData GetReservationAtPoint(uint x, uint y);
 

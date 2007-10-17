@@ -267,9 +267,9 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="reader">An active database reader</param>
         /// <returns>A region profile</returns>
-        public SimProfileData readSimRow(IDataReader reader)
+        public RegionProfileData readSimRow(IDataReader reader)
         {
-            SimProfileData retval = new SimProfileData();
+            RegionProfileData retval = new RegionProfileData();
 
             if (reader.Read())
             {
@@ -583,7 +583,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="profile">The region to insert</param>
         /// <returns>Success?</returns>
-        public bool insertRegion(SimProfileData regiondata)
+        public bool insertRegion(RegionProfileData regiondata)
         {
             string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";

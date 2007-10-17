@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="c">maximum X coordinate</param>
         /// <param name="d">maximum Y coordinate</param>
         /// <returns>An array of region profiles</returns>
-        public SimProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
         }
@@ -66,7 +66,8 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="handle">The handle to search for</param>
         /// <returns>A region profile</returns>
-        public SimProfileData GetProfileByHandle(ulong handle) {
+        public RegionProfileData GetProfileByHandle(ulong handle)
+        {
             lock (manager.simProfiles)
             {
                 foreach (LLUUID UUID in manager.simProfiles.Keys)
@@ -85,7 +86,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="uuid">The region ID code</param>
         /// <returns>A region profile</returns>
-        public SimProfileData GetProfileByLLUUID(LLUUID uuid)
+        public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             lock (manager.simProfiles)
             {
@@ -100,7 +101,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>A dataresponse enum indicating success</returns>
-        public DataResponse AddProfile(SimProfileData profile)
+        public DataResponse AddProfile(RegionProfileData profile)
         {
             lock (manager.simProfiles)
             {

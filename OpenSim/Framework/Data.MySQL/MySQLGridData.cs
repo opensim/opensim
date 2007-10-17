@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="xmax">Maximum X coordinate</param>
         /// <param name="ymax">Maximum Y coordinate</param>
         /// <returns></returns>
-        public SimProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
+        public RegionProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
         {
             try
             {
@@ -111,9 +111,9 @@ namespace OpenSim.Framework.Data.MySQL
                     IDbCommand result = database.Query("SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax", param);
                     IDataReader reader = result.ExecuteReader();
 
-                    SimProfileData row;
+                    RegionProfileData row;
 
-                    List<SimProfileData> rows = new List<SimProfileData>();
+                    List<RegionProfileData> rows = new List<RegionProfileData>();
 
                     while ((row = database.readSimRow(reader)) != null)
                     {
@@ -139,7 +139,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="handle">Region location handle</param>
         /// <returns>Sim profile</returns>
-        public SimProfileData GetProfileByHandle(ulong handle)
+        public RegionProfileData GetProfileByHandle(ulong handle)
         {
             try
             {
@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Data.MySQL
                     IDbCommand result = database.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
                     IDataReader reader = result.ExecuteReader();
 
-                    SimProfileData row = database.readSimRow(reader);
+                    RegionProfileData row = database.readSimRow(reader);
                     reader.Close();
                     result.Dispose();
 
@@ -171,7 +171,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        public SimProfileData GetProfileByLLUUID(LLUUID uuid)
+        public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             try
             {
@@ -183,7 +183,7 @@ namespace OpenSim.Framework.Data.MySQL
                     IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
                     IDataReader reader = result.ExecuteReader();
 
-                    SimProfileData row = database.readSimRow(reader);
+                    RegionProfileData row = database.readSimRow(reader);
                     reader.Close();
                     result.Dispose();
 
@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>Successful?</returns>
-        public DataResponse AddProfile(SimProfileData profile)
+        public DataResponse AddProfile(RegionProfileData profile)
         {
             lock (database)
             {
@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Data.MySQL
             if (throwHissyFit)
                 throw new Exception("CRYPTOWEAK AUTHENTICATE: Refusing to authenticate due to replay potential.");
 
-            SimProfileData data = GetProfileByLLUUID(uuid);
+            RegionProfileData data = GetProfileByLLUUID(uuid);
 
             return (handle == data.regionHandle && authkey == data.regionSecret);
         }

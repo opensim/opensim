@@ -122,7 +122,7 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="uuid">A UUID key of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
-        public SimProfileData getRegion(LLUUID uuid)
+        public RegionProfileData getRegion(LLUUID uuid)
         {
             foreach(KeyValuePair<string,IGridData> kvp in _plugins) {
                 try
@@ -142,7 +142,7 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="uuid">A regionHandle of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
-        public SimProfileData getRegion(ulong handle)
+        public RegionProfileData getRegion(ulong handle)
         {
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
@@ -158,16 +158,16 @@ namespace OpenSim.Grid.GridServer
             return null;
         }
 
-        public Dictionary<ulong, SimProfileData> getRegions(uint xmin, uint ymin, uint xmax, uint ymax)
+        public Dictionary<ulong, RegionProfileData> getRegions(uint xmin, uint ymin, uint xmax, uint ymax)
         {
-            Dictionary<ulong, SimProfileData> regions = new Dictionary<ulong, SimProfileData>();
+            Dictionary<ulong, RegionProfileData> regions = new Dictionary<ulong, RegionProfileData>();
 
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
                 try
                 {
-                    SimProfileData[] neighbours = kvp.Value.GetProfilesInRange(xmin, ymin, xmax, ymax);
-                    foreach (SimProfileData neighbour in neighbours)
+                    RegionProfileData[] neighbours = kvp.Value.GetProfilesInRange(xmin, ymin, xmax, ymax);
+                    foreach (RegionProfileData neighbour in neighbours)
                     {
                         regions[neighbour.regionHandle] = neighbour;
                     }
@@ -191,8 +191,8 @@ namespace OpenSim.Grid.GridServer
         public string GetXMLNeighbours(ulong reqhandle)
         {
             string response = "";
-            SimProfileData central_region = getRegion(reqhandle);
-            SimProfileData neighbour;
+            RegionProfileData central_region = getRegion(reqhandle);
+            RegionProfileData neighbour;
             for (int x = -1; x < 2; x++) for (int y = -1; y < 2; y++)
                 {
                     if (getRegion(Util.UIntsToLong((uint)((central_region.regionLocX + x) * 256), (uint)(central_region.regionLocY + y) * 256)) != null)
@@ -223,7 +223,7 @@ namespace OpenSim.Grid.GridServer
             Hashtable responseData = new Hashtable();
             response.Value = responseData;
 
-            SimProfileData TheSim = null;
+            RegionProfileData TheSim = null;
             Hashtable requestData = (Hashtable)request.Params[0];
             string myword;
             if (requestData.ContainsKey("UUID"))
@@ -254,7 +254,7 @@ namespace OpenSim.Grid.GridServer
                 myword = "connection";
             }
 
-                TheSim = new SimProfileData();
+                TheSim = new RegionProfileData();
 
                 TheSim.regionRecvKey = config.SimRecvKey;
                 TheSim.regionSendKey = config.SimSendKey;
@@ -325,16 +325,16 @@ namespace OpenSim.Grid.GridServer
 
             ArrayList SimNeighboursData = new ArrayList();
 
-            SimProfileData neighbour;
+            RegionProfileData neighbour;
             Hashtable NeighbourBlock;
 
             bool fastMode = false; // Only compatible with MySQL right now
 
             if (fastMode)
             {
-                Dictionary<ulong, SimProfileData> neighbours = getRegions(TheSim.regionLocX - 1, TheSim.regionLocY - 1, TheSim.regionLocX + 1, TheSim.regionLocY + 1);
+                Dictionary<ulong, RegionProfileData> neighbours = getRegions(TheSim.regionLocX - 1, TheSim.regionLocY - 1, TheSim.regionLocX + 1, TheSim.regionLocY + 1);
 
-                foreach (KeyValuePair<ulong, SimProfileData> aSim in neighbours)
+                foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
                 {
                     NeighbourBlock = new Hashtable();
                     NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.Value.serverIP.ToString()).ToString();
@@ -395,7 +395,7 @@ namespace OpenSim.Grid.GridServer
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable responseData = new Hashtable();
-            SimProfileData simData = null;
+            RegionProfileData simData = null;
             if (requestData.ContainsKey("region_UUID"))
             {
                 simData = getRegion(new LLUUID((string)requestData["region_UUID"]));
@@ -461,9 +461,9 @@ namespace OpenSim.Grid.GridServer
 
             if (fastMode)
             {
-                Dictionary<ulong, SimProfileData> neighbours = getRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
+                Dictionary<ulong, RegionProfileData> neighbours = getRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
 
-                foreach (KeyValuePair<ulong, SimProfileData> aSim in neighbours)
+                foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
                 {
                     Hashtable simProfileBlock = new Hashtable();
                     simProfileBlock["x"] = aSim.Value.regionLocX.ToString();
@@ -489,7 +489,7 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                SimProfileData simProfile;
+                RegionProfileData simProfile;
                 for (int x = xmin; x < xmax+1; x++)
                 {
                     for (int y = ymin; y < ymax+1; y++)
@@ -564,7 +564,7 @@ namespace OpenSim.Grid.GridServer
         {
             string respstring = String.Empty;
 
-            SimProfileData TheSim;
+            RegionProfileData TheSim;
             LLUUID UUID = new LLUUID(param);
             TheSim = getRegion(UUID);
 
@@ -598,11 +598,11 @@ namespace OpenSim.Grid.GridServer
         public string RestSetSimMethod(string request, string path, string param)
         {
             Console.WriteLine("Processing region update via REST method");
-            SimProfileData TheSim;
+            RegionProfileData TheSim;
             TheSim = getRegion(new LLUUID(param));
             if ((TheSim) == null)
             {
-                TheSim = new SimProfileData();
+                TheSim = new RegionProfileData();
                 LLUUID UUID = new LLUUID(param);
                 TheSim.UUID = UUID;
                 TheSim.regionRecvKey = config.SimRecvKey;
