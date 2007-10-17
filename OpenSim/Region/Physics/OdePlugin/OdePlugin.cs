@@ -409,7 +409,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceRemove(space, LandGeom);
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 0);
+                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 1);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 this.geom_name_map[LandGeom]="Terrain";
