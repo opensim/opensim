@@ -68,6 +68,7 @@ namespace OpenSim
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
         protected string m_startupCommandsFile = "";
+        protected string m_shutdownCommandsFile = "";
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
@@ -119,6 +120,7 @@ namespace OpenSim
             m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
             m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
+            m_shutdownCommandsFile = configSource.Configs["Startup"].GetString("shutdown_console_commands_file", "");
 
             m_scriptEngine = configSource.Configs["Startup"].GetString("script_engine", "DotNetEngine");
 
@@ -343,6 +345,11 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
+            if (m_startupCommandsFile != "")
+            {
+                RunCommandScript(m_shutdownCommandsFile);
+            }
+
             m_log.Verbose("Closing all threads");
             m_log.Verbose("Killing listener thread");
             m_log.Verbose("Killing clients");
