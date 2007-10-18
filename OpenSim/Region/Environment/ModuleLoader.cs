@@ -169,12 +169,6 @@ namespace OpenSim.Region.Environment
                     {
                         if (!pluginType.IsAbstract)
                         {
-                            //if (dllName.Contains("OpenSim.Region.Environment"))
-                            //{
-                            //    int i = 1;
-                            //    i++;
-                            //}
-
                             if( pluginType.GetInterface("IRegionModule") != null )
                             {
                                 modules.Add((IRegionModule) Activator.CreateInstance(pluginType));
