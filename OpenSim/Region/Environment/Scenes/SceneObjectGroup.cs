@@ -270,26 +270,31 @@ namespace OpenSim.Region.Environment.Scenes
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
             reader.Read();
+          
             reader.ReadStartElement("SceneObjectGroup");
            // reader.ReadStartElement("RootPart");
             m_rootPart = SceneObjectPart.FromXml(reader);
-            //reader.ReadEndElement();
 
-            while (reader.Read())
+            reader.Read();
+            bool more = true;
+
+            while (more)
             {
                 switch (reader.NodeType)
                 {
                     case XmlNodeType.Element:
                         if (reader.Name == "SceneObjectPart")
                         {
-                           // reader.Read();
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
                             AddPart(Part);
+                            
                         }
                         break;
                     case XmlNodeType.EndElement:
+                        reader.Read();      
                         break;
                 }
+               more = !reader.EOF;
             }
             reader.Close();
             sr.Close();

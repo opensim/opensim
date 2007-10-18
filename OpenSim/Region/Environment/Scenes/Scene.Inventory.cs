@@ -394,27 +394,30 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemUpdate(item);
                             }
 
-                            SceneObjectPart rootPart =
-                                ((SceneObjectGroup) selectedEnt).GetChildPart(((SceneObjectGroup) selectedEnt).UUID);
-                            if (rootPart.PhysActor != null)
-                            {
-                                phyScene.RemovePrim(rootPart.PhysActor);
-                                rootPart.PhysActor = null;
-                            }
-
-                            storageManager.DataStore.RemoveObject(((SceneObjectGroup) selectedEnt).UUID,
-                                                                  m_regInfo.RegionID);
-                            ((SceneObjectGroup) selectedEnt).DeleteGroup();
-
-                            lock (Entities)
-                            {
-                                Entities.Remove(((SceneObjectGroup) selectedEnt).UUID);
-                            }
-                            ((SceneObjectGroup) selectedEnt).DeleteParts();
+                            DeleteSceneObjectGroup((SceneObjectGroup)selectedEnt);
                         }
                     }
                 }
             }
+        }
+
+        public void DeleteSceneObjectGroup(SceneObjectGroup group)
+        {
+            SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
+            if (rootPart.PhysActor != null)
+            {
+                phyScene.RemovePrim(rootPart.PhysActor);
+                rootPart.PhysActor = null;
+            }
+
+            storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
+            group.DeleteGroup();
+
+            lock (Entities)
+            {
+                Entities.Remove(group.UUID);
+            }
+            group.DeleteParts();
         }
 
         public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
