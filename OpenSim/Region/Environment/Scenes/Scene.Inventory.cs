@@ -403,7 +403,7 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             storageManager.DataStore.RemoveObject(((SceneObjectGroup) selectedEnt).UUID,
-                                                                  m_regInfo.SimUUID);
+                                                                  m_regInfo.RegionID);
                             ((SceneObjectGroup) selectedEnt).DeleteGroup();
 
                             lock (Entities)

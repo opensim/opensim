@@ -482,6 +482,7 @@ namespace OpenSim.Grid.GridServer
                     simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
                     simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
                     simProfileBlock["uuid"] = aSim.Value.UUID.ToStringHyphenated();
+                    simProfileBlock["remoting_port"] = aSim.Value.remotingPort;
 
                     simProfileList.Add(simProfileBlock);
                 }

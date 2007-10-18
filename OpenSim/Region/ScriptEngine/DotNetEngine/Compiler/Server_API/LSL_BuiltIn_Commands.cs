@@ -1221,7 +1221,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             if (dynamicID == "")
             {
                 IDynamicTextureManager textureManager = this.World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture = textureManager.AddDynamicTextureURL(World.RegionInfo.SimUUID, this.m_host.UUID, contentType, url, extraParams, timer);
+                LLUUID createdTexture = textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, this.m_host.UUID, contentType, url, extraParams, timer);
                 return createdTexture.ToStringHyphenated();
             }
             else

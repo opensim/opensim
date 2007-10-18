@@ -30,9 +30,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Security.Authentication;
+
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -78,7 +81,7 @@ namespace OpenSim.Region.Communications.OGS1
             // Login / Authentication
 
             GridParams["authkey"] = serversInfo.GridSendKey;
-            GridParams["UUID"] = regionInfo.SimUUID.ToStringHyphenated();
+            GridParams["UUID"] = regionInfo.RegionID.ToStringHyphenated();
             GridParams["sim_ip"] = regionInfo.ExternalHostName;
             GridParams["sim_port"] = regionInfo.InternalEndPoint.Port.ToString();
             GridParams["region_locx"] = regionInfo.RegionLocX.ToString();
@@ -115,12 +118,12 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
+        public List<SimpleRegionInfo> RequestNeighbours(uint x, uint y)
         {
 
-            Hashtable respData = MapBlockQuery((int)regionInfo.RegionLocX - 1, (int)regionInfo.RegionLocY - 1, (int)regionInfo.RegionLocX + 1, (int)regionInfo.RegionLocY + 1);
+            Hashtable respData = MapBlockQuery((int)x - 1, (int)y - 1, (int)x + 1, (int)y + 1);
 
-            List<RegionInfo> neighbours = new List<RegionInfo>();
+            List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
 
             foreach (ArrayList neighboursList in respData.Values)
             {
@@ -128,27 +131,20 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     uint regX = Convert.ToUInt32(neighbourData["x"]);
                     uint regY = Convert.ToUInt32(neighbourData["y"]);
-                    if ((regionInfo.RegionLocX != regX) || (regionInfo.RegionLocY != regY))
+                    if ((x != regX) || (y != regY))
                     {
+
                         string simIp = (string)neighbourData["sim_ip"];
 
-                        uint port = Convert.ToUInt32(neighbourData["sim_port"]);
+                        int port = Convert.ToInt32(neighbourData["sim_port"]);
                         string externalUri = (string)neighbourData["sim_uri"];
 
                         string externalIpStr = OpenSim.Framework.Utilities.Util.GetHostFromDNS(simIp).ToString();
-                        IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(externalIpStr), (int)port);
-                        string neighbourExternalUri = externalUri;
-                        RegionInfo neighbour = new RegionInfo(regX, regY, neighbourInternalEndPoint, externalIpStr);
+                        SimpleRegionInfo sri = new SimpleRegionInfo(regX, regY, simIp, port);
+                        sri.RemotingPort = Convert.ToUInt32(neighbourData["remoting_port"]);
+                        sri.RegionID = new LLUUID((string)neighbourData["uuid"]);
 
-                        //OGS1
-                        //neighbour.RegionHandle = (ulong)n["regionhandle"]; is now calculated locally
-
-                        neighbour.RegionName = (string)neighbourData["name"];
-
-                        //OGS1+
-                        neighbour.SimUUID = new LLUUID((string)neighbourData["uuid"]);
-
-                        neighbours.Add(neighbour);
+                        neighbours.Add(sri);
                     }
                 }
             }
@@ -199,7 +195,7 @@ namespace OpenSim.Region.Communications.OGS1
             regionInfo.RemotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
             regionInfo.RemotingAddress = internalIpStr;
 
-            regionInfo.SimUUID = new LLUUID((string)responseData["region_UUID"]);
+            regionInfo.RegionID = new LLUUID((string)responseData["region_UUID"]);
             regionInfo.RegionName = (string)responseData["region_name"];
 
             return regionInfo;
@@ -365,6 +361,7 @@ namespace OpenSim.Region.Communications.OGS1
                     OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
                         typeof(OGS1InterRegionRemoting),
                         "tcp://" + regInfo.RemotingAddress + ":" + regInfo.RemotingPort + "/InterRegions");
+                    
                     if (remObject != null)
                     {
                         retValue = remObject.InformRegionOfChildAgent(regionHandle, agentData);
@@ -386,10 +383,27 @@ namespace OpenSim.Region.Communications.OGS1
                 MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;
             }
-            catch
+            catch (SocketException e)
             {
+                MainLog.Instance.Error("Socket Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;
             }
+            catch (InvalidCredentialException e)
+            {
+                MainLog.Instance.Error("Invalid Credentials: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch (AuthenticationException e)
+            {
+                MainLog.Instance.Error("Authentication exception: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error("Unknown exception: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            return true;
         }
 
         /// <summary>

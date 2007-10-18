@@ -519,7 +519,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             AssetLandmark lm = new AssetLandmark(lma);
 
-                            if (lm.RegionID == m_scene.RegionInfo.SimUUID)
+                            if (lm.RegionID == m_scene.RegionInfo.RegionID)
                             {
                                 TeleportLocalPacket tpLocal = new TeleportLocalPacket();
 

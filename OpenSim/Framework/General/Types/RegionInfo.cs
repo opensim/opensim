@@ -40,19 +40,50 @@ using OpenSim.Framework.Configuration;
 
 namespace OpenSim.Framework.Types
 {
-    public class RegionInfo
+    public class SimpleRegionInfo
     {
-        public LLUUID SimUUID = new LLUUID();
-        public string RegionName = "";
+        public SimpleRegionInfo()
+        {
+        }
 
-        private IPEndPoint m_internalEndPoint;
-        public IPEndPoint InternalEndPoint
+        public SimpleRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
+        {
+
+            m_regionLocX = regionLocX;
+            m_regionLocY = regionLocY;
+
+            m_internalEndPoint = internalEndPoint;
+            m_externalHostName = externalUri;
+        }
+
+        public SimpleRegionInfo(uint regionLocX, uint regionLocY, string externalUri, int port)
+        {
+
+            m_regionLocX = regionLocX;
+            m_regionLocY = regionLocY;
+
+            m_externalHostName = externalUri;
+
+            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+        }
+
+        public LLUUID RegionID = new LLUUID();
+
+        private uint m_remotingPort;
+        public uint RemotingPort
         {
             get
             {
-                return m_internalEndPoint;
+                return m_remotingPort;
+            }
+            set
+            {
+                m_remotingPort = value;
             }
         }
+
+        public string RemotingAddress;
+
 
         public IPEndPoint ExternalEndPoint
         {
@@ -86,9 +117,14 @@ namespace OpenSim.Framework.Types
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
             }
+
+            set
+            {
+                m_externalHostName = value.ToString();
+            }
         }
 
-        private string m_externalHostName;
+        protected string m_externalHostName;
         public string ExternalHostName
         {
             get
@@ -97,7 +133,16 @@ namespace OpenSim.Framework.Types
             }
         }
 
-        private uint? m_regionLocX;
+        protected IPEndPoint m_internalEndPoint;
+        public IPEndPoint InternalEndPoint
+        {
+            get
+            {
+                return m_internalEndPoint;
+            }
+        }
+
+        protected uint? m_regionLocX;
         public uint RegionLocX
         {
             get
@@ -106,7 +151,7 @@ namespace OpenSim.Framework.Types
             }
         }
 
-        private uint? m_regionLocY;
+        protected uint? m_regionLocY;
         public uint RegionLocY
         {
             get
@@ -115,33 +160,18 @@ namespace OpenSim.Framework.Types
             }
         }
 
-        private ulong? m_regionHandle;
         public ulong RegionHandle
         {
             get
             {
-                if (!m_regionHandle.HasValue)
-                {
-                    m_regionHandle = Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
-                }
-
-                return m_regionHandle.Value;
+                return Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
             }
         }
+    }
 
-        private uint m_remotingPort;
-        public uint RemotingPort
-        {
-            get
-            {
-                return m_remotingPort;
-            }
-            set
-            {
-                m_remotingPort = value;
-            }
-        }
-        public string RemotingAddress;
+    public class RegionInfo : SimpleRegionInfo
+    {
+        public string RegionName = "";
 
         public string DataStore = "";
         public bool isSandbox = false;
@@ -161,15 +191,11 @@ namespace OpenSim.Framework.Types
             configMember.performConfigurationRetrieve();
         }
 
-        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
+        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri) :
+            base(regionLocX, regionLocY, internalEndPoint, externalUri)
         {
 
             estateSettings = new EstateSettings();
-            m_regionLocX = regionLocX;
-            m_regionLocY = regionLocY;
-
-            m_internalEndPoint = internalEndPoint;
-            m_externalHostName = externalUri;
         }
 
         public void LoadFromNiniSource(IConfigSource source)
@@ -180,7 +206,7 @@ namespace OpenSim.Framework.Types
         public void LoadFromNiniSource(IConfigSource source, string sectionName)
         {
             string errorMessage = "";
-            this.SimUUID = new LLUUID(source.Configs[sectionName].GetString("sim_UUID", LLUUID.Random().ToStringHyphenated()));
+            this.RegionID = new LLUUID(source.Configs[sectionName].GetString("Region_ID", LLUUID.Random().ToStringHyphenated()));
             this.RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
             this.m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
             this.m_regionLocY = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_y", "1000"));
@@ -220,7 +246,7 @@ namespace OpenSim.Framework.Types
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
+            configMember.addConfigurationOption("Region_ID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Simulator Name", "OpenSim Test", false);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);
@@ -238,7 +264,7 @@ namespace OpenSim.Framework.Types
             switch (configuration_key)
             {
                 case "sim_UUID":
-                    this.SimUUID = (LLUUID)configuration_result;
+                    this.RegionID = (LLUUID)configuration_result;
                     break;
                 case "sim_name":
                     this.RegionName = (string)configuration_result;

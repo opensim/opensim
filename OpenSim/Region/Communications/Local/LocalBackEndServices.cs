@@ -72,20 +72,20 @@ namespace OpenSim.Region.Communications.Local
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public List<RegionInfo> RequestNeighbours(RegionInfo regionInfo)
+        public List<SimpleRegionInfo> RequestNeighbours(uint x, uint y)
         {
             // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
-            List<RegionInfo> neighbours = new List<RegionInfo>();
+            List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
 
-            foreach (RegionInfo reg in this.m_regions.Values)
+            foreach (RegionInfo reg in m_regions.Values)
             {
                 // Console.WriteLine("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
-                if (reg.RegionHandle != regionInfo.RegionHandle)
+                if (reg.RegionLocX != x || reg.RegionLocY != y)
                 {
                     //Console.WriteLine("CommsManager- RequestNeighbours() - found a different region in list, checking location");
-                    if ((reg.RegionLocX > (regionInfo.RegionLocX - 2)) && (reg.RegionLocX < (regionInfo.RegionLocX + 2)))
+                    if ((reg.RegionLocX > (x - 2)) && (reg.RegionLocX < (x + 2)))
                     {
-                        if ((reg.RegionLocY > (regionInfo.RegionLocY - 2)) && (reg.RegionLocY < (regionInfo.RegionLocY + 2)))
+                        if ((reg.RegionLocY > (x - 2)) && (reg.RegionLocY < (x + 2)))
                         {
                             neighbours.Add(reg);
                         }
@@ -223,7 +223,7 @@ namespace OpenSim.Region.Communications.Local
                 regData["status"] = "active";
                 regData["handle"] = region.ToString();
 
-                respData[reg.SimUUID.ToStringHyphenated()] = regData;
+                respData[reg.RegionID.ToStringHyphenated()] = regData;
             }
         }
 
@@ -253,4 +253,5 @@ namespace OpenSim.Region.Communications.Local
       
     }
 }
+
 

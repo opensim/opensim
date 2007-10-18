@@ -27,6 +27,9 @@
 */
 
 using System.Collections.Generic;
+using System.Net;
+using libsecondlife;
+
 using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Communications
@@ -34,7 +37,7 @@ namespace OpenSim.Framework.Communications
     public interface IGridServices
     {
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
-        List<RegionInfo> RequestNeighbours(RegionInfo regionInfo);
+        List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
     }

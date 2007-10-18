@@ -26,6 +26,7 @@
 * 
 */
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -529,7 +530,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("Loading objects from datastore");
-            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects(m_regInfo.SimUUID);
+            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
             foreach (SceneObjectGroup prim in PrimsFromDB)
             {
                 AddEntityFromStorage(prim);
@@ -964,7 +965,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (Entities.ContainsKey(entID))
             {
                 Entities.Remove(entID);
-                storageManager.DataStore.RemoveObject(entID, m_regInfo.SimUUID);
+                storageManager.DataStore.RemoveObject(entID, m_regInfo.RegionID);
                 return true;
             }
             return false;
@@ -1062,13 +1063,32 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        delegate void InformClientOfNeighbourDelegate(IClientAPI remoteClient, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint);
+
+        /// <summary>
+        /// Async compnent for informing client of which neighbours exists
+        /// </summary>
+        /// <remarks>
+        /// This needs to run asynchronesously, as a network timeout may block the thread for a long while
+        /// </remarks>
+        /// <param name="remoteClient"></param>
+        /// <param name="a"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="endPoint"></param>
+        public void InformClientOfNeighbourAsync(IClientAPI remoteClient, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint)
+        {
+            bool regionAccepted = commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, a);
+
+            if (regionAccepted)
+                remoteClient.InformClientOfNeighbour(regionHandle, endPoint);
+        }
+
         /// <summary>
         /// 
         /// </summary>
         public void InformClientOfNeighbours(IClientAPI remoteClient)
         {
-            List<RegionInfo> neighbours = commsManager.GridService.RequestNeighbours(m_regInfo);
-
+            List<SimpleRegionInfo> neighbours = commsManager.GridService.RequestNeighbours(m_regInfo.RegionLocX, m_regInfo.RegionLocY);
             if (neighbours != null)
             {
                 for (int i = 0; i < neighbours.Count; i++)
@@ -1078,8 +1098,9 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
-                    commsManager.InterRegion.InformRegionOfChildAgent(neighbours[i].RegionHandle, agent);
-                    remoteClient.InformClientOfNeighbour(neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint);
+
+                    InformClientOfNeighbourDelegate d = new InformClientOfNeighbourDelegate(InformClientOfNeighbourAsync);
+                    IAsyncResult asyncInform = d.BeginInvoke(remoteClient, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint, null, null);
                     //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
                 }
             }

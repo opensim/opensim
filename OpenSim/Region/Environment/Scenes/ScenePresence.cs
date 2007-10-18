@@ -770,7 +770,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void CheckForSignificantMovement()
         {
-            if (Helpers.VecDist(AbsolutePosition, posLastSignificantMove) > 2.0)
+            if (AbsolutePosition.GetDistanceTo(posLastSignificantMove) > 2.0)
             {
                 posLastSignificantMove = AbsolutePosition;
                 if (OnSignificantClientMovement != null)

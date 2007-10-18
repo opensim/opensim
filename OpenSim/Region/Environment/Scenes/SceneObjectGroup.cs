@@ -197,7 +197,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scene != null)
                 {
-                    return m_scene.RegionInfo.SimUUID;
+                    return m_scene.RegionInfo.RegionID;
                 }
                 return LLUUID.Zero;
             }
@@ -1173,7 +1173,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (HasChanged)
             {
-                datastore.StoreObject(this, m_scene.RegionInfo.SimUUID);
+                datastore.StoreObject(this, m_scene.RegionInfo.RegionID);
                 HasChanged = false;
             }
         }

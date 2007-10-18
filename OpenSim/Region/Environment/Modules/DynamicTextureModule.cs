@@ -47,9 +47,9 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene)
         {
-            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.SimUUID))
+            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
-                RegisteredScenes.Add(scene.RegionInfo.SimUUID, scene);
+                RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
                 scene.RegisterModuleInterface<IDynamicTextureManager>(this);
             }
         }
