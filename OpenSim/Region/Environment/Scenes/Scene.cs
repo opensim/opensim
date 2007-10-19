@@ -1065,6 +1065,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         delegate void InformClientOfNeighbourDelegate(IClientAPI remoteClient, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint);
 
+        private void InformClientOfNeighbourCompleted(IAsyncResult iar)
+        {
+            InformClientOfNeighbourDelegate icon = (InformClientOfNeighbourDelegate)iar.AsyncState;
+
+
+            icon.EndInvoke(iar);
+        }
+        
         /// <summary>
         /// Async compnent for informing client of which neighbours exists
         /// </summary>
@@ -1075,7 +1083,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="a"></param>
         /// <param name="regionHandle"></param>
         /// <param name="endPoint"></param>
-        public void InformClientOfNeighbourAsync(IClientAPI remoteClient, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint)
+        private void InformClientOfNeighbourAsync(IClientAPI remoteClient, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint)
         {
             bool regionAccepted = commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, a);
 
@@ -1100,7 +1108,9 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.child = true;
 
                     InformClientOfNeighbourDelegate d = new InformClientOfNeighbourDelegate(InformClientOfNeighbourAsync);
-                    IAsyncResult asyncInform = d.BeginInvoke(remoteClient, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint, null, null);
+                    IAsyncResult asyncInform = d.BeginInvoke(remoteClient, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint,
+                                                                new AsyncCallback(InformClientOfNeighbourCompleted), 
+                                                                null);
                     //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
                 }
             }
