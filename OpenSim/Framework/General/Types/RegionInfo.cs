@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Types
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("Region_ID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Simulator Name", "OpenSim Test", false);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);
