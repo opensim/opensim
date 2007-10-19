@@ -91,6 +91,14 @@ namespace OpenSim
         {
             IConfigSource startupSource = configSource;
             string iniFile = startupSource.Configs["Startup"].GetString("inifile", "OpenSim.ini");
+            string useExecutePathString = startupSource.Configs["Startup"].GetString("useexecutepath", "false").ToLower();
+            bool useExecutePath = false;
+            if (useExecutePathString == "true" || useExecutePathString == "" || useExecutePathString == "1" || useExecutePathString == "yes")
+            {
+                useExecutePath = true;
+            }
+
+            Util.changeUseExecutePathSetting(useExecutePath);
 
             //check for .INI file (either default or name passed in command line)
             string iniFilePath = Path.Combine(Util.configDir(), iniFile);

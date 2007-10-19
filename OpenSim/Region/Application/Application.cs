@@ -65,6 +65,7 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "gridmode");
             configSource.AddSwitch("Startup", "physics");
             configSource.AddSwitch("Startup", "noverbose");
+            configSource.AddSwitch("Startup", "useexecutepath");
 
             OpenSimMain sim = new OpenSimMain(configSource);
 

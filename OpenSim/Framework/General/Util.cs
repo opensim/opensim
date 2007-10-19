@@ -44,6 +44,8 @@ namespace OpenSim.Framework.Utilities
         private static object XferLock = new object();
         private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
+        private static bool m_useExecutePath;
+
         public static ulong UIntsToLong(uint X, uint Y)
         {
             return Helpers.UIntsToLong(X, Y);
@@ -295,12 +297,22 @@ namespace OpenSim.Framework.Utilities
         //
         // directory locations
         //
+
+        public static void changeUseExecutePathSetting(bool setting)
+        {
+            m_useExecutePath = setting;
+        }
+
         public static string homeDir()
         {
             string temp;
 //            string personal=(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 //            temp = Path.Combine(personal,".OpenSim");
             temp=".";
+            if (m_useExecutePath)
+            {
+                temp =  Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
             return temp;
         }
 
@@ -308,6 +320,10 @@ namespace OpenSim.Framework.Utilities
         {
             string temp;
             temp = ".";
+            if (m_useExecutePath)
+            {
+                temp = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
             return temp;
         }
 
@@ -315,6 +331,10 @@ namespace OpenSim.Framework.Utilities
         {
             string temp;
             temp = ".";
+            if (m_useExecutePath)
+            {
+                temp = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
             return temp;
         }
 
@@ -322,6 +342,10 @@ namespace OpenSim.Framework.Utilities
         {
             string temp;
             temp = ".";
+            if (m_useExecutePath)
+            {
+                temp = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
             return temp;
         }
 
