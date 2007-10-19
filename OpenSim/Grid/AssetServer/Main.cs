@@ -51,12 +51,11 @@ namespace OpenSim.Grid.AssetServer
     /// </summary>
     public class OpenAsset_Main : conscmd_callback
     {
-        public AssetConfig Cfg;
+        public AssetConfig m_config;
 
         public static OpenAsset_Main assetserver;
 
         private LogBase m_console;
-        private AssetConfig m_config;
         private IAssetServer m_assetServer;
 
         [STAThread]
@@ -98,13 +97,12 @@ namespace OpenSim.Grid.AssetServer
             setupDB(m_config);
 
             m_console.Verbose("ASSET", "Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int)Cfg.HttpPort);
+            BaseHttpServer httpServer = new BaseHttpServer((int)m_config.HttpPort);
 
-            httpServer.AddStreamHandler( new GetAssetStreamHandler(this));
+            httpServer.AddStreamHandler(new GetAssetStreamHandler(this));
             httpServer.AddStreamHandler(new PostAssetStreamHandler( this ));
 
             httpServer.Start();
-
         }
 
         public byte[] GetAssetData(LLUUID assetID, bool isTexture)
@@ -125,7 +123,6 @@ namespace OpenSim.Grid.AssetServer
             }
         }
 
-        
         public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
@@ -165,7 +162,7 @@ namespace OpenSim.Grid.AssetServer
             }
         }
 
-        public GetAssetStreamHandler(OpenAsset_Main assetManager):base( "/assets/", "GET")
+        public GetAssetStreamHandler(OpenAsset_Main assetManager) : base("/assets/", "GET")
         {
             m_assetManager = assetManager;
         }
