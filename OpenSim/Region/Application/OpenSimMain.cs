@@ -32,7 +32,6 @@ using System.IO;
 using System.Text;
 using Nini.Config;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
@@ -286,9 +285,14 @@ namespace OpenSim
             }
             else
             {
-                assetServer = new SQLAssetServer(standaloneAssetPlugin);
+                SQLAssetServer sqlAssetServer = new SQLAssetServer(standaloneAssetPlugin);
+                sqlAssetServer.LoadDefaultAssets();
+                assetServer = sqlAssetServer;
             }
+
+            // TODO: This actually does nothing to no IAssetServer implementor. Delete?
             assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+
             m_assetCache = new AssetCache(assetServer);
             // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }

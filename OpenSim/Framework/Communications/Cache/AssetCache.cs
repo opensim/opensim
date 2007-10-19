@@ -91,7 +91,12 @@ namespace OpenSim.Framework.Communications.Cache
         {
             System.Console.WriteLine("Creating Asset cache");
             _assetServer = this.LoadAssetDll(assetServerDLLName);
+
+
+            // TODO: This actually does nothing to no IAssetServer implementor. Delete?
             _assetServer.SetServerInfo(assetServerURL, assetServerKey);
+            
+            
             _assetServer.SetReceiver(this);
             Assets = new Dictionary<LLUUID, AssetInfo>();
             Textures = new Dictionary<LLUUID, TextureImage>();
@@ -159,7 +164,7 @@ namespace OpenSim.Framework.Communications.Cache
                 { //texture
                     TextureImage textur = new TextureImage(asset);
                     this.Textures.Add(textur.FullID, textur);
-                    this._assetServer.CreateAsset(asset);
+                    this._assetServer.StoreAndCommitAsset(asset);
                 }
                 else
                 {
@@ -173,7 +178,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
                     this.Assets.Add(assetInf.FullID, assetInf);
-                    this._assetServer.CreateAsset(asset);
+                    this._assetServer.StoreAndCommitAsset(asset);
                 }
             }
         }

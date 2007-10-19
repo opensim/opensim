@@ -32,7 +32,6 @@ using System.IO;
 using System.Net;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
 using OpenSim.Region.ClientStack;
@@ -58,7 +57,6 @@ namespace SimpleApp
             m_networkServersInfo = new NetworkServersInfo( 1000, 1000 );
 
             LocalAssetServer assetServer = new LocalAssetServer();
-            assetServer.SetServerInfo(m_networkServersInfo.AssetURL, "");
 
             m_assetCache = new AssetCache(assetServer);
         }

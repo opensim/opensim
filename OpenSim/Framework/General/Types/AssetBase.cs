@@ -44,5 +44,11 @@ namespace OpenSim.Framework.Types
         {
      
         }
+
+        public AssetBase(LLUUID assetId, string name)
+        {
+            FullID = assetId;
+            Name = name;
+        }
     }
 }

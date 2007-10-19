@@ -39,9 +39,10 @@ namespace OpenSim.Framework.Interfaces
         void SetReceiver(IAssetReceiver receiver);
         void FetchAsset(LLUUID assetID, bool isTexture);
         void UpdateAsset(AssetBase asset);
-        void CreateAsset(AssetBase asset);
+        void StoreAndCommitAsset(AssetBase asset);
         void SetServerInfo(string ServerUrl, string ServerKey);
         void Close();
+        void LoadAsset(AssetBase info, bool image, string filename);
     }
 
     // could change to delegate?

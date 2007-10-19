@@ -30,13 +30,14 @@ using System;
 using System.IO;
 
 using libsecondlife;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Communications.Caches;
+
 /*
 using System.Text;
 using Db4objects.Db4o;
@@ -114,7 +115,10 @@ namespace OpenSim.Grid.AssetServer
         {
             try
             {
-                m_assetServer = new SQLAssetServer(config.DatabaseProvider);
+                SQLAssetServer assetServer = new SQLAssetServer(config.DatabaseProvider );
+                assetServer.LoadDefaultAssets();
+
+                m_assetServer = assetServer;
             }
             catch (Exception e)
             {
