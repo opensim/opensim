@@ -57,11 +57,6 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 SetUpAssetDatabase();
             }
-
-            this._localAssetServerThread = new Thread(new ThreadStart(RunRequests));
-            this._localAssetServerThread.IsBackground = true;
-            this._localAssetServerThread.Start();
-
         }
 
         public void CreateAndCommitAsset(AssetBase asset)
@@ -76,6 +71,8 @@ namespace OpenSim.Framework.Communications.Cache
 
         override public void Close()
         {
+            base.Close();
+
             if (db != null)
             {
                 MainLog.Instance.Verbose("Closing local asset server database");
@@ -83,7 +80,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        private void RunRequests()
+        override  protected void RunRequests()
         {
             while (true)
             {
@@ -135,12 +132,12 @@ namespace OpenSim.Framework.Communications.Cache
             db.Commit();
         }
 
-        private void SetUpAssetDatabase()
+        protected virtual void SetUpAssetDatabase()
         {
             MainLog.Instance.Verbose("LOCAL ASSET SERVER", "Setting up asset database");
 
-            ForEachDefaultAsset(this, StoreAsset);
-            ForEachXmlAsset(this, StoreAsset);
+            ForEachDefaultAsset(StoreAsset);
+            ForEachXmlAsset(StoreAsset);
         }
     }
 

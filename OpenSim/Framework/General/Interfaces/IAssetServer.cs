@@ -25,6 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Types;
 
@@ -43,6 +45,11 @@ namespace OpenSim.Framework.Interfaces
         void SetServerInfo(string ServerUrl, string ServerKey);
         void Close();
         void LoadAsset(AssetBase info, bool image, string filename);
+        List<AssetBase> GetDefaultAssets();
+        AssetBase CreateImageAsset(string assetIdStr, string name, string filename);
+        void ForEachDefaultAsset(Action<AssetBase> action);
+        AssetBase CreateAsset(string assetIdStr, string name, string filename, bool isImage);
+        void ForEachXmlAsset(Action<AssetBase> action);
     }
 
     // could change to delegate?

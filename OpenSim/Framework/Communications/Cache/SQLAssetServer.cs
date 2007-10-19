@@ -44,11 +44,6 @@ namespace OpenSim.Framework.Communications.Cache
         {
             _assetRequests = new BlockingQueue<ARequest>();
             AddPlugin(pluginName);
-
-            this._localAssetServerThread = new Thread(new ThreadStart(RunRequests));
-            this._localAssetServerThread.IsBackground = true;
-            this._localAssetServerThread.Start();
-
         }
 
         public SQLAssetServer(IAssetProvider assetProvider)
@@ -86,12 +81,13 @@ namespace OpenSim.Framework.Communications.Cache
 
         public override void Close()
         {
+            base.Close();
+
             m_assetProviderPlugin.CommitAssets();
         }
 
-        private void RunRequests()
+        override protected void RunRequests()
         {
-
             while (true)
             {
                 ARequest req = this._assetRequests.Dequeue();
