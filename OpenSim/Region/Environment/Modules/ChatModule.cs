@@ -197,6 +197,7 @@ namespace OpenSim.Region.Environment.Modules
 
             // Filled in since it's easier than rewriting right now.
             LLVector3 fromPos = e.Position;
+            LLVector3 fromRegionPos = e.Position + new LLVector3(e.Scene.RegionInfo.RegionLocX * 256, e.Scene.RegionInfo.RegionLocY * 256, 0);
             string fromName = e.From;
             string message = e.Message;
             byte type = (byte)e.Type;
@@ -244,60 +245,59 @@ namespace OpenSim.Region.Environment.Modules
 
             if (e.Channel == 0)
             {
-                scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                                 {
-                                                     int dis = -1000;
-
-                                                     //err ??? the following code seems to be request a scenePresence when it already has a ref to it
-                                                     avatar = scene.GetScenePresence(presence.ControllingClient.AgentId);
-                                                     if (avatar != null)
+                foreach (Scene m_scene in m_scenes)
+                {
+                    m_scene.ForEachScenePresence(delegate(ScenePresence presence)
                                                      {
-                                                         dis = (int) avatar.AbsolutePosition.GetDistanceTo(fromPos);
-                                                     }
+                                                         int dis = -100000;
 
-                                                     switch (e.Type)
-                                                     {
-                                                         case ChatTypeEnum.Whisper:
-                                                             if ((dis < 10) && (dis > -10))
-                                                             {
-                                                                 //should change so the message is sent through the avatar rather than direct to the ClientView
-                                                                 presence.ControllingClient.SendChatMessage(message,
-                                                                                                            type,
-                                                                                                            fromPos,
-                                                                                                            fromName,
-                                                                                                            fromAgentID);
-                                                             }
-                                                             break;
-                                                         case ChatTypeEnum.Say:
-                                                             if ((dis < 30) && (dis > -30))
-                                                             {
-                                                                 //Console.WriteLine("sending chat");
-                                                                 presence.ControllingClient.SendChatMessage(message,
-                                                                                                            type,
-                                                                                                            fromPos,
-                                                                                                            fromName,
-                                                                                                            fromAgentID);
-                                                             }
-                                                             break;
-                                                         case ChatTypeEnum.Shout:
-                                                             if ((dis < 100) && (dis > -100))
-                                                             {
-                                                                 presence.ControllingClient.SendChatMessage(message,
-                                                                                                            type,
-                                                                                                            fromPos,
-                                                                                                            fromName,
-                                                                                                            fromAgentID);
-                                                             }
-                                                             break;
+                                                         LLVector3 avatarRegionPos = presence.AbsolutePosition + new LLVector3(scene.RegionInfo.RegionLocX * 256, scene.RegionInfo.RegionLocY * 256, 0);
+                                                         dis = (int)avatarRegionPos.GetDistanceTo(fromRegionPos);
 
-                                                         case ChatTypeEnum.Broadcast:
-                                                             presence.ControllingClient.SendChatMessage(message, type,
-                                                                                                        fromPos,
-                                                                                                        fromName,
-                                                                                                        fromAgentID);
-                                                             break;
-                                                     }
-                                                 });
+                                                         switch (e.Type)
+                                                         {
+                                                             case ChatTypeEnum.Whisper:
+                                                                 if ((dis < 10) && (dis > -10))
+                                                                 {
+                                                                     //should change so the message is sent through the avatar rather than direct to the ClientView
+                                                                     presence.ControllingClient.SendChatMessage(message,
+                                                                                                                type,
+                                                                                                                fromPos,
+                                                                                                                fromName,
+                                                                                                                fromAgentID);
+                                                                 }
+                                                                 break;
+                                                             case ChatTypeEnum.Say:
+                                                                 if ((dis < 30) && (dis > -30))
+                                                                 {
+                                                                     //Console.WriteLine("sending chat");
+                                                                     presence.ControllingClient.SendChatMessage(message,
+                                                                                                                type,
+                                                                                                                fromPos,
+                                                                                                                fromName,
+                                                                                                                fromAgentID);
+                                                                 }
+                                                                 break;
+                                                             case ChatTypeEnum.Shout:
+                                                                 if ((dis < 100) && (dis > -100))
+                                                                 {
+                                                                     presence.ControllingClient.SendChatMessage(message,
+                                                                                                                type,
+                                                                                                                fromPos,
+                                                                                                                fromName,
+                                                                                                                fromAgentID);
+                                                                 }
+                                                                 break;
+
+                                                             case ChatTypeEnum.Broadcast:
+                                                                 presence.ControllingClient.SendChatMessage(message, type,
+                                                                                                            fromPos,
+                                                                                                            fromName,
+                                                                                                            fromAgentID);
+                                                                 break;
+                                                         }
+                                                     });
+                }
             }
         }
     }
