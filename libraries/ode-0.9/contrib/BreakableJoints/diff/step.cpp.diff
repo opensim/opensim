@@ -1,0 +1,130 @@
+966,1066c966,989
+< /******************** breakable joint contribution ***********************/
+<     // this saves us a few dereferences
+<     dxJointBreakInfo *jBI = joint[i]->breakInfo;
+<     // we need joint feedback if the joint is breakable or if the user
+<     // requested feedback.
+< 	if (jBI||fb) {
+<       // we need feedback on the amount of force that this joint is
+<       // applying to the bodies. we use a slightly slower computation
+<       // that splits out the force components and puts them in the
+<       // feedback structure.
+<       dJointFeedback temp_fb; // temporary storage for joint feedback
+< 	  dReal data1[8],data2[8];
+< 	  Multiply1_8q1 (data1, JJ, lambda+ofs[i], info[i].m);
+< 	  dReal *cf1 = cforce + 8*b1->tag;
+< 	  cf1[0] += (temp_fb.f1[0] = data1[0]);
+< 	  cf1[1] += (temp_fb.f1[1] = data1[1]);
+< 	  cf1[2] += (temp_fb.f1[2] = data1[2]);
+< 	  cf1[4] += (temp_fb.t1[0] = data1[4]);
+< 	  cf1[5] += (temp_fb.t1[1] = data1[5]);
+< 	  cf1[6] += (temp_fb.t1[2] = data1[6]);
+< 	  if (b2) {
+< 	    Multiply1_8q1 (data2, JJ + 8*info[i].m, lambda+ofs[i], info[i].m);
+< 	    dReal *cf2 = cforce + 8*b2->tag;
+< 	    cf2[0] += (temp_fb.f2[0] = data2[0]);
+< 	    cf2[1] += (temp_fb.f2[1] = data2[1]);
+< 	    cf2[2] += (temp_fb.f2[2] = data2[2]);
+< 	    cf2[4] += (temp_fb.t2[0] = data2[4]);
+< 	    cf2[5] += (temp_fb.t2[1] = data2[5]);
+< 	    cf2[6] += (temp_fb.t2[2] = data2[6]);
+< 	  }
+< 	  // if the user requested so we must copy the feedback information to
+< 	  // the feedback struct that the user suplied.
+< 	  if (fb) {
+< 	    // copy temp_fb to fb
+< 	    fb->f1[0] = temp_fb.f1[0];
+< 	    fb->f1[1] = temp_fb.f1[1];
+< 	    fb->f1[2] = temp_fb.f1[2];
+< 	    fb->t1[0] = temp_fb.t1[0];
+< 	    fb->t1[1] = temp_fb.t1[1];
+< 	    fb->t1[2] = temp_fb.t1[2];
+< 	    if (b2) {
+< 	      fb->f2[0] = temp_fb.f2[0];
+< 	      fb->f2[1] = temp_fb.f2[1];
+< 	      fb->f2[2] = temp_fb.f2[2];
+< 	      fb->t2[0] = temp_fb.t2[0];
+< 	      fb->t2[1] = temp_fb.t2[1];
+< 	      fb->t2[2] = temp_fb.t2[2];
+< 	    }
+< 	  }
+< 	  // if the joint is breakable we need to check the breaking conditions
+<       if (jBI) {
+<         dReal relCF1[3];
+< 		dReal relCT1[3];
+< 		// multiply the force and torque vectors by the rotation matrix of body 1
+< 		dMULTIPLY1_331 (&relCF1[0],b1->R,&temp_fb.f1[0]);
+< 		dMULTIPLY1_331 (&relCT1[0],b1->R,&temp_fb.t1[0]);
+< 		if (jBI->flags & dJOINT_BREAK_AT_B1_FORCE) {
+< 		  // check if the force is to high
+<           for (int i = 0; i < 3; i++) {
+<             if (relCF1[i] > jBI->b1MaxF[i]) {
+< 		      jBI->flags |= dJOINT_BROKEN;
+< 		      goto doneCheckingBreaks;
+< 		    }
+<           }
+< 		}
+< 		if (jBI->flags & dJOINT_BREAK_AT_B1_TORQUE) {
+< 		  // check if the torque is to high
+<           for (int i = 0; i < 3; i++) {
+<             if (relCT1[i] > jBI->b1MaxT[i]) {
+< 		      jBI->flags |= dJOINT_BROKEN;
+< 		      goto doneCheckingBreaks;
+<             }
+<           }
+< 		}
+<         if (b2) {
+<           dReal relCF2[3];
+<           dReal relCT2[3];
+<           // multiply the force and torque vectors by the rotation matrix of body 2
+<           dMULTIPLY1_331 (&relCF2[0],b2->R,&temp_fb.f2[0]);
+<           dMULTIPLY1_331 (&relCT2[0],b2->R,&temp_fb.t2[0]);
+< 		  if (jBI->flags & dJOINT_BREAK_AT_B2_FORCE) {
+<             // check if the force is to high
+<             for (int i = 0; i < 3; i++) {
+<               if (relCF2[i] > jBI->b2MaxF[i]) {
+<                 jBI->flags |= dJOINT_BROKEN;
+<                 goto doneCheckingBreaks;
+<               }
+<             }
+< 		  }
+< 		  if (jBI->flags & dJOINT_BREAK_AT_B2_TORQUE) {
+< 		  // check if the torque is to high
+<             for (int i = 0; i < 3; i++) {
+<               if (relCT2[i] > jBI->b2MaxT[i]) {
+<                 jBI->flags |= dJOINT_BROKEN;
+<                 goto doneCheckingBreaks;
+<               }
+<             }
+< 		  }
+<         }
+< 		doneCheckingBreaks:
+< 		;
+---
+>       if (fb) {
+> 	// the user has requested feedback on the amount of force that this
+> 	// joint is applying to the bodies. we use a slightly slower
+> 	// computation that splits out the force components and puts them
+> 	// in the feedback structure.
+> 	dReal data1[8],data2[8];
+> 	Multiply1_8q1 (data1, JJ, lambda+ofs[i], info[i].m);
+> 	dReal *cf1 = cforce + 8*b1->tag;
+> 	cf1[0] += (fb->f1[0] = data1[0]);
+> 	cf1[1] += (fb->f1[1] = data1[1]);
+> 	cf1[2] += (fb->f1[2] = data1[2]);
+> 	cf1[4] += (fb->t1[0] = data1[4]);
+> 	cf1[5] += (fb->t1[1] = data1[5]);
+> 	cf1[6] += (fb->t1[2] = data1[6]);
+> 	if (b2){
+> 	  Multiply1_8q1 (data2, JJ + 8*info[i].m, lambda+ofs[i], info[i].m);
+> 	  dReal *cf2 = cforce + 8*b2->tag;
+> 	  cf2[0] += (fb->f2[0] = data2[0]);
+> 	  cf2[1] += (fb->f2[1] = data2[1]);
+> 	  cf2[2] += (fb->f2[2] = data2[2]);
+> 	  cf2[4] += (fb->t2[0] = data2[4]);
+> 	  cf2[5] += (fb->t2[1] = data2[5]);
+> 	  cf2[6] += (fb->t2[2] = data2[6]);
+> 	}
+1068,1069d990
+<     }
+< /*************************************************************************/
