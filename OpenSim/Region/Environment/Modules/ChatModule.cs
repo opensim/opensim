@@ -189,6 +189,7 @@ namespace OpenSim.Region.Environment.Modules
                         }
                     }
                 }
+                Thread.Sleep(50);
             }
         }
 
@@ -246,9 +247,19 @@ namespace OpenSim.Region.Environment.Modules
 
             if (connected)
             {
-                m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + " in " + scene.RegionInfo.RegionName + ">:  " +
-                                      e.Message);
-                m_ircWriter.Flush();
+                try
+                {
+                    m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + " in " + scene.RegionInfo.RegionName + ">:  " +
+                                          e.Message);
+                    m_ircWriter.Flush();
+                }
+                catch (IOException)
+                {
+                    m_log.Error("IRC","Disconnected from IRC server.");
+                    listener.Abort();
+                    pingSender.Abort();
+                    connected = false;
+                }
             }
 
             if (e.Channel == 0)
