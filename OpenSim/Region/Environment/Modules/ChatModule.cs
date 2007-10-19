@@ -51,6 +51,10 @@ namespace OpenSim.Region.Environment.Modules
         private string m_nick = null;
         private string m_channel = null;
 
+        private int m_whisperdistance = 10;
+        private int m_saydistance = 30;
+        private int m_shoutdistance = 100;
+
         private NetworkStream m_stream;
         private TcpClient m_irc;
         private StreamWriter m_ircWriter;
@@ -86,6 +90,10 @@ namespace OpenSim.Region.Environment.Modules
             } catch (Exception e) {
                 Console.WriteLine("No IRC config information, skipping IRC bridge configuration");
             }
+
+            m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance");
+            m_saydistance = config.Configs["Chat"].GetInt("say_distance");
+            m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance");
 
             if (!m_scenes.Contains(scene))
             {
@@ -257,7 +265,7 @@ namespace OpenSim.Region.Environment.Modules
                                                          switch (e.Type)
                                                          {
                                                              case ChatTypeEnum.Whisper:
-                                                                 if ((dis < 10) && (dis > -10))
+                                                                 if ((dis < m_whisperdistance) && (dis > -m_whisperdistance))
                                                                  {
                                                                      //should change so the message is sent through the avatar rather than direct to the ClientView
                                                                      presence.ControllingClient.SendChatMessage(message,
@@ -268,7 +276,7 @@ namespace OpenSim.Region.Environment.Modules
                                                                  }
                                                                  break;
                                                              case ChatTypeEnum.Say:
-                                                                 if ((dis < 30) && (dis > -30))
+                                                                 if ((dis < m_saydistance) && (dis > -m_saydistance))
                                                                  {
                                                                      //Console.WriteLine("sending chat");
                                                                      presence.ControllingClient.SendChatMessage(message,
@@ -279,7 +287,7 @@ namespace OpenSim.Region.Environment.Modules
                                                                  }
                                                                  break;
                                                              case ChatTypeEnum.Shout:
-                                                                 if ((dis < 100) && (dis > -100))
+                                                                 if ((dis < m_shoutdistance) && (dis > -m_shoutdistance))
                                                                  {
                                                                      presence.ControllingClient.SendChatMessage(message,
                                                                                                                 type,
