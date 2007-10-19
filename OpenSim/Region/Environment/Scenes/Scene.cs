@@ -439,7 +439,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         internal void Broadcast(Action<IClientAPI> whatToDo)
         {
-            ForEachScenePresence( delegate( ScenePresence presence )
+            ForEachScenePresence(delegate(ScenePresence presence)
                                       {
                                           whatToDo(presence.ControllingClient);
                                       });
@@ -485,7 +485,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         catch
                         {
-                            MainLog.Instance.Verbose("TERRAIN","No terrain found in database or default. Generating a new terrain.");
+                            MainLog.Instance.Verbose("TERRAIN", "No terrain found in database or default. Generating a new terrain.");
                             Terrain.HillsGenerator();
                         }
                         storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
@@ -657,7 +657,7 @@ namespace OpenSim.Region.Environment.Scenes
             int primCount = 0;
             if ((fileName.StartsWith("http:")) | (File.Exists(fileName)))
             {
-                
+
                 XmlTextReader reader = new XmlTextReader(fileName);
                 reader.WhitespaceHandling = WhitespaceHandling.None;
                 doc.Load(reader);
@@ -1072,7 +1072,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             icon.EndInvoke(iar);
         }
-        
+
         /// <summary>
         /// Async compnent for informing client of which neighbours exists
         /// </summary>
@@ -1107,11 +1107,11 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.startpos = new LLVector3(128, 128, 70);
                     agent.child = true;
 
-                    InformClientOfNeighbourDelegate d = new InformClientOfNeighbourDelegate(InformClientOfNeighbourAsync);
-                    IAsyncResult asyncInform = d.BeginInvoke(remoteClient, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint,
-                                                                new AsyncCallback(InformClientOfNeighbourCompleted), 
-                                                                null);
-                    //this.capsHandlers[remoteClient.AgentId].CreateEstablishAgentComms("", System.Net.IPAddress.Parse(neighbours[i].CommsIPListenAddr) + ":" + neighbours[i].CommsIPListenPort);
+                    InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+                    d.BeginInvoke(remoteClient, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint,
+                                                                 InformClientOfNeighbourCompleted,
+                                                                 null);
+
                 }
             }
         }
@@ -1237,7 +1237,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public void SendUrlToUser(LLUUID avatarID, string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned,
-                                  string message, string url)        
+                                  string message, string url)
         {
             if (m_scenePresences.ContainsKey(avatarID))
             {
@@ -1475,22 +1475,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
         {
-            foreach( ScenePresence presence in m_scenePresences.Values )
+            foreach (ScenePresence presence in m_scenePresences.Values)
             {
-                if( !presence.IsChildAgent )
+                if (!presence.IsChildAgent)
                 {
                     string name = presence.ControllingClient.FirstName + " " + presence.ControllingClient.LastName;
 
-                    if( String.Compare( avatarName, name, true ) == 0 )
+                    if (String.Compare(avatarName, name, true) == 0)
                     {
                         avatar = presence;
-                        return true;                        
+                        return true;
                     }
                 }
             }
 
             avatar = null;
-            return false;           
+            return false;
         }
     }
 }
