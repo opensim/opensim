@@ -27,12 +27,13 @@
 */
 
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IRegionModule
     {
-        void Initialise(Scene scene);
+        void Initialise(Scene scene, IConfigSource source);
         void PostInitialise();
         void Close();
         string Name { get; }

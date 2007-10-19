@@ -63,6 +63,7 @@ namespace OpenSim
 
         protected ModuleLoader m_moduleLoader;
         protected LocalLoginService m_loginService;
+        private IConfigSource m_config;
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
@@ -89,9 +90,8 @@ namespace OpenSim
         public OpenSimMain(IConfigSource configSource)
             : base()
         {
-            IConfigSource startupSource = configSource;
-            string iniFile = startupSource.Configs["Startup"].GetString("inifile", "OpenSim.ini");
-            string useExecutePathString = startupSource.Configs["Startup"].GetString("useexecutepath", "false").ToLower();
+            string iniFile = configSource.Configs["Startup"].GetString("inifile", "OpenSim.ini");
+            string useExecutePathString = configSource.Configs["Startup"].GetString("useexecutepath", "false").ToLower();
             bool useExecutePath = false;
             if (useExecutePathString == "true" || useExecutePathString == "" || useExecutePathString == "1" || useExecutePathString == "yes")
             {
@@ -104,46 +104,46 @@ namespace OpenSim
             string iniFilePath = Path.Combine(Util.configDir(), iniFile);
             if (File.Exists(iniFilePath))
             {
-                startupSource = new IniConfigSource(iniFilePath);
+                m_config = new IniConfigSource(iniFilePath);
 
                 //enable following line, if we want the original config source(normally commandline args) merged with ini file settings.
                 //in this case we have it so that if both sources have the same named setting, the command line value will overwrite the ini file value. 
                 //(as if someone has bothered to enter a command line arg, we should take notice of it)
-                startupSource.Merge(configSource);
+                m_config.Merge(configSource);
             }
 
-            ReadConfigSettings(startupSource);
+            ReadConfigSettings();
 
         }
 
-        protected void ReadConfigSettings(IConfigSource configSource)
+        protected void ReadConfigSettings()
         {
             m_networkServersInfo = new NetworkServersInfo();
-            m_sandbox = !configSource.Configs["Startup"].GetBoolean("gridmode", false);
-            m_physicsEngine = configSource.Configs["Startup"].GetString("physics", "basicphysics");
-            m_silent = configSource.Configs["Startup"].GetBoolean("noverbose", false);
-            m_permissions = configSource.Configs["Startup"].GetBoolean("serverside_object_permissions", false);
+            m_sandbox = !m_config.Configs["Startup"].GetBoolean("gridmode", false);
+            m_physicsEngine = m_config.Configs["Startup"].GetString("physics", "basicphysics");
+            m_silent = m_config.Configs["Startup"].GetBoolean("noverbose", false);
+            m_permissions = m_config.Configs["Startup"].GetBoolean("serverside_object_permissions", false);
 
-            m_storageDLL = configSource.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+            m_storageDLL = m_config.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
-            m_startupCommandsFile = configSource.Configs["Startup"].GetString("startup_console_commands_file", "");
-            m_shutdownCommandsFile = configSource.Configs["Startup"].GetString("shutdown_console_commands_file", "");
+            m_startupCommandsFile = m_config.Configs["Startup"].GetString("startup_console_commands_file", "");
+            m_shutdownCommandsFile = m_config.Configs["Startup"].GetString("shutdown_console_commands_file", "");
 
-            m_scriptEngine = configSource.Configs["Startup"].GetString("script_engine", "DotNetEngine");
+            m_scriptEngine = m_config.Configs["Startup"].GetString("script_engine", "DotNetEngine");
 
-            m_assetStorage = configSource.Configs["Startup"].GetString("asset_database", "db4o");
+            m_assetStorage = m_config.Configs["Startup"].GetString("asset_database", "db4o");
 
-            configSource.Configs["Startup"].GetBoolean("default_modules", true);
-            configSource.Configs["Startup"].GetBoolean("default_shared_modules", true);
-            configSource.Configs["Startup"].GetString("except_modules", "");
-            configSource.Configs["Startup"].GetString("except_shared_modules", "");
+            m_config.Configs["Startup"].GetBoolean("default_modules", true);
+            m_config.Configs["Startup"].GetBoolean("default_shared_modules", true);
+            m_config.Configs["Startup"].GetString("except_modules", "");
+            m_config.Configs["Startup"].GetString("except_shared_modules", "");
 
-            standaloneAuthenticate = configSource.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
-            standaloneWelcomeMessage = configSource.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
-            standaloneInventoryPlugin = configSource.Configs["StandAlone"].GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
-            standaloneUserPlugin = configSource.Configs["StandAlone"].GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
-            standaloneAssetPlugin = configSource.Configs["StandAlone"].GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
-            m_networkServersInfo.loadFromConfiguration(configSource);
+            standaloneAuthenticate = m_config.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
+            standaloneWelcomeMessage = m_config.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
+            standaloneInventoryPlugin = m_config.Configs["StandAlone"].GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
+            standaloneUserPlugin = m_config.Configs["StandAlone"].GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
+            standaloneAssetPlugin = m_config.Configs["StandAlone"].GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+            m_networkServersInfo.loadFromConfiguration(m_config);
         }
 
 
@@ -207,7 +207,7 @@ namespace OpenSim
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
-            m_moduleLoader = new ModuleLoader( m_log );
+            m_moduleLoader = new ModuleLoader( m_log, m_config );
             MainLog.Instance.Verbose("Loading Shared Modules");
             m_moduleLoader.LoadDefaultSharedModules();
 

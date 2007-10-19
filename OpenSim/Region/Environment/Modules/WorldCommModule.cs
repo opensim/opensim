@@ -40,6 +40,7 @@ using OpenSim.Framework.Servers;
 using Nwc.XmlRpc;
 using System.Collections;
 using System.Collections.Generic;
+using Nini.Config;
 
 /*****************************************************
  *
@@ -84,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules
         {
         }
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
 
             m_scene = scene;

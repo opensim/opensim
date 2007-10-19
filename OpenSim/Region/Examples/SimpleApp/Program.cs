@@ -39,12 +39,15 @@ using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
+using Nini.Config;
 
 namespace SimpleApp
 {
     class Program : RegionApplicationBase, conscmd_callback
     {
         private ModuleLoader m_moduleLoader;
+        private IConfigSource m_config;
+        
         protected override LogBase CreateLog()
         {
             return new LogBase(null, "SimpleApp", this, false);
@@ -86,7 +89,7 @@ namespace SimpleApp
             
             UDPServer udpServer;
 
-            m_moduleLoader = new ModuleLoader( m_log );
+            m_moduleLoader = new ModuleLoader( m_log, m_config );
             m_moduleLoader.LoadDefaultSharedModules();
 
             Scene scene = SetupScene(regionInfo, out udpServer);
@@ -155,7 +158,7 @@ namespace SimpleApp
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
         {
-            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, new ModuleLoader( m_log ));
+            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, new ModuleLoader( m_log, m_config ));
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)

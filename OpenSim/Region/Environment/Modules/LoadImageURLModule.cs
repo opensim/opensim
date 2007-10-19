@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
@@ -8,6 +8,7 @@ using libsecondlife;
 using OpenJPEGNet;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -17,7 +18,7 @@ namespace OpenSim.Region.Environment.Modules
         private IDynamicTextureManager m_textureManager;
         private Scene m_scene;
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (m_scene == null)
             {

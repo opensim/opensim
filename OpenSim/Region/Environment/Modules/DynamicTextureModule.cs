@@ -33,6 +33,7 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -45,7 +46,7 @@ namespace OpenSim.Region.Environment.Modules
 
         private Dictionary<LLUUID, DynamicTextureUpdater> Updaters = new Dictionary<LLUUID, DynamicTextureUpdater>();
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {

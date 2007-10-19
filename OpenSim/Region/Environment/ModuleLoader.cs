@@ -34,6 +34,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment
 {
@@ -44,10 +45,12 @@ namespace OpenSim.Region.Environment
         public List<IRegionModule> LoadedModules = new List<IRegionModule>();
         public Dictionary<string, IRegionModule> LoadedSharedModules = new Dictionary<string, IRegionModule>();
         private readonly LogBase m_log;
+        private IConfigSource m_config;
 
-        public ModuleLoader(LogBase log)
+        public ModuleLoader(LogBase log, IConfigSource config)
         {
             m_log = log;
+            m_config = config;
         }
 
         public void PickupModules(Scene scene, string moduleDir)
@@ -70,14 +73,14 @@ namespace OpenSim.Region.Environment
         {
             foreach (IRegionModule module in LoadedSharedModules.Values)
             {
-                module.Initialise(scene);
+                module.Initialise(scene, m_config);
                 scene.AddModule(module.Name, module); //should be doing this?
             }
         }
 
         public void InitializeModule(IRegionModule module, Scene scene)
         {
-            module.Initialise(scene);
+            module.Initialise(scene, m_config);
             scene.AddModule(module.Name, module);
             LoadedModules.Add(module);
         }

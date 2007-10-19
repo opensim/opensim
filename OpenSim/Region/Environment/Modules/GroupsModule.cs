@@ -28,6 +28,7 @@
 
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -35,7 +36,7 @@ namespace OpenSim.Region.Environment.Modules
     {
         private Scene m_scene;
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
         }

@@ -34,6 +34,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Environment.Interfaces;
 using libsecondlife;
+using Nini.Config;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -103,7 +104,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #region IRegionModule
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             this.InitializeEngine(scene, MainLog.Instance);
         }

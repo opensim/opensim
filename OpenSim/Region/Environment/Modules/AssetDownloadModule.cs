@@ -29,6 +29,7 @@
 using OpenSim.Framework.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -40,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules
         {
         }
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;

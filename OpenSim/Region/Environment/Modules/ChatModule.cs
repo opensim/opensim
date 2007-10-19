@@ -35,6 +35,7 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -67,7 +68,7 @@ namespace OpenSim.Region.Environment.Modules
             m_ircReader = null;
         }
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;

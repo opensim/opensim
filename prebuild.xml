@@ -475,11 +475,12 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-
+      <Reference name="Nini.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -592,7 +593,7 @@
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Axiom.MathLib.dll"/>
-
+      <Reference name="Nini.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -670,7 +671,7 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
-
+      <Reference name="Nini.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -895,6 +896,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -983,6 +985,8 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

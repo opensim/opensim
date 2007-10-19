@@ -32,6 +32,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ExtensionsScriptModule.CSharp;
 using OpenSim.Region.ExtensionsScriptModule.JScript;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine;
+using Nini.Config;
 
 namespace OpenSim.Region.ExtensionsScriptModule
 {
@@ -67,7 +68,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
             compilers.Add(javaCompiler.FileExt(), javaCompiler);
         }
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             System.Console.WriteLine("Initialising Extensions Scripting Module");
             m_scene = scene;

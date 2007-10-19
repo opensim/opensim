@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Console;
+using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -38,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules
         private List<Scene> m_scenes = new List<Scene>();
         private LogBase m_log;
 
-        public void Initialise(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (!m_scenes.Contains(scene))
             {
