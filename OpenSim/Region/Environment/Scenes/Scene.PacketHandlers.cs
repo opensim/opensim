@@ -70,7 +70,22 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_simChatModule != null)
             {
-                m_simChatModule.SimChat(message, type, channel, fromPos, fromName, fromAgentID);
+                ChatFromViewerArgs args = new ChatFromViewerArgs();
+
+                args.Message = OpenSim.Framework.Utilities.Util.FieldToString(message);
+                args.Channel = channel;
+                args.Type = (ChatTypeEnum)type;
+                args.Position = fromPos;
+
+                ScenePresence user = this.GetScenePresence(fromAgentID);
+                if (user != null)
+                    args.Sender = user.ControllingClient;
+                else
+                    args.Sender = null;
+
+                args.From = fromName;
+
+                m_simChatModule.SimChat(this, args);
             }
         }
 

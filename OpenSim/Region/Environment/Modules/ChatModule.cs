@@ -33,15 +33,16 @@ using System.Threading;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
     public class ChatModule : IRegionModule, ISimChat
     {
         private Scene m_scene;
+        private LogBase m_log;
 
         private string m_server = null;
         private int m_port = 6668;
@@ -66,9 +67,11 @@ namespace OpenSim.Region.Environment.Modules
             m_irc = null;
             m_ircWriter = null;
             m_ircReader = null;
+
+            m_log = OpenSim.Framework.Console.MainLog.Instance;
         }
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(Scene scene, Nini.Config.IConfigSource config)
         {
             try {
                 m_server = config.Configs["IRC"].GetString("server");
@@ -175,41 +178,80 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        public void SimChat(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName,
-                            LLUUID fromAgentID)
+        public void SimChat(Object sender, ChatFromViewerArgs e)
         {
             ScenePresence avatar = null;
-            avatar = m_scene.GetScenePresence(fromAgentID);
+
+            //TODO: Move ForEachScenePresence and others into IScene.
+            Scene scene = (Scene)e.Scene;
+
+            //TODO: Remove the need for this check
+            if (scene == null)
+                scene = m_scene;
+
+            // Filled in since it's easier than rewriting right now.
+            LLVector3 fromPos = e.Position;
+            string fromName = e.From;
+            string message = e.Message;
+            byte type = (byte)e.Type;
+            LLUUID fromAgentID = LLUUID.Zero;
+
+            if (e.Sender != null)
+                avatar = scene.GetScenePresence(e.Sender.AgentId);
+
             if (avatar != null)
             {
                 fromPos = avatar.AbsolutePosition;
                 fromName = avatar.Firstname + " " + avatar.Lastname;
+                fromAgentID = e.Sender.AgentId;
                 avatar = null;
             }
+
+            string typeName;
+            switch (e.Type)
+            {
+                case ChatTypeEnum.Broadcast:
+                    typeName = "broadcasts";
+                    break;
+                case ChatTypeEnum.Say:
+                    typeName = "says";
+                    break;
+                case ChatTypeEnum.Shout:
+                    typeName = "shouts";
+                    break;
+                case ChatTypeEnum.Whisper:
+                    typeName = "whispers";
+                    break;
+                default:
+                    typeName = "unknown";
+                    break;
+            }
+
+            m_log.Verbose("CHAT", fromName + " (" + e.Channel + ") " + typeName + ": " + e.Message);
 
             if (connected)
             {
                 m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + ">:  " +
-                                      Util.FieldToString(message));
+                                      e.Message);
                 m_ircWriter.Flush();
             }
 
-            if (channel == 0)
+            if (e.Channel == 0)
             {
-                m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                scene.ForEachScenePresence(delegate(ScenePresence presence)
                                                  {
                                                      int dis = -1000;
 
                                                      //err ??? the following code seems to be request a scenePresence when it already has a ref to it
-                                                     avatar = m_scene.GetScenePresence(presence.ControllingClient.AgentId);
+                                                     avatar = scene.GetScenePresence(presence.ControllingClient.AgentId);
                                                      if (avatar != null)
                                                      {
                                                          dis = (int) avatar.AbsolutePosition.GetDistanceTo(fromPos);
                                                      }
 
-                                                     switch (type)
+                                                     switch (e.Type)
                                                      {
-                                                         case 0: // Whisper
+                                                         case ChatTypeEnum.Whisper:
                                                              if ((dis < 10) && (dis > -10))
                                                              {
                                                                  //should change so the message is sent through the avatar rather than direct to the ClientView
@@ -220,7 +262,7 @@ namespace OpenSim.Region.Environment.Modules
                                                                                                             fromAgentID);
                                                              }
                                                              break;
-                                                         case 1: // Say
+                                                         case ChatTypeEnum.Say:
                                                              if ((dis < 30) && (dis > -30))
                                                              {
                                                                  //Console.WriteLine("sending chat");
@@ -231,7 +273,7 @@ namespace OpenSim.Region.Environment.Modules
                                                                                                             fromAgentID);
                                                              }
                                                              break;
-                                                         case 2: // Shout
+                                                         case ChatTypeEnum.Shout:
                                                              if ((dis < 100) && (dis > -100))
                                                              {
                                                                  presence.ControllingClient.SendChatMessage(message,
@@ -242,7 +284,7 @@ namespace OpenSim.Region.Environment.Modules
                                                              }
                                                              break;
 
-                                                         case 0xff: // Broadcast
+                                                         case ChatTypeEnum.Broadcast:
                                                              presence.ControllingClient.SendChatMessage(message, type,
                                                                                                         fromPos,
                                                                                                         fromName,

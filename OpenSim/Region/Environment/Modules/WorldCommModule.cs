@@ -119,13 +119,12 @@ namespace OpenSim.Region.Environment.Modules
             client.OnChatFromViewer += DeliverClientMessage;
         }
 
-        private void DeliverClientMessage(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName,
-                            LLUUID fromAgentID)
+        private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
         {
-            ASCIIEncoding ae = new ASCIIEncoding();
-
-            DeliverMessage(fromAgentID.ToString(), type, channel, fromName, ae.GetString(message));
-            
+            DeliverMessage(e.Sender.AgentId.ToString(),
+                (int)e.Type, e.Channel,
+                e.Sender.FirstName + " " + e.Sender.LastName,
+                e.Message);
         }
 
         public int Listen(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)

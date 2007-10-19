@@ -245,7 +245,15 @@ namespace SimpleApp
             {
                 if (OnChatFromViewer != null)
                 {
-                    this.OnChatFromViewer(enc.GetBytes("Kind of quiet around here, isn't it! \0"), 2, 0, new LLVector3(128, 128, 26), this.FirstName + " " + this.LastName, this.AgentId);
+                    ChatFromViewerArgs args = new ChatFromViewerArgs();
+                    args.Message = "Kinda quiet around here, isn't it?";
+                    args.Channel = 0;
+                    args.From = this.FirstName + " " + this.LastName;
+                    args.Position = new LLVector3(128, 128, 26);
+                    args.Sender = this;
+                    args.Type = ChatTypeEnum.Shout;
+
+                    this.OnChatFromViewer(this, args);
                 }
                 count = -1;
                 

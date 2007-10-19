@@ -34,8 +34,108 @@ using OpenSim.Framework.Types;
 
 namespace OpenSim.Framework.Interfaces
 {
+    // Base Args Interface
+    public interface IEventArgs
+    {
+        IScene Scene
+        {
+            get;
+            set;
+        }
+
+        IClientAPI Sender
+        {
+            get;
+            set;
+        }
+    }
+
     public delegate void ViewerEffectEventHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock);
-    public delegate void ChatFromViewer(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
+
+    public delegate void ChatFromViewer(Object sender, ChatFromViewerArgs e);
+
+    public enum ChatTypeEnum { Whisper = 0, Say = 1, Shout = 2, Broadcast = 0xFF };
+
+    /// <summary>
+    /// ChatFromViewer Arguments
+    /// </summary>
+    public class ChatFromViewerArgs : EventArgs, IEventArgs
+    {
+        protected string m_message;
+        protected ChatTypeEnum m_type;
+        protected int m_channel;
+        protected LLVector3 m_position;
+        protected string m_from;
+
+        protected IClientAPI m_sender;
+        protected IScene m_scene;
+
+        /// <summary>
+        /// The message sent by the user
+        /// </summary>
+        public string Message
+        {
+            get { return m_message; }
+            set { m_message = value; }
+        }
+
+        /// <summary>
+        /// The type of message, eg say, shout, broadcast.
+        /// </summary>
+        public ChatTypeEnum Type
+        {
+            get { return m_type; }
+            set { m_type = value; }
+        }
+
+        /// <summary>
+        /// Which channel was this message sent on? Different channels may have different listeners. Public chat is on channel zero.
+        /// </summary>
+        public int Channel
+        {
+            get { return m_channel; }
+            set { m_channel = value; }
+        }
+
+        /// <summary>
+        /// The position of the sender at the time of the message broadcast.
+        /// </summary>
+        public LLVector3 Position
+        {
+            get { return m_position; }
+            set { m_position = value; }
+        }
+
+        /// <summary>
+        /// The name of the sender (needed for scripts)
+        /// </summary>
+        public string From
+        {
+            get { return m_from; }
+            set { m_from = value; }
+        }
+
+        /// <summary>
+        /// The client responsible for sending the message, or null.
+        /// </summary>
+        public IClientAPI Sender
+        {
+            get { return m_sender; }
+            set { m_sender = value; }
+        }
+
+        public IScene Scene
+        {
+            get { return m_scene; }
+            set { m_scene = value; }
+        }
+
+        public ChatFromViewerArgs()
+        {
+            m_position = new LLVector3();
+        }
+    }
+
     public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp, string fromAgentName, string message, byte dialog); // Cut down from full list
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
     public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);

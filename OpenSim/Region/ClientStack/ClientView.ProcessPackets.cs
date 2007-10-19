@@ -100,7 +100,17 @@ namespace OpenSim.Region.ClientStack
 
                         if (OnChatFromViewer != null)
                         {
-                            this.OnChatFromViewer(message, type, channel, fromPos, fromName, fromAgentID);
+                            ChatFromViewerArgs args = new ChatFromViewerArgs();
+                            args.Channel = channel;
+                            args.From = fromName;
+                            args.Message = Util.FieldToString(message);
+                            args.Type = (ChatTypeEnum)type;
+                            args.Position = fromPos;
+
+                            args.Scene = Scene;
+                            args.Sender = this;
+
+                            this.OnChatFromViewer(this, args);
                         }
                         break;
                     case PacketType.ImprovedInstantMessage:

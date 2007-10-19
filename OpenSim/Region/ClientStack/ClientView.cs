@@ -68,7 +68,14 @@ namespace OpenSim.Region.ClientStack
         //private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
         private int debug = 0;
+
         protected IScene m_scene;
+
+        public IScene Scene
+        {
+            get { return m_scene; }
+        }
+
         private ClientManager m_clientManager;
         private AssetCache m_assetCache;
         // private InventoryCache m_inventoryCache;
