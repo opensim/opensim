@@ -739,7 +739,6 @@ namespace OpenSim.Region.Environment.Scenes
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnModifyTerrain += ModifyTerrain;
             //client.OnChatFromViewer += SimChat;
-            client.OnInstantMessage += InstantMessage;
             client.OnRequestWearables += InformClientOfNeighbours;
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += UpdatePrimPosition;

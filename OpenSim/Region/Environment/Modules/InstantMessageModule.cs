@@ -26,18 +26,55 @@
 * 
 */
 
+using System.Collections.Generic;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Modules
 {
     public class InstantMessageModule : IRegionModule
     {
-        private Scene m_scene;
+        private List<Scene> m_scenes;
+        private LogBase m_log;
 
         public void Initialise(Scene scene)
         {
-            m_scene = scene;
+            if (!m_scenes.Contains(scene))
+                m_scenes.Add(scene);
+
+            scene.EventManager.OnNewClient += OnNewClient;
+            m_log = OpenSim.Framework.Console.MainLog.Instance;
+        }
+
+        void OnNewClient(OpenSim.Framework.Interfaces.IClientAPI client)
+        {
+            client.OnInstantMessage += OnInstantMessage;
+        }
+
+        void OnInstantMessage(libsecondlife.LLUUID fromAgentID, 
+            libsecondlife.LLUUID fromAgentSession, libsecondlife.LLUUID toAgentID, 
+            libsecondlife.LLUUID imSessionID, uint timestamp, string fromAgentName, 
+            string message, byte dialog)
+        {
+            // TODO: Remove after debugging. Privacy implications.
+            m_log.Verbose("IM",fromAgentName + ": " + message);
+
+            foreach (Scene m_scene in m_scenes)
+            {
+                if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)
+                {
+                    // Local Message
+                    ScenePresence user = (ScenePresence)m_scene.Entities[toAgentID];
+                    user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
+                        toAgentID, imSessionID, user.Firstname + " " + user.Lastname, dialog, timestamp);
+
+                    // Message sent
+                    return;
+                }
+            }
+
+            // Still here, try send via Grid
         }
 
         public void PostInitialise()
@@ -55,7 +92,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

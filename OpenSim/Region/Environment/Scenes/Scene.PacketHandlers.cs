@@ -60,40 +60,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <remarks>Inefficient. TODO: Fixme</remarks>
-        /// <param name="fromAgentID"></param>
-        /// <param name="toAgentID"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="fromAgentName"></param>
-        /// <param name="message"></param>
-        public void InstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID,
-                                   uint timestamp, string fromAgentName, string message, byte dialog)
-        {
-            if (m_scenePresences.ContainsKey(toAgentID))
-            {
-                if (m_scenePresences.ContainsKey(fromAgentID))
-                {
-                    // Local sim message
-                    ScenePresence fromAvatar = m_scenePresences[fromAgentID];
-                    ScenePresence toAvatar = m_scenePresences[toAgentID];
-                    string fromName = fromAvatar.Firstname + " " + fromAvatar.Lastname;
-                    toAvatar.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message, toAgentID,
-                                                                  imSessionID, fromName, dialog, timestamp);
-                }
-                else
-                {
-                    // Message came from a user outside the sim, ignore?
-                }
-            }
-            else
-            {
-                // Grid message
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="message"></param>
         /// <param name="type"></param>
         /// <param name="fromPos"></param>
