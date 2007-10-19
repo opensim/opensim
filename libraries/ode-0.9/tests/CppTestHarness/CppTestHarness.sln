@@ -1,0 +1,28 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppTestHarness", "CppTestHarness.vcproj", "{BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestCppTestHarness", "TestCppTestHarness\TestCppTestHarness.vcproj", "{639DCE9E-BB6F-4A3E-9DC1-43A4EA9BAA61}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0} = {BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0}.Debug|Win32.Build.0 = Debug|Win32
+		{BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0}.Release|Win32.ActiveCfg = Release|Win32
+		{BFA21FB6-8FF9-4B44-ACB3-FC57CEA663D0}.Release|Win32.Build.0 = Release|Win32
+		{639DCE9E-BB6F-4A3E-9DC1-43A4EA9BAA61}.Debug|Win32.ActiveCfg = Debug|Win32
+		{639DCE9E-BB6F-4A3E-9DC1-43A4EA9BAA61}.Debug|Win32.Build.0 = Debug|Win32
+		{639DCE9E-BB6F-4A3E-9DC1-43A4EA9BAA61}.Release|Win32.ActiveCfg = Release|Win32
+		{639DCE9E-BB6F-4A3E-9DC1-43A4EA9BAA61}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,7 @@
+user anonymous starkos
+cd incoming
+bin
+prompt
+mput ode-src-*.zip
+quit
+
