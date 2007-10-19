@@ -35,16 +35,18 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class InstantMessageModule : IRegionModule
     {
-        private List<Scene> m_scenes;
+        private List<Scene> m_scenes = new List<Scene>();
         private LogBase m_log;
 
         public void Initialise(Scene scene)
         {
             if (!m_scenes.Contains(scene))
+            {
                 m_scenes.Add(scene);
 
-            scene.EventManager.OnNewClient += OnNewClient;
-            m_log = OpenSim.Framework.Console.MainLog.Instance;
+                scene.EventManager.OnNewClient += OnNewClient;
+                m_log = OpenSim.Framework.Console.MainLog.Instance;
+            }
         }
 
         void OnNewClient(OpenSim.Framework.Interfaces.IClientAPI client)
