@@ -198,11 +198,13 @@ namespace OpenSim.Framework.Types
             estateSettings = new EstateSettings();
         }
 
+        //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source)
         {
             this.LoadFromNiniSource(source, "RegionInfo");
         }
 
+        //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source, string sectionName)
         {
             string errorMessage = "";
@@ -246,8 +248,8 @@ namespace OpenSim.Framework.Types
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Simulator (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
-            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Simulator Name", "OpenSim Test", false);
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Region (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
+            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Region Name", "OpenSim Test", false);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);
             configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
