@@ -30,6 +30,7 @@ using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
@@ -41,7 +42,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class ChatModule : IRegionModule, ISimChat
     {
-        private Scene m_scene;
+        private List<Scene> m_scenes = new List<Scene>();
         private LogBase m_log;
 
         private string m_server = null;
@@ -86,10 +87,12 @@ namespace OpenSim.Region.Environment.Modules
                 Console.WriteLine("No IRC config information, skipping IRC bridge configuration");
             }
 
-            m_scene = scene;
-            m_scene.EventManager.OnNewClient += NewClient;
-
-            m_scene.RegisterModuleInterface<ISimChat>(this);
+            if (!m_scenes.Contains(scene))
+            {
+                m_scenes.Add(scene);
+                scene.EventManager.OnNewClient += NewClient;
+                scene.RegisterModuleInterface<ISimChat>(this);
+            }
         }
 
         public void PostInitialise()
@@ -137,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
 
         public void NewClient(IClientAPI client)
@@ -167,12 +170,15 @@ namespace OpenSim.Region.Environment.Modules
                     if (inputLine.Contains(m_channel))
                     {
                         string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
-                        m_scene.Broadcast(delegate(IClientAPI client)
-                                                         {
-                                                             client.SendChatMessage(
-                                                                 Helpers.StringToField(mess), 255, pos, "IRC:",
-                                                                 LLUUID.Zero);
-                                                         });
+                        foreach (Scene m_scene in m_scenes)
+                        {
+                            m_scene.Broadcast(delegate(IClientAPI client)
+                                                             {
+                                                                 client.SendChatMessage(
+                                                                     Helpers.StringToField(mess), 255, pos, "IRC:",
+                                                                     LLUUID.Zero);
+                                                             });
+                        }
                     }
                 }
             }
@@ -187,7 +193,7 @@ namespace OpenSim.Region.Environment.Modules
 
             //TODO: Remove the need for this check
             if (scene == null)
-                scene = m_scene;
+                scene = m_scenes[0];
 
             // Filled in since it's easier than rewriting right now.
             LLVector3 fromPos = e.Position;
@@ -227,11 +233,11 @@ namespace OpenSim.Region.Environment.Modules
                     break;
             }
 
-            m_log.Verbose("CHAT", fromName + " (" + e.Channel + ") " + typeName + ": " + e.Message);
+            m_log.Verbose("CHAT", fromName + " (" + e.Channel + " @ " + scene.RegionInfo.RegionName + ") " + typeName + ": " + e.Message);
 
             if (connected)
             {
-                m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + ">:  " +
+                m_ircWriter.WriteLine("PRIVMSG " + m_channel + " :" + "<" + fromName + " in " + scene.RegionInfo.RegionName + ">:  " +
                                       e.Message);
                 m_ircWriter.Flush();
             }
