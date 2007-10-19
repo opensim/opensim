@@ -1,0 +1,16 @@
+266,270d265
+< 
+<     // breakable joints contribution
+< 		dJointSetBreakable (joint[i], 1);
+< 		dJointSetBreakMode (joint[i], dJOINT_BREAK_AT_FORCE);
+< 		dJointSetBreakForce (joint[i], 0.5);
+298c293
+<   ground_box = dCreateBox (space,2,1.5,5);
+---
+>   ground_box = dCreateBox (space,2,1.5,1);
+300,301c295,296
+<   dRFromAxisAndAngle (R,0,1,0,-0.85);
+<   dGeomSetPosition (ground_box,5,0,-1);
+---
+>   dRFromAxisAndAngle (R,0,1,0,-0.15);
+>   dGeomSetPosition (ground_box,2,0,-0.34);

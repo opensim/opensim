@@ -1,0 +1,18 @@
+61,70d60
+< /******************** breakable joint contribution ***********************/
+< struct dxJointBreakInfo : public dBase {
+< 	int flags;
+< 	dReal b1MaxF[3]; // maximum force on body 1
+< 	dReal b1MaxT[3]; // maximum torque on body 1
+< 	dReal b2MaxF[3]; // maximum force on body 2
+< 	dReal b2MaxT[3]; // maximum torque on body 2
+< 	dJointBreakCallback *callback; // function that is called when this joint breaks
+< };
+< /*************************************************************************/
+135,140d124
+<   
+<   /******************** breakable joint contribution ***********************/
+<   // optional break info structure. if this is not NULL the the joint is
+<   // breakable.
+<   dxJointBreakInfo *breakInfo;
+<   /*************************************************************************/
