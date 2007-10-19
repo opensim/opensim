@@ -1,0 +1,19 @@
+This directory contains ODE-related things that have been generously
+contributed by ODE's users. Why is this stuff here and not integrated
+into the main ODE source tree?  There may be several reasons:
+
+  * The author(s) and ODE maintainers(s) may not have had time to do
+    the job.
+
+  * It may not be finished.
+
+  * It may contribute functionality that is useful but not considered
+    to be part of ODE's core.
+
+No guarantees are made about the code in this directory - it may not
+be documented, it may not have been tested, and it may not even
+compile for you.
+
+Each package has its own subdirectory, with a README file in that
+directory explaining what the package is.
+
