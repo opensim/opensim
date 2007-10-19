@@ -1,0 +1,27 @@
+source: 
+http://downloads.sourceforge.net/opende/ode-src-0.9.zip
+
+changes:
+build/vs2005/ode.sln: Configuration Properties/General/Use Of MFC = "Use MFC in a Static Library"
+changed default configuration to release
+created contrib/Ode.NET/Ode.NET.sln using premake --target vs2005
+
+build:
+
+windows:
+compiler: Visual Studio 2005 Express
+build/vs2005/ode.sln
+build all
+copy lib/releasedll/ode.dll to trunk/bin
+
+compiler: Visual Studio 2005 Express
+contrib/Ode.NET
+Ode.NET.sln
+build all
+copy Ode/obj/Release/Ode.NET.dll to trunk/bin
+
+linux:
+configure --enable-shared
+make -k
+ignore the compile errors on drawstuff
+copy libode.so to bin
