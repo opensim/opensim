@@ -43,21 +43,21 @@ namespace OpenSim.Region.Environment.Modules
     {
         private Scene m_scene;
 
-        private string m_server = "irc2.choopa.net";
+        private string m_server = null;
+        private int m_port = 6668;
+        private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
+        private string m_nick = null;
+        private string m_channel = null;
 
-        // private int m_port = 6668;
-        //private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
-        private string m_nick = "OSimBot";
-        private string m_channel = "#opensim";
-
-        // private NetworkStream m_stream;
+        private NetworkStream m_stream;
         private TcpClient m_irc;
         private StreamWriter m_ircWriter;
         private StreamReader m_ircReader;
+        
+        private Thread pingSender;
+        private Thread listener;
 
-        //  private Thread pingSender;
-        //  private Thread listener;
-
+        private bool m_enable_irc = false;
         private bool connected = false;
 
         public ChatModule()
@@ -70,6 +70,19 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            try {
+                m_server = config.Configs["IRC"].GetString("server");
+                m_nick = config.Configs["IRC"].GetString("nick");
+                m_channel = config.Configs["IRC"].GetString("channel");
+                m_port = config.Configs["IRC"].GetInt("port", m_port);
+                m_user = config.Configs["IRC"].GetString("username", m_user);
+                if (m_server != null && m_nick != null && m_channel != null) {
+                    m_enable_irc = true;
+                }
+            } catch (Exception e) {
+                Console.WriteLine("No IRC config information, skipping IRC bridge configuration");
+            }
+
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
 
@@ -78,33 +91,33 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PostInitialise()
         {
-            /*
-            try
-            {
-                m_irc = new TcpClient(m_server, m_port);
-                m_stream = m_irc.GetStream();
-                m_ircReader = new StreamReader(m_stream);
-                m_ircWriter = new StreamWriter(m_stream);
-
-                pingSender = new Thread(new ThreadStart(this.PingRun));
-                pingSender.Start();
-
-                listener = new Thread(new ThreadStart(this.ListenerRun));
-                listener.Start();
-
-                m_ircWriter.WriteLine(m_user);
-                m_ircWriter.Flush();
-                m_ircWriter.WriteLine("NICK " + m_nick);
-                m_ircWriter.Flush();
-                m_ircWriter.WriteLine("JOIN " + m_channel);
-                m_ircWriter.Flush();
-                connected = true;
+            if( m_enable_irc ) {
+                try
+                {
+                    m_irc = new TcpClient(m_server, m_port);
+                    m_stream = m_irc.GetStream();
+                    m_ircReader = new StreamReader(m_stream);
+                    m_ircWriter = new StreamWriter(m_stream);
+                    
+                    pingSender = new Thread(new ThreadStart(this.PingRun));
+                    pingSender.Start();
+                    
+                    listener = new Thread(new ThreadStart(this.ListenerRun));
+                    listener.Start();
+                    
+                    m_ircWriter.WriteLine(m_user);
+                    m_ircWriter.Flush();
+                    m_ircWriter.WriteLine("NICK " + m_nick);
+                    m_ircWriter.Flush();
+                    m_ircWriter.WriteLine("JOIN " + m_channel);
+                    m_ircWriter.Flush();
+                    connected = true;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-            */
         }
 
         public void Close()
