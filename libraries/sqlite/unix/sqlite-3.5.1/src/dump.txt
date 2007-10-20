@@ -1,0 +1,2267 @@
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** 2003 September 6
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): ** The author disclaims copyright to this source code.  In place of
+1.1          (drh      06-Sep-03): ** a legal notice, here is a blessing:
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): **    May you do good and not evil.
+1.1          (drh      06-Sep-03): **    May you find forgiveness for yourself and forgive others.
+1.1          (drh      06-Sep-03): **    May you share freely, never taking more than you give.
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): *************************************************************************
+1.1          (drh      06-Sep-03): ** This file contains code used for creating, destroying, and populating
+1.65         (danielk1 26-May-04): ** a VDBE (or an "sqlite3_stmt" as it is known to the outside world.)  Prior
+1.1          (drh      06-Sep-03): ** to version 2.8.7, all this code was combined into the vdbe.c source file.
+1.1          (drh      06-Sep-03): ** But that file was getting too big so this subroutines were split out.
+1.1          (drh      06-Sep-03): */
+1.1          (drh      06-Sep-03): #include "sqliteInt.h"
+1.1          (drh      06-Sep-03): #include <ctype.h>
+1.1          (drh      06-Sep-03): #include "vdbeInt.h"
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): 
+1.311        (drh      27-Aug-07): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** When debugging the code generator in a symbolic debugger, one can
+1.24         (danielk1 10-May-04): ** set the sqlite3_vdbe_addop_trace to 1 and all opcodes will be printed
+1.1          (drh      06-Sep-03): ** as they are added to the instruction stream.
+1.1          (drh      06-Sep-03): */
+1.182        (drh      14-Jun-05): #ifdef SQLITE_DEBUG
+1.24         (danielk1 10-May-04): int sqlite3_vdbe_addop_trace = 0;
+1.1          (drh      06-Sep-03): #endif
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Create a new virtual database engine.
+1.1          (drh      06-Sep-03): */
+1.140        (drh      06-Sep-04): Vdbe *sqlite3VdbeCreate(sqlite3 *db){
+1.1          (drh      06-Sep-03):   Vdbe *p;
+1.299        (drh      16-Aug-07):   p = sqlite3DbMallocZero(db, sizeof(Vdbe) );
+1.1          (drh      06-Sep-03):   if( p==0 ) return 0;
+1.1          (drh      06-Sep-03):   p->db = db;
+1.1          (drh      06-Sep-03):   if( db->pVdbe ){
+1.1          (drh      06-Sep-03):     db->pVdbe->pPrev = p;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   p->pNext = db->pVdbe;
+1.1          (drh      06-Sep-03):   p->pPrev = 0;
+1.1          (drh      06-Sep-03):   db->pVdbe = p;
+1.1          (drh      06-Sep-03):   p->magic = VDBE_MAGIC_INIT;
+1.1          (drh      06-Sep-03):   return p;
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.268        (drh      09-Nov-06): ** Remember the SQL string for a prepared statement.
+1.268        (drh      09-Nov-06): */
+1.268        (drh      09-Nov-06): void sqlite3VdbeSetSql(Vdbe *p, const char *z, int n){
+1.268        (drh      09-Nov-06):   if( p==0 ) return;
+1.268        (drh      09-Nov-06):   assert( p->zSql==0 );
+1.299        (drh      16-Aug-07):   p->zSql = sqlite3DbStrNDup(p->db, z, n);
+1.268        (drh      09-Nov-06): }
+1.268        (drh      09-Nov-06): 
+1.268        (drh      09-Nov-06): /*
+1.268        (drh      09-Nov-06): ** Return the SQL associated with a prepared statement
+1.268        (drh      09-Nov-06): */
+1.268        (drh      09-Nov-06): const char *sqlite3VdbeGetSql(Vdbe *p){
+1.268        (drh      09-Nov-06):   return p->zSql;
+1.268        (drh      09-Nov-06): }
+1.268        (drh      09-Nov-06): 
+1.268        (drh      09-Nov-06): /*
+1.269        (drh      08-Jan-07): ** Swap all content between two VDBE structures.
+1.268        (drh      09-Nov-06): */
+1.269        (drh      08-Jan-07): void sqlite3VdbeSwap(Vdbe *pA, Vdbe *pB){
+1.269        (drh      08-Jan-07):   Vdbe tmp, *pTmp;
+1.269        (drh      08-Jan-07):   char *zTmp;
+1.269        (drh      08-Jan-07):   int nTmp;
+1.269        (drh      08-Jan-07):   tmp = *pA;
+1.269        (drh      08-Jan-07):   *pA = *pB;
+1.269        (drh      08-Jan-07):   *pB = tmp;
+1.269        (drh      08-Jan-07):   pTmp = pA->pNext;
+1.269        (drh      08-Jan-07):   pA->pNext = pB->pNext;
+1.269        (drh      08-Jan-07):   pB->pNext = pTmp;
+1.269        (drh      08-Jan-07):   pTmp = pA->pPrev;
+1.269        (drh      08-Jan-07):   pA->pPrev = pB->pPrev;
+1.269        (drh      08-Jan-07):   pB->pPrev = pTmp;
+1.269        (drh      08-Jan-07):   zTmp = pA->zSql;
+1.269        (drh      08-Jan-07):   pA->zSql = pB->zSql;
+1.269        (drh      08-Jan-07):   pB->zSql = zTmp;
+1.269        (drh      08-Jan-07):   nTmp = pA->nSql;
+1.269        (drh      08-Jan-07):   pA->nSql = pB->nSql;
+1.269        (drh      08-Jan-07):   pB->nSql = nTmp;
+1.268        (drh      09-Nov-06): }
+1.268        (drh      09-Nov-06): 
+1.287        (drh      08-May-07): #ifdef SQLITE_DEBUG
+1.268        (drh      09-Nov-06): /*
+1.1          (drh      06-Sep-03): ** Turn tracing on or off
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeTrace(Vdbe *p, FILE *trace){
+1.1          (drh      06-Sep-03):   p->trace = trace;
+1.1          (drh      06-Sep-03): }
+1.287        (drh      08-May-07): #endif
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.146        (drh      24-Sep-04): ** Resize the Vdbe.aOp array so that it contains at least N
+1.170        (danielk1 28-Mar-05): ** elements. If the Vdbe is in VDBE_MAGIC_RUN state, then
+1.235        (danielk1 26-Jan-06): ** the Vdbe.aOp array will be sized to contain exactly N
+1.235        (danielk1 26-Jan-06): ** elements. Vdbe.nOpAlloc is set to reflect the new size of
+1.235        (danielk1 26-Jan-06): ** the array.
+1.235        (danielk1 26-Jan-06): **
+1.235        (danielk1 26-Jan-06): ** If an out-of-memory error occurs while resizing the array,
+1.235        (danielk1 26-Jan-06): ** Vdbe.aOp and Vdbe.nOpAlloc remain unchanged (this is so that
+1.235        (danielk1 26-Jan-06): ** any opcodes already allocated can be correctly deallocated
+1.235        (danielk1 26-Jan-06): ** along with the rest of the Vdbe).
+1.146        (drh      24-Sep-04): */
+1.146        (drh      24-Sep-04): static void resizeOpArray(Vdbe *p, int N){
+1.199        (drh      16-Sep-05):   int runMode = p->magic==VDBE_MAGIC_RUN;
+1.199        (drh      16-Sep-05):   if( runMode || p->nOpAlloc<N ){
+1.199        (drh      16-Sep-05):     VdbeOp *pNew;
+1.199        (drh      16-Sep-05):     int nNew = N + 100*(!runMode);
+1.146        (drh      24-Sep-04):     int oldSize = p->nOpAlloc;
+1.315        (danielk1 29-Aug-07):     pNew = sqlite3DbRealloc(p->db, p->aOp, nNew*sizeof(Op));
+1.198        (drh      16-Sep-05):     if( pNew ){
+1.199        (drh      16-Sep-05):       p->nOpAlloc = nNew;
+1.198        (drh      16-Sep-05):       p->aOp = pNew;
+1.199        (drh      16-Sep-05):       if( nNew>oldSize ){
+1.199        (drh      16-Sep-05):         memset(&p->aOp[oldSize], 0, (nNew-oldSize)*sizeof(Op));
+1.199        (drh      16-Sep-05):       }
+1.146        (drh      24-Sep-04):     }
+1.146        (drh      24-Sep-04):   }
+1.146        (drh      24-Sep-04): }
+1.146        (drh      24-Sep-04): 
+1.146        (drh      24-Sep-04): /*
+1.1          (drh      06-Sep-03): ** Add a new instruction to the list of instructions current in the
+1.1          (drh      06-Sep-03): ** VDBE.  Return the address of the new instruction.
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): ** Parameters:
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): **    p               Pointer to the VDBE
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): **    op              The opcode for this instruction
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): **    p1, p2          First two of the three possible operands.
+1.1          (drh      06-Sep-03): **
+1.19         (danielk1 08-May-04): ** Use the sqlite3VdbeResolveLabel() function to fix an address and
+1.19         (danielk1 08-May-04): ** the sqlite3VdbeChangeP3() function to change the value of the P3
+1.1          (drh      06-Sep-03): ** operand.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): int sqlite3VdbeAddOp(Vdbe *p, int op, int p1, int p2){
+1.1          (drh      06-Sep-03):   int i;
+1.18         (drh      22-Feb-04):   VdbeOp *pOp;
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03):   i = p->nOp;
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.241        (drh      15-Mar-06):   if( p->nOpAlloc<=i ){
+1.241        (drh      15-Mar-06):     resizeOpArray(p, i+1);
+1.299        (drh      16-Aug-07):     if( p->db->mallocFailed ){
+1.241        (drh      15-Mar-06):       return 0;
+1.241        (drh      15-Mar-06):     }
+1.1          (drh      06-Sep-03):   }
+1.282        (danielk1 18-Apr-07):   p->nOp++;
+1.18         (drh      22-Feb-04):   pOp = &p->aOp[i];
+1.18         (drh      22-Feb-04):   pOp->opcode = op;
+1.18         (drh      22-Feb-04):   pOp->p1 = p1;
+1.18         (drh      22-Feb-04):   pOp->p2 = p2;
+1.18         (drh      22-Feb-04):   pOp->p3 = 0;
+1.18         (drh      22-Feb-04):   pOp->p3type = P3_NOTUSED;
+1.185        (drh      14-Aug-05):   p->expired = 0;
+1.156        (danielk1 12-Jan-05): #ifdef SQLITE_DEBUG
+1.24         (danielk1 10-May-04):   if( sqlite3_vdbe_addop_trace ) sqlite3VdbePrintOp(0, i, &p->aOp[i]);
+1.1          (drh      06-Sep-03): #endif
+1.1          (drh      06-Sep-03):   return i;
+1.1          (drh      06-Sep-03): }
+1.18         (drh      22-Feb-04): 
+1.18         (drh      22-Feb-04): /*
+1.18         (drh      22-Feb-04): ** Add an opcode that includes the p3 value.
+1.18         (drh      22-Feb-04): */
+1.69         (drh      27-May-04): int sqlite3VdbeOp3(Vdbe *p, int op, int p1, int p2, const char *zP3,int p3type){
+1.19         (danielk1 08-May-04):   int addr = sqlite3VdbeAddOp(p, op, p1, p2);
+1.19         (danielk1 08-May-04):   sqlite3VdbeChangeP3(p, addr, zP3, p3type);
+1.18         (drh      22-Feb-04):   return addr;
+1.18         (drh      22-Feb-04): }
+1.18         (drh      22-Feb-04): 
+1.18         (drh      22-Feb-04): /*
+1.1          (drh      06-Sep-03): ** Create a new symbolic label for an instruction that has yet to be
+1.1          (drh      06-Sep-03): ** coded.  The symbolic label is really just a negative number.  The
+1.1          (drh      06-Sep-03): ** label can be used as the P2 value of an operation.  Later, when
+1.1          (drh      06-Sep-03): ** the label is resolved to a specific address, the VDBE will scan
+1.1          (drh      06-Sep-03): ** through its operation list and change all values of P2 which match
+1.1          (drh      06-Sep-03): ** the label into the resolved address.
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): ** The VDBE knows that a P2 value is a label because labels are
+1.1          (drh      06-Sep-03): ** always negative and P2 values are suppose to be non-negative.
+1.1          (drh      06-Sep-03): ** Hence, a negative P2 value is a label that has yet to be resolved.
+1.129        (danielk1 26-Jun-04): **
+1.129        (danielk1 26-Jun-04): ** Zero is returned if a malloc() fails.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): int sqlite3VdbeMakeLabel(Vdbe *p){
+1.1          (drh      06-Sep-03):   int i;
+1.1          (drh      06-Sep-03):   i = p->nLabel++;
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.1          (drh      06-Sep-03):   if( i>=p->nLabelAlloc ){
+1.1          (drh      06-Sep-03):     p->nLabelAlloc = p->nLabelAlloc*2 + 10;
+1.300        (danielk1 16-Aug-07):     p->aLabel = sqlite3DbReallocOrFree(p->db, p->aLabel,
+1.273        (drh      27-Mar-07):                                     p->nLabelAlloc*sizeof(p->aLabel[0]));
+1.146        (drh      24-Sep-04):   }
+1.146        (drh      24-Sep-04):   if( p->aLabel ){
+1.146        (drh      24-Sep-04):     p->aLabel[i] = -1;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   return -1-i;
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Resolve label "x" to be the address of the next instruction to
+1.1          (drh      06-Sep-03): ** be inserted.  The parameter "x" must have been obtained from
+1.19         (danielk1 08-May-04): ** a prior call to sqlite3VdbeMakeLabel().
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeResolveLabel(Vdbe *p, int x){
+1.146        (drh      24-Sep-04):   int j = -1-x;
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.146        (drh      24-Sep-04):   assert( j>=0 && j<p->nLabel );
+1.146        (drh      24-Sep-04):   if( p->aLabel ){
+1.146        (drh      24-Sep-04):     p->aLabel[j] = p->nOp;
+1.146        (drh      24-Sep-04):   }
+1.146        (drh      24-Sep-04): }
+1.146        (drh      24-Sep-04): 
+1.146        (drh      24-Sep-04): /*
+1.171        (danielk1 29-Mar-05): ** Return non-zero if opcode 'op' is guarenteed not to push more values
+1.171        (danielk1 29-Mar-05): ** onto the VDBE stack than it pops off.
+1.171        (danielk1 29-Mar-05): */
+1.172        (danielk1 29-Mar-05): static int opcodeNoPush(u8 op){
+1.172        (danielk1 29-Mar-05):   /* The 10 NOPUSH_MASK_n constants are defined in the automatically
+1.171        (danielk1 29-Mar-05):   ** generated header file opcodes.h. Each is a 16-bit bitmask, one
+1.171        (danielk1 29-Mar-05):   ** bit corresponding to each opcode implemented by the virtual
+1.172        (danielk1 29-Mar-05):   ** machine in vdbe.c. The bit is true if the word "no-push" appears
+1.171        (danielk1 29-Mar-05):   ** in a comment on the same line as the "case OP_XXX:" in 
+1.171        (danielk1 29-Mar-05):   ** sqlite3VdbeExec() in vdbe.c.
+1.171        (danielk1 29-Mar-05):   **
+1.171        (danielk1 29-Mar-05):   ** If the bit is true, then the corresponding opcode is guarenteed not
+1.171        (danielk1 29-Mar-05):   ** to grow the stack when it is executed. Otherwise, it may grow the
+1.171        (danielk1 29-Mar-05):   ** stack by at most one entry.
+1.171        (danielk1 29-Mar-05):   **
+1.172        (danielk1 29-Mar-05):   ** NOPUSH_MASK_0 corresponds to opcodes 0 to 15. NOPUSH_MASK_1 contains
+1.171        (danielk1 29-Mar-05):   ** one bit for opcodes 16 to 31, and so on.
+1.171        (danielk1 29-Mar-05):   **
+1.171        (danielk1 29-Mar-05):   ** 16-bit bitmasks (rather than 32-bit) are specified in opcodes.h 
+1.171        (danielk1 29-Mar-05):   ** because the file is generated by an awk program. Awk manipulates
+1.171        (danielk1 29-Mar-05):   ** all numbers as floating-point and we don't want to risk a rounding
+1.171        (danielk1 29-Mar-05):   ** error if someone builds with an awk that uses (for example) 32-bit 
+1.171        (danielk1 29-Mar-05):   ** IEEE floats.
+1.171        (danielk1 29-Mar-05):   */ 
+1.173        (drh      31-Mar-05):   static const u32 masks[5] = {
+1.238        (drh      24-Feb-06):     NOPUSH_MASK_0 + (((unsigned)NOPUSH_MASK_1)<<16),
+1.238        (drh      24-Feb-06):     NOPUSH_MASK_2 + (((unsigned)NOPUSH_MASK_3)<<16),
+1.238        (drh      24-Feb-06):     NOPUSH_MASK_4 + (((unsigned)NOPUSH_MASK_5)<<16),
+1.238        (drh      24-Feb-06):     NOPUSH_MASK_6 + (((unsigned)NOPUSH_MASK_7)<<16),
+1.238        (drh      24-Feb-06):     NOPUSH_MASK_8 + (((unsigned)NOPUSH_MASK_9)<<16)
+1.171        (danielk1 29-Mar-05):   };
+1.206        (drh      29-Nov-05):   assert( op<32*5 );
+1.171        (danielk1 29-Mar-05):   return (masks[op>>5] & (1<<(op&0x1F)));
+1.171        (danielk1 29-Mar-05): }
+1.171        (danielk1 29-Mar-05): 
+1.171        (danielk1 29-Mar-05): #ifndef NDEBUG
+1.172        (danielk1 29-Mar-05): int sqlite3VdbeOpcodeNoPush(u8 op){
+1.172        (danielk1 29-Mar-05):   return opcodeNoPush(op);
+1.171        (danielk1 29-Mar-05): }
+1.171        (danielk1 29-Mar-05): #endif
+1.171        (danielk1 29-Mar-05): 
+1.171        (danielk1 29-Mar-05): /*
+1.146        (drh      24-Sep-04): ** Loop through the program looking for P2 values that are negative.
+1.146        (drh      24-Sep-04): ** Each such value is a label.  Resolve the label by setting the P2
+1.146        (drh      24-Sep-04): ** value to its correct non-zero value.
+1.146        (drh      24-Sep-04): **
+1.146        (drh      24-Sep-04): ** This routine is called once after all opcodes have been inserted.
+1.170        (danielk1 28-Mar-05): **
+1.195        (drh      07-Sep-05): ** Variable *pMaxFuncArgs is set to the maximum value of any P2 argument 
+1.247        (danielk1 14-Jun-06): ** to an OP_Function, OP_AggStep or OP_VFilter opcode. This is used by 
+1.170        (danielk1 28-Mar-05): ** sqlite3VdbeMakeReady() to size the Vdbe.apArg[] array.
+1.171        (danielk1 29-Mar-05): **
+1.171        (danielk1 29-Mar-05): ** The integer *pMaxStack is set to the maximum number of vdbe stack
+1.171        (danielk1 29-Mar-05): ** entries that static analysis reveals this program might need.
+1.180        (drh      07-Jun-05): **
+1.180        (drh      07-Jun-05): ** This routine also does the following optimization:  It scans for
+1.180        (drh      07-Jun-05): ** Halt instructions where P1==SQLITE_CONSTRAINT or P2==OE_Abort or for
+1.181        (drh      12-Jun-05): ** IdxInsert instructions where P2!=0.  If no such instruction is
+1.180        (drh      07-Jun-05): ** found, then every Statement instruction is changed to a Noop.  In
+1.180        (drh      07-Jun-05): ** this way, we avoid creating the statement journal file unnecessarily.
+1.146        (drh      24-Sep-04): */
+1.171        (danielk1 29-Mar-05): static void resolveP2Values(Vdbe *p, int *pMaxFuncArgs, int *pMaxStack){
+1.146        (drh      24-Sep-04):   int i;
+1.171        (danielk1 29-Mar-05):   int nMaxArgs = 0;
+1.171        (danielk1 29-Mar-05):   int nMaxStack = p->nOp;
+1.146        (drh      24-Sep-04):   Op *pOp;
+1.146        (drh      24-Sep-04):   int *aLabel = p->aLabel;
+1.180        (drh      07-Jun-05):   int doesStatementRollback = 0;
+1.180        (drh      07-Jun-05):   int hasStatementBegin = 0;
+1.146        (drh      24-Sep-04):   for(pOp=p->aOp, i=p->nOp-1; i>=0; i--, pOp++){
+1.170        (danielk1 28-Mar-05):     u8 opcode = pOp->opcode;
+1.170        (danielk1 28-Mar-05): 
+1.251        (danielk1 20-Jun-06):     if( opcode==OP_Function || opcode==OP_AggStep 
+1.247        (danielk1 14-Jun-06): #ifndef SQLITE_OMIT_VIRTUALTABLE
+1.251        (danielk1 20-Jun-06):         || opcode==OP_VUpdate
+1.247        (danielk1 14-Jun-06): #endif
+1.247        (danielk1 14-Jun-06):     ){
+1.171        (danielk1 29-Mar-05):       if( pOp->p2>nMaxArgs ) nMaxArgs = pOp->p2;
+1.294        (danielk1 27-Jun-07):     }
+1.294        (danielk1 27-Jun-07):     if( opcode==OP_Halt ){
+1.180        (drh      07-Jun-05):       if( pOp->p1==SQLITE_CONSTRAINT && pOp->p2==OE_Abort ){
+1.180        (drh      07-Jun-05):         doesStatementRollback = 1;
+1.180        (drh      07-Jun-05):       }
+1.180        (drh      07-Jun-05):     }else if( opcode==OP_Statement ){
+1.180        (drh      07-Jun-05):       hasStatementBegin = 1;
+1.294        (danielk1 27-Jun-07): #ifndef SQLITE_OMIT_VIRTUALTABLE
+1.294        (danielk1 27-Jun-07):     }else if( opcode==OP_VUpdate || opcode==OP_VRename ){
+1.294        (danielk1 27-Jun-07):       doesStatementRollback = 1;
+1.246        (drh      13-Jun-06):     }else if( opcode==OP_VFilter ){
+1.246        (drh      13-Jun-06):       int n;
+1.246        (drh      13-Jun-06):       assert( p->nOp - i >= 3 );
+1.246        (drh      13-Jun-06):       assert( pOp[-2].opcode==OP_Integer );
+1.246        (drh      13-Jun-06):       n = pOp[-2].p1;
+1.246        (drh      13-Jun-06):       if( n>nMaxArgs ) nMaxArgs = n;
+1.294        (danielk1 27-Jun-07): #endif
+1.171        (danielk1 29-Mar-05):     }
+1.172        (danielk1 29-Mar-05):     if( opcodeNoPush(opcode) ){
+1.171        (danielk1 29-Mar-05):       nMaxStack--;
+1.170        (danielk1 28-Mar-05):     }
+1.170        (danielk1 28-Mar-05): 
+1.146        (drh      24-Sep-04):     if( pOp->p2>=0 ) continue;
+1.146        (drh      24-Sep-04):     assert( -1-pOp->p2<p->nLabel );
+1.146        (drh      24-Sep-04):     pOp->p2 = aLabel[-1-pOp->p2];
+1.1          (drh      06-Sep-03):   }
+1.299        (drh      16-Aug-07):   sqlite3_free(p->aLabel);
+1.146        (drh      24-Sep-04):   p->aLabel = 0;
+1.171        (danielk1 29-Mar-05): 
+1.171        (danielk1 29-Mar-05):   *pMaxFuncArgs = nMaxArgs;
+1.171        (danielk1 29-Mar-05):   *pMaxStack = nMaxStack;
+1.180        (drh      07-Jun-05): 
+1.180        (drh      07-Jun-05):   /* If we never rollback a statement transaction, then statement
+1.180        (drh      07-Jun-05):   ** transactions are not needed.  So change every OP_Statement
+1.218        (drh      06-Jan-06):   ** opcode into an OP_Noop.  This avoid a call to sqlite3OsOpenExclusive()
+1.180        (drh      07-Jun-05):   ** which can be expensive on some platforms.
+1.180        (drh      07-Jun-05):   */
+1.180        (drh      07-Jun-05):   if( hasStatementBegin && !doesStatementRollback ){
+1.180        (drh      07-Jun-05):     for(pOp=p->aOp, i=p->nOp-1; i>=0; i--, pOp++){
+1.180        (drh      07-Jun-05):       if( pOp->opcode==OP_Statement ){
+1.180        (drh      07-Jun-05):         pOp->opcode = OP_Noop;
+1.180        (drh      07-Jun-05):       }
+1.180        (drh      07-Jun-05):     }
+1.180        (drh      07-Jun-05):   }
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Return the address of the next instruction to be inserted.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): int sqlite3VdbeCurrentAddr(Vdbe *p){
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.1          (drh      06-Sep-03):   return p->nOp;
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Add a whole list of operations to the operation stack.  Return the
+1.1          (drh      06-Sep-03): ** address of the first operation added.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): int sqlite3VdbeAddOpList(Vdbe *p, int nOp, VdbeOpList const *aOp){
+1.1          (drh      06-Sep-03):   int addr;
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.146        (drh      24-Sep-04):   resizeOpArray(p, p->nOp + nOp);
+1.299        (drh      16-Aug-07):   if( p->db->mallocFailed ){
+1.146        (drh      24-Sep-04):     return 0;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   addr = p->nOp;
+1.1          (drh      06-Sep-03):   if( nOp>0 ){
+1.1          (drh      06-Sep-03):     int i;
+1.16         (drh      21-Feb-04):     VdbeOpList const *pIn = aOp;
+1.16         (drh      21-Feb-04):     for(i=0; i<nOp; i++, pIn++){
+1.16         (drh      21-Feb-04):       int p2 = pIn->p2;
+1.16         (drh      21-Feb-04):       VdbeOp *pOut = &p->aOp[i+addr];
+1.16         (drh      21-Feb-04):       pOut->opcode = pIn->opcode;
+1.16         (drh      21-Feb-04):       pOut->p1 = pIn->p1;
+1.16         (drh      21-Feb-04):       pOut->p2 = p2<0 ? addr + ADDR(p2) : p2;
+1.16         (drh      21-Feb-04):       pOut->p3 = pIn->p3;
+1.16         (drh      21-Feb-04):       pOut->p3type = pIn->p3 ? P3_STATIC : P3_NOTUSED;
+1.156        (danielk1 12-Jan-05): #ifdef SQLITE_DEBUG
+1.24         (danielk1 10-May-04):       if( sqlite3_vdbe_addop_trace ){
+1.19         (danielk1 08-May-04):         sqlite3VdbePrintOp(0, i+addr, &p->aOp[i+addr]);
+1.1          (drh      06-Sep-03):       }
+1.1          (drh      06-Sep-03): #endif
+1.1          (drh      06-Sep-03):     }
+1.1          (drh      06-Sep-03):     p->nOp += nOp;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   return addr;
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Change the value of the P1 operand for a specific instruction.
+1.1          (drh      06-Sep-03): ** This routine is useful when a large program is loaded from a
+1.19         (danielk1 08-May-04): ** static array using sqlite3VdbeAddOpList but we want to make a
+1.1          (drh      06-Sep-03): ** few minor changes to the program.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeChangeP1(Vdbe *p, int addr, int val){
+1.240        (drh      13-Mar-06):   assert( p==0 || p->magic==VDBE_MAGIC_INIT );
+1.1          (drh      06-Sep-03):   if( p && addr>=0 && p->nOp>addr && p->aOp ){
+1.1          (drh      06-Sep-03):     p->aOp[addr].p1 = val;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Change the value of the P2 operand for a specific instruction.
+1.1          (drh      06-Sep-03): ** This routine is useful for setting a jump destination.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeChangeP2(Vdbe *p, int addr, int val){
+1.1          (drh      06-Sep-03):   assert( val>=0 );
+1.240        (drh      13-Mar-06):   assert( p==0 || p->magic==VDBE_MAGIC_INIT );
+1.1          (drh      06-Sep-03):   if( p && addr>=0 && p->nOp>addr && p->aOp ){
+1.1          (drh      06-Sep-03):     p->aOp[addr].p2 = val;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.202        (drh      20-Sep-05): /*
+1.242        (drh      17-Mar-06): ** Change the P2 operand of instruction addr so that it points to
+1.202        (drh      20-Sep-05): ** the address of the next instruction to be coded.
+1.202        (drh      20-Sep-05): */
+1.202        (drh      20-Sep-05): void sqlite3VdbeJumpHere(Vdbe *p, int addr){
+1.202        (drh      20-Sep-05):   sqlite3VdbeChangeP2(p, addr, p->nOp);
+1.202        (drh      20-Sep-05): }
+1.198        (drh      16-Sep-05): 
+1.257        (drh      08-Jul-06): 
+1.257        (drh      08-Jul-06): /*
+1.257        (drh      08-Jul-06): ** If the input FuncDef structure is ephemeral, then free it.  If
+1.257        (drh      08-Jul-06): ** the FuncDef is not ephermal, then do nothing.
+1.257        (drh      08-Jul-06): */
+1.257        (drh      08-Jul-06): static void freeEphemeralFunction(FuncDef *pDef){
+1.257        (drh      08-Jul-06):   if( pDef && (pDef->flags & SQLITE_FUNC_EPHEM)!=0 ){
+1.299        (drh      16-Aug-07):     sqlite3_free(pDef);
+1.257        (drh      08-Jul-06):   }
+1.257        (drh      08-Jul-06): }
+1.257        (drh      08-Jul-06): 
+1.198        (drh      16-Sep-05): /*
+1.198        (drh      16-Sep-05): ** Delete a P3 value if necessary.
+1.198        (drh      16-Sep-05): */
+1.198        (drh      16-Sep-05): static void freeP3(int p3type, void *p3){
+1.198        (drh      16-Sep-05):   if( p3 ){
+1.201        (drh      17-Sep-05):     switch( p3type ){
+1.201        (drh      17-Sep-05):       case P3_DYNAMIC:
+1.201        (drh      17-Sep-05):       case P3_KEYINFO:
+1.201        (drh      17-Sep-05):       case P3_KEYINFO_HANDOFF: {
+1.299        (drh      16-Aug-07):         sqlite3_free(p3);
+1.201        (drh      17-Sep-05):         break;
+1.201        (drh      17-Sep-05):       }
+1.246        (drh      13-Jun-06):       case P3_MPRINTF: {
+1.246        (drh      13-Jun-06):         sqlite3_free(p3);
+1.246        (drh      13-Jun-06):         break;
+1.246        (drh      13-Jun-06):       }
+1.201        (drh      17-Sep-05):       case P3_VDBEFUNC: {
+1.201        (drh      17-Sep-05):         VdbeFunc *pVdbeFunc = (VdbeFunc *)p3;
+1.257        (drh      08-Jul-06):         freeEphemeralFunction(pVdbeFunc->pFunc);
+1.201        (drh      17-Sep-05):         sqlite3VdbeDeleteAuxData(pVdbeFunc, 0);
+1.299        (drh      16-Aug-07):         sqlite3_free(pVdbeFunc);
+1.201        (drh      17-Sep-05):         break;
+1.201        (drh      17-Sep-05):       }
+1.257        (drh      08-Jul-06):       case P3_FUNCDEF: {
+1.257        (drh      08-Jul-06):         freeEphemeralFunction((FuncDef*)p3);
+1.257        (drh      08-Jul-06):         break;
+1.257        (drh      08-Jul-06):       }
+1.201        (drh      17-Sep-05):       case P3_MEM: {
+1.201        (drh      17-Sep-05):         sqlite3ValueFree((sqlite3_value*)p3);
+1.201        (drh      17-Sep-05):         break;
+1.201        (drh      17-Sep-05):       }
+1.198        (drh      16-Sep-05):     }
+1.198        (drh      16-Sep-05):   }
+1.198        (drh      16-Sep-05): }
+1.198        (drh      16-Sep-05): 
+1.198        (drh      16-Sep-05): 
+1.1          (drh      06-Sep-03): /*
+1.242        (drh      17-Mar-06): ** Change N opcodes starting at addr to No-ops.
+1.242        (drh      17-Mar-06): */
+1.242        (drh      17-Mar-06): void sqlite3VdbeChangeToNoop(Vdbe *p, int addr, int N){
+1.285        (danielk1 04-May-07):   if( p && p->aOp ){
+1.285        (danielk1 04-May-07):     VdbeOp *pOp = &p->aOp[addr];
+1.285        (danielk1 04-May-07):     while( N-- ){
+1.285        (danielk1 04-May-07):       freeP3(pOp->p3type, pOp->p3);
+1.285        (danielk1 04-May-07):       memset(pOp, 0, sizeof(pOp[0]));
+1.285        (danielk1 04-May-07):       pOp->opcode = OP_Noop;
+1.285        (danielk1 04-May-07):       pOp++;
+1.285        (danielk1 04-May-07):     }
+1.242        (drh      17-Mar-06):   }
+1.242        (drh      17-Mar-06): }
+1.242        (drh      17-Mar-06): 
+1.242        (drh      17-Mar-06): /*
+1.1          (drh      06-Sep-03): ** Change the value of the P3 operand for a specific instruction.
+1.1          (drh      06-Sep-03): ** This routine is useful when a large program is loaded from a
+1.19         (danielk1 08-May-04): ** static array using sqlite3VdbeAddOpList but we want to make a
+1.1          (drh      06-Sep-03): ** few minor changes to the program.
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): ** If n>=0 then the P3 operand is dynamic, meaning that a copy of
+1.299        (drh      16-Aug-07): ** the string is made into memory obtained from sqlite3_malloc().
+1.1          (drh      06-Sep-03): ** A value of n==0 means copy bytes of zP3 up to and including the
+1.1          (drh      06-Sep-03): ** first null byte.  If n>0 then copy n+1 bytes of zP3.
+1.1          (drh      06-Sep-03): **
+1.176        (danielk1 19-May-05): ** If n==P3_KEYINFO it means that zP3 is a pointer to a KeyInfo structure.
+1.176        (danielk1 19-May-05): ** A copy is made of the KeyInfo structure into memory obtained from
+1.299        (drh      16-Aug-07): ** sqlite3_malloc, to be freed when the Vdbe is finalized.
+1.176        (danielk1 19-May-05): ** n==P3_KEYINFO_HANDOFF indicates that zP3 points to a KeyInfo structure
+1.299        (drh      16-Aug-07): ** stored in memory that the caller has obtained from sqlite3_malloc. The 
+1.176        (danielk1 19-May-05): ** caller should not free the allocation, it will be freed when the Vdbe is
+1.176        (danielk1 19-May-05): ** finalized.
+1.176        (danielk1 19-May-05): ** 
+1.176        (danielk1 19-May-05): ** Other values of n (P3_STATIC, P3_COLLSEQ etc.) indicate that zP3 points
+1.176        (danielk1 19-May-05): ** to a string or structure that is guaranteed to exist for the lifetime of
+1.176        (danielk1 19-May-05): ** the Vdbe. In these cases we can just copy the pointer.
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): ** If addr<0 then change P3 on the most recently inserted instruction.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeChangeP3(Vdbe *p, int addr, const char *zP3, int n){
+1.1          (drh      06-Sep-03):   Op *pOp;
+1.240        (drh      13-Mar-06):   assert( p==0 || p->magic==VDBE_MAGIC_INIT );
+1.299        (drh      16-Aug-07):   if( p==0 || p->aOp==0 || p->db->mallocFailed ){
+1.208        (danielk1 06-Dec-05):     if (n != P3_KEYINFO) {
+1.208        (danielk1 06-Dec-05):       freeP3(n, (void*)*(char**)&zP3);
+1.208        (danielk1 06-Dec-05):     }
+1.168        (danielk1 16-Mar-05):     return;
+1.168        (danielk1 16-Mar-05):   }
+1.1          (drh      06-Sep-03):   if( addr<0 || addr>=p->nOp ){
+1.1          (drh      06-Sep-03):     addr = p->nOp - 1;
+1.1          (drh      06-Sep-03):     if( addr<0 ) return;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   pOp = &p->aOp[addr];
+1.198        (drh      16-Sep-05):   freeP3(pOp->p3type, pOp->p3);
+1.198        (drh      16-Sep-05):   pOp->p3 = 0;
+1.1          (drh      06-Sep-03):   if( zP3==0 ){
+1.1          (drh      06-Sep-03):     pOp->p3 = 0;
+1.1          (drh      06-Sep-03):     pOp->p3type = P3_NOTUSED;
+1.50         (drh      20-May-04):   }else if( n==P3_KEYINFO ){
+1.50         (drh      20-May-04):     KeyInfo *pKeyInfo;
+1.50         (drh      20-May-04):     int nField, nByte;
+1.192        (drh      01-Sep-05): 
+1.50         (drh      20-May-04):     nField = ((KeyInfo*)zP3)->nField;
+1.211        (drh      16-Dec-05):     nByte = sizeof(*pKeyInfo) + (nField-1)*sizeof(pKeyInfo->aColl[0]) + nField;
+1.299        (drh      16-Aug-07):     pKeyInfo = sqlite3_malloc( nByte );
+1.50         (drh      20-May-04):     pOp->p3 = (char*)pKeyInfo;
+1.50         (drh      20-May-04):     if( pKeyInfo ){
+1.226        (danielk1 16-Jan-06):       unsigned char *aSortOrder;
+1.50         (drh      20-May-04):       memcpy(pKeyInfo, zP3, nByte);
+1.211        (drh      16-Dec-05):       aSortOrder = pKeyInfo->aSortOrder;
+1.211        (drh      16-Dec-05):       if( aSortOrder ){
+1.226        (danielk1 16-Jan-06):         pKeyInfo->aSortOrder = (unsigned char*)&pKeyInfo->aColl[nField];
+1.211        (drh      16-Dec-05):         memcpy(pKeyInfo->aSortOrder, aSortOrder, nField);
+1.211        (drh      16-Dec-05):       }
+1.50         (drh      20-May-04):       pOp->p3type = P3_KEYINFO;
+1.50         (drh      20-May-04):     }else{
+1.299        (drh      16-Aug-07):       p->db->mallocFailed = 1;
+1.50         (drh      20-May-04):       pOp->p3type = P3_NOTUSED;
+1.50         (drh      20-May-04):     }
+1.51         (drh      21-May-04):   }else if( n==P3_KEYINFO_HANDOFF ){
+1.51         (drh      21-May-04):     pOp->p3 = (char*)zP3;
+1.51         (drh      21-May-04):     pOp->p3type = P3_KEYINFO;
+1.1          (drh      06-Sep-03):   }else if( n<0 ){
+1.1          (drh      06-Sep-03):     pOp->p3 = (char*)zP3;
+1.1          (drh      06-Sep-03):     pOp->p3type = n;
+1.1          (drh      06-Sep-03):   }else{
+1.147        (drh      25-Sep-04):     if( n==0 ) n = strlen(zP3);
+1.299        (drh      16-Aug-07):     pOp->p3 = sqlite3DbStrNDup(p->db, zP3, n);
+1.1          (drh      06-Sep-03):     pOp->p3type = P3_DYNAMIC;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.144        (drh      19-Sep-04): #ifndef NDEBUG
+1.144        (drh      19-Sep-04): /*
+1.144        (drh      19-Sep-04): ** Replace the P3 field of the most recently coded instruction with
+1.144        (drh      19-Sep-04): ** comment text.
+1.144        (drh      19-Sep-04): */
+1.144        (drh      19-Sep-04): void sqlite3VdbeComment(Vdbe *p, const char *zFormat, ...){
+1.144        (drh      19-Sep-04):   va_list ap;
+1.282        (danielk1 18-Apr-07):   assert( p->nOp>0 || p->aOp==0 );
+1.299        (drh      16-Aug-07):   assert( p->aOp==0 || p->aOp[p->nOp-1].p3==0 || p->db->mallocFailed );
+1.144        (drh      19-Sep-04):   va_start(ap, zFormat);
+1.300        (danielk1 16-Aug-07):   sqlite3VdbeChangeP3(p, -1, sqlite3VMPrintf(p->db, zFormat, ap), P3_DYNAMIC);
+1.144        (drh      19-Sep-04):   va_end(ap);
+1.144        (drh      19-Sep-04): }
+1.144        (drh      19-Sep-04): #endif
+1.144        (drh      19-Sep-04): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Return the opcode for a given address.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): VdbeOp *sqlite3VdbeGetOp(Vdbe *p, int addr){
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.299        (drh      16-Aug-07):   assert( (addr>=0 && addr<p->nOp) || p->db->mallocFailed );
+1.282        (danielk1 18-Apr-07):   return ((addr>=0 && addr<p->nOp)?(&p->aOp[addr]):0);
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.151        (drh      31-Oct-04): #if !defined(SQLITE_OMIT_EXPLAIN) || !defined(NDEBUG) \
+1.151        (drh      31-Oct-04):      || defined(VDBE_PROFILE) || defined(SQLITE_DEBUG)
+1.1          (drh      06-Sep-03): /*
+1.50         (drh      20-May-04): ** Compute a string that describes the P3 parameter for an opcode.
+1.50         (drh      20-May-04): ** Use zTemp for any required temporary buffer space.
+1.50         (drh      20-May-04): */
+1.50         (drh      20-May-04): static char *displayP3(Op *pOp, char *zTemp, int nTemp){
+1.50         (drh      20-May-04):   char *zP3;
+1.50         (drh      20-May-04):   assert( nTemp>=20 );
+1.50         (drh      20-May-04):   switch( pOp->p3type ){
+1.50         (drh      20-May-04):     case P3_KEYINFO: {
+1.50         (drh      20-May-04):       int i, j;
+1.50         (drh      20-May-04):       KeyInfo *pKeyInfo = (KeyInfo*)pOp->p3;
+1.286        (drh      04-May-07):       sqlite3_snprintf(nTemp, zTemp, "keyinfo(%d", pKeyInfo->nField);
+1.50         (drh      20-May-04):       i = strlen(zTemp);
+1.50         (drh      20-May-04):       for(j=0; j<pKeyInfo->nField; j++){
+1.50         (drh      20-May-04):         CollSeq *pColl = pKeyInfo->aColl[j];
+1.50         (drh      20-May-04):         if( pColl ){
+1.50         (drh      20-May-04):           int n = strlen(pColl->zName);
+1.50         (drh      20-May-04):           if( i+n>nTemp-6 ){
+1.286        (drh      04-May-07):             memcpy(&zTemp[i],",...",4);
+1.50         (drh      20-May-04):             break;
+1.50         (drh      20-May-04):           }
+1.50         (drh      20-May-04):           zTemp[i++] = ',';
+1.51         (drh      21-May-04):           if( pKeyInfo->aSortOrder && pKeyInfo->aSortOrder[j] ){
+1.50         (drh      20-May-04):             zTemp[i++] = '-';
+1.50         (drh      20-May-04):           }
+1.286        (drh      04-May-07):           memcpy(&zTemp[i], pColl->zName,n+1);
+1.50         (drh      20-May-04):           i += n;
+1.50         (drh      20-May-04):         }else if( i+4<nTemp-6 ){
+1.286        (drh      04-May-07):           memcpy(&zTemp[i],",nil",4);
+1.50         (drh      20-May-04):           i += 4;
+1.50         (drh      20-May-04):         }
+1.50         (drh      20-May-04):       }
+1.50         (drh      20-May-04):       zTemp[i++] = ')';
+1.50         (drh      20-May-04):       zTemp[i] = 0;
+1.50         (drh      20-May-04):       assert( i<nTemp );
+1.50         (drh      20-May-04):       zP3 = zTemp;
+1.50         (drh      20-May-04):       break;
+1.50         (drh      20-May-04):     }
+1.50         (drh      20-May-04):     case P3_COLLSEQ: {
+1.50         (drh      20-May-04):       CollSeq *pColl = (CollSeq*)pOp->p3;
+1.286        (drh      04-May-07):       sqlite3_snprintf(nTemp, zTemp, "collseq(%.20s)", pColl->zName);
+1.50         (drh      20-May-04):       zP3 = zTemp;
+1.50         (drh      20-May-04):       break;
+1.50         (drh      20-May-04):     }
+1.67         (drh      26-May-04):     case P3_FUNCDEF: {
+1.67         (drh      26-May-04):       FuncDef *pDef = (FuncDef*)pOp->p3;
+1.244        (drh      13-Jun-06):       sqlite3_snprintf(nTemp, zTemp, "%s(%d)", pDef->zName, pDef->nArg);
+1.244        (drh      13-Jun-06):       zP3 = zTemp;
+1.244        (drh      13-Jun-06):       break;
+1.244        (drh      13-Jun-06):     }
+1.244        (drh      13-Jun-06): #ifndef SQLITE_OMIT_VIRTUALTABLE
+1.244        (drh      13-Jun-06):     case P3_VTAB: {
+1.244        (drh      13-Jun-06):       sqlite3_vtab *pVtab = (sqlite3_vtab*)pOp->p3;
+1.256        (drh      26-Jun-06):       sqlite3_snprintf(nTemp, zTemp, "vtab:%p:%p", pVtab, pVtab->pModule);
+1.67         (drh      26-May-04):       zP3 = zTemp;
+1.67         (drh      26-May-04):       break;
+1.67         (drh      26-May-04):     }
+1.244        (drh      13-Jun-06): #endif
+1.50         (drh      20-May-04):     default: {
+1.50         (drh      20-May-04):       zP3 = pOp->p3;
+1.135        (drh      24-Jul-04):       if( zP3==0 || pOp->opcode==OP_Noop ){
+1.50         (drh      20-May-04):         zP3 = "";
+1.50         (drh      20-May-04):       }
+1.50         (drh      20-May-04):     }
+1.50         (drh      20-May-04):   }
+1.249        (drh      15-Jun-06):   assert( zP3!=0 );
+1.50         (drh      20-May-04):   return zP3;
+1.50         (drh      20-May-04): }
+1.151        (drh      31-Oct-04): #endif
+1.50         (drh      20-May-04): 
+1.312        (drh      28-Aug-07): /*
+1.313        (drh      28-Aug-07): ** Declare to the Vdbe that the BTree object at db->aDb[i] is used.
+1.313        (drh      28-Aug-07): **
+1.312        (drh      28-Aug-07): */
+1.317        (drh      30-Aug-07): void sqlite3VdbeUsesBtree(Vdbe *p, int i){
+1.317        (drh      30-Aug-07):   int mask;
+1.313        (drh      28-Aug-07):   assert( i>=0 && i<p->db->nDb );
+1.313        (drh      28-Aug-07):   assert( i<sizeof(p->btreeMask)*8 );
+1.317        (drh      30-Aug-07):   mask = 1<<i;
+1.317        (drh      30-Aug-07):   if( (p->btreeMask & mask)==0 ){
+1.317        (drh      30-Aug-07):     p->btreeMask |= mask;
+1.317        (drh      30-Aug-07):     sqlite3BtreeMutexArrayInsert(&p->aMutex, p->db->aDb[i].pBt);
+1.317        (drh      30-Aug-07):   }
+1.312        (drh      28-Aug-07): }
+1.312        (drh      28-Aug-07): 
+1.50         (drh      20-May-04): 
+1.156        (danielk1 12-Jan-05): #if defined(VDBE_PROFILE) || defined(SQLITE_DEBUG)
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Print a single opcode.  This routine is used for debugging only.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbePrintOp(FILE *pOut, int pc, Op *pOp){
+1.1          (drh      06-Sep-03):   char *zP3;
+1.50         (drh      20-May-04):   char zPtr[50];
+1.50         (drh      20-May-04):   static const char *zFormat1 = "%4d %-13s %4d %4d %s\n";
+1.1          (drh      06-Sep-03):   if( pOut==0 ) pOut = stdout;
+1.50         (drh      20-May-04):   zP3 = displayP3(pOp, zPtr, sizeof(zPtr));
+1.50         (drh      20-May-04):   fprintf(pOut, zFormat1,
+1.311        (drh      27-Aug-07):       pc, sqlite3OpcodeName(pOp->opcode), pOp->p1, pOp->p2, zP3);
+1.1          (drh      06-Sep-03):   fflush(pOut);
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): #endif
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.146        (drh      24-Sep-04): ** Release an array of N Mem elements
+1.146        (drh      24-Sep-04): */
+1.146        (drh      24-Sep-04): static void releaseMemArray(Mem *p, int N){
+1.146        (drh      24-Sep-04):   if( p ){
+1.146        (drh      24-Sep-04):     while( N-->0 ){
+1.307        (drh      21-Aug-07):       assert( N<2 || p[0].db==p[1].db );
+1.146        (drh      24-Sep-04):       sqlite3VdbeMemRelease(p++);
+1.146        (drh      24-Sep-04):     }
+1.146        (drh      24-Sep-04):   }
+1.146        (drh      24-Sep-04): }
+1.146        (drh      24-Sep-04): 
+1.151        (drh      31-Oct-04): #ifndef SQLITE_OMIT_EXPLAIN
+1.146        (drh      24-Sep-04): /*
+1.1          (drh      06-Sep-03): ** Give a listing of the program in the virtual machine.
+1.1          (drh      06-Sep-03): **
+1.19         (danielk1 08-May-04): ** The interface is the same as sqlite3VdbeExec().  But instead of
+1.1          (drh      06-Sep-03): ** running the code, it invokes the callback once for each instruction.
+1.1          (drh      06-Sep-03): ** This feature is used to implement "EXPLAIN".
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): int sqlite3VdbeList(
+1.1          (drh      06-Sep-03):   Vdbe *p                   /* The VDBE */
+1.1          (drh      06-Sep-03): ){
+1.140        (drh      06-Sep-04):   sqlite3 *db = p->db;
+1.1          (drh      06-Sep-03):   int i;
+1.14         (drh      14-Feb-04):   int rc = SQLITE_OK;
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03):   assert( p->explain );
+1.155        (drh      11-Jan-05):   if( p->magic!=VDBE_MAGIC_RUN ) return SQLITE_MISUSE;
+1.155        (drh      11-Jan-05):   assert( db->magic==SQLITE_MAGIC_BUSY );
+1.155        (drh      11-Jan-05):   assert( p->rc==SQLITE_OK || p->rc==SQLITE_BUSY );
+1.56         (danielk1 22-May-04): 
+1.56         (danielk1 22-May-04):   /* Even though this opcode does not put dynamic strings onto the
+1.56         (danielk1 22-May-04):   ** the stack, they may become dynamic if the user calls
+1.68         (drh      26-May-04):   ** sqlite3_column_text16(), causing a translation to UTF-16 encoding.
+1.56         (danielk1 22-May-04):   */
+1.56         (danielk1 22-May-04):   if( p->pTos==&p->aStack[4] ){
+1.146        (drh      24-Sep-04):     releaseMemArray(p->aStack, 5);
+1.56         (danielk1 22-May-04):   }
+1.56         (danielk1 22-May-04):   p->resOnStack = 0;
+1.56         (danielk1 22-May-04): 
+1.197        (drh      10-Sep-05):   do{
+1.197        (drh      10-Sep-05):     i = p->pc++;
+1.197        (drh      10-Sep-05):   }while( i<p->nOp && p->explain==2 && p->aOp[i].opcode!=OP_Explain );
+1.14         (drh      14-Feb-04):   if( i>=p->nOp ){
+1.14         (drh      14-Feb-04):     p->rc = SQLITE_OK;
+1.14         (drh      14-Feb-04):     rc = SQLITE_DONE;
+1.259        (drh      26-Jul-06):   }else if( db->u1.isInterrupted ){
+1.155        (drh      11-Jan-05):     p->rc = SQLITE_INTERRUPT;
+1.14         (drh      14-Feb-04):     rc = SQLITE_ERROR;
+1.89         (danielk1 31-May-04):     sqlite3SetString(&p->zErrMsg, sqlite3ErrStr(p->rc), (char*)0);
+1.14         (drh      14-Feb-04):   }else{
+1.50         (drh      20-May-04):     Op *pOp = &p->aOp[i];
+1.69         (drh      27-May-04):     Mem *pMem = p->aStack;
+1.69         (drh      27-May-04):     pMem->flags = MEM_Int;
+1.88         (drh      31-May-04):     pMem->type = SQLITE_INTEGER;
+1.276        (drh      30-Mar-07):     pMem->u.i = i;                                /* Program counter */
+1.69         (drh      27-May-04):     pMem++;
+1.69         (drh      27-May-04): 
+1.69         (drh      27-May-04):     pMem->flags = MEM_Static|MEM_Str|MEM_Term;
+1.311        (drh      27-Aug-07):     pMem->z = (char*)sqlite3OpcodeName(pOp->opcode);  /* Opcode */
+1.249        (drh      15-Jun-06):     assert( pMem->z!=0 );
+1.69         (drh      27-May-04):     pMem->n = strlen(pMem->z);
+1.88         (drh      31-May-04):     pMem->type = SQLITE_TEXT;
+1.104        (danielk1 12-Jun-04):     pMem->enc = SQLITE_UTF8;
+1.69         (drh      27-May-04):     pMem++;
+1.69         (drh      27-May-04): 
+1.69         (drh      27-May-04):     pMem->flags = MEM_Int;
+1.276        (drh      30-Mar-07):     pMem->u.i = pOp->p1;                          /* P1 */
+1.88         (drh      31-May-04):     pMem->type = SQLITE_INTEGER;
+1.69         (drh      27-May-04):     pMem++;
+1.69         (drh      27-May-04): 
+1.69         (drh      27-May-04):     pMem->flags = MEM_Int;
+1.276        (drh      30-Mar-07):     pMem->u.i = pOp->p2;                          /* P2 */
+1.88         (drh      31-May-04):     pMem->type = SQLITE_INTEGER;
+1.69         (drh      27-May-04):     pMem++;
+1.69         (drh      27-May-04): 
+1.239        (drh      03-Mar-06):     pMem->flags = MEM_Ephem|MEM_Str|MEM_Term;   /* P3 */
+1.69         (drh      27-May-04):     pMem->z = displayP3(pOp, pMem->zShort, sizeof(pMem->zShort));
+1.249        (drh      15-Jun-06):     assert( pMem->z!=0 );
+1.239        (drh      03-Mar-06):     pMem->n = strlen(pMem->z);
+1.88         (drh      31-May-04):     pMem->type = SQLITE_TEXT;
+1.104        (danielk1 12-Jun-04):     pMem->enc = SQLITE_UTF8;
+1.69         (drh      27-May-04): 
+1.197        (drh      10-Sep-05):     p->nResColumn = 5 - 2*(p->explain-1);
+1.69         (drh      27-May-04):     p->pTos = pMem;
+1.14         (drh      14-Feb-04):     p->rc = SQLITE_OK;
+1.56         (danielk1 22-May-04):     p->resOnStack = 1;
+1.14         (drh      14-Feb-04):     rc = SQLITE_ROW;
+1.1          (drh      06-Sep-03):   }
+1.14         (drh      14-Feb-04):   return rc;
+1.1          (drh      06-Sep-03): }
+1.151        (drh      31-Oct-04): #endif /* SQLITE_OMIT_EXPLAIN */
+1.1          (drh      06-Sep-03): 
+1.281        (drh      05-Apr-07): #ifdef SQLITE_DEBUG
+1.1          (drh      06-Sep-03): /*
+1.135        (drh      24-Jul-04): ** Print the SQL that was used to generate a VDBE program.
+1.135        (drh      24-Jul-04): */
+1.135        (drh      24-Jul-04): void sqlite3VdbePrintSql(Vdbe *p){
+1.135        (drh      24-Jul-04):   int nOp = p->nOp;
+1.135        (drh      24-Jul-04):   VdbeOp *pOp;
+1.142        (drh      15-Sep-04):   if( nOp<1 ) return;
+1.142        (drh      15-Sep-04):   pOp = &p->aOp[nOp-1];
+1.135        (drh      24-Jul-04):   if( pOp->opcode==OP_Noop && pOp->p3!=0 ){
+1.135        (drh      24-Jul-04):     const char *z = pOp->p3;
+1.136        (drh      08-Aug-04):     while( isspace(*(u8*)z) ) z++;
+1.135        (drh      24-Jul-04):     printf("SQL: [%s]\n", z);
+1.135        (drh      24-Jul-04):   }
+1.281        (drh      05-Apr-07): }
+1.135        (drh      24-Jul-04): #endif
+1.135        (drh      24-Jul-04): 
+1.271        (drh      01-Mar-07): #if !defined(SQLITE_OMIT_TRACE) && defined(SQLITE_ENABLE_IOTRACE)
+1.271        (drh      01-Mar-07): /*
+1.271        (drh      01-Mar-07): ** Print an IOTRACE message showing SQL content.
+1.271        (drh      01-Mar-07): */
+1.271        (drh      01-Mar-07): void sqlite3VdbeIOTraceSql(Vdbe *p){
+1.271        (drh      01-Mar-07):   int nOp = p->nOp;
+1.271        (drh      01-Mar-07):   VdbeOp *pOp;
+1.271        (drh      01-Mar-07):   if( sqlite3_io_trace==0 ) return;
+1.271        (drh      01-Mar-07):   if( nOp<1 ) return;
+1.271        (drh      01-Mar-07):   pOp = &p->aOp[nOp-1];
+1.271        (drh      01-Mar-07):   if( pOp->opcode==OP_Noop && pOp->p3!=0 ){
+1.271        (drh      01-Mar-07):     int i, j;
+1.297        (drh      13-Aug-07):     char z[1000];
+1.297        (drh      13-Aug-07):     sqlite3_snprintf(sizeof(z), z, "%s", pOp->p3);
+1.288        (danielk1 16-May-07):     for(i=0; isspace((unsigned char)z[i]); i++){}
+1.271        (drh      01-Mar-07):     for(j=0; z[i]; i++){
+1.288        (danielk1 16-May-07):       if( isspace((unsigned char)z[i]) ){
+1.271        (drh      01-Mar-07):         if( z[i-1]!=' ' ){
+1.271        (drh      01-Mar-07):           z[j++] = ' ';
+1.271        (drh      01-Mar-07):         }
+1.271        (drh      01-Mar-07):       }else{
+1.271        (drh      01-Mar-07):         z[j++] = z[i];
+1.271        (drh      01-Mar-07):       }
+1.271        (drh      01-Mar-07):     }
+1.271        (drh      01-Mar-07):     z[j] = 0;
+1.271        (drh      01-Mar-07):     sqlite3_io_trace("SQL %s\n", z);
+1.271        (drh      01-Mar-07):   }
+1.271        (drh      01-Mar-07): }
+1.271        (drh      01-Mar-07): #endif /* !SQLITE_OMIT_TRACE && SQLITE_ENABLE_IOTRACE */
+1.271        (drh      01-Mar-07): 
+1.271        (drh      01-Mar-07): 
+1.135        (drh      24-Jul-04): /*
+1.1          (drh      06-Sep-03): ** Prepare a virtual machine for execution.  This involves things such
+1.1          (drh      06-Sep-03): ** as allocating stack space and initializing the program counter.
+1.1          (drh      06-Sep-03): ** After the VDBE has be prepped, it can be executed by one or more
+1.19         (danielk1 08-May-04): ** calls to sqlite3VdbeExec().  
+1.139        (drh      02-Sep-04): **
+1.139        (drh      02-Sep-04): ** This is the only way to move a VDBE from VDBE_MAGIC_INIT to
+1.139        (drh      02-Sep-04): ** VDBE_MAGIC_RUN.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeMakeReady(
+1.1          (drh      06-Sep-03):   Vdbe *p,                       /* The VDBE */
+1.2          (drh      06-Sep-03):   int nVar,                      /* Number of '?' see in the SQL statement */
+1.138        (drh      21-Aug-04):   int nMem,                      /* Number of memory cells to allocate */
+1.138        (drh      21-Aug-04):   int nCursor,                   /* Number of cursors to allocate */
+1.1          (drh      06-Sep-03):   int isExplain                  /* True if the EXPLAIN keywords is present */
+1.1          (drh      06-Sep-03): ){
+1.1          (drh      06-Sep-03):   int n;
+1.300        (danielk1 16-Aug-07):   sqlite3 *db = p->db;
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03):   assert( p!=0 );
+1.1          (drh      06-Sep-03):   assert( p->magic==VDBE_MAGIC_INIT );
+1.1          (drh      06-Sep-03): 
+1.142        (drh      15-Sep-04):   /* There should be at least one opcode.
+1.1          (drh      06-Sep-03):   */
+1.142        (drh      15-Sep-04):   assert( p->nOp>0 );
+1.1          (drh      06-Sep-03): 
+1.170        (danielk1 28-Mar-05):   /* Set the magic to VDBE_MAGIC_RUN sooner rather than later. This
+1.170        (danielk1 28-Mar-05):    * is because the call to resizeOpArray() below may shrink the
+1.170        (danielk1 28-Mar-05):    * p->aOp[] array to save memory if called when in VDBE_MAGIC_RUN 
+1.170        (danielk1 28-Mar-05):    * state.
+1.170        (danielk1 28-Mar-05):    */
+1.170        (danielk1 28-Mar-05):   p->magic = VDBE_MAGIC_RUN;
+1.170        (danielk1 28-Mar-05): 
+1.1          (drh      06-Sep-03):   /* No instruction ever pushes more than a single element onto the
+1.1          (drh      06-Sep-03):   ** stack.  And the stack never grows on successive executions of the
+1.1          (drh      06-Sep-03):   ** same loop.  So the total number of instructions is an upper bound
+1.180        (drh      07-Jun-05):   ** on the maximum stack depth required.  (Added later:)  The
+1.180        (drh      07-Jun-05):   ** resolveP2Values() call computes a tighter upper bound on the
+1.180        (drh      07-Jun-05):   ** stack size.
+1.1          (drh      06-Sep-03):   **
+1.1          (drh      06-Sep-03):   ** Allocation all the stack space we will ever need.
+1.1          (drh      06-Sep-03):   */
+1.3          (drh      06-Sep-03):   if( p->aStack==0 ){
+1.170        (danielk1 28-Mar-05):     int nArg;       /* Maximum number of args passed to a user function. */
+1.171        (danielk1 29-Mar-05):     int nStack;     /* Maximum number of stack entries required */
+1.171        (danielk1 29-Mar-05):     resolveP2Values(p, &nArg, &nStack);
+1.170        (danielk1 28-Mar-05):     resizeOpArray(p, p->nOp);
+1.3          (drh      06-Sep-03):     assert( nVar>=0 );
+1.171        (danielk1 29-Mar-05):     assert( nStack<p->nOp );
+1.261        (drh      08-Aug-06):     if( isExplain ){
+1.261        (drh      08-Aug-06):       nStack = 10;
+1.261        (drh      08-Aug-06):     }
+1.300        (danielk1 16-Aug-07):     p->aStack = sqlite3DbMallocZero(db,
+1.171        (danielk1 29-Mar-05):         nStack*sizeof(p->aStack[0])    /* aStack */
+1.170        (danielk1 28-Mar-05):       + nArg*sizeof(Mem*)              /* apArg */
+1.149        (drh      05-Oct-04):       + nVar*sizeof(Mem)               /* aVar */
+1.149        (drh      05-Oct-04):       + nVar*sizeof(char*)             /* azVar */
+1.149        (drh      05-Oct-04):       + nMem*sizeof(Mem)               /* aMem */
+1.149        (drh      05-Oct-04):       + nCursor*sizeof(Cursor*)        /* apCsr */
+1.3          (drh      06-Sep-03):     );
+1.299        (drh      16-Aug-07):     if( !db->mallocFailed ){
+1.171        (danielk1 29-Mar-05):       p->aMem = &p->aStack[nStack];
+1.149        (drh      05-Oct-04):       p->nMem = nMem;
+1.149        (drh      05-Oct-04):       p->aVar = &p->aMem[nMem];
+1.149        (drh      05-Oct-04):       p->nVar = nVar;
+1.138        (drh      21-Aug-04):       p->okVar = 0;
+1.149        (drh      05-Oct-04):       p->apArg = (Mem**)&p->aVar[nVar];
+1.170        (danielk1 28-Mar-05):       p->azVar = (char**)&p->apArg[nArg];
+1.149        (drh      05-Oct-04):       p->apCsr = (Cursor**)&p->azVar[nVar];
+1.138        (drh      21-Aug-04):       p->nCursor = nCursor;
+1.138        (drh      21-Aug-04):       for(n=0; n<nVar; n++){
+1.138        (drh      21-Aug-04):         p->aVar[n].flags = MEM_Null;
+1.307        (drh      21-Aug-07):         p->aVar[n].db = db;
+1.307        (drh      21-Aug-07):       }
+1.307        (drh      21-Aug-07):       for(n=0; n<nStack; n++){
+1.307        (drh      21-Aug-07):         p->aStack[n].db = db;
+1.138        (drh      21-Aug-04):       }
+1.42         (danielk1 19-May-04):     }
+1.3          (drh      06-Sep-03):   }
+1.166        (danielk1 29-Jan-05):   for(n=0; n<p->nMem; n++){
+1.166        (danielk1 29-Jan-05):     p->aMem[n].flags = MEM_Null;
+1.307        (drh      21-Aug-07):     p->aMem[n].db = db;
+1.166        (danielk1 29-Jan-05):   }
+1.1          (drh      06-Sep-03): 
+1.10         (drh      31-Jan-04):   p->pTos = &p->aStack[-1];
+1.85         (danielk1 31-May-04):   p->pc = -1;
+1.1          (drh      06-Sep-03):   p->rc = SQLITE_OK;
+1.1          (drh      06-Sep-03):   p->uniqueCnt = 0;
+1.1          (drh      06-Sep-03):   p->returnDepth = 0;
+1.1          (drh      06-Sep-03):   p->errorAction = OE_Abort;
+1.1          (drh      06-Sep-03):   p->popStack =  0;
+1.1          (drh      06-Sep-03):   p->explain |= isExplain;
+1.1          (drh      06-Sep-03):   p->magic = VDBE_MAGIC_RUN;
+1.121        (danielk1 21-Jun-04):   p->nChange = 0;
+1.219        (drh      07-Jan-06):   p->cacheCtr = 1;
+1.215        (drh      29-Dec-05):   p->minWriteFileFormat = 255;
+1.294        (danielk1 27-Jun-07):   p->openedStatement = 0;
+1.1          (drh      06-Sep-03): #ifdef VDBE_PROFILE
+1.6          (drh      31-Dec-03):   {
+1.6          (drh      31-Dec-03):     int i;
+1.6          (drh      31-Dec-03):     for(i=0; i<p->nOp; i++){
+1.6          (drh      31-Dec-03):       p->aOp[i].cnt = 0;
+1.6          (drh      31-Dec-03):       p->aOp[i].cycles = 0;
+1.6          (drh      31-Dec-03):     }
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03): #endif
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.316        (drh      29-Aug-07): ** Close a VDBE cursor and release all the resources that cursor happens
+1.1          (drh      06-Sep-03): ** to hold.
+1.1          (drh      06-Sep-03): */
+1.252        (danielk1 23-Jun-06): void sqlite3VdbeFreeCursor(Vdbe *p, Cursor *pCx){
+1.106        (drh      12-Jun-04):   if( pCx==0 ){
+1.106        (drh      12-Jun-04):     return;
+1.106        (drh      12-Jun-04):   }
+1.1          (drh      06-Sep-03):   if( pCx->pCursor ){
+1.19         (danielk1 08-May-04):     sqlite3BtreeCloseCursor(pCx->pCursor);
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   if( pCx->pBt ){
+1.19         (danielk1 08-May-04):     sqlite3BtreeClose(pCx->pBt);
+1.1          (drh      06-Sep-03):   }
+1.243        (drh      12-Jun-06): #ifndef SQLITE_OMIT_VIRTUALTABLE
+1.243        (drh      12-Jun-06):   if( pCx->pVtabCursor ){
+1.243        (drh      12-Jun-06):     sqlite3_vtab_cursor *pVtabCursor = pCx->pVtabCursor;
+1.252        (danielk1 23-Jun-06):     const sqlite3_module *pModule = pCx->pModule;
+1.252        (danielk1 23-Jun-06):     p->inVtabMethod = 1;
+1.258        (danielk1 25-Jul-06):     sqlite3SafetyOff(p->db);
+1.243        (drh      12-Jun-06):     pModule->xClose(pVtabCursor);
+1.258        (danielk1 25-Jul-06):     sqlite3SafetyOn(p->db);
+1.252        (danielk1 23-Jun-06):     p->inVtabMethod = 0;
+1.243        (drh      12-Jun-06):   }
+1.243        (drh      12-Jun-06): #endif
+1.299        (drh      16-Aug-07):   sqlite3_free(pCx->pData);
+1.299        (drh      16-Aug-07):   sqlite3_free(pCx->aType);
+1.299        (drh      16-Aug-07):   sqlite3_free(pCx);
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.316        (drh      29-Aug-07): ** Close all cursors except for VTab cursors that are currently
+1.316        (drh      29-Aug-07): ** in use.
+1.1          (drh      06-Sep-03): */
+1.316        (drh      29-Aug-07): static void closeAllCursorsExceptActiveVtabs(Vdbe *p){
+1.1          (drh      06-Sep-03):   int i;
+1.138        (drh      21-Aug-04):   if( p->apCsr==0 ) return;
+1.1          (drh      06-Sep-03):   for(i=0; i<p->nCursor; i++){
+1.316        (drh      29-Aug-07):     Cursor *pC = p->apCsr[i];
+1.316        (drh      29-Aug-07):     if( pC && (!p->inVtabMethod || !pC->pVtabCursor) ){
+1.316        (drh      29-Aug-07):       sqlite3VdbeFreeCursor(p, pC);
+1.253        (danielk1 23-Jun-06):       p->apCsr[i] = 0;
+1.252        (danielk1 23-Jun-06):     }
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Clean up the VM after execution.
+1.1          (drh      06-Sep-03): **
+1.1          (drh      06-Sep-03): ** This routine will automatically close any cursors, lists, and/or
+1.1          (drh      06-Sep-03): ** sorters that were left open.  It also deletes the values of
+1.43         (drh      19-May-04): ** variables in the aVar[] array.
+1.1          (drh      06-Sep-03): */
+1.1          (drh      06-Sep-03): static void Cleanup(Vdbe *p){
+1.1          (drh      06-Sep-03):   int i;
+1.10         (drh      31-Jan-04):   if( p->aStack ){
+1.146        (drh      24-Sep-04):     releaseMemArray(p->aStack, 1 + (p->pTos - p->aStack));
+1.146        (drh      24-Sep-04):     p->pTos = &p->aStack[-1];
+1.10         (drh      31-Jan-04):   }
+1.316        (drh      29-Aug-07):   closeAllCursorsExceptActiveVtabs(p);
+1.146        (drh      24-Sep-04):   releaseMemArray(p->aMem, p->nMem);
+1.183        (drh      08-Jul-05):   sqlite3VdbeFifoClear(&p->sFifo);
+1.146        (drh      24-Sep-04):   if( p->contextStack ){
+1.146        (drh      24-Sep-04):     for(i=0; i<p->contextStackTop; i++){
+1.183        (drh      08-Jul-05):       sqlite3VdbeFifoClear(&p->contextStack[i].sFifo);
+1.146        (drh      24-Sep-04):     }
+1.299        (drh      16-Aug-07):     sqlite3_free(p->contextStack);
+1.143        (drh      19-Sep-04):   }
+1.17         (drh      21-Feb-04):   p->contextStack = 0;
+1.143        (drh      19-Sep-04):   p->contextStackDepth = 0;
+1.143        (drh      19-Sep-04):   p->contextStackTop = 0;
+1.299        (drh      16-Aug-07):   sqlite3_free(p->zErrMsg);
+1.1          (drh      06-Sep-03):   p->zErrMsg = 0;
+1.293        (drh      20-Jun-07):   p->resOnStack = 0;
+1.1          (drh      06-Sep-03): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.64         (danielk1 25-May-04): ** Set the number of result columns that will be returned by this SQL
+1.64         (danielk1 25-May-04): ** statement. This is now set at compile time, rather than during
+1.64         (danielk1 25-May-04): ** execution of the vdbe program so that sqlite3_column_count() can
+1.64         (danielk1 25-May-04): ** be called on an SQL statement before sqlite3_step().
+1.64         (danielk1 25-May-04): */
+1.64         (danielk1 25-May-04): void sqlite3VdbeSetNumCols(Vdbe *p, int nResColumn){
+1.146        (drh      24-Sep-04):   Mem *pColName;
+1.146        (drh      24-Sep-04):   int n;
+1.308        (drh      23-Aug-07): 
+1.236        (danielk1 10-Feb-06):   releaseMemArray(p->aColName, p->nResColumn*COLNAME_N);
+1.299        (drh      16-Aug-07):   sqlite3_free(p->aColName);
+1.236        (danielk1 10-Feb-06):   n = nResColumn*COLNAME_N;
+1.64         (danielk1 25-May-04):   p->nResColumn = nResColumn;
+1.300        (danielk1 16-Aug-07):   p->aColName = pColName = (Mem*)sqlite3DbMallocZero(p->db, sizeof(Mem)*n );
+1.146        (drh      24-Sep-04):   if( p->aColName==0 ) return;
+1.146        (drh      24-Sep-04):   while( n-- > 0 ){
+1.308        (drh      23-Aug-07):     pColName->flags = MEM_Null;
+1.309        (drh      24-Aug-07):     pColName->db = p->db;
+1.308        (drh      23-Aug-07):     pColName++;
+1.146        (drh      24-Sep-04):   }
+1.66         (danielk1 26-May-04): }
+1.66         (danielk1 26-May-04): 
+1.66         (danielk1 26-May-04): /*
+1.66         (danielk1 26-May-04): ** Set the name of the idx'th column to be returned by the SQL statement.
+1.66         (danielk1 26-May-04): ** zName must be a pointer to a nul terminated string.
+1.66         (danielk1 26-May-04): **
+1.66         (danielk1 26-May-04): ** This call must be made after a call to sqlite3VdbeSetNumCols().
+1.66         (danielk1 26-May-04): **
+1.105        (danielk1 12-Jun-04): ** If N==P3_STATIC  it means that zName is a pointer to a constant static
+1.105        (danielk1 12-Jun-04): ** string and we can just copy the pointer. If it is P3_DYNAMIC, then 
+1.299        (drh      16-Aug-07): ** the string is freed using sqlite3_free() when the vdbe is finished with
+1.105        (danielk1 12-Jun-04): ** it. Otherwise, N bytes of zName are copied.
+1.66         (danielk1 26-May-04): */
+1.236        (danielk1 10-Feb-06): int sqlite3VdbeSetColName(Vdbe *p, int idx, int var, const char *zName, int N){
+1.66         (danielk1 26-May-04):   int rc;
+1.66         (danielk1 26-May-04):   Mem *pColName;
+1.236        (danielk1 10-Feb-06):   assert( idx<p->nResColumn );
+1.236        (danielk1 10-Feb-06):   assert( var<COLNAME_N );
+1.299        (drh      16-Aug-07):   if( p->db->mallocFailed ) return SQLITE_NOMEM;
+1.146        (drh      24-Sep-04):   assert( p->aColName!=0 );
+1.236        (danielk1 10-Feb-06):   pColName = &(p->aColName[idx+var*p->nResColumn]);
+1.105        (danielk1 12-Jun-04):   if( N==P3_DYNAMIC || N==P3_STATIC ){
+1.307        (drh      21-Aug-07):     rc = sqlite3VdbeMemSetStr(pColName, zName, -1, SQLITE_UTF8, SQLITE_STATIC);
+1.66         (danielk1 26-May-04):   }else{
+1.307        (drh      21-Aug-07):     rc = sqlite3VdbeMemSetStr(pColName, zName, N, SQLITE_UTF8,SQLITE_TRANSIENT);
+1.66         (danielk1 26-May-04):   }
+1.66         (danielk1 26-May-04):   if( rc==SQLITE_OK && N==P3_DYNAMIC ){
+1.66         (danielk1 26-May-04):     pColName->flags = (pColName->flags&(~MEM_Static))|MEM_Dyn;
+1.105        (danielk1 12-Jun-04):     pColName->xDel = 0;
+1.66         (danielk1 26-May-04):   }
+1.66         (danielk1 26-May-04):   return rc;
+1.64         (danielk1 25-May-04): }
+1.64         (danielk1 25-May-04): 
+1.91         (danielk1 03-Jun-04): /*
+1.91         (danielk1 03-Jun-04): ** A read or write transaction may or may not be active on database handle
+1.91         (danielk1 03-Jun-04): ** db. If a transaction is active, commit it. If there is a
+1.91         (danielk1 03-Jun-04): ** write-transaction spanning more than one database file, this routine
+1.91         (danielk1 03-Jun-04): ** takes care of the master journal trickery.
+1.91         (danielk1 03-Jun-04): */
+1.140        (drh      06-Sep-04): static int vdbeCommit(sqlite3 *db){
+1.91         (danielk1 03-Jun-04):   int i;
+1.91         (danielk1 03-Jun-04):   int nTrans = 0;  /* Number of databases with an active write-transaction */
+1.91         (danielk1 03-Jun-04):   int rc = SQLITE_OK;
+1.91         (danielk1 03-Jun-04):   int needXcommit = 0;
+1.91         (danielk1 03-Jun-04): 
+1.258        (danielk1 25-Jul-06):   /* Before doing anything else, call the xSync() callback for any
+1.258        (danielk1 25-Jul-06):   ** virtual module tables written in this transaction. This has to
+1.258        (danielk1 25-Jul-06):   ** be done before determining whether a master journal file is 
+1.258        (danielk1 25-Jul-06):   ** required, as an xSync() callback may add an attached database
+1.258        (danielk1 25-Jul-06):   ** to the transaction.
+1.258        (danielk1 25-Jul-06):   */
+1.258        (danielk1 25-Jul-06):   rc = sqlite3VtabSync(db, rc);
+1.258        (danielk1 25-Jul-06):   if( rc!=SQLITE_OK ){
+1.258        (danielk1 25-Jul-06):     return rc;
+1.258        (danielk1 25-Jul-06):   }
+1.258        (danielk1 25-Jul-06): 
+1.258        (danielk1 25-Jul-06):   /* This loop determines (a) if the commit hook should be invoked and
+1.258        (danielk1 25-Jul-06):   ** (b) how many database files have open write transactions, not 
+1.258        (danielk1 25-Jul-06):   ** including the temp database. (b) is important because if more than 
+1.258        (danielk1 25-Jul-06):   ** one database file has an open write transaction, a master journal
+1.258        (danielk1 25-Jul-06):   ** file is required for an atomic commit.
+1.258        (danielk1 25-Jul-06):   */ 
+1.91         (danielk1 03-Jun-04):   for(i=0; i<db->nDb; i++){ 
+1.91         (danielk1 03-Jun-04):     Btree *pBt = db->aDb[i].pBt;
+1.313        (drh      28-Aug-07):     if( sqlite3BtreeIsInTrans(pBt) ){
+1.91         (danielk1 03-Jun-04):       needXcommit = 1;
+1.91         (danielk1 03-Jun-04):       if( i!=1 ) nTrans++;
+1.91         (danielk1 03-Jun-04):     }
+1.91         (danielk1 03-Jun-04):   }
+1.91         (danielk1 03-Jun-04): 
+1.91         (danielk1 03-Jun-04):   /* If there are any write-transactions at all, invoke the commit hook */
+1.91         (danielk1 03-Jun-04):   if( needXcommit && db->xCommitCallback ){
+1.139        (drh      02-Sep-04):     sqlite3SafetyOff(db);
+1.139        (drh      02-Sep-04):     rc = db->xCommitCallback(db->pCommitArg);
+1.139        (drh      02-Sep-04):     sqlite3SafetyOn(db);
+1.139        (drh      02-Sep-04):     if( rc ){
+1.91         (danielk1 03-Jun-04):       return SQLITE_CONSTRAINT;
+1.91         (danielk1 03-Jun-04):     }
+1.91         (danielk1 03-Jun-04):   }
+1.91         (danielk1 03-Jun-04): 
+1.128        (danielk1 26-Jun-04):   /* The simple case - no more than one database file (not counting the
+1.128        (danielk1 26-Jun-04):   ** TEMP database) has a transaction active.   There is no need for the
+1.94         (drh      07-Jun-04):   ** master-journal.
+1.99         (drh      09-Jun-04):   **
+1.128        (danielk1 26-Jun-04):   ** If the return value of sqlite3BtreeGetFilename() is a zero length
+1.128        (danielk1 26-Jun-04):   ** string, it means the main database is :memory:.  In that case we do
+1.128        (danielk1 26-Jun-04):   ** not support atomic multi-file commits, so use the simple case then
+1.99         (drh      09-Jun-04):   ** too.
+1.91         (danielk1 03-Jun-04):   */
+1.128        (danielk1 26-Jun-04):   if( 0==strlen(sqlite3BtreeGetFilename(db->aDb[0].pBt)) || nTrans<=1 ){
+1.94         (drh      07-Jun-04):     for(i=0; rc==SQLITE_OK && i<db->nDb; i++){ 
+1.91         (danielk1 03-Jun-04):       Btree *pBt = db->aDb[i].pBt;
+1.91         (danielk1 03-Jun-04):       if( pBt ){
+1.277        (drh      30-Mar-07):         rc = sqlite3BtreeCommitPhaseOne(pBt, 0);
+1.94         (drh      07-Jun-04):       }
+1.94         (drh      07-Jun-04):     }
+1.94         (drh      07-Jun-04): 
+1.277        (drh      30-Mar-07):     /* Do the commit only if all databases successfully complete phase 1. 
+1.277        (drh      30-Mar-07):     ** If one of the BtreeCommitPhaseOne() calls fails, this indicates an
+1.277        (drh      30-Mar-07):     ** IO error while deleting or truncating a journal file. It is unlikely,
+1.277        (drh      30-Mar-07):     ** but could happen. In this case abandon processing and return the error.
+1.274        (danielk1 27-Mar-07):     */
+1.274        (danielk1 27-Mar-07):     for(i=0; rc==SQLITE_OK && i<db->nDb; i++){
+1.274        (danielk1 27-Mar-07):       Btree *pBt = db->aDb[i].pBt;
+1.274        (danielk1 27-Mar-07):       if( pBt ){
+1.277        (drh      30-Mar-07):         rc = sqlite3BtreeCommitPhaseTwo(pBt);
+1.274        (danielk1 27-Mar-07):       }
+1.274        (danielk1 27-Mar-07):     }
+1.94         (drh      07-Jun-04):     if( rc==SQLITE_OK ){
+1.250        (danielk1 16-Jun-06):       sqlite3VtabCommit(db);
+1.91         (danielk1 03-Jun-04):     }
+1.91         (danielk1 03-Jun-04):   }
+1.91         (danielk1 03-Jun-04): 
+1.91         (danielk1 03-Jun-04):   /* The complex case - There is a multi-file write-transaction active.
+1.91         (danielk1 03-Jun-04):   ** This requires a master journal file to ensure the transaction is
+1.91         (danielk1 03-Jun-04):   ** committed atomicly.
+1.91         (danielk1 03-Jun-04):   */
+1.179        (danielk1 27-May-05): #ifndef SQLITE_OMIT_DISKIO
+1.91         (danielk1 03-Jun-04):   else{
+1.302        (danielk1 17-Aug-07):     sqlite3_vfs *pVfs = db->pVfs;
+1.188        (drh      27-Aug-05):     int needSync = 0;
+1.91         (danielk1 03-Jun-04):     char *zMaster = 0;   /* File-name for the master journal */
+1.91         (danielk1 03-Jun-04):     char const *zMainFile = sqlite3BtreeGetFilename(db->aDb[0].pBt);
+1.302        (danielk1 17-Aug-07):     sqlite3_file *pMaster = 0;
+1.298        (danielk1 15-Aug-07):     i64 offset = 0;
+1.91         (danielk1 03-Jun-04): 
+1.91         (danielk1 03-Jun-04):     /* Select a master journal file name */
+1.91         (danielk1 03-Jun-04):     do {
+1.98         (drh      09-Jun-04):       u32 random;
+1.299        (drh      16-Aug-07):       sqlite3_free(zMaster);
+1.91         (danielk1 03-Jun-04):       sqlite3Randomness(sizeof(random), &random);
+1.300        (danielk1 16-Aug-07):       zMaster = sqlite3MPrintf(db, "%s-mj%08X", zMainFile, random&0x7fffffff);
+1.91         (danielk1 03-Jun-04):       if( !zMaster ){
+1.91         (danielk1 03-Jun-04):         return SQLITE_NOMEM;
+1.91         (danielk1 03-Jun-04):       }
+1.302        (danielk1 17-Aug-07):     }while( sqlite3OsAccess(pVfs, zMaster, SQLITE_ACCESS_EXISTS) );
+1.91         (danielk1 03-Jun-04): 
+1.91         (danielk1 03-Jun-04):     /* Open the master journal. */
+1.303        (danielk1 18-Aug-07):     rc = sqlite3OsOpenMalloc(pVfs, zMaster, &pMaster, 
+1.303        (danielk1 18-Aug-07):         SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE|
+1.305        (danielk1 20-Aug-07):         SQLITE_OPEN_EXCLUSIVE|SQLITE_OPEN_MASTER_JOURNAL, 0
+1.303        (danielk1 18-Aug-07):     );
+1.91         (danielk1 03-Jun-04):     if( rc!=SQLITE_OK ){
+1.299        (drh      16-Aug-07):       sqlite3_free(zMaster);
+1.91         (danielk1 03-Jun-04):       return rc;
+1.91         (danielk1 03-Jun-04):     }
+1.91         (danielk1 03-Jun-04):  
+1.91         (danielk1 03-Jun-04):     /* Write the name of each database file in the transaction into the new
+1.91         (danielk1 03-Jun-04):     ** master journal file. If an error occurs at this point close
+1.91         (danielk1 03-Jun-04):     ** and delete the master journal file. All the individual journal files
+1.91         (danielk1 03-Jun-04):     ** still have 'null' as the master journal pointer, so they will roll
+1.157        (danielk1 13-Jan-05):     ** back independently if a failure occurs.
+1.91         (danielk1 03-Jun-04):     */
+1.300        (danielk1 16-Aug-07):     for(i=0; i<db->nDb; i++){
+1.91         (danielk1 03-Jun-04):       Btree *pBt = db->aDb[i].pBt;
+1.99         (drh      09-Jun-04):       if( i==1 ) continue;   /* Ignore the TEMP database */
+1.313        (drh      28-Aug-07):       if( sqlite3BtreeIsInTrans(pBt) ){
+1.109        (danielk1 14-Jun-04):         char const *zFile = sqlite3BtreeGetJournalname(pBt);
+1.99         (drh      09-Jun-04):         if( zFile[0]==0 ) continue;  /* Ignore :memory: databases */
+1.188        (drh      27-Aug-05):         if( !needSync && !sqlite3BtreeSyncDisabled(pBt) ){
+1.188        (drh      27-Aug-05):           needSync = 1;
+1.188        (drh      27-Aug-05):         }
+1.302        (danielk1 17-Aug-07):         rc = sqlite3OsWrite(pMaster, zFile, strlen(zFile)+1, offset);
+1.298        (danielk1 15-Aug-07):         offset += strlen(zFile)+1;
+1.91         (danielk1 03-Jun-04):         if( rc!=SQLITE_OK ){
+1.303        (danielk1 18-Aug-07):           sqlite3OsCloseFree(pMaster);
+1.303        (danielk1 18-Aug-07):           sqlite3OsDelete(pVfs, zMaster, 0);
+1.299        (drh      16-Aug-07):           sqlite3_free(zMaster);
+1.91         (danielk1 03-Jun-04):           return rc;
+1.91         (danielk1 03-Jun-04):         }
+1.91         (danielk1 03-Jun-04):       }
+1.91         (danielk1 03-Jun-04):     }
+1.91         (danielk1 03-Jun-04): 
+1.310        (danielk1 24-Aug-07):     /* Sync the master journal file. If the IOCAP_SEQUENTIAL device
+1.310        (danielk1 24-Aug-07):     ** flag is set this is not required.
+1.310        (danielk1 24-Aug-07):     */
+1.109        (danielk1 14-Jun-04):     zMainFile = sqlite3BtreeGetDirname(db->aDb[0].pBt);
+1.304        (danielk1 20-Aug-07):     if( (needSync 
+1.310        (danielk1 24-Aug-07):      && (0==(sqlite3OsDeviceCharacteristics(pMaster)&SQLITE_IOCAP_SEQUENTIAL))
+1.304        (danielk1 20-Aug-07):      && (rc=sqlite3OsSync(pMaster, SQLITE_SYNC_NORMAL))!=SQLITE_OK) ){
+1.303        (danielk1 18-Aug-07):       sqlite3OsCloseFree(pMaster);
+1.303        (danielk1 18-Aug-07):       sqlite3OsDelete(pVfs, zMaster, 0);
+1.299        (drh      16-Aug-07):       sqlite3_free(zMaster);
+1.109        (danielk1 14-Jun-04):       return rc;
+1.109        (danielk1 14-Jun-04):     }
+1.91         (danielk1 03-Jun-04): 
+1.91         (danielk1 03-Jun-04):     /* Sync all the db files involved in the transaction. The same call
+1.91         (danielk1 03-Jun-04):     ** sets the master journal pointer in each individual journal. If
+1.91         (danielk1 03-Jun-04):     ** an error occurs here, do not delete the master journal file.
+1.91         (danielk1 03-Jun-04):     **
+1.277        (drh      30-Mar-07):     ** If the error occurs during the first call to
+1.277        (drh      30-Mar-07):     ** sqlite3BtreeCommitPhaseOne(), then there is a chance that the
+1.277        (drh      30-Mar-07):     ** master journal file will be orphaned. But we cannot delete it,
+1.277        (drh      30-Mar-07):     ** in case the master journal file name was written into the journal
+1.277        (drh      30-Mar-07):     ** file before the failure occured.
+1.91         (danielk1 03-Jun-04):     */
+1.258        (danielk1 25-Jul-06):     for(i=0; rc==SQLITE_OK && i<db->nDb; i++){ 
+1.91         (danielk1 03-Jun-04):       Btree *pBt = db->aDb[i].pBt;
+1.313        (drh      28-Aug-07):       if( pBt ){
+1.277        (drh      30-Mar-07):         rc = sqlite3BtreeCommitPhaseOne(pBt, zMaster);
+1.91         (danielk1 03-Jun-04):       }
+1.91         (danielk1 03-Jun-04):     }
+1.303        (danielk1 18-Aug-07):     sqlite3OsCloseFree(pMaster);
+1.258        (danielk1 25-Jul-06):     if( rc!=SQLITE_OK ){
+1.299        (drh      16-Aug-07):       sqlite3_free(zMaster);
+1.258        (danielk1 25-Jul-06):       return rc;
+1.258        (danielk1 25-Jul-06):     }
+1.91         (danielk1 03-Jun-04): 
+1.110        (danielk1 14-Jun-04):     /* Delete the master journal file. This commits the transaction. After
+1.110        (danielk1 14-Jun-04):     ** doing this the directory is synced again before any individual
+1.110        (danielk1 14-Jun-04):     ** transaction files are deleted.
+1.110        (danielk1 14-Jun-04):     */
+1.303        (danielk1 18-Aug-07):     rc = sqlite3OsDelete(pVfs, zMaster, 1);
+1.299        (drh      16-Aug-07):     sqlite3_free(zMaster);
+1.278        (drh      30-Mar-07):     zMaster = 0;
+1.263        (drh      13-Aug-06):     if( rc ){
+1.263        (drh      13-Aug-06):       return rc;
+1.263        (drh      13-Aug-06):     }
+1.91         (danielk1 03-Jun-04): 
+1.91         (danielk1 03-Jun-04):     /* All files and directories have already been synced, so the following
+1.277        (drh      30-Mar-07):     ** calls to sqlite3BtreeCommitPhaseTwo() are only closing files and
+1.277        (drh      30-Mar-07):     ** deleting or truncating journals. If something goes wrong while
+1.277        (drh      30-Mar-07):     ** this is happening we don't really care. The integrity of the
+1.277        (drh      30-Mar-07):     ** transaction is already guaranteed, but some stray 'cold' journals
+1.277        (drh      30-Mar-07):     ** may be lying around. Returning an error code won't help matters.
+1.91         (danielk1 03-Jun-04):     */
+1.274        (danielk1 27-Mar-07):     disable_simulated_io_errors();
+1.91         (danielk1 03-Jun-04):     for(i=0; i<db->nDb; i++){ 
+1.91         (danielk1 03-Jun-04):       Btree *pBt = db->aDb[i].pBt;
+1.91         (danielk1 03-Jun-04):       if( pBt ){
+1.277        (drh      30-Mar-07):         sqlite3BtreeCommitPhaseTwo(pBt);
+1.91         (danielk1 03-Jun-04):       }
+1.91         (danielk1 03-Jun-04):     }
+1.274        (danielk1 27-Mar-07):     enable_simulated_io_errors();
+1.274        (danielk1 27-Mar-07): 
+1.250        (danielk1 16-Jun-06):     sqlite3VtabCommit(db);
+1.91         (danielk1 03-Jun-04):   }
+1.179        (danielk1 27-May-05): #endif
+1.112        (danielk1 14-Jun-04): 
+1.94         (drh      07-Jun-04):   return rc;
+1.91         (danielk1 03-Jun-04): }
+1.91         (danielk1 03-Jun-04): 
+1.85         (danielk1 31-May-04): /* 
+1.85         (danielk1 31-May-04): ** This routine checks that the sqlite3.activeVdbeCnt count variable
+1.85         (danielk1 31-May-04): ** matches the number of vdbe's in the list sqlite3.pVdbe that are
+1.85         (danielk1 31-May-04): ** currently active. An assertion fails if the two counts do not match.
+1.139        (drh      02-Sep-04): ** This is an internal self-check only - it is not an essential processing
+1.139        (drh      02-Sep-04): ** step.
+1.85         (danielk1 31-May-04): **
+1.85         (danielk1 31-May-04): ** This is a no-op if NDEBUG is defined.
+1.85         (danielk1 31-May-04): */
+1.85         (danielk1 31-May-04): #ifndef NDEBUG
+1.140        (drh      06-Sep-04): static void checkActiveVdbeCnt(sqlite3 *db){
+1.85         (danielk1 31-May-04):   Vdbe *p;
+1.85         (danielk1 31-May-04):   int cnt = 0;
+1.85         (danielk1 31-May-04):   p = db->pVdbe;
+1.85         (danielk1 31-May-04):   while( p ){
+1.139        (drh      02-Sep-04):     if( p->magic==VDBE_MAGIC_RUN && p->pc>=0 ){
+1.85         (danielk1 31-May-04):       cnt++;
+1.85         (danielk1 31-May-04):     }
+1.85         (danielk1 31-May-04):     p = p->pNext;
+1.85         (danielk1 31-May-04):   }
+1.85         (danielk1 31-May-04):   assert( cnt==db->activeVdbeCnt );
+1.85         (danielk1 31-May-04): }
+1.85         (danielk1 31-May-04): #else
+1.85         (danielk1 31-May-04): #define checkActiveVdbeCnt(x)
+1.85         (danielk1 31-May-04): #endif
+1.85         (danielk1 31-May-04): 
+1.64         (danielk1 25-May-04): /*
+1.317        (drh      30-Aug-07): ** For every Btree that in database connection db which 
+1.317        (drh      30-Aug-07): ** has been modified, "trip" or invalidate each cursor in
+1.317        (drh      30-Aug-07): ** that Btree might have been modified so that the cursor
+1.317        (drh      30-Aug-07): ** can never be used again.  This happens when a rollback
+1.317        (drh      30-Aug-07): *** occurs.  We have to trip all the other cursors, even
+1.317        (drh      30-Aug-07): ** cursor from other VMs in different database connections,
+1.317        (drh      30-Aug-07): ** so that none of them try to use the data at which they
+1.317        (drh      30-Aug-07): ** were pointing and which now may have been changed due
+1.317        (drh      30-Aug-07): ** to the rollback.
+1.317        (drh      30-Aug-07): **
+1.317        (drh      30-Aug-07): ** Remember that a rollback can delete tables complete and
+1.317        (drh      30-Aug-07): ** reorder rootpages.  So it is not sufficient just to save
+1.317        (drh      30-Aug-07): ** the state of the cursor.  We have to invalidate the cursor
+1.317        (drh      30-Aug-07): ** so that it is never used again.
+1.317        (drh      30-Aug-07): */
+1.317        (drh      30-Aug-07): void invalidateCursorsOnModifiedBtrees(sqlite3 *db){
+1.317        (drh      30-Aug-07):   int i;
+1.317        (drh      30-Aug-07):   for(i=0; i<db->nDb; i++){
+1.317        (drh      30-Aug-07):     Btree *p = db->aDb[i].pBt;
+1.317        (drh      30-Aug-07):     if( p && sqlite3BtreeIsInTrans(p) ){
+1.317        (drh      30-Aug-07):       sqlite3BtreeTripAllCursors(p, SQLITE_ABORT);
+1.317        (drh      30-Aug-07):     }
+1.252        (danielk1 23-Jun-06):   }
+1.252        (danielk1 23-Jun-06): }
+1.252        (danielk1 23-Jun-06): 
+1.252        (danielk1 23-Jun-06): /*
+1.139        (drh      02-Sep-04): ** This routine is called the when a VDBE tries to halt.  If the VDBE
+1.139        (drh      02-Sep-04): ** has made changes and is in autocommit mode, then commit those
+1.139        (drh      02-Sep-04): ** changes.  If a rollback is needed, then do the rollback.
+1.139        (drh      02-Sep-04): **
+1.139        (drh      02-Sep-04): ** This routine is the only way to move the state of a VM from
+1.316        (drh      29-Aug-07): ** SQLITE_MAGIC_RUN to SQLITE_MAGIC_HALT.  It is harmless to
+1.316        (drh      29-Aug-07): ** call this on a VM that is in the SQLITE_MAGIC_HALT state.
+1.1          (drh      06-Sep-03): **
+1.139        (drh      02-Sep-04): ** Return an error code.  If the commit could not complete because of
+1.139        (drh      02-Sep-04): ** lock contention, return SQLITE_BUSY.  If SQLITE_BUSY is returned, it
+1.139        (drh      02-Sep-04): ** means the close did not happen and needs to be repeated.
+1.1          (drh      06-Sep-03): */
+1.316        (drh      29-Aug-07): int sqlite3VdbeHalt(Vdbe *p){
+1.140        (drh      06-Sep-04):   sqlite3 *db = p->db;
+1.1          (drh      06-Sep-03):   int i;
+1.85         (danielk1 31-May-04):   int (*xFunc)(Btree *pBt) = 0;  /* Function to call on each btree backend */
+1.228        (danielk1 20-Jan-06):   int isSpecialError;            /* Set to true if SQLITE_NOMEM or IOERR */
+1.228        (danielk1 20-Jan-06): 
+1.228        (danielk1 20-Jan-06):   /* This function contains the logic that determines if a statement or
+1.228        (danielk1 20-Jan-06):   ** transaction will be committed or rolled back as a result of the
+1.228        (danielk1 20-Jan-06):   ** execution of this virtual machine. 
+1.228        (danielk1 20-Jan-06):   **
+1.228        (danielk1 20-Jan-06):   ** Special errors:
+1.228        (danielk1 20-Jan-06):   **
+1.228        (danielk1 20-Jan-06):   **     If an SQLITE_NOMEM error has occured in a statement that writes to
+1.228        (danielk1 20-Jan-06):   **     the database, then either a statement or transaction must be rolled
+1.228        (danielk1 20-Jan-06):   **     back to ensure the tree-structures are in a consistent state. A
+1.228        (danielk1 20-Jan-06):   **     statement transaction is rolled back if one is open, otherwise the
+1.228        (danielk1 20-Jan-06):   **     entire transaction must be rolled back.
+1.228        (danielk1 20-Jan-06):   **
+1.228        (danielk1 20-Jan-06):   **     If an SQLITE_IOERR error has occured in a statement that writes to
+1.228        (danielk1 20-Jan-06):   **     the database, then the entire transaction must be rolled back. The
+1.228        (danielk1 20-Jan-06):   **     I/O error may have caused garbage to be written to the journal 
+1.228        (danielk1 20-Jan-06):   **     file. Were the transaction to continue and eventually be rolled 
+1.228        (danielk1 20-Jan-06):   **     back that garbage might end up in the database file.
+1.228        (danielk1 20-Jan-06):   **     
+1.228        (danielk1 20-Jan-06):   **     In both of the above cases, the Vdbe.errorAction variable is 
+1.228        (danielk1 20-Jan-06):   **     ignored. If the sqlite3.autoCommit flag is false and a transaction
+1.228        (danielk1 20-Jan-06):   **     is rolled back, it will be set to true.
+1.228        (danielk1 20-Jan-06):   **
+1.228        (danielk1 20-Jan-06):   ** Other errors:
+1.228        (danielk1 20-Jan-06):   **
+1.228        (danielk1 20-Jan-06):   ** No error:
+1.228        (danielk1 20-Jan-06):   **
+1.228        (danielk1 20-Jan-06):   */
+1.1          (drh      06-Sep-03): 
+1.299        (drh      16-Aug-07):   if( p->db->mallocFailed ){
+1.208        (danielk1 06-Dec-05):     p->rc = SQLITE_NOMEM;
+1.208        (danielk1 06-Dec-05):   }
+1.316        (drh      29-Aug-07):   closeAllCursorsExceptActiveVtabs(p);
+1.139        (drh      02-Sep-04):   if( p->magic!=VDBE_MAGIC_RUN ){
+1.139        (drh      02-Sep-04):     return SQLITE_OK;
+1.1          (drh      06-Sep-03):   }
+1.85         (danielk1 31-May-04):   checkActiveVdbeCnt(db);
+1.208        (danielk1 06-Dec-05): 
+1.228        (danielk1 20-Jan-06):   /* No commit or rollback needed if the program never started */
+1.228        (danielk1 20-Jan-06):   if( p->pc>=0 ){
+1.266        (drh      23-Sep-06):     int mrc;   /* Primary error code from p->rc */
+1.316        (drh      29-Aug-07): 
+1.316        (drh      29-Aug-07):     /* Lock all btrees used by the statement */
+1.316        (drh      29-Aug-07):     sqlite3BtreeMutexArrayEnter(&p->aMutex);
+1.316        (drh      29-Aug-07): 
+1.228        (danielk1 20-Jan-06):     /* Check for one of the special errors - SQLITE_NOMEM or SQLITE_IOERR */
+1.266        (drh      23-Sep-06):     mrc = p->rc & 0xff;
+1.291        (danielk1 13-Jun-07):     isSpecialError = (
+1.291        (danielk1 13-Jun-07):         (mrc==SQLITE_NOMEM || mrc==SQLITE_IOERR || mrc==SQLITE_INTERRUPT)?1:0);
+1.228        (danielk1 20-Jan-06):     if( isSpecialError ){
+1.208        (danielk1 06-Dec-05):       /* This loop does static analysis of the query to see which of the
+1.208        (danielk1 06-Dec-05):       ** following three categories it falls into:
+1.208        (danielk1 06-Dec-05):       **
+1.208        (danielk1 06-Dec-05):       **     Read-only
+1.228        (danielk1 20-Jan-06):       **     Query with statement journal
+1.228        (danielk1 20-Jan-06):       **     Query without statement journal
+1.208        (danielk1 06-Dec-05):       **
+1.208        (danielk1 06-Dec-05):       ** We could do something more elegant than this static analysis (i.e.
+1.208        (danielk1 06-Dec-05):       ** store the type of query as part of the compliation phase), but 
+1.228        (danielk1 20-Jan-06):       ** handling malloc() or IO failure is a fairly obscure edge case so 
+1.228        (danielk1 20-Jan-06):       ** this is probably easier. Todo: Might be an opportunity to reduce 
+1.228        (danielk1 20-Jan-06):       ** code size a very small amount though...
+1.208        (danielk1 06-Dec-05):       */
+1.208        (danielk1 06-Dec-05):       int isReadOnly = 1;
+1.208        (danielk1 06-Dec-05):       int isStatement = 0;
+1.208        (danielk1 06-Dec-05):       assert(p->aOp || p->nOp==0);
+1.208        (danielk1 06-Dec-05):       for(i=0; i<p->nOp; i++){ 
+1.208        (danielk1 06-Dec-05):         switch( p->aOp[i].opcode ){
+1.208        (danielk1 06-Dec-05):           case OP_Transaction:
+1.292        (danielk1 15-Jun-07):             /* This is a bit strange. If we hit a malloc() or IO error and
+1.292        (danielk1 15-Jun-07):             ** the statement did not open a statement transaction, we will
+1.292        (danielk1 15-Jun-07):             ** rollback any active transaction and abort all other active
+1.292        (danielk1 15-Jun-07):             ** statements. Or, if this is an SQLITE_INTERRUPT error, we
+1.292        (danielk1 15-Jun-07):             ** will only rollback if the interrupted statement was a write.
+1.292        (danielk1 15-Jun-07):             **
+1.292        (danielk1 15-Jun-07):             ** It could be argued that read-only statements should never
+1.292        (danielk1 15-Jun-07):             ** rollback anything. But careful analysis is required before
+1.292        (danielk1 15-Jun-07):             ** making this change
+1.292        (danielk1 15-Jun-07):             */
+1.292        (danielk1 15-Jun-07):             if( p->aOp[i].p2 || mrc!=SQLITE_INTERRUPT ){
+1.292        (danielk1 15-Jun-07):               isReadOnly = 0;
+1.292        (danielk1 15-Jun-07):             }
+1.208        (danielk1 06-Dec-05):             break;
+1.208        (danielk1 06-Dec-05):           case OP_Statement:
+1.208        (danielk1 06-Dec-05):             isStatement = 1;
+1.208        (danielk1 06-Dec-05):             break;
+1.208        (danielk1 06-Dec-05):         }
+1.208        (danielk1 06-Dec-05):       }
+1.316        (drh      29-Aug-07): 
+1.316        (drh      29-Aug-07):    
+1.228        (danielk1 20-Jan-06):       /* If the query was read-only, we need do no rollback at all. Otherwise,
+1.228        (danielk1 20-Jan-06):       ** proceed with the special handling.
+1.228        (danielk1 20-Jan-06):       */
+1.228        (danielk1 20-Jan-06):       if( !isReadOnly ){
+1.290        (danielk1 13-Jun-07):         if( p->rc==SQLITE_IOERR_BLOCKED && isStatement ){
+1.290        (danielk1 13-Jun-07):           xFunc = sqlite3BtreeRollbackStmt;
+1.290        (danielk1 13-Jun-07):           p->rc = SQLITE_BUSY;
+1.290        (danielk1 13-Jun-07):         } else if( p->rc==SQLITE_NOMEM && isStatement ){
+1.228        (danielk1 20-Jan-06):           xFunc = sqlite3BtreeRollbackStmt;
+1.228        (danielk1 20-Jan-06):         }else{
+1.228        (danielk1 20-Jan-06):           /* We are forced to roll back the active transaction. Before doing
+1.228        (danielk1 20-Jan-06):           ** so, abort any other statements this handle currently has active.
+1.228        (danielk1 20-Jan-06):           */
+1.317        (drh      30-Aug-07):           invalidateCursorsOnModifiedBtrees(db);
+1.229        (danielk1 20-Jan-06):           sqlite3RollbackAll(db);
+1.228        (danielk1 20-Jan-06):           db->autoCommit = 1;
+1.228        (danielk1 20-Jan-06):         }
+1.208        (danielk1 06-Dec-05):       }
+1.208        (danielk1 06-Dec-05):     }
+1.228        (danielk1 20-Jan-06):   
+1.228        (danielk1 20-Jan-06):     /* If the auto-commit flag is set and this is the only active vdbe, then
+1.228        (danielk1 20-Jan-06):     ** we do either a commit or rollback of the current transaction. 
+1.228        (danielk1 20-Jan-06):     **
+1.228        (danielk1 20-Jan-06):     ** Note: This block also runs if one of the special errors handled 
+1.228        (danielk1 20-Jan-06):     ** above has occured. 
+1.228        (danielk1 20-Jan-06):     */
+1.228        (danielk1 20-Jan-06):     if( db->autoCommit && db->activeVdbeCnt==1 ){
+1.228        (danielk1 20-Jan-06):       if( p->rc==SQLITE_OK || (p->errorAction==OE_Fail && !isSpecialError) ){
+1.296        (drh      07-Aug-07):         /* The auto-commit flag is true, and the vdbe program was 
+1.228        (danielk1 20-Jan-06):         ** successful or hit an 'OR FAIL' constraint. This means a commit 
+1.228        (danielk1 20-Jan-06):         ** is required.
+1.228        (danielk1 20-Jan-06):         */
+1.228        (danielk1 20-Jan-06):         int rc = vdbeCommit(db);
+1.228        (danielk1 20-Jan-06):         if( rc==SQLITE_BUSY ){
+1.316        (drh      29-Aug-07):           sqlite3BtreeMutexArrayLeave(&p->aMutex);
+1.228        (danielk1 20-Jan-06):           return SQLITE_BUSY;
+1.228        (danielk1 20-Jan-06):         }else if( rc!=SQLITE_OK ){
+1.228        (danielk1 20-Jan-06):           p->rc = rc;
+1.229        (danielk1 20-Jan-06):           sqlite3RollbackAll(db);
+1.228        (danielk1 20-Jan-06):         }else{
+1.228        (danielk1 20-Jan-06):           sqlite3CommitInternalChanges(db);
+1.228        (danielk1 20-Jan-06):         }
+1.228        (danielk1 20-Jan-06):       }else{
+1.229        (danielk1 20-Jan-06):         sqlite3RollbackAll(db);
+1.228        (danielk1 20-Jan-06):       }
+1.228        (danielk1 20-Jan-06):     }else if( !xFunc ){
+1.228        (danielk1 20-Jan-06):       if( p->rc==SQLITE_OK || p->errorAction==OE_Fail ){
+1.294        (danielk1 27-Jun-07):         if( p->openedStatement ){
+1.294        (danielk1 27-Jun-07):           xFunc = sqlite3BtreeCommitStmt;
+1.294        (danielk1 27-Jun-07):         } 
+1.228        (danielk1 20-Jan-06):       }else if( p->errorAction==OE_Abort ){
+1.228        (danielk1 20-Jan-06):         xFunc = sqlite3BtreeRollbackStmt;
+1.228        (danielk1 20-Jan-06):       }else{
+1.317        (drh      30-Aug-07):         invalidateCursorsOnModifiedBtrees(db);
+1.229        (danielk1 20-Jan-06):         sqlite3RollbackAll(db);
+1.228        (danielk1 20-Jan-06):         db->autoCommit = 1;
+1.228        (danielk1 20-Jan-06):       }
+1.228        (danielk1 20-Jan-06):     }
+1.228        (danielk1 20-Jan-06):   
+1.228        (danielk1 20-Jan-06):     /* If xFunc is not NULL, then it is one of sqlite3BtreeRollbackStmt or
+1.228        (danielk1 20-Jan-06):     ** sqlite3BtreeCommitStmt. Call it once on each backend. If an error occurs
+1.228        (danielk1 20-Jan-06):     ** and the return code is still SQLITE_OK, set the return code to the new
+1.228        (danielk1 20-Jan-06):     ** error value.
+1.228        (danielk1 20-Jan-06):     */
+1.228        (danielk1 20-Jan-06):     assert(!xFunc ||
+1.228        (danielk1 20-Jan-06):       xFunc==sqlite3BtreeCommitStmt ||
+1.228        (danielk1 20-Jan-06):       xFunc==sqlite3BtreeRollbackStmt
+1.228        (danielk1 20-Jan-06):     );
+1.228        (danielk1 20-Jan-06):     for(i=0; xFunc && i<db->nDb; i++){ 
+1.228        (danielk1 20-Jan-06):       int rc;
+1.228        (danielk1 20-Jan-06):       Btree *pBt = db->aDb[i].pBt;
+1.228        (danielk1 20-Jan-06):       if( pBt ){
+1.228        (danielk1 20-Jan-06):         rc = xFunc(pBt);
+1.231        (danielk1 23-Jan-06):         if( rc && (p->rc==SQLITE_OK || p->rc==SQLITE_CONSTRAINT) ){
+1.231        (danielk1 23-Jan-06):           p->rc = rc;
+1.231        (danielk1 23-Jan-06):           sqlite3SetString(&p->zErrMsg, 0);
+1.231        (danielk1 23-Jan-06):         }
+1.228        (danielk1 20-Jan-06):       }
+1.85         (danielk1 31-May-04):     }
+1.228        (danielk1 20-Jan-06):   
+1.228        (danielk1 20-Jan-06):     /* If this was an INSERT, UPDATE or DELETE and the statement was committed, 
+1.228        (danielk1 20-Jan-06):     ** set the change counter. 
+1.228        (danielk1 20-Jan-06):     */
+1.228        (danielk1 20-Jan-06):     if( p->changeCntOn && p->pc>=0 ){
+1.228        (danielk1 20-Jan-06):       if( !xFunc || xFunc==sqlite3BtreeCommitStmt ){
+1.228        (danielk1 20-Jan-06):         sqlite3VdbeSetChanges(db, p->nChange);
+1.228        (danielk1 20-Jan-06):       }else{
+1.228        (danielk1 20-Jan-06):         sqlite3VdbeSetChanges(db, 0);
+1.228        (danielk1 20-Jan-06):       }
+1.228        (danielk1 20-Jan-06):       p->nChange = 0;
+1.87         (danielk1 31-May-04):     }
+1.228        (danielk1 20-Jan-06):   
+1.228        (danielk1 20-Jan-06):     /* Rollback or commit any schema changes that occurred. */
+1.228        (danielk1 20-Jan-06):     if( p->rc!=SQLITE_OK && db->flags&SQLITE_InternChanges ){
+1.228        (danielk1 20-Jan-06):       sqlite3ResetInternalSchema(db, 0);
+1.228        (danielk1 20-Jan-06):       db->flags = (db->flags | SQLITE_InternChanges);
+1.121        (danielk1 21-Jun-04):     }
+1.316        (drh      29-Aug-07): 
+1.316        (drh      29-Aug-07):     /* Release the locks */
+1.316        (drh      29-Aug-07):     sqlite3BtreeMutexArrayLeave(&p->aMutex);
+1.1          (drh      06-Sep-03):   }
+1.85         (danielk1 31-May-04): 
+1.254        (danielk1 24-Jun-06):   /* We have successfully halted and closed the VM.  Record this fact. */
+1.254        (danielk1 24-Jun-06):   if( p->pc>=0 ){
+1.85         (danielk1 31-May-04):     db->activeVdbeCnt--;
+1.1          (drh      06-Sep-03):   }
+1.139        (drh      02-Sep-04):   p->magic = VDBE_MAGIC_HALT;
+1.139        (drh      02-Sep-04):   checkActiveVdbeCnt(db);
+1.316        (drh      29-Aug-07):   if( p->db->mallocFailed ){
+1.316        (drh      29-Aug-07):     p->rc = SQLITE_NOMEM;
+1.316        (drh      29-Aug-07):   }
+1.316        (drh      29-Aug-07):   checkActiveVdbeCnt(db);
+1.139        (drh      02-Sep-04): 
+1.139        (drh      02-Sep-04):   return SQLITE_OK;
+1.139        (drh      02-Sep-04): }
+1.314        (drh      28-Aug-07): 
+1.139        (drh      02-Sep-04): 
+1.139        (drh      02-Sep-04): /*
+1.270        (drh      09-Jan-07): ** Each VDBE holds the result of the most recent sqlite3_step() call
+1.270        (drh      09-Jan-07): ** in p->rc.  This routine sets that result back to SQLITE_OK.
+1.270        (drh      09-Jan-07): */
+1.270        (drh      09-Jan-07): void sqlite3VdbeResetStepResult(Vdbe *p){
+1.270        (drh      09-Jan-07):   p->rc = SQLITE_OK;
+1.270        (drh      09-Jan-07): }
+1.270        (drh      09-Jan-07): 
+1.270        (drh      09-Jan-07): /*
+1.139        (drh      02-Sep-04): ** Clean up a VDBE after execution but do not delete the VDBE just yet.
+1.139        (drh      02-Sep-04): ** Write any error messages into *pzErrMsg.  Return the result code.
+1.139        (drh      02-Sep-04): **
+1.139        (drh      02-Sep-04): ** After this routine is run, the VDBE should be ready to be executed
+1.139        (drh      02-Sep-04): ** again.
+1.139        (drh      02-Sep-04): **
+1.139        (drh      02-Sep-04): ** To look at it another way, this routine resets the state of the
+1.139        (drh      02-Sep-04): ** virtual machine from VDBE_MAGIC_RUN or VDBE_MAGIC_HALT back to
+1.139        (drh      02-Sep-04): ** VDBE_MAGIC_INIT.
+1.139        (drh      02-Sep-04): */
+1.139        (drh      02-Sep-04): int sqlite3VdbeReset(Vdbe *p){
+1.265        (drh      15-Sep-06):   sqlite3 *db;
+1.265        (drh      15-Sep-06):   db = p->db;
+1.85         (danielk1 31-May-04): 
+1.139        (drh      02-Sep-04):   /* If the VM did not run to completion or if it encountered an
+1.139        (drh      02-Sep-04):   ** error, then it might not have been halted properly.  So halt
+1.139        (drh      02-Sep-04):   ** it now.
+1.139        (drh      02-Sep-04):   */
+1.265        (drh      15-Sep-06):   sqlite3SafetyOn(db);
+1.139        (drh      02-Sep-04):   sqlite3VdbeHalt(p);
+1.265        (drh      15-Sep-06):   sqlite3SafetyOff(db);
+1.139        (drh      02-Sep-04): 
+1.162        (drh      24-Jan-05):   /* If the VDBE has be run even partially, then transfer the error code
+1.162        (drh      24-Jan-05):   ** and error message from the VDBE into the main database structure.  But
+1.162        (drh      24-Jan-05):   ** if the VDBE has just been set to run but has not actually executed any
+1.162        (drh      24-Jan-05):   ** instructions yet, leave the main database error information unchanged.
+1.139        (drh      02-Sep-04):   */
+1.162        (drh      24-Jan-05):   if( p->pc>=0 ){
+1.162        (drh      24-Jan-05):     if( p->zErrMsg ){
+1.307        (drh      21-Aug-07):       sqlite3ValueSetStr(db->pErr,-1,p->zErrMsg,SQLITE_UTF8,sqlite3_free);
+1.229        (danielk1 20-Jan-06):       db->errCode = p->rc;
+1.162        (drh      24-Jan-05):       p->zErrMsg = 0;
+1.162        (drh      24-Jan-05):     }else if( p->rc ){
+1.265        (drh      15-Sep-06):       sqlite3Error(db, p->rc, 0);
+1.162        (drh      24-Jan-05):     }else{
+1.265        (drh      15-Sep-06):       sqlite3Error(db, SQLITE_OK, 0);
+1.162        (drh      24-Jan-05):     }
+1.163        (danielk1 24-Jan-05):   }else if( p->rc && p->expired ){
+1.163        (danielk1 24-Jan-05):     /* The expired flag was set on the VDBE before the first call
+1.163        (danielk1 24-Jan-05):     ** to sqlite3_step(). For consistency (since sqlite3_step() was
+1.163        (danielk1 24-Jan-05):     ** called), set the database error in this case as well.
+1.163        (danielk1 24-Jan-05):     */
+1.265        (drh      15-Sep-06):     sqlite3Error(db, p->rc, 0);
+1.139        (drh      02-Sep-04):   }
+1.139        (drh      02-Sep-04): 
+1.139        (drh      02-Sep-04):   /* Reclaim all memory used by the VDBE
+1.139        (drh      02-Sep-04):   */
+1.139        (drh      02-Sep-04):   Cleanup(p);
+1.139        (drh      02-Sep-04): 
+1.139        (drh      02-Sep-04):   /* Save profiling information from this VDBE run.
+1.139        (drh      02-Sep-04):   */
+1.208        (danielk1 06-Dec-05):   assert( p->pTos<&p->aStack[p->pc<0?0:p->pc] || !p->aStack );
+1.1          (drh      06-Sep-03): #ifdef VDBE_PROFILE
+1.1          (drh      06-Sep-03):   {
+1.1          (drh      06-Sep-03):     FILE *out = fopen("vdbe_profile.out", "a");
+1.1          (drh      06-Sep-03):     if( out ){
+1.1          (drh      06-Sep-03):       int i;
+1.1          (drh      06-Sep-03):       fprintf(out, "---- ");
+1.1          (drh      06-Sep-03):       for(i=0; i<p->nOp; i++){
+1.1          (drh      06-Sep-03):         fprintf(out, "%02x", p->aOp[i].opcode);
+1.1          (drh      06-Sep-03):       }
+1.1          (drh      06-Sep-03):       fprintf(out, "\n");
+1.1          (drh      06-Sep-03):       for(i=0; i<p->nOp; i++){
+1.1          (drh      06-Sep-03):         fprintf(out, "%6d %10lld %8lld ",
+1.1          (drh      06-Sep-03):            p->aOp[i].cnt,
+1.1          (drh      06-Sep-03):            p->aOp[i].cycles,
+1.1          (drh      06-Sep-03):            p->aOp[i].cnt>0 ? p->aOp[i].cycles/p->aOp[i].cnt : 0
+1.1          (drh      06-Sep-03):         );
+1.19         (danielk1 08-May-04):         sqlite3VdbePrintOp(out, i, &p->aOp[i]);
+1.1          (drh      06-Sep-03):       }
+1.1          (drh      06-Sep-03):       fclose(out);
+1.1          (drh      06-Sep-03):     }
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03): #endif
+1.1          (drh      06-Sep-03):   p->magic = VDBE_MAGIC_INIT;
+1.133        (drh      30-Jun-04):   p->aborted = 0;
+1.265        (drh      15-Sep-06):   return p->rc & db->errMask;
+1.1          (drh      06-Sep-03): }
+1.139        (drh      02-Sep-04):  
+1.1          (drh      06-Sep-03): /*
+1.1          (drh      06-Sep-03): ** Clean up and delete a VDBE after execution.  Return an integer which is
+1.1          (drh      06-Sep-03): ** the result code.  Write any error message text into *pzErrMsg.
+1.1          (drh      06-Sep-03): */
+1.122        (danielk1 21-Jun-04): int sqlite3VdbeFinalize(Vdbe *p){
+1.129        (danielk1 26-Jun-04):   int rc = SQLITE_OK;
+1.129        (danielk1 26-Jun-04):   if( p->magic==VDBE_MAGIC_RUN || p->magic==VDBE_MAGIC_HALT ){
+1.129        (danielk1 26-Jun-04):     rc = sqlite3VdbeReset(p);
+1.265        (drh      15-Sep-06):     assert( (rc & p->db->errMask)==rc );
+1.129        (danielk1 26-Jun-04):   }else if( p->magic!=VDBE_MAGIC_INIT ){
+1.1          (drh      06-Sep-03):     return SQLITE_MISUSE;
+1.1          (drh      06-Sep-03):   }
+1.19         (danielk1 08-May-04):   sqlite3VdbeDelete(p);
+1.1          (drh      06-Sep-03):   return rc;
+1.42         (danielk1 19-May-04): }
+1.1          (drh      06-Sep-03): 
+1.1          (drh      06-Sep-03): /*
+1.120        (drh      19-Jun-04): ** Call the destructor for each auxdata entry in pVdbeFunc for which
+1.123        (danielk1 21-Jun-04): ** the corresponding bit in mask is clear.  Auxdata entries beyond 31
+1.120        (drh      19-Jun-04): ** are always destroyed.  To destroy all auxdata entries, call this
+1.123        (danielk1 21-Jun-04): ** routine with mask==0.
+1.120        (drh      19-Jun-04): */
+1.120        (drh      19-Jun-04): void sqlite3VdbeDeleteAuxData(VdbeFunc *pVdbeFunc, int mask){
+1.120        (drh      19-Jun-04):   int i;
+1.120        (drh      19-Jun-04):   for(i=0; i<pVdbeFunc->nAux; i++){
+1.120        (drh      19-Jun-04):     struct AuxData *pAux = &pVdbeFunc->apAux[i];
+1.120        (drh      19-Jun-04):     if( (i>31 || !(mask&(1<<i))) && pAux->pAux ){
+1.120        (drh      19-Jun-04):       if( pAux->xDelete ){
+1.120        (drh      19-Jun-04):         pAux->xDelete(pAux->pAux);
+1.120        (drh      19-Jun-04):       }
+1.120        (drh      19-Jun-04):       pAux->pAux = 0;
+1.120        (drh      19-Jun-04):     }
+1.120        (drh      19-Jun-04):   }
+1.120        (drh      19-Jun-04): }
+1.120        (drh      19-Jun-04): 
+1.120        (drh      19-Jun-04): /*
+1.1          (drh      06-Sep-03): ** Delete an entire VDBE.
+1.1          (drh      06-Sep-03): */
+1.19         (danielk1 08-May-04): void sqlite3VdbeDelete(Vdbe *p){
+1.1          (drh      06-Sep-03):   int i;
+1.1          (drh      06-Sep-03):   if( p==0 ) return;
+1.1          (drh      06-Sep-03):   Cleanup(p);
+1.1          (drh      06-Sep-03):   if( p->pPrev ){
+1.1          (drh      06-Sep-03):     p->pPrev->pNext = p->pNext;
+1.1          (drh      06-Sep-03):   }else{
+1.1          (drh      06-Sep-03):     assert( p->db->pVdbe==p );
+1.1          (drh      06-Sep-03):     p->db->pVdbe = p->pNext;
+1.1          (drh      06-Sep-03):   }
+1.1          (drh      06-Sep-03):   if( p->pNext ){
+1.1          (drh      06-Sep-03):     p->pNext->pPrev = p->pPrev;
+1.1          (drh      06-Sep-03):   }
+1.146        (drh      24-Sep-04):   if( p->aOp ){
+1.146        (drh      24-Sep-04):     for(i=0; i<p->nOp; i++){
+1.146        (drh      24-Sep-04):       Op *pOp = &p->aOp[i];
+1.198        (drh      16-Sep-05):       freeP3(pOp->p3type, pOp->p3);
+1.92         (danielk1 05-Jun-04):     }
+1.299        (drh      16-Aug-07):     sqlite3_free(p->aOp);
+1.2          (drh      06-Sep-03):   }
+1.146        (drh      24-Sep-04):   releaseMemArray(p->aVar, p->nVar);
+1.299        (drh      16-Aug-07):   sqlite3_free(p->aLabel);
+1.299        (drh      16-Aug-07):   sqlite3_free(p->aStack);
+1.236        (danielk1 10-Feb-06):   releaseMemArray(p->aColName, p->nResColumn*COLNAME_N);
+1.299        (drh      16-Aug-07):   sqlite3_free(p->aColName);
+1.299        (drh      16-Aug-07):   sqlite3_free(p->zSql);
+1.1          (drh      06-Sep-03):   p->magic = VDBE_MAGIC_DEAD;
+1.299        (drh      16-Aug-07):   sqlite3_free(p);
+1.1          (drh      06-Sep-03): }
+1.7          (drh      07-Jan-04): 
+1.7          (drh      07-Jan-04): /*
+1.7          (drh      07-Jan-04): ** If a MoveTo operation is pending on the given cursor, then do that
+1.7          (drh      07-Jan-04): ** MoveTo now.  Return an error code.  If no MoveTo is pending, this
+1.7          (drh      07-Jan-04): ** routine does nothing and returns SQLITE_OK.
+1.7          (drh      07-Jan-04): */
+1.19         (danielk1 08-May-04): int sqlite3VdbeCursorMoveto(Cursor *p){
+1.7          (drh      07-Jan-04):   if( p->deferredMoveto ){
+1.165        (drh      26-Jan-05):     int res, rc;
+1.264        (adamd    14-Sep-06): #ifdef SQLITE_TEST
+1.24         (danielk1 10-May-04):     extern int sqlite3_search_count;
+1.264        (adamd    14-Sep-06): #endif
+1.181        (drh      12-Jun-05):     assert( p->isTable );
+1.280        (drh      04-Apr-07):     rc = sqlite3BtreeMoveto(p->pCursor, 0, p->movetoTarget, 0, &res);
+1.165        (drh      26-Jan-05):     if( rc ) return rc;
+1.50         (drh      20-May-04):     *p->pIncrKey = 0;
+1.181        (drh      12-Jun-05):     p->lastRowid = keyToInt(p->movetoTarget);
+1.181        (drh      12-Jun-05):     p->rowidIsValid = res==0;
+1.7          (drh      07-Jan-04):     if( res<0 ){
+1.165        (drh      26-Jan-05):       rc = sqlite3BtreeNext(p->pCursor, &res);
+1.165        (drh      26-Jan-05):       if( rc ) return rc;
+1.7          (drh      07-Jan-04):     }
+1.262        (drh      08-Aug-06): #ifdef SQLITE_TEST
+1.24         (danielk1 10-May-04):     sqlite3_search_count++;
+1.262        (drh      08-Aug-06): #endif
+1.7          (drh      07-Jan-04):     p->deferredMoveto = 0;
+1.219        (drh      07-Jan-06):     p->cacheStatus = CACHE_STALE;
+1.7          (drh      07-Jan-04):   }
+1.7          (drh      07-Jan-04):   return SQLITE_OK;
+1.7          (drh      07-Jan-04): }
+1.19         (danielk1 08-May-04): 
+1.20         (drh      08-May-04): /*
+1.28         (danielk1 12-May-04): ** The following functions:
+1.23         (danielk1 10-May-04): **
+1.28         (danielk1 12-May-04): ** sqlite3VdbeSerialType()
+1.28         (danielk1 12-May-04): ** sqlite3VdbeSerialTypeLen()
+1.28         (danielk1 12-May-04): ** sqlite3VdbeSerialRead()
+1.23         (danielk1 10-May-04): ** sqlite3VdbeSerialLen()
+1.28         (danielk1 12-May-04): ** sqlite3VdbeSerialWrite()
+1.23         (danielk1 10-May-04): **
+1.23         (danielk1 10-May-04): ** encapsulate the code that serializes values for storage in SQLite
+1.28         (danielk1 12-May-04): ** data and index records. Each serialized value consists of a
+1.28         (danielk1 12-May-04): ** 'serial-type' and a blob of data. The serial type is an 8-byte unsigned
+1.28         (danielk1 12-May-04): ** integer, stored as a varint.
+1.23         (danielk1 10-May-04): **
+1.28         (danielk1 12-May-04): ** In an SQLite index record, the serial type is stored directly before
+1.28         (danielk1 12-May-04): ** the blob of data that it corresponds to. In a table record, all serial
+1.28         (danielk1 12-May-04): ** types are stored at the start of the record, and the blobs of data at
+1.28         (danielk1 12-May-04): ** the end. Hence these functions allow the caller to handle the
+1.28         (danielk1 12-May-04): ** serial-type and data blob seperately.
+1.28         (danielk1 12-May-04): **
+1.28         (danielk1 12-May-04): ** The following table describes the various storage classes for data:
+1.28         (danielk1 12-May-04): **
+1.28         (danielk1 12-May-04): **   serial type        bytes of data      type
+1.23         (danielk1 10-May-04): **   --------------     ---------------    ---------------
+1.84         (drh      30-May-04): **      0                     0            NULL
+1.23         (danielk1 10-May-04): **      1                     1            signed integer
+1.23         (danielk1 10-May-04): **      2                     2            signed integer
+1.84         (drh      30-May-04): **      3                     3            signed integer
+1.84         (drh      30-May-04): **      4                     4            signed integer
+1.84         (drh      30-May-04): **      5                     6            signed integer
+1.84         (drh      30-May-04): **      6                     8            signed integer
+1.84         (drh      30-May-04): **      7                     8            IEEE float
+1.215        (drh      29-Dec-05): **      8                     0            Integer constant 0
+1.215        (drh      29-Dec-05): **      9                     0            Integer constant 1
+1.215        (drh      29-Dec-05): **     10,11                               reserved for expansion
+1.23         (danielk1 10-May-04): **    N>=12 and even       (N-12)/2        BLOB
+1.23         (danielk1 10-May-04): **    N>=13 and odd        (N-13)/2        text
+1.23         (danielk1 10-May-04): **
+1.217        (drh      02-Jan-06): ** The 8 and 9 types were added in 3.3.0, file format 4.  Prior versions
+1.217        (drh      02-Jan-06): ** of SQLite will not understand those serial types.
+1.23         (danielk1 10-May-04): */
+1.23         (danielk1 10-May-04): 
+1.23         (danielk1 10-May-04): /*
+1.28         (danielk1 12-May-04): ** Return the serial-type for the value stored in pMem.
+1.22         (danielk1 10-May-04): */
+1.215        (drh      29-Dec-05): u32 sqlite3VdbeSerialType(Mem *pMem, int file_format){
+1.28         (danielk1 12-May-04):   int flags = pMem->flags;
+1.283        (drh      02-May-07):   int n;
+1.28         (danielk1 12-May-04): 
+1.28         (danielk1 12-May-04):   if( flags&MEM_Null ){
+1.84         (drh      30-May-04):     return 0;
+1.23         (danielk1 10-May-04):   }
+1.28         (danielk1 12-May-04):   if( flags&MEM_Int ){
+1.158        (drh      20-Jan-05):     /* Figure out whether to use 1, 2, 4, 6 or 8 bytes. */
+1.175        (drh      15-Apr-05): #   define MAX_6BYTE ((((i64)0x00001000)<<32)-1)
+1.276        (drh      30-Mar-07):     i64 i = pMem->u.i;
+1.215        (drh      29-Dec-05):     u64 u;
+1.215        (drh      29-Dec-05):     if( file_format>=4 && (i&1)==i ){
+1.215        (drh      29-Dec-05):       return 8+i;
+1.215        (drh      29-Dec-05):     }
+1.215        (drh      29-Dec-05):     u = i<0 ? -i : i;
+1.164        (drh      26-Jan-05):     if( u<=127 ) return 1;
+1.164        (drh      26-Jan-05):     if( u<=32767 ) return 2;
+1.164        (drh      26-Jan-05):     if( u<=8388607 ) return 3;
+1.164        (drh      26-Jan-05):     if( u<=2147483647 ) return 4;
+1.164        (drh      26-Jan-05):     if( u<=MAX_6BYTE ) return 5;
+1.84         (drh      30-May-04):     return 6;
+1.28         (danielk1 12-May-04):   }
+1.28         (danielk1 12-May-04):   if( flags&MEM_Real ){
+1.84         (drh      30-May-04):     return 7;
+1.23         (danielk1 10-May-04):   }
+1.283        (drh      02-May-07):   assert( flags&(MEM_Str|MEM_Blob) );
+1.283        (drh      02-May-07):   n = pMem->n;
+1.283        (drh      02-May-07):   if( flags & MEM_Zero ){
+1.283        (drh      02-May-07):     n += pMem->u.i;
+1.23         (danielk1 10-May-04):   }
+1.283        (drh      02-May-07):   assert( n>=0 );
+1.283        (drh      02-May-07):   return ((n*2) + 12 + ((flags&MEM_Str)!=0));
+1.22         (danielk1 10-May-04): }
+1.22         (danielk1 10-May-04): 
+1.22         (danielk1 10-May-04): /*
+1.28         (danielk1 12-May-04): ** Return the length of the data corresponding to the supplied serial-type.
+1.22         (danielk1 10-May-04): */
+1.75         (drh      28-May-04): int sqlite3VdbeSerialTypeLen(u32 serial_type){
+1.84         (drh      30-May-04):   if( serial_type>=12 ){
+1.79         (drh      28-May-04):     return (serial_type-12)/2;
+1.79         (drh      28-May-04):   }else{
+1.150        (drh      06-Oct-04):     static const u8 aSize[] = { 0, 1, 2, 3, 4, 6, 8, 8, 0, 0, 0, 0 };
+1.79         (drh      28-May-04):     return aSize[serial_type];
+1.79         (drh      28-May-04):   }
+1.28         (danielk1 12-May-04): }
+1.23         (danielk1 10-May-04): 
+1.28         (danielk1 12-May-04): /*
+1.284        (drh      04-May-07): ** If we are on an architecture with mixed-endian floating 
+1.289        (drh      23-May-07): ** points (ex: ARM7) then swap the lower 4 bytes with the 
+1.284        (drh      04-May-07): ** upper 4 bytes.  Return the result.
+1.284        (drh      04-May-07): **
+1.289        (drh      23-May-07): ** For most architectures, this is a no-op.
+1.289        (drh      23-May-07): **
+1.289        (drh      23-May-07): ** (later):  It is reported to me that the mixed-endian problem
+1.289        (drh      23-May-07): ** on ARM7 is an issue with GCC, not with the ARM7 chip.  It seems
+1.289        (drh      23-May-07): ** that early versions of GCC stored the two words of a 64-bit
+1.289        (drh      23-May-07): ** float in the wrong order.  And that error has been propagated
+1.289        (drh      23-May-07): ** ever since.  The blame is not necessarily with GCC, though.
+1.289        (drh      23-May-07): ** GCC might have just copying the problem from a prior compiler.
+1.289        (drh      23-May-07): ** I am also told that newer versions of GCC that follow a different
+1.289        (drh      23-May-07): ** ABI get the byte order right.
+1.289        (drh      23-May-07): **
+1.289        (drh      23-May-07): ** Developers using SQLite on an ARM7 should compile and run their
+1.289        (drh      23-May-07): ** application using -DSQLITE_DEBUG=1 at least once.  With DEBUG
+1.289        (drh      23-May-07): ** enabled, some asserts below will ensure that the byte order of
+1.289        (drh      23-May-07): ** floating point values is correct.
+1.318        (drh      30-Aug-07): **
+1.318        (drh      30-Aug-07): ** (2007-08-30)  Frank van Vugt has studied this problem closely
+1.318        (drh      30-Aug-07): ** and has send his findings to the SQLite developers.  Frank
+1.318        (drh      30-Aug-07): ** writes that some Linux kernels offer floating point hardware
+1.318        (drh      30-Aug-07): ** emulation that uses only 32-bit mantissas instead of a full 
+1.318        (drh      30-Aug-07): ** 48-bits as required by the IEEE standard.  (This is the
+1.318        (drh      30-Aug-07): ** CONFIG_FPE_FASTFPE option.)  On such systems, floating point
+1.318        (drh      30-Aug-07): ** byte swapping becomes very complicated.  To avoid problems,
+1.318        (drh      30-Aug-07): ** the necessary byte swapping is carried out using a 64-bit integer
+1.318        (drh      30-Aug-07): ** rather than a 64-bit float.  Frank assures us that the code here
+1.318        (drh      30-Aug-07): ** works for him.  We, the developers, have no way to independently
+1.318        (drh      30-Aug-07): ** verify this, but Frank seems to know what he is talking about
+1.318        (drh      30-Aug-07): ** so we trust him.
+1.284        (drh      04-May-07): */
+1.284        (drh      04-May-07): #ifdef SQLITE_MIXED_ENDIAN_64BIT_FLOAT
+1.318        (drh      30-Aug-07): static u64 floatSwap(u64 in){
+1.284        (drh      04-May-07):   union {
+1.318        (drh      30-Aug-07):     u64 r;
+1.284        (drh      04-May-07):     u32 i[2];
+1.284        (drh      04-May-07):   } u;
+1.284        (drh      04-May-07):   u32 t;
+1.284        (drh      04-May-07): 
+1.284        (drh      04-May-07):   u.r = in;
+1.284        (drh      04-May-07):   t = u.i[0];
+1.284        (drh      04-May-07):   u.i[0] = u.i[1];
+1.284        (drh      04-May-07):   u.i[1] = t;
+1.284        (drh      04-May-07):   return u.r;
+1.284        (drh      04-May-07): }
+1.284        (drh      04-May-07): # define swapMixedEndianFloat(X)  X = floatSwap(X)
+1.284        (drh      04-May-07): #else
+1.284        (drh      04-May-07): # define swapMixedEndianFloat(X)
+1.284        (drh      04-May-07): #endif
+1.284        (drh      04-May-07): 
+1.284        (drh      04-May-07): /*
+1.28         (danielk1 12-May-04): ** Write the serialized data blob for the value stored in pMem into 
+1.28         (danielk1 12-May-04): ** buf. It is assumed that the caller has allocated sufficient space.
+1.28         (danielk1 12-May-04): ** Return the number of bytes written.
+1.283        (drh      02-May-07): **
+1.283        (drh      02-May-07): ** nBuf is the amount of space left in buf[].  nBuf must always be
+1.283        (drh      02-May-07): ** large enough to hold the entire field.  Except, if the field is
+1.283        (drh      02-May-07): ** a blob with a zero-filled tail, then buf[] might be just the right
+1.283        (drh      02-May-07): ** size to hold everything except for the zero-filled tail.  If buf[]
+1.283        (drh      02-May-07): ** is only big enough to hold the non-zero prefix, then only write that
+1.283        (drh      02-May-07): ** prefix into buf[].  But if buf[] is large enough to hold both the
+1.283        (drh      02-May-07): ** prefix and the tail then write the prefix and set the tail to all
+1.283        (drh      02-May-07): ** zeros.
+1.283        (drh      02-May-07): **
+1.283        (drh      02-May-07): ** Return the number of bytes actually written into buf[].  The number
+1.283        (drh      02-May-07): ** of bytes in the zero-filled tail is included in the return value only
+1.283        (drh      02-May-07): ** if those bytes were zeroed in buf[].
+1.28         (danielk1 12-May-04): */ 
+1.283        (drh      02-May-07): int sqlite3VdbeSerialPut(u8 *buf, int nBuf, Mem *pMem, int file_format){
+1.215        (drh      29-Dec-05):   u32 serial_type = sqlite3VdbeSerialType(pMem, file_format);
+1.28         (danielk1 12-May-04):   int len;
+1.30         (danielk1 13-May-04): 
+1.54         (drh      21-May-04):   /* Integer and Real */
+1.215        (drh      29-Dec-05):   if( serial_type<=7 && serial_type>0 ){
+1.54         (drh      21-May-04):     u64 v;
+1.54         (drh      21-May-04):     int i;
+1.84         (drh      30-May-04):     if( serial_type==7 ){
+1.272        (drh      26-Mar-07):       assert( sizeof(v)==sizeof(pMem->r) );
+1.272        (drh      26-Mar-07):       memcpy(&v, &pMem->r, sizeof(v));
+1.318        (drh      30-Aug-07):       swapMixedEndianFloat(v);
+1.54         (drh      21-May-04):     }else{
+1.276        (drh      30-Mar-07):       v = pMem->u.i;
+1.54         (drh      21-May-04):     }
+1.54         (drh      21-May-04):     len = i = sqlite3VdbeSerialTypeLen(serial_type);
+1.283        (drh      02-May-07):     assert( len<=nBuf );
+1.54         (drh      21-May-04):     while( i-- ){
+1.54         (drh      21-May-04):       buf[i] = (v&0xFF);
+1.54         (drh      21-May-04):       v >>= 8;
+1.54         (drh      21-May-04):     }
+1.54         (drh      21-May-04):     return len;
+1.28         (danielk1 12-May-04):   }
+1.215        (drh      29-Dec-05): 
+1.28         (danielk1 12-May-04):   /* String or blob */
+1.215        (drh      29-Dec-05):   if( serial_type>=12 ){
+1.283        (drh      02-May-07):     assert( pMem->n + ((pMem->flags & MEM_Zero)?pMem->u.i:0)
+1.283        (drh      02-May-07):              == sqlite3VdbeSerialTypeLen(serial_type) );
+1.283        (drh      02-May-07):     assert( pMem->n<=nBuf );
+1.283        (drh      02-May-07):     len = pMem->n;
+1.215        (drh      29-Dec-05):     memcpy(buf, pMem->z, len);
+1.283        (drh      02-May-07):     if( pMem->flags & MEM_Zero ){
+1.283        (drh      02-May-07):       len += pMem->u.i;
+1.283        (drh      02-May-07):       if( len>nBuf ){
+1.283        (drh      02-May-07):         len = nBuf;
+1.283        (drh      02-May-07):       }
+1.283        (drh      02-May-07):       memset(&buf[pMem->n], 0, len-pMem->n);
+1.283        (drh      02-May-07):     }
+1.215        (drh      29-Dec-05):     return len;
+1.215        (drh      29-Dec-05):   }
+1.215        (drh      29-Dec-05): 
+1.215        (drh      29-Dec-05):   /* NULL or constants 0 or 1 */
+1.215        (drh      29-Dec-05):   return 0;
+1.22         (danielk1 10-May-04): }
+1.22         (danielk1 10-May-04): 
+1.22         (danielk1 10-May-04): /*
+1.28         (danielk1 12-May-04): ** Deserialize the data blob pointed to by buf as serial type serial_type
+1.28         (danielk1 12-May-04): ** and store the result in pMem.  Return the number of bytes read.
+1.28         (danielk1 12-May-04): */ 
+1.55         (danielk1 22-May-04): int sqlite3VdbeSerialGet(
+1.58         (danielk1 23-May-04):   const unsigned char *buf,     /* Buffer to deserialize from */
+1.75         (drh      28-May-04):   u32 serial_type,              /* Serial type to deserialize */
+1.75         (drh      28-May-04):   Mem *pMem                     /* Memory cell to write value into */
+1.55         (danielk1 22-May-04): ){
+1.177        (drh      21-May-05):   switch( serial_type ){
+1.177        (drh      21-May-05):     case 10:   /* Reserved for future use */
+1.177        (drh      21-May-05):     case 11:   /* Reserved for future use */
+1.177        (drh      21-May-05):     case 0: {  /* NULL */
+1.177        (drh      21-May-05):       pMem->flags = MEM_Null;
+1.177        (drh      21-May-05):       break;
+1.177        (drh      21-May-05):     }
+1.177        (drh      21-May-05):     case 1: { /* 1-byte signed integer */
+1.276        (drh      30-Mar-07):       pMem->u.i = (signed char)buf[0];
+1.177        (drh      21-May-05):       pMem->flags = MEM_Int;
+1.177        (drh      21-May-05):       return 1;
+1.177        (drh      21-May-05):     }
+1.177        (drh      21-May-05):     case 2: { /* 2-byte signed integer */
+1.276        (drh      30-Mar-07):       pMem->u.i = (((signed char)buf[0])<<8) | buf[1];
+1.177        (drh      21-May-05):       pMem->flags = MEM_Int;
+1.177        (drh      21-May-05):       return 2;
+1.177        (drh      21-May-05):     }
+1.177        (drh      21-May-05):     case 3: { /* 3-byte signed integer */
+1.276        (drh      30-Mar-07):       pMem->u.i = (((signed char)buf[0])<<16) | (buf[1]<<8) | buf[2];
+1.177        (drh      21-May-05):       pMem->flags = MEM_Int;
+1.177        (drh      21-May-05):       return 3;
+1.177        (drh      21-May-05):     }
+1.177        (drh      21-May-05):     case 4: { /* 4-byte signed integer */
+1.276        (drh      30-Mar-07):       pMem->u.i = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+1.177        (drh      21-May-05):       pMem->flags = MEM_Int;
+1.177        (drh      21-May-05):       return 4;
+1.177        (drh      21-May-05):     }
+1.177        (drh      21-May-05):     case 5: { /* 6-byte signed integer */
+1.177        (drh      21-May-05):       u64 x = (((signed char)buf[0])<<8) | buf[1];
+1.177        (drh      21-May-05):       u32 y = (buf[2]<<24) | (buf[3]<<16) | (buf[4]<<8) | buf[5];
+1.177        (drh      21-May-05):       x = (x<<32) | y;
+1.276        (drh      30-Mar-07):       pMem->u.i = *(i64*)&x;
+1.83         (drh      30-May-04):       pMem->flags = MEM_Int;
+1.177        (drh      21-May-05):       return 6;
+1.177        (drh      21-May-05):     }
+1.186        (drh      18-Aug-05):     case 6:   /* 8-byte signed integer */
+1.177        (drh      21-May-05):     case 7: { /* IEEE floating point */
+1.193        (drh      05-Sep-05):       u64 x;
+1.193        (drh      05-Sep-05):       u32 y;
+1.232        (drh      23-Jan-06): #if !defined(NDEBUG) && !defined(SQLITE_OMIT_FLOATING_POINT)
+1.189        (drh      28-Aug-05):       /* Verify that integers and floating point values use the same
+1.284        (drh      04-May-07):       ** byte order.  Or, that if SQLITE_MIXED_ENDIAN_64BIT_FLOAT is
+1.284        (drh      04-May-07):       ** defined that 64-bit floating point values really are mixed
+1.284        (drh      04-May-07):       ** endian.
+1.190        (drh      28-Aug-05):       */
+1.189        (drh      28-Aug-05):       static const u64 t1 = ((u64)0x3ff00000)<<32;
+1.272        (drh      26-Mar-07):       static const double r1 = 1.0;
+1.318        (drh      30-Aug-07):       u64 t2 = t1;
+1.318        (drh      30-Aug-07):       swapMixedEndianFloat(t2);
+1.318        (drh      30-Aug-07):       assert( sizeof(r1)==sizeof(t2) && memcmp(&r1, &t2, sizeof(r1))==0 );
+1.189        (drh      28-Aug-05): #endif
+1.190        (drh      28-Aug-05): 
+1.193        (drh      05-Sep-05):       x = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+1.193        (drh      05-Sep-05):       y = (buf[4]<<24) | (buf[5]<<16) | (buf[6]<<8) | buf[7];
+1.177        (drh      21-May-05):       x = (x<<32) | y;
+1.177        (drh      21-May-05):       if( serial_type==6 ){
+1.276        (drh      30-Mar-07):         pMem->u.i = *(i64*)&x;
+1.177        (drh      21-May-05):         pMem->flags = MEM_Int;
+1.177        (drh      21-May-05):       }else{
+1.272        (drh      26-Mar-07):         assert( sizeof(x)==8 && sizeof(pMem->r)==8 );
+1.318        (drh      30-Aug-07):         swapMixedEndianFloat(x);
+1.272        (drh      26-Mar-07):         memcpy(&pMem->r, &x, sizeof(x));
+1.177        (drh      21-May-05):         pMem->flags = MEM_Real;
+1.83         (drh      30-May-04):       }
+1.177        (drh      21-May-05):       return 8;
+1.177        (drh      21-May-05):     }
+1.215        (drh      29-Dec-05):     case 8:    /* Integer 0 */
+1.215        (drh      29-Dec-05):     case 9: {  /* Integer 1 */
+1.276        (drh      30-Mar-07):       pMem->u.i = serial_type-8;
+1.215        (drh      29-Dec-05):       pMem->flags = MEM_Int;
+1.215        (drh      29-Dec-05):       return 0;
+1.215        (drh      29-Dec-05):     }
+1.177        (drh      21-May-05):     default: {
+1.177        (drh      21-May-05):       int len = (serial_type-12)/2;
+1.177        (drh      21-May-05):       pMem->z = (char *)buf;
+1.177        (drh      21-May-05):       pMem->n = len;
+1.177        (drh      21-May-05):       pMem->xDel = 0;
+1.177        (drh      21-May-05):       if( serial_type&0x01 ){
+1.177        (drh      21-May-05):         pMem->flags = MEM_Str | MEM_Ephem;
+1.83         (drh      30-May-04):       }else{
+1.177        (drh      21-May-05):         pMem->flags = MEM_Blob | MEM_Ephem;
+1.83         (drh      30-May-04):       }
+1.177        (drh      21-May-05):       return len;
+1.81         (drh      30-May-04):     }
+1.23         (danielk1 10-May-04):   }
+1.177        (drh      21-May-05):   return 0;
+1.22         (danielk1 10-May-04): }
+1.22         (danielk1 10-May-04): 
+1.22         (danielk1 10-May-04): /*
+1.223        (drh      12-Jan-06): ** The header of a record consists of a sequence variable-length integers.
+1.223        (drh      12-Jan-06): ** These integers are almost always small and are encoded as a single byte.
+1.223        (drh      12-Jan-06): ** The following macro takes advantage this fact to provide a fast decode
+1.223        (drh      12-Jan-06): ** of the integers in a record header.  It is faster for the common case
+1.223        (drh      12-Jan-06): ** where the integer is a single byte.  It is a little slower when the
+1.223        (drh      12-Jan-06): ** integer is two or more bytes.  But overall it is faster.
+1.223        (drh      12-Jan-06): **
+1.223        (drh      12-Jan-06): ** The following expressions are equivalent:
+1.223        (drh      12-Jan-06): **
+1.223        (drh      12-Jan-06): **     x = sqlite3GetVarint32( A, &B );
+1.223        (drh      12-Jan-06): **
+1.223        (drh      12-Jan-06): **     x = GetVarint( A, B );
+1.223        (drh      12-Jan-06): **
+1.223        (drh      12-Jan-06): */
+1.223        (drh      12-Jan-06): #define GetVarint(A,B)  ((B = *(A))<=0x7f ? 1 : sqlite3GetVarint32(A, &B))
+1.223        (drh      12-Jan-06): 
+1.223        (drh      12-Jan-06): /*
+1.90         (drh      02-Jun-04): ** This function compares the two table rows or index records specified by 
+1.38         (danielk1 18-May-04): ** {nKey1, pKey1} and {nKey2, pKey2}, returning a negative, zero
+1.38         (danielk1 18-May-04): ** or positive integer if {nKey1, pKey1} is less than, equal to or 
+1.90         (drh      02-Jun-04): ** greater than {nKey2, pKey2}.  Both Key1 and Key2 must be byte strings
+1.90         (drh      02-Jun-04): ** composed by the OP_MakeRecord opcode of the VDBE.
+1.38         (danielk1 18-May-04): */
+1.90         (drh      02-Jun-04): int sqlite3VdbeRecordCompare(
+1.38         (danielk1 18-May-04):   void *userData,
+1.38         (danielk1 18-May-04):   int nKey1, const void *pKey1, 
+1.38         (danielk1 18-May-04):   int nKey2, const void *pKey2
+1.38         (danielk1 18-May-04): ){
+1.50         (drh      20-May-04):   KeyInfo *pKeyInfo = (KeyInfo*)userData;
+1.73         (drh      27-May-04):   u32 d1, d2;          /* Offset into aKey[] of next data element */
+1.73         (drh      27-May-04):   u32 idx1, idx2;      /* Offset into aKey[] of next header element */
+1.73         (drh      27-May-04):   u32 szHdr1, szHdr2;  /* Number of bytes in header */
+1.73         (drh      27-May-04):   int i = 0;
+1.73         (drh      27-May-04):   int nField;
+1.73         (drh      27-May-04):   int rc = 0;
+1.38         (danielk1 18-May-04):   const unsigned char *aKey1 = (const unsigned char *)pKey1;
+1.38         (danielk1 18-May-04):   const unsigned char *aKey2 = (const unsigned char *)pKey2;
+1.96         (danielk1 09-Jun-04): 
+1.96         (danielk1 09-Jun-04):   Mem mem1;
+1.96         (danielk1 09-Jun-04):   Mem mem2;
+1.96         (danielk1 09-Jun-04):   mem1.enc = pKeyInfo->enc;
+1.307        (drh      21-Aug-07):   mem1.db = pKeyInfo->db;
+1.96         (danielk1 09-Jun-04):   mem2.enc = pKeyInfo->enc;
+1.307        (drh      21-Aug-07):   mem2.db = pKeyInfo->db;
+1.73         (drh      27-May-04):   
+1.223        (drh      12-Jan-06):   idx1 = GetVarint(aKey1, szHdr1);
+1.73         (drh      27-May-04):   d1 = szHdr1;
+1.223        (drh      12-Jan-06):   idx2 = GetVarint(aKey2, szHdr2);
+1.73         (drh      27-May-04):   d2 = szHdr2;
+1.73         (drh      27-May-04):   nField = pKeyInfo->nField;
+1.76         (drh      28-May-04):   while( idx1<szHdr1 && idx2<szHdr2 ){
+1.73         (drh      27-May-04):     u32 serial_type1;
+1.73         (drh      27-May-04):     u32 serial_type2;
+1.39         (danielk1 18-May-04): 
+1.39         (danielk1 18-May-04):     /* Read the serial types for the next element in each key. */
+1.223        (drh      12-Jan-06):     idx1 += GetVarint( aKey1+idx1, serial_type1 );
+1.76         (drh      28-May-04):     if( d1>=nKey1 && sqlite3VdbeSerialTypeLen(serial_type1)>0 ) break;
+1.223        (drh      12-Jan-06):     idx2 += GetVarint( aKey2+idx2, serial_type2 );
+1.76         (drh      28-May-04):     if( d2>=nKey2 && sqlite3VdbeSerialTypeLen(serial_type2)>0 ) break;
+1.39         (danielk1 18-May-04): 
+1.267        (drh      27-Oct-06):     /* Extract the values to be compared.
+1.39         (danielk1 18-May-04):     */
+1.75         (drh      28-May-04):     d1 += sqlite3VdbeSerialGet(&aKey1[d1], serial_type1, &mem1);
+1.75         (drh      28-May-04):     d2 += sqlite3VdbeSerialGet(&aKey2[d2], serial_type2, &mem2);
+1.39         (danielk1 18-May-04): 
+1.267        (drh      27-Oct-06):     /* Do the comparison
+1.267        (drh      27-Oct-06):     */
+1.76         (drh      28-May-04):     rc = sqlite3MemCompare(&mem1, &mem2, i<nField ? pKeyInfo->aColl[i] : 0);
+1.177        (drh      21-May-05):     if( mem1.flags & MEM_Dyn ) sqlite3VdbeMemRelease(&mem1);
+1.177        (drh      21-May-05):     if( mem2.flags & MEM_Dyn ) sqlite3VdbeMemRelease(&mem2);
+1.39         (danielk1 18-May-04):     if( rc!=0 ){
+1.73         (drh      27-May-04):       break;
+1.39         (danielk1 18-May-04):     }
+1.73         (drh      27-May-04):     i++;
+1.73         (drh      27-May-04):   }
+1.73         (drh      27-May-04): 
+1.73         (drh      27-May-04):   /* One of the keys ran out of fields, but all the fields up to that point
+1.73         (drh      27-May-04):   ** were equal. If the incrKey flag is true, then the second key is
+1.73         (drh      27-May-04):   ** treated as larger.
+1.73         (drh      27-May-04):   */
+1.73         (drh      27-May-04):   if( rc==0 ){
+1.73         (drh      27-May-04):     if( pKeyInfo->incrKey ){
+1.73         (drh      27-May-04):       rc = -1;
+1.73         (drh      27-May-04):     }else if( d1<nKey1 ){
+1.73         (drh      27-May-04):       rc = 1;
+1.73         (drh      27-May-04):     }else if( d2<nKey2 ){
+1.73         (drh      27-May-04):       rc = -1;
+1.73         (drh      27-May-04):     }
+1.214        (drh      21-Dec-05):   }else if( pKeyInfo->aSortOrder && i<pKeyInfo->nField
+1.214        (drh      21-Dec-05):                && pKeyInfo->aSortOrder[i] ){
+1.73         (drh      27-May-04):     rc = -rc;
+1.39         (danielk1 18-May-04):   }
+1.39         (danielk1 18-May-04): 
+1.73         (drh      27-May-04):   return rc;
+1.38         (danielk1 18-May-04): }
+1.76         (drh      28-May-04): 
+1.76         (drh      28-May-04): /*
+1.90         (drh      02-Jun-04): ** The argument is an index entry composed using the OP_MakeRecord opcode.
+1.90         (drh      02-Jun-04): ** The last entry in this record should be an integer (specifically
+1.90         (drh      02-Jun-04): ** an integer rowid).  This routine returns the number of bytes in
+1.90         (drh      02-Jun-04): ** that integer.
+1.76         (drh      28-May-04): */
+1.237        (drh      24-Feb-06): int sqlite3VdbeIdxRowidLen(const u8 *aKey){
+1.76         (drh      28-May-04):   u32 szHdr;        /* Size of the header */
+1.76         (drh      28-May-04):   u32 typeRowid;    /* Serial type of the rowid */
+1.76         (drh      28-May-04): 
+1.76         (drh      28-May-04):   sqlite3GetVarint32(aKey, &szHdr);
+1.76         (drh      28-May-04):   sqlite3GetVarint32(&aKey[szHdr-1], &typeRowid);
+1.76         (drh      28-May-04):   return sqlite3VdbeSerialTypeLen(typeRowid);
+1.76         (drh      28-May-04): }
+1.38         (danielk1 18-May-04):   
+1.30         (danielk1 13-May-04): 
+1.30         (danielk1 13-May-04): /*
+1.90         (drh      02-Jun-04): ** pCur points at an index entry created using the OP_MakeRecord opcode.
+1.90         (drh      02-Jun-04): ** Read the rowid (the last field in the record) and store it in *rowid.
+1.90         (drh      02-Jun-04): ** Return SQLITE_OK if everything works, or an error code otherwise.
+1.30         (danielk1 13-May-04): */
+1.307        (drh      21-Aug-07): int sqlite3VdbeIdxRowid(BtCursor *pCur, i64 *rowid){
+1.279        (drh      01-Apr-07):   i64 nCellKey = 0;
+1.30         (danielk1 13-May-04):   int rc;
+1.76         (drh      28-May-04):   u32 szHdr;        /* Size of the header */
+1.76         (drh      28-May-04):   u32 typeRowid;    /* Serial type of the rowid */
+1.76         (drh      28-May-04):   u32 lenRowid;     /* Size of the rowid */
+1.76         (drh      28-May-04):   Mem m, v;
+1.30         (danielk1 13-May-04): 
+1.76         (drh      28-May-04):   sqlite3BtreeKeySize(pCur, &nCellKey);
+1.76         (drh      28-May-04):   if( nCellKey<=0 ){
+1.200        (drh      17-Sep-05):     return SQLITE_CORRUPT_BKPT;
+1.76         (drh      28-May-04):   }
+1.307        (drh      21-Aug-07):   rc = sqlite3VdbeMemFromBtree(pCur, 0, nCellKey, 1, &m);
+1.76         (drh      28-May-04):   if( rc ){
+1.30         (danielk1 13-May-04):     return rc;
+1.30         (danielk1 13-May-04):   }
+1.210        (drh      09-Dec-05):   sqlite3GetVarint32((u8*)m.z, &szHdr);
+1.210        (drh      09-Dec-05):   sqlite3GetVarint32((u8*)&m.z[szHdr-1], &typeRowid);
+1.76         (drh      28-May-04):   lenRowid = sqlite3VdbeSerialTypeLen(typeRowid);
+1.210        (drh      09-Dec-05):   sqlite3VdbeSerialGet((u8*)&m.z[m.n-lenRowid], typeRowid, &v);
+1.276        (drh      30-Mar-07):   *rowid = v.u.i;
+1.105        (danielk1 12-Jun-04):   sqlite3VdbeMemRelease(&m);
+1.30         (danielk1 13-May-04):   return SQLITE_OK;
+1.30         (danielk1 13-May-04): }
+1.30         (danielk1 13-May-04): 
+1.44         (drh      19-May-04): /*
+1.50         (drh      20-May-04): ** Compare the key of the index entry that cursor pC is point to against
+1.44         (drh      19-May-04): ** the key string in pKey (of length nKey).  Write into *pRes a number
+1.44         (drh      19-May-04): ** that is negative, zero, or positive if pC is less than, equal to,
+1.44         (drh      19-May-04): ** or greater than pKey.  Return SQLITE_OK on success.
+1.50         (drh      20-May-04): **
+1.76         (drh      28-May-04): ** pKey is either created without a rowid or is truncated so that it
+1.76         (drh      28-May-04): ** omits the rowid at the end.  The rowid at the end of the index entry
+1.76         (drh      28-May-04): ** is ignored as well.
+1.44         (drh      19-May-04): */
+1.30         (danielk1 13-May-04): int sqlite3VdbeIdxKeyCompare(
+1.44         (drh      19-May-04):   Cursor *pC,                 /* The cursor to compare against */
+1.44         (drh      19-May-04):   int nKey, const u8 *pKey,   /* The key to compare */
+1.44         (drh      19-May-04):   int *res                    /* Write the comparison result here */
+1.30         (danielk1 13-May-04): ){
+1.279        (drh      01-Apr-07):   i64 nCellKey = 0;
+1.30         (danielk1 13-May-04):   int rc;
+1.31         (danielk1 14-May-04):   BtCursor *pCur = pC->pCursor;
+1.76         (drh      28-May-04):   int lenRowid;
+1.76         (drh      28-May-04):   Mem m;
+1.30         (danielk1 13-May-04): 
+1.30         (danielk1 13-May-04):   sqlite3BtreeKeySize(pCur, &nCellKey);
+1.30         (danielk1 13-May-04):   if( nCellKey<=0 ){
+1.30         (danielk1 13-May-04):     *res = 0;
+1.30         (danielk1 13-May-04):     return SQLITE_OK;
+1.30         (danielk1 13-May-04):   }
+1.307        (drh      21-Aug-07):   rc = sqlite3VdbeMemFromBtree(pC->pCursor, 0, nCellKey, 1, &m);
+1.76         (drh      28-May-04):   if( rc ){
+1.76         (drh      28-May-04):     return rc;
+1.30         (danielk1 13-May-04):   }
+1.237        (drh      24-Feb-06):   lenRowid = sqlite3VdbeIdxRowidLen((u8*)m.z);
+1.90         (drh      02-Jun-04):   *res = sqlite3VdbeRecordCompare(pC->pKeyInfo, m.n-lenRowid, m.z, nKey, pKey);
+1.105        (danielk1 12-Jun-04):   sqlite3VdbeMemRelease(&m);
+1.30         (danielk1 13-May-04):   return SQLITE_OK;
+1.62         (danielk1 25-May-04): }
+1.121        (danielk1 21-Jun-04): 
+1.121        (danielk1 21-Jun-04): /*
+1.121        (danielk1 21-Jun-04): ** This routine sets the value to be returned by subsequent calls to
+1.121        (danielk1 21-Jun-04): ** sqlite3_changes() on the database handle 'db'. 
+1.121        (danielk1 21-Jun-04): */
+1.121        (danielk1 21-Jun-04): void sqlite3VdbeSetChanges(sqlite3 *db, int nChange){
+1.307        (drh      21-Aug-07):   assert( sqlite3_mutex_held(db->mutex) );
+1.121        (danielk1 21-Jun-04):   db->nChange = nChange;
+1.121        (danielk1 21-Jun-04):   db->nTotalChange += nChange;
+1.121        (danielk1 21-Jun-04): }
+1.121        (danielk1 21-Jun-04): 
+1.121        (danielk1 21-Jun-04): /*
+1.121        (danielk1 21-Jun-04): ** Set a flag in the vdbe to update the change counter when it is finalised
+1.121        (danielk1 21-Jun-04): ** or reset.
+1.121        (danielk1 21-Jun-04): */
+1.152        (drh      05-Nov-04): void sqlite3VdbeCountChanges(Vdbe *v){
+1.152        (drh      05-Nov-04):   v->changeCntOn = 1;
+1.121        (danielk1 21-Jun-04): }
+1.159        (drh      22-Jan-05): 
+1.159        (drh      22-Jan-05): /*
+1.159        (drh      22-Jan-05): ** Mark every prepared statement associated with a database connection
+1.159        (drh      22-Jan-05): ** as expired.
+1.159        (drh      22-Jan-05): **
+1.159        (drh      22-Jan-05): ** An expired statement means that recompilation of the statement is
+1.159        (drh      22-Jan-05): ** recommend.  Statements expire when things happen that make their
+1.159        (drh      22-Jan-05): ** programs obsolete.  Removing user-defined functions or collating
+1.159        (drh      22-Jan-05): ** sequences, or changing an authorization function are the types of
+1.159        (drh      22-Jan-05): ** things that make prepared statements obsolete.
+1.159        (drh      22-Jan-05): */
+1.159        (drh      22-Jan-05): void sqlite3ExpirePreparedStatements(sqlite3 *db){
+1.159        (drh      22-Jan-05):   Vdbe *p;
+1.159        (drh      22-Jan-05):   for(p = db->pVdbe; p; p=p->pNext){
+1.159        (drh      22-Jan-05):     p->expired = 1;
+1.159        (drh      22-Jan-05):   }
+1.159        (drh      22-Jan-05): }
+1.167        (danielk1 09-Mar-05): 
+1.167        (danielk1 09-Mar-05): /*
+1.167        (danielk1 09-Mar-05): ** Return the database associated with the Vdbe.
+1.167        (danielk1 09-Mar-05): */
+1.167        (danielk1 09-Mar-05): sqlite3 *sqlite3VdbeDb(Vdbe *v){
+1.167        (danielk1 09-Mar-05):   return v->db;
+1.167        (danielk1 09-Mar-05): }

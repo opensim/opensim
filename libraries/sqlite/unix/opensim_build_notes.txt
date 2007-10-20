@@ -1,0 +1,6 @@
+downloaded tarball from:
+http://www.sqlite.org/sqlite-3.5.1.tar.gz
+
+build:
+see README
+instead of install, you can copy build/.libs/libsqlite3.so.0.8.6 to bin/libsqlite3.so.0
