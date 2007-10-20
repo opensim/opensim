@@ -39,6 +39,11 @@ namespace libTerrain
         int h;
         Bitmap bmp;
 
+        /// <summary>
+        /// Creates a new Raster channel for use with bitmap or GDI functions
+        /// </summary>
+        /// <param name="width">Width in pixels</param>
+        /// <param name="height">Height in pixels</param>
         public Raster(int width, int height)
         {
             w = width;
@@ -46,6 +51,10 @@ namespace libTerrain
             bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
         }
 
+        /// <summary>
+        /// Converts a raster image to a channel by averaging the RGB values to a single 0..1 heightmap
+        /// </summary>
+        /// <returns>A libTerrain Channel</returns>
         public Channel ToChannel()
         {
             Channel chan = new Channel(bmp.Width, bmp.Height);
@@ -63,12 +72,21 @@ namespace libTerrain
             return chan;
         }
 
+        /// <summary>
+        /// Draws a piece of text into the specified raster
+        /// </summary>
+        /// <param name="txt">The text string to print</param>
+        /// <param name="font">The font to use to draw the specified image</param>
+        /// <param name="size">Font size (points) to use</param>
         public void DrawText(string txt, string font, double size)
         {
-            Graphics gd = Graphics.FromImage(bmp);
-            //gd.DrawString(txt,
+            Rectangle area = new Rectangle(0, 0, 256, 256);
+            StringFormat sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
 
-            
+            Graphics gd = Graphics.FromImage(bmp);
+            gd.DrawString(txt, new Font(font, (float)size), new SolidBrush(Color.White), area, sf);
         }
     }
 }
