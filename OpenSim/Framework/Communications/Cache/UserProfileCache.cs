@@ -59,18 +59,22 @@ namespace OpenSim.Framework.Communications.Caches
         /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
         {
-            if (!this.UserProfiles.ContainsKey(userID))
+            // Potential fix - Multithreading issue.
+            lock (UserProfiles)
             {
-                CachedUserInfo userInfo = new CachedUserInfo(this.m_parent);
-                userInfo.UserProfile = this.RequestUserProfileForUser(userID);
-                if (userInfo.UserProfile != null)
+                if (!this.UserProfiles.ContainsKey(userID))
                 {
-                    this.RequestInventoryForUser(userID, userInfo);
-                    this.UserProfiles.Add(userID, userInfo);
-                }
-                else
-                {
-                    System.Console.WriteLine("CACHE", "User profile for user not found");
+                    CachedUserInfo userInfo = new CachedUserInfo(this.m_parent);
+                    userInfo.UserProfile = this.RequestUserProfileForUser(userID);
+                    if (userInfo.UserProfile != null)
+                    {
+                        this.RequestInventoryForUser(userID, userInfo);
+                        this.UserProfiles.Add(userID, userInfo);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("CACHE", "User profile for user not found");
+                    }
                 }
             }
         }
