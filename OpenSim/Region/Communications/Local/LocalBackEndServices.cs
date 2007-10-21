@@ -85,7 +85,7 @@ namespace OpenSim.Region.Communications.Local
                     //Console.WriteLine("CommsManager- RequestNeighbours() - found a different region in list, checking location");
                     if ((reg.RegionLocX > (x - 2)) && (reg.RegionLocX < (x + 2)))
                     {
-                        if ((reg.RegionLocY > (x - 2)) && (reg.RegionLocY < (x + 2)))
+                        if ((reg.RegionLocY > (y - 2)) && (reg.RegionLocY < (y + 2)))
                         {
                             neighbours.Add(reg);
                         }
@@ -253,5 +253,6 @@ namespace OpenSim.Region.Communications.Local
       
     }
 }
+
 
 

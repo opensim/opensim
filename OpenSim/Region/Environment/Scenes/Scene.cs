@@ -1084,10 +1084,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="endPoint"></param>
         private void InformClientOfNeighbourAsync(IClientAPI remoteClient, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint)
         {
+            MainLog.Instance.Notice("INTERGRID", "Starting to inform client about neighbours");
             bool regionAccepted = commsManager.InterRegion.InformRegionOfChildAgent(regionHandle, a);
 
             if (regionAccepted)
                 remoteClient.InformClientOfNeighbour(regionHandle, endPoint);
+            MainLog.Instance.Notice("INTERGRID", "Completed inform client about neighbours");
         }
 
         /// <summary>
@@ -1109,7 +1111,7 @@ namespace OpenSim.Region.Environment.Scenes
                     InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
                     d.BeginInvoke(remoteClient, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint,
                                                                  InformClientOfNeighbourCompleted,
-                                                                 null);
+                                                                 d);
 
                 }
             }
