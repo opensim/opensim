@@ -475,7 +475,10 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
+<!--
+      Causes a circular refernce, on VS-2005
       <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
+-->
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
