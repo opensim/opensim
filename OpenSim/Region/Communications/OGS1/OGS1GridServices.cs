@@ -327,7 +327,7 @@ namespace OpenSim.Region.Communications.OGS1
         private void StartRemoting()
         {
             TcpChannel ch = new TcpChannel(this.serversInfo.RemotingListenerPort);
-            ChannelServices.RegisterChannel(ch, true);
+            ChannelServices.RegisterChannel(ch, false); // Disabled security as Mono doesnt support this.
 
             WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry(typeof(OGS1InterRegionRemoting), "InterRegions", WellKnownObjectMode.Singleton);
             RemotingConfiguration.RegisterWellKnownServiceType(wellType);
