@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Data.SQLite
                         fillUserAgentRow(row, user.currentAgent);
                     }
                 }
-                MainLog.Instance.Verbose("Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
+                MainLog.Instance.Verbose("SQLITE", "Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
                 // save changes off to disk
                 da.Update(ds, "users");
             }

@@ -234,7 +234,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_regionInfo = reginfo;
             m_regionHandle = reginfo.RegionHandle;
-            MainLog.Instance.Verbose("Avatar.cs ");
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;

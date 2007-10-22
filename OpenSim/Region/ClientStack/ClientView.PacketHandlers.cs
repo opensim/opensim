@@ -56,7 +56,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual bool Logout(IClientAPI client, Packet packet)
         {
-            MainLog.Instance.Verbose("OpenSimClient.cs:ProcessInPacket() - Got a logout request");
+            MainLog.Instance.Verbose("CLIENT", "Got a logout request");
 
             if( OnLogout != null )
             {

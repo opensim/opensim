@@ -100,7 +100,7 @@ namespace OpenSim.Region.ClientStack
             // m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
-            MainLog.Instance.Verbose("OpenSimClient.cs - Started up new client thread to handle incoming request");
+            MainLog.Instance.Verbose("CLIENT","Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
@@ -224,7 +224,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void ClientLoop()
         {
-            MainLog.Instance.Verbose("OpenSimClient.cs:ClientLoop() - Entered loop");
+            MainLog.Instance.Verbose("CLIENT", "Entered loop");
             while (true)
             {
                 QueItem nextPacket = PacketQueue.Dequeue();
@@ -282,7 +282,7 @@ namespace OpenSim.Region.ClientStack
             clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             clientPingTimer.Enabled = true;
 
-            MainLog.Instance.Verbose("OpenSimClient.cs:InitNewClient() - Adding viewer agent to scene");
+            MainLog.Instance.Verbose("CLIENT","Adding viewer agent to scene");
             this.m_scene.AddNewClient(this, true);
         }
 
@@ -293,12 +293,12 @@ namespace OpenSim.Region.ClientStack
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - New user request denied to " + userEP.ToString());
+                MainLog.Instance.Notice("CLIENT", "New user request denied to " + userEP.ToString());
                 ClientThread.Abort();
             }
             else
             {
-                MainLog.Instance.Notice("OpenSimClient.cs:AuthUser() - Got authenticated connection from " + userEP.ToString());
+                MainLog.Instance.Notice("CLIENT", "Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 m_agentId = cirpack.CircuitCode.ID;
                 this.m_sessionId = cirpack.CircuitCode.SessionID;

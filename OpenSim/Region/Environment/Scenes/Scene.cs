@@ -859,14 +859,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (child)
             {
-                MainLog.Instance.Verbose(RegionInfo.RegionName + ": Creating new child agent.");
+                MainLog.Instance.Verbose("SCENE", RegionInfo.RegionName + ": Creating new child agent.");
             }
             else
             {
                 newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
 
-                MainLog.Instance.Verbose(RegionInfo.RegionName + ": Creating new root agent.");
-                MainLog.Instance.Verbose(RegionInfo.RegionName + ": Adding Physical agent.");
+                MainLog.Instance.Verbose("SCENE", RegionInfo.RegionName + ": Creating new root agent.");
+                MainLog.Instance.Verbose("SCENE", RegionInfo.RegionName + ": Adding Physical agent.");
 
                 newAvatar.AddToPhysicalScene();
             }

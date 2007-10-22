@@ -77,7 +77,7 @@ namespace OpenSim.Region.Capabilities
         /// </summary>
         public void RegisterHandlers()
         {
-            Console.WriteLine("registering CAPS handlers");
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("CAPS","Registering CAPS handlers");
             string capsBase = "/CAPS/" + m_capsObjectPath;
             try
             {

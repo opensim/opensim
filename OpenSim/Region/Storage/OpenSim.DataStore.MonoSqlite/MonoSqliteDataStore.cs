@@ -98,11 +98,19 @@ namespace OpenSim.DataStore.MonoSqlite
                 try
                 {
                     shapeDa.Fill(ds.Tables["primshapes"]);
+                }
+                catch (Exception)
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
+                }
+
+                try
+                {
                     terrainDa.Fill(ds.Tables["terrain"]);
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes or terrain table");
+                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on terrain table");
                 }
                 return;
             }
