@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetServerBase()
         {
-            System.Console.WriteLine("Starting Db4o asset storage system");            
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("ASSETSERVER","Starting Db4o asset storage system");
             this._assetRequests = new BlockingQueue<ARequest>();
 
             this._localAssetServerThread = new Thread( RunRequests );

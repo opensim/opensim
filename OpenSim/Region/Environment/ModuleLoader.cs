@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment
                 }
                 catch( BadImageFormatException e )
                 {
-                    m_log.Warn( "MODULES", "The file [{0}] is not a module assembly.", e.FileName );
+                    m_log.Verbose( "MODULES", "The file [{0}] is not a module assembly.", e.FileName );
                 }
             }
 

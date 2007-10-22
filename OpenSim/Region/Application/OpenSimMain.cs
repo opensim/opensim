@@ -262,8 +262,10 @@ namespace OpenSim
             }
             else
             {
-                MainLog.Instance.Verbose("No startup command script specified. Moving on...");
+                MainLog.Instance.Verbose("STARTUP","No startup command script specified. Moving on...");
             }
+
+            MainLog.Instance.Status("STARTUP","Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
         }
 
         private static void CreateDefaultRegionInfoXml(string fileName)
@@ -361,11 +363,11 @@ namespace OpenSim
                 RunCommandScript(m_shutdownCommandsFile);
             }
 
-            m_log.Verbose("Closing all threads");
-            m_log.Verbose("Killing listener thread");
-            m_log.Verbose("Killing clients");
+            m_log.Verbose("SHUTDOWN", "Closing all threads");
+            m_log.Verbose("SHUTDOWN", "Killing listener thread");
+            m_log.Verbose("SHUTDOWN", "Killing clients");
             // IMPLEMENT THIS
-            m_log.Verbose("Closing console and terminating");
+            m_log.Verbose("SHUTDOWN", "Closing console and terminating");
 
             m_sceneManager.Close();
 
@@ -380,7 +382,7 @@ namespace OpenSim
         /// <param name="fileName"></param>
         private void RunCommandScript(string fileName)
         {
-            MainLog.Instance.Verbose("Running command script (" + fileName + ")");
+            MainLog.Instance.Verbose("COMMANDFILE", "Running " + fileName);
             if (File.Exists(fileName))
             {
                 StreamReader readFile = File.OpenText(fileName);
@@ -389,14 +391,14 @@ namespace OpenSim
                 {
                     if (currentCommand != "")
                     {
-                        MainLog.Instance.Verbose("Running '" + currentCommand + "'");
+                        MainLog.Instance.Verbose("COMMANDFILE", "Running '" + currentCommand + "'");
                         MainLog.Instance.MainLogRunCommand(currentCommand);
                     }
                 }
             }
             else
             {
-                MainLog.Instance.Error("Command script missing. Can not run commands");
+                MainLog.Instance.Error("COMMANDFILE","Command script missing. Can not run commands");
             }
         }
 
