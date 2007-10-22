@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Communications.Cache
                         m_assetProviderPlugin = plug;
                         m_assetProviderPlugin.Initialise();
 
-                        MainLog.Instance.Verbose("AssetStorage: Added " + m_assetProviderPlugin.Name + " " + m_assetProviderPlugin.Version);
+                        MainLog.Instance.Verbose("AssetStorage","Added " + m_assetProviderPlugin.Name + " " + m_assetProviderPlugin.Version);
                     }
 
                     typeInterface = null;
@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 ARequest req = this._assetRequests.Dequeue();
 
-                MainLog.Instance.Verbose("Requesting asset: " + req.AssetID);
+                MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
 
                 AssetBase asset = null;
                 lock (syncLock)

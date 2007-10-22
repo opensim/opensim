@@ -170,8 +170,11 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string format, params object[] args)
         {
-            WriteNewLine(ConsoleColor.Gray, format, args);
-            return;
+            if (!m_silent)
+            {
+                WriteNewLine(ConsoleColor.Gray, format, args);
+                return;
+            }
         }
 
         /// <summary>
@@ -182,9 +185,12 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string sender, string format, params object[] args)
         {
-            WritePrefixLine(DeriveColor(sender), sender);
-            WriteNewLine(ConsoleColor.Gray, format, args);
-            return;
+            if (!m_silent)
+            {
+                WritePrefixLine(DeriveColor(sender), sender);
+                WriteNewLine(ConsoleColor.Gray, format, args);
+                return;
+            }
         }
 
         /// <summary>
@@ -234,22 +240,20 @@ namespace OpenSim.Framework.Console
                 Log.Write(now);
                 Log.WriteLine(format, args);
                 Log.Flush();
-                if (!m_silent)
-                {
-                    System.Console.Write(now);
-                    try
-                    {
-                        if (color != ConsoleColor.White)
-                            System.Console.ForegroundColor = color;
 
-                        System.Console.WriteLine(format, args);
-                        System.Console.ResetColor();
-                    }
-                    catch (ArgumentNullException)
-                    {
-                        // Some older systems dont support coloured text.
-                        System.Console.WriteLine(format, args);
-                    }
+                System.Console.Write(now);
+                try
+                {
+                    if (color != ConsoleColor.White)
+                        System.Console.ForegroundColor = color;
+
+                    System.Console.WriteLine(format, args);
+                    System.Console.ResetColor();
+                }
+                catch (ArgumentNullException)
+                {
+                    // Some older systems dont support coloured text.
+                    System.Console.WriteLine(format, args);
                 }
                 return;
             }
@@ -265,19 +269,16 @@ namespace OpenSim.Framework.Console
 
                 System.Console.Write("[");
 
-                if (!m_silent)
+                try
                 {
-                    try
-                    {
-                        System.Console.ForegroundColor = color;
-                        System.Console.Write(sender);
-                        System.Console.ResetColor();
-                    }
-                    catch (ArgumentNullException)
-                    {
-                        // Some older systems dont support coloured text.
-                        System.Console.WriteLine(sender);
-                    }
+                    System.Console.ForegroundColor = color;
+                    System.Console.Write(sender);
+                    System.Console.ResetColor();
+                }
+                catch (ArgumentNullException)
+                {
+                    // Some older systems dont support coloured text.
+                    System.Console.WriteLine(sender);
                 }
 
                 System.Console.Write("] \t");

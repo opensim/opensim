@@ -557,8 +557,12 @@ namespace OpenSim.Framework.Types
         private ConfigurationMember configMember;
         public EstateSettings()
         {
-            configMember = new ConfigurationMember(Path.Combine(Util.configDir(),"estate_settings.xml"), "ESTATE SETTINGS", this.loadConfigurationOptions, this.handleIncomingConfiguration);
-            configMember.performConfigurationRetrieve();
+            // Temporary hack to prevent multiple loadings.
+            if (configMember == null)
+            {
+                configMember = new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS", this.loadConfigurationOptions, this.handleIncomingConfiguration);
+                configMember.performConfigurationRetrieve();
+            }
         }
 
         public void loadConfigurationOptions()

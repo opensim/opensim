@@ -370,7 +370,7 @@ namespace OpenSim.Region.Environment.Scenes
                         phyScene.SetTerrain(Terrain.GetHeights1D());
                     }
 
-                    storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
+                    storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(),RegionInfo.RegionID);
 
                     float[] terData = Terrain.GetHeights1D();
 
@@ -466,7 +466,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                double[,] map = storageManager.DataStore.LoadTerrain();
+                double[,] map = storageManager.DataStore.LoadTerrain(RegionInfo.RegionID);
                 if (map == null)
                 {
                     if (string.IsNullOrEmpty(m_regInfo.estateSettings.terrainFile))
@@ -474,7 +474,7 @@ namespace OpenSim.Region.Environment.Scenes
                         MainLog.Instance.Verbose("TERRAIN", "No default terrain. Generating a new terrain.");
                         Terrain.HillsGenerator();
 
-                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
+                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(),RegionInfo.RegionID);
                     }
                     else
                     {
@@ -488,7 +488,7 @@ namespace OpenSim.Region.Environment.Scenes
                             MainLog.Instance.Verbose("TERRAIN", "No terrain found in database or default. Generating a new terrain.");
                             Terrain.HillsGenerator();
                         }
-                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD());
+                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
                     }
                 }
                 else
