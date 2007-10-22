@@ -469,7 +469,7 @@ namespace OpenSim.Region.Environment.Scenes
                 double[,] map = storageManager.DataStore.LoadTerrain();
                 if (map == null)
                 {
-                    if (string.IsNullOrEmpty(m_regInfo.estateSettings.terrainFile))
+                    if (string.IsNullOrEmpty(m_regInfo.EstateSettings.terrainFile))
                     {
                         MainLog.Instance.Verbose("TERRAIN", "No default terrain. Generating a new terrain.");
                         Terrain.HillsGenerator();
@@ -480,8 +480,8 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         try
                         {
-                            Terrain.LoadFromFileF32(m_regInfo.estateSettings.terrainFile);
-                            Terrain *= m_regInfo.estateSettings.terrainMultiplier;
+                            Terrain.LoadFromFileF32(m_regInfo.EstateSettings.terrainFile);
+                            Terrain *= m_regInfo.EstateSettings.terrainMultiplier;
                         }
                         catch
                         {
@@ -511,9 +511,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //create a texture asset of the terrain 
             byte[] data = Terrain.ExportJpegImage("defaultstripe.png");
-            m_regInfo.estateSettings.terrainImageID = LLUUID.Random();
+            m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
             AssetBase asset = new AssetBase();
-            asset.FullID = m_regInfo.estateSettings.terrainImageID;
+            asset.FullID = m_regInfo.EstateSettings.terrainImageID;
             asset.Data = data;
             asset.Name = "terrainImage";
             asset.Type = 0;
@@ -1001,12 +1001,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="whatToDo"></param>
-        public void ForEachScenePresence(Action<ScenePresence> whatToDo)
+        /// <param name="action"></param>
+        public void ForEachScenePresence(Action<ScenePresence> action)
         {
             foreach (ScenePresence presence in m_scenePresences.Values)
             {
-                whatToDo(presence);
+                action(presence);
+            }
+        }
+
+        public void ForEachObject(Action<SceneObjectGroup> action)
+        {
+            foreach (SceneObjectGroup presence in m_sceneObjects.Values)
+            {
+                action(presence);
             }
         }
 

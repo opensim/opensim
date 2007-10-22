@@ -39,6 +39,7 @@ namespace OpenSim.Region.Communications.Local
     {
         protected Dictionary<ulong, RegionInfo> m_regions = new Dictionary<ulong, RegionInfo>();
         protected Dictionary<ulong, RegionCommsListener> m_regionListeners = new Dictionary<ulong, RegionCommsListener>();
+        private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
 
         public LocalBackEndServices()
         {
@@ -128,8 +129,8 @@ namespace OpenSim.Region.Communications.Local
                     map.Name = regInfo.RegionName;
                     map.X = (ushort)regInfo.RegionLocX;
                     map.Y = (ushort)regInfo.RegionLocY;
-                    map.WaterHeight = (byte)regInfo.estateSettings.waterHeight;
-                    map.MapImageId = regInfo.estateSettings.terrainImageID; //new LLUUID("00000000-0000-0000-9999-000000000007");
+                    map.WaterHeight = (byte)regInfo.EstateSettings.waterHeight;
+                    map.MapImageId = regInfo.EstateSettings.terrainImageID; //new LLUUID("00000000-0000-0000-9999-000000000007");
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
                     map.Access = 13;

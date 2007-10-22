@@ -135,7 +135,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 updatePacket.ParcelData.MaxPrims =
                     Convert.ToInt32(
                         Math.Round((Convert.ToDecimal(landData.area)/Convert.ToDecimal(65536))*15000*
-                                   Convert.ToDecimal(m_scene.RegionInfo.estateSettings.objectBonusFactor)));
+                                   Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor)));
             }
             else
             {
@@ -152,12 +152,12 @@ namespace OpenSim.Region.Environment.LandManagement
             updatePacket.ParcelData.OwnerID = landData.ownerID;
             updatePacket.ParcelData.OwnerPrims = landData.ownerPrims;
             updatePacket.ParcelData.ParcelFlags = landData.landFlags;
-            updatePacket.ParcelData.ParcelPrimBonus = m_scene.RegionInfo.estateSettings.objectBonusFactor;
+            updatePacket.ParcelData.ParcelPrimBonus = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
             updatePacket.ParcelData.PassHours = landData.passHours;
             updatePacket.ParcelData.PassPrice = landData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
 
-            uint regionFlags = (uint) m_scene.RegionInfo.estateSettings.regionFlags;
+            uint regionFlags = (uint) m_scene.RegionInfo.EstateSettings.regionFlags;
             updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint) Simulator.RegionFlags.DenyAnonymous) >
                                                            0);
             updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint) Simulator.RegionFlags.DenyIdentified) >
@@ -178,7 +178,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 updatePacket.ParcelData.SimWideMaxPrims =
                     Convert.ToInt32(
                         Math.Round((Convert.ToDecimal(landData.simwideArea)/Convert.ToDecimal(65536))*15000*
-                                   Convert.ToDecimal(m_scene.RegionInfo.estateSettings.objectBonusFactor)));
+                                   Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor)));
             }
             else
             {

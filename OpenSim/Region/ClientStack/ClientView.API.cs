@@ -169,32 +169,32 @@ namespace OpenSim.Region.ClientStack
             Encoding _enc = Encoding.ASCII;
             RegionHandshakePacket handshake = new RegionHandshakePacket();
 
-            handshake.RegionInfo.BillableFactor = regionInfo.estateSettings.billableFactor;
+            handshake.RegionInfo.BillableFactor = regionInfo.EstateSettings.billableFactor;
             handshake.RegionInfo.IsEstateManager = false;
-            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.estateSettings.terrainHeightRange0;
-            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.estateSettings.terrainHeightRange1;
-            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.estateSettings.terrainHeightRange2;
-            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.estateSettings.terrainHeightRange3;
-            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.estateSettings.terrainStartHeight0;
-            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.estateSettings.terrainStartHeight1;
-            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.estateSettings.terrainStartHeight2;
-            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.estateSettings.terrainStartHeight3;
-            handshake.RegionInfo.SimAccess = (byte)regionInfo.estateSettings.simAccess;
-            handshake.RegionInfo.WaterHeight = regionInfo.estateSettings.waterHeight;
+            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.EstateSettings.terrainHeightRange0;
+            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.EstateSettings.terrainHeightRange1;
+            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.EstateSettings.terrainHeightRange2;
+            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.EstateSettings.terrainHeightRange3;
+            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.EstateSettings.terrainStartHeight0;
+            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.EstateSettings.terrainStartHeight1;
+            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.EstateSettings.terrainStartHeight2;
+            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.EstateSettings.terrainStartHeight3;
+            handshake.RegionInfo.SimAccess = (byte)regionInfo.EstateSettings.simAccess;
+            handshake.RegionInfo.WaterHeight = regionInfo.EstateSettings.waterHeight;
 
 
-            handshake.RegionInfo.RegionFlags = (uint)regionInfo.estateSettings.regionFlags;
+            handshake.RegionInfo.RegionFlags = (uint)regionInfo.EstateSettings.regionFlags;
 
             handshake.RegionInfo.SimName = _enc.GetBytes(regionInfo.RegionName + "\0");
             handshake.RegionInfo.SimOwner = regionInfo.MasterAvatarAssignedUUID;
-            handshake.RegionInfo.TerrainBase0 = regionInfo.estateSettings.terrainBase0;
-            handshake.RegionInfo.TerrainBase1 = regionInfo.estateSettings.terrainBase1;
-            handshake.RegionInfo.TerrainBase2 = regionInfo.estateSettings.terrainBase2;
-            handshake.RegionInfo.TerrainBase3 = regionInfo.estateSettings.terrainBase3;
-            handshake.RegionInfo.TerrainDetail0 = regionInfo.estateSettings.terrainDetail0;
-            handshake.RegionInfo.TerrainDetail1 = regionInfo.estateSettings.terrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 = regionInfo.estateSettings.terrainDetail2;
-            handshake.RegionInfo.TerrainDetail3 = regionInfo.estateSettings.terrainDetail3;
+            handshake.RegionInfo.TerrainBase0 = regionInfo.EstateSettings.terrainBase0;
+            handshake.RegionInfo.TerrainBase1 = regionInfo.EstateSettings.terrainBase1;
+            handshake.RegionInfo.TerrainBase2 = regionInfo.EstateSettings.terrainBase2;
+            handshake.RegionInfo.TerrainBase3 = regionInfo.EstateSettings.terrainBase3;
+            handshake.RegionInfo.TerrainDetail0 = regionInfo.EstateSettings.terrainDetail0;
+            handshake.RegionInfo.TerrainDetail1 = regionInfo.EstateSettings.terrainDetail1;
+            handshake.RegionInfo.TerrainDetail2 = regionInfo.EstateSettings.terrainDetail2;
+            handshake.RegionInfo.TerrainDetail3 = regionInfo.EstateSettings.terrainDetail3;
             handshake.RegionInfo.CacheID = LLUUID.Random(); //I guess this is for the client to remember an old setting?
 
             this.OutPacket(handshake);

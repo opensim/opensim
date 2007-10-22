@@ -73,20 +73,20 @@ namespace OpenSim.Region.Environment
             switch (corner)
             {
                 case 0:
-                    m_regInfo.estateSettings.terrainStartHeight0 = lowValue;
-                    m_regInfo.estateSettings.terrainHeightRange0 = highValue;
+                    m_regInfo.EstateSettings.terrainStartHeight0 = lowValue;
+                    m_regInfo.EstateSettings.terrainHeightRange0 = highValue;
                     break;
                 case 1:
-                    m_regInfo.estateSettings.terrainStartHeight1 = lowValue;
-                    m_regInfo.estateSettings.terrainHeightRange1 = highValue;
+                    m_regInfo.EstateSettings.terrainStartHeight1 = lowValue;
+                    m_regInfo.EstateSettings.terrainHeightRange1 = highValue;
                     break;
                 case 2:
-                    m_regInfo.estateSettings.terrainStartHeight2 = lowValue;
-                    m_regInfo.estateSettings.terrainHeightRange2 = highValue;
+                    m_regInfo.EstateSettings.terrainStartHeight2 = lowValue;
+                    m_regInfo.EstateSettings.terrainHeightRange2 = highValue;
                     break;
                 case 3:
-                    m_regInfo.estateSettings.terrainStartHeight3 = lowValue;
-                    m_regInfo.estateSettings.terrainHeightRange3 = highValue;
+                    m_regInfo.EstateSettings.terrainStartHeight3 = lowValue;
+                    m_regInfo.EstateSettings.terrainHeightRange3 = highValue;
                     break;
             }
         }
@@ -101,16 +101,16 @@ namespace OpenSim.Region.Environment
             switch (band)
             {
                 case 0:
-                    m_regInfo.estateSettings.terrainDetail0 = textureUUID;
+                    m_regInfo.EstateSettings.terrainDetail0 = textureUUID;
                     break;
                 case 1:
-                    m_regInfo.estateSettings.terrainDetail1 = textureUUID;
+                    m_regInfo.EstateSettings.terrainDetail1 = textureUUID;
                     break;
                 case 2:
-                    m_regInfo.estateSettings.terrainDetail2 = textureUUID;
+                    m_regInfo.EstateSettings.terrainDetail2 = textureUUID;
                     break;
                 case 3:
-                    m_regInfo.estateSettings.terrainDetail3 = textureUUID;
+                    m_regInfo.EstateSettings.terrainDetail3 = textureUUID;
                     break;
             }
         }
@@ -127,18 +127,18 @@ namespace OpenSim.Region.Environment
                                       bool UseFixedSun, float SunHour)
         {
             // Water Height
-            m_regInfo.estateSettings.waterHeight = WaterHeight;
+            m_regInfo.EstateSettings.waterHeight = WaterHeight;
             m_scene.Terrain.watermap.Fill(WaterHeight);
 
             // Terraforming limits
-            m_regInfo.estateSettings.terrainRaiseLimit = TerrainRaiseLimit;
-            m_regInfo.estateSettings.terrainLowerLimit = TerrainLowerLimit;
+            m_regInfo.EstateSettings.terrainRaiseLimit = TerrainRaiseLimit;
+            m_regInfo.EstateSettings.terrainLowerLimit = TerrainLowerLimit;
             m_scene.Terrain.maxRaise = TerrainRaiseLimit;
             m_scene.Terrain.minLower = TerrainLowerLimit;
 
             // Time of day / fixed sun
-            m_regInfo.estateSettings.useFixedSun = UseFixedSun;
-            m_regInfo.estateSettings.sunHour = SunHour;
+            m_regInfo.EstateSettings.useFixedSun = UseFixedSun;
+            m_regInfo.EstateSettings.sunHour = SunHour;
         }
 
         #region Packet Handlers
@@ -187,54 +187,54 @@ namespace OpenSim.Region.Environment
             }
             else
             {
-                m_regInfo.estateSettings.regionFlags = Simulator.RegionFlags.None;
+                m_regInfo.EstateSettings.regionFlags = Simulator.RegionFlags.None;
 
                 if (convertParamStringToBool(packet.ParamList[0].Parameter))
                 {
-                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags |
+                    m_regInfo.EstateSettings.regionFlags = m_regInfo.EstateSettings.regionFlags |
                                                            Simulator.RegionFlags.BlockTerraform;
                 }
 
                 if (convertParamStringToBool(packet.ParamList[1].Parameter))
                 {
-                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags |
+                    m_regInfo.EstateSettings.regionFlags = m_regInfo.EstateSettings.regionFlags |
                                                            Simulator.RegionFlags.NoFly;
                 }
 
                 if (convertParamStringToBool(packet.ParamList[2].Parameter))
                 {
-                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags |
+                    m_regInfo.EstateSettings.regionFlags = m_regInfo.EstateSettings.regionFlags |
                                                            Simulator.RegionFlags.AllowDamage;
                 }
 
                 if (convertParamStringToBool(packet.ParamList[3].Parameter) == false)
                 {
-                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags |
+                    m_regInfo.EstateSettings.regionFlags = m_regInfo.EstateSettings.regionFlags |
                                                            Simulator.RegionFlags.BlockLandResell;
                 }
 
 
                 int tempMaxAgents =
                     Convert.ToInt16(Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[4].Parameter)));
-                m_regInfo.estateSettings.maxAgents = (byte)tempMaxAgents;
+                m_regInfo.EstateSettings.maxAgents = (byte)tempMaxAgents;
 
                 float tempObjectBonusFactor =
                     (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
-                m_regInfo.estateSettings.objectBonusFactor = tempObjectBonusFactor;
+                m_regInfo.EstateSettings.objectBonusFactor = tempObjectBonusFactor;
 
                 int tempMatureLevel = Convert.ToInt16(Helpers.FieldToUTF8String(packet.ParamList[6].Parameter));
-                m_regInfo.estateSettings.simAccess = (Simulator.SimAccess)tempMatureLevel;
+                m_regInfo.EstateSettings.simAccess = (Simulator.SimAccess)tempMatureLevel;
 
 
                 if (convertParamStringToBool(packet.ParamList[7].Parameter))
                 {
-                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags |
+                    m_regInfo.EstateSettings.regionFlags = m_regInfo.EstateSettings.regionFlags |
                                                            Simulator.RegionFlags.RestrictPushObject;
                 }
 
                 if (convertParamStringToBool(packet.ParamList[8].Parameter))
                 {
-                    m_regInfo.estateSettings.regionFlags = m_regInfo.estateSettings.regionFlags |
+                    m_regInfo.EstateSettings.regionFlags = m_regInfo.EstateSettings.regionFlags |
                                                            Simulator.RegionFlags.AllowParcelChanges;
                 }
 
@@ -309,16 +309,16 @@ namespace OpenSim.Region.Environment
                     switch (Convert.ToInt16(splitField[0]))
                     {
                         case 0:
-                            m_regInfo.estateSettings.terrainBase0 = tempUUID;
+                            m_regInfo.EstateSettings.terrainBase0 = tempUUID;
                             break;
                         case 1:
-                            m_regInfo.estateSettings.terrainBase1 = tempUUID;
+                            m_regInfo.EstateSettings.terrainBase1 = tempUUID;
                             break;
                         case 2:
-                            m_regInfo.estateSettings.terrainBase2 = tempUUID;
+                            m_regInfo.EstateSettings.terrainBase2 = tempUUID;
                             break;
                         case 3:
-                            m_regInfo.estateSettings.terrainBase3 = tempUUID;
+                            m_regInfo.EstateSettings.terrainBase3 = tempUUID;
                             break;
                     }
                 }
@@ -355,22 +355,22 @@ namespace OpenSim.Region.Environment
             RegionInfoPacket regionInfoPacket = new RegionInfoPacket();
             regionInfoPacket.AgentData.AgentID = circuitData.AgentID;
             regionInfoPacket.AgentData.SessionID = circuitData.SessionID;
-            regionInfoPacket.RegionInfo.BillableFactor = m_regInfo.estateSettings.billableFactor;
-            regionInfoPacket.RegionInfo.EstateID = m_regInfo.estateSettings.estateID;
-            regionInfoPacket.RegionInfo.MaxAgents = m_regInfo.estateSettings.maxAgents;
-            regionInfoPacket.RegionInfo.ObjectBonusFactor = m_regInfo.estateSettings.objectBonusFactor;
-            regionInfoPacket.RegionInfo.ParentEstateID = m_regInfo.estateSettings.parentEstateID;
-            regionInfoPacket.RegionInfo.PricePerMeter = m_regInfo.estateSettings.pricePerMeter;
-            regionInfoPacket.RegionInfo.RedirectGridX = m_regInfo.estateSettings.redirectGridX;
-            regionInfoPacket.RegionInfo.RedirectGridY = m_regInfo.estateSettings.redirectGridY;
-            regionInfoPacket.RegionInfo.RegionFlags = (uint)m_regInfo.estateSettings.regionFlags;
-            regionInfoPacket.RegionInfo.SimAccess = (byte)m_regInfo.estateSettings.simAccess;
+            regionInfoPacket.RegionInfo.BillableFactor = m_regInfo.EstateSettings.billableFactor;
+            regionInfoPacket.RegionInfo.EstateID = m_regInfo.EstateSettings.estateID;
+            regionInfoPacket.RegionInfo.MaxAgents = m_regInfo.EstateSettings.maxAgents;
+            regionInfoPacket.RegionInfo.ObjectBonusFactor = m_regInfo.EstateSettings.objectBonusFactor;
+            regionInfoPacket.RegionInfo.ParentEstateID = m_regInfo.EstateSettings.parentEstateID;
+            regionInfoPacket.RegionInfo.PricePerMeter = m_regInfo.EstateSettings.pricePerMeter;
+            regionInfoPacket.RegionInfo.RedirectGridX = m_regInfo.EstateSettings.redirectGridX;
+            regionInfoPacket.RegionInfo.RedirectGridY = m_regInfo.EstateSettings.redirectGridY;
+            regionInfoPacket.RegionInfo.RegionFlags = (uint)m_regInfo.EstateSettings.regionFlags;
+            regionInfoPacket.RegionInfo.SimAccess = (byte)m_regInfo.EstateSettings.simAccess;
             regionInfoPacket.RegionInfo.SimName = _enc.GetBytes(m_regInfo.RegionName);
-            regionInfoPacket.RegionInfo.SunHour = m_regInfo.estateSettings.sunHour;
-            regionInfoPacket.RegionInfo.TerrainLowerLimit = m_regInfo.estateSettings.terrainLowerLimit;
-            regionInfoPacket.RegionInfo.TerrainRaiseLimit = m_regInfo.estateSettings.terrainRaiseLimit;
-            regionInfoPacket.RegionInfo.UseEstateSun = !m_regInfo.estateSettings.useFixedSun;
-            regionInfoPacket.RegionInfo.WaterHeight = m_regInfo.estateSettings.waterHeight;
+            regionInfoPacket.RegionInfo.SunHour = m_regInfo.EstateSettings.sunHour;
+            regionInfoPacket.RegionInfo.TerrainLowerLimit = m_regInfo.EstateSettings.terrainLowerLimit;
+            regionInfoPacket.RegionInfo.TerrainRaiseLimit = m_regInfo.EstateSettings.terrainRaiseLimit;
+            regionInfoPacket.RegionInfo.UseEstateSun = !m_regInfo.EstateSettings.useFixedSun;
+            regionInfoPacket.RegionInfo.WaterHeight = m_regInfo.EstateSettings.waterHeight;
 
             remote_client.OutPacket(regionInfoPacket);
         }

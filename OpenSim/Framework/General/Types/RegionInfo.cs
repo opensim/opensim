@@ -181,12 +181,25 @@ namespace OpenSim.Framework.Types
         public string MasterAvatarLastName = "";
         public string MasterAvatarSandboxPassword = "";
 
-        public EstateSettings estateSettings;
+        // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
+        private static EstateSettings m_estateSettings;
+        public EstateSettings EstateSettings
+        {
+            get
+            {
+                if( m_estateSettings == null )
+                {
+                    m_estateSettings = new EstateSettings();
+                }
+
+                return m_estateSettings;
+            }
+            
+        }
 
         public ConfigurationMember configMember;
         public RegionInfo(string description, string filename)
         {
-            estateSettings = new EstateSettings();
             configMember = new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
             configMember.performConfigurationRetrieve();
         }
@@ -195,7 +208,7 @@ namespace OpenSim.Framework.Types
             base(regionLocX, regionLocY, internalEndPoint, externalUri)
         {
 
-            estateSettings = new EstateSettings();
+
         }
 
         //not in use, should swap to nini though.
