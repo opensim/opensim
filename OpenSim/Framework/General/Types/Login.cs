@@ -40,10 +40,11 @@ namespace OpenSim.Framework.Types
         public LLUUID BaseFolder;
         public uint CircuitCode;
         public string CapsPath ="";
+        public LLVector3 StartPos;
 
         public Login()
         {
-
+            StartPos = new LLVector3(128, 128, 70);
         }
     }
 }

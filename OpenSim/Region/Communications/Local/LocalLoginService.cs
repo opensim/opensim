@@ -138,6 +138,7 @@ namespace OpenSim.Region.Communications.Local
                 _login.Session = response.SessionID;
                 _login.SecureSession = response.SecureSessionID;
                 _login.CircuitCode = (uint)response.CircuitCode;
+                _login.StartPos = new LLVector3(128, 128, 70);
                 _login.CapsPath = capsPath;
 
                 if( OnLoginToRegion != null )

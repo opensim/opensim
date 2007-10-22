@@ -120,7 +120,7 @@ namespace OpenSim.Region.Communications.Local
         public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
-            foreach(RegionInfo regInfo in this.m_regions.Values)
+            foreach (RegionInfo regInfo in this.m_regions.Values)
             {
                 if (((regInfo.RegionLocX >= minX) && (regInfo.RegionLocX <= maxX)) && ((regInfo.RegionLocY >= minY) && (regInfo.RegionLocY <= maxY)))
                 {
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Communications.Local
                     map.Name = regInfo.RegionName;
                     map.X = (ushort)regInfo.RegionLocX;
                     map.Y = (ushort)regInfo.RegionLocY;
-                    map.WaterHeight =(byte) regInfo.estateSettings.waterHeight;
+                    map.WaterHeight = (byte)regInfo.estateSettings.waterHeight;
                     map.MapImageId = regInfo.estateSettings.terrainImageID; //new LLUUID("00000000-0000-0000-9999-000000000007");
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
@@ -200,7 +200,8 @@ namespace OpenSim.Region.Communications.Local
             agent.circuitcode = loginData.CircuitCode;
             agent.BaseFolder = loginData.BaseFolder;
             agent.InventoryFolder = loginData.InventoryFolder;
-            agent.startpos = new LLVector3(128, 128, 70);
+            agent.startpos = loginData.StartPos;
+
             agent.CapsPath = loginData.CapsPath;
 
             TriggerExpectUser(regionHandle, agent);
@@ -216,7 +217,7 @@ namespace OpenSim.Region.Communications.Local
 
         public void PingCheckReply(Hashtable respData)
         {
-            foreach (ulong region in this.m_regions.Keys )
+            foreach (ulong region in this.m_regions.Keys)
             {
                 Hashtable regData = new Hashtable();
                 RegionInfo reg = m_regions[region];
@@ -229,7 +230,7 @@ namespace OpenSim.Region.Communications.Local
 
         public bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            if ( m_regionListeners.ContainsKey(regionHandle))
+            if (m_regionListeners.ContainsKey(regionHandle))
             {
                 return m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position,
                                                                                  isFlying);
@@ -250,7 +251,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
 
-      
+
     }
 }
 
