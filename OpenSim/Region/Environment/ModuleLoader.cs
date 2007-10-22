@@ -67,6 +67,12 @@ namespace OpenSim.Region.Environment
         {
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
             LoadedSharedModules.Add(dynamicModule.Name, dynamicModule);
+            ChatModule chat = new ChatModule();
+            LoadedSharedModules.Add(chat.Name, chat);
+            InstantMessageModule imMod = new InstantMessageModule();
+            LoadedSharedModules.Add(imMod.Name, imMod);
+            LoadImageURLModule loadMod = new LoadImageURLModule();
+            LoadedSharedModules.Add(loadMod.Name, loadMod);
         }
 
         public void InitialiseSharedModules(Scene scene)
@@ -109,8 +115,11 @@ namespace OpenSim.Region.Environment
                 m_log.Verbose("MODULES", "Found Module Library [{0}]", dllName );
                 foreach (IRegionModule module in modules)
                 {
-                    m_log.Verbose("MODULES", "   [{0}]: Initializing.", module.Name);
-                    InitializeModule(module, scene);
+                    if (!module.IsSharedModule)
+                    {
+                        m_log.Verbose("MODULES", "   [{0}]: Initializing.", module.Name);
+                        InitializeModule(module, scene);
+                    }
                 }
             }
         }
