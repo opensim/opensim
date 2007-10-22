@@ -58,10 +58,13 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, Nini.Config.IConfigSource config)
         {
-
-            m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance");
-            m_saydistance = config.Configs["Chat"].GetInt("say_distance");
-            m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance");
+            // wrap this in a try block so that defaults will work if
+            // the config file doesn't specify otherwise.
+            try {
+                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance",  m_whisperdistance);
+                m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
+                m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+            } catch (Exception e) {}
 
             if (!m_scenes.Contains(scene))
             {
