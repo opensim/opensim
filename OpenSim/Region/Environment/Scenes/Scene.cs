@@ -709,6 +709,64 @@ namespace OpenSim.Region.Environment.Scenes
             file.Close();
         }
 
+        public void LoadPrimsFromXml2(string fileName)
+        {
+            XmlDocument doc = new XmlDocument();
+            XmlNode rootNode;
+            if ((fileName.StartsWith("http:")) | (File.Exists(fileName)))
+            {
+                XmlTextReader reader = new XmlTextReader(fileName);
+                reader.WhitespaceHandling = WhitespaceHandling.None;
+                doc.Load(reader);
+                reader.Close();
+                rootNode = doc.FirstChild;
+                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
+                {
+                    CreatePrimFromXml(aPrimNode.OuterXml);
+                }
+            }
+            else
+            {
+                throw new Exception("Could not open file " + fileName + " for reading");
+            }
+        }
+
+        public void CreatePrimFromXml(string xmlData)
+        {
+            SceneObjectGroup obj = new SceneObjectGroup(xmlData);
+            AddEntityFromStorage(obj);
+
+            SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
+            if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+                rootPart.PhysActor = phyScene.AddPrimShape(
+                    rootPart.Name,
+                    rootPart.Shape,
+                    new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
+                                      rootPart.AbsolutePosition.Z),
+                    new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                    new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+        }
+
+        public void SavePrimsToXml2(string fileName)
+        {
+            FileStream file = new FileStream(fileName, FileMode.Create);
+            StreamWriter stream = new StreamWriter(file);
+            int primCount = 0;
+            stream.WriteLine("<scene>\n");
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    stream.WriteLine(((SceneObjectGroup)ent).ToXmlString2());
+                    primCount++;
+                }
+            }
+            stream.WriteLine("</scene>\n");
+            stream.Close();
+            file.Close();
+        }
+
         #endregion
 
         #region Add/Remove Avatar Methods

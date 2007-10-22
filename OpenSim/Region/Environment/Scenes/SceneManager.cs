@@ -87,6 +87,16 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.LoadPrimsFromXml(filename);
         }
 
+        public void SaveCurrentSceneToXml2(string filename)
+        {
+            CurrentOrFirstScene.SavePrimsToXml2(filename);
+        }
+
+        public void LoadCurrentSceneFromXml2(string filename)
+        {
+            CurrentOrFirstScene.LoadPrimsFromXml2(filename);
+        }
+
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
             if (m_currentScene == null)

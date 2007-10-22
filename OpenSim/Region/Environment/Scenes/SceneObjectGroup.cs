@@ -272,7 +272,6 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Read();
           
             reader.ReadStartElement("SceneObjectGroup");
-           // reader.ReadStartElement("RootPart");
             m_rootPart = SceneObjectPart.FromXml(reader);
 
             reader.Read();
@@ -286,8 +285,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (reader.Name == "SceneObjectPart")
                         {
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
-                            AddPart(Part);
-                            
+                            AddPart(Part);       
                         }
                         break;
                     case XmlNodeType.EndElement:
@@ -369,6 +367,35 @@ namespace OpenSim.Region.Environment.Scenes
                     writer.WriteStartElement(String.Empty, "Part", String.Empty);
                     part.ToXml(writer);
                     writer.WriteEndElement();
+                }
+            }
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+        }
+
+        public string ToXmlString2()
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    ToXml2(writer);
+                }
+
+                return sw.ToString();
+            }
+        }
+
+        public void ToXml2(XmlTextWriter writer)
+        {
+            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            m_rootPart.ToXml(writer);
+            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                if (part.UUID != m_rootPart.UUID)
+                {
+                    part.ToXml(writer);
                 }
             }
             writer.WriteEndElement();

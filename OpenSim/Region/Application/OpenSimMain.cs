@@ -146,7 +146,6 @@ namespace OpenSim
             m_networkServersInfo.loadFromConfiguration(m_config);
         }
 
-
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -482,6 +481,28 @@ namespace OpenSim
                     else
                     {
                         m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                    }
+                    break;
+
+                case "save-xml2":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.SaveCurrentSceneToXml2(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_sceneManager.SaveCurrentSceneToXml2(DEFAULT_PRIM_BACKUP_FILENAME);
+                    }
+                    break;
+
+                case "load-xml2":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
 
