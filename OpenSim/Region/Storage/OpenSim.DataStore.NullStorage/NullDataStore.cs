@@ -61,12 +61,12 @@ namespace OpenSim.DataStore.NullStorage
             return new List<SceneObjectGroup>();
         }
 
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        public void StoreTerrain(double[,] ter)
         {
 
         }
 
-        public double[,] LoadTerrain(LLUUID regionID)
+        public double[,] LoadTerrain()
         {
             return null;
         }

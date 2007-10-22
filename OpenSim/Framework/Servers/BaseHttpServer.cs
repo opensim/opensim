@@ -224,7 +224,7 @@ namespace OpenSim.Framework.Servers
         {
             try
             {
-                MainLog.Instance.Verbose("HTTPD", "Spawned main thread OK");
+                MainLog.Instance.Status("HTTPD", "Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
                 m_httpListener.Prefixes.Add("http://+:" + m_port + "/");

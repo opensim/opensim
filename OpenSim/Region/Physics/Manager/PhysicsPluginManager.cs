@@ -93,7 +93,7 @@ namespace OpenSim.Region.Physics.Manager
 							IPhysicsPlugin plug = (IPhysicsPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
 							plug.Init();
 							this._plugins.Add(plug.GetName(),plug);
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS","Added physics engine: " + plug.GetName());
+                            Console.WriteLine("added physics engine: " + plug.GetName());
 							
 						}	
 						

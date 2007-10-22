@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Communications.Cache
             yapfile = File.Exists(Path.Combine(Util.dataDir(), "regionassets.yap"));
 
             db = Db4oFactory.OpenFile(Path.Combine(Util.dataDir(), "regionassets.yap"));
-            MainLog.Instance.Verbose("ASSETS","Db4 Asset database  creation");
+            MainLog.Instance.Verbose("Db4 Asset database  creation");
 
             if (!yapfile)
             {
@@ -75,7 +75,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (db != null)
             {
-                MainLog.Instance.Verbose("ASSETSERVER","Closing local asset server database");
+                MainLog.Instance.Verbose("Closing local asset server database");
                 db.Close();
             }
         }

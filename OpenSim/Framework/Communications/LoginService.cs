@@ -66,7 +66,7 @@ namespace OpenSim.Framework.UserManagement
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
 
-            MainLog.Instance.Verbose("LOGIN","Attempting login now...");
+            MainLog.Instance.Verbose("Attempting login now...");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 

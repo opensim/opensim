@@ -43,12 +43,10 @@ namespace OpenSim.DataStore.MonoSqlite
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
-        private const string terrainSelect = "select * from terrain";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
-        private SqliteDataAdapter terrainDa;
 
         /***********************************************************************
          *
@@ -72,8 +70,6 @@ namespace OpenSim.DataStore.MonoSqlite
             shapeDa = new SqliteDataAdapter(shapeSelectCmd);
             // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
 
-            SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
-            terrainDa = new SqliteDataAdapter(terrainSelectCmd);
 
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
@@ -87,10 +83,6 @@ namespace OpenSim.DataStore.MonoSqlite
                 
                 ds.Tables.Add(createShapeTable());
                 setupShapeCommands(shapeDa, conn);
-
-                ds.Tables.Add(createTerrainTable());
-                setupTerrainCommands(terrainDa, conn);
-                terrainDa.Fill(ds.Tables["terrain"]);
                 
                 // WORKAROUND: This is a work around for sqlite on
                 // windows, which gets really unhappy with blob columns
@@ -218,57 +210,14 @@ namespace OpenSim.DataStore.MonoSqlite
         }
 
 
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        public void StoreTerrain(double[,] ter)
         {
-            int revision = OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
 
-            MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
-
-            DataTable terrain = ds.Tables["terrain"];
-
-            DataRow newrow = terrain.NewRow();
-            fillTerrainRow(newrow, regionID, revision, ter);
-            terrain.Rows.Add(newrow);
-
-            Commit();
         }
 
-        public double[,] LoadTerrain(LLUUID regionID)
+        public double[,] LoadTerrain()
         {
-            double[,] terret = new double[256, 256];
-            terret.Initialize();
-
-            DataTable terrain = ds.Tables["terrain"];
-
-            DataRow[] rows = terrain.Select("RegionUUID = '" + regionID.ToString() + "'","Revision DESC");
-
-            int rev = 0;
-
-            if (rows.Length > 0)
-            {
-                DataRow row = rows[0];
-
-                byte[] heightmap = (byte[])row["Heightfield"];
-                for (int x = 0; x < 256; x++)
-                {
-                    for (int y = 0; y < 256; y++)
-                    {
-                        terret[x, y] = BitConverter.ToDouble(heightmap, ((x * 256) + y) * 8);
-                    }
-                }
-
-                rev = (int)row["Revision"];
-            }
-            else
-            {
-                MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
-                return null;
-            }
-
-
-            MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
-
-            return terret;
+            return null;
         }
 
         public void RemoveLandObject(uint id)
@@ -291,7 +240,6 @@ namespace OpenSim.DataStore.MonoSqlite
             lock (ds) {
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
-                terrainDa.Update(ds, "terrain");
                 ds.AcceptChanges();
             }
         }
@@ -313,22 +261,6 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
-        }
-
-        private DataTable createTerrainTable()
-        {
-            DataTable terrain = new DataTable("terrain");
-
-            createCol(terrain, "RegionUUID", typeof(System.String));
-            createCol(terrain, "Revision", typeof(System.Int32));
-            createCol(terrain, "Heightfield", typeof(System.Byte[]));
-
-            /* // Attempting to work out requirements to get SQLite to actually *save* the data.
-            createCol(terrain, "PrIndex", typeof(System.String));
-            terrain.PrimaryKey = new DataColumn[] { terrain.Columns["PrIndex"] };
-            */
-
-            return terrain;
         }
 
         private DataTable createPrimTable()
@@ -497,22 +429,6 @@ namespace OpenSim.DataStore.MonoSqlite
                 );
 
             return prim;
-        }
-
-        private void fillTerrainRow(DataRow row, LLUUID regionUUID, int rev, double[,] val)
-        {
-            row["RegionUUID"] = regionUUID;
-            row["Revision"] = rev;
-
-            System.IO.MemoryStream str = new System.IO.MemoryStream(65536 * sizeof(double));
-            System.IO.BinaryWriter bw = new System.IO.BinaryWriter(str);
-
-            // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < 256; x++)
-                for (int y = 0; y < 256; y++)
-                    bw.Write(val[x, y]);
-
-            row["Heightfield"] = str.ToArray();
         }
 
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
@@ -776,7 +692,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     subsql += ",\n";
                 }
                 subsql += col.ColumnName + " " + sqliteType(col.DataType);
-                if (dt.PrimaryKey.Length > 0 && col == dt.PrimaryKey[0])
+                if (col == dt.PrimaryKey[0])
                 {
                     subsql += " primary key";
                 }
@@ -830,12 +746,6 @@ namespace OpenSim.DataStore.MonoSqlite
             da.DeleteCommand = delete;
         }
 
-        private void setupTerrainCommands(SqliteDataAdapter da, SqliteConnection conn)
-        {
-            da.InsertCommand = createInsertCommand("terrain", ds.Tables["terrain"]);
-            da.InsertCommand.Connection = conn;
-        }
-
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
@@ -854,15 +764,12 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
-            string createTerrain = defineTable(createTerrainTable());
 
             SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
             SqliteCommand scmd = new SqliteCommand(createShapes, conn);
-            SqliteCommand tcmd = new SqliteCommand(createTerrain, conn);
             conn.Open();
             pcmd.ExecuteNonQuery();
             scmd.ExecuteNonQuery();
-            tcmd.ExecuteNonQuery();
             conn.Close();
         }
 
@@ -872,15 +779,12 @@ namespace OpenSim.DataStore.MonoSqlite
             SqliteDataAdapter pDa = new SqliteDataAdapter(primSelectCmd);
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
             SqliteDataAdapter sDa = new SqliteDataAdapter(shapeSelectCmd);
-            SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
-            SqliteDataAdapter tDa = new SqliteDataAdapter(terrainSelectCmd);
 
             DataSet tmpDS = new DataSet();
             try
             {
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
-                tDa.Fill(tmpDS, "terrain");
             }
             catch (Mono.Data.SqliteClient.SqliteSyntaxException)
             {
@@ -890,7 +794,6 @@ namespace OpenSim.DataStore.MonoSqlite
 
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
-            tDa.Fill(tmpDS, "terrain");
 
             foreach (DataColumn col in createPrimTable().Columns)
             {
@@ -905,14 +808,6 @@ namespace OpenSim.DataStore.MonoSqlite
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
                 {
                     MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
-                    return false;
-                }
-            }
-            foreach (DataColumn col in createTerrainTable().Columns)
-            {
-                if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
-                {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -934,14 +829,6 @@ namespace OpenSim.DataStore.MonoSqlite
             else if (type == typeof(System.Int32))
             {
                 return DbType.Int32;
-            }
-            else if (type == typeof(System.Double))
-            {
-                return DbType.Double;
-            }
-            else if (type == typeof(System.Byte))
-            {
-                return DbType.Byte;
             }
             else if (type == typeof(System.Double))
             {

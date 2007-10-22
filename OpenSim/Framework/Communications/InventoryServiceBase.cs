@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Communications
                                 (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Initialise();
                             this.m_plugins.Add(plug.getName(), plug);
-                            MainLog.Instance.Verbose("INVENTORY","Added IInventoryData Interface");
+                            MainLog.Instance.Verbose("Inventorystorage: Added IInventoryData Interface");
                         }
                     }
                 }

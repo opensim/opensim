@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         public AssetCache(IAssetServer assetServer)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("ASSETSTORAGE","Creating Asset cache");
+            System.Console.WriteLine("Creating Asset cache");
             _assetServer = assetServer;
             _assetServer.SetReceiver(this);
             Assets = new Dictionary<LLUUID, AssetInfo>();
@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetCache(string assetServerDLLName, string assetServerURL, string assetServerKey)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("ASSETSTORAGE", "Creating Asset cache");
+            System.Console.WriteLine("Creating Asset cache");
             _assetServer = this.LoadAssetDll(assetServerDLLName);
 
 

@@ -70,7 +70,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("SCRIPTMODULE", "Initialising Extensions Scripting Module");
+            System.Console.WriteLine("Initialising Extensions Scripting Module");
             m_scene = scene;
 
             m_scene.RegisterModuleInterface<IExtensionScriptModule>(this);
