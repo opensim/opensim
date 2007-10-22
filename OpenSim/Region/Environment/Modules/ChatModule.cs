@@ -326,12 +326,12 @@ namespace OpenSim.Region.Environment.Modules
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
             // Get some direct matches $1 $4 is a 
-            if (matches.Count == 4) {
+            if ((matches.Count == 1) && (matches[0].Groups.Count == 4)) {
                 result = new Dictionary<string, string>();
-                result.Add("nick", matches[0].Value);
-                result.Add("user", matches[1].Value);
-                result.Add("channel", matches[2].Value);
-                result.Add("msg", matches[3].Value);
+                result.Add("nick", matches[0].Groups[0].Value);
+                result.Add("user", matches[0].Groups[1].Value);
+                result.Add("channel", matches[0].Groups[2].Value);
+                result.Add("msg", matches[0].Groups[3].Value);
             } else {
                 m_log.Verbose("IRC", "Number of matches: " + matches.Count);
             }
