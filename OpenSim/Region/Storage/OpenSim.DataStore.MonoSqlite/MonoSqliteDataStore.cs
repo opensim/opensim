@@ -90,7 +90,6 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 ds.Tables.Add(createTerrainTable());
                 setupTerrainCommands(terrainDa, conn);
-                terrainDa.Fill(ds.Tables["terrain"]);
                 
                 // WORKAROUND: This is a work around for sqlite on
                 // windows, which gets really unhappy with blob columns
@@ -99,10 +98,11 @@ namespace OpenSim.DataStore.MonoSqlite
                 try
                 {
                     shapeDa.Fill(ds.Tables["primshapes"]);
+                    terrainDa.Fill(ds.Tables["terrain"]);
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
+                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes or terrain table");
                 }
                 return;
             }
