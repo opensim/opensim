@@ -860,9 +860,33 @@ namespace OpenSim.DataStore.MonoSqlite
             SqliteCommand scmd = new SqliteCommand(createShapes, conn);
             SqliteCommand tcmd = new SqliteCommand(createTerrain, conn);
             conn.Open();
-            pcmd.ExecuteNonQuery();
-            scmd.ExecuteNonQuery();
-            tcmd.ExecuteNonQuery();
+
+            try
+            {
+                pcmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException) {
+                MainLog.Instance.Warn("SQLITE","Primitives Table Already Exists");
+            }
+
+            try
+            {
+                scmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException)
+            {
+                MainLog.Instance.Warn("SQLITE", "Shapes Table Already Exists");
+            }
+
+            try
+            {
+                tcmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException)
+            {
+                MainLog.Instance.Warn("SQLITE", "Terrain Table Already Exists");
+            }
+
             conn.Close();
         }
 
