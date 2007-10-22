@@ -31,6 +31,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
@@ -319,6 +320,23 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        private Dictionary<string, string> ExtractMsg(string input) {
+            Dictionary<string, string> result = null;
+            string regex = @":(?<nick>\w*)!~(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
+            Regex RE = new Regex(regex, RegexOptions.Multiline);
+            MatchCollection matches = RE.Matches(input);
+            // Get some direct matches $1 $4 is a 
+            if (matches.Count == 4) {
+                result = new Dictionary<string, string>();
+                result.Add("nick", matches[0].Value);
+                result.Add("user", matches[1].Value);
+                result.Add("channel", matches[2].Value);
+                result.Add("msg", matches[3].Value);
+            } else {
+                m_log.Verbose("IRC", "Number of matches: " + matches.Count);
+            }
+            return result;
+        }
 
         public void PingRun()
         {
@@ -341,18 +359,21 @@ namespace OpenSim.Region.Environment.Modules
                     Console.WriteLine(inputLine);
                     if (inputLine.Contains(m_channel))
                     {
-                        string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
-                        foreach (Scene m_scene in m_scenes)
+                        Dictionary<string, string> data = ExtractMsg(inputLine);
+                        if (data != null ) 
                         {
-                            m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                            foreach (Scene m_scene in m_scenes)
+                            {
+                                m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
                                                              {
                                                                  if (!avatar.IsChildAgent)
                                                                  {
                                                                      avatar.ControllingClient.SendChatMessage(
-                                                                         Helpers.StringToField(inputLine), 255, pos, "IRC:",
+                                                                         Helpers.StringToField(data["msg"]), 255, pos, data["nick"],
                                                                          LLUUID.Zero);
                                                                  }
                                                              });
+                            }
                         }
                     }
                 }
