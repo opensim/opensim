@@ -344,11 +344,14 @@ namespace OpenSim.Region.Environment.Modules
                         string mess = inputLine.Substring(inputLine.IndexOf(m_channel));
                         foreach (Scene m_scene in m_scenes)
                         {
-                            m_scene.Broadcast(delegate(IClientAPI client)
+                            m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
                                                              {
-                                                                 client.SendChatMessage(
-                                                                     Helpers.StringToField(mess), 255, pos, "IRC:",
-                                                                     LLUUID.Zero);
+                                                                 if (!avatar.IsChildAgent)
+                                                                 {
+                                                                     avatar.ControllingClient.SendChatMessage(
+                                                                         Helpers.StringToField(mess), 255, pos, "IRC:",
+                                                                         LLUUID.Zero);
+                                                                 }
                                                              });
                         }
                     }
