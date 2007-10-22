@@ -349,7 +349,7 @@ namespace OpenSim.Region.Environment.Modules
                                                                  if (!avatar.IsChildAgent)
                                                                  {
                                                                      avatar.ControllingClient.SendChatMessage(
-                                                                         Helpers.StringToField(mess), 255, pos, "IRC:",
+                                                                         Helpers.StringToField(inputLine), 255, pos, "IRC:",
                                                                          LLUUID.Zero);
                                                                  }
                                                              });
