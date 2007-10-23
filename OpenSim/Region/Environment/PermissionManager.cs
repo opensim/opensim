@@ -245,8 +245,20 @@ namespace OpenSim.Region.Environment
             if (GenericEstatePermission(user))
                 permission = true;
 
+            float X = position.X;
+            float Y = position.Y;
+
+            if (X > 255)
+                X = 255;
+            if (Y > 255)
+                Y = 255;
+            if (X < 0)
+                X = 0;
+            if (Y < 0)
+                Y = 0;
+
             // Land owner can terraform too
-            if (GenericParcelPermission(user, m_scene.LandManager.getLandObject(position.X, position.Y)))
+            if (GenericParcelPermission(user, m_scene.LandManager.getLandObject(X, Y)))
                 permission = true;
 
             if (!permission)
