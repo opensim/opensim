@@ -359,7 +359,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 while ((inputLine = m_reader.ReadLine()) != null)
                 {
-                    Console.WriteLine(inputLine);
+                    // Console.WriteLine(inputLine);
                     if (inputLine.Contains(m_channel))
                     {
                         Dictionary<string, string> data = ExtractMsg(inputLine);
