@@ -331,11 +331,6 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(terrain, "Revision", typeof(System.Int32));
             createCol(terrain, "Heightfield", typeof(System.Byte[]));
 
-            /* // Attempting to work out requirements to get SQLite to actually *save* the data.
-            createCol(terrain, "PrIndex", typeof(System.String));
-            terrain.PrimaryKey = new DataColumn[] { terrain.Columns["PrIndex"] };
-            */
-
             return terrain;
         }
 

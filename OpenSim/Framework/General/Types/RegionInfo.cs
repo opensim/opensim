@@ -131,6 +131,10 @@ namespace OpenSim.Framework.Types
             {
                 return m_externalHostName;
             }
+            set
+            {
+                m_externalHostName = value;
+            }
         }
 
         protected IPEndPoint m_internalEndPoint;
@@ -139,6 +143,10 @@ namespace OpenSim.Framework.Types
             get
             {
                 return m_internalEndPoint;
+            }
+            set
+            {
+                m_internalEndPoint = value;
             }
         }
 
@@ -149,6 +157,10 @@ namespace OpenSim.Framework.Types
             {
                 return m_regionLocX.Value;
             }
+            set
+            {
+                m_regionLocX = value;
+            }
         }
 
         protected uint? m_regionLocY;
@@ -157,6 +169,10 @@ namespace OpenSim.Framework.Types
             get
             {
                 return m_regionLocY.Value;
+            }
+            set
+            {
+                m_regionLocY = value;
             }
         }
 
@@ -208,6 +224,11 @@ namespace OpenSim.Framework.Types
             base(regionLocX, regionLocY, internalEndPoint, externalUri)
         {
 
+
+        }
+
+        public RegionInfo()
+        {
 
         }
 

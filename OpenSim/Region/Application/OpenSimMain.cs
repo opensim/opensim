@@ -218,32 +218,7 @@ namespace OpenSim
                 //Console.WriteLine("Loading region config file");
                 RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i]);
 
-
-                UDPServer udpServer;
-                Scene scene = SetupScene(regionInfo, out udpServer);
-
-                m_moduleLoader.InitialiseSharedModules(scene);
-                MainLog.Instance.Verbose("Loading Region's Modules");
-
-                m_moduleLoader.PickupModules(scene, ".");
-                m_moduleLoader.PickupModules(scene, "ScriptEngines");
-
-                scene.SetModuleInterfaces();
-
-                // Check if we have a script engine to load
-                //if (m_scriptEngine != null && m_scriptEngine != "")
-                //{
-                //  OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
-                // scene.AddScriptEngine(ScriptEngine, m_log);
-                //}
-
-                //Server side object editing permissions checking
-                scene.PermissionsMngr.BypassPermissions = !m_permissions;
-
-                m_sceneManager.Add(scene);
-
-                m_udpServers.Add(udpServer);
-                m_regionData.Add(regionInfo);
+                CreateRegion(regionInfo);
             }
 
             m_moduleLoader.PostInitialise();
@@ -266,6 +241,37 @@ namespace OpenSim
             }
 
             MainLog.Instance.Status("STARTUP","Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+        }
+
+        public UDPServer CreateRegion(RegionInfo regionInfo)
+        {
+            UDPServer udpServer;
+            Scene scene = SetupScene(regionInfo, out udpServer);
+
+            m_moduleLoader.InitialiseSharedModules(scene);
+            MainLog.Instance.Verbose("MODULES", "Loading Region's Modules");
+
+            m_moduleLoader.PickupModules(scene, ".");
+            m_moduleLoader.PickupModules(scene, "ScriptEngines");
+
+            scene.SetModuleInterfaces();
+
+            // Check if we have a script engine to load
+            //if (m_scriptEngine != null && m_scriptEngine != "")
+            //{
+            //  OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
+            // scene.AddScriptEngine(ScriptEngine, m_log);
+            //}
+
+            //Server side object editing permissions checking
+            scene.PermissionsMngr.BypassPermissions = !m_permissions;
+
+            m_sceneManager.Add(scene);
+
+            m_udpServers.Add(udpServer);
+            m_regionData.Add(regionInfo);
+
+            return udpServer;
         }
 
         private static void CreateDefaultRegionInfoXml(string fileName)
@@ -547,6 +553,10 @@ namespace OpenSim
                     {
                         CreateAccount(cmdparams);
                     }
+                    break;
+
+                case "create-region":
+                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1])).ServerListener();
                     break;
 
                 case "quit":
