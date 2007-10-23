@@ -233,12 +233,13 @@ namespace OpenSim.DataStore.MonoSqlite
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = ds.Tables["terrain"];
-
-            DataRow newrow = terrain.NewRow();
-            fillTerrainRow(newrow, regionID, revision, ter);
-            terrain.Rows.Add(newrow);
-
-            Commit();
+            lock (ds) {
+                DataRow newrow = terrain.NewRow();
+                fillTerrainRow(newrow, regionID, revision, ter);
+                terrain.Rows.Add(newrow);
+                
+                Commit();
+            }
         }
 
         public double[,] LoadTerrain(LLUUID regionID)
@@ -247,34 +248,36 @@ namespace OpenSim.DataStore.MonoSqlite
             terret.Initialize();
 
             DataTable terrain = ds.Tables["terrain"];
+            
+            lock (ds) {
+                DataRow[] rows = terrain.Select("RegionUUID = '" + regionID.ToString() + "'","Revision DESC");
+                
+                int rev = 0;
 
-            DataRow[] rows = terrain.Select("RegionUUID = '" + regionID.ToString() + "'","Revision DESC");
-
-            int rev = 0;
-
-            if (rows.Length > 0)
-            {
-                DataRow row = rows[0];
-
-                byte[] heightmap = (byte[])row["Heightfield"];
-                for (int x = 0; x < 256; x++)
+                if (rows.Length > 0)
                 {
-                    for (int y = 0; y < 256; y++)
+                    DataRow row = rows[0];
+                    
+                    byte[] heightmap = (byte[])row["Heightfield"];
+                    for (int x = 0; x < 256; x++)
                     {
-                        terret[x, y] = BitConverter.ToDouble(heightmap, ((x * 256) + y) * 8);
-                    }
+                        for (int y = 0; y < 256; y++)
+                        {
+                            terret[x, y] = BitConverter.ToDouble(heightmap, ((x * 256) + y) * 8);
+                        }
+                    }  
+
+                    rev = (int)row["Revision"];
+                }
+                else
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
+                    return null;
                 }
 
-                rev = (int)row["Revision"];
+                
+                MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
             }
-            else
-            {
-                MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
-                return null;
-            }
-
-
-            MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
 
             return terret;
         }
