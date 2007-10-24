@@ -87,28 +87,6 @@ namespace OpenSim.Framework.Communications.Cache
 
         }
 
-        public AssetCache(string assetServerDLLName, string assetServerURL, string assetServerKey)
-        {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("ASSETSTORAGE", "Creating Asset cache");
-            _assetServer = this.LoadAssetDll(assetServerDLLName);
-
-
-            // TODO: This actually does nothing to no IAssetServer implementor. Delete?
-            _assetServer.SetServerInfo(assetServerURL, assetServerKey);
-            
-            
-            _assetServer.SetReceiver(this);
-            Assets = new Dictionary<LLUUID, AssetInfo>();
-            Textures = new Dictionary<LLUUID, TextureImage>();
-            this._assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
-            this._assetCacheThread.IsBackground = true;
-            this._assetCacheThread.Start();
-
-            this.TextureSenderThread = new Thread(new ThreadStart(this.ProcessTextureSenders));
-            this.TextureSenderThread.IsBackground = true;
-            this.TextureSenderThread.Start();
-        }
-
         /// <summary>
         /// 
         /// </summary>
