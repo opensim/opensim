@@ -305,9 +305,6 @@ namespace OpenSim
                 assetServer = sqlAssetServer;
             }
 
-            // TODO: This actually does nothing to no IAssetServer implementor. Delete?
-            assetServer.SetServerInfo(m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
-
             m_assetCache = new AssetCache(assetServer);
             // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
