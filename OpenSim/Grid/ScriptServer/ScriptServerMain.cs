@@ -62,7 +62,7 @@ namespace OpenSim.Grid.ScriptServer
                 Directory.CreateDirectory(Util.logDir());
             }
 
-            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, false);
+            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, true);
         }
 
         public void RunCmd(string command, string[] cmdparams)

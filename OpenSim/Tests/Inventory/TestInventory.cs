@@ -55,7 +55,7 @@ namespace OpenSim.Test.Inventory
 
             _agent_1_id = LLUUID.Random();
 
-            MainLog.Instance = new LogBase("UnitTest.log", "TEST", null, true);
+            MainLog.Instance = new LogBase("UnitTest.log", "TEST", null, false);
 //            _dbPlugin = new SQLiteInventoryStore();
             _dbPlugin = new MySQLInventoryData();
             _dbPlugin.Initialise();

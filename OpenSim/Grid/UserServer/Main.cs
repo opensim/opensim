@@ -67,7 +67,7 @@ namespace OpenSim.Grid.UserServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-userserver-console.log")), "OpenUser", this , false);
+            m_console = new LogBase((Path.Combine(Util.logDir(), "opengrid-userserver-console.log")), "OpenUser", this, true);
             MainLog.Instance = m_console;
         }
 

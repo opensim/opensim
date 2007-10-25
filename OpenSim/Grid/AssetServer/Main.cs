@@ -86,7 +86,7 @@ namespace OpenSim.Grid.AssetServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-AssetServer-console.log")), "OpenAsset", this, false);
+            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-AssetServer-console.log")), "OpenAsset", this, true);
             MainLog.Instance = m_console;
         }
 

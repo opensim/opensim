@@ -74,7 +74,7 @@ namespace OpenSim
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
-        private bool m_silent;
+        private bool m_verbose;
         private readonly string m_logFilename = ("region-console.log");
         private bool m_permissions = false;
 
@@ -122,7 +122,7 @@ namespace OpenSim
             m_networkServersInfo = new NetworkServersInfo();
             m_sandbox = !m_config.Configs["Startup"].GetBoolean("gridmode", false);
             m_physicsEngine = m_config.Configs["Startup"].GetString("physics", "basicphysics");
-            m_silent = m_config.Configs["Startup"].GetBoolean("noverbose", false);
+            m_verbose = m_config.Configs["Startup"].GetBoolean("verbose", true);
             m_permissions = m_config.Configs["Startup"].GetBoolean("serverside_object_permissions", false);
 
             m_storageDLL = m_config.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
@@ -319,7 +319,7 @@ namespace OpenSim
                 Directory.CreateDirectory(Util.logDir());
             }
 
-            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, m_silent);
+            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, m_verbose);
         }
 
         # region Setup methods

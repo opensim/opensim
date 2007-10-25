@@ -51,13 +51,13 @@ namespace OpenSim.Framework.Console
         StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
-        private bool m_silent;
+        private bool m_verbose;
 
-        public LogBase(string LogFile, string componentname, conscmd_callback cmdparser, bool silent)
+        public LogBase(string LogFile, string componentname, conscmd_callback cmdparser, bool verbose)
         {
             this.componentname = componentname;
             this.cmdparser = cmdparser;
-            this.m_silent = silent;
+            this.m_verbose = verbose;
             System.Console.WriteLine("Creating new local console");
 
             if (String.IsNullOrEmpty(LogFile))
@@ -170,7 +170,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string format, params object[] args)
         {
-            if (!m_silent)
+            if (m_verbose)
             {
                 WriteNewLine(ConsoleColor.Gray, format, args);
                 return;
@@ -185,7 +185,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Verbose(string sender, string format, params object[] args)
         {
-            if (!m_silent)
+            if (m_verbose)
             {
                 WritePrefixLine(DeriveColor(sender), sender);
                 WriteNewLine(ConsoleColor.Gray, format, args);

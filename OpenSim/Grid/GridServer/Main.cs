@@ -90,7 +90,7 @@ namespace OpenSim.Grid.GridServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-gridserver-console.log")), "OpenGrid", this, false);
+            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-gridserver-console.log")), "OpenGrid", this, true);
             MainLog.Instance = m_console;
 
 

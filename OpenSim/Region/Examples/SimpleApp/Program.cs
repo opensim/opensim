@@ -50,7 +50,7 @@ namespace SimpleApp
         
         protected override LogBase CreateLog()
         {
-            return new LogBase(null, "SimpleApp", this, false);
+            return new LogBase(null, "SimpleApp", this, true);
         }
 
         protected override void Initialize()
