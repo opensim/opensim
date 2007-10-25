@@ -1,0 +1,4 @@
+terrain load-tile f32 islandterrain_1024x512.raw 512 1024 1000 1000
+terrain multiply 0.1
+terrain add 5
+
