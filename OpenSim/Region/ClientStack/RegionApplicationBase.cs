@@ -57,6 +57,11 @@ namespace OpenSim.Region.ClientStack
 
         protected SceneManager m_sceneManager = new SceneManager();
 
+        public SceneManager SceneManager
+        {
+            get { return m_sceneManager; }
+        }
+
         public RegionApplicationBase()
         {
             m_startuptime = DateTime.Now;

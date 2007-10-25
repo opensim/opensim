@@ -60,6 +60,7 @@ namespace OpenSim
         public bool user_accounts;
         public bool m_gridLocalAsset;
 
+        private OpenSimController m_controller;
 
         protected ModuleLoader m_moduleLoader;
         protected LocalLoginService m_loginService;
@@ -161,6 +162,8 @@ namespace OpenSim
             MainLog.Instance = m_log;
 
             base.StartUp();
+
+            m_controller = new OpenSimController(this, m_httpServer);
 
             if (m_sandbox)
             {

@@ -1319,7 +1319,6 @@ namespace OpenSim.Region.Environment.Scenes
             SendAlertToUser(user, reason, false);
         }
 
-
         public void SendGeneralAlert(string message)
         {
             foreach (ScenePresence presence in m_scenePresences.Values)

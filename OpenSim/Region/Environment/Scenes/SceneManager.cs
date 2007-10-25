@@ -150,6 +150,14 @@ namespace OpenSim.Region.Environment.Scenes
             ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });
         }
 
+        public void SendGeneralMessage(string msg)
+        {
+            ForEachCurrentScene(delegate(Scene scene)
+            {
+                scene.SendGeneralAlert(msg);
+            });
+        }
+
         public bool TrySetCurrentScene(string regionName)
         {
             if ((String.Compare(regionName, "root") == 0) || (String.Compare(regionName, "..") == 0))
