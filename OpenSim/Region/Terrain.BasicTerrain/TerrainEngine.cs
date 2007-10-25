@@ -51,6 +51,8 @@ namespace OpenSim.Region.Terrain
 
     public class TerrainEngine
     {
+        public static System.Threading.Mutex fileIOLock = new System.Threading.Mutex();
+
         /// <summary>
         /// Plugin library for scripts
         /// </summary>
@@ -731,36 +733,45 @@ namespace OpenSim.Region.Terrain
         /// <param name="lowerboundY">Where do the region coords start for this terrain?</param>
         public void LoadFromFileF32(string filename, int dimensionX, int dimensionY, int lowerboundX, int lowerboundY)
         {
-            int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
-            int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
-
-            double[,] tempMap = new double[dimensionX, dimensionY];
-
-            FileInfo file = new FileInfo(filename);
-            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
-            BinaryReader bs = new BinaryReader(s);
-
-            int x, y;
-            for (x = 0; x < dimensionX; x++)
+            fileIOLock.WaitOne();
+            try
             {
-                for (y = 0; y < dimensionY; y++)
-                {
-                    tempMap[x,y] = (double)bs.ReadSingle();
-                }
-            }
 
-            for (y = 0; y < h; y++)
+                int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
+                int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
+
+                double[,] tempMap = new double[dimensionX, dimensionY];
+
+                FileInfo file = new FileInfo(filename);
+                FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+                BinaryReader bs = new BinaryReader(s);
+
+                int x, y;
+                for (x = 0; x < dimensionX; x++)
+                {
+                    for (y = 0; y < dimensionY; y++)
+                    {
+                        tempMap[x, y] = (double)bs.ReadSingle();
+                    }
+                }
+
+                for (y = 0; y < h; y++)
+                {
+                    for (x = 0; x < w; x++)
+                    {
+                        heightmap.Set(x, y, tempMap[x + sectionToLoadX, y + sectionToLoadY]);
+                    }
+                }
+
+                bs.Close();
+                s.Close();
+
+                tainted++;
+            }
+            finally
             {
-                for (x = 0; x < w; x++)
-                {
-                    heightmap.Set(x, y, tempMap[x + sectionToLoadX, y + sectionToLoadY]);
-                }
+                fileIOLock.ReleaseMutex();
             }
-
-            bs.Close();
-            s.Close();
-
-            tainted++;
         }
 
         /// <summary>
