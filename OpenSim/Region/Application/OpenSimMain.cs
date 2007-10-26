@@ -110,10 +110,6 @@ namespace OpenSim
             if (File.Exists(iniFilePath))
             {
                 m_config = new IniConfigSource(iniFilePath);
-
-                //enable following line, if we want the original config source(normally commandline args) merged with ini file settings.
-                //in this case we have it so that if both sources have the same named setting, the command line value will overwrite the ini file value. 
-                //(as if someone has bothered to enter a command line arg, we should take notice of it)
                 m_config.Merge(configSource);
             }
             else
@@ -145,12 +141,6 @@ namespace OpenSim
                 m_scriptEngine = startupConfig.GetString("script_engine", "DotNetEngine");
 
                 m_assetStorage = startupConfig.GetString("asset_database", "db4o");
-
-                // wtf?
-                startupConfig.GetBoolean("default_modules", true);
-                startupConfig.GetBoolean("default_shared_modules", true);
-                startupConfig.GetString("except_modules", "");
-                startupConfig.GetString("except_shared_modules", "");
             }
 
             IConfig standaloneConfig = m_config.Configs["StandAlone"];

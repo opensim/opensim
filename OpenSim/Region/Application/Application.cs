@@ -67,6 +67,9 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "verbose");
             configSource.AddSwitch("Startup", "useexecutepath");
 
+            configSource.AddConfig("StandAlone");
+            configSource.AddConfig("Network");
+
             OpenSimMain sim = new OpenSimMain(configSource);
 
             sim.StartUp();
