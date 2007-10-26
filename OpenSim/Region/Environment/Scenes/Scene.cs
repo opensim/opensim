@@ -517,6 +517,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Data = data;
             asset.Name = "terrainImage";
             asset.Type = 0;
+            asset.Temporary = true;
             commsManager.AssetCache.AddAsset(asset);
         }
 

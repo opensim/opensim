@@ -139,25 +139,27 @@ namespace OpenSim.Framework.Communications.Cache
             if (asset.Type == 0)
             {
                 //Console.WriteLine("which is a texture");
-                if (!this.Textures.ContainsKey(asset.FullID))
+                if (!Textures.ContainsKey(asset.FullID))
                 { //texture
                     TextureImage textur = new TextureImage(asset);
-                    this.Textures.Add(textur.FullID, textur);
-                    this._assetServer.StoreAndCommitAsset(asset);
+                    Textures.Add(textur.FullID, textur);
+                    if(!asset.Temporary)
+                        _assetServer.StoreAndCommitAsset(asset);
                 }
                 else
                 {
                     TextureImage textur = new TextureImage(asset);
-                    this.Textures[asset.FullID] = textur;
+                    Textures[asset.FullID] = textur;
                 }
             }
             else
             {
-                if (!this.Assets.ContainsKey(asset.FullID))
+                if (!Assets.ContainsKey(asset.FullID))
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
-                    this.Assets.Add(assetInf.FullID, assetInf);
-                    this._assetServer.StoreAndCommitAsset(asset);
+                    Assets.Add(assetInf.FullID, assetInf);
+                    if (!asset.Temporary)
+                        _assetServer.StoreAndCommitAsset(asset);
                 }
             }
         }
