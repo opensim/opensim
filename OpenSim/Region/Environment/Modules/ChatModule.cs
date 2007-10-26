@@ -126,7 +126,9 @@ namespace OpenSim.Region.Environment.Modules
             LLUUID fromAgentID = LLUUID.Zero;
 
             if (e.Sender != null)
+            {
                 avatar = scene.GetScenePresence(e.Sender.AgentId);
+            }
 
             if (avatar != null)
             {

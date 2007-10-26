@@ -61,8 +61,9 @@ namespace OpenSim.Region.Capabilities
         private Queue<string> CapsEventQueue = new Queue<string>();
         public NewInventoryItem AddNewInventoryItem = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
+        private bool m_dumpAssetsToFile;
 
-        public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath, LLUUID agent)
+        public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath, LLUUID agent, bool dumpAssetsToFile)
         {
             assetCache = assetCach;
             m_capsObjectPath = capsPath;
@@ -70,6 +71,7 @@ namespace OpenSim.Region.Capabilities
             m_httpListenerHostName = httpListen;
             m_httpListenPort = httpPort;
             agentID = agent;
+            m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
         /// <summary>
@@ -250,7 +252,7 @@ namespace OpenSim.Region.Capabilities
             LLUUID newInvItem = llsdRequest.item_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            ItemUpdater uploader = new ItemUpdater(newInvItem, capsBase + uploaderPath, this.httpListener);
+            ItemUpdater uploader = new ItemUpdater(newInvItem, capsBase + uploaderPath, this.httpListener, m_dumpAssetsToFile );
             uploader.OnUpLoad += this.ItemUpdated;
 
             httpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
@@ -280,7 +282,7 @@ namespace OpenSim.Region.Capabilities
             LLUUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            AssetUploader uploader = new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type, llsdRequest.asset_type, capsBase + uploaderPath, this.httpListener);
+            AssetUploader uploader = new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type, llsdRequest.asset_type, capsBase + uploaderPath, this.httpListener, m_dumpAssetsToFile);
             httpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase + uploaderPath;
 
@@ -360,21 +362,14 @@ namespace OpenSim.Region.Capabilities
             private LLUUID inventoryItemID;
             private LLUUID parentFolder; 
             private BaseHttpServer httpListener;
-            private bool SaveAssets = false;
+            private bool m_dumpAssetsToFile;
             private string m_assetName = "";
             private string m_assetDes = "";
 
             private string m_invType = "";
             private string m_assetType = "";
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="assetID"></param>
-            /// <param name="inventoryItem"></param>
-            /// <param name="path"></param>
-            /// <param name="httpServer"></param>
-            public AssetUploader(string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolderID, string invType, string assetType, string path, BaseHttpServer httpServer)
+            public AssetUploader(string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolderID, string invType, string assetType, string path, BaseHttpServer httpServer, bool dumpAssetsToFile)
             {
                 m_assetName = assetName;
                 m_assetDes = description;
@@ -385,7 +380,7 @@ namespace OpenSim.Region.Capabilities
                 parentFolder = parentFolderID;
                 m_assetType = assetType;
                 m_invType = invType;
-
+                m_dumpAssetsToFile = dumpAssetsToFile;
             }
 
             /// <summary>
@@ -408,8 +403,10 @@ namespace OpenSim.Region.Capabilities
              
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
 
-                if(this.SaveAssets)
+                if (this.m_dumpAssetsToFile)
+                {
                     this.SaveAssetToFile(m_assetName + ".jp2", data);
+                }
 
                 if (OnUpLoad != null)
                 {
@@ -436,19 +433,12 @@ namespace OpenSim.Region.Capabilities
             private string uploaderPath = "";
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
-            private bool SaveAssets = false;
+            private bool m_dumpAssetToFile;
 
-
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="assetID"></param>
-            /// <param name="inventoryItem"></param>
-            /// <param name="path"></param>
-            /// <param name="httpServer"></param>
-            public ItemUpdater( LLUUID inventoryItem, string path, BaseHttpServer httpServer)
+            public ItemUpdater( LLUUID inventoryItem, string path, BaseHttpServer httpServer, bool dumpAssetToFile)
             {
-              
+                m_dumpAssetToFile = dumpAssetToFile;
+
                 inventoryItemID = inventoryItem;
                 uploaderPath = path;
                 httpListener = httpServer;
@@ -481,8 +471,10 @@ namespace OpenSim.Region.Capabilities
 
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
 
-                if (this.SaveAssets)
-                    this.SaveAssetToFile("updateditem"+Util.RandomClass.Next(1,1000) + ".dat", data);
+                if (this.m_dumpAssetToFile)
+                {
+                    this.SaveAssetToFile("updateditem" + Util.RandomClass.Next(1, 1000) + ".dat", data);
+                }
 
                 return res;
             }

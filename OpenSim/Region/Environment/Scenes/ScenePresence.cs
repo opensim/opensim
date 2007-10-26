@@ -53,8 +53,8 @@ namespace OpenSim.Region.Environment.Scenes
         private short m_updateCount = 0;
 
         private Quaternion bodyRot;
-        private byte[] visualParams;
-        private AvatarWearable[] Wearables;
+        private byte[] m_visualParams;
+        private AvatarWearable[] m_wearables;
         private LLObject.TextureEntry m_textureEntry;
 
         public bool IsRestrictedToRegion = false;
@@ -90,10 +90,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         //public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
 
-       // private string m_currentQuadNode = " ";
+        // private string m_currentQuadNode = " ";
 
-       // private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
-       //private Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
+        // private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
+        //private Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
 
         private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
         private Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
@@ -173,8 +173,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_pos = value;
             }
-        }        
-      
+        }
+
         public override LLVector3 Velocity
         {
             get
@@ -220,14 +220,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Constructor(s)
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="world"></param>
-        /// <param name="clientThreads"></param>
-        /// <param name="regionDat"></param>
-        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
+        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams, AvatarWearable[] wearables)
         {
             m_scene = world;
             m_uuid = client.AgentId;
@@ -240,13 +233,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_localId = m_scene.NextLocalId;
             AbsolutePosition = m_controllingClient.StartPos;
 
-            visualParams = new byte[218];
-            for (int i = 0; i < 218; i++)
-            {
-                visualParams[i] = 100;
-            }
+            m_visualParams = visualParams;
+            m_wearables = wearables;
 
-            Wearables = AvatarWearable.DefaultWearables;
             Animations = new AvatarAnimations();
             Animations.LoadAnims();
 
@@ -351,7 +340,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AbsolutePosition = pos;
 
-            AddToPhysicalScene( );
+            AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
 
 
@@ -410,7 +399,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             for (int i = 0; i < visualParam.Length; i++)
             {
-                visualParams[i] = visualParam[i].ParamValue;
+                m_visualParams[i] = visualParam[i].ParamValue;
             }
 
             SendAppearanceToAllOtherAgents();
@@ -459,7 +448,7 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 agent_control_v3 = new Vector3(0, 0, 0);
             Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
             bool oldflying = PhysicsActor.Flying;
-            PhysicsActor.Flying = ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            PhysicsActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
             if (PhysicsActor.Flying != oldflying)
             {
                 update_movementflag = true;
@@ -470,23 +459,23 @@ namespace OpenSim.Region.Environment.Scenes
                 bodyRot = q;
                 update_rotation = true;
             }
-            foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
+            foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
             {
-                if ((flags & (uint) DCF) != 0)
+                if ((flags & (uint)DCF) != 0)
                 {
                     DCFlagKeyPressed = true;
                     agent_control_v3 += Dir_Vectors[i];
-                    if ((m_movementflag & (uint) DCF) == 0)
+                    if ((m_movementflag & (uint)DCF) == 0)
                     {
-                        m_movementflag += (byte) (uint) DCF;
+                        m_movementflag += (byte)(uint)DCF;
                         update_movementflag = true;
                     }
                 }
                 else
                 {
-                    if ((m_movementflag & (uint) DCF) != 0)
+                    if ((m_movementflag & (uint)DCF) != 0)
                     {
-                        m_movementflag -= (byte) (uint) DCF;
+                        m_movementflag -= (byte)(uint)DCF;
                         update_movementflag = true;
                     }
                 }
@@ -531,10 +520,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             NewForce newVelocity = new NewForce();
-            Vector3 direc = rotation*vec;
+            Vector3 direc = rotation * vec;
             direc.Normalize();
 
-            direc = direc*((0.03f)*128f);
+            direc = direc * ((0.03f) * 128f);
             if (m_physicsActor.Flying)
                 direc *= 4;
 
@@ -619,7 +608,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            m_scene.Broadcast( SendTerseUpdateToClient );
+            m_scene.Broadcast(SendTerseUpdateToClient);
         }
 
         public void SendCoarseLocations()
@@ -628,7 +617,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_scene.GetAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
-                if (avatars[i] != this )
+                if (avatars[i] != this)
                 {
                     CoarseLocations.Add(avatars[i].AbsolutePosition);
                 }
@@ -642,7 +631,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_newCoarseLocations = true;
         }
 
-      
+
 
 
         /// <summary>
@@ -695,7 +684,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="OurClient"></param>
         public void SendOurAppearance(IClientAPI OurClient)
         {
-            m_controllingClient.SendWearables(Wearables);
+            m_controllingClient.SendWearables(m_wearables);
 
             //this.SendFullUpdateToAllClients();
             //this.SendAppearanceToAllOtherAgents();
@@ -734,7 +723,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="avatarInfo"></param>
         public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
         {
-            avatarInfo.m_controllingClient.SendAppearance(m_controllingClient.AgentId, visualParams,
+            avatarInfo.m_controllingClient.SendAppearance(m_controllingClient.AgentId, m_visualParams,
                                                         m_textureEntry.ToBytes());
         }
 
@@ -793,9 +782,9 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 vel = Velocity;
 
             float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X*timeStep);
-            pos2.Y = pos2.Y + (vel.Y*timeStep);
-            pos2.Z = pos2.Z + (vel.Z*timeStep);
+            pos2.X = pos2.X + (vel.X * timeStep);
+            pos2.Y = pos2.Y + (vel.Y * timeStep);
+            pos2.Z = pos2.Z + (vel.Z * timeStep);
 
             if ((pos2.X < 0) || (pos2.X > 256))
             {
@@ -840,7 +829,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             LLVector3 vel = m_velocity;
-            ulong neighbourHandle = Helpers.UIntsToLong((uint) (neighbourx*256), (uint) (neighboury*256));
+            ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * 256), (uint)(neighboury * 256));
             RegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
@@ -940,7 +929,7 @@ namespace OpenSim.Region.Environment.Scenes
             throw new Exception("Can't set Text on avatar.");
         }
 
-        public void AddToPhysicalScene( )
+        public void AddToPhysicalScene()
         {
             PhysicsScene scene = m_scene.PhysScene;
 
@@ -948,7 +937,7 @@ namespace OpenSim.Region.Environment.Scenes
                 new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
                                   AbsolutePosition.Z);
 
-            m_physicsActor = scene.AddAvatar(this.Firstname+"."+this.Lastname, pVec);           
+            m_physicsActor = scene.AddAvatar(this.Firstname + "." + this.Lastname, pVec);
         }
 
         internal void Close()

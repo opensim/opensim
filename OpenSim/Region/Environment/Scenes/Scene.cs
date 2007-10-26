@@ -50,6 +50,7 @@ using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Terrain;
 using Timer = System.Timers.Timer;
+using OpenSim.Region.Environment.Modules;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -90,11 +91,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public IXfer XferManager;
 
-        private IHttpRequests m_httpRequestModule = null;
-        private ISimChat m_simChatModule = null;
-        private IXMLRPC m_xmlrpcModule = null;
-        private IWorldComm m_worldCommModule = null;
-
+        private IHttpRequests m_httpRequestModule;
+        private ISimChat m_simChatModule;
+        private IXMLRPC m_xmlrpcModule;
+        private IWorldComm m_worldCommModule;
+        private IAvatarFactory m_AvatarFactory;
 
         // Central Update Loop
 
@@ -165,7 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-                     ModuleLoader moduleLoader)
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile)
         {
             updateLock = new Mutex(false);
 
@@ -205,6 +206,7 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence.LoadAnims();
 
             httpListener = httpServer;
+            m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
         #endregion
@@ -215,7 +217,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_httpRequestModule = RequestModuleInterface<IHttpRequests>();
             m_xmlrpcModule = RequestModuleInterface<IXMLRPC>();
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
-
             XferManager = RequestModuleInterface<IXfer>();
         }
 
@@ -855,7 +856,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence newAvatar = null;
 
-            newAvatar = new ScenePresence(client, this, m_regInfo);
+            byte[] visualParams;
+            AvatarWearable[] wearables;
+
+            if( m_AvatarFactory == null || !m_AvatarFactory.TryGetIntialAvatarAppearance( client.AgentId, out wearables, out visualParams))
+            {
+                AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
+            }
+
+            newAvatar = new ScenePresence(client, this, m_regInfo, visualParams, wearables);
             newAvatar.IsChildAgent = child;
 
             if (child)
@@ -1096,7 +1105,8 @@ namespace OpenSim.Region.Environment.Scenes
                     //Console.WriteLine("new user, so creating caps handler for it");
                     Caps cap =
                         new Caps(commsManager.AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
-                                 agent.CapsPath, agent.AgentID);
+                                 agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
+
                     Util.SetCapsURL(agent.AgentID,
                                     "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() +
                                     "/CAPS/" + agent.CapsPath + "0000/");
@@ -1456,6 +1466,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Script Engine
 
         private List<ScriptEngineInterface> ScriptEngines = new List<ScriptEngineInterface>();
+        private bool m_dumpAssetsToFile;
 
         public void AddScriptEngine(ScriptEngineInterface ScriptEngine, LogBase m_logger)
         {

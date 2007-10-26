@@ -72,7 +72,7 @@ namespace SimpleApp
             LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
             LocalBackEndServices backendService = new LocalBackEndServices();
 
-            CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService);
+            CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService, false);
             m_commsManager = localComms;
 
             LocalLoginService loginService = new LocalLoginService(userService, "", localComms, m_networkServersInfo, false);

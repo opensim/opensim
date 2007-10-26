@@ -30,7 +30,6 @@ using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;

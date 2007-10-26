@@ -67,12 +67,18 @@ namespace OpenSim.Region.Environment
         {
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
             LoadedSharedModules.Add(dynamicModule.Name, dynamicModule);
+
             ChatModule chat = new ChatModule();
             LoadedSharedModules.Add(chat.Name, chat);
+
             InstantMessageModule imMod = new InstantMessageModule();
             LoadedSharedModules.Add(imMod.Name, imMod);
+
             LoadImageURLModule loadMod = new LoadImageURLModule();
             LoadedSharedModules.Add(loadMod.Name, loadMod);
+
+            AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
+            LoadedSharedModules.Add(avatarFactory.Name, avatarFactory);
         }
 
         public void InitialiseSharedModules(Scene scene)

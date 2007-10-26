@@ -29,8 +29,8 @@
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Types;
-using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -45,14 +45,14 @@ namespace OpenSim.Region.Communications.Local
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack)
         {
             List<InventoryFolderBase> folders = this.RequestFirstLevelFolders(userID);
-            InventoryFolder rootFolder = null;
+            InventoryFolderImpl rootFolder = null;
 
             //need to make sure we send root folder first
             foreach (InventoryFolderBase folder in folders)
             {
                 if (folder.parentID == libsecondlife.LLUUID.Zero)
                 {
-                    InventoryFolder newfolder = new InventoryFolder(folder);
+                    InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
                     rootFolder = newfolder;
                     folderCallBack(userID, newfolder);
                 }
@@ -64,7 +64,7 @@ namespace OpenSim.Region.Communications.Local
                 {
                     if (folder.folderID != rootFolder.folderID)
                     {
-                        InventoryFolder newfolder = new InventoryFolder(folder);
+                        InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
                         folderCallBack(userID, newfolder);
 
                         List<InventoryItemBase> items = this.RequestFolderItems(newfolder.folderID);
@@ -77,7 +77,7 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
+        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)
         {
             this.AddFolder(folder);
         }

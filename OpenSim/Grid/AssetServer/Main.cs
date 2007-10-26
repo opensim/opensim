@@ -38,16 +38,10 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Servers;
 
-/*
-using System.Text;
-using Db4objects.Db4o;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Communications.Caches;
-*/
 namespace OpenSim.Grid.AssetServer
 {
     /// <summary>

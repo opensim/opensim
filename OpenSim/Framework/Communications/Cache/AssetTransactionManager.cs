@@ -36,17 +36,19 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Data;
 
-namespace OpenSim.Framework.Communications.Caches
+namespace OpenSim.Framework.Communications.Cache
 {
     public class AssetTransactionManager
     {
         // Fields
         public CommunicationsManager CommsManager;
         public Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions = new Dictionary<LLUUID, AgentAssetTransactions>();
+        private bool m_dumpAssetsToFile;
 
-        public AssetTransactionManager(CommunicationsManager commsManager)
+        public AssetTransactionManager(CommunicationsManager commsManager, bool dumpAssetsToFile)
         {
             CommsManager = commsManager;
+            m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
         // Methods
@@ -54,7 +56,7 @@ namespace OpenSim.Framework.Communications.Caches
         {
             if (!this.AgentTransactions.ContainsKey(userID))
             {
-                AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this);
+                AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
                 this.AgentTransactions.Add(userID, transactions);
                 return transactions;
             }
@@ -82,7 +84,7 @@ namespace OpenSim.Framework.Communications.Caches
 
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal)
         {
-           // Console.WriteLine("asset upload of " + assetID);
+            // Console.WriteLine("asset upload of " + assetID);
             AgentAssetTransactions transactions = this.GetUserTransActions(remoteClient.AgentId);
             if (transactions != null)
             {
@@ -104,5 +106,3 @@ namespace OpenSim.Framework.Communications.Caches
         }
     }
 }
-
-

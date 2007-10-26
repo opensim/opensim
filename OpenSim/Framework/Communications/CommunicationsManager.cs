@@ -28,7 +28,6 @@
 using System;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Caches;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Types;
@@ -87,12 +86,12 @@ namespace OpenSim.Framework.Communications
             get { return m_networkServersInfo; }
         }
 
-        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache)
+        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool dumpAssetsToFile)
         {
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
             m_userProfileCache = new UserProfileCache(this);
-            m_transactionsManager = new AssetTransactionManager(this);
+            m_transactionsManager = new AssetTransactionManager(this, dumpAssetsToFile );
         }
 
         public void doCreate(string[] cmmdParams)

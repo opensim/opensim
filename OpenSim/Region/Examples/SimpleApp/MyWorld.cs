@@ -47,7 +47,7 @@ namespace SimpleApp
         private List<ScenePresence> m_avatars;
 
         public MyWorld( RegionInfo regionInfo, AgentCircuitManager authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer, ModuleLoader moduleLoader)
-            : base( regionInfo, authen, commsMan, assetCach, storeMan, httpServer, moduleLoader)
+            : base( regionInfo, authen, commsMan, assetCach, storeMan, httpServer, moduleLoader, false)
         {
             m_avatars = new List<Avatar>();
         }

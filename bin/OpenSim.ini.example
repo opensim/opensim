@@ -23,7 +23,7 @@ inventory_plugin = "OpenSim.Framework.Data.SQLite.dll"
 userDatabase_plugin = "OpenSim.Framework.Data.SQLite.dll"
 default_location_x = 1000
 default_location_y = 1000
-
+dump_assets_to_file = false
 
 [Network]
 http_listener_port = 9000

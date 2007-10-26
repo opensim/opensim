@@ -27,7 +27,6 @@
 */
 using libsecondlife;
 using OpenSim.Framework.Types;
-using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -35,7 +34,7 @@ namespace OpenSim.Framework.Communications.Cache
     {
         private readonly CommunicationsManager m_parentCommsManager;
         // Fields
-        public InventoryFolder RootFolder = null;
+        public InventoryFolderImpl RootFolder = null;
         public UserProfileData UserProfile = null;
 
         public CachedUserInfo(CommunicationsManager commsManager)
@@ -44,7 +43,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         // Methods
-        public void FolderReceive(LLUUID userID, InventoryFolder folderInfo)
+        public void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
         {
             if (userID == this.UserProfile.UUID)
             {
@@ -61,7 +60,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    InventoryFolder folder = this.RootFolder.HasSubFolder(folderInfo.parentID);
+                    InventoryFolderImpl folder = this.RootFolder.HasSubFolder(folderInfo.parentID);
                     if (folder != null)
                     {
                         folder.SubFolders.Add(folderInfo.folderID, folderInfo);
@@ -80,7 +79,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    InventoryFolder folder = this.RootFolder.HasSubFolder(itemInfo.parentFolderID);
+                    InventoryFolderImpl folder = this.RootFolder.HasSubFolder(itemInfo.parentFolderID);
                     if (folder != null)
                     {
                         folder.Items.Add(itemInfo.inventoryID, itemInfo);                    

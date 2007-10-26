@@ -31,9 +31,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Types;
-using InventoryFolder=OpenSim.Framework.Communications.Caches.InventoryFolder;
 
 namespace OpenSim.Framework.Communications
 {
@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Communications
         }
 
         public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
-        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder);
+        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder);
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
     }

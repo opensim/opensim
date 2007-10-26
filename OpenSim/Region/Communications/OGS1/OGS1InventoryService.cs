@@ -29,8 +29,8 @@
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Types;
-using InventoryFolder = OpenSim.Framework.Communications.Caches.InventoryFolder;
 
 
 namespace OpenSim.Region.Communications.OGS1
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Communications.OGS1
             
         }
 
-        public void AddNewInventoryFolder(LLUUID userID, InventoryFolder folder)
+        public void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)
         {
             
         }

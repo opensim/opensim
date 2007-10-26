@@ -35,16 +35,16 @@ using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using Nini.Config;
 
-namespace OpenSim.Framework.Communications.Caches
+namespace OpenSim.Framework.Communications.Cache
 {
     /// <summary>
     /// Basically a hack to give us a Inventory library while we don't have a inventory server
     /// once the server is fully implemented then should read the data from that
     /// </summary>
-    public class LibraryRootFolder : InventoryFolder
+    public class LibraryRootFolder : Cache.InventoryFolderImpl
     {
         private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");
-        private InventoryFolder m_textureFolder;
+        private Cache.InventoryFolderImpl m_textureFolder;
 
         public LibraryRootFolder()
         {
@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Communications.Caches
             this.type = (short)-1;
             this.version = (ushort)1;
 
-            InventoryFolder folderInfo = new InventoryFolder();
+            Cache.InventoryFolderImpl folderInfo = new InventoryFolderImpl();
             folderInfo.agentID = libOwner;
             folderInfo.folderID = new LLUUID("00000112-000f-0000-0000-000100bba001");
             folderInfo.name = "Texture Library";

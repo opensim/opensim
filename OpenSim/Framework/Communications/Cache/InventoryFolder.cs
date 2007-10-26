@@ -35,15 +35,15 @@ using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 
-namespace OpenSim.Framework.Communications.Caches
+namespace OpenSim.Framework.Communications.Cache
 {
-    public class InventoryFolder : InventoryFolderBase
+    public class InventoryFolderImpl : InventoryFolderBase
     {
         // Fields
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
-        public Dictionary<LLUUID, InventoryFolder> SubFolders = new Dictionary<LLUUID, InventoryFolder>();
+        public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
 
-        public InventoryFolder(InventoryFolderBase folderbase)
+        public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
             this.agentID = folderbase.agentID;
             this.folderID = folderbase.folderID;
@@ -53,15 +53,15 @@ namespace OpenSim.Framework.Communications.Caches
             this.version = folderbase.version;
         }
 
-        public InventoryFolder()
+        public InventoryFolderImpl()
         {
 
         }
 
         // Methods
-        public InventoryFolder CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
+        public InventoryFolderImpl CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
         {
-            InventoryFolder subFold = new InventoryFolder();
+            InventoryFolderImpl subFold = new InventoryFolderImpl();
             subFold.name = folderName;
             subFold.folderID = folderID;
             subFold.type = (short) type;
@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Communications.Caches
             {
                 return this.Items[itemID];
             }
-            foreach (InventoryFolder folder in this.SubFolders.Values)
+            foreach (InventoryFolderImpl folder in this.SubFolders.Values)
             {
                 base2 = folder.HasItem(itemID);
                 if (base2 != null)
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Communications.Caches
                 Items.Remove(itemID);
                 return true;
             }
-            foreach (InventoryFolder folder in this.SubFolders.Values)
+            foreach (InventoryFolderImpl folder in this.SubFolders.Values)
             {
                 found = folder.DeleteItem(itemID);
                 if (found == true)
@@ -109,16 +109,16 @@ namespace OpenSim.Framework.Communications.Caches
         }
 
 
-        public InventoryFolder HasSubFolder(LLUUID folderID)
+        public InventoryFolderImpl HasSubFolder(LLUUID folderID)
         {
-            InventoryFolder returnFolder = null;
+            InventoryFolderImpl returnFolder = null;
             if (this.SubFolders.ContainsKey(folderID))
             {
                 returnFolder = this.SubFolders[folderID];
             }
             else
             {
-                foreach (InventoryFolder folder in this.SubFolders.Values)
+                foreach (InventoryFolderImpl folder in this.SubFolders.Values)
                 {
                     returnFolder = folder.HasSubFolder(folderID);
                     if (returnFolder != null)

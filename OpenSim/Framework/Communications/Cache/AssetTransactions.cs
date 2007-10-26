@@ -39,7 +39,7 @@ using OpenSim.Framework.Utilities;
 using OpenSim.Region.Capabilities;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Framework.Communications.Caches
+namespace OpenSim.Framework.Communications.Cache
 {
     public class AgentAssetTransactions
     {
@@ -49,12 +49,14 @@ namespace OpenSim.Framework.Communications.Caches
         public LLUUID UserID;
         public Dictionary<LLUUID, AssetXferUploader> XferUploaders = new Dictionary<LLUUID, AssetXferUploader>();
         public AssetTransactionManager Manager;
+        private bool m_dumpAssetsToFile;
 
         // Methods
-        public AgentAssetTransactions(LLUUID agentID, AssetTransactionManager manager)
+        public AgentAssetTransactions(LLUUID agentID, AssetTransactionManager manager, bool dumpAssetsToFile)
         {
             this.UserID = agentID;
             Manager = manager;
+            m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
         public AssetCapsUploader RequestCapsUploader()
@@ -75,7 +77,7 @@ namespace OpenSim.Framework.Communications.Caches
         {
             if (!this.XferUploaders.ContainsKey(transactionID))
             {
-                AssetXferUploader uploader = new AssetXferUploader(this);
+                AssetXferUploader uploader = new AssetXferUploader(this, m_dumpAssetsToFile);
 
                 this.XferUploaders.Add(transactionID, uploader);
                 return uploader;
@@ -122,14 +124,14 @@ namespace OpenSim.Framework.Communications.Caches
             private string m_assetName = "";
             private LLUUID m_folderID;
             private LLUUID newAssetID;
-            private bool SaveImages = false;
+            private bool m_dumpImageToFile;
             private string uploaderPath = "";
 
             // Events
             public event UpLoadedAsset OnUpLoad;
 
             // Methods
-            public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem, LLUUID folderID, string path, BaseHttpServer httpServer)
+            public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem, LLUUID folderID, string path, BaseHttpServer httpServer, bool dumpImageToFile)
             {
                 this.m_assetName = assetName;
                 this.m_assetDescription = assetDescription;
@@ -138,6 +140,7 @@ namespace OpenSim.Framework.Communications.Caches
                 this.inventoryItemID = inventoryItem;
                 this.uploaderPath = path;
                 this.httpListener = httpServer;
+                m_dumpImageToFile = dumpImageToFile;
             }
 
             private void SaveImageToFile(string filename, byte[] data)
@@ -159,7 +162,7 @@ namespace OpenSim.Framework.Communications.Caches
                 complete.state = "complete";
                 text = LLSDHelpers.SerialiseLLSDReply(complete);
                 this.httpListener.RemoveStreamHandler("POST", this.uploaderPath);
-                if (this.SaveImages)
+                if (this.m_dumpImageToFile)
                 {
                     this.SaveImageToFile(this.m_assetName + ".jp2", data);
                 }
@@ -190,10 +193,12 @@ namespace OpenSim.Framework.Communications.Caches
             private bool m_createItem = false;
             private AgentAssetTransactions m_userTransactions;
             private bool m_storeLocal;
+            private bool m_dumpAssetToFile;
 
-            public AssetXferUploader(AgentAssetTransactions transactions)
+            public AssetXferUploader(AgentAssetTransactions transactions, bool dumpAssetToFile)
             {
                 this.m_userTransactions = transactions;
+                m_dumpAssetToFile = dumpAssetToFile;
             }
 
             // Methods
@@ -278,9 +283,14 @@ namespace OpenSim.Framework.Communications.Caches
                     this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
                 }
 
-              // Console.WriteLine("upload complete "+ this.TransactionID);
-                //SaveAssetToFile("testudpupload" + Util.RandomClass.Next(1, 1000) + ".dat", this.Asset.Data);
+                // Console.WriteLine("upload complete "+ this.TransactionID);
+
+                if (m_dumpAssetToFile)
+                {
+                    SaveAssetToFile("testudpupload" + Util.RandomClass.Next(1, 1000) + ".dat", this.Asset.Data);
+                }
             }
+
             private void SaveAssetToFile(string filename, byte[] data)
             {
                 FileStream fs = File.Create(filename);

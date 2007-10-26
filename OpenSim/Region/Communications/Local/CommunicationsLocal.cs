@@ -35,8 +35,15 @@ namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
-        public CommunicationsLocal(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, IUserService userService, LocalInventoryService inventoryService, IInterRegionCommunications interRegionService, IGridServices gridService)
-            : base(serversInfo, httpServer, assetCache)
+        public CommunicationsLocal(
+            NetworkServersInfo serversInfo, 
+            BaseHttpServer httpServer, 
+            AssetCache assetCache, 
+            IUserService userService, 
+            LocalInventoryService inventoryService, 
+            IInterRegionCommunications interRegionService, 
+            IGridServices gridService, bool dumpAssetsToFile )
+            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile)
         {
             m_inventoryService = inventoryService;
             m_userService = userService;

@@ -44,7 +44,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 using System.Globalization;
-using RegionInfo=OpenSim.Framework.Types.RegionInfo;
+using RegionInfo = OpenSim.Framework.Types.RegionInfo;
 
 namespace OpenSim
 {
@@ -78,21 +78,25 @@ namespace OpenSim
         private readonly string m_logFilename = ("region-console.log");
         private bool m_permissions = false;
 
-        private bool standaloneAuthenticate = false;
-        private string standaloneWelcomeMessage = null;
-        private string standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
-        private string standaloneAssetPlugin = "OpenSim.Framework.Data.SQLite.dll";
-        private string standaloneUserPlugin = "OpenSim.Framework.Data.DB4o.dll";
+        private bool m_standaloneAuthenticate = false;
+        private string m_standaloneWelcomeMessage = null;
+        private string m_standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
+        private string m_standaloneAssetPlugin = "OpenSim.Framework.Data.SQLite.dll";
+        private string m_standaloneUserPlugin = "OpenSim.Framework.Data.DB4o.dll";
 
         private string m_assetStorage = "db4o";
 
         public ConsoleCommand CreateAccount = null;
+        private bool m_dumpAssetsToFile;
 
         public OpenSimMain(IConfigSource configSource)
             : base()
         {
-            string iniFile = configSource.Configs["Startup"].GetString("inifile", "OpenSim.ini");
-            string useExecutePathString = configSource.Configs["Startup"].GetString("useexecutepath", "false").ToLower();
+            IConfig startupConfig = configSource.Configs["Startup"];
+
+            string iniFile = startupConfig.GetString("inifile", "OpenSim.ini");
+            string useExecutePathString = startupConfig.GetString("useexecutepath", "false").ToLower();
+
             bool useExecutePath = false;
             if (useExecutePathString == "true" || useExecutePathString == "" || useExecutePathString == "1" || useExecutePathString == "yes")
             {
@@ -112,38 +116,57 @@ namespace OpenSim
                 //(as if someone has bothered to enter a command line arg, we should take notice of it)
                 m_config.Merge(configSource);
             }
+            else
+            {
+                m_config = configSource;
+            }
 
             ReadConfigSettings();
-
         }
 
         protected void ReadConfigSettings()
         {
             m_networkServersInfo = new NetworkServersInfo();
-            m_sandbox = !m_config.Configs["Startup"].GetBoolean("gridmode", false);
-            m_physicsEngine = m_config.Configs["Startup"].GetString("physics", "basicphysics");
-            m_verbose = m_config.Configs["Startup"].GetBoolean("verbose", true);
-            m_permissions = m_config.Configs["Startup"].GetBoolean("serverside_object_permissions", false);
 
-            m_storageDLL = m_config.Configs["Startup"].GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+            IConfig startupConfig = m_config.Configs["Startup"];
 
-            m_startupCommandsFile = m_config.Configs["Startup"].GetString("startup_console_commands_file", "");
-            m_shutdownCommandsFile = m_config.Configs["Startup"].GetString("shutdown_console_commands_file", "");
+            if (startupConfig != null )
+            {
+                m_sandbox = !startupConfig.GetBoolean("gridmode", false);
+                m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
+                m_verbose = startupConfig.GetBoolean("verbose", true);
+                m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
-            m_scriptEngine = m_config.Configs["Startup"].GetString("script_engine", "DotNetEngine");
+                m_storageDLL = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
-            m_assetStorage = m_config.Configs["Startup"].GetString("asset_database", "db4o");
+                m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
+                m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
 
-            m_config.Configs["Startup"].GetBoolean("default_modules", true);
-            m_config.Configs["Startup"].GetBoolean("default_shared_modules", true);
-            m_config.Configs["Startup"].GetString("except_modules", "");
-            m_config.Configs["Startup"].GetString("except_shared_modules", "");
+                m_scriptEngine = startupConfig.GetString("script_engine", "DotNetEngine");
 
-            standaloneAuthenticate = m_config.Configs["StandAlone"].GetBoolean("accounts_authenticate", false);
-            standaloneWelcomeMessage = m_config.Configs["StandAlone"].GetString("welcome_message", "Welcome to OpenSim");
-            standaloneInventoryPlugin = m_config.Configs["StandAlone"].GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
-            standaloneUserPlugin = m_config.Configs["StandAlone"].GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
-            standaloneAssetPlugin = m_config.Configs["StandAlone"].GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                m_assetStorage = startupConfig.GetString("asset_database", "db4o");
+
+                // wtf?
+                startupConfig.GetBoolean("default_modules", true);
+                startupConfig.GetBoolean("default_shared_modules", true);
+                startupConfig.GetString("except_modules", "");
+                startupConfig.GetString("except_shared_modules", "");
+            }
+
+            IConfig standaloneConfig = m_config.Configs["StandAlone"];
+            if (standaloneConfig != null)
+            {
+                m_standaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate", false);
+                m_standaloneWelcomeMessage = standaloneConfig.GetString("welcome_message", "Welcome to OpenSim");
+                m_standaloneInventoryPlugin =
+                    standaloneConfig.GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                m_standaloneUserPlugin =
+                    standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
+                m_standaloneAssetPlugin = standaloneConfig.GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+
+                m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
+            }
+
             m_networkServersInfo.loadFromConfiguration(m_config);
         }
 
@@ -168,22 +191,22 @@ namespace OpenSim
             if (m_sandbox)
             {
                 LocalInventoryService inventoryService = new LocalInventoryService();
-                inventoryService.AddPlugin(standaloneInventoryPlugin);
-               
-                LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService );
-                userService.AddPlugin( standaloneUserPlugin );
+                inventoryService.AddPlugin(m_standaloneInventoryPlugin);
+
+                LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
+                userService.AddPlugin(m_standaloneUserPlugin);
 
                 LocalBackEndServices backendService = new LocalBackEndServices();
 
-                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService);
+                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService, m_dumpAssetsToFile);
                 m_commsManager = localComms;
 
-                m_loginService = new LocalLoginService(userService, standaloneWelcomeMessage, localComms, m_networkServersInfo, standaloneAuthenticate);
+                m_loginService = new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo, m_standaloneAuthenticate);
                 m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
-                if (standaloneAuthenticate)
+                if (m_standaloneAuthenticate)
                 {
                     this.CreateAccount = localComms.doCreate;
                 }
@@ -209,7 +232,7 @@ namespace OpenSim
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
-            m_moduleLoader = new ModuleLoader( m_log, m_config );
+            m_moduleLoader = new ModuleLoader(m_log, m_config);
             MainLog.Instance.Verbose("Loading Shared Modules");
             m_moduleLoader.LoadDefaultSharedModules();
 
@@ -240,10 +263,10 @@ namespace OpenSim
             }
             else
             {
-                MainLog.Instance.Verbose("STARTUP","No startup command script specified. Moving on...");
+                MainLog.Instance.Verbose("STARTUP", "No startup command script specified. Moving on...");
             }
 
-            MainLog.Instance.Status("STARTUP","Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+            MainLog.Instance.Status("STARTUP", "Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
         }
 
         public UDPServer CreateRegion(RegionInfo regionInfo)
@@ -289,7 +312,7 @@ namespace OpenSim
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
         {
-            return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, m_moduleLoader);
+            return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, m_moduleLoader, m_dumpAssetsToFile);
         }
 
         protected override void Initialize()
@@ -307,7 +330,7 @@ namespace OpenSim
             }
             else
             {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer(standaloneAssetPlugin);
+                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin);
                 sqlAssetServer.LoadDefaultAssets();
                 assetServer = sqlAssetServer;
             }
@@ -408,7 +431,7 @@ namespace OpenSim
             }
             else
             {
-                MainLog.Instance.Error("COMMANDFILE","Command script missing. Can not run commands");
+                MainLog.Instance.Error("COMMANDFILE", "Command script missing. Can not run commands");
             }
         }
 

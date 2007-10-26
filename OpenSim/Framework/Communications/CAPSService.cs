@@ -26,21 +26,9 @@
 * 
 */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Security.Cryptography;
-using libsecondlife;
-using Nwc.XmlRpc;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Framework.UserManagement
+namespace OpenSim.Framework.Communications
 {
     public class CAPSService
     {
