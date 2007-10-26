@@ -28,15 +28,18 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 
 using libsecondlife;
+using Nini.Config;
+
+using OpenSim.Framework.Types;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Configuration;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Servers;
 
 /*
 using System.Text;
@@ -57,7 +60,7 @@ namespace OpenSim.Grid.AssetServer
         public static OpenAsset_Main assetserver;
 
         private LogBase m_console;
-        private IAssetServer m_assetServer;
+        private IAssetProvider m_assetProvider;
 
         [STAThread]
         public static void Main(string[] args)
@@ -97,11 +100,14 @@ namespace OpenSim.Grid.AssetServer
             m_console.Verbose("ASSET", "Setting up asset DB");
             setupDB(m_config);
 
+            m_console.Verbose("ASSET", "Loading default asset set..");
+            LoadDefaultAssets();
+            
             m_console.Verbose("ASSET", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer((int)m_config.HttpPort);
 
-            httpServer.AddStreamHandler(new GetAssetStreamHandler(this));
-            httpServer.AddStreamHandler(new PostAssetStreamHandler( this ));
+            httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
+            httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));
 
             httpServer.Start();
         }
@@ -111,14 +117,49 @@ namespace OpenSim.Grid.AssetServer
             return null;
         }
 
+
+        public IAssetProvider LoadDatabasePlugin(string FileName)
+        {
+            MainLog.Instance.Verbose("ASSET SERVER", "LoadDatabasePlugin: Attempting to load " + FileName);
+            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+            IAssetProvider assetPlugin = null;
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (!pluginType.IsAbstract)
+                {
+                    Type typeInterface = pluginType.GetInterface("IAssetProvider", true);
+
+                    if (typeInterface != null)
+                    {
+                        IAssetProvider plug = (IAssetProvider)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        assetPlugin = plug;
+                        assetPlugin.Initialise();
+
+                        MainLog.Instance.Verbose("ASSET SERVER", "Added " + assetPlugin.Name + " " + assetPlugin.Version);
+                        break;
+                    }
+
+                    typeInterface = null;
+                }
+            }
+
+            pluginAssembly = null;
+            return assetPlugin;
+        }
+
         public void setupDB(AssetConfig config)
         {
             try
             {
-                SQLAssetServer assetServer = new SQLAssetServer(config.DatabaseProvider );
-                assetServer.LoadDefaultAssets();
+                m_assetProvider = LoadDatabasePlugin(config.DatabaseProvider);
+                if (m_assetProvider == null)
+                {
+                    MainLog.Instance.Error("ASSET", "Failed to load a database plugin, server halting");
+                    Environment.Exit(-1);
+                }
+//                assetServer.LoadDefaultAssets();
 
-                m_assetServer = assetServer;
+//                m_assetServer = assetServer;
             }
             catch (Exception e)
             {
@@ -126,6 +167,72 @@ namespace OpenSim.Grid.AssetServer
                 MainLog.Instance.Warn("ASSET", e.ToString());
             }
         }
+
+        public void LoadAsset(AssetBase info, bool image, string filename)
+        {
+            //should request Asset from storage manager
+            //but for now read from file
+
+            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
+            string fileName = Path.Combine(dataPath, filename);
+            FileInfo fInfo = new FileInfo(fileName);
+            long numBytes = fInfo.Length;
+            FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            byte[] idata = new byte[numBytes];
+            BinaryReader br = new BinaryReader(fStream);
+            idata = br.ReadBytes((int)numBytes);
+            br.Close();
+            fStream.Close();
+            info.Data = idata;
+            //info.loaded=true;
+        }
+
+        public AssetBase CreateAsset(string assetIdStr, string name, string filename, bool isImage)
+        {
+            AssetBase asset = new AssetBase(
+                new LLUUID(assetIdStr),
+                name
+                );
+
+            if (!String.IsNullOrEmpty(filename))
+            {
+                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, filename);
+
+                LoadAsset(asset, isImage, filename);
+            }
+            else
+            {
+                MainLog.Instance.Verbose("ASSETS", "Instantiated: [{0}]", name);
+            }
+
+            return asset;
+        }
+
+        public void LoadDefaultAssets()
+        {
+            string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
+            if (File.Exists(filePath))
+            {
+                XmlConfigSource source = new XmlConfigSource(filePath);
+
+                for (int i = 0; i < source.Configs.Count; i++)
+                {
+                    string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
+                    string name = source.Configs[i].GetString("name", "");
+                    sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
+                    sbyte invType = (sbyte)source.Configs[i].GetInt("inventoryType", 0);
+                    string fileName = source.Configs[i].GetString("fileName", "");
+
+                    AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);
+
+                    newAsset.Type = type;
+                    newAsset.InvType = invType;
+
+                    m_assetProvider.CreateAsset(newAsset);
+                }
+            }
+        }
+
 
         public void RunCmd(string cmd, string[] cmdparams)
         {
@@ -144,67 +251,6 @@ namespace OpenSim.Grid.AssetServer
 
         public void Show(string ShowWhat)
         {
-        }
-    }
-
-    public class GetAssetStreamHandler : BaseStreamHandler
-    {
-        OpenAsset_Main m_assetManager;
-
-        override public byte[] Handle(string path, Stream request)
-        {
-            string param = GetParam(path);
-
-            byte[] assetdata = m_assetManager.GetAssetData(new LLUUID(param), false);
-            if (assetdata != null)
-            {
-                return assetdata;
-            }
-            else
-            {
-                return new byte[]{};
-            }
-        }
-
-        public GetAssetStreamHandler(OpenAsset_Main assetManager) : base("/assets/", "GET")
-        {
-            m_assetManager = assetManager;
-        }
-    }
-
-    public class PostAssetStreamHandler : BaseStreamHandler
-    {
-        OpenAsset_Main m_assetManager;
-
-        override public byte[] Handle(string path, Stream request)
-        {
-            string param = GetParam(path);
-            LLUUID assetId = new LLUUID(param);
-            byte[] txBuffer = new byte[4096];
-                
-            using( BinaryReader binReader = new BinaryReader( request ) )
-            {
-                using (MemoryStream memoryStream = new MemoryStream(4096))
-                {
-                    int count;
-                    while ((count = binReader.Read(txBuffer, 0, 4096)) > 0)
-                    {
-                        memoryStream.Write(txBuffer, 0, count);
-                    }                    
-
-                    byte[] assetData = memoryStream.ToArray();
-
-//                    m_assetManager.CreateAsset(assetId, assetData);
-                }
-            }
-            
-            return new byte[]{};
-        }
-
-        public PostAssetStreamHandler( OpenAsset_Main assetManager )
-            : base("/assets/", "POST")
-        {
-            m_assetManager = assetManager;
         }
     }
 }

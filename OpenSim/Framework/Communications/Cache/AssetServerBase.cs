@@ -108,23 +108,23 @@ namespace OpenSim.Framework.Communications.Cache
         public virtual List<AssetBase> GetDefaultAssets()
         {
             List<AssetBase> assets = new List<AssetBase>();
+            // These assets have been moved into the OpenSimAssetSet.XML file
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000001", "Bricks", "bricks.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000002", "Plywood", "plywood.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000003", "Rocks", "rocks.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000004", "Granite", "granite.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000005", "Hardwood", "hardwood.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-5005-000000000005", "Prim Base Texture", "plywood.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000006", "Map Base Texture", "map_base.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000007", "Map Texture", "map1.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000010", "Female Body Texture", "femalebody.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000011", "Female Bottom Texture", "femalebottom.jp2"));
+            //assets.Add(CreateImageAsset("00000000-0000-1111-9999-000000000012", "Female Face Texture", "femaleface.jp2"));
 
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000001", "Bricks", "bricks.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000002", "Plywood", "plywood.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000003", "Rocks", "rocks.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000004", "Granite", "granite.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000005", "Hardwood", "hardwood.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-5005-000000000005", "Prim Base Texture", "plywood.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000006", "Map Base Texture", "map_base.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000007", "Map Texture", "map1.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000010", "Female Body Texture", "femalebody.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000011", "Female Bottom Texture", "femalebottom.jp2"));
-            assets.Add(CreateImageAsset("00000000-0000-0000-9999-000000000012", "Female Face Texture", "femaleface.jp2"));
-
-            assets.Add(CreateAsset("77c41e39-38f9-f75a-024e-585989bbabbb", "Skin", "base_skin.dat", false));
-            assets.Add(CreateAsset("66c41e39-38f9-f75a-024e-585989bfab73", "Shape", "base_shape.dat", false));
-            assets.Add(CreateAsset("00000000-38f9-1111-024e-222222111110", "Shirt", "newshirt.dat", false));
-            assets.Add(CreateAsset("00000000-38f9-1111-024e-222222111120", "Shirt", "newpants.dat", false));
+            //assets.Add(CreateAsset("77c41e39-38f9-f75a-024e-585989bbabbb", "Skin", "base_skin.dat", false));
+            //assets.Add(CreateAsset("66c41e39-38f9-f75a-024e-585989bfab73", "Shape", "base_shape.dat", false));
+            //assets.Add(CreateAsset("00000000-38f9-1111-024e-222222111110", "Shirt", "newshirt.dat", false));
+            //assets.Add(CreateAsset("00000000-38f9-1111-024e-222222111120", "Shirt", "newpants.dat", false));
 
             return assets;
         }

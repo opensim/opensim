@@ -36,6 +36,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -319,17 +320,19 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AssetNotFound(LLUUID assetID)
         {
-            /*
             if (this.RequestedTextures.ContainsKey(assetID))
             {
+                MainLog.Instance.Warn("ASSET CACHE", "sending image not found for {0}", assetID);
                 AssetRequest req = this.RequestedTextures[assetID];
                 ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
                 notFound.ImageID.ID = assetID;
                 req.RequestUser.OutPacket(notFound);
-                //Console.WriteLine("sending image not found for " + assetID);
-
                 this.RequestedTextures.Remove(assetID);
-            }*/
+            }
+            else
+            {
+                MainLog.Instance.Error("ASSET CACHE", "Cound not send image not found for {0}", assetID);
+            }
         }
 
         #region Assets

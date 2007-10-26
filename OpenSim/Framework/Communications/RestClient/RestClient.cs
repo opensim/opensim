@@ -6,7 +6,9 @@ using System.Text;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace OpenSim.Framework.RestClient
+using OpenSim.Framework.Console;
+
+namespace OpenSim.Framework.Communications
 {
     /// <summary>
     /// Implementation of a generic REST client
@@ -25,8 +27,11 @@ namespace OpenSim.Framework.RestClient
     /// other threads to execute, while it waits for a response from the web-service. RestClient it self, can be
     /// invoked by the caller in either synchroneous mode or asynchroneous mode.
     /// </remarks>
-    public class RestClient 
+    public class RestClient
     {
+
+        string realuri;
+        #region member variables
         /// <summary>
         /// The base Uri of the web-service e.g. http://www.google.com 
         /// </summary>
@@ -55,7 +60,7 @@ namespace OpenSim.Framework.RestClient
         /// <summary>
         /// MemoryStream representing the resultiong resource
         /// </summary>
-        MemoryStream _resource;
+        Stream _resource;
 
         /// <summary>
         /// WebRequest object, held as a member variable
@@ -89,6 +94,9 @@ namespace OpenSim.Framework.RestClient
         /// </summary>
         private Exception _asyncException;
 
+        #endregion member variables
+
+        #region constructors
         /// <summary>
         /// Instantiate a new RestClient
         /// </summary>
@@ -100,7 +108,11 @@ namespace OpenSim.Framework.RestClient
             _resource = new MemoryStream();
             _request = null;
             _response = null;
+            _lock = new object();
         }
+
+        object _lock;
+        #endregion constructors
 
         /// <summary>
         /// Add a path element to the query, e.g. assets
@@ -122,6 +134,15 @@ namespace OpenSim.Framework.RestClient
         public void AddQueryParameter(string name, string value)
         {
             _parameterElements.Add(HttpUtility.UrlEncode(name), HttpUtility.UrlEncode(value));
+        }
+
+        /// <summary>
+        /// Add a query parameter to the Url
+        /// </summary>
+        /// <param name="name">Name of the parameter, e.g. min</param>
+        public void AddQueryParameter(string name)
+        {
+            _parameterElements.Add(HttpUtility.UrlEncode(name), null);
         }
 
         /// <summary>
@@ -185,9 +206,10 @@ namespace OpenSim.Framework.RestClient
                     sb.Append(kv.Value);
                 }
             }
+            realuri = sb.ToString();
             return new Uri(sb.ToString());
         }
-
+        #region Async communications with server
         /// <summary>
         /// Async method, invoked when a block of data has been received from the service
         /// </summary>
@@ -199,7 +221,6 @@ namespace OpenSim.Framework.RestClient
                 Stream s = (Stream)ar.AsyncState;
                 int read = s.EndRead(ar);
 
-                // Read the HTML page and then print it to the console.
                 if (read > 0)
                 {
                     _resource.Write(_readbuf, 0, read);
@@ -207,7 +228,6 @@ namespace OpenSim.Framework.RestClient
 
                     // TODO! Implement timeout, without killing the server
                     //ThreadPool.RegisterWaitForSingleObject(asynchronousResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
-                    return;
                 }
                 else
                 {
@@ -261,31 +281,82 @@ namespace OpenSim.Framework.RestClient
                 }
             }
         }
+        #endregion Async communications with server
 
         /// <summary>
         /// Perform synchroneous request
         /// </summary>
         public Stream Request()
         {
+            lock (_lock)
+            {
+                _request = (HttpWebRequest)WebRequest.Create(buildUri());
+                _request.KeepAlive = false;
+                _request.ContentType = "application/xml";
+                _request.Timeout = 200000;
+                _asyncException = null;
+
+//                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
+                _response = (HttpWebResponse)_request.GetResponse();
+                Stream src = _response.GetResponseStream();
+                int length = src.Read(_readbuf, 0, BufferSize);
+                while(length > 0)
+                {
+                    _resource.Write(_readbuf, 0, length);
+                    length = src.Read(_readbuf, 0, BufferSize);
+                }
+
+
+                // TODO! Implement timeout, without killing the server
+                // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
+                //ThreadPool.RegisterWaitForSingleObject(responseAsyncResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
+
+//                _allDone.WaitOne();
+                if (_response != null)
+                    _response.Close();
+                if (_asyncException != null)
+                    throw _asyncException;
+
+                if (_resource != null)
+                {
+                    _resource.Flush();
+                    _resource.Seek(0, SeekOrigin.Begin);
+                }
+
+                return _resource;
+            }
+        }
+
+        public Stream Request(Stream src)
+        {
             _request = (HttpWebRequest)WebRequest.Create(buildUri());
             _request.KeepAlive = false;
-            _request.ContentType = "text/html";
-            _request.Timeout = 200;
+            _request.ContentType = "application/xml";
+            _request.Timeout = 900000;
+            _request.Method = RequestMethod;
             _asyncException = null;
+            _request.ContentLength = src.Length;
 
-            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
+            src.Seek(0, SeekOrigin.Begin);
+            Stream dst = _request.GetRequestStream();
+            byte[] buf = new byte[1024];
+            int length = src.Read(buf,0, 1024);
+            while (length > 0)
+            {
+                dst.Write(buf, 0, length);
+                length = src.Read(buf, 0, 1024);
+            }
+            _response = (HttpWebResponse)_request.GetResponse();
+
+//            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
 
             // TODO! Implement timeout, without killing the server
             // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
             //ThreadPool.RegisterWaitForSingleObject(responseAsyncResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
 
-            _allDone.WaitOne();
-            if(_response != null)
-                _response.Close();
-            if (_asyncException != null)
-                throw _asyncException;
-            return _resource;
+            return null;
         }
+
 
         #region Async Invocation
         public IAsyncResult BeginRequest(AsyncCallback callback, object state)

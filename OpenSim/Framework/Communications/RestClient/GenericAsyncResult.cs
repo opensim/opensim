@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace OpenSim.Framework.RestClient
+namespace OpenSim.Framework.Communications
 {
     internal class SimpleAsyncResult : IAsyncResult
     {

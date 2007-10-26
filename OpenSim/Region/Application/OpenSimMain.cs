@@ -301,6 +301,10 @@ namespace OpenSim
             {
                 assetServer = new LocalAssetServer();
             }
+            else if (m_assetStorage == "grid")
+            {
+                assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
+            }
             else
             {
                 SQLAssetServer sqlAssetServer = new SQLAssetServer(standaloneAssetPlugin);

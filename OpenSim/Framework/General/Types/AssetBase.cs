@@ -25,10 +25,12 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using libsecondlife;
 
 namespace OpenSim.Framework.Types
 {
+    [Serializable]
     public class AssetBase
     {
         public byte[] Data;
