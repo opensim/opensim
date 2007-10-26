@@ -89,7 +89,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["region_locy"] = regionInfo.RegionLocY.ToString();
             GridParams["sim_name"] = regionInfo.RegionName;
             GridParams["http_port"] = serversInfo.HttpListenerPort.ToString();
-            GridParams["remoting_port"] = serversInfo.RemotingListenerPort.ToString();
+            GridParams["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
             GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToStringHyphenated();
 
             // Package into an XMLRPC Request
@@ -336,7 +336,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         private void StartRemoting()
         {
-            TcpChannel ch = new TcpChannel(this.serversInfo.RemotingListenerPort);
+            TcpChannel ch = new TcpChannel(NetworkServersInfo.RemotingListenerPort);
             ChannelServices.RegisterChannel(ch, false); // Disabled security as Mono doesnt support this.
 
             WellKnownServiceTypeEntry wellType = new WellKnownServiceTypeEntry(typeof(OGS1InterRegionRemoting), "InterRegions", WellKnownObjectMode.Singleton);

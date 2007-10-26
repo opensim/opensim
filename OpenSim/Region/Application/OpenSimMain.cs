@@ -43,6 +43,7 @@ using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Framework.Configuration;
 using System.Globalization;
 using RegionInfo = OpenSim.Framework.Types.RegionInfo;
 
@@ -64,7 +65,7 @@ namespace OpenSim
 
         protected ModuleLoader m_moduleLoader;
         protected LocalLoginService m_loginService;
-        private IConfigSource m_config;
+        private IniConfigSource m_config;
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
@@ -105,19 +106,88 @@ namespace OpenSim
 
             Util.changeUseExecutePathSetting(useExecutePath);
 
+            m_config = new IniConfigSource();
             //check for .INI file (either default or name passed in command line)
             string iniFilePath = Path.Combine(Util.configDir(), iniFile);
             if (File.Exists(iniFilePath))
             {
-                m_config = new IniConfigSource(iniFilePath);
+                m_config.Merge(new IniConfigSource(iniFilePath));
                 m_config.Merge(configSource);
             }
             else
             {
-                m_config = configSource;
+                // no default config files, so set default values, and save it
+                SetDefaultConfig();
+
+                m_config.Merge(configSource);
+
+                m_config.Save(iniFilePath);
             }
 
             ReadConfigSettings();
+
+        }
+
+        protected void SetDefaultConfig()
+        {
+            if (m_config.Configs["Startup"] == null)
+                m_config.AddConfig("Startup");
+            IConfig config = m_config.Configs["Startup"];
+            if (config != null)
+            {
+                config.Set("gridmode", false);
+                config.Set("physics", "basicphysics");
+                config.Set("verbose", true);
+                config.Set("serverside_object_permissions", false);
+
+                config.Set("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+
+                config.Set("startup_console_commands_file", "");
+                config.Set("shutdown_console_commands_file", "");
+
+                config.Set("script_engine", "DotNetEngine");
+
+                config.Set("asset_database", "sqlite");
+
+                // wtf?
+                config.Set("default_modules", true);
+                config.Set("default_shared_modules", true);
+                config.Set("except_modules", "");
+                config.Set("except_shared_modules", "");
+            }
+
+            if (m_config.Configs["StandAlone"] == null)
+                m_config.AddConfig("StandAlone");
+
+            config = m_config.Configs["StandAlone"];
+            if (config != null)
+            {
+                config.Set("accounts_authenticate", false);
+                config.Set("welcome_message", "Welcome to OpenSim");
+                config.Set("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                config.Set("userDatabase_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                config.Set("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                config.Set("dump_assets_to_file", false);
+            }
+
+            if (m_config.Configs["Network"] == null)
+                m_config.AddConfig("Network");
+            config = m_config.Configs["Network"];
+            if (config != null)
+            {
+                config.Set("default_location_x", 1000);
+                config.Set("default_location_y", 1000);
+
+                config.Set("http_listener_port", NetworkServersInfo.DefaultHttpListenerPort);
+                config.Set("remoting_listener_port", NetworkServersInfo.RemotingListenerPort);
+                config.Set("grid_server_url", "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString());
+                config.Set("grid_send_key", "null");
+                config.Set("grid_recv_key", "null");
+                config.Set("user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString());
+                config.Set("user_send_key", "null");
+                config.Set("user_recv_key", "null");
+                config.Set("asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString());
+            }
         }
 
         protected void ReadConfigSettings()
@@ -125,8 +195,7 @@ namespace OpenSim
             m_networkServersInfo = new NetworkServersInfo();
 
             IConfig startupConfig = m_config.Configs["Startup"];
-
-            if (startupConfig != null )
+            if (startupConfig != null)
             {
                 m_sandbox = !startupConfig.GetBoolean("gridmode", false);
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");

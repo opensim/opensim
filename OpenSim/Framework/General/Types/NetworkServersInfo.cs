@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Types
         public static int DefaultHttpListenerPort = 9000;
         public int HttpListenerPort = DefaultHttpListenerPort;
 
-        public int RemotingListenerPort = 8895;
+        public static int RemotingListenerPort = 8895;
 
 
         public NetworkServersInfo()
