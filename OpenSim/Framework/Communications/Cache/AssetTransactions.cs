@@ -287,7 +287,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (m_dumpAssetToFile)
                 {
-                    SaveAssetToFile("testudpupload" + Util.RandomClass.Next(1, 1000) + ".dat", this.Asset.Data);
+                    DateTime now = DateTime.Now;
+                    string filename = String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}", now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second, Asset.Name, Asset.Type );
+                    SaveAssetToFile(filename, this.Asset.Data);
                 }
             }
 
