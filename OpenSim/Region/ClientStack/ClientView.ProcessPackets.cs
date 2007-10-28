@@ -34,6 +34,7 @@ using OpenSim.Framework.Inventory;
 using OpenSim.Framework.Types;
 using OpenSim.Framework.Utilities;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -196,6 +197,21 @@ namespace OpenSim.Region.ClientStack
                                     OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
                                 }
                             }
+                        }
+                        break;
+                    case PacketType.AgentRequestSit:
+                        AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket)Pack;
+                        SendSitResponse(agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
+                        if (OnAgentRequestSit != null)
+                        {
+                            OnAgentRequestSit(this, agentRequestSit.AgentData.AgentID, agentRequestSit.TargetObject.TargetID);
+                        }
+                        break;
+                    case PacketType.AgentSit:
+                        if (OnAgentSit != null)
+                        {
+                            AgentSitPacket agentSit = (AgentSitPacket) Pack;
+                            OnAgentSit(this, agentSit.AgentData.AgentID);
                         }
                         break;
 

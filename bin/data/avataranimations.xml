@@ -7,4 +7,5 @@
 	<animation name="STAND">2408fe9e-df1d-1d7d-f4ff-1384fa7b350f</animation>
 	<animation name="WALK">6ed24bd8-91aa-4b12-ccc7-c97c857ab4e0</animation>
 	<animation name="FLY">aec4610c-757f-bc4e-c092-c6e9caf18daf</animation>
+	<animation name="SIT">1a5fe8ac-a804-8a5d-7cbd-56bd83184568</animation>
 </animations>

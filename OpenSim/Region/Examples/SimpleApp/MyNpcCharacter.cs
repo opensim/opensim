@@ -68,6 +68,8 @@ namespace SimpleApp
         public event GenericCall OnRequestWearables;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
+        public event AgentRequestSit OnAgentRequestSit;
+        public event AgentSit OnAgentSit;
         public event GenericCall OnRequestAvatarsData;
         public event AddNewPrim OnAddPrim;
         public event ObjectDuplicate OnObjectDuplicate;
@@ -179,7 +181,7 @@ namespace SimpleApp
         public virtual void SendTeleportLocationStart() { }
         public virtual void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance) { }
 
-        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry) { }
+        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID) { }
         public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation) { }
         public virtual void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations) { }
 

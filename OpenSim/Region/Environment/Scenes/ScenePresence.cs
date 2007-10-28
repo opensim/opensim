@@ -51,6 +51,7 @@ namespace OpenSim.Region.Environment.Scenes
         private byte m_movementflag = 0;
         private readonly List<NewForce> m_forcesList = new List<NewForce>();
         private short m_updateCount = 0;
+        private uint m_requestedSitTargetID = 0;
 
         private Quaternion bodyRot;
         private byte[] m_visualParams;
@@ -216,6 +217,13 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_isChildAgent = value; }
         }
 
+        private uint m_parentID = 0;
+        public uint ParentID
+        {
+            get { return m_parentID; }
+            set { m_parentID = value; }
+        }
+
         #endregion
 
         #region Constructor(s)
@@ -245,6 +253,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
             m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
             m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
+            m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
+            m_controllingClient.OnAgentSit += HandleAgentSit;
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -454,38 +464,89 @@ namespace OpenSim.Region.Environment.Scenes
                 update_movementflag = true;
             }
 
+            if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            {
+                StandUp();
+                update_movementflag = true;
+            }
+
             if (q != bodyRot)
             {
                 bodyRot = q;
                 update_rotation = true;
             }
-            foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
+
+            if (m_parentID == 0)
             {
-                if ((flags & (uint)DCF) != 0)
+                foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
                 {
-                    DCFlagKeyPressed = true;
-                    agent_control_v3 += Dir_Vectors[i];
-                    if ((m_movementflag & (uint)DCF) == 0)
+                    if ((flags & (uint)DCF) != 0)
                     {
-                        m_movementflag += (byte)(uint)DCF;
-                        update_movementflag = true;
+                        DCFlagKeyPressed = true;
+                        agent_control_v3 += Dir_Vectors[i];
+                        if ((m_movementflag & (uint)DCF) == 0)
+                        {
+                            m_movementflag += (byte)(uint)DCF;
+                            update_movementflag = true;
+                        }
                     }
-                }
-                else
-                {
-                    if ((m_movementflag & (uint)DCF) != 0)
+                    else
                     {
-                        m_movementflag -= (byte)(uint)DCF;
-                        update_movementflag = true;
+                        if ((m_movementflag & (uint)DCF) != 0)
+                        {
+                            m_movementflag -= (byte)(uint)DCF;
+                            update_movementflag = true;
+                        }
                     }
+                    i++;
                 }
-                i++;
             }
+
             if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
             {
                 AddNewMovement(agent_control_v3, q);
             }
             UpdateMovementAnimations(update_movementflag);
+        }
+
+        protected void StandUp()
+        {
+            if (m_parentID != 0)
+            {
+                SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                if (part != null)
+                    AbsolutePosition = part.AbsolutePosition;
+                m_parentID = 0;
+                SendFullUpdateToAllClients();
+            }
+        }
+
+        public void HandleAgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID)
+        {
+            if (m_parentID != 0)
+            {
+                StandUp();
+                UpdateMovementAnimations(true);
+            }
+
+            SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
+
+            if (part != null)
+            {
+                m_requestedSitTargetID = part.LocalID;
+            }
+            else
+            {
+                MainLog.Instance.Warn("Sit requested on unknown object: " + targetID.ToString());
+            }
+        }
+
+        public void HandleAgentSit(IClientAPI remoteClient, LLUUID agentID)
+        {
+            AbsolutePosition = new LLVector3(0F, 0F, 0F);
+            m_parentID = m_requestedSitTargetID;
+            SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
+            SendFullUpdateToAllClients();
         }
 
         protected void UpdateMovementAnimations(bool update_movementflag)
@@ -641,7 +702,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
-                                                          LocalId, AbsolutePosition, m_textureEntry.ToBytes());
+                                                            LocalId, AbsolutePosition, m_textureEntry.ToBytes(), m_parentID);
         }
 
         public void SendFullUpdateToAllClients()
@@ -667,7 +728,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendInitialData()
         {
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
-                                             AbsolutePosition, m_textureEntry.ToBytes());
+                                               AbsolutePosition, m_textureEntry.ToBytes(), m_parentID);
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(m_controllingClient);

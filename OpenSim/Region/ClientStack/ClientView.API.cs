@@ -54,6 +54,8 @@ namespace OpenSim.Region.ClientStack
         public event SetAppearance OnSetAppearance;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
+        public event AgentRequestSit OnAgentRequestSit;
+        public event AgentSit OnAgentSit;
         public event StartAnim OnStartAnim;
         public event GenericCall OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
@@ -807,6 +809,19 @@ namespace OpenSim.Region.ClientStack
             avatarReply.PropertiesData.PartnerID = partnerID;
             OutPacket(avatarReply);
         }
+
+        public void SendSitResponse(LLUUID targetID, LLVector3 offset)
+        {
+            AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
+
+            avatarSitResponse.SitObject.ID = targetID;
+
+            avatarSitResponse.SitTransform.AutoPilot = true;
+            avatarSitResponse.SitTransform.SitPosition = offset;
+            avatarSitResponse.SitTransform.SitRotation = new LLQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
+            OutPacket(avatarSitResponse);
+        }
         #endregion
 
         #region Appearance/ Wearables Methods
@@ -889,7 +904,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="avatarID"></param>
         /// <param name="avatarLocalID"></param>
         /// <param name="Pos"></param>
-        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry)
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
         {
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = regionHandle;
@@ -900,6 +915,7 @@ namespace OpenSim.Region.ClientStack
             //give this avatar object a local id and assign the user a name
             objupdate.ObjectData[0].ID = avatarLocalID;
             objupdate.ObjectData[0].FullID = avatarID;
+            objupdate.ObjectData[0].ParentID = parentID;
             objupdate.ObjectData[0].NameValue = Helpers.StringToField("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName);
             LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();

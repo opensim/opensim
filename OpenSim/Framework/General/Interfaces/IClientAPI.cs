@@ -169,6 +169,8 @@ namespace OpenSim.Framework.Interfaces
     public delegate void StatusChange(bool status);
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
     public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
+    public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID);
+    public delegate void AgentSit(IClientAPI remoteClient, LLUUID agentID);
     public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
 
     public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
@@ -217,6 +219,8 @@ namespace OpenSim.Framework.Interfaces
         event GenericCall OnRequestWearables;
         event GenericCall2 OnCompleteMovementToRegion;
         event UpdateAgent OnAgentUpdate;
+        event AgentRequestSit OnAgentRequestSit;
+        event AgentSit OnAgentSit;
         event GenericCall OnRequestAvatarsData;
         event AddNewPrim OnAddPrim;
         event ObjectDuplicate OnObjectDuplicate;
@@ -321,7 +325,7 @@ namespace OpenSim.Framework.Interfaces
         void SendTeleportLocationStart();
         void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);
 
-        void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry);
+        void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID);
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation);
         void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations);
 
