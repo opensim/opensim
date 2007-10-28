@@ -95,20 +95,10 @@ namespace OpenSim
         {
             IConfig startupConfig = configSource.Configs["Startup"];
 
-            string iniFile = startupConfig.GetString("inifile", "OpenSim.ini");
-            string useExecutePathString = startupConfig.GetString("useexecutepath", "false").ToLower();
-
-            bool useExecutePath = false;
-            if (useExecutePathString == "true" || useExecutePathString == "" || useExecutePathString == "1" || useExecutePathString == "yes")
-            {
-                useExecutePath = true;
-            }
-
-            Util.changeUseExecutePathSetting(useExecutePath);
+            string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
             m_config = new IniConfigSource();
             //check for .INI file (either default or name passed in command line)
-            string iniFilePath = Path.Combine(Util.configDir(), iniFile);
             if (File.Exists(iniFilePath))
             {
                 m_config.Merge(new IniConfigSource(iniFilePath));
@@ -116,12 +106,22 @@ namespace OpenSim
             }
             else
             {
-                // no default config files, so set default values, and save it
-                SetDefaultConfig();
+                iniFilePath = Path.Combine(Util.configDir(), iniFilePath);
+                if (File.Exists(iniFilePath))
+                {
+                    m_config.Merge(new IniConfigSource(iniFilePath));
+                    m_config.Merge(configSource);
+                }
+                else
+                {
 
-                m_config.Merge(configSource);
+                    // no default config files, so set default values, and save it
+                    SetDefaultConfig();
 
-                m_config.Save(iniFilePath);
+                    m_config.Merge(configSource);
+
+                    m_config.Save(iniFilePath);
+                }
             }
 
             ReadConfigSettings();
