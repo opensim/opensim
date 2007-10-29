@@ -1134,7 +1134,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scenePresences.ContainsKey(agentID))
                 {
-                    m_scenePresences[agentID].MakeAvatarPhysical(position, isFlying);
+                    m_scenePresences[agentID].MakeRootAgent(position, isFlying);
                 }
             }
         }
@@ -1569,6 +1569,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             avatar = null;
             return false;
+        }
+
+        internal void ForEachClient( Action<IClientAPI> action )
+        {
+            foreach (ScenePresence presence in m_scenePresences.Values )
+            {
+                action(presence.ControllingClient);
+            }
         }
     }
 }

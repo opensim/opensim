@@ -39,6 +39,12 @@ namespace OpenSim.Framework.Types
 
         }
 
+        public AvatarWearable( LLUUID itemId, LLUUID assetId )
+        {
+            AssetID = assetId;
+            ItemID = itemId;
+        }
+
         public static AvatarWearable[] DefaultWearables
         {
             get

@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -42,15 +43,25 @@ namespace OpenSim.Region.Environment
     {
         public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
 
-        public List<IRegionModule> LoadedModules = new List<IRegionModule>();
-        public Dictionary<string, IRegionModule> LoadedSharedModules = new Dictionary<string, IRegionModule>();
+        private readonly List<IRegionModule> m_loadedModules = new List<IRegionModule>();
+        private Dictionary<string, IRegionModule> m_loadedSharedModules = new Dictionary<string, IRegionModule>();
         private readonly LogBase m_log;
-        private IConfigSource m_config;
+        private readonly IConfigSource m_config;
 
         public ModuleLoader(LogBase log, IConfigSource config)
         {
             m_log = log;
             m_config = config;
+        }
+
+        public IRegionModule[] GetLoadedSharedModules
+        {
+            get
+            {
+                IRegionModule[] regionModules = new IRegionModule[ m_loadedSharedModules.Count ];
+                m_loadedSharedModules.Values.CopyTo( regionModules, 0 );
+                return regionModules;
+            }
         }
 
         public void PickupModules(Scene scene, string moduleDir)
@@ -66,19 +77,19 @@ namespace OpenSim.Region.Environment
         public void LoadDefaultSharedModules()
         {
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
-            LoadedSharedModules.Add(dynamicModule.Name, dynamicModule);
+            m_loadedSharedModules.Add(dynamicModule.Name, dynamicModule);
 
             ChatModule chat = new ChatModule();
-            LoadedSharedModules.Add(chat.Name, chat);
+            m_loadedSharedModules.Add(chat.Name, chat);
 
             InstantMessageModule imMod = new InstantMessageModule();
-            LoadedSharedModules.Add(imMod.Name, imMod);
+            m_loadedSharedModules.Add(imMod.Name, imMod);
 
             LoadImageURLModule loadMod = new LoadImageURLModule();
-            LoadedSharedModules.Add(loadMod.Name, loadMod);
+            m_loadedSharedModules.Add(loadMod.Name, loadMod);
 
             AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
-            LoadedSharedModules.Add(avatarFactory.Name, avatarFactory);
+            m_loadedSharedModules.Add(avatarFactory.Name, avatarFactory);
 
             //TextureDownloadModule textureModule = new TextureDownloadModule();
             //LoadedSharedModules.Add(textureModule.Name, textureModule);
@@ -86,7 +97,7 @@ namespace OpenSim.Region.Environment
 
         public void InitialiseSharedModules(Scene scene)
         {
-            foreach (IRegionModule module in LoadedSharedModules.Values)
+            foreach (IRegionModule module in m_loadedSharedModules.Values)
             {
                 module.Initialise(scene, m_config);
                 scene.AddModule(module.Name, module); //should be doing this?
@@ -97,7 +108,7 @@ namespace OpenSim.Region.Environment
         {
             module.Initialise(scene, m_config);
             scene.AddModule(module.Name, module);
-            LoadedModules.Add(module);
+            m_loadedModules.Add(module);
         }
 
         /// <summary>
@@ -111,7 +122,7 @@ namespace OpenSim.Region.Environment
             IRegionModule module = LoadModule(dllName, moduleName);
             if (module != null)
             {
-                LoadedSharedModules.Add(module.Name, module);
+                m_loadedSharedModules.Add(module.Name, module);
             }
         }
 
@@ -204,12 +215,12 @@ namespace OpenSim.Region.Environment
 
         public void PostInitialise()
         {
-            foreach (IRegionModule module in LoadedSharedModules.Values)
+            foreach (IRegionModule module in m_loadedSharedModules.Values)
             {
                 module.PostInitialise();
             }
 
-            foreach (IRegionModule module in LoadedModules)
+            foreach (IRegionModule module in m_loadedModules)
             {
                 module.PostInitialise();
             }

@@ -750,7 +750,7 @@ namespace OpenSim
                     break;
                 case "modules":
                     m_log.Error("The currently loaded shared modules are:");
-                    foreach (OpenSim.Region.Environment.Interfaces.IRegionModule module in m_moduleLoader.LoadedSharedModules.Values)
+                    foreach (OpenSim.Region.Environment.Interfaces.IRegionModule module in m_moduleLoader.GetLoadedSharedModules )
                     {
                         m_log.Error("Shared Module: " + module.Name);
                     }

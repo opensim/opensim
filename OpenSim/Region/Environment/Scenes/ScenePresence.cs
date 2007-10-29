@@ -248,8 +248,8 @@ namespace OpenSim.Region.Environment.Scenes
             Animations.LoadAnims();
 
             //register for events
-            m_controllingClient.OnRequestWearables += SendOurAppearance;
-            m_controllingClient.OnSetAppearance += new SetAppearance(SetAppearance);
+            m_controllingClient.OnRequestWearables += SendAppearance;
+            m_controllingClient.OnSetAppearance += SetAppearance;
             m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
             m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
             m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
@@ -343,7 +343,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Status Methods
 
-        public void MakeAvatarPhysical(LLVector3 pos, bool isFlying)
+        public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
             m_newAvatar = true;
             m_isChildAgent = false;
@@ -412,7 +412,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_visualParams[i] = visualParam[i].ParamValue;
             }
 
-            SendAppearanceToAllOtherAgents();
+            SendAppearanceToAllOtherClients();
         }
 
         /// <summary>
@@ -433,7 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_isChildAgent = false;
 
                 //this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
-                this.MakeAvatarPhysical(this.AbsolutePosition, false);
+                this.MakeRootAgent(this.AbsolutePosition, false);
             }
         }
 
@@ -707,16 +707,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_scene.GetScenePresences();
-            foreach (ScenePresence avatar in avatars)
+            List<ScenePresence> agents = m_scene.GetScenePresences();
+            foreach (ScenePresence agent in agents)
             {
-                SendFullUpdateToOtherClient(avatar);
-                if (avatar.LocalId != LocalId)
+                IClientAPI client = agent.ControllingClient;
+                client.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
+                                                          LocalId, AbsolutePosition, m_textureEntry.ToBytes(), m_parentID );
+
+                if (agent.LocalId != LocalId)
                 {
-                    if (!avatar.m_isChildAgent)
-                    {
-                        avatar.SendFullUpdateToOtherClient(this);
-                        avatar.SendAppearanceToOtherAgent(this);
+                    if (!agent.m_isChildAgent)
+                    {                     
+                        client.SendAppearance(m_controllingClient.AgentId, m_visualParams,
+                                                        m_textureEntry.ToBytes());
                     }
                 }
             }
@@ -736,22 +739,28 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             SendFullUpdateToAllClients();
-            SendAppearanceToAllOtherAgents();
+            SendAppearanceToAllOtherClients();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="OurClient"></param>
-        public void SendOurAppearance(IClientAPI OurClient)
+        public void SetWearable( int wearableId, AvatarWearable wearable )
         {
-            m_controllingClient.SendWearables(m_wearables);
+            m_wearables[wearableId] = wearable;
+
+            m_scene.ForEachClient( delegate( IClientAPI client )
+                                       {
+                                           SendAppearance( client );
+                                       });            
+        }
+
+        public void SendAppearance(IClientAPI client)
+        {
+            client.SendWearables(m_wearables);
 
             //this.SendFullUpdateToAllClients();
-            //this.SendAppearanceToAllOtherAgents();
+            //this.SendAppearanceToAllOtherClients();
 
             m_scene.SendAllSceneObjectsToClient(this);
-            m_controllingClient.SendViewerTime(m_scene.TimePhase);
+            client.SendViewerTime(m_scene.TimePhase);
 
             //Please don't remove the following code (at least not yet), just leave it commented out
             //gives the user god powers, should help with debuging things in the future
@@ -767,25 +776,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void SendAppearanceToAllOtherAgents()
+        public void SendAppearanceToAllOtherClients()
         {
-            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
-                                             {
-                                                 if (scenePresence != this)
-                                                 {
-                                                     SendAppearanceToOtherAgent(scenePresence);
-                                                 }
-                                             });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="avatarInfo"></param>
-        public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
-        {
-            avatarInfo.m_controllingClient.SendAppearance(m_controllingClient.AgentId, m_visualParams,
-                                                        m_textureEntry.ToBytes());
+            m_scene.ForEachClient(delegate(IClientAPI client)
+                                      {
+                                          if( client != m_controllingClient )
+                                          {
+                                              client.SendAppearance(m_controllingClient.AgentId, m_visualParams,
+                                                        m_textureEntry.ToBytes() );
+                                          }
+                                      });
         }
 
         /// <summary>

@@ -310,5 +310,10 @@ namespace OpenSim.Region.Environment.Scenes
             avatar = null;
             return false;
         }
+
+        public void ForEachScene(Action<Scene> action )
+        {
+            m_localScenes.ForEach( action );
+        }
     }
 }
