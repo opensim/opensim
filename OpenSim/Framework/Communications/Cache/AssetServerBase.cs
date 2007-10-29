@@ -163,6 +163,8 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void ForEachXmlAsset(Action<AssetBase> action)
         {
+            List<AssetBase> assets = new List<AssetBase>();
+           // System.Console.WriteLine("trying loading asset into database");
             string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
             if (File.Exists(filePath))
             {
@@ -170,6 +172,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 for (int i = 0; i < source.Configs.Count; i++)
                 {
+                   // System.Console.WriteLine("loading asset into database");
                     string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
                     string name = source.Configs[i].GetString("name", "");
                     sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
@@ -180,9 +183,10 @@ namespace OpenSim.Framework.Communications.Cache
 
                     newAsset.Type = type;
                     newAsset.InvType = invType;
-
+                   assets.Add(newAsset);
                 }
             }
+            assets.ForEach(action);
         }
     }
 }
