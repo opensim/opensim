@@ -30,6 +30,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -72,7 +73,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 ChatFromViewerArgs args = new ChatFromViewerArgs();
 
-                args.Message = OpenSim.Framework.Utilities.Util.FieldToString(message);
+                args.Message = OpenSim.Framework.Util.FieldToString(message);
                 args.Channel = channel;
                 args.Type = (ChatTypeEnum)type;
                 args.Position = fromPos;

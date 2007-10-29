@@ -42,7 +42,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Region.Communications.OGS1
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Communications.OGS1
                         int port = Convert.ToInt32(neighbourData["sim_port"]);
                         string externalUri = (string)neighbourData["sim_uri"];
 
-                        string externalIpStr = OpenSim.Framework.Utilities.Util.GetHostFromDNS(simIp).ToString();
+                        string externalIpStr = OpenSim.Framework.Util.GetHostFromDNS(simIp).ToString();
                         SimpleRegionInfo sri = new SimpleRegionInfo(regX, regY, simIp, port);
                         sri.RemotingPort = Convert.ToUInt32(neighbourData["remoting_port"]);
                         sri.RegionID = new LLUUID((string)neighbourData["uuid"]);

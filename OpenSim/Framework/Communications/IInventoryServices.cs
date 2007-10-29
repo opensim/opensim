@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications
 {

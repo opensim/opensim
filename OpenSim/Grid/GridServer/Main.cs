@@ -34,8 +34,8 @@ using System.Timers;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Configuration;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
+using OpenSim.Framework;
 
 using Timer=System.Timers.Timer;
 

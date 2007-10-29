@@ -8,8 +8,8 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
+using OpenSim.Framework;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
@@ -18,7 +18,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 using System.Globalization;
 using Nwc.XmlRpc;
-using RegionInfo = OpenSim.Framework.Types.RegionInfo;
+using RegionInfo = OpenSim.Framework.RegionInfo;
 
 namespace OpenSim
 {

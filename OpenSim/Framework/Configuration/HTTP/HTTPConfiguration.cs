@@ -32,7 +32,7 @@ using System.Net;
 using System.IO;
 using System.Text;
 
-using OpenSim.Framework.Configuration.Interfaces;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Configuration.HTTP
 {

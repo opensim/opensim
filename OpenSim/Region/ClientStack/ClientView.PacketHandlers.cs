@@ -29,6 +29,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack
 {

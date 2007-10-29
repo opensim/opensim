@@ -34,13 +34,9 @@ using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
 
-using OpenSim.Framework.Configuration;
-using InventoryFolder = OpenSim.Framework.Inventory.InventoryFolder;
+using OpenSim.Framework;
+using InventoryFolder = OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Framework.UserManagement
 {

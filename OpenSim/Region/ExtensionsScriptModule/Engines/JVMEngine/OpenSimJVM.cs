@@ -32,7 +32,7 @@ using System.IO;
 using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM;
 using Thread = OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM.Thread;

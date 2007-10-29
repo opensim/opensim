@@ -27,7 +27,7 @@
 */
 using System.Collections.Generic;
 using Axiom.Math;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BasicPhysicsPlugin

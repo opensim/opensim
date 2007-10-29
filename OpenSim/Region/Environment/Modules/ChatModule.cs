@@ -34,7 +34,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;

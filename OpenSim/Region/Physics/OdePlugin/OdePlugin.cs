@@ -33,7 +33,7 @@ using libsecondlife;
 
 using Axiom.Math;
 using Ode.NET;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 

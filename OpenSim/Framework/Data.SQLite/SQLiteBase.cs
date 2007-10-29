@@ -28,7 +28,7 @@
 using System;
 using System.IO;
 using libsecondlife;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using System.Data;
 using System.Data.SqlTypes;
 using Mono.Data.SqliteClient;

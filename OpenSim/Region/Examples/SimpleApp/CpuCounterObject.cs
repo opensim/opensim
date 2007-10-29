@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.Environment.Scenes;
 using libsecondlife;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using System.Timers;
 using System.Diagnostics;
 

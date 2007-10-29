@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace OpenSim.Framework.Utilities
+namespace OpenSim.Framework
 {
     public class BlockingQueue<T>
     {

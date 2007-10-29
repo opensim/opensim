@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 using System.Text;
 
 using libsecondlife;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;

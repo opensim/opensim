@@ -32,8 +32,8 @@ using System.Text;
 using System.Reflection;
 
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
+using OpenSim.Framework;
 using libsecondlife;
 
 using System.Data;

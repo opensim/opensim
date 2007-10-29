@@ -27,7 +27,7 @@
 */
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 
 using System.Collections.Generic;
 

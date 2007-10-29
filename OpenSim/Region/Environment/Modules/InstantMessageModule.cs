@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Console;
+using OpenSim.Framework;
 using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
@@ -53,7 +54,7 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        void OnNewClient(OpenSim.Framework.Interfaces.IClientAPI client)
+        void OnNewClient(OpenSim.Framework.IClientAPI client)
         {
             client.OnInstantMessage += OnInstantMessage;
         }

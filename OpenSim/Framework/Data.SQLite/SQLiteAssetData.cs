@@ -28,12 +28,12 @@
 using System;
 using System.IO;
 using libsecondlife;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using System.Data;
 using System.Data.SqlTypes;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Framework.Data.SQLite

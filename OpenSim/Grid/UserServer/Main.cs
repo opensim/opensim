@@ -34,8 +34,8 @@ using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Configuration;
+using OpenSim.Framework;
+using OpenSim.Framework;
 
 namespace OpenSim.Grid.UserServer
 {

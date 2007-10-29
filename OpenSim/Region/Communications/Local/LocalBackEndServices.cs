@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using System.Collections;
 
 namespace OpenSim.Region.Communications.Local

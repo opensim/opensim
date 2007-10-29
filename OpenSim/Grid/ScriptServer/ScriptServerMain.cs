@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 
 namespace OpenSim.Grid.ScriptServer
 {

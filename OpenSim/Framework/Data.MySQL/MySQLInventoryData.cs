@@ -30,7 +30,7 @@ using System.IO;
 using System.Data;
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using MySql.Data.MySqlClient;
 

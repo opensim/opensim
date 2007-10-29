@@ -34,7 +34,7 @@ using libsecondlife;
 
 using MySql.Data.MySqlClient;
 
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL

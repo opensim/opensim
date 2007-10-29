@@ -34,8 +34,8 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -769,13 +769,17 @@ namespace OpenSim.Region.ClientStack
             viewertime.TimeInfo.SecPerYear = 365000;
             viewertime.TimeInfo.SunPhase = 1;
             int sunPhase = (phase + 2) / 2;
-            if ((sunPhase < 12) || (sunPhase > 36))
+            if ((sunPhase < 6) || (sunPhase > 36))
             {
                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, 0.8f, -0.8f);
                 //Console.WriteLine("sending night");
             }
             else
             {
+                if (sunPhase < 12)
+                {
+                    sunPhase = 12;
+                }
                 sunPhase = sunPhase - 12;
                 float yValue = 0.1f * (sunPhase);
                 if (yValue > 1.2f) { yValue = yValue - 1.2f; }

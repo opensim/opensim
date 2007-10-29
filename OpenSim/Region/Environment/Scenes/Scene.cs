@@ -40,8 +40,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
@@ -296,7 +294,7 @@ namespace OpenSim.Region.Environment.Scenes
                     UpdateLand();
 
                 if (m_frame % m_update_avatars == 0)
-                    UpdateAvatars();
+                    UpdateInWorldTime();
             }
             catch (NotImplementedException)
             {
@@ -329,7 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private void UpdateAvatars()
+        private void UpdateInWorldTime()
         {
             m_timeUpdateCount++;
             if (m_timeUpdateCount > 600)

@@ -34,8 +34,7 @@ using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache

@@ -33,7 +33,7 @@ using System.Timers;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Region.Environment;
 
 namespace OpenSim.Region.ClientStack

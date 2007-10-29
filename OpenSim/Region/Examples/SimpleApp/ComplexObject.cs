@@ -32,7 +32,7 @@ using System.Text;
 using OpenSim.Region.Environment.Scenes;
 using Axiom.Math;
 using libsecondlife;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 
 namespace SimpleApp

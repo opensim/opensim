@@ -32,6 +32,6 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ISimChat
     {
-        void SimChat(System.Object sender, OpenSim.Framework.Interfaces.ChatFromViewerArgs e);
+        void SimChat(System.Object sender, OpenSim.Framework.ChatFromViewerArgs e);
     }
 }

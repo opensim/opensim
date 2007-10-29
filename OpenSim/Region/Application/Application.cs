@@ -46,7 +46,7 @@ namespace OpenSim
 
             Console.Write("Performing compatibility checks... ");
             string supported = "";
-            if (OpenSim.Framework.Utilities.Util.IsEnvironmentSupported(ref supported))
+            if (OpenSim.Framework.Util.IsEnvironmentSupported(ref supported))
             {
                 Console.WriteLine(" Environment is compatible.\n");
             }

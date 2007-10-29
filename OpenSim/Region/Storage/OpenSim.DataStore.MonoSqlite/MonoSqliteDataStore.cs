@@ -32,7 +32,7 @@ using System.Data;
 using libsecondlife;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
@@ -228,7 +228,7 @@ namespace OpenSim.DataStore.MonoSqlite
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-            int revision = OpenSim.Framework.Utilities.Util.UnixTimeSinceEpoch();
+            int revision = OpenSim.Framework.Util.UnixTimeSinceEpoch();
 
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
 

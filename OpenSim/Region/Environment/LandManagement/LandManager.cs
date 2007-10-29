@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.LandManagement

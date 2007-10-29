@@ -37,7 +37,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
@@ -584,7 +584,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public string llList2Key(List<string> src, int index)
         {
-            //return OpenSim.Framework.Types.ToStringHyphenated(src[index]);
+            //return OpenSim.Framework.ToStringHyphenated(src[index]);
             return src[index].ToString();
         }
 

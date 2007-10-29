@@ -36,8 +36,7 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 
 namespace OpenSim.Framework.Communications.Cache

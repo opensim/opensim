@@ -33,8 +33,7 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -42,14 +41,12 @@ namespace OpenSim.Framework.Communications.Cache
     {
         public SQLAssetServer(string pluginName)
         {
-           // _assetRequests = new BlockingQueue<ARequest>();
             AddPlugin(pluginName);
         }
 
         public SQLAssetServer(IAssetProvider assetProvider)
         {
             m_assetProviderPlugin = assetProvider;
-           
         }
 
         public void AddPlugin(string FileName)

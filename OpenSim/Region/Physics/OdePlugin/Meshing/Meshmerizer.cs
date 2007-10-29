@@ -33,7 +33,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin

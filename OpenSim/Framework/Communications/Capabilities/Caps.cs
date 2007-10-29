@@ -33,8 +33,7 @@ using System.IO;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Capabilities
 {

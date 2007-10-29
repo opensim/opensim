@@ -27,7 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using PhysXWrapper;
 using Quaternion=Axiom.Math.Quaternion;

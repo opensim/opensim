@@ -35,7 +35,7 @@ using libsecondlife;
 
 using Nini.Config;
 
-namespace OpenSim.Framework.Utilities
+namespace OpenSim.Framework
 {
     public class Util
     {

@@ -31,7 +31,7 @@ using System.Net.Sockets;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Interfaces;
 using libsecondlife;
 

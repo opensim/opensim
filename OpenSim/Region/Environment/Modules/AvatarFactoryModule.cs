@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using Nini.Config;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 

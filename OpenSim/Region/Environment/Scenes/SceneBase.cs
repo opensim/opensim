@@ -31,9 +31,8 @@ using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Region.Terrain;
 using OpenSim.Framework;
+using OpenSim.Region.Terrain;
 
 namespace OpenSim.Region.Environment.Scenes
 {

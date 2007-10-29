@@ -32,8 +32,7 @@ using System.Text;
 using System.IO;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Framework.Data;
 
 namespace OpenSim.Framework.Communications.Cache

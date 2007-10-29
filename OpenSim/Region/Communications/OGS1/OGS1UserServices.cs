@@ -31,7 +31,7 @@ using System.Collections;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.OGS1
 {

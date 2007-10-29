@@ -29,6 +29,7 @@
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {

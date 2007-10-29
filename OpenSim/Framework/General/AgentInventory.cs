@@ -28,10 +28,10 @@
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework.Inventory
+
+namespace OpenSim.Framework
 {
     public class AgentInventory
     {

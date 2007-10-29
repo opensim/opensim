@@ -25,7 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using Axiom.Math;
 

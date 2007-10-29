@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes;
 

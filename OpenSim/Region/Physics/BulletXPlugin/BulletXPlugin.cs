@@ -59,7 +59,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using Axiom.Math;
 using AxiomQuaternion = Axiom.Math.Quaternion;
 //Specific References for BulletXPlugin

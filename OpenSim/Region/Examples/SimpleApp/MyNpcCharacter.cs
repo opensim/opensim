@@ -32,8 +32,8 @@ using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using System;
 

@@ -30,9 +30,8 @@ using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Utilities;
 
 namespace OpenSim.Framework.Communications
 {

@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes

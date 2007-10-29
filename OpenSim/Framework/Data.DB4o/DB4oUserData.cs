@@ -28,8 +28,8 @@
 using System;
 using System.IO;
 using libsecondlife;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Data.DB4o
 {

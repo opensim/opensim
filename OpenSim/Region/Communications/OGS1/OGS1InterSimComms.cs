@@ -28,7 +28,7 @@
 
 using System;
 using libsecondlife;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.OGS1
 {

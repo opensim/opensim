@@ -32,7 +32,7 @@ using System.Net.Sockets;
 using System.Threading;
 using libsecondlife;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Servers;

@@ -31,10 +31,8 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Framework.UserManagement;
-using OpenSim.Framework.Utilities;
-using OpenSim.Framework.Inventory;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -184,7 +182,7 @@ namespace OpenSim.Region.Communications.Local
 
                 ArrayList AgentInventoryArray = new ArrayList();
                 Hashtable TempHash;
-                foreach (OpenSim.Framework.Inventory.InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
+                foreach (OpenSim.Framework.InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
                 {
                     TempHash = new Hashtable();
                     TempHash["name"] = InvFolder.FolderName;

@@ -30,7 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using OpenSim.Framework.Configuration;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Configuration.HTTP
 {

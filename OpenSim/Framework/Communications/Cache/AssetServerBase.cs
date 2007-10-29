@@ -6,8 +6,7 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Types;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -18,18 +17,18 @@ namespace OpenSim.Framework.Communications.Cache
         protected Thread _localAssetServerThread;
         protected IAssetProvider m_assetProviderPlugin;
         protected object syncLock = new object();
-        
+
         protected abstract void StoreAsset(AssetBase asset);
         protected abstract void CommitAssets();
 
         protected abstract void RunRequests();
- 
+
         public void LoadDefaultAssets()
         {
             MainLog.Instance.Verbose("SQL ASSET SERVER", "Setting up asset database");
 
-            ForEachDefaultAsset(StoreAsset );
-            ForEachXmlAsset(StoreAsset );
+            ForEachDefaultAsset(StoreAsset);
+            ForEachXmlAsset(StoreAsset);
 
             CommitAssets();
         }
@@ -37,10 +36,11 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetServerBase()
         {
+
             OpenSim.Framework.Console.MainLog.Instance.Verbose("ASSETSERVER","Starting asset storage system");
             this._assetRequests = new BlockingQueue<ARequest>();
 
-            this._localAssetServerThread = new Thread( RunRequests );
+            this._localAssetServerThread = new Thread(RunRequests);
             this._localAssetServerThread.IsBackground = true;
             this._localAssetServerThread.Start();
         }
@@ -96,13 +96,13 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         public virtual void Close()
-    {
-        _localAssetServerThread.Abort( );
-    }
+        {
+            _localAssetServerThread.Abort();
+        }
 
         public void SetServerInfo(string ServerUrl, string ServerKey)
         {
-           
+
         }
 
         public virtual List<AssetBase> GetDefaultAssets()
@@ -149,13 +149,13 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (!String.IsNullOrEmpty(filename))
             {
-                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, filename );
+                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, filename);
 
                 LoadAsset(asset, isImage, filename);
             }
             else
             {
-                MainLog.Instance.Verbose("ASSETS", "Instantiated: [{0}]", name );                
+                MainLog.Instance.Verbose("ASSETS", "Instantiated: [{0}]", name);
             }
 
             return asset;
@@ -164,7 +164,7 @@ namespace OpenSim.Framework.Communications.Cache
         public void ForEachXmlAsset(Action<AssetBase> action)
         {
             List<AssetBase> assets = new List<AssetBase>();
-           // System.Console.WriteLine("trying loading asset into database");
+            // System.Console.WriteLine("trying loading asset into database");
             string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
             if (File.Exists(filePath))
             {
@@ -172,7 +172,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 for (int i = 0; i < source.Configs.Count; i++)
                 {
-                   // System.Console.WriteLine("loading asset into database");
+                    // System.Console.WriteLine("loading asset into database");
                     string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
                     string name = source.Configs[i].GetString("name", "");
                     sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
@@ -183,7 +183,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                     newAsset.Type = type;
                     newAsset.InvType = invType;
-                   assets.Add(newAsset);
+                    assets.Add(newAsset);
                 }
             }
             assets.ForEach(action);

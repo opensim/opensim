@@ -33,7 +33,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Types;
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment;
 using libsecondlife;
