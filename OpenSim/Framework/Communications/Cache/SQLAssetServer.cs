@@ -42,13 +42,14 @@ namespace OpenSim.Framework.Communications.Cache
     {
         public SQLAssetServer(string pluginName)
         {
-            _assetRequests = new BlockingQueue<ARequest>();
+           // _assetRequests = new BlockingQueue<ARequest>();
             AddPlugin(pluginName);
         }
 
         public SQLAssetServer(IAssetProvider assetProvider)
         {
             m_assetProviderPlugin = assetProvider;
+           
         }
 
         public void AddPlugin(string FileName)
@@ -92,7 +93,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 ARequest req = this._assetRequests.Dequeue();
 
-                MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
+               //MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
 
                 AssetBase asset = null;
                 lock (syncLock)
