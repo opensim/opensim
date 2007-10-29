@@ -125,7 +125,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags;
+        protected LLObject.ObjectFlags m_flags =0;
 
         public uint ObjectFlags
         {
@@ -133,7 +133,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_flags = (LLObject.ObjectFlags) value; }
         }
 
-        protected LLObject.MaterialType m_material;
+        protected LLObject.MaterialType m_material =0;
 
         public byte Material
         {

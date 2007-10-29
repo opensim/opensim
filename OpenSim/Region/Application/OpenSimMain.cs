@@ -149,11 +149,6 @@ namespace OpenSim
 
                 config.Set("asset_database", "sqlite");
 
-                // wtf?
-                config.Set("default_modules", true);
-                config.Set("default_shared_modules", true);
-                config.Set("except_modules", "");
-                config.Set("except_shared_modules", "");
             }
 
             if (m_config.Configs["StandAlone"] == null)
@@ -195,6 +190,7 @@ namespace OpenSim
             m_networkServersInfo = new NetworkServersInfo();
 
             IConfig startupConfig = m_config.Configs["Startup"];
+
             if (startupConfig != null)
             {
                 m_sandbox = !startupConfig.GetBoolean("gridmode", false);

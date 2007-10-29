@@ -53,6 +53,7 @@ namespace SimpleApp
 
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatFromViewer OnChatFromViewer;
+        public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event ModifyTerrain OnModifyTerrain;
         public event SetAppearance OnSetAppearance;

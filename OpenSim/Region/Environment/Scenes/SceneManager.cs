@@ -274,6 +274,23 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        public bool TryGetAvatarsScene(LLUUID avatarId, out Scene scene)
+        {
+            ScenePresence avatar = null;
+            foreach (Scene mScene in m_localScenes)
+            {
+                if (mScene.TryGetAvatar(avatarId, out avatar))
+                {
+                    scene = mScene;
+                    return true;
+                }
+            }
+
+            scene = null;
+            return false;
+        }
+
+
         public void CloseScene(Scene scene)
         {
             m_localScenes.Remove(scene);

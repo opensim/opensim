@@ -210,7 +210,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentSit:
                         if (OnAgentSit != null)
                         {
-                            AgentSitPacket agentSit = (AgentSitPacket) Pack;
+                            AgentSitPacket agentSit = (AgentSitPacket)Pack;
                             OnAgentSit(this, agentSit.AgentData.AgentID);
                         }
                         break;
@@ -364,7 +364,17 @@ namespace OpenSim.Region.ClientStack
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
 
-                            //  Console.WriteLine("image request of "+ imageRequest.RequestImage[i].Image+ " at discard level " + imageRequest.RequestImage[i].DiscardLevel);
+                            // still working on the Texture download module so for now using old method
+                            //  TextureRequestArgs args = new TextureRequestArgs();
+                            //  args.RequestedAssetID = imageRequest.RequestImage[i].Image;
+                            //  args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
+                            //  args.PacketNumber = imageRequest.RequestImage[i].Packet;
+
+                            //  if (OnRequestTexture != null)
+                            //  {
+                            //      OnRequestTexture(this, args);
+                            //  }
+
                             m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet, imageRequest.RequestImage[i].DiscardLevel);
                         }
                         break;

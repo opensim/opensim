@@ -39,14 +39,17 @@ namespace OpenSim.Region.Environment.Modules
         private List<Scene> m_scenes = new List<Scene>();
         private LogBase m_log;
 
+        public InstantMessageModule()
+        {
+            m_log = OpenSim.Framework.Console.MainLog.Instance;
+        }
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             if (!m_scenes.Contains(scene))
             {
                 m_scenes.Add(scene);
-
-                scene.EventManager.OnNewClient += OnNewClient;
-                m_log = OpenSim.Framework.Console.MainLog.Instance;
+                scene.EventManager.OnNewClient += OnNewClient;     
             }
         }
 
@@ -69,9 +72,11 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     // Local Message
                     ScenePresence user = (ScenePresence)m_scene.Entities[toAgentID];
-                    user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
-                        toAgentID, imSessionID, user.Firstname + " " + user.Lastname, dialog, timestamp);
-
+                    if (!user.IsChildAgent)
+                    {
+                        user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
+                            toAgentID, imSessionID, fromAgentName, dialog, timestamp);
+                    }
                     // Message sent
                     return;
                 }

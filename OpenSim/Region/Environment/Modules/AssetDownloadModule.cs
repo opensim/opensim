@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
 
         public void NewClient(IClientAPI client)

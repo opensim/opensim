@@ -79,6 +79,9 @@ namespace OpenSim.Region.Environment
 
             AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
             LoadedSharedModules.Add(avatarFactory.Name, avatarFactory);
+
+            //TextureDownloadModule textureModule = new TextureDownloadModule();
+            //LoadedSharedModules.Add(textureModule.Name, textureModule);
         }
 
         public void InitialiseSharedModules(Scene scene)

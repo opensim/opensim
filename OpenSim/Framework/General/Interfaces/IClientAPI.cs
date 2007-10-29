@@ -136,6 +136,33 @@ namespace OpenSim.Framework.Interfaces
         }
     }
 
+    public class TextureRequestArgs : EventArgs
+    {
+        protected LLUUID m_requestedAssetID;
+        private sbyte m_discardLevel;
+        private uint m_packetNumber;
+
+        public uint PacketNumber
+        {
+            get { return m_packetNumber; }
+            set { m_packetNumber = value; }
+        }
+
+        public sbyte DiscardLevel
+        {
+            get { return m_discardLevel; }
+            set { m_discardLevel = value; }
+        }
+
+        public LLUUID RequestedAssetID
+        {
+            get { return m_requestedAssetID; }
+            set { m_requestedAssetID = value; }
+        }
+    }
+
+    public delegate void TextureRequest(Object sender, TextureRequestArgs e);
+
     public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp, string fromAgentName, string message, byte dialog); // Cut down from full list
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
     public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);
@@ -204,6 +231,7 @@ namespace OpenSim.Framework.Interfaces
     {
         event ImprovedInstantMessage OnInstantMessage;
         event ChatFromViewer OnChatFromViewer;
+        event TextureRequest OnRequestTexture;
         event RezObject OnRezObject;
         event ModifyTerrain OnModifyTerrain;
         event SetAppearance OnSetAppearance;

@@ -87,13 +87,11 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-
             m_scene = scene;
             m_scene.RegisterModuleInterface<IWorldComm>(this);
             m_listenerManager = new ListenerManager();
             m_pending = new Queue<ListenerInfo>();
             m_scene.EventManager.OnNewClient += NewClient;
-
         }
 
         public void PostInitialise()
