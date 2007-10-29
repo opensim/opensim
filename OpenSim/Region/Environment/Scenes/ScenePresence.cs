@@ -248,8 +248,8 @@ namespace OpenSim.Region.Environment.Scenes
             Animations.LoadAnims();
 
             //register for events
-            m_controllingClient.OnRequestWearables += SendAppearance;
-            m_controllingClient.OnSetAppearance += SetAppearance;
+            m_controllingClient.OnRequestWearables += SendOurAppearance;
+            m_controllingClient.OnSetAppearance += new SetAppearance(SetAppearance);
             m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
             m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
             m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
@@ -412,7 +412,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_visualParams[i] = visualParam[i].ParamValue;
             }
 
-            SendAppearanceToAllOtherClients();
+            SendAppearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -707,19 +707,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> agents = m_scene.GetScenePresences();
-            foreach (ScenePresence agent in agents)
+            List<ScenePresence> avatars = m_scene.GetScenePresences();
+            foreach (ScenePresence avatar in avatars)
             {
-                IClientAPI client = agent.ControllingClient;
-                client.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
-                                                          LocalId, AbsolutePosition, m_textureEntry.ToBytes(), m_parentID );
-
-                if (agent.LocalId != LocalId)
+                SendFullUpdateToOtherClient(avatar);
+                if (avatar.LocalId != LocalId)
                 {
-                    if (!agent.m_isChildAgent)
-                    {                     
-                        client.SendAppearance(m_controllingClient.AgentId, m_visualParams,
-                                                        m_textureEntry.ToBytes());
+                    if (!avatar.m_isChildAgent)
+                    {
+                        avatar.SendFullUpdateToOtherClient(this);
+                        avatar.SendAppearanceToOtherAgent(this);
                     }
                 }
             }
@@ -739,28 +736,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             SendFullUpdateToAllClients();
-            SendAppearanceToAllOtherClients();
+            SendAppearanceToAllOtherAgents();
         }
 
-        public void SetWearable( int wearableId, AvatarWearable wearable )
-        {
-            m_wearables[wearableId] = wearable;
-
-            m_scene.ForEachClient( delegate( IClientAPI client )
-                                       {
-                                           SendAppearance( client );
-                                       });            
-        }
-
-        public void SendAppearance(IClientAPI client)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
+        public void SendOurAppearance(IClientAPI client)
         {
             client.SendWearables(m_wearables);
 
             //this.SendFullUpdateToAllClients();
-            //this.SendAppearanceToAllOtherClients();
+            //this.SendAppearanceToAllOtherAgents();
 
             m_scene.SendAllSceneObjectsToClient(this);
-            client.SendViewerTime(m_scene.TimePhase);
+            m_controllingClient.SendViewerTime(m_scene.TimePhase);
 
             //Please don't remove the following code (at least not yet), just leave it commented out
             //gives the user god powers, should help with debuging things in the future
@@ -776,16 +767,25 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void SendAppearanceToAllOtherClients()
+        public void SendAppearanceToAllOtherAgents()
         {
-            m_scene.ForEachClient(delegate(IClientAPI client)
-                                      {
-                                          if( client != m_controllingClient )
-                                          {
-                                              client.SendAppearance(m_controllingClient.AgentId, m_visualParams,
-                                                        m_textureEntry.ToBytes() );
-                                          }
-                                      });
+            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                             {
+                                                 if (scenePresence != this)
+                                                 {
+                                                     SendAppearanceToOtherAgent(scenePresence);
+                                                 }
+                                             });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="avatarInfo"></param>
+        public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
+        {
+            avatarInfo.m_controllingClient.SendAppearance(m_controllingClient.AgentId, m_visualParams,
+                                                        m_textureEntry.ToBytes());
         }
 
         /// <summary>
@@ -1004,6 +1004,12 @@ namespace OpenSim.Region.Environment.Scenes
         internal void Close()
         {
             RemoveFromPhysicalScene();
+        }
+
+        public void SetWearable(int wearableId, AvatarWearable wearable)
+        {
+            m_wearables[wearableId] = wearable;
+            SendOurAppearance( m_controllingClient );
         }
     }
 }

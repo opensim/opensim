@@ -358,19 +358,19 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AssetNotFound(LLUUID assetID)
         {
-            if (this.RequestedTextures.ContainsKey(assetID))
-            {
-                MainLog.Instance.Warn("ASSET CACHE", "sending image not found for {0}", assetID);
-                AssetRequest req = this.RequestedTextures[assetID];
-                ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
-                notFound.ImageID.ID = assetID;
-                req.RequestUser.OutPacket(notFound);
-                this.RequestedTextures.Remove(assetID);
-            }
-            else
-            {
-                MainLog.Instance.Error("ASSET CACHE", "Cound not send image not found for {0}", assetID);
-            }
+            //if (this.RequestedTextures.ContainsKey(assetID))
+            //{
+            //    MainLog.Instance.Warn("ASSET CACHE", "sending image not found for {0}", assetID);
+            //    AssetRequest req = this.RequestedTextures[assetID];
+            //    ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
+            //    notFound.ImageID.ID = assetID;
+            //    req.RequestUser.OutPacket(notFound);
+            //    this.RequestedTextures.Remove(assetID);
+            //}
+            //else
+            //{
+            //    MainLog.Instance.Error("ASSET CACHE", "Cound not send image not found for {0}", assetID);
+            //}
         }
 
         #region Assets
