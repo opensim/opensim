@@ -123,7 +123,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
             }
 
-            _heightmap = new double[65536];
+            _heightmap = new double[258*258];
         }
 
         // This function blatantly ripped off from BoxStack.cs
@@ -393,13 +393,23 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetTerrain(float[] heightMap)
         {
-            for (int i = 0; i < 65536; i++)
+            // this._heightmap[i] = (double)heightMap[i];
+            // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
+            // also, creating a buffer zone of one extra sample all around
+            for (int x = 0; x < 258; x++)
             {
-                // this._heightmap[i] = (double)heightMap[i];
-                // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
-                int x = i & 0xff;
-                int y = i >> 8;
-                _heightmap[i] = (double)heightMap[x * 256 + y];
+                for (int y = 0; y < 258; y++)
+                {
+                    int xx = x-1;
+                    if (xx < 0) xx = 0;
+                    if (xx > 255) xx = 255;
+                    int yy = y-1;
+                    if (yy < 0) yy = 0;
+                    if (yy > 255) yy = 255;
+
+                    double val = (double)heightMap[yy * 256 + xx];
+                    _heightmap[x * 258 + y] = val;
+                }
             }
 
             lock (OdeLock)
@@ -409,7 +419,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceRemove(space, LandGeom);
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 256, 256, 256, 256, 1.0f, 0.0f, 2.0f, 1);
+                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 258, 258, 258, 258, 1.0f, 0.0f, 2.0f, 0);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 this.geom_name_map[LandGeom]="Terrain";
