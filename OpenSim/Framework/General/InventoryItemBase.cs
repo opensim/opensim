@@ -25,6 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
+using System.Xml.Serialization;
+using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 
@@ -242,4 +245,29 @@ namespace OpenSim.Framework
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(LLUUID folder);
     }
+
+    /* 
+     * .Net has some issues, serializing a dictionary, so we cannot reuse the InventoryFolder
+     * class defined in Communications.Framework.Communications.Caches. So we serialize/deserialize
+     * into this simpler class, and then use that.
+     */
+    [XmlRoot(ElementName = "inventory", IsNullable = true)]
+    public class SerializableInventory
+    {
+        [XmlRoot(ElementName = "folder", IsNullable = true)]
+        public class SerializableFolder : InventoryFolderBase
+        {
+            [XmlArray(ElementName = "folders", IsNullable = true)]
+            [XmlArrayItem(ElementName = "folder", IsNullable = true, Type = typeof(SerializableFolder))]
+            public ArrayList SubFolders;
+
+            [XmlArray(ElementName = "items", IsNullable = true)]
+            [XmlArrayItem(ElementName = "item", IsNullable = true, Type = typeof(InventoryItemBase))]
+            public ArrayList Items;
+        }
+
+        [XmlElement(ElementName = "folder", IsNullable = true)]
+        public SerializableFolder root;
+    }
+
 }

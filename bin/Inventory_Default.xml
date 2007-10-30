@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inventory>
+  <folder>
+    <name>My Inventory</name>
+    <folderID UUID="00000112-000f-0000-0000-000100bba000" />
+    <type>9</type>
+    <folders>
+      <folder>
+        <name>Animations</name>
+        <type>20</type>
+      </folder>
+      <folder>
+        <name>Body Parts</name>
+        <type>13</type>
+      </folder>
+      <folder>
+        <name>Clothing</name>
+        <type>5</type>
+      </folder>
+      <folder>
+        <name>Gestures</name>
+        <type>21</type>
+      </folder>
+      <folder>
+        <name>Landmarks</name>
+        <type>3</type>
+      </folder>
+      <folder>
+        <name>Lost And Found</name>
+        <type>16</type>
+      </folder>
+      <folder>
+        <name>Notecards</name>
+        <type>7</type>
+      </folder>
+      <folder>
+        <name>Objects</name>
+        <type>6</type>
+      </folder>
+      <folder>
+        <name>Photo Album</name>
+        <type>15</type>
+      </folder>
+      <folder>
+        <name>Scripts</name>
+        <type>10</type>
+      </folder>
+      <folder>
+        <name>Sounds</name>
+        <type>1</type>
+      </folder>
+      <folder>
+        <name>Textures</name>
+        <type>0</type>
+      </folder>
+      <folder>
+        <name>Trash</name>
+        <type>14</type>
+      </folder>
+    </folders>
+  </folder>
+</inventory>

@@ -26,37 +26,36 @@
 * 
 */
 using System;
+using System.IO;
+using System.Text;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using OpenGrid.Framework.Data;
-using libsecondlife;
-using System.Reflection;
-
 using System.Xml;
-using Nwc.XmlRpc;
-using OpenSim.Framework.Sims;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Utilities;
+using System.Xml.Serialization;
+using libsecondlife;
 
-using System.Security.Cryptography;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 
-namespace OpenGridServices.InventoryServer
+namespace OpenSim.Grid.InventoryServer
 {
-    class InventoryManager
+
+    public class InventoryManager
     {
-        Dictionary<string, IInventoryData> _plugins = new Dictionary<string, IInventoryData>();
+        IInventoryData _databasePlugin;
 
         /// <summary>
         /// Adds a new inventory server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
         /// <param name="FileName">The filename to the inventory server plugin DLL</param>
-        public void AddPlugin(string FileName)
+        public void AddDatabasePlugin(string FileName)
         {
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Invenstorage: Attempting to load " + FileName);
+            MainLog.Instance.Verbose(OpenInventory_Main.LogName, "Invenstorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            MainLog.Instance.Verbose(OpenInventory_Main.LogName, "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -67,8 +66,9 @@ namespace OpenGridServices.InventoryServer
                     {
                         IInventoryData plug = (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
-                        this._plugins.Add(plug.getName(), plug);
-                        OpenSim.Framework.Console.MainConsole.Instance.Verbose( "Invenstorage: Added IUserData Interface");
+                        _databasePlugin = plug;
+                        MainLog.Instance.Verbose(OpenInventory_Main.LogName, "Invenstorage: Added IInventoryData Interface");
+                        break;
                     }
 
                     typeInterface = null;
@@ -78,48 +78,132 @@ namespace OpenGridServices.InventoryServer
             pluginAssembly = null;
         }
 
-        public List<InventoryFolderBase> getRootFolders(LLUUID user)
+        protected static SerializableInventory loadInventoryFromXmlFile(string fileName)
         {
-            foreach (KeyValuePair<string, IInventoryData> kvp in _plugins)
-            {
-                try
-                {
-                    return kvp.Value.getUserRootFolders(user);
-                }
-                catch (Exception e)
-                {
-                    OpenSim.Framework.Console.MainConsole.Instance.Notice("Unable to get root folders via " + kvp.Key + " (" + e.ToString() + ")");
-                }
-            }
-            return null;
+            FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            XmlReader reader = new XmlTextReader(fs);
+            XmlSerializer x = new XmlSerializer(typeof(SerializableInventory));
+            SerializableInventory inventory = (SerializableInventory)x.Deserialize(reader);
+            fs.Close();
+            fs.Dispose();
+            return inventory;
         }
 
-        public XmlRpcResponse XmlRpcInventoryRequest(XmlRpcRequest request)
+        protected static void saveInventoryToStream(SerializableInventory inventory, Stream s)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            XmlTextWriter writer = new XmlTextWriter(s, Encoding.UTF8);
+            writer.Formatting = Formatting.Indented;
+            XmlSerializer x = new XmlSerializer(typeof(SerializableInventory));
+            x.Serialize(writer, inventory);
+        }
 
-            Hashtable responseData = new Hashtable();
+        protected static bool fixupFolder(SerializableInventory.SerializableFolder f, SerializableInventory.SerializableFolder parent)
+        {
+            bool modified = false;
 
-            // Stuff happens here
-
-            if (requestData.ContainsKey("Access-type"))
+            // ensure we have a valid folder id
+            if (f.folderID == LLUUID.Zero)
             {
-                if (requestData["access-type"] == "rootfolders")
+                f.folderID = LLUUID.Random();
+                modified = true;
+            }
+
+            // ensure we have  valid agent id 
+            if (f.agentID == LLUUID.Zero)
+            {
+                if (parent != null)
+                    f.agentID = parent.agentID;
+                else
+                    f.agentID = f.folderID;
+                modified = true;
+            }
+
+            if (f.parentID == LLUUID.Zero && parent != null)
+            {
+                f.parentID = parent.folderID;
+                modified = true;
+            }
+
+
+            foreach (SerializableInventory.SerializableFolder child in f.SubFolders)
+            {
+                modified |= fixupFolder(child, f);
+            }
+
+            return modified;
+        }
+
+        protected static bool fixupInventory(SerializableInventory inventory)
+        {
+            return fixupFolder(inventory.root, null);
+        }
+
+        public class GetInventory : BaseStreamHandler
+        {
+            private SerializableInventory _inventory;
+            private InventoryManager _manager;
+            public GetInventory(InventoryManager manager)
+                : base("GET", "/inventory")
+            {
+                _manager = manager;
+
+                _inventory = loadInventoryFromXmlFile("Inventory_Library.xml");
+                if (fixupInventory(_inventory))
                 {
-//                    responseData["rootfolders"] =
+                    FileStream fs = new FileStream("Inventory_Library.xml", FileMode.Truncate, FileAccess.Write);
+                    saveInventoryToStream(_inventory, fs);
+                    fs.Flush();
+                    fs.Close();
+                    MainLog.Instance.Debug(OpenInventory_Main.LogName, "Modified");
                 }
             }
-            else
+
+            private void CreateDefaultInventory(LLUUID userID)
             {
-                responseData["error"] = "No access-type specified.";
             }
 
+            private byte[] GetUserInventory(LLUUID userID)
+            {
+                MainLog.Instance.Notice(OpenInventory_Main.LogName, "Getting Inventory for user {0}", userID.ToStringHyphenated());
+                byte[] result = new byte[] { };
 
-            // Stuff stops happening here
+                InventoryFolderBase fb = _manager._databasePlugin.getUserRootFolder(userID);
+                if (fb == null)
+                {
+                    MainLog.Instance.Notice(OpenInventory_Main.LogName, "Inventory not found for user {0}, creating new", userID.ToStringHyphenated());
+                    CreateDefaultInventory(userID);
+                }
 
-            response.Value = responseData;
-            return response;
+                return result;
+            }
+
+            override public byte[] Handle(string path, Stream request)
+            {
+                byte[] result = new byte[] { };
+
+                string[] parms = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parms.Length >= 1)
+                {
+                    if (string.Compare(parms[1], "library", true) == 0)
+                    {
+
+                        MemoryStream ms = new MemoryStream();
+                        saveInventoryToStream(_inventory, ms);
+
+                        result = ms.GetBuffer();
+                        Array.Resize<byte>(ref result, (int)ms.Length);
+                    }
+                    else if (string.Compare(parms[1], "user", true) == 0)
+                    {
+                        if (parms.Length >= 2)
+                        {
+                            result = GetUserInventory(new LLUUID(parms[2]));
+                        }
+                    }
+                }
+                return result;
+            }
         }
+    
     }
 }

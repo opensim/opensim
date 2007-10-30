@@ -31,48 +31,71 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.IO;
 using System.Text;
+
 using libsecondlife;
-using OpenSim.Framework.User;
-using OpenSim.Framework.Sims;
-using OpenSim.Framework.Inventory;
-using OpenSim.Framework.Interfaces;
+
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Servers;
-using OpenSim.Framework.Utilities;
+using OpenSim.Framework.Servers;
 
-namespace OpenGridServices.InventoryServer
+using InventoryManager = OpenSim.Grid.InventoryServer.InventoryManager;
+
+namespace OpenSim.Grid.InventoryServer
 {
-    public class OpenInventory_Main : BaseServer, conscmd_callback
+    public class OpenInventory_Main : conscmd_callback
     {
-        ConsoleBase m_console;
+        LogBase m_console;
         InventoryManager m_inventoryManager;
+        InventoryConfig m_config;
 
+        public const string LogName = "INVENTORY";
+
+        [STAThread]
         public static void Main(string[] args)
         {
+            OpenInventory_Main theServer = new OpenInventory_Main();
+            theServer.Startup();
+
+            theServer.Work();
         }
 
         public OpenInventory_Main()
         {
-            m_console = new ConsoleBase("opengrid-inventory-console.log", "OpenInventory", this, false);
-            MainConsole.Instance = m_console;
+            m_console = new LogBase("opengrid-inventory-console.log", LogName, this, true);
+            MainLog.Instance = m_console;
         }
 
         public void Startup()
         {
-            MainConsole.Instance.Notice("Initialising inventory manager...");
+            MainLog.Instance.Notice("Initialising inventory manager...");
+            m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
+            
             m_inventoryManager = new InventoryManager();
+            m_inventoryManager.AddDatabasePlugin(m_config.DatabaseProvider);
+            MainLog.Instance.Notice(LogName, "Starting HTTP server ...");
+            BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
 
-            MainConsole.Instance.Notice("Starting HTTP server");
-            BaseHttpServer httpServer = new BaseHttpServer(8004);
+            httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
 
-            httpServer.AddXmlRPCHandler("rootfolders", m_inventoryManager.XmlRpcInventoryRequest);
-            //httpServer.AddRestHandler("GET","/rootfolders/",Rest
+            httpServer.Start();
+            MainLog.Instance.Notice(LogName, "Started HTTP server");
+        }
+
+        private void Work()
+        {
+            m_console.Notice("Enter help for a list of commands\n");
+
+            while (true)
+            {
+                m_console.MainLogPrompt();
+            }
         }
 
         public void RunCmd(string cmd, string[] cmdparams)
         {
             switch (cmd)
             {
+                case "quit":
                 case "shutdown":
                     m_console.Close();
                     Environment.Exit(0);

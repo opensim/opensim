@@ -25,7 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-
+using System;
+using System.IO;
+using System.Xml.Serialization;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
@@ -36,8 +38,11 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
-        public OGS1InventoryService()
+        string _inventoryServerUrl;
+
+        public OGS1InventoryService(string inventoryServerUrl)
         {
+            _inventoryServerUrl = inventoryServerUrl;
         }
 
         #region IInventoryServices Members
@@ -45,6 +50,19 @@ namespace OpenSim.Region.Communications.OGS1
         public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                             InventoryItemInfo itemCallBack)
         {
+            //TODO! Uncomment when all is done
+            //SerializableInventory userInventory = null;
+
+            //RestClient inventoryServer = new RestClient(_inventoryServerUrl);
+            //inventoryServer.AddResourcePath("inventory");
+            //inventoryServer.AddResourcePath("user");
+            //inventoryServer.AddResourcePath(userID.ToStringHyphenated());
+
+            //using (Stream userInventoryStream = inventoryServer.Request())
+            //{
+            //    XmlSerializer x = new XmlSerializer(typeof(SerializableInventory));
+            //    userInventory = (SerializableInventory)x.Deserialize(userInventoryStream);
+            //}
         }
 
         public void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)

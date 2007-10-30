@@ -43,6 +43,8 @@ namespace OpenSim.Framework
         public string UserRecvKey = "";
         public bool isSandbox;
 
+        public string InventoryURL = "";
+
         public static int DefaultHttpListenerPort = 9000;
         public int HttpListenerPort = DefaultHttpListenerPort;
 
@@ -91,6 +93,8 @@ namespace OpenSim.Framework
             UserSendKey = config.Configs["Network"].GetString("user_send_key", "null");
             UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
             AssetURL = config.Configs["Network"].GetString("asset_server_url", AssetURL);
+            InventoryURL = config.Configs["Network"].GetString("inventory_server_url",
+                                                    "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
         }
     }
 }
