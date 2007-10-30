@@ -835,19 +835,6 @@ namespace OpenSim.Region.ClientStack
             OutPacket(avatarReply);
         }
 
-        public void SendSitResponse(LLUUID targetID, LLVector3 offset)
-        {
-            AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
-
-            avatarSitResponse.SitObject.ID = targetID;
-
-            avatarSitResponse.SitTransform.AutoPilot = true;
-            avatarSitResponse.SitTransform.SitPosition = offset;
-            avatarSitResponse.SitTransform.SitRotation = new LLQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
-
-            OutPacket(avatarSitResponse);
-        }
-
         #endregion
 
         #region Appearance/ Wearables Methods

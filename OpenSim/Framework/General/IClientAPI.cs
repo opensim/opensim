@@ -226,7 +226,7 @@ namespace OpenSim.Framework
 
     public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
 
-    public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID);
+    public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset);
 
     public delegate void AgentSit(IClientAPI remoteClient, LLUUID agentID);
 

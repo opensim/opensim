@@ -503,7 +503,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Size
         {
-            get { return new PhysicsVector(0, 0, 0); }
+            get { return new PhysicsVector(CAPSULE_RADIUS*2, CAPSULE_RADIUS*2, CAPSULE_LENGTH); }
             set { }
         }
 

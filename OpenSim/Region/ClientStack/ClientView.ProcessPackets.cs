@@ -200,12 +200,11 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.AgentRequestSit:
-                        AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket) Pack;
-                        SendSitResponse(agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
                         if (OnAgentRequestSit != null)
                         {
+                            AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket)Pack;
                             OnAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
-                                              agentRequestSit.TargetObject.TargetID);
+                                              agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
                         }
                         break;
                     case PacketType.AgentSit:

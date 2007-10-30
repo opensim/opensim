@@ -50,6 +50,8 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly List<NewForce> m_forcesList = new List<NewForce>();
         private short m_updateCount = 0;
         private uint m_requestedSitTargetID = 0;
+        private LLVector3 m_requestedSitOffset = new LLVector3();
+        private float m_sitAvatarHeight = 2.0f;
 
         private Quaternion bodyRot;
         private byte[] m_visualParams;
@@ -448,6 +450,14 @@ namespace OpenSim.Region.Environment.Scenes
             //    return;
             //}
 
+            // Must check for standing up even when PhysicsActor is null,
+            // since sitting currently removes avatar from physical scene
+            if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            {
+                StandUp();
+                UpdateMovementAnimations(true);
+            }
+
             if (PhysicsActor == null)
             {
                 // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
@@ -464,12 +474,6 @@ namespace OpenSim.Region.Environment.Scenes
             PhysicsActor.Flying = ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
             if (PhysicsActor.Flying != oldflying)
             {
-                update_movementflag = true;
-            }
-
-            if ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
-            {
-                StandUp();
                 update_movementflag = true;
             }
 
@@ -517,15 +521,56 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentID != 0)
             {
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                LLVector3 pos = new LLVector3();
                 if (part != null)
-                    AbsolutePosition = part.AbsolutePosition;
+                    pos = part.AbsolutePosition + m_requestedSitOffset + new LLVector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                MakeRootAgent(pos, false);
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
             }
         }
 
-        public void HandleAgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID)
+        private void SendSitResponse(IClientAPI remoteClient, LLUUID targetID, LLVector3 offset)
         {
+            AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
+
+            avatarSitResponse.SitObject.ID = targetID;
+
+            bool autopilot = true;
+            LLVector3 pos = new LLVector3();
+
+            SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
+            if (part != null)
+            {
+                pos = part.AbsolutePosition + offset;
+
+                double dist = AbsolutePosition.GetDistanceTo(pos);
+
+                if (m_physicsActor != null)
+                {
+                    m_sitAvatarHeight = m_physicsActor.Size.Z;
+                }
+
+// this doesn't seem to quite work yet....
+//                 // if we're close, set the avatar position to the target position and forgo autopilot
+//                 if (dist < 2.5)
+//                 {
+//                     autopilot = false;
+//                     AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);
+//                 }
+            }
+
+            avatarSitResponse.SitTransform.AutoPilot = autopilot;
+            avatarSitResponse.SitTransform.SitPosition = offset;
+            avatarSitResponse.SitTransform.SitRotation = new LLQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
+            remoteClient.OutPacket(avatarSitResponse);
+        }
+            
+        public void HandleAgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset)
+        {
+            SendSitResponse(remoteClient, targetID, offset);
+
             if (m_parentID != 0)
             {
                 StandUp();
@@ -537,6 +582,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 m_requestedSitTargetID = part.LocalID;
+                m_requestedSitOffset = offset;
             }
             else
             {
@@ -546,8 +592,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void HandleAgentSit(IClientAPI remoteClient, LLUUID agentID)
         {
-            AbsolutePosition = new LLVector3(0F, 0F, 0F);
+            // these magic numbers come mostly from experimenting with ODE,
+            // and seeing what looks right
+            AbsolutePosition = m_requestedSitOffset + new LLVector3(m_physicsActor.Size.X / 2.7f, 0f, m_physicsActor.Size.Z / 1.45f);
             m_parentID = m_requestedSitTargetID;
+            MakeChildAgent();
             SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
             SendFullUpdateToAllClients();
         }
