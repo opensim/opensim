@@ -169,7 +169,7 @@ namespace LaunchSLClient
 
             menuItems.Add("OSGrid - www.osgrid.org");
             menuItems.Add("DeepGrid - www.deepgrid.com");
-            menuItems.Add("OpenlifeGrid - www.openlifegrid.com")
+            menuItems.Add("OpenlifeGrid - www.openlifegrid.com");
             
             // We don't have a proper login uri for SL grid
           //  menuItems.Add("Linden Labs - www.secondlife.com");
