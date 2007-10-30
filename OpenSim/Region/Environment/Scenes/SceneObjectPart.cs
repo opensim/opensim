@@ -308,9 +308,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_flags = 0;
             m_flags |= LLObject.ObjectFlags.ObjectModify |
                        LLObject.ObjectFlags.ObjectCopy |
-                       LLObject.ObjectFlags.ObjectYouOwner |
-                       LLObject.ObjectFlags.Touch |
-                       LLObject.ObjectFlags.ObjectMove |
+                        LLObject.ObjectFlags.ObjectYouOwner |
+                        LLObject.ObjectFlags.Touch |
+                        LLObject.ObjectFlags.ObjectMove |
                        LLObject.ObjectFlags.AllowInventoryDrop |
                        LLObject.ObjectFlags.ObjectTransfer |
                        LLObject.ObjectFlags.ObjectOwnerModify;
@@ -440,6 +440,30 @@ namespace OpenSim.Region.Environment.Scenes
             }
             TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
+        }
+        public void AddFlag(LLObject.ObjectFlags flag)
+        {
+            LLObject.ObjectFlags prevflag =  m_flags;
+            //uint objflags = m_flags;
+            if ((this.ObjectFlags & (uint)flag) == 0)
+            {
+                //Console.WriteLine("Adding flag: " + ((LLObject.ObjectFlags) flag).ToString());
+                m_flags |= flag;
+            }
+            uint currflag = (uint)m_flags;
+            //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
+            //ScheduleFullUpdate();
+        }
+        public void RemFlag(LLObject.ObjectFlags flag)
+        {
+            LLObject.ObjectFlags prevflag  = m_flags;
+            if ((this.ObjectFlags & (uint) flag) != 0)
+            {
+                //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
+                m_flags &= ~flag;
+            }
+            //System.Console.WriteLine("prev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
+            //ScheduleFullUpdate();
         }
 
         /// <summary>
@@ -610,6 +634,80 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region ExtraParams
+        public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
+        {
+            bool hasPrim = false;
+            bool UsePhysics = false;
+            bool IsTemporary = false;
+            bool IsPhantom = false;
+            bool CastsShadows = false;
+            //bool IsLocked = false;
+            int i = 0;
+            
+            
+            try
+            {
+                i += 46;
+                //IsLocked = (data[i++] != 0) ? true : false;
+                UsePhysics = (data[i++] != 0) ? true : false;
+                //System.Console.WriteLine("U" + packet.ToBytes().Length.ToString());
+                IsTemporary = (data[i++] != 0) ? true : false;
+                IsPhantom = (data[i++] != 0) ? true : false;
+                CastsShadows = (data[i++] != 0) ? true : false;
+            }
+            catch (System.Exception e)
+            {
+                System.Console.WriteLine("Ignoring invalid Packet:");
+                //Silently ignore it - TODO: FIXME Quick
+            }
+
+            if (IsPhantom)
+            {
+                AddFlag(LLObject.ObjectFlags.Phantom);
+                if(this.PhysActor != null) {
+                    this.m_parentGroup.m_scene.PhysScene.RemovePrim(this.PhysActor);        /// that's not wholesome.  Had to make m_scene public
+                    this.PhysActor = null;
+                }
+            }
+            else
+            {
+                RemFlag(LLObject.ObjectFlags.Phantom);
+                if (this.PhysActor == null)
+                {
+                    this.PhysActor = this.m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                        this.Name,
+                        this.Shape,
+                        new PhysicsVector(this.AbsolutePosition.X, this.AbsolutePosition.Y,
+                                          this.AbsolutePosition.Z),
+                        new PhysicsVector(this.Scale.X, this.Scale.Y, this.Scale.Z),
+                        new Quaternion(this.RotationOffset.W, this.RotationOffset.X,
+                                       this.RotationOffset.Y, this.RotationOffset.Z));
+                }
+            }
+
+            if (UsePhysics)
+            {
+                AddFlag(LLObject.ObjectFlags.Physics);
+
+            }
+            else
+            {
+                RemFlag(LLObject.ObjectFlags.Physics);
+            }
+            if (IsTemporary)
+            {
+                AddFlag(LLObject.ObjectFlags.TemporaryOnRez);
+            }
+            else
+            {
+                RemFlag(LLObject.ObjectFlags.TemporaryOnRez);
+            }
+//            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
+            ScheduleFullUpdate();
+
+
+
+        }
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {

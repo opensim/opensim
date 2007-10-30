@@ -36,7 +36,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         protected List<EntityBase> m_children;
 
-        protected Scene m_scene;
+        public Scene m_scene;
 
         public LLUUID m_uuid;
 

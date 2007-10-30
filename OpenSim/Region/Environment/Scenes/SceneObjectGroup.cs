@@ -910,6 +910,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="type"></param>
         /// <param name="inUse"></param>
         /// <param name="data"></param>
+        /// 
+        public void UpdatePrimFlags(uint localID, ushort type, bool inUse, byte[] data)
+        {
+            SceneObjectPart part = GetChildPart(localID);
+            if (part != null)
+            {
+                part.UpdatePrimFlags(type, inUse, data);
+            }
+        }
         public void UpdateExtraParam(uint localID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectPart part = GetChildPart(localID);

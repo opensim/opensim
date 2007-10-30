@@ -327,6 +327,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient)
         {
+            bool hasprim = false;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    hasprim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasprim != false)
+                    {
+                        
+                        ((SceneObjectGroup)ent).UpdatePrimFlags(localID, (ushort)packet.Type, true, packet.ToBytes());
+
+                    }
+                }
+            }
+            
+            //System.Console.WriteLine("Got primupdate packet: " + packet.UsePhysics.ToString());
         }
 
         /// <summary>
