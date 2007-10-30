@@ -166,9 +166,13 @@ namespace LaunchSLClient
             {
                 MessageBox.Show("No OpenSim installed. Showing public grids only", "No OpenSim");
             }
-            menuItems.Add("DeepGrid - www.deepgrid.com");
+
             menuItems.Add("OSGrid - www.osgrid.org");
-            menuItems.Add("Linden Labs - www.secondlife.com");
+            menuItems.Add("DeepGrid - www.deepgrid.com");
+            menuItems.Add("OpenlifeGrid - www.openlifegrid.com")
+            
+            // We don't have a proper login uri for SL grid
+          //  menuItems.Add("Linden Labs - www.secondlife.com");
             comboBox1.DataSource=menuItems;
         }
 
@@ -185,6 +189,8 @@ namespace LaunchSLClient
             if (comboBox1.Text == "DeepGrid - www.deepgrid.com") { runUrl = " -loginuri " + deepGridUrl; }
             if (comboBox1.Text == "OSGrid - www.osgrid.org") { runUrl = " -loginuri " + osGridUrl; }
             if (comboBox1.Text == "Linden Labs - www.secondlife.com") { runUrl = ""; }
+            if (comboBox1.Text == "OpenlifeGrid - www.openlifegrid.com") { runUrl = "http://logingrid.net:8002"; }
+
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;
             proc.StartInfo.Arguments = exeFlags.ToString() + " " + runUrl;
