@@ -180,10 +180,10 @@ namespace LaunchSLClient
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBox1.Text == "Please select one:") { return; }
-            if (comboBox1.Text == "Local Sandbox") { runUrl=" - loginuri " + sandboxUrl;}
-            if (comboBox1.Text == "Local Grid Server") { runUrl = " - loginuri " + gridUrl; }
-            if (comboBox1.Text == "DeepGrid - www.deepgrid.com") { runUrl = " - loginuri " + deepGridUrl; }
-            if (comboBox1.Text == "OSGrid - www.osgrid.org") { runUrl = " - loginuri " + osGridUrl; }
+            if (comboBox1.Text == "Local Sandbox") { runUrl=" -loginuri " + sandboxUrl;}
+            if (comboBox1.Text == "Local Grid Server") { runUrl = " -loginuri " + gridUrl; }
+            if (comboBox1.Text == "DeepGrid - www.deepgrid.com") { runUrl = " -loginuri " + deepGridUrl; }
+            if (comboBox1.Text == "OSGrid - www.osgrid.org") { runUrl = " -loginuri " + osGridUrl; }
             if (comboBox1.Text == "Linden Labs - www.secondlife.com") { runUrl = ""; }
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;
